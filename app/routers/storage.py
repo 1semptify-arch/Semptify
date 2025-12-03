@@ -82,6 +82,191 @@ SESSIONS: dict[str, dict] = {}
 # Backed by User table in database
 USER_REGISTRY: dict[str, str] = {}  # {email: user_id}
 
+# Token expiry buffer (refresh 5 minutes before actual expiry)
+TOKEN_EXPIRY_BUFFER = timedelta(minutes=5)
+
+
+# ============================================================================
+# Token Validation & Refresh
+# ============================================================================
+
+async def validate_token_with_provider(provider: str, access_token: str) -> bool:
+    """
+    Validate token by making a test API call to the provider.
+    Returns True if token is valid, False otherwise.
+    """
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            if provider == "google_drive":
+                # Check token info endpoint
+                response = await client.get(
+                    "https://www.googleapis.com/oauth2/v1/tokeninfo",
+                    params={"access_token": access_token}
+                )
+                return response.status_code == 200
+            
+            elif provider == "dropbox":
+                # Check current account endpoint
+                response = await client.post(
+                    "https://api.dropboxapi.com/2/users/get_current_account",
+                    headers={"Authorization": f"Bearer {access_token}"}
+                )
+                return response.status_code == 200
+            
+            elif provider == "onedrive":
+                # Check user profile endpoint
+                response = await client.get(
+                    "https://graph.microsoft.com/v1.0/me",
+                    headers={"Authorization": f"Bearer {access_token}"}
+                )
+                return response.status_code == 200
+            
+            return False
+    except Exception:
+        return False
+
+
+async def refresh_access_token(
+    db: AsyncSession,
+    user_id: str,
+    provider: str,
+    refresh_token: str,
+) -> Optional[dict]:
+    """
+    Refresh access token using the refresh token.
+    Returns new token data if successful, None otherwise.
+    """
+    if not refresh_token:
+        return None
+    
+    config = OAUTH_CONFIGS.get(provider)
+    if not config:
+        return None
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            if provider == "google_drive":
+                response = await client.post(config["token_url"], data={
+                    "client_id": settings.GOOGLE_DRIVE_CLIENT_ID,
+                    "client_secret": settings.GOOGLE_DRIVE_CLIENT_SECRET,
+                    "refresh_token": refresh_token,
+                    "grant_type": "refresh_token",
+                })
+            
+            elif provider == "dropbox":
+                # Dropbox uses long-lived tokens, but let's handle refresh anyway
+                response = await client.post(config["token_url"], data={
+                    "client_id": settings.DROPBOX_CLIENT_ID,
+                    "client_secret": settings.DROPBOX_CLIENT_SECRET,
+                    "refresh_token": refresh_token,
+                    "grant_type": "refresh_token",
+                })
+            
+            elif provider == "onedrive":
+                response = await client.post(config["token_url"], data={
+                    "client_id": settings.ONEDRIVE_CLIENT_ID,
+                    "client_secret": settings.ONEDRIVE_CLIENT_SECRET,
+                    "refresh_token": refresh_token,
+                    "grant_type": "refresh_token",
+                    "scope": " ".join(config["scopes"]),
+                })
+            else:
+                return None
+            
+            if response.status_code != 200:
+                print(f"Token refresh failed for {provider}: {response.status_code} - {response.text}")
+                return None
+            
+            token_data = response.json()
+            new_access_token = token_data.get("access_token")
+            # Some providers return a new refresh token, some don't
+            new_refresh_token = token_data.get("refresh_token", refresh_token)
+            expires_in = token_data.get("expires_in", 3600)
+            expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
+            
+            # Update session in database
+            await save_session_to_db(
+                db=db,
+                user_id=user_id,
+                provider=provider,
+                access_token=new_access_token,
+                refresh_token=new_refresh_token,
+                expires_at=expires_at,
+            )
+            
+            print(f"Token refreshed successfully for user {user_id[:4]}*** ({provider})")
+            
+            return {
+                "access_token": new_access_token,
+                "refresh_token": new_refresh_token,
+                "expires_at": expires_at,
+            }
+    
+    except Exception as e:
+        print(f"Token refresh error for {provider}: {e}")
+        return None
+
+
+async def get_valid_session(
+    db: AsyncSession,
+    user_id: str,
+    auto_refresh: bool = True,
+) -> Optional[dict]:
+    """
+    Get a session with a valid (non-expired) access token.
+    Will automatically refresh if token is expired and auto_refresh=True.
+    
+    Returns session dict with valid token, or None if session invalid/refresh failed.
+    """
+    # Get session from DB
+    session = await get_session_from_db(db, user_id)
+    if not session:
+        return None
+    
+    # Check if token needs refresh
+    access_token = session.get("access_token")
+    refresh_token = session.get("refresh_token")
+    expires_at = session.get("expires_at")
+    provider = session.get("provider")
+    
+    needs_refresh = False
+    
+    # Check expiry time if we have it
+    if expires_at:
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+        if datetime.now(timezone.utc) >= (expires_at - TOKEN_EXPIRY_BUFFER):
+            needs_refresh = True
+            print(f"Token expired for user {user_id[:4]}*** - attempting refresh")
+    
+    # If no expiry info, validate with provider
+    if not needs_refresh and not expires_at:
+        is_valid = await validate_token_with_provider(provider, access_token)
+        if not is_valid:
+            needs_refresh = True
+            print(f"Token invalid for user {user_id[:4]}*** - attempting refresh")
+    
+    # Attempt refresh if needed
+    if needs_refresh and auto_refresh and refresh_token:
+        new_token_data = await refresh_access_token(db, user_id, provider, refresh_token)
+        if new_token_data:
+            # Update session with new token
+            session["access_token"] = new_token_data["access_token"]
+            session["refresh_token"] = new_token_data["refresh_token"]
+            session["expires_at"] = new_token_data["expires_at"].isoformat()
+            SESSIONS[user_id] = session
+            return session
+        else:
+            # Refresh failed - session is invalid
+            print(f"Token refresh failed for user {user_id[:4]}*** - session invalidated")
+            return None
+    
+    if needs_refresh and not refresh_token:
+        print(f"Token expired and no refresh token for user {user_id[:4]}***")
+        return None
+    
+    return session
+
 
 # ============================================================================
 # Database Session Helpers
@@ -123,6 +308,7 @@ async def get_session_from_db(db: AsyncSession, user_id: str) -> Optional[dict]:
                 "access_token": _decrypt_string(session_row.access_token_encrypted, user_id),
                 "refresh_token": _decrypt_string(session_row.refresh_token_encrypted, user_id) if session_row.refresh_token_encrypted else None,
                 "authenticated_at": session_row.authenticated_at.isoformat() if session_row.authenticated_at else None,
+                "expires_at": session_row.expires_at.isoformat() if session_row.expires_at else None,
             }
             SESSIONS[user_id] = session_data
             return session_data
@@ -139,6 +325,7 @@ async def save_session_to_db(
     provider: str,
     access_token: str,
     refresh_token: Optional[str] = None,
+    expires_at: Optional[datetime] = None,
 ) -> None:
     """Save session to database and memory cache."""
     # Check if session exists
@@ -156,6 +343,7 @@ async def save_session_to_db(
         session_row.refresh_token_encrypted = _encrypt_string(refresh_token, user_id) if refresh_token else None
         session_row.authenticated_at = now
         session_row.last_activity = now
+        session_row.expires_at = expires_at
     else:
         # Create new session
         session_row = SessionModel(
@@ -165,6 +353,7 @@ async def save_session_to_db(
             refresh_token_encrypted=_encrypt_string(refresh_token, user_id) if refresh_token else None,
             authenticated_at=now,
             last_activity=now,
+            expires_at=expires_at,
         )
         db.add(session_row)
 
@@ -177,6 +366,7 @@ async def save_session_to_db(
         "access_token": access_token,
         "refresh_token": refresh_token,
         "authenticated_at": now.isoformat(),
+        "expires_at": expires_at.isoformat() if expires_at else None,
     }
 
 
@@ -570,12 +760,14 @@ async def oauth_callback(
     )
 
     # Save session to database (persists across server restarts)
+    expires_at = datetime.now(timezone.utc) + timedelta(seconds=token_data.get("expires_in", 3600))
     await save_session_to_db(
         db=db,
         user_id=user_id,
         provider=provider,
         access_token=access_token,
         refresh_token=refresh_token,
+        expires_at=expires_at,
     )
 
     # Create/update user and storage config in database
@@ -869,13 +1061,16 @@ async def get_status(
     """
     Get current auth status.
     Returns provider, role, and access token for API calls.
+    Automatically refreshes expired tokens if possible.
     """
     if not semptify_uid:
         return {"authenticated": False}
 
-    session = await get_session_from_db(db, semptify_uid)
+    # Use get_valid_session which handles token refresh automatically
+    session = await get_valid_session(db, semptify_uid, auto_refresh=True)
+    
     if not session:
-        # Have cookie but no active session - need to re-auth
+        # Have cookie but no active/valid session - need to re-auth
         provider, role, _ = parse_user_id(semptify_uid)
         return {
             "authenticated": False,
@@ -883,6 +1078,7 @@ async def get_status(
             "provider": provider,
             "role": role,
             "needs_reauth": True,
+            "reason": "token_expired_or_invalid",
         }
 
     provider, role, _ = parse_user_id(semptify_uid)
@@ -892,6 +1088,7 @@ async def get_status(
         "provider": provider,
         "role": role,
         "access_token": session["access_token"],
+        "expires_at": session.get("expires_at"),
     }
 
 
@@ -918,6 +1115,79 @@ async def get_session_info(
             "onedrive": "OneDrive",
         }.get(provider, provider),
         "role_name": role.title() if role else None,
+        "expires_at": session.get("expires_at") if session else None,
+    }
+
+
+@router.post("/validate")
+async def validate_and_refresh_token(
+    semptify_uid: Optional[str] = Cookie(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Validate current access token and refresh if needed.
+    Returns detailed status about token validity.
+    """
+    if not semptify_uid:
+        return {
+            "valid": False,
+            "reason": "no_session",
+            "message": "No session cookie found",
+        }
+
+    # First get raw session without auto-refresh
+    session = await get_session_from_db(db, semptify_uid)
+    if not session:
+        return {
+            "valid": False,
+            "reason": "no_session",
+            "message": "No session found in database",
+        }
+
+    provider = session.get("provider")
+    access_token = session.get("access_token")
+    refresh_token = session.get("refresh_token")
+    expires_at = session.get("expires_at")
+
+    # Check if token is expired
+    token_expired = False
+    if expires_at:
+        if isinstance(expires_at, str):
+            expires_at_dt = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+        else:
+            expires_at_dt = expires_at
+        token_expired = datetime.now(timezone.utc) >= expires_at_dt
+
+    # Validate with provider
+    is_valid = await validate_token_with_provider(provider, access_token)
+
+    if is_valid and not token_expired:
+        return {
+            "valid": True,
+            "provider": provider,
+            "expires_at": expires_at,
+            "message": "Token is valid",
+        }
+
+    # Token is invalid or expired - try to refresh
+    if refresh_token:
+        new_token_data = await refresh_access_token(db, semptify_uid, provider, refresh_token)
+        if new_token_data:
+            return {
+                "valid": True,
+                "refreshed": True,
+                "provider": provider,
+                "expires_at": new_token_data["expires_at"].isoformat(),
+                "message": "Token was expired but successfully refreshed",
+            }
+
+    # Could not refresh
+    return {
+        "valid": False,
+        "reason": "token_invalid",
+        "has_refresh_token": bool(refresh_token),
+        "provider": provider,
+        "message": "Token is invalid and could not be refreshed. Please re-authenticate.",
     }
 
 

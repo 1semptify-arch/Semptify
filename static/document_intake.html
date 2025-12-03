@@ -1103,10 +1103,19 @@
             return null;
         }
         
-        async function checkAuthStatus() {
+        async function checkAuthStatus(retryCount = 0) {
             try {
                 // First check cookie directly for user ID
-                const semptifyUid = getCookie('semptify_uid');
+                let semptifyUid = getCookie('semptify_uid');
+
+                // If coming from welcome page and no cookie yet, wait and retry
+                const fromWelcome = new URLSearchParams(window.location.search).get('from') === 'welcome';
+                
+                if (!semptifyUid && fromWelcome && retryCount < 3) {
+                    console.log(`Cookie not ready yet, retry ${retryCount + 1}/3...`);
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    return checkAuthStatus(retryCount + 1);
+                }
 
                 if (!semptifyUid) {
                     // No cookie - redirect to welcome page to sign up/sign in

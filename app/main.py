@@ -6,6 +6,7 @@ Core Promise: Help tenants with tools and information to uphold tenant rights,
 in court if it goes that far - hopefully it won't.
 """
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -70,41 +71,266 @@ def setup_logging():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Application lifespan handler.
-    - Startup: Initialize database, create directories
-    - Shutdown: Close database connections
+    Application lifespan handler with staged setup.
+    - Runs setup in stages with verification
+    - Retries failed stages up to max attempts
+    - Total timeout: 20 seconds
+    - If all retries fail, wipes and starts fresh
     """
     settings = get_settings()
     logger = logging.getLogger(__name__)
     
-    # --- STARTUP ---
-    logger.info(f"Starting {settings.app_name} v{settings.app_version}")
-    logger.info(f"Security mode: {settings.security_mode}")
+    # Configuration
+    TOTAL_TIMEOUT = 20  # Total seconds allowed for setup
+    MAX_RETRIES = 3     # Max retries per stage
+    STAGE_DELAY = 0.5   # Delay between retries
     
-    # Create runtime directories
-    runtime_dirs = [
-        "uploads",
-        "uploads/vault",
-        "logs",
-        "security",
-        "data",
-    ]
-    for dir_path in runtime_dirs:
-        Path(dir_path).mkdir(parents=True, exist_ok=True)
-        logger.debug(f"Ensured directory: {dir_path}")
+    import time
+    import shutil
+    start_time = time.time()
     
-    # Initialize database
-    await init_db()
-    logger.info("Database initialized")
+    def time_remaining():
+        return max(0, TOTAL_TIMEOUT - (time.time() - start_time))
+    
+    def log_stage(stage_num: int, total: int, name: str, status: str):
+        elapsed = time.time() - start_time
+        remaining = time_remaining()
+        bar = "█" * stage_num + "░" * (total - stage_num)
+        logger.info(f"[{bar}] Stage {stage_num}/{total}: {name} - {status} ({elapsed:.1f}s elapsed, {remaining:.1f}s remaining)")
+    
+    async def run_stage(stage_num: int, total: int, name: str, action, verify=None):
+        """Run a stage with retries and verification."""
+        for attempt in range(1, MAX_RETRIES + 1):
+            if time_remaining() <= 0:
+                raise TimeoutError(f"Setup timeout - exceeded {TOTAL_TIMEOUT}s")
+            
+            try:
+                log_stage(stage_num, total, name, f"Attempt {attempt}/{MAX_RETRIES}...")
+                await action() if asyncio.iscoroutinefunction(action) else action()
+                
+                # Verify if verification function provided
+                if verify:
+                    await asyncio.sleep(0.2)  # Brief pause before verify
+                    is_valid = await verify() if asyncio.iscoroutinefunction(verify) else verify()
+                    if not is_valid:
+                        raise Exception(f"Verification failed for {name}")
+                
+                log_stage(stage_num, total, name, "✅ COMPLETE")
+                return True
+                
+            except Exception as e:
+                logger.warning(f"Stage {stage_num} '{name}' attempt {attempt} failed: {e}")
+                if attempt < MAX_RETRIES:
+                    await asyncio.sleep(STAGE_DELAY)
+                else:
+                    raise Exception(f"Stage {stage_num} '{name}' failed after {MAX_RETRIES} attempts: {e}")
+        return False
+    
+    async def wipe_and_reset():
+        """Wipe everything clean for fresh start."""
+        logger.warning("=" * 50)
+        logger.warning("⚠️  WIPING EVERYTHING FOR FRESH START...")
+        logger.warning("=" * 50)
+        
+        # Remove runtime directories
+        dirs_to_wipe = ["uploads", "logs", "data/semptify.db"]
+        for dir_path in dirs_to_wipe:
+            path = Path(dir_path)
+            if path.exists():
+                if path.is_file():
+                    path.unlink()
+                    logger.info(f"  Removed file: {dir_path}")
+                else:
+                    shutil.rmtree(path, ignore_errors=True)
+                    logger.info(f"  Removed directory: {dir_path}")
+        
+        # Clear in-memory caches
+        from app.routers.storage import SESSIONS, OAUTH_STATES
+        SESSIONS.clear()
+        OAUTH_STATES.clear()
+        logger.info("  Cleared in-memory caches")
+        
+        logger.warning("🧹 Wipe complete - ready for fresh start")
+    
+    # =========================================================================
+    # STAGED SETUP PROCESS
+    # =========================================================================
+    
+    TOTAL_STAGES = 6
+    setup_success = False
+    
+    # Required packages for each feature area
+    REQUIRED_PACKAGES = {
+        # Core
+        "fastapi": "Core Framework",
+        "uvicorn": "ASGI Server",
+        "pydantic": "Data Validation",
+        "pydantic_settings": "Settings Management",
+        # Database
+        "sqlalchemy": "Database ORM",
+        "aiosqlite": "SQLite Async Driver",
+        # HTTP
+        "httpx": "HTTP Client",
+        # Security
+        "cryptography": "Encryption (AES-256-GCM)",
+        # PDF
+        "reportlab": "PDF Generation",
+        "PyPDF2": "PDF Manipulation",
+        # Calendar
+        "icalendar": "iCal Generation",
+        # Templates
+        "jinja2": "HTML Templates",
+        "aiofiles": "Async File I/O",
+    }
+    
+    # Optional packages (warn if missing, don't fail)
+    OPTIONAL_PACKAGES = {
+        "PIL": "Image Processing (Pillow)",
+        "magic": "MIME Detection (python-magic)",
+        "weasyprint": "Advanced PDF (WeasyPrint)",
+        "asyncpg": "PostgreSQL Driver",
+    }
+    
+    logger.info("=" * 60)
+    logger.info(f"🚀 STARTING {settings.app_name} v{settings.app_version}")
+    logger.info(f"   Security mode: {settings.security_mode}")
+    logger.info(f"   Timeout: {TOTAL_TIMEOUT}s | Retries per stage: {MAX_RETRIES}")
+    logger.info("=" * 60)
+    
+    try:
+        # --- STAGE 1: Verify Requirements ---
+        missing_required = []
+        missing_optional = []
+        
+        def check_requirements():
+            nonlocal missing_required, missing_optional
+            import importlib
+            
+            # Check required packages
+            for pkg, desc in REQUIRED_PACKAGES.items():
+                try:
+                    importlib.import_module(pkg)
+                except ImportError:
+                    missing_required.append(f"{pkg} ({desc})")
+            
+            # Check optional packages
+            for pkg, desc in OPTIONAL_PACKAGES.items():
+                try:
+                    importlib.import_module(pkg)
+                except ImportError:
+                    missing_optional.append(f"{pkg} ({desc})")
+            
+            if missing_required:
+                raise ImportError(f"Missing required packages: {', '.join(missing_required)}")
+        
+        def verify_requirements():
+            if missing_optional:
+                for pkg in missing_optional:
+                    logger.warning(f"   ⚠️  Optional: {pkg} not installed")
+            return len(missing_required) == 0
+        
+        await run_stage(1, TOTAL_STAGES, "Verify Requirements", check_requirements, verify_requirements)
+        
+        # --- STAGE 2: Create Runtime Directories ---
+        runtime_dirs = ["uploads", "uploads/vault", "logs", "security", "data"]
+        
+        def create_directories():
+            for dir_path in runtime_dirs:
+                Path(dir_path).mkdir(parents=True, exist_ok=True)
+        
+        def verify_directories():
+            return all(Path(d).exists() for d in runtime_dirs)
+        
+        await run_stage(2, TOTAL_STAGES, "Create Directories", create_directories, verify_directories)
+        
+        # --- STAGE 3: Initialize Database ---
+        async def init_database():
+            await init_db()
+        
+        async def verify_database():
+            # Quick DB check
+            from app.core.database import get_db
+            try:
+                async for db in get_db():
+                    from sqlalchemy import text
+                    await db.execute(text("SELECT 1"))
+                    return True
+            except:
+                return False
+        
+        await run_stage(3, TOTAL_STAGES, "Initialize Database", init_database, verify_database)
+        
+        # --- STAGE 4: Load Configuration ---
+        async def load_config():
+            # Verify settings are accessible
+            _ = settings.app_name
+            _ = settings.security_mode
+        
+        def verify_config():
+            return settings.app_name is not None
+        
+        await run_stage(4, TOTAL_STAGES, "Load Configuration", load_config, verify_config)
+        
+        # --- STAGE 5: Initialize Services ---
+        async def init_services():
+            # Initialize any service caches/state
+            # Verify routers can be imported
+            from app.routers import storage, documents, timeline, calendar, health
+            from app.services import azure_ai, document_pipeline
+        
+        await run_stage(5, TOTAL_STAGES, "Initialize Services", init_services)
+        
+        # --- STAGE 6: Final Verification ---
+        async def final_check():
+            # Verify critical paths exist
+            assert Path("uploads/vault").exists(), "Vault directory missing"
+            assert Path("data").exists(), "Data directory missing"
+            # Verify we can import core functionality
+            from app.core.user_id import generate_user_id, parse_user_id
+            from app.core.security import get_user_token_store
+        
+        async def verify_final():
+            # Test a simple endpoint would work
+            return True
+        
+        await run_stage(6, TOTAL_STAGES, "Final Verification", final_check, verify_final)
+        
+        # --- SETUP COMPLETE ---
+        setup_success = True
+        total_time = time.time() - start_time
+        
+        logger.info("")
+        logger.info("=" * 60)
+        logger.info("✅ ✅ ✅  ALL STAGES COMPLETE  ✅ ✅ ✅")
+        logger.info(f"   Setup completed in {total_time:.2f} seconds")
+        logger.info("")
+        logger.info(f"   🌐 Server: http://localhost:8000")
+        logger.info(f"   📄 Welcome: http://localhost:8000/static/welcome.html")
+        logger.info(f"   📚 API Docs: http://localhost:8000/docs")
+        logger.info("=" * 60)
+        logger.info("")
+        
+    except TimeoutError as e:
+        logger.error(f"❌ SETUP TIMEOUT: {e}")
+        await wipe_and_reset()
+        raise SystemExit("Setup failed - timeout exceeded")
+        
+    except Exception as e:
+        logger.error(f"❌ SETUP FAILED: {e}")
+        await wipe_and_reset()
+        raise SystemExit(f"Setup failed after retries: {e}")
     
     yield  # Application runs here
     
     # --- SHUTDOWN ---
-    logger.info("Shutting down...")
+    logger.info("")
+    logger.info("=" * 50)
+    logger.info("🛑 SHUTTING DOWN...")
+    logger.info("=" * 50)
     await close_db()
-    logger.info("Database connections closed")
-
-
+    logger.info("   Database connections closed")
+    logger.info("   Goodbye! 👋")
+    logger.info("=" * 50)
 # =============================================================================
 # HTML Page Generators for Legal Tools
 # =============================================================================

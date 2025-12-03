@@ -461,7 +461,7 @@
 
                 <div class="btn-row">
                     <div></div>
-                    <button class="btn btn-primary" id="btn-step-1" disabled>
+                    <button type="button" class="btn btn-primary" id="btn-step-1" disabled>
                         Continue →
                     </button>
                 </div>
@@ -513,10 +513,10 @@
                 </div>
 
                 <div class="btn-row">
-                    <button class="btn btn-secondary" id="btn-back-1">
+                    <button type="button" class="btn btn-secondary" id="btn-back-1">
                         ← Back
                     </button>
-                    <button class="btn btn-primary" id="btn-step-2" disabled>
+                    <button type="button" class="btn btn-primary" id="btn-step-2" disabled>
                         Continue →
                     </button>
                 </div>
@@ -560,10 +560,10 @@
                 </div>
 
                 <div class="btn-row" style="margin-top: 30px;">
-                    <button class="btn btn-secondary" id="btn-back-2">
+                    <button type="button" class="btn btn-secondary" id="btn-back-2">
                         ← Back
                     </button>
-                    <button class="btn btn-success" id="btn-finish">
+                    <button type="button" class="btn btn-success" id="btn-finish">
                         ✓ Create Account & Start
                     </button>
                 </div>
@@ -587,13 +587,13 @@
                     </p>
 
                     <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                        <a href="/static/document_intake.html" class="btn btn-primary" style="text-decoration: none;">
+                        <a href="/static/document_intake.html?from=welcome" class="btn btn-primary" style="text-decoration: none;">
                             📄 Document Intake
                         </a>
-                        <a href="/static/timeline.html" class="btn btn-secondary" style="text-decoration: none; color: #fff;">
+                        <a href="/static/timeline.html?from=welcome" class="btn btn-secondary" style="text-decoration: none; color: #fff;">
                             📅 Timeline
                         </a>
-                        <a href="/static/calendar.html" class="btn btn-secondary" style="text-decoration: none; color: #fff;">
+                        <a href="/static/calendar.html?from=welcome" class="btn btn-secondary" style="text-decoration: none; color: #fff;">
                             🗓️ Calendar
                         </a>
                     </div>
@@ -654,10 +654,14 @@
 
         // Show step
         function showStep(step) {
+            console.log('showStep called with:', step);
             document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
-            document.getElementById(`step-${step}`).classList.add('active');
+            const targetStep = document.getElementById(`step-${step}`);
+            console.log('Target step element:', targetStep);
+            targetStep.classList.add('active');
             currentStep = step;
             updateStepIndicators();
+            console.log('Current step is now:', currentStep);
         }
 
         // Provider selection
@@ -732,9 +736,18 @@
 
         // Finish
         document.getElementById('btn-finish').addEventListener('click', async () => {
+            console.log('Finish clicked!', { selectedProvider, selectedRole, generatedUserId });
+            
+            if (!generatedUserId) {
+                console.error('No user ID generated!');
+                alert('Error: User ID not generated. Please go back and make selections.');
+                return;
+            }
+            
             // Set cookie
             const maxAge = 365 * 24 * 60 * 60; // 1 year
             document.cookie = `semptify_uid=${generatedUserId}; path=/; max-age=${maxAge}; SameSite=Lax`;
+            console.log('Cookie set:', document.cookie);
 
             // Update final display
             document.getElementById('final-uid-provider').textContent = selectedProvider;
@@ -742,7 +755,9 @@
             document.getElementById('final-uid-unique').textContent = generatedUserId.substring(2);
 
             // Show success
+            console.log('Showing step 4...');
             showStep(4);
+            console.log('Step 4 should now be visible');
 
             // Verify with server
             try {
@@ -758,12 +773,14 @@
 
         // Check if already logged in
         async function checkExistingSession() {
+            console.log('checkExistingSession called');
             try {
                 const response = await fetch('/storage/session', {
                     credentials: 'include'
                 });
                 const data = await response.json();
-                
+                console.log('Session check response:', data);
+
                 if (data.user_id && data.user_id.length === 10) {
                     // Already has a valid session - offer to continue or start fresh
                     const provider = data.user_id[0];
@@ -786,10 +803,10 @@
                                     ${PROVIDERS[provider].icon} ${PROVIDERS[provider].name} • ${ROLES[role].icon} ${ROLES[role].name}
                                 </p>
                                 <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                                    <a href="/static/document_intake.html" class="btn btn-primary" style="text-decoration: none;">
+                                    <a href="/static/document_intake.html?from=welcome" class="btn btn-primary" style="text-decoration: none;">
                                         Continue to App →
                                     </a>
-                                    <button class="btn btn-secondary" onclick="this.parentElement.parentElement.parentElement.remove()">
+                                    <button type="button" class="btn btn-secondary" onclick="this.parentElement.parentElement.parentElement.remove()">
                                         Start Fresh
                                     </button>
                                 </div>
@@ -808,3 +825,4 @@
     </script>
 </body>
 </html>
+
