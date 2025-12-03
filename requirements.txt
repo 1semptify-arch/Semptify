@@ -69,3 +69,5 @@ aiofiles>=23.0.0            # Async file operations
 # Production Server
 # =============================================================================
 gunicorn>=21.0.0            # WSGI (use with uvicorn workers)
+pdfplumber>=0.10.0
+pymupdf>=1.23.0

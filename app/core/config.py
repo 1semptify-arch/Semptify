@@ -94,12 +94,16 @@ Your data lives in YOUR cloud storage - we never store your files.
     # ==========================================================================
     # AI Provider Configuration
     # ==========================================================================
-    ai_provider: Literal["openai", "azure", "ollama", "none"] = "none"
-    
+    ai_provider: Literal["openai", "azure", "ollama", "groq", "none"] = "groq"
+
     # OpenAI
     openai_api_key: str = ""
     openai_model: str = "gpt-4o-mini"
-    
+
+    # Groq (fast & affordable)
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.3-70b-versatile"
+
     # Azure OpenAI
     azure_openai_api_key: str = ""
     azure_openai_endpoint: str = ""
@@ -108,7 +112,7 @@ Your data lives in YOUR cloud storage - we never store your files.
     
     # Ollama (local)
     ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3.2"
+    ollama_model: str = "qwen2:0.5b"
     
     # ==========================================================================
     # External Services

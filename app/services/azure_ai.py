@@ -71,21 +71,72 @@ class AzureAIService:
     ) -> ExtractedDocument:
         """
         Full document analysis pipeline:
-        1. OCR with Document Intelligence (or direct text for text files)
-        2. Classification with AI
+        1. Text extraction (local PDF extraction or Azure OCR)
+        2. Classification with AI (Groq/Ollama/Azure)
         3. Extract key information
         """
-        # For text files, skip Document Intelligence and use content directly
+        full_text = ""
+        raw_result = {}
+        
+        # For text files, use content directly
         if mime_type in ("text/plain", "text/csv", "text/markdown") or filename.endswith(('.txt', '.csv', '.md')):
             try:
                 full_text = content.decode('utf-8')
             except UnicodeDecodeError:
                 full_text = content.decode('latin-1', errors='replace')
             raw_result = {"content": full_text, "source": "direct_text"}
-        else:
-            # Step 1: Extract text and structure with Document Intelligence
+        
+        # For PDFs, use local extraction first
+        elif mime_type == "application/pdf" or filename.lower().endswith('.pdf'):
+            try:
+                from app.services.pdf_extractor import get_pdf_extractor
+                extractor = get_pdf_extractor()
+                
+                # Try local extraction first (fast, no API calls)
+                result = extractor.extract(content)
+                full_text = result.text
+                raw_result = {
+                    "content": full_text,
+                    "source": result.method_used,
+                    "page_count": result.page_count,
+                    "has_images": result.has_images,
+                    "confidence": result.confidence
+                }
+                
+                # If extraction failed or got very little text, try Azure OCR
+                if len(full_text.strip()) < 50 and self.api_key:
+                    print(f"Local extraction got {len(full_text)} chars, trying Azure OCR...")
+                    ocr_result = extractor.extract_with_ocr(
+                        content,
+                        azure_endpoint=self.endpoint,
+                        azure_key=self.api_key
+                    )
+                    if ocr_result.text.strip():
+                        full_text = ocr_result.text
+                        raw_result = {
+                            "content": full_text,
+                            "source": ocr_result.method_used,
+                            "page_count": ocr_result.page_count,
+                            "confidence": ocr_result.confidence
+                        }
+            except Exception as e:
+                print(f"PDF extraction error: {e}, falling back to Azure")
+                # Fallback to Azure Document Intelligence
+                raw_result = await self._extract_with_doc_intelligence(content, mime_type)
+                full_text = self._get_text_from_result(raw_result)
+        
+        # For images, use Azure Document Intelligence (OCR)
+        elif mime_type.startswith("image/") or filename.lower().endswith(('.jpg', '.jpeg', '.png', '.tiff', '.bmp')):
             raw_result = await self._extract_with_doc_intelligence(content, mime_type)
             full_text = self._get_text_from_result(raw_result)
+        
+        # Other file types - try to decode as text
+        else:
+            try:
+                full_text = content.decode('utf-8')
+            except:
+                full_text = content.decode('latin-1', errors='replace')
+            raw_result = {"content": full_text, "source": "text_decode"}
 
         # Step 2: Classify and extract with AI
         analysis = await self._classify_and_extract(full_text, filename)
@@ -220,21 +271,36 @@ Respond in JSON format:
         return await self._call_openai(prompt)
 
     async def _call_openai(self, prompt: str) -> dict:
-        """Call Azure OpenAI for text analysis."""
+        """Call AI for text analysis - tries Groq first, then Azure OpenAI."""
         settings = get_settings()
-        
+
+        # Try Groq first (fast & affordable cloud)
+        if settings.groq_api_key:
+            try:
+                return await self._call_groq(prompt, settings)
+            except Exception as e:
+                print(f"Groq failed, trying fallback: {e}")
+
+        # Try Ollama (free, local, private)
+        try:
+            result = await self._call_ollama(prompt, settings)
+            if result:
+                return result
+        except Exception as e:
+            print(f"Ollama failed: {e}")
+
         # Check if we have Azure OpenAI configured
         if not settings.azure_openai_endpoint:
             # Fall back to rule-based classification
             return self._rule_based_classify(prompt)
-        
+
         url = f"{settings.azure_openai_endpoint}/openai/deployments/{settings.azure_openai_deployment}/chat/completions?api-version=2024-02-15-preview"
-        
+
         headers = {
             "api-key": settings.azure_openai_api_key,
             "Content-Type": "application/json"
         }
-        
+
         payload = {
             "messages": [
                 {"role": "system", "content": "You are a document analysis assistant for tenant rights. Always respond with valid JSON."},
@@ -243,7 +309,7 @@ Respond in JSON format:
             "temperature": 0.1,
             "max_tokens": 1000
         }
-        
+
         async with httpx.AsyncClient(timeout=30.0) as client:
             try:
                 response = await client.post(url, headers=headers, json=payload)
@@ -256,6 +322,78 @@ Respond in JSON format:
                     return self._rule_based_classify(prompt)
             except Exception:
                 return self._rule_based_classify(prompt)
+
+    async def _call_groq(self, prompt: str, settings) -> dict:
+        """Call Groq API for fast, affordable text analysis."""
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        
+        headers = {
+            "Authorization": f"Bearer {settings.groq_api_key}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "model": settings.groq_model or "llama-3.3-70b-versatile",
+            "messages": [
+                {"role": "system", "content": "You are a document analysis assistant for tenant rights. Always respond with valid JSON only."},
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.1,
+            "max_tokens": 1000,
+            "response_format": {"type": "json_object"}
+        }
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(url, headers=headers, json=payload)
+            if response.status_code == 200:
+                result = response.json()
+                content = result["choices"][0]["message"]["content"]
+                return json.loads(content)
+            else:
+                raise Exception(f"Groq API error: {response.status_code}")
+
+    async def _call_ollama(self, prompt: str, settings) -> Optional[dict]:
+        """Call local Ollama for free, private text analysis."""
+        base_url = settings.ollama_base_url or "http://localhost:11434"
+        model = settings.ollama_model or "llama3.2"
+        
+        # Quick check if Ollama is running
+        try:
+            async with httpx.AsyncClient(timeout=2.0) as client:
+                r = await client.get(f"{base_url}/api/tags")
+                if r.status_code != 200:
+                    return None
+        except Exception:
+            return None
+
+        url = f"{base_url}/api/generate"
+        payload = {
+            "model": model,
+            "prompt": f"You are a document analysis assistant. Respond with valid JSON only.\n\n{prompt}",
+            "stream": False,
+            "format": "json",
+            "options": {
+                "temperature": 0.1,
+                "num_predict": 1000,
+            }
+        }
+
+        async with httpx.AsyncClient(timeout=90.0) as client:
+            response = await client.post(url, json=payload)
+            if response.status_code == 200:
+                result = response.json()
+                content = result.get("response", "{}")
+                # Clean up
+                content = content.strip()
+                if content.startswith("```json"):
+                    content = content[7:]
+                if content.startswith("```"):
+                    content = content[3:]
+                if content.endswith("```"):
+                    content = content[:-3]
+                return json.loads(content.strip())
+            else:
+                raise Exception(f"Ollama error: {response.status_code}")
 
     def _rule_based_classify(self, text: str) -> dict:
         """Fallback rule-based document classification."""

@@ -1080,31 +1080,68 @@ class DocumentIntakeEngine:
         return doc
 
     async def _extract_text(self, content: bytes, mime_type: str, filename: str) -> str:
-        """Extract text from document content."""
+        """Extract text from document content using robust multi-method extraction."""
         # For text files
         if mime_type.startswith("text/") or filename.endswith(".txt"):
             try:
                 return content.decode("utf-8")
             except UnicodeDecodeError:
                 return content.decode("latin-1")
-        
-        # For PDFs - simplified (real implementation would use PyPDF2, pdfplumber, or OCR)
-        if mime_type == "application/pdf" or filename.endswith(".pdf"):
-            # Try to extract any readable text
+
+        # For PDFs - use the PDF extractor service
+        if mime_type == "application/pdf" or filename.lower().endswith(".pdf"):
             try:
-                text = content.decode("latin-1", errors="ignore")
-                # Filter for readable characters
-                readable = "".join(c for c in text if c.isprintable() or c.isspace())
-                if len(readable) > 100:
-                    return readable
-            except:
-                pass
-            return f"[PDF document: {filename} - OCR would be needed for full extraction]"
-        
-        # For images - would need OCR
+                from app.services.pdf_extractor import get_pdf_extractor
+                from app.core.config import get_settings
+                
+                extractor = get_pdf_extractor()
+                settings = get_settings()
+                
+                # Try extraction with OCR fallback if Azure is configured
+                if settings.azure_ai_key1:
+                    result = extractor.extract_with_ocr(
+                        content,
+                        azure_endpoint=settings.azure_ai_endpoint,
+                        azure_key=settings.azure_ai_key1
+                    )
+                else:
+                    result = extractor.extract(content)
+                
+                if result.text.strip():
+                    return result.text
+                else:
+                    return f"[PDF: {filename} - {result.page_count} pages, extraction method: {result.method_used}]"
+                    
+            except Exception as e:
+                # Fallback to basic extraction
+                try:
+                    import PyPDF2
+                    import io
+                    reader = PyPDF2.PdfReader(io.BytesIO(content))
+                    texts = [page.extract_text() or "" for page in reader.pages]
+                    return "\n\n".join(texts)
+                except:
+                    pass
+                return f"[PDF document: {filename} - extraction failed: {e}]"
+
+        # For images - use Azure OCR if available
         if mime_type.startswith("image/"):
-            return f"[Image: {filename} - OCR would be needed for text extraction]"
-        
+            try:
+                from app.core.config import get_settings
+                settings = get_settings()
+                
+                if settings.azure_ai_key1:
+                    # Use Azure Document Intelligence for image OCR
+                    from app.services.azure_ai import get_azure_ai
+                    azure = get_azure_ai()
+                    result = await azure._extract_with_doc_intelligence(content, mime_type)
+                    text = azure._get_text_from_result(result)
+                    if text.strip():
+                        return text
+            except Exception as e:
+                pass
+            return f"[Image: {filename} - OCR not available or failed]"
+
         # Try generic decode
         try:
             return content.decode("utf-8")
