@@ -1,0 +1,410 @@
+<!-- Sidebar Component -->
+<div class="sidebar-inner">
+  <!-- Logo/Brand -->
+  <div class="sidebar-header">
+    <a href="/" class="sidebar-brand" aria-label="Semptify Home">
+      <svg class="sidebar-logo" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="8" fill="currentColor" class="text-primary"/>
+        <path d="M8 12h16M8 16h12M8 20h8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span class="sidebar-brand-text">Semptify</span>
+    </a>
+    <button class="sidebar-toggle btn btn-ghost btn-icon" id="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="true">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav" aria-label="Main navigation">
+    <ul class="sidebar-menu">
+      <!-- Dashboard -->
+      <li class="sidebar-item">
+        <a href="/dashboard" class="sidebar-link" data-page="dashboard">
+          <i class="fas fa-home sidebar-icon" aria-hidden="true"></i>
+          <span class="sidebar-text">Dashboard</span>
+        </a>
+      </li>
+
+      <!-- Command Center -->
+      <li class="sidebar-item">
+        <a href="/command-center" class="sidebar-link" data-page="command-center">
+          <i class="fas fa-terminal sidebar-icon" aria-hidden="true"></i>
+          <span class="sidebar-text">Command Center</span>
+        </a>
+      </li>
+
+      <!-- Documents -->
+      <li class="sidebar-item">
+        <a href="/documents" class="sidebar-link" data-page="documents">
+          <i class="fas fa-file-alt sidebar-icon" aria-hidden="true"></i>
+          <span class="sidebar-text">Documents</span>
+        </a>
+      </li>
+
+      <!-- Timeline -->
+      <li class="sidebar-item">
+        <a href="/timeline" class="sidebar-link" data-page="timeline">
+          <i class="fas fa-stream sidebar-icon" aria-hidden="true"></i>
+          <span class="sidebar-text">Timeline</span>
+        </a>
+      </li>
+
+      <!-- Calendar -->
+      <li class="sidebar-item">
+        <a href="/calendar" class="sidebar-link" data-page="calendar">
+          <i class="fas fa-calendar sidebar-icon" aria-hidden="true"></i>
+          <span class="sidebar-text">Calendar</span>
+        </a>
+      </li>
+
+      <!-- Vault -->
+      <li class="sidebar-item">
+        <a href="/vault" class="sidebar-link" data-page="vault">
+          <i class="fas fa-lock sidebar-icon" aria-hidden="true"></i>
+          <span class="sidebar-text">Vault</span>
+        </a>
+      </li>
+
+      <!-- Divider -->
+      <li class="sidebar-divider" role="separator"></li>
+
+      <!-- Eviction Section -->
+      <li class="sidebar-section">
+        <span class="sidebar-section-title">Eviction Defense</span>
+      </li>
+
+      <li class="sidebar-item">
+        <a href="/eviction/flows" class="sidebar-link" data-page="eviction-flows">
+          <i class="fas fa-route sidebar-icon" aria-hidden="true"></i>
+          <span class="sidebar-text">Guided Flows</span>
+        </a>
+      </li>
+
+      <li class="sidebar-item">
+        <a href="/eviction/forms" class="sidebar-link" data-page="eviction-forms">
+          <i class="fas fa-file-signature sidebar-icon" aria-hidden="true"></i>
+          <span class="sidebar-text">Form Library</span>
+        </a>
+      </li>
+
+      <!-- Divider -->
+      <li class="sidebar-divider" role="separator"></li>
+
+      <!-- Settings Section -->
+      <li class="sidebar-item">
+        <a href="/storage" class="sidebar-link" data-page="storage">
+          <i class="fas fa-cloud sidebar-icon" aria-hidden="true"></i>
+          <span class="sidebar-text">Cloud Storage</span>
+        </a>
+      </li>
+
+      <li class="sidebar-item">
+        <a href="/settings" class="sidebar-link" data-page="settings">
+          <i class="fas fa-cog sidebar-icon" aria-hidden="true"></i>
+          <span class="sidebar-text">Settings</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer">
+    <!-- Sync Status Indicator -->
+    <div class="sidebar-status" id="sync-status">
+      <span class="status-indicator status-offline" id="status-dot"></span>
+      <span class="sidebar-text status-text" id="status-text">Offline</span>
+    </div>
+
+    <!-- User Profile -->
+    <div class="sidebar-user" id="user-menu">
+      <div class="user-avatar">
+        <i class="fas fa-user"></i>
+      </div>
+      <div class="user-info sidebar-text">
+        <span class="user-name" id="user-name">Guest</span>
+        <span class="user-role" id="user-role">Not signed in</span>
+      </div>
+      <button class="btn btn-ghost btn-icon" id="user-menu-toggle" aria-label="User menu" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-chevron-up"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Sidebar Styles */
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  background-color: var(--color-bg-card);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  transition: width var(--transition-normal);
+  z-index: var(--z-fixed);
+}
+
+.sidebar.collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+.sidebar.collapsed .sidebar-text,
+.sidebar.collapsed .sidebar-section-title,
+.sidebar.collapsed .sidebar-brand-text {
+  display: none;
+}
+
+.sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-lg);
+}
+
+.sidebar-logo {
+  color: var(--color-primary-600);
+  flex-shrink: 0;
+}
+
+.sidebar-toggle {
+  flex-shrink: 0;
+}
+
+/* Sidebar Navigation */
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4) 0;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-item {
+  margin: var(--space-1) var(--space-3);
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-lg);
+  transition: var(--transition-colors);
+  text-decoration: none;
+}
+
+.sidebar-link:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text);
+}
+
+.sidebar-link.active {
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-700);
+}
+
+[data-theme="dark"] .sidebar-link.active {
+  background-color: var(--color-primary-900);
+  color: var(--color-primary-300);
+}
+
+.sidebar-icon {
+  width: 1.25rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.sidebar-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background-color: var(--color-border);
+  margin: var(--space-3) var(--space-4);
+}
+
+.sidebar-section {
+  padding: var(--space-2) var(--space-4);
+}
+
+.sidebar-section-title {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.sidebar-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.status-online { background-color: var(--color-success-500); }
+.status-offline { background-color: var(--color-neutral-400); }
+.status-syncing { 
+  background-color: var(--color-warning-500);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  background-color: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+}
+
+.user-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  display: block;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.user-role {
+  display: block;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+/* Responsive */
+@media (max-width: 1023px) {
+  .sidebar {
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+}
+</style>
+
+<script>
+(function() {
+  // Sidebar toggle
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('sidebar-toggle');
+  
+  if (toggleBtn && sidebar) {
+    toggleBtn.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      const isCollapsed = sidebar.classList.contains('collapsed');
+      toggleBtn.setAttribute('aria-expanded', !isCollapsed);
+      localStorage.setItem('sidebar_collapsed', isCollapsed);
+    });
+
+    // Restore state
+    if (localStorage.getItem('sidebar_collapsed') === 'true') {
+      sidebar.classList.add('collapsed');
+      toggleBtn.setAttribute('aria-expanded', 'false');
+    }
+  }
+
+  // Active link highlighting
+  const currentPath = window.location.pathname;
+  const links = document.querySelectorAll('.sidebar-link');
+  
+  links.forEach(link => {
+    const href = link.getAttribute('href');
+    if (href && (currentPath === href || currentPath.startsWith(href + '/'))) {
+      link.classList.add('active');
+      link.setAttribute('aria-current', 'page');
+    }
+  });
+
+  // Update sync status from state
+  if (typeof appStore !== 'undefined') {
+    appStore.subscribe('syncStatus', (status) => {
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      
+      if (dot && text) {
+        dot.className = `status-indicator ${status.connected ? 'status-online' : 'status-offline'}`;
+        text.textContent = status.connected ? `Synced to ${status.provider}` : 'Offline';
+      }
+    });
+
+    appStore.subscribe('user', (user) => {
+      const nameEl = document.getElementById('user-name');
+      const roleEl = document.getElementById('user-role');
+      
+      if (nameEl && roleEl) {
+        nameEl.textContent = user?.name || 'Guest';
+        roleEl.textContent = user?.email || 'Not signed in';
+      }
+    });
+  }
+})();
+</script>

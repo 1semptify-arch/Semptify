@@ -1,29 +1,63 @@
 """
 Dakota County Eviction Defense - PDF Generation Service
-Generates court documents as PDFs.
+Generates court documents as PDFs using xhtml2pdf (cross-platform, no external dependencies).
 """
 
 import io
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 
-# Try to import WeasyPrint, fallback to HTML if not available
+# Try to import xhtml2pdf for advanced PDF generation
 try:
-    from weasyprint import HTML, CSS
-    WEASYPRINT_AVAILABLE = True
+    from xhtml2pdf import pisa
+    XHTML2PDF_AVAILABLE = True
 except ImportError:
-    WEASYPRINT_AVAILABLE = False
-    print("[WARN] WeasyPrint not installed - PDF generation will use fallback")
+    XHTML2PDF_AVAILABLE = False
+    print("[WARN] xhtml2pdf not installed - PDF generation will use fallback")
+
+# Backwards compatibility alias
+WEASYPRINT_AVAILABLE = XHTML2PDF_AVAILABLE
+PDF_AVAILABLE = XHTML2PDF_AVAILABLE
+
+# Try python-magic for MIME detection
+try:
+    import magic
+    MAGIC_AVAILABLE = True
+except ImportError:
+    MAGIC_AVAILABLE = False
 
 
 def _generate_pdf_from_html(html_content: str, css: str = "") -> bytes:
-    """Generate PDF from HTML content."""
-    if WEASYPRINT_AVAILABLE:
-        html = HTML(string=html_content)
+    """Generate PDF from HTML content using xhtml2pdf."""
+    if XHTML2PDF_AVAILABLE:
+        # Inject CSS into HTML if provided
         if css:
-            stylesheet = CSS(string=css)
-            return html.write_pdf(stylesheets=[stylesheet])
-        return html.write_pdf()
+            styled_html = f"""
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+{css}
+</style>
+</head>
+<body>
+{html_content.split('<body>')[1].split('</body>')[0] if '<body>' in html_content else html_content}
+</body>
+</html>
+"""
+        else:
+            styled_html = html_content
+        
+        # Create PDF in memory
+        result = io.BytesIO()
+        pisa_status = pisa.CreatePDF(io.StringIO(styled_html), dest=result)
+        
+        if pisa_status.err:
+            print(f"[WARN] PDF generation had errors: {pisa_status.err}")
+            # Still return what we have
+        
+        return result.getvalue()
     else:
         # Fallback: return HTML as bytes (caller should handle)
         return html_content.encode('utf-8')

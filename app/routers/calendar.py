@@ -154,6 +154,27 @@ async def create_event(
         session.add(db_event)
         await session.commit()
         await session.refresh(db_event)
+        
+        # Emit brain event for calendar update
+        try:
+            from app.services.positronic_brain import get_brain, BrainEvent, EventType as BrainEventType, ModuleType
+            brain = get_brain()
+            event_type_brain = BrainEventType.CALENDAR_HEARING_SCHEDULED if event.event_type == "hearing" else BrainEventType.CALENDAR_DEADLINE_APPROACHING
+            await brain.emit(BrainEvent(
+                event_type=event_type_brain,
+                source_module=ModuleType.CALENDAR,
+                data={
+                    "event_id": db_event.id,
+                    "title": db_event.title,
+                    "event_type": db_event.event_type,
+                    "start_datetime": db_event.start_datetime.isoformat() if db_event.start_datetime else None,
+                    "is_critical": db_event.is_critical
+                },
+                user_id=user.user_id
+            ))
+        except Exception:
+            pass  # Brain integration is optional
+        
         return _model_to_response(db_event)
 @router.get("/", response_model=CalendarListResponse)
 async def list_events(

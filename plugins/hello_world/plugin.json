@@ -1,0 +1,16 @@
+{
+    "name": "hello_world",
+    "display_name": "Hello World",
+    "description": "Example plugin demonstrating the plugin system",
+    "version": "1.0.0",
+    "author": "Semptify Team",
+    "website": "https://semptify.com",
+    "license": "MIT",
+    "min_semptify_version": "1.0.0",
+    "dependencies": [],
+    "python_packages": [],
+    "category": "utility",
+    "tags": ["example", "demo"],
+    "main_module": "main",
+    "init_function": "initialize"
+}

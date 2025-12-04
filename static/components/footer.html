@@ -1,0 +1,99 @@
+<!-- Footer Component -->
+<div class="footer-inner">
+  <div class="footer-content">
+    <!-- Copyright -->
+    <p class="footer-copyright">
+      &copy; <span id="footer-year">2024</span> Semptify. All rights reserved.
+    </p>
+    
+    <!-- Links -->
+    <nav class="footer-links" aria-label="Footer navigation">
+      <a href="/privacy" class="footer-link">Privacy Policy</a>
+      <a href="/terms" class="footer-link">Terms of Service</a>
+      <a href="/help" class="footer-link">Help</a>
+    </nav>
+
+    <!-- Version -->
+    <p class="footer-version">
+      <span class="version-label">Version</span>
+      <span class="version-number" id="app-version">5.0.0</span>
+    </p>
+  </div>
+</div>
+
+<style>
+.footer {
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-bg-secondary);
+  margin-top: auto;
+}
+
+.footer-inner {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+}
+
+.footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.footer-copyright {
+  margin: 0;
+}
+
+.footer-links {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.footer-link {
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.footer-link:hover {
+  color: var(--color-primary-600);
+}
+
+.footer-version {
+  margin: 0;
+  display: flex;
+  gap: var(--space-2);
+}
+
+.version-label {
+  color: var(--color-text-muted);
+}
+
+.version-number {
+  font-family: var(--font-family-mono);
+}
+
+@media (max-width: 767px) {
+  .footer-content {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .footer-links {
+    gap: var(--space-4);
+  }
+}
+</style>
+
+<script>
+(function() {
+  // Update year
+  const yearEl = document.getElementById('footer-year');
+  if (yearEl) {
+    yearEl.textContent = new Date().getFullYear();
+  }
+})();
+</script>

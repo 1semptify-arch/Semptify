@@ -136,6 +136,26 @@ async def create_event(
         session.add(db_event)
         await session.commit()
         await session.refresh(db_event)
+        
+        # Emit brain event for timeline update
+        try:
+            from app.services.positronic_brain import get_brain, BrainEvent, EventType as BrainEventType, ModuleType
+            brain = get_brain()
+            await brain.emit(BrainEvent(
+                event_type=BrainEventType.TIMELINE_EVENT_ADDED,
+                source_module=ModuleType.TIMELINE,
+                data={
+                    "event_id": db_event.id,
+                    "event_type": db_event.event_type,
+                    "title": db_event.title,
+                    "event_date": db_event.event_date.isoformat() if db_event.event_date else None,
+                    "is_evidence": db_event.is_evidence
+                },
+                user_id=user.user_id
+            ))
+        except Exception:
+            pass  # Brain integration is optional
+        
         return _model_to_response(db_event)
 @router.get("/", response_model=TimelineListResponse)
 async def list_events(

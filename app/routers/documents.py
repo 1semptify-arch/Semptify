@@ -157,15 +157,32 @@ async def upload_document(
             content=content,
             mime_type=file.content_type or "application/octet-stream"
         )
-    
+
+    # Emit brain event for document upload
+    try:
+        from app.services.positronic_brain import get_brain, BrainEvent, EventType, ModuleType
+        brain = get_brain()
+        await brain.emit(BrainEvent(
+            event_type=EventType.DOCUMENT_UPLOADED,
+            source_module=ModuleType.DOCUMENTS,
+            data={
+                "document_id": doc.id,
+                "filename": doc.filename,
+                "status": doc.status.value,
+                "doc_type": doc.doc_type.value if doc.doc_type else None,
+                "user_id": user_id
+            },
+            user_id=user_id
+        ))
+    except Exception:
+        pass  # Brain integration is optional
+
     return UploadResponse(
         id=doc.id,
         filename=doc.filename,
         status=doc.status.value,
         message=f"Document {'processed' if process_now else 'queued'} successfully"
     )
-
-
 @router.get("/", response_model=list[DocumentResponse])
 async def list_documents(
     doc_type: Optional[str] = Query(None, description="Filter by document type"),

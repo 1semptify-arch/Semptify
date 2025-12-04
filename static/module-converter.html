@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify Module Converter</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Panels */
+        .panel {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .panel-header .icon {
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .panel-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .panel-header span {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* Drop Zone */
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: var(--bg-input);
+        }
+
+        .drop-zone:hover,
+        .drop-zone.dragover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .drop-zone.dragover {
+            transform: scale(1.02);
+        }
+
+        .drop-zone .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .drop-zone h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .drop-zone p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .drop-zone input[type="file"] {
+            display: none;
+        }
+
+        /* Code Editor */
+        .code-editor {
+            position: relative;
+        }
+
+        .code-editor textarea {
+            width: 100%;
+            height: 300px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.875rem;
+            color: var(--text);
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        .code-editor textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .code-editor .line-numbers {
+            position: absolute;
+            left: 0;
+            top: 0;
+            padding: 1rem 0.5rem;
+            background: var(--bg-dark);
+            color: var(--text-muted);
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            border-radius: 8px 0 0 8px;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.875rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Checkboxes */
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        /* Output Panel */
+        .output-panel {
+            background: var(--bg-dark);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: 400px;
+            overflow: auto;
+        }
+
+        .output-panel pre {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .output-panel .keyword {
+            color: #c678dd;
+        }
+
+        .output-panel .string {
+            color: #98c379;
+        }
+
+        .output-panel .function {
+            color: #61afef;
+        }
+
+        .output-panel .decorator {
+            color: #e5c07b;
+        }
+
+        .output-panel .comment {
+            color: #5c6370;
+            font-style: italic;
+        }
+
+        /* Status Messages */
+        .status {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .status.success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .status.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .status.info {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        /* Analysis Results */
+        .analysis-results {
+            background: var(--bg-input);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .analysis-results h4 {
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .analysis-item {
+            background: var(--bg-dark);
+            padding: 0.75rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .analysis-item .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .analysis-item .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        /* Routes List */
+        .routes-list {
+            margin-top: 1rem;
+        }
+
+        .route-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            background: var(--bg-dark);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+
+        .route-method {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+
+        .route-method.get { background: var(--success); }
+        .route-method.post { background: var(--primary); }
+        .route-method.put { background: var(--warning); }
+        .route-method.delete { background: var(--danger); }
+
+        .route-path {
+            flex: 1;
+        }
+
+        .route-func {
+            color: var(--text-muted);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab {
+            padding: 0.5rem 1rem;
+            background: var(--bg-input);
+            border: none;
+            border-radius: 6px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .tab:hover {
+            color: var(--text);
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Architecture Diagram */
+        .architecture {
+            background: var(--bg-input);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .architecture-title {
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .mesh-container {
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .modules-row {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .module-box {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            min-width: 100px;
+            transition: all 0.3s ease;
+        }
+
+        .module-box:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .module-box .name {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .module-box .type {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .hub-box {
+            background: var(--primary);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            margin: 1rem auto;
+            max-width: 200px;
+        }
+
+        .connection-line {
+            height: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .connection-line::before {
+            content: '';
+            width: 2px;
+            height: 100%;
+            background: var(--border);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* File Info */
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: var(--bg-input);
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .file-info .icon {
+            font-size: 2rem;
+        }
+
+        .file-info .details {
+            flex: 1;
+        }
+
+        .file-info .name {
+            font-weight: 600;
+        }
+
+        .file-info .size {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .file-info .remove {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 1.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🧠 Semptify Module Converter</h1>
+            <p>Convert Flask apps to FastAPI modules with Brain SDK integration</p>
+        </header>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Input Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="icon">📥</div>
+                    <div>
+                        <h2>Input</h2>
+                        <span>Upload or paste your Flask code</span>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('upload')">📁 Upload File</button>
+                    <button class="tab" onclick="switchTab('paste')">📝 Paste Code</button>
+                </div>
+
+                <!-- Upload Tab -->
+                <div id="upload-tab">
+                    <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                        <input type="file" id="fileInput" accept=".py" onchange="handleFileSelect(event)">
+                        <div class="icon">📄</div>
+                        <h3>Drop Flask file here</h3>
+                        <p>or click to browse • .py files only</p>
+                    </div>
+
+                    <div id="fileInfo" class="file-info" style="display: none;">
+                        <div class="icon">🐍</div>
+                        <div class="details">
+                            <div class="name" id="fileName">file.py</div>
+                            <div class="size" id="fileSize">0 KB</div>
+                        </div>
+                        <button class="remove" onclick="clearFile()">✕</button>
+                    </div>
+                </div>
+
+                <!-- Paste Tab -->
+                <div id="paste-tab" style="display: none;">
+                    <div class="code-editor">
+                        <textarea id="codeInput" placeholder="# Paste your Flask code here...
+
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+
+@app.route('/api/hello')
+def hello():
+    return jsonify({'message': 'Hello World'})
+
+@app.route('/api/users', methods=['POST'])
+def create_user():
+    data = request.json
+    return jsonify({'user': data})
+"></textarea>
+                    </div>
+                </div>
+
+                <!-- Module Settings -->
+                <div style="margin-top: 1.5rem;">
+                    <h3 style="font-size: 1rem; margin-bottom: 1rem;">⚙️ Module Settings</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Module Name (snake_case)</label>
+                            <input type="text" id="moduleName" placeholder="my_module" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Display Name</label>
+                            <input type="text" id="displayName" placeholder="My Module" value="">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Description</label>
+                        <input type="text" id="description" placeholder="What does this module do?">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="category">
+                                <option value="UTILITY">Utility</option>
+                                <option value="DOCUMENT">Document</option>
+                                <option value="LEGAL">Legal</option>
+                                <option value="CALENDAR">Calendar</option>
+                                <option value="ANALYSIS">Analysis</option>
+                                <option value="STORAGE">Storage</option>
+                                <option value="AI">AI</option>
+                                <option value="INTEGRATION">Integration</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Version</label>
+                            <input type="text" id="version" value="1.0.0">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Options</label>
+                        <div class="checkbox-group">
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="hasUI"> Has UI
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="hasBackgroundTasks"> Background Tasks
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="requiresAuth" checked> Requires Auth
+                            </label>
+                            <label class="checkbox-item">
+                                <input type="checkbox" id="includeRouter" checked> Include Router
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="analyzeCode()">
+                        🔍 Analyze
+                    </button>
+                    <button class="btn btn-success" onclick="convertCode()" id="convertBtn">
+                        🔄 Convert to FastAPI
+                    </button>
+                </div>
+
+                <!-- Analysis Results -->
+                <div id="analysisResults" style="display: none;" class="fade-in">
+                    <div class="analysis-results">
+                        <h4>📊 Analysis Results</h4>
+                        <div class="analysis-grid">
+                            <div class="analysis-item">
+                                <div class="value" id="routeCount">0</div>
+                                <div class="label">Routes</div>
+                            </div>
+                            <div class="analysis-item">
+                                <div class="value" id="blueprintCount">0</div>
+                                <div class="label">Blueprints</div>
+                            </div>
+                            <div class="analysis-item">
+                                <div class="value" id="hasDb">❌</div>
+                                <div class="label">Database</div>
+                            </div>
+                            <div class="analysis-item">
+                                <div class="value" id="hasAuth">❌</div>
+                                <div class="label">Auth</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="routes-list" id="routesList"></div>
+                </div>
+            </div>
+
+            <!-- Output Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    <div class="icon">📤</div>
+                    <div>
+                        <h2>Output</h2>
+                        <span>Generated FastAPI module with Brain SDK</span>
+                    </div>
+                </div>
+
+                <!-- Architecture Preview -->
+                <div class="architecture">
+                    <div class="architecture-title">🧠 POSITRONIC MESH</div>
+                    <div class="mesh-container">
+                        <div class="modules-row">
+                            <div class="module-box" id="newModuleBox" style="border-color: var(--success);">
+                                <div class="name">Your Module</div>
+                                <div class="type">(SDK)</div>
+                            </div>
+                            <div class="module-box">
+                                <div class="name">Documents</div>
+                                <div class="type">(SDK)</div>
+                            </div>
+                            <div class="module-box">
+                                <div class="name">Calendar</div>
+                                <div class="type">(SDK)</div>
+                            </div>
+                            <div class="module-box">
+                                <div class="name">Copilot</div>
+                                <div class="type">(SDK)</div>
+                            </div>
+                        </div>
+                        <div class="connection-line"></div>
+                        <div class="hub-box">
+                            <div class="name">MODULE HUB</div>
+                            <div class="type" style="color: rgba(255,255,255,0.7);">(Info Packs)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div id="status" style="display: none;"></div>
+
+                <!-- Output Code -->
+                <div class="output-panel" id="outputPanel">
+                    <pre id="outputCode">
+<span class="comment"># Your converted FastAPI module will appear here...</span>
+<span class="comment"># </span>
+<span class="comment"># 1. Upload or paste your Flask code</span>
+<span class="comment"># 2. Configure module settings</span>
+<span class="comment"># 3. Click "Convert to FastAPI"</span>
+<span class="comment"># </span>
+<span class="comment"># The generated module will include:</span>
+<span class="comment"># - Brain SDK integration</span>
+<span class="comment"># - Positronic Mesh actions</span>
+<span class="comment"># - FastAPI endpoints</span>
+<span class="comment"># - Event handlers</span>
+                    </pre>
+                </div>
+
+                <!-- Output Actions -->
+                <div class="btn-group">
+                    <button class="btn btn-secondary" onclick="copyCode()">
+                        📋 Copy Code
+                    </button>
+                    <button class="btn btn-secondary" onclick="downloadCode()">
+                        💾 Download .py
+                    </button>
+                    <button class="btn btn-primary" onclick="saveToServer()" id="saveBtn" disabled>
+                        🚀 Save to Server
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let currentCode = '';
+        let analysisResult = null;
+        let generatedCode = '';
+        let currentTab = 'upload';
+
+        // Tab switching
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab:nth-child(${tab === 'upload' ? 1 : 2})`).classList.add('active');
+            
+            document.getElementById('upload-tab').style.display = tab === 'upload' ? 'block' : 'none';
+            document.getElementById('paste-tab').style.display = tab === 'paste' ? 'block' : 'none';
+        }
+
+        // Drag and drop
+        const dropZone = document.getElementById('dropZone');
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].name.endsWith('.py')) {
+                handleFile(files[0]);
+            } else {
+                showStatus('error', 'Please drop a .py file');
+            }
+        });
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentCode = e.target.result;
+                
+                // Update UI
+                document.getElementById('fileInfo').style.display = 'flex';
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('fileSize').textContent = formatFileSize(file.size);
+                dropZone.style.display = 'none';
+                
+                // Auto-generate module name from filename
+                const baseName = file.name.replace('.py', '').toLowerCase().replace(/[^a-z0-9]/g, '_');
+                document.getElementById('moduleName').value = baseName;
+                document.getElementById('displayName').value = baseName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                
+                showStatus('success', `Loaded ${file.name} (${formatFileSize(file.size)})`);
+            };
+            reader.readAsText(file);
+        }
+
+        function clearFile() {
+            currentCode = '';
+            document.getElementById('fileInfo').style.display = 'none';
+            dropZone.style.display = 'block';
+            document.getElementById('fileInput').value = '';
+            document.getElementById('analysisResults').style.display = 'none';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        // Get code from current source
+        function getCode() {
+            if (currentTab === 'paste') {
+                return document.getElementById('codeInput').value;
+            }
+            return currentCode;
+        }
+
+        // Analyze Flask code
+        function analyzeCode() {
+            const code = getCode();
+            if (!code.trim()) {
+                showStatus('error', 'Please provide Flask code to analyze');
+                return;
+            }
+
+            // Simple analysis (would be done server-side in production)
+            const routes = [];
+            const routeRegex = /@(?:app|[\w]+)\.route\(['"]([^'"]+)['"](.*?)\)/g;
+            const methodRegex = /methods\s*=\s*\[([^\]]+)\]/;
+            const funcRegex = /def\s+(\w+)/g;
+
+            let match;
+            const lines = code.split('\n');
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                if (line.includes('.route(')) {
+                    const pathMatch = line.match(/\.route\(['"]([^'"]+)['"]/);
+                    const methodMatch = line.match(/methods\s*=\s*\[([^\]]+)\]/);
+                    
+                    // Look for function def in next few lines
+                    let funcName = 'unknown';
+                    for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+                        const defMatch = lines[j].match(/def\s+(\w+)/);
+                        if (defMatch) {
+                            funcName = defMatch[1];
+                            break;
+                        }
+                    }
+                    
+                    if (pathMatch) {
+                        routes.push({
+                            path: pathMatch[1],
+                            methods: methodMatch ? methodMatch[1].replace(/['"]/g, '').split(',').map(m => m.trim()) : ['GET'],
+                            function: funcName
+                        });
+                    }
+                }
+            }
+
+            // Count blueprints
+            const blueprints = (code.match(/Blueprint\s*\(/g) || []).length;
+            
+            // Detect features
+            const hasDatabase = code.includes('SQLAlchemy') || code.includes('db.') || code.includes('session.query');
+            const hasAuth = code.toLowerCase().includes('login') || code.includes('session[') || code.includes('@login_required');
+
+            analysisResult = {
+                routes,
+                blueprints,
+                hasDatabase,
+                hasAuth
+            };
+
+            // Update UI
+            document.getElementById('analysisResults').style.display = 'block';
+            document.getElementById('routeCount').textContent = routes.length;
+            document.getElementById('blueprintCount').textContent = blueprints;
+            document.getElementById('hasDb').textContent = hasDatabase ? '✅' : '❌';
+            document.getElementById('hasAuth').textContent = hasAuth ? '✅' : '❌';
+
+            // Show routes
+            const routesList = document.getElementById('routesList');
+            routesList.innerHTML = routes.map(r => `
+                <div class="route-item">
+                    ${r.methods.map(m => `<span class="route-method ${m.toLowerCase()}">${m}</span>`).join('')}
+                    <span class="route-path">${r.path}</span>
+                    <span class="route-func">→ ${r.function}()</span>
+                </div>
+            `).join('');
+
+            showStatus('success', `Found ${routes.length} routes, ${blueprints} blueprints`);
+        }
+
+        // Convert code
+        function convertCode() {
+            const code = getCode();
+            if (!code.trim()) {
+                showStatus('error', 'Please provide Flask code to convert');
+                return;
+            }
+
+            const moduleName = document.getElementById('moduleName').value || 'converted_module';
+            const displayName = document.getElementById('displayName').value || 'Converted Module';
+            const description = document.getElementById('description').value || 'Converted from Flask';
+            const category = document.getElementById('category').value;
+            const version = document.getElementById('version').value || '1.0.0';
+            const hasUI = document.getElementById('hasUI').checked;
+            const hasBackgroundTasks = document.getElementById('hasBackgroundTasks').checked;
+            const requiresAuth = document.getElementById('requiresAuth').checked;
+            const includeRouter = document.getElementById('includeRouter').checked;
+
+            // Run analysis first if not done
+            if (!analysisResult) {
+                analyzeCode();
+            }
+
+            // Generate module code
+            generatedCode = generateModule({
+                moduleName,
+                displayName,
+                description,
+                category,
+                version,
+                hasUI,
+                hasBackgroundTasks,
+                requiresAuth,
+                includeRouter,
+                routes: analysisResult?.routes || []
+            });
+
+            // Update output
+            document.getElementById('outputCode').innerHTML = highlightPython(generatedCode);
+            document.getElementById('saveBtn').disabled = false;
+            
+            // Update module box
+            document.getElementById('newModuleBox').querySelector('.name').textContent = displayName;
+            
+            showStatus('success', `Generated ${moduleName}.py with ${analysisResult?.routes?.length || 0} actions`);
+        }
+
+        // Generate module code
+        function generateModule(config) {
+            const actionsCode = config.routes.map(r => `
+@sdk.action(
+    "${r.function}",
+    description="Converted from Flask ${r.path}",
+    produces=["result"],
+)
+async def ${r.function}(
+    user_id: str,
+    params: Dict[str, Any],
+    context: Dict[str, Any],
+) -> Dict[str, Any]:
+    """
+    Converted from Flask route: ${r.path}
+    Methods: ${r.methods.join(', ')}
+    """
+    logger.info(f"{module_definition.name}: ${r.function} for user {user_id[:8]}...")
+    
+    # TODO: Migrate your Flask logic here
+    result = {
+        "action": "${r.function}",
+        "success": True,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+    
+    return {"result": result}`).join('\n');
+
+            const routerCode = config.includeRouter ? config.routes.map(r => {
+                const method = r.methods[0].toLowerCase();
+                const path = r.path.replace(/<(\w+):(\w+)>/g, '{$2}').replace(/<(\w+)>/g, '{$1}');
+                return `
+@router.${method}("${path}")
+async def api_${r.function}(
+    semptify_uid: Optional[str] = Cookie(default=None),
+):
+    """API endpoint for ${r.function}"""
+    user_id = semptify_uid or "anonymous"
+    result = await ${r.function}(user_id, {}, {})
+    return result`;
+            }).join('\n') : '';
+
+            return `"""
+${config.displayName} Module
+${'='.repeat(config.displayName.length + 7)}
+
+${config.description}
+
+Auto-converted from Flask to FastAPI with Brain SDK integration.
+Generated: ${new Date().toISOString()}
+"""
+
+import logging
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Cookie, HTTPException
+from pydantic import BaseModel
+
+from app.sdk import (
+    ModuleSDK,
+    ModuleDefinition,
+    ModuleCategory,
+    DocumentType,
+    PackType,
+)
+
+logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# MODULE DEFINITION
+# =============================================================================
+
+module_definition = ModuleDefinition(
+    name="${config.moduleName}",
+    display_name="${config.displayName}",
+    description="${config.description}",
+    version="${config.version}",
+    category=ModuleCategory.${config.category},
+    
+    handles_documents=[],
+    accepts_packs=[PackType.USER_DATA],
+    produces_packs=[PackType.CUSTOM],
+    depends_on=[],
+    
+    has_ui=${config.hasUI},
+    has_background_tasks=${config.hasBackgroundTasks},
+    requires_auth=${config.requiresAuth},
+)
+
+
+# =============================================================================
+# SDK INSTANCE
+# =============================================================================
+
+sdk = ModuleSDK(module_definition)
+
+
+# =============================================================================
+# ACTIONS (Converted from Flask routes)
+# =============================================================================
+${actionsCode}
+
+
+@sdk.action(
+    "get_state",
+    description="Get current module state",
+    produces=["${config.moduleName}_state"],
+)
+async def get_state(
+    user_id: str,
+    params: Dict[str, Any],
+    context: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Return module state for sync operations"""
+    return {
+        "${config.moduleName}_state": {
+            "active": True,
+            "user_id": user_id,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+    }
+
+
+# =============================================================================
+# EVENT HANDLERS
+# =============================================================================
+
+@sdk.on_event("workflow_started")
+async def on_workflow_started(event_type: str, data: Dict[str, Any]):
+    """React when workflows start"""
+    logger.debug(f"{module_definition.name}: Workflow started - {data.get('workflow_id')}")
+
+
+# =============================================================================
+# INITIALIZATION
+# =============================================================================
+
+def initialize():
+    """Initialize this module - call from main.py on startup"""
+    sdk.initialize()
+    logger.info(f"✅ {module_definition.display_name} module ready")
+
+
+${config.includeRouter ? `# =============================================================================
+# FASTAPI ROUTER
+# =============================================================================
+
+router = APIRouter()
+${routerCode}
+` : ''}
+
+# =============================================================================
+# EXPORTS
+# =============================================================================
+
+__all__ = [
+    "sdk",
+    "module_definition",
+    "initialize",
+    ${config.includeRouter ? '"router",' : ''}
+]`;
+        }
+
+        // Syntax highlighting
+        function highlightPython(code) {
+            return code
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/(#.*$)/gm, '<span class="comment">$1</span>')
+                .replace(/"""[\s\S]*?"""/g, m => `<span class="string">${m}</span>`)
+                .replace(/'([^'\\]|\\.)*'/g, '<span class="string">$&</span>')
+                .replace(/"([^"\\]|\\.)*"/g, '<span class="string">$&</span>')
+                .replace(/\b(from|import|class|def|async|await|return|if|else|elif|for|while|try|except|finally|with|as|True|False|None)\b/g, '<span class="keyword">$1</span>')
+                .replace(/@(\w+)/g, '<span class="decorator">@$1</span>')
+                .replace(/\b(str|int|float|bool|list|dict|Dict|List|Any|Optional)\b/g, '<span class="function">$1</span>');
+        }
+
+        // Copy code
+        function copyCode() {
+            if (!generatedCode) {
+                showStatus('error', 'No code to copy');
+                return;
+            }
+            
+            navigator.clipboard.writeText(generatedCode).then(() => {
+                showStatus('success', 'Code copied to clipboard!');
+            });
+        }
+
+        // Download code
+        function downloadCode() {
+            if (!generatedCode) {
+                showStatus('error', 'No code to download');
+                return;
+            }
+            
+            const moduleName = document.getElementById('moduleName').value || 'converted_module';
+            const blob = new Blob([generatedCode], { type: 'text/x-python' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${moduleName}.py`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showStatus('success', `Downloaded ${moduleName}.py`);
+        }
+
+        // Save to server
+        async function saveToServer() {
+            if (!generatedCode) {
+                showStatus('error', 'No code to save');
+                return;
+            }
+            
+            const moduleName = document.getElementById('moduleName').value || 'converted_module';
+            
+            try {
+                const response = await fetch('/api/modules/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: moduleName,
+                        code: generatedCode
+                    })
+                });
+                
+                if (response.ok) {
+                    showStatus('success', `Saved to app/modules/${moduleName}.py`);
+                } else {
+                    showStatus('error', 'Failed to save to server');
+                }
+            } catch (e) {
+                showStatus('info', `Save endpoint not available. Download the file instead.`);
+            }
+        }
+
+        // Show status message
+        function showStatus(type, message) {
+            const status = document.getElementById('status');
+            const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+            status.className = `status ${type} fade-in`;
+            status.innerHTML = `<span>${icons[type]}</span> ${message}`;
+            status.style.display = 'flex';
+            
+            if (type !== 'error') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>

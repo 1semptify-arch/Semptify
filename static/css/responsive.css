@@ -1,0 +1,598 @@
+/**
+ * Semptify Responsive Design System
+ * Mobile-first responsive utilities and enhancements
+ * 
+ * Breakpoints:
+ * - xs: 0 - 479px (mobile portrait)
+ * - sm: 480px - 639px (mobile landscape)
+ * - md: 640px - 767px (tablet portrait)
+ * - lg: 768px - 1023px (tablet landscape)
+ * - xl: 1024px - 1279px (desktop)
+ * - 2xl: 1280px+ (large desktop)
+ */
+
+/* ====================================
+   1. RESPONSIVE CONTAINER
+   ==================================== */
+
+.container {
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1200px;
+  }
+}
+
+/* Fluid container */
+.container-fluid {
+  width: 100%;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+/* ====================================
+   2. RESPONSIVE GRID SYSTEM
+   ==================================== */
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: calc(var(--space-4) * -0.5);
+  margin-right: calc(var(--space-4) * -0.5);
+}
+
+.col {
+  flex: 1;
+  padding-left: calc(var(--space-4) * 0.5);
+  padding-right: calc(var(--space-4) * 0.5);
+}
+
+/* Column widths */
+.col-1 { flex: 0 0 8.333333%; max-width: 8.333333%; }
+.col-2 { flex: 0 0 16.666667%; max-width: 16.666667%; }
+.col-3 { flex: 0 0 25%; max-width: 25%; }
+.col-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+.col-5 { flex: 0 0 41.666667%; max-width: 41.666667%; }
+.col-6 { flex: 0 0 50%; max-width: 50%; }
+.col-7 { flex: 0 0 58.333333%; max-width: 58.333333%; }
+.col-8 { flex: 0 0 66.666667%; max-width: 66.666667%; }
+.col-9 { flex: 0 0 75%; max-width: 75%; }
+.col-10 { flex: 0 0 83.333333%; max-width: 83.333333%; }
+.col-11 { flex: 0 0 91.666667%; max-width: 91.666667%; }
+.col-12 { flex: 0 0 100%; max-width: 100%; }
+
+/* Auto-width columns */
+.col-auto { flex: 0 0 auto; width: auto; max-width: none; }
+
+/* Responsive columns - SM */
+@media (min-width: 480px) {
+  .col-sm-1 { flex: 0 0 8.333333%; max-width: 8.333333%; }
+  .col-sm-2 { flex: 0 0 16.666667%; max-width: 16.666667%; }
+  .col-sm-3 { flex: 0 0 25%; max-width: 25%; }
+  .col-sm-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+  .col-sm-5 { flex: 0 0 41.666667%; max-width: 41.666667%; }
+  .col-sm-6 { flex: 0 0 50%; max-width: 50%; }
+  .col-sm-7 { flex: 0 0 58.333333%; max-width: 58.333333%; }
+  .col-sm-8 { flex: 0 0 66.666667%; max-width: 66.666667%; }
+  .col-sm-9 { flex: 0 0 75%; max-width: 75%; }
+  .col-sm-10 { flex: 0 0 83.333333%; max-width: 83.333333%; }
+  .col-sm-11 { flex: 0 0 91.666667%; max-width: 91.666667%; }
+  .col-sm-12 { flex: 0 0 100%; max-width: 100%; }
+}
+
+/* Responsive columns - MD */
+@media (min-width: 640px) {
+  .col-md-1 { flex: 0 0 8.333333%; max-width: 8.333333%; }
+  .col-md-2 { flex: 0 0 16.666667%; max-width: 16.666667%; }
+  .col-md-3 { flex: 0 0 25%; max-width: 25%; }
+  .col-md-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+  .col-md-5 { flex: 0 0 41.666667%; max-width: 41.666667%; }
+  .col-md-6 { flex: 0 0 50%; max-width: 50%; }
+  .col-md-7 { flex: 0 0 58.333333%; max-width: 58.333333%; }
+  .col-md-8 { flex: 0 0 66.666667%; max-width: 66.666667%; }
+  .col-md-9 { flex: 0 0 75%; max-width: 75%; }
+  .col-md-10 { flex: 0 0 83.333333%; max-width: 83.333333%; }
+  .col-md-11 { flex: 0 0 91.666667%; max-width: 91.666667%; }
+  .col-md-12 { flex: 0 0 100%; max-width: 100%; }
+}
+
+/* Responsive columns - LG */
+@media (min-width: 768px) {
+  .col-lg-1 { flex: 0 0 8.333333%; max-width: 8.333333%; }
+  .col-lg-2 { flex: 0 0 16.666667%; max-width: 16.666667%; }
+  .col-lg-3 { flex: 0 0 25%; max-width: 25%; }
+  .col-lg-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+  .col-lg-5 { flex: 0 0 41.666667%; max-width: 41.666667%; }
+  .col-lg-6 { flex: 0 0 50%; max-width: 50%; }
+  .col-lg-7 { flex: 0 0 58.333333%; max-width: 58.333333%; }
+  .col-lg-8 { flex: 0 0 66.666667%; max-width: 66.666667%; }
+  .col-lg-9 { flex: 0 0 75%; max-width: 75%; }
+  .col-lg-10 { flex: 0 0 83.333333%; max-width: 83.333333%; }
+  .col-lg-11 { flex: 0 0 91.666667%; max-width: 91.666667%; }
+  .col-lg-12 { flex: 0 0 100%; max-width: 100%; }
+}
+
+/* Responsive columns - XL */
+@media (min-width: 1024px) {
+  .col-xl-1 { flex: 0 0 8.333333%; max-width: 8.333333%; }
+  .col-xl-2 { flex: 0 0 16.666667%; max-width: 16.666667%; }
+  .col-xl-3 { flex: 0 0 25%; max-width: 25%; }
+  .col-xl-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+  .col-xl-5 { flex: 0 0 41.666667%; max-width: 41.666667%; }
+  .col-xl-6 { flex: 0 0 50%; max-width: 50%; }
+  .col-xl-7 { flex: 0 0 58.333333%; max-width: 58.333333%; }
+  .col-xl-8 { flex: 0 0 66.666667%; max-width: 66.666667%; }
+  .col-xl-9 { flex: 0 0 75%; max-width: 75%; }
+  .col-xl-10 { flex: 0 0 83.333333%; max-width: 83.333333%; }
+  .col-xl-11 { flex: 0 0 91.666667%; max-width: 91.666667%; }
+  .col-xl-12 { flex: 0 0 100%; max-width: 100%; }
+}
+
+/* ====================================
+   3. RESPONSIVE DISPLAY UTILITIES
+   ==================================== */
+
+/* Hide on mobile */
+.hide-xs { display: none !important; }
+@media (min-width: 480px) { .hide-xs { display: initial !important; } }
+
+/* Show only on mobile */
+@media (min-width: 480px) { .show-xs { display: none !important; } }
+
+/* Hide/show at other breakpoints */
+@media (max-width: 479px) { .hide-mobile { display: none !important; } }
+@media (min-width: 480px) and (max-width: 767px) { .hide-tablet { display: none !important; } }
+@media (min-width: 768px) { .hide-desktop { display: none !important; } }
+
+@media (max-width: 767px) { .show-desktop { display: none !important; } }
+@media (min-width: 768px) { .show-mobile { display: none !important; } }
+
+/* ====================================
+   4. MOBILE NAVIGATION
+   ==================================== */
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-normal), visibility var(--transition-normal);
+  z-index: 999;
+}
+
+.mobile-menu-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Mobile sidebar slide-in */
+@media (max-width: 767px) {
+  .sidebar {
+    position: fixed;
+    left: -280px;
+    top: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 1000;
+    transition: left var(--transition-normal);
+    box-shadow: var(--shadow-2xl);
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .main-wrapper {
+    margin-left: 0;
+  }
+}
+
+/* Hamburger menu button */
+.mobile-menu-btn {
+  display: none;
+  width: 44px;
+  height: 44px;
+  padding: var(--space-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+}
+
+@media (max-width: 767px) {
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.mobile-menu-btn .hamburger {
+  width: 24px;
+  height: 2px;
+  background-color: var(--color-text-primary);
+  position: relative;
+  transition: var(--transition-fast);
+}
+
+.mobile-menu-btn .hamburger::before,
+.mobile-menu-btn .hamburger::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 24px;
+  height: 2px;
+  background-color: var(--color-text-primary);
+  transition: var(--transition-fast);
+}
+
+.mobile-menu-btn .hamburger::before {
+  top: -8px;
+}
+
+.mobile-menu-btn .hamburger::after {
+  bottom: -8px;
+}
+
+/* Hamburger animation */
+.mobile-menu-btn.active .hamburger {
+  background-color: transparent;
+}
+
+.mobile-menu-btn.active .hamburger::before {
+  top: 0;
+  transform: rotate(45deg);
+}
+
+.mobile-menu-btn.active .hamburger::after {
+  bottom: 0;
+  transform: rotate(-45deg);
+}
+
+/* ====================================
+   5. RESPONSIVE TYPOGRAPHY
+   ==================================== */
+
+/* Fluid typography */
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 480px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+/* Responsive headings */
+h1, .h1 {
+  font-size: var(--font-size-2xl);
+}
+
+@media (min-width: 768px) {
+  h1, .h1 {
+    font-size: var(--font-size-3xl);
+  }
+}
+
+h2, .h2 {
+  font-size: var(--font-size-xl);
+}
+
+@media (min-width: 768px) {
+  h2, .h2 {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+/* ====================================
+   6. RESPONSIVE SPACING
+   ==================================== */
+
+/* Mobile-reduced spacing */
+@media (max-width: 479px) {
+  .p-mobile-2 { padding: var(--space-2) !important; }
+  .p-mobile-3 { padding: var(--space-3) !important; }
+  .p-mobile-4 { padding: var(--space-4) !important; }
+  
+  .m-mobile-2 { margin: var(--space-2) !important; }
+  .m-mobile-3 { margin: var(--space-3) !important; }
+  .m-mobile-4 { margin: var(--space-4) !important; }
+  
+  .gap-mobile-2 { gap: var(--space-2) !important; }
+  .gap-mobile-3 { gap: var(--space-3) !important; }
+  .gap-mobile-4 { gap: var(--space-4) !important; }
+}
+
+/* ====================================
+   7. RESPONSIVE COMPONENTS
+   ==================================== */
+
+/* Responsive cards */
+.card {
+  margin-bottom: var(--space-4);
+}
+
+@media (max-width: 479px) {
+  .card {
+    border-radius: 0;
+    margin-left: calc(var(--space-4) * -1);
+    margin-right: calc(var(--space-4) * -1);
+  }
+  
+  .card .card-body {
+    padding: var(--space-4);
+  }
+}
+
+/* Responsive tables */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 639px) {
+  /* Stack table cells on mobile */
+  .table-stack-mobile thead {
+    display: none;
+  }
+  
+  .table-stack-mobile tbody tr {
+    display: block;
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+  }
+  
+  .table-stack-mobile tbody td {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--space-2) 0;
+    border: none;
+  }
+  
+  .table-stack-mobile tbody td::before {
+    content: attr(data-label);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-secondary);
+  }
+}
+
+/* Responsive modals */
+@media (max-width: 479px) {
+  .modal {
+    max-width: 100%;
+    max-height: 100%;
+    margin: 0;
+    border-radius: 0;
+  }
+  
+  .modal-body {
+    max-height: calc(100vh - 140px);
+  }
+}
+
+/* Responsive buttons */
+@media (max-width: 479px) {
+  .btn-block-mobile {
+    display: block;
+    width: 100%;
+  }
+  
+  .btn-group-mobile {
+    flex-direction: column;
+  }
+  
+  .btn-group-mobile .btn {
+    width: 100%;
+    margin-bottom: var(--space-2);
+  }
+}
+
+/* ====================================
+   8. RESPONSIVE FORMS
+   ==================================== */
+
+@media (max-width: 479px) {
+  .form-row {
+    flex-direction: column;
+  }
+  
+  .form-row > .form-group {
+    width: 100%;
+    margin-bottom: var(--space-4);
+  }
+  
+  .form-inline {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .form-inline .form-input,
+  .form-inline .form-select {
+    width: 100%;
+    margin-bottom: var(--space-2);
+  }
+}
+
+/* ====================================
+   9. SAFE AREAS (Notch support)
+   ==================================== */
+
+@supports (padding-top: env(safe-area-inset-top)) {
+  .header {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .sidebar {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .footer {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .modal-footer {
+    padding-bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+  }
+}
+
+/* ====================================
+   10. TOUCH DEVICE ENHANCEMENTS
+   ==================================== */
+
+/* Remove hover effects on touch devices */
+@media (hover: none) {
+  .btn:hover,
+  .card:hover,
+  a:hover {
+    transform: none;
+  }
+  
+  /* Larger touch targets */
+  .btn,
+  .form-input,
+  .form-select {
+    min-height: 48px;
+  }
+  
+  /* Better tap feedback */
+  .btn:active,
+  .card:active,
+  a:active {
+    opacity: 0.8;
+  }
+}
+
+/* Enable smooth scrolling momentum */
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* ====================================
+   11. PRINT STYLES
+   ==================================== */
+
+@media print {
+  /* Hide non-essential elements */
+  .sidebar,
+  .header,
+  .footer,
+  .btn,
+  .modal,
+  .toast-container {
+    display: none !important;
+  }
+  
+  /* Reset layout */
+  .main-wrapper {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .main-content {
+    padding: 0;
+  }
+  
+  /* Reset colors */
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .card {
+    border: 1px solid #ccc;
+    box-shadow: none;
+  }
+  
+  /* Avoid page breaks */
+  .card,
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+  
+  /* Show URLs after links */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+  
+  a[href^="#"]::after,
+  a[href^="javascript"]::after {
+    content: "";
+  }
+}
+
+/* ====================================
+   12. LANDSCAPE MODE
+   ==================================== */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Reduce header height in landscape */
+  .header {
+    padding-top: var(--space-2);
+    padding-bottom: var(--space-2);
+  }
+  
+  .header-title h1 {
+    font-size: var(--font-size-lg);
+  }
+  
+  /* Reduce page header spacing */
+  .page-header {
+    padding: var(--space-3) 0;
+  }
+}
+
+/* ====================================
+   13. DARK MODE ADJUSTMENTS
+   ==================================== */
+
+@media (prefers-color-scheme: dark) {
+  /* Auto dark mode if no explicit preference */
+  :root:not([data-theme]) {
+    --color-bg-primary: #0f172a;
+    --color-bg-secondary: #1e293b;
+    --color-bg-tertiary: #334155;
+    --color-text-primary: #f8fafc;
+    --color-text-secondary: #94a3b8;
+    --color-text-muted: #64748b;
+    --color-border: #334155;
+  }
+}

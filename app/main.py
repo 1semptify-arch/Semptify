@@ -20,7 +20,7 @@ from app.core.config import get_settings
 from app.core.database import init_db, close_db
 
 # Import routers
-from app.routers import auth, vault, timeline, calendar, copilot, health, storage, documents, adaptive_ui, context_loop 
+from app.routers import auth, vault, timeline, calendar, copilot, health, storage, documents, adaptive_ui, context_loop
 from app.routers.intake import router as intake_router
 from app.routers.registry import router as registry_router
 from app.routers.vault_engine import router as vault_engine_router
@@ -30,6 +30,11 @@ from app.routers.zoom_court import router as zoom_court_router
 from app.routers.form_data import router as form_data_router
 from app.routers.setup import router as setup_router
 from app.routers.websocket import router as websocket_router
+from app.routers.brain import router as brain_router
+from app.routers.cloud_sync import router as cloud_sync_router
+from app.routers.module_hub import router as module_hub_router
+from app.routers.positronic_mesh import router as positronic_mesh_router
+from app.routers.mesh_network import router as mesh_network_router
 
 # Dakota County Eviction Defense Module
 try:
@@ -187,7 +192,7 @@ async def lifespan(app: FastAPI):
     OPTIONAL_PACKAGES = {
         "PIL": "Image Processing (Pillow)",
         "magic": "MIME Detection (python-magic)",
-        "weasyprint": "Advanced PDF (WeasyPrint)",
+        "xhtml2pdf": "Advanced PDF (xhtml2pdf)",
         "asyncpg": "PostgreSQL Driver",
     }
     
@@ -277,6 +282,25 @@ async def lifespan(app: FastAPI):
             # Verify routers can be imported
             from app.routers import storage, documents, timeline, calendar, health
             from app.services import azure_ai, document_pipeline
+            # Initialize Positronic Brain connections
+            from app.services.brain_integrations import initialize_brain_connections
+            await initialize_brain_connections()
+            logger.info("   🧠 Positronic Brain initialized with all modules")
+            
+            # Initialize Module Hub and register all modules
+            from app.services.module_registration import register_all_modules
+            from app.services.module_actions import register_all_actions
+            register_all_modules()
+            logger.info("   🔗 Module Hub initialized with bidirectional communication")
+            
+            # Initialize Positronic Mesh and register all module actions
+            register_all_actions()
+            logger.info("   🧠 Positronic Mesh initialized with workflow orchestration")
+            
+            # Initialize Mesh Network for true bidirectional module communication
+            from app.services.mesh_handlers import register_all_mesh_handlers
+            mesh_stats = register_all_mesh_handlers()
+            logger.info(f"   🕸️ Mesh Network initialized: {mesh_stats['modules_registered']} modules, {mesh_stats['total_handlers']} handlers")
         
         await run_stage(5, TOTAL_STAGES, "Initialize Services", init_services)
         
@@ -1375,6 +1399,9 @@ def create_app() -> FastAPI:
     app.include_router(form_data_router, prefix="/api/form-data", tags=["Form Data Hub"])  # Central data integration
     app.include_router(setup_router, prefix="/api/setup", tags=["Setup Wizard"])  # Initial setup wizard
     app.include_router(websocket_router, prefix="/ws", tags=["WebSocket Events"])  # Real-time events
+    app.include_router(module_hub_router, prefix="/api", tags=["Module Hub"])  # Central module communication
+    app.include_router(positronic_mesh_router, prefix="/api", tags=["Positronic Mesh"])  # Workflow orchestration
+    app.include_router(mesh_network_router, prefix="/api", tags=["Mesh Network"])  # True bidirectional module communication
 
     # Dakota County Eviction Defense Module
     if DAKOTA_AVAILABLE:
@@ -1392,6 +1419,14 @@ def create_app() -> FastAPI:
     app.include_router(eviction_defense_router, tags=["Eviction Defense Toolkit"])
     app.include_router(zoom_court_router, tags=["Zoom Courtroom"])
     logging.getLogger(__name__).info("✅ Legal Defense modules loaded (Law Library, Eviction Defense, Zoom Court)")
+
+    # Positronic Brain - Central Intelligence Hub
+    app.include_router(brain_router, tags=["Positronic Brain"])
+    logging.getLogger(__name__).info("🧠 Positronic Brain connected - Central intelligence hub active")
+    
+    # Cloud Sync - User-Controlled Persistent Storage
+    app.include_router(cloud_sync_router, tags=["Cloud Sync"])
+    logging.getLogger(__name__).info("☁️ Cloud Sync router connected - User-controlled data persistence active")
 
     # app.include_router(complaints.router, prefix="/api/complaints", tags=["Complaints"])
     # app.include_router(ledger.router, prefix="/api/ledger", tags=["Rent Ledger"])

@@ -1,0 +1,743 @@
+/**
+ * Semptify Accessibility Enhancement CSS
+ * WCAG 2.1 AA Compliance
+ * 
+ * This file provides:
+ * - Focus management and visible focus states
+ * - Screen reader utilities
+ * - Reduced motion support
+ * - High contrast mode support
+ * - Keyboard navigation improvements
+ * - Color-blind safe patterns
+ */
+
+/* ====================================
+   1. FOCUS MANAGEMENT
+   ==================================== */
+
+/* Visible focus indicators for all interactive elements */
+:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Remove default outline when :focus-visible is supported */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Enhanced focus for buttons */
+.btn:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(var(--color-primary-500-rgb), 0.2);
+}
+
+/* Enhanced focus for form inputs */
+.form-input:focus-visible,
+.form-select:focus-visible,
+.form-textarea:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-500-rgb), 0.2);
+}
+
+/* Enhanced focus for links */
+a:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+  text-decoration: underline;
+}
+
+/* Focus trap indicator for modals */
+.modal:focus-visible,
+[role="dialog"]:focus-visible {
+  outline: none;
+}
+
+/* ====================================
+   2. SKIP LINKS
+   ==================================== */
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--space-3) var(--space-6);
+  background-color: var(--color-primary-600);
+  color: white;
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  z-index: 10000;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+  top: 0;
+  outline: none;
+}
+
+/* Multiple skip links */
+.skip-links {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  background-color: var(--color-bg-primary);
+  border-bottom: 1px solid var(--color-border);
+  z-index: 10000;
+  transition: top var(--transition-fast);
+}
+
+.skip-links:focus-within {
+  top: 0;
+}
+
+/* ====================================
+   3. SCREEN READER UTILITIES
+   ==================================== */
+
+/* Visually hidden but accessible to screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focusable visually hidden (becomes visible on focus) */
+.sr-only-focusable:focus,
+.sr-only-focusable:active {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: var(--space-2) var(--space-4);
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Hidden from everyone including screen readers */
+.hidden,
+[hidden] {
+  display: none !important;
+}
+
+/* Visible to everyone */
+.visible {
+  visibility: visible !important;
+}
+
+/* ====================================
+   4. ARIA LIVE REGIONS
+   ==================================== */
+
+/* Announcer for dynamic content changes */
+.a11y-announcer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Toast container with proper ARIA attributes */
+.toast-container[role="status"],
+.toast-container[aria-live="polite"] {
+  /* Already positioned, just ensuring ARIA works */
+}
+
+/* Alert container */
+.alert-container[role="alert"],
+.alert-container[aria-live="assertive"] {
+  /* For urgent announcements */
+}
+
+/* ====================================
+   5. REDUCED MOTION
+   ==================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Keep some minimal visual feedback */
+  .btn:hover,
+  .card:hover,
+  a:hover {
+    transition: none;
+  }
+
+  /* Disable parallax effects */
+  .parallax {
+    transform: none !important;
+  }
+
+  /* Disable animated backgrounds */
+  .animated-bg {
+    animation: none !important;
+  }
+
+  /* Disable scroll animations */
+  .scroll-animate {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ====================================
+   6. HIGH CONTRAST MODE
+   ==================================== */
+
+@media (prefers-contrast: high) {
+  :root {
+    --color-border: #000;
+    --color-text-primary: #000;
+    --color-text-secondary: #333;
+    --color-bg-primary: #fff;
+    --color-bg-secondary: #f5f5f5;
+  }
+
+  [data-theme="dark"] {
+    --color-border: #fff;
+    --color-text-primary: #fff;
+    --color-text-secondary: #ddd;
+    --color-bg-primary: #000;
+    --color-bg-secondary: #111;
+  }
+
+  /* Stronger borders */
+  .card,
+  .btn,
+  .form-input,
+  .form-select {
+    border-width: 2px;
+  }
+
+  /* Higher contrast focus indicators */
+  :focus-visible {
+    outline: 3px solid currentColor;
+    outline-offset: 3px;
+  }
+
+  /* Ensure links are clearly distinguishable */
+  a {
+    text-decoration: underline;
+  }
+
+  /* Badges with borders for visibility */
+  .badge {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Windows High Contrast Mode */
+@media (forced-colors: active) {
+  .btn {
+    border: 2px solid currentColor;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-success,
+  .btn-danger,
+  .btn-warning {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    color: HighlightText;
+  }
+
+  .btn:hover {
+    background-color: HighlightText;
+    color: Highlight;
+  }
+
+  .card {
+    border: 2px solid CanvasText;
+  }
+
+  .form-input,
+  .form-select,
+  .form-textarea {
+    border: 2px solid CanvasText;
+    background-color: Canvas;
+    color: CanvasText;
+  }
+
+  .sidebar {
+    border-right: 2px solid CanvasText;
+  }
+
+  .badge {
+    border: 1px solid currentColor;
+  }
+
+  /* Focus indicators */
+  :focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+
+/* ====================================
+   7. COLOR-BLIND SAFE PATTERNS
+   ==================================== */
+
+/* Add patterns/icons alongside color for status indicators */
+.status-success::before {
+  content: "✓ ";
+}
+
+.status-error::before {
+  content: "✕ ";
+}
+
+.status-warning::before {
+  content: "⚠ ";
+}
+
+.status-info::before {
+  content: "ℹ ";
+}
+
+/* Badge patterns for color-blind users */
+.badge-success {
+  background-image: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 30%, rgba(255,255,255,0.1) 70%, transparent 70%);
+}
+
+.badge-danger {
+  background-image: repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px);
+}
+
+.badge-warning {
+  background-image: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
+}
+
+/* ====================================
+   8. KEYBOARD NAVIGATION
+   ==================================== */
+
+/* Tab highlight for navigation */
+.sidebar-link:focus-visible,
+.nav-link:focus-visible {
+  background-color: var(--color-primary-100);
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: -2px;
+}
+
+/* Card focus for interactive cards */
+.card[tabindex]:focus-visible,
+.card.clickable:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Dropdown/menu focus */
+.dropdown-item:focus-visible,
+.menu-item:focus-visible {
+  background-color: var(--color-primary-100);
+  outline: none;
+}
+
+/* Table row focus */
+tr:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: -2px;
+}
+
+/* ====================================
+   9. TOUCH TARGETS
+   ==================================== */
+
+/* Ensure minimum 44x44px touch targets (WCAG 2.5.5) */
+@media (pointer: coarse) {
+  .btn,
+  button,
+  a,
+  input[type="checkbox"],
+  input[type="radio"],
+  .toggle,
+  .icon-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Larger click areas for small buttons */
+  .btn-sm {
+    min-height: 44px;
+    padding: var(--space-2) var(--space-4);
+  }
+
+  /* Ensure clickable areas in lists */
+  .list-item,
+  .menu-item,
+  .dropdown-item {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Checkbox/radio touch targets */
+  .form-checkbox,
+  .form-radio {
+    padding: var(--space-3);
+    margin: calc(var(--space-1) * -1);
+  }
+}
+
+/* ====================================
+   10. TEXT ACCESSIBILITY
+   ==================================== */
+
+/* Ensure text can scale to 200% */
+html {
+  font-size: 100%; /* Base 16px, respects user zoom */
+}
+
+/* Minimum text size */
+body {
+  min-font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Link styling (distinguishable from regular text) */
+a:not(.btn):not(.sidebar-link):not(.nav-link) {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+a:not(.btn):not(.sidebar-link):not(.nav-link):hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Ensure sufficient color contrast for placeholder text */
+::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1; /* Firefox fix */
+}
+
+/* Selection contrast */
+::selection {
+  background-color: var(--color-primary-200);
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] ::selection {
+  background-color: var(--color-primary-700);
+  color: white;
+}
+
+/* ====================================
+   11. FORM ACCESSIBILITY
+   ==================================== */
+
+/* Required field indicator */
+.form-label.required::after,
+label.required::after {
+  content: " *";
+  color: var(--color-danger-500);
+}
+
+/* Error states with multiple indicators */
+.form-input.error,
+.form-input:invalid {
+  border-color: var(--color-danger-500);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='%23ef4444'%3E%3Cpath d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0-9.5a1 1 0 0 0-1 1v3a1 1 0 0 0 2 0v-3a1 1 0 0 0-1-1zm0 6.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
+  background-size: 1rem;
+  padding-right: calc(var(--space-3) * 2 + 1rem);
+}
+
+/* Success states with icon */
+.form-input.success,
+.form-input:valid:not(:placeholder-shown) {
+  border-color: var(--color-success-500);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='%2322c55e'%3E%3Cpath d='M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm3.844-8.791a.75.75 0 0 0-1.188-.918l-3.7 4.79-1.649-1.833a.75.75 0 1 0-1.114 1.004l2.25 2.5a.75.75 0 0 0 1.151-.043l4.25-5.5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
+  background-size: 1rem;
+  padding-right: calc(var(--space-3) * 2 + 1rem);
+}
+
+/* Error message styling */
+.form-error {
+  color: var(--color-danger-600);
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.form-error::before {
+  content: "⚠";
+}
+
+/* Fieldset and legend for grouped fields */
+fieldset {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+legend {
+  font-weight: var(--font-weight-semibold);
+  padding: 0 var(--space-2);
+}
+
+/* ====================================
+   12. IMAGE ACCESSIBILITY
+   ==================================== */
+
+/* Ensure images have alt text indicator during development */
+img:not([alt]) {
+  outline: 3px dashed var(--color-danger-500);
+}
+
+img[alt=""] {
+  /* Empty alt is valid for decorative images */
+}
+
+/* Responsive images */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ====================================
+   13. LOADING STATES
+   ==================================== */
+
+/* Accessible loading indicator */
+.loading[aria-busy="true"] {
+  position: relative;
+}
+
+.loading[aria-busy="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: rgba(var(--color-bg-primary-rgb), 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Skeleton loading with reduced motion support */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-bg-secondary) 25%, var(--color-bg-tertiary) 50%, var(--color-bg-secondary) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: var(--color-bg-tertiary);
+  }
+}
+
+/* ====================================
+   14. DIALOG/MODAL ACCESSIBILITY
+   ==================================== */
+
+/* Modal focus trap styles */
+.modal-backdrop {
+  /* Prevent scroll when modal is open */
+  /* Body should have overflow:hidden when modal active */
+}
+
+.modal[role="dialog"] {
+  /* Dialog semantics */
+}
+
+.modal[aria-modal="true"] {
+  /* Modal behavior */
+}
+
+/* Close button accessibility */
+.modal-close {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/* ====================================
+   15. TABLE ACCESSIBILITY
+   ==================================== */
+
+/* Responsive tables */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Table structure */
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th {
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+}
+
+th[scope="col"],
+th[scope="row"] {
+  /* Proper scope attributes */
+}
+
+/* Sortable columns */
+th[aria-sort] {
+  cursor: pointer;
+}
+
+th[aria-sort]::after {
+  content: " ↕";
+  opacity: 0.5;
+}
+
+th[aria-sort="ascending"]::after {
+  content: " ↑";
+  opacity: 1;
+}
+
+th[aria-sort="descending"]::after {
+  content: " ↓";
+  opacity: 1;
+}
+
+/* Row hover states */
+tbody tr:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+tbody tr:focus-within {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: -2px;
+}
+
+/* ====================================
+   16. CUSTOM CHECKBOX/RADIO
+   ==================================== */
+
+/* Accessible custom checkbox */
+.form-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.form-checkbox input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.form-checkbox .checkmark {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.form-checkbox input:checked + .checkmark {
+  background-color: var(--color-primary-500);
+  border-color: var(--color-primary-500);
+  color: white;
+}
+
+.form-checkbox input:checked + .checkmark::after {
+  content: "✓";
+  font-size: 0.75rem;
+}
+
+.form-checkbox input:focus-visible + .checkmark {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/* Accessible custom radio */
+.form-radio input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.form-radio .radiomark {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition-fast);
+}
+
+.form-radio input:checked + .radiomark {
+  border-color: var(--color-primary-500);
+}
+
+.form-radio input:checked + .radiomark::after {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: var(--color-primary-500);
+  border-radius: 50%;
+}
+
+.form-radio input:focus-visible + .radiomark {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}

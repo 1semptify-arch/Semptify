@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Semptify Settings - Configure your account and preferences">
+  <title>Settings - Semptify</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <link rel="stylesheet" href="/static/css/layouts.css">
+  
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+</head>
+<body>
+  <div id="toast-container" class="toast-container"></div>
+  <div id="a11y-announcer" class="sr-only" aria-live="polite"></div>
+
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner">
+        <div class="sidebar-header">
+          <a href="/" class="sidebar-brand">
+            <div class="sidebar-logo-icon"><i class="fas fa-balance-scale"></i></div>
+            <span class="sidebar-brand-text">Semptify</span>
+          </a>
+          <button class="sidebar-toggle btn btn-ghost btn-icon" id="sidebar-toggle">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+        <nav class="sidebar-nav">
+          <ul class="sidebar-menu">
+            <li class="sidebar-item">
+              <a href="/static/dashboard-v2.html" class="sidebar-link">
+                <i class="fas fa-home sidebar-icon"></i>
+                <span class="sidebar-text">Dashboard</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a href="/static/documents-v2.html" class="sidebar-link">
+                <i class="fas fa-file-alt sidebar-icon"></i>
+                <span class="sidebar-text">Documents</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a href="/static/timeline-v2.html" class="sidebar-link">
+                <i class="fas fa-stream sidebar-icon"></i>
+                <span class="sidebar-text">Timeline</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a href="/static/calendar-v2.html" class="sidebar-link">
+                <i class="fas fa-calendar sidebar-icon"></i>
+                <span class="sidebar-text">Calendar</span>
+              </a>
+            </li>
+            <li class="sidebar-divider"></li>
+            <li class="sidebar-section"><span class="sidebar-section-title">Account</span></li>
+            <li class="sidebar-item">
+              <a href="/static/settings-v2.html" class="sidebar-link active" aria-current="page">
+                <i class="fas fa-cog sidebar-icon"></i>
+                <span class="sidebar-text">Settings</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="sidebar-status" id="sync-status">
+            <span class="status-indicator status-offline" id="status-dot"></span>
+            <span class="sidebar-text" id="status-text">Offline</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main-wrapper">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-inner">
+          <button class="header-menu-toggle btn btn-ghost btn-icon" id="mobile-menu-toggle">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="header-title">
+            <h1 class="page-title">Settings</h1>
+          </div>
+          <div class="header-actions">
+            <button class="btn btn-ghost btn-icon" id="theme-toggle">
+              <i class="fas fa-moon" id="theme-icon"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content -->
+      <main id="main-content" class="main-content">
+        <div class="settings-layout">
+          <!-- Settings Navigation -->
+          <nav class="settings-nav card">
+            <ul class="settings-nav-list">
+              <li><a href="#profile" class="settings-nav-link active" data-section="profile"><i class="fas fa-user"></i> Profile</a></li>
+              <li><a href="#appearance" class="settings-nav-link" data-section="appearance"><i class="fas fa-palette"></i> Appearance</a></li>
+              <li><a href="#notifications" class="settings-nav-link" data-section="notifications"><i class="fas fa-bell"></i> Notifications</a></li>
+              <li><a href="#storage" class="settings-nav-link" data-section="storage"><i class="fas fa-cloud"></i> Cloud Storage</a></li>
+              <li><a href="#security" class="settings-nav-link" data-section="security"><i class="fas fa-shield-alt"></i> Security</a></li>
+              <li><a href="#data" class="settings-nav-link" data-section="data"><i class="fas fa-database"></i> Data & Privacy</a></li>
+            </ul>
+          </nav>
+
+          <!-- Settings Content -->
+          <div class="settings-content">
+            <!-- Profile Section -->
+            <section id="profile" class="settings-section active">
+              <div class="card">
+                <div class="card-header">
+                  <h2 class="card-title"><i class="fas fa-user"></i> Profile Settings</h2>
+                </div>
+                <div class="card-body">
+                  <div class="profile-header">
+                    <div class="avatar avatar-xl" id="user-avatar">
+                      <i class="fas fa-user"></i>
+                    </div>
+                    <div class="profile-actions">
+                      <button class="btn btn-secondary btn-sm">
+                        <i class="fas fa-camera"></i> Change Photo
+                      </button>
+                      <button class="btn btn-ghost btn-sm text-danger">Remove</button>
+                    </div>
+                  </div>
+                  <form id="profile-form" class="settings-form">
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label class="form-label" for="first-name">First Name</label>
+                        <input type="text" id="first-name" class="form-input" value="John">
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="last-name">Last Name</label>
+                        <input type="text" id="last-name" class="form-input" value="Doe">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="email">Email Address</label>
+                      <input type="email" id="email" class="form-input" value="john.doe@example.com">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="phone">Phone Number</label>
+                      <input type="tel" id="phone" class="form-input" placeholder="+1 (555) 000-0000">
+                    </div>
+                    <div class="form-actions">
+                      <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Changes
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </section>
+
+            <!-- Appearance Section -->
+            <section id="appearance" class="settings-section">
+              <div class="card">
+                <div class="card-header">
+                  <h2 class="card-title"><i class="fas fa-palette"></i> Appearance</h2>
+                </div>
+                <div class="card-body">
+                  <div class="settings-group">
+                    <h3 class="settings-group-title">Theme</h3>
+                    <div class="theme-options">
+                      <label class="theme-option">
+                        <input type="radio" name="theme" value="light" checked>
+                        <div class="theme-preview theme-preview-light">
+                          <i class="fas fa-sun"></i>
+                        </div>
+                        <span>Light</span>
+                      </label>
+                      <label class="theme-option">
+                        <input type="radio" name="theme" value="dark">
+                        <div class="theme-preview theme-preview-dark">
+                          <i class="fas fa-moon"></i>
+                        </div>
+                        <span>Dark</span>
+                      </label>
+                      <label class="theme-option">
+                        <input type="radio" name="theme" value="system">
+                        <div class="theme-preview theme-preview-system">
+                          <i class="fas fa-desktop"></i>
+                        </div>
+                        <span>System</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div class="settings-group">
+                    <h3 class="settings-group-title">Font Size</h3>
+                    <div class="form-group">
+                      <select class="form-select" id="font-size">
+                        <option value="small">Small</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="large">Large</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="settings-group">
+                    <h3 class="settings-group-title">Sidebar</h3>
+                    <label class="toggle-setting">
+                      <span class="toggle-label">
+                        <span class="toggle-title">Collapsed by default</span>
+                        <span class="toggle-description">Start with sidebar collapsed on desktop</span>
+                      </span>
+                      <label class="toggle">
+                        <input type="checkbox" id="sidebar-collapsed">
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Notifications Section -->
+            <section id="notifications" class="settings-section">
+              <div class="card">
+                <div class="card-header">
+                  <h2 class="card-title"><i class="fas fa-bell"></i> Notifications</h2>
+                </div>
+                <div class="card-body">
+                  <div class="settings-group">
+                    <h3 class="settings-group-title">Email Notifications</h3>
+                    <label class="toggle-setting">
+                      <span class="toggle-label">
+                        <span class="toggle-title">Deadline reminders</span>
+                        <span class="toggle-description">Receive email reminders for upcoming deadlines</span>
+                      </span>
+                      <label class="toggle">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </label>
+                    <label class="toggle-setting">
+                      <span class="toggle-label">
+                        <span class="toggle-title">Document analysis complete</span>
+                        <span class="toggle-description">Get notified when AI analysis is finished</span>
+                      </span>
+                      <label class="toggle">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </label>
+                    <label class="toggle-setting">
+                      <span class="toggle-label">
+                        <span class="toggle-title">Weekly summary</span>
+                        <span class="toggle-description">Receive a weekly summary of your case progress</span>
+                      </span>
+                      <label class="toggle">
+                        <input type="checkbox">
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </label>
+                  </div>
+                  <div class="settings-group">
+                    <h3 class="settings-group-title">Push Notifications</h3>
+                    <label class="toggle-setting">
+                      <span class="toggle-label">
+                        <span class="toggle-title">Enable push notifications</span>
+                        <span class="toggle-description">Receive notifications in your browser</span>
+                      </span>
+                      <label class="toggle">
+                        <input type="checkbox" id="push-notifications">
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Storage Section -->
+            <section id="storage" class="settings-section">
+              <div class="card">
+                <div class="card-header">
+                  <h2 class="card-title"><i class="fas fa-cloud"></i> Cloud Storage</h2>
+                </div>
+                <div class="card-body">
+                  <div class="settings-group">
+                    <h3 class="settings-group-title">Connected Services</h3>
+                    <div class="storage-providers">
+                      <div class="storage-provider">
+                        <div class="provider-icon dropbox"><i class="fab fa-dropbox"></i></div>
+                        <div class="provider-info">
+                          <div class="provider-name">Dropbox</div>
+                          <div class="provider-status">Not connected</div>
+                        </div>
+                        <button class="btn btn-secondary btn-sm">Connect</button>
+                      </div>
+                      <div class="storage-provider">
+                        <div class="provider-icon google-drive"><i class="fab fa-google-drive"></i></div>
+                        <div class="provider-info">
+                          <div class="provider-name">Google Drive</div>
+                          <div class="provider-status">Not connected</div>
+                        </div>
+                        <button class="btn btn-secondary btn-sm">Connect</button>
+                      </div>
+                      <div class="storage-provider">
+                        <div class="provider-icon onedrive"><i class="fab fa-microsoft"></i></div>
+                        <div class="provider-info">
+                          <div class="provider-name">OneDrive</div>
+                          <div class="provider-status">Not connected</div>
+                        </div>
+                        <button class="btn btn-secondary btn-sm">Connect</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="settings-group">
+                    <h3 class="settings-group-title">Auto-Sync</h3>
+                    <label class="toggle-setting">
+                      <span class="toggle-label">
+                        <span class="toggle-title">Automatic sync</span>
+                        <span class="toggle-description">Automatically sync documents to connected cloud storage</span>
+                      </span>
+                      <label class="toggle">
+                        <input type="checkbox" checked>
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Security Section -->
+            <section id="security" class="settings-section">
+              <div class="card">
+                <div class="card-header">
+                  <h2 class="card-title"><i class="fas fa-shield-alt"></i> Security</h2>
+                </div>
+                <div class="card-body">
+                  <div class="settings-group">
+                    <h3 class="settings-group-title">Change Password</h3>
+                    <form id="password-form" class="settings-form">
+                      <div class="form-group">
+                        <label class="form-label" for="current-password">Current Password</label>
+                        <input type="password" id="current-password" class="form-input" autocomplete="current-password">
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="new-password">New Password</label>
+                        <input type="password" id="new-password" class="form-input" autocomplete="new-password">
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="confirm-password">Confirm New Password</label>
+                        <input type="password" id="confirm-password" class="form-input" autocomplete="new-password">
+                      </div>
+                      <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Update Password</button>
+                      </div>
+                    </form>
+                  </div>
+                  <div class="settings-group">
+                    <h3 class="settings-group-title">Two-Factor Authentication</h3>
+                    <label class="toggle-setting">
+                      <span class="toggle-label">
+                        <span class="toggle-title">Enable 2FA</span>
+                        <span class="toggle-description">Add an extra layer of security to your account</span>
+                      </span>
+                      <label class="toggle">
+                        <input type="checkbox" id="two-factor">
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </label>
+                  </div>
+                  <div class="settings-group">
+                    <h3 class="settings-group-title">Sessions</h3>
+                    <p class="text-sm text-muted mb-3">You're currently logged in on 1 device.</p>
+                    <button class="btn btn-danger btn-sm">Sign Out All Other Devices</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Data & Privacy Section -->
+            <section id="data" class="settings-section">
+              <div class="card">
+                <div class="card-header">
+                  <h2 class="card-title"><i class="fas fa-database"></i> Data & Privacy</h2>
+                </div>
+                <div class="card-body">
+                  <div class="settings-group">
+                    <h3 class="settings-group-title">Export Data</h3>
+                    <p class="text-sm text-muted mb-3">Download a copy of all your data including documents, timeline, and settings.</p>
+                    <button class="btn btn-secondary" id="export-data-btn">
+                      <i class="fas fa-download"></i> Export All Data
+                    </button>
+                  </div>
+                  <div class="settings-group">
+                    <h3 class="settings-group-title">Delete Account</h3>
+                    <p class="text-sm text-muted mb-3">Permanently delete your account and all associated data. This action cannot be undone.</p>
+                    <button class="btn btn-danger" id="delete-account-btn">
+                      <i class="fas fa-trash"></i> Delete Account
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-content">
+          <p>&copy; 2024 Semptify. All rights reserved.</p>
+          <p><span class="version-label">Version</span> <span class="version-number">5.0.0</span></p>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="/static/js/modules/api.js"></script>
+  <script src="/static/js/modules/websocket.js"></script>
+  <script src="/static/js/modules/ui.js"></script>
+  <script src="/static/js/modules/state.js"></script>
+  <script src="/static/js/app.main.js"></script>
+
+  <style>
+    .sidebar-logo-icon {
+      width: 2rem;
+      height: 2rem;
+      background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .settings-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: var(--space-6);
+    }
+
+    @media (max-width: 768px) {
+      .settings-layout {
+        grid-template-columns: 1fr;
+      }
+      .settings-nav {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .settings-nav-list {
+        display: flex;
+        overflow-x: auto;
+        padding: var(--space-2);
+      }
+      .settings-nav-link {
+        white-space: nowrap;
+      }
+    }
+
+    .settings-nav-list {
+      list-style: none;
+      padding: var(--space-4);
+      margin: 0;
+    }
+
+    .settings-nav-link {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-md);
+      color: var(--color-text-secondary);
+      text-decoration: none;
+      transition: var(--transition-fast);
+    }
+
+    .settings-nav-link:hover {
+      background-color: var(--color-bg-secondary);
+      color: var(--color-text-primary);
+    }
+
+    .settings-nav-link.active {
+      background-color: var(--color-primary-100);
+      color: var(--color-primary-600);
+    }
+
+    .settings-section {
+      display: none;
+    }
+
+    .settings-section.active {
+      display: block;
+    }
+
+    .settings-group {
+      padding: var(--space-4) 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .settings-group:last-child {
+      border-bottom: none;
+    }
+
+    .settings-group-title {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-4);
+    }
+
+    .settings-form .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+
+    .form-actions {
+      margin-top: var(--space-6);
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding-bottom: var(--space-6);
+      border-bottom: 1px solid var(--color-border);
+      margin-bottom: var(--space-6);
+    }
+
+    .profile-actions {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    .avatar {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 50%;
+      background-color: var(--color-primary-100);
+      color: var(--color-primary-600);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .avatar-xl {
+      width: 5rem;
+      height: 5rem;
+      font-size: 2rem;
+    }
+
+    .toggle-setting {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-3) 0;
+    }
+
+    .toggle-label {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+    }
+
+    .toggle-title {
+      font-weight: var(--font-weight-medium);
+    }
+
+    .toggle-description {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+    }
+
+    .toggle {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--color-bg-tertiary);
+      border-radius: 24px;
+      transition: var(--transition-fast);
+    }
+
+    .toggle-slider::before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: var(--transition-fast);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .toggle input:checked + .toggle-slider {
+      background-color: var(--color-primary-500);
+    }
+
+    .toggle input:checked + .toggle-slider::before {
+      transform: translateX(20px);
+    }
+
+    .theme-options {
+      display: flex;
+      gap: var(--space-4);
+    }
+
+    .theme-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      cursor: pointer;
+    }
+
+    .theme-option input {
+      position: absolute;
+      opacity: 0;
+    }
+
+    .theme-preview {
+      width: 80px;
+      height: 60px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      border: 2px solid transparent;
+      transition: var(--transition-fast);
+    }
+
+    .theme-option input:checked + .theme-preview {
+      border-color: var(--color-primary-500);
+    }
+
+    .theme-preview-light {
+      background-color: #f8fafc;
+      color: #f59e0b;
+    }
+
+    .theme-preview-dark {
+      background-color: #1e293b;
+      color: #fbbf24;
+    }
+
+    .theme-preview-system {
+      background: linear-gradient(135deg, #f8fafc 50%, #1e293b 50%);
+      color: var(--color-text-primary);
+    }
+
+    .storage-providers {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .storage-provider {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      background-color: var(--color-bg-secondary);
+      border-radius: var(--radius-lg);
+    }
+
+    .provider-icon {
+      width: 3rem;
+      height: 3rem;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .provider-icon.dropbox {
+      background-color: #0061ff;
+      color: white;
+    }
+
+    .provider-icon.google-drive {
+      background-color: #4285f4;
+      color: white;
+    }
+
+    .provider-icon.onedrive {
+      background-color: #0078d4;
+      color: white;
+    }
+
+    .provider-info {
+      flex: 1;
+    }
+
+    .provider-name {
+      font-weight: var(--font-weight-medium);
+    }
+
+    .provider-status {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-muted);
+    }
+
+    .provider-status.connected {
+      color: var(--color-success-500);
+    }
+  </style>
+
+  <script>
+    (function() {
+      window.addEventListener('semptify:ready', init);
+      if (window.app?.isReady?.()) init();
+
+      function init() {
+        initSidebar();
+        initTheme();
+        initNavigation();
+        initForms();
+        loadSettings();
+      }
+
+      // Settings Navigation
+      function initNavigation() {
+        const links = document.querySelectorAll('.settings-nav-link');
+        const sections = document.querySelectorAll('.settings-section');
+
+        // Handle hash navigation
+        const showSection = (id) => {
+          sections.forEach(s => s.classList.remove('active'));
+          links.forEach(l => l.classList.remove('active'));
+
+          const section = document.getElementById(id);
+          const link = document.querySelector(`[data-section="${id}"]`);
+
+          if (section) section.classList.add('active');
+          if (link) link.classList.add('active');
+        };
+
+        // Initial load
+        const hash = window.location.hash.slice(1) || 'profile';
+        showSection(hash);
+
+        // Click handlers
+        links.forEach(link => {
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = link.dataset.section;
+            window.location.hash = section;
+            showSection(section);
+          });
+        });
+
+        // Hash change
+        window.addEventListener('hashchange', () => {
+          showSection(window.location.hash.slice(1) || 'profile');
+        });
+      }
+
+      // Forms
+      function initForms() {
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          try {
+            toast.success('Profile updated successfully');
+          } catch (error) {
+            toast.error('Failed to update profile');
+          }
+        });
+
+        document.getElementById('password-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const newPassword = document.getElementById('new-password').value;
+          const confirmPassword = document.getElementById('confirm-password').value;
+
+          if (newPassword !== confirmPassword) {
+            toast.error('Passwords do not match');
+            return;
+          }
+
+          try {
+            toast.success('Password updated successfully');
+            e.target.reset();
+          } catch (error) {
+            toast.error('Failed to update password');
+          }
+        });
+
+        // Theme selection
+        document.querySelectorAll('input[name="theme"]').forEach(input => {
+          input.addEventListener('change', () => {
+            const theme = input.value;
+            if (theme === 'system') {
+              const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+            } else {
+              document.documentElement.setAttribute('data-theme', theme);
+            }
+            localStorage.setItem('semptify_theme', theme);
+            updateThemeIcon();
+          });
+        });
+
+        // Export data
+        document.getElementById('export-data-btn').addEventListener('click', async () => {
+          toast.info('Preparing your data export...');
+          setTimeout(() => toast.success('Export ready! Download will start shortly.'), 2000);
+        });
+
+        // Delete account
+        document.getElementById('delete-account-btn').addEventListener('click', async () => {
+          const confirmed = await modal.confirm({
+            title: 'Delete Account',
+            message: 'Are you absolutely sure you want to delete your account? All your data will be permanently removed. This action cannot be undone.',
+            confirmText: 'Delete Account',
+            confirmVariant: 'danger'
+          });
+
+          if (confirmed) {
+            toast.info('Account deletion requested...');
+          }
+        });
+      }
+
+      // Load Settings
+      function loadSettings() {
+        const savedTheme = localStorage.getItem('semptify_theme') || 'light';
+        const themeInput = document.querySelector(`input[name="theme"][value="${savedTheme}"]`);
+        if (themeInput) themeInput.checked = true;
+
+        const sidebarCollapsed = localStorage.getItem('sidebar_collapsed') === 'true';
+        document.getElementById('sidebar-collapsed').checked = sidebarCollapsed;
+      }
+
+      function updateThemeIcon() {
+        const icon = document.getElementById('theme-icon');
+        const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        icon.className = dark ? 'fas fa-sun' : 'fas fa-moon';
+      }
+
+      // Sidebar
+      function initSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const toggle = document.getElementById('sidebar-toggle');
+        const mobile = document.getElementById('mobile-menu-toggle');
+
+        toggle?.addEventListener('click', () => {
+          sidebar.classList.toggle('collapsed');
+          localStorage.setItem('sidebar_collapsed', sidebar.classList.contains('collapsed'));
+        });
+
+        mobile?.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+        if (localStorage.getItem('sidebar_collapsed') === 'true') {
+          sidebar.classList.add('collapsed');
+        }
+      }
+
+      // Theme
+      function initTheme() {
+        const toggle = document.getElementById('theme-toggle');
+
+        toggle?.addEventListener('click', () => {
+          const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+          const theme = dark ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+          localStorage.setItem('semptify_theme', theme);
+          updateThemeIcon();
+
+          // Update radio buttons
+          const themeInput = document.querySelector(`input[name="theme"][value="${theme}"]`);
+          if (themeInput) themeInput.checked = true;
+        });
+
+        updateThemeIcon();
+      }
+    })();
+  </script>
+</body>
+</html>

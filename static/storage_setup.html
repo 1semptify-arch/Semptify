@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storage Setup - Semptify</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+        }
+        @keyframes slide-up {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes check-bounce {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .float { animation: float 3s ease-in-out infinite; }
+        .pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+        .slide-up { animation: slide-up 0.5s ease-out forwards; }
+        .check-bounce { animation: check-bounce 0.5s ease-out forwards; }
+        .step-hidden { opacity: 0; transform: translateY(30px); pointer-events: none; }
+        .step-visible { animation: slide-up 0.5s ease-out forwards; pointer-events: auto; }
+        .provider-card { transition: all 0.3s ease; }
+        .provider-card:hover { transform: translateY(-5px); }
+        .provider-card.selected { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+        .glass { backdrop-filter: blur(10px); background: rgba(255, 255, 255, 0.1); }
+        .gradient-border {
+            position: relative;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2px;
+            border-radius: 1rem;
+        }
+        .gradient-border-inner {
+            background: #1a1a2e;
+            border-radius: calc(1rem - 2px);
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="/static/command_center.html" class="flex items-center space-x-3">
+                <i class="fas fa-gavel text-2xl text-purple-400"></i>
+                <span class="text-xl font-bold text-white">Semptify</span>
+            </a>
+            <div class="flex items-center space-x-4">
+                <span class="text-gray-400 text-sm">Step <span id="currentStep">1</span> of 4</span>
+                <a href="/static/command_center.html" class="text-gray-400 hover:text-white transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Progress Bar -->
+    <div class="fixed top-16 left-0 right-0 h-1 bg-gray-800 z-40">
+        <div id="progressBar" class="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500" style="width: 25%"></div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="pt-24 pb-12 px-6 min-h-screen">
+        <div class="max-w-4xl mx-auto">
+            
+            <!-- Step 1: Welcome & Explanation -->
+            <div id="step1" class="step-visible">
+                <div class="text-center mb-12">
+                    <div class="inline-block p-6 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 mb-6 float">
+                        <i class="fas fa-cloud text-6xl text-blue-400"></i>
+                    </div>
+                    <h1 class="text-4xl font-bold text-white mb-4">Your Data, Your Cloud</h1>
+                    <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+                        Set up your personal cloud storage to keep your legal documents and case data 
+                        synced across all your devices - completely under your control.
+                    </p>
+                </div>
+
+                <!-- Benefits -->
+                <div class="grid md:grid-cols-3 gap-6 mb-12">
+                    <div class="gradient-border">
+                        <div class="gradient-border-inner text-center">
+                            <div class="w-14 h-14 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-lock text-2xl text-green-400"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-white mb-2">100% Private</h3>
+                            <p class="text-gray-400 text-sm">Your data stays in YOUR cloud. We never store or access it.</p>
+                        </div>
+                    </div>
+                    <div class="gradient-border">
+                        <div class="gradient-border-inner text-center">
+                            <div class="w-14 h-14 rounded-full bg-blue-500/20 flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-sync text-2xl text-blue-400"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-white mb-2">Auto-Sync</h3>
+                            <p class="text-gray-400 text-sm">Changes sync automatically. Use any device, anytime.</p>
+                        </div>
+                    </div>
+                    <div class="gradient-border">
+                        <div class="gradient-border-inner text-center">
+                            <div class="w-14 h-14 rounded-full bg-purple-500/20 flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-download text-2xl text-purple-400"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold text-white mb-2">Your Backup</h3>
+                            <p class="text-gray-400 text-sm">Export everything anytime. Your data is always accessible.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- How it Works -->
+                <div class="bg-white/5 rounded-2xl p-8 border border-white/10 mb-8">
+                    <h2 class="text-xl font-semibold text-white mb-6 flex items-center">
+                        <i class="fas fa-info-circle text-blue-400 mr-3"></i>
+                        How It Works
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold text-sm">1</span>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-medium">Connect Your Cloud</h4>
+                                <p class="text-gray-400 text-sm">Sign in to Google Drive, Dropbox, or OneDrive</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold text-sm">2</span>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-medium">We Create a Folder</h4>
+                                <p class="text-gray-400 text-sm">A <code class="bg-white/10 px-2 py-0.5 rounded">.semptify</code> folder stores your data</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0">
+                                <span class="text-white font-bold text-sm">3</span>
+                            </div>
+                            <div>
+                                <h4 class="text-white font-medium">Everything Syncs</h4>
+                                <p class="text-gray-400 text-sm">Profile, cases, timeline, calendar, documents - all in your cloud</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="goToStep(2)" class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl transition-all pulse-glow">
+                    <i class="fas fa-arrow-right mr-2"></i>
+                    Choose Your Cloud Provider
+                </button>
+            </div>
+
+            <!-- Step 2: Choose Provider -->
+            <div id="step2" class="step-hidden">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-white mb-3">Choose Your Cloud</h1>
+                    <p class="text-gray-400">Select where you want to store your Semptify data</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <!-- Google Drive -->
+                    <div class="provider-card bg-white/5 border-2 border-white/10 rounded-2xl p-6 cursor-pointer hover:border-blue-400/50" data-provider="google_drive" data-connected="true" onclick="selectProvider('google_drive', true)">
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                                <svg viewBox="0 0 87.3 78" class="w-16 h-16">
+                                    <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+                                    <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/>
+                                    <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/>
+                                    <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+                                    <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+                                    <path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold text-white mb-2">Google Drive</h3>
+                            <p class="text-gray-400 text-sm mb-4">15GB free storage</p>
+                            <div class="flex items-center justify-center space-x-2 text-green-400 text-sm">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Connected</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dropbox -->
+                    <div class="provider-card bg-white/5 border-2 border-white/10 rounded-2xl p-6 cursor-pointer hover:border-blue-400/50" data-provider="dropbox" data-connected="false" onclick="selectProvider('dropbox', false)">
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                                <svg viewBox="0 0 528 512" class="w-16 h-16">
+                                    <path fill="#0061ff" d="M264 139.1L132.5 46 0 139.1l132.5 93L264 139.1zM132.5 326l-132.5-93 132.5-93 131.5 93-131.5 93zm131.5-93l132.5 93V418l-132.5-93v-92zm0-93l131.5 93-131.5 93-132.5-93L264 140.1V139.1z"/>
+                                    <path fill="#0061ff" d="M396.5 46L264 139.1l132.5 93L528 139.1 396.5 46zm0 280l-132.5-93v92l132.5 93V326z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold text-white mb-2">Dropbox</h3>
+                            <p class="text-gray-400 text-sm mb-4">2GB free storage</p>
+                            <div class="flex items-center justify-center space-x-2 text-gray-500 text-sm">
+                                <i class="fas fa-plus-circle"></i>
+                                <span>Connect</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- OneDrive -->
+                    <div class="provider-card bg-white/5 border-2 border-white/10 rounded-2xl p-6 cursor-pointer hover:border-blue-400/50" data-provider="onedrive" data-connected="false" onclick="selectProvider('onedrive', false)">
+                        <div class="text-center">
+                            <div class="w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                                <svg viewBox="0 0 24 24" class="w-16 h-16">
+                                    <path fill="#0078d4" d="M10.5 18.5H4.5A4.5 4.5 0 0 1 .73 10.57a5.01 5.01 0 0 1 6.8-4.22A6.5 6.5 0 0 1 19.5 9.5h.5a4 4 0 0 1 0 8h-9.5a.5.5 0 0 1 0-1h9.5a3 3 0 0 0 0-6h-1a.5.5 0 0 1-.5-.5 5.5 5.5 0 0 0-10.51-2.27.5.5 0 0 1-.72.2A4.01 4.01 0 0 0 1.8 11.25 3.5 3.5 0 0 0 4.5 17.5h6a.5.5 0 0 1 0 1z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold text-white mb-2">OneDrive</h3>
+                            <p class="text-gray-400 text-sm mb-4">5GB free storage</p>
+                            <div class="flex items-center justify-center space-x-2 text-gray-500 text-sm">
+                                <i class="fas fa-plus-circle"></i>
+                                <span>Connect</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Provider Status -->
+                <div id="providerStatus" class="hidden bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 mb-8">
+                    <div class="flex items-center space-x-3">
+                        <i class="fas fa-spinner fa-spin text-blue-400"></i>
+                        <span class="text-blue-300" id="statusText">Checking connection...</span>
+                    </div>
+                </div>
+
+                <div class="flex space-x-4">
+                    <button onclick="goToStep(1)" class="flex-1 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-all">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back
+                    </button>
+                    <button id="step2Next" onclick="goToStep(3)" disabled class="flex-1 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        Continue
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Configure Settings -->
+            <div id="step3" class="step-hidden">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-white mb-3">Configure Your Settings</h1>
+                    <p class="text-gray-400">Customize how Semptify syncs your data</p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Profile Settings -->
+                    <div class="bg-white/5 rounded-2xl p-6 border border-white/10">
+                        <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+                            <i class="fas fa-user-circle text-purple-400 mr-3"></i>
+                            Your Profile
+                        </h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Display Name</label>
+                                <input type="text" id="displayName" placeholder="Your name" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-gray-400 mb-2">Email</label>
+                                <input type="email" id="email" placeholder="your@email.com" class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:border-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sync Settings -->
+                    <div class="bg-white/5 rounded-2xl p-6 border border-white/10">
+                        <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+                            <i class="fas fa-sync text-blue-400 mr-3"></i>
+                            Sync Settings
+                        </h3>
+                        <div class="space-y-4">
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <div>
+                                    <span class="text-white">Auto-sync on changes</span>
+                                    <p class="text-gray-500 text-sm">Automatically save changes to your cloud</p>
+                                </div>
+                                <input type="checkbox" id="autoSync" checked class="sr-only peer">
+                                <div class="relative w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                            </label>
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <div>
+                                    <span class="text-white">Sync documents</span>
+                                    <p class="text-gray-500 text-sm">Include uploaded documents in sync</p>
+                                </div>
+                                <input type="checkbox" id="syncDocs" checked class="sr-only peer">
+                                <div class="relative w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                            </label>
+                            <label class="flex items-center justify-between cursor-pointer">
+                                <div>
+                                    <span class="text-white">Encrypt sensitive data</span>
+                                    <p class="text-gray-500 text-sm">Add extra encryption layer (requires passphrase)</p>
+                                </div>
+                                <input type="checkbox" id="encrypt" class="sr-only peer">
+                                <div class="relative w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Data to Sync -->
+                    <div class="bg-white/5 rounded-2xl p-6 border border-white/10">
+                        <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+                            <i class="fas fa-database text-green-400 mr-3"></i>
+                            Data to Sync
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" checked class="w-5 h-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700">
+                                <span class="text-white">Profile</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" checked class="w-5 h-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700">
+                                <span class="text-white">Cases</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" checked class="w-5 h-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700">
+                                <span class="text-white">Timeline</span>
+                            </label>
+                            <label class="flex items-center space-x-3 cursor-pointer">
+                                <input type="checkbox" checked class="w-5 h-5 rounded border-gray-600 text-blue-500 focus:ring-blue-500 bg-gray-700">
+                                <span class="text-white">Calendar</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex space-x-4 mt-8">
+                    <button onclick="goToStep(2)" class="flex-1 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl transition-all">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back
+                    </button>
+                    <button onclick="initializeStorage()" class="flex-1 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold rounded-xl transition-all">
+                        Initialize Storage
+                        <i class="fas fa-rocket ml-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Complete -->
+            <div id="step4" class="step-hidden">
+                <div class="text-center">
+                    <div class="inline-block p-8 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 mb-8">
+                        <i class="fas fa-check-circle text-7xl text-green-400 check-bounce"></i>
+                    </div>
+                    <h1 class="text-4xl font-bold text-white mb-4">You're All Set!</h1>
+                    <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-8">
+                        Your cloud storage is configured and ready. Your data will now automatically 
+                        sync across all your devices.
+                    </p>
+
+                    <!-- Sync Summary -->
+                    <div class="bg-white/5 rounded-2xl p-8 border border-white/10 mb-8 text-left max-w-xl mx-auto">
+                        <h3 class="text-lg font-semibold text-white mb-6 flex items-center justify-center">
+                            <i class="fas fa-folder-open text-blue-400 mr-3"></i>
+                            Storage Structure Created
+                        </h3>
+                        <div class="font-mono text-sm text-gray-400 bg-black/30 rounded-lg p-4">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-folder text-yellow-400"></i>
+                                <span>.semptify/</span>
+                            </div>
+                            <div class="pl-6 space-y-1 mt-2">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-file text-blue-400"></i>
+                                    <span>profile.json</span>
+                                    <span class="text-green-400 text-xs">✓</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-file text-blue-400"></i>
+                                    <span>case.json</span>
+                                    <span class="text-green-400 text-xs">✓</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-file text-blue-400"></i>
+                                    <span>timeline.json</span>
+                                    <span class="text-green-400 text-xs">✓</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-file text-blue-400"></i>
+                                    <span>calendar.json</span>
+                                    <span class="text-green-400 text-xs">✓</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-folder text-yellow-400"></i>
+                                    <span>documents/</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-file text-gray-400"></i>
+                                    <span>sync_state.json</span>
+                                    <span class="text-green-400 text-xs">✓</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="grid md:grid-cols-3 gap-4 mb-8 max-w-2xl mx-auto">
+                        <a href="/static/command_center.html" class="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 transition-all">
+                            <i class="fas fa-home text-2xl text-purple-400 mb-2"></i>
+                            <div class="text-white font-medium">Command Center</div>
+                        </a>
+                        <a href="/static/documents.html" class="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 transition-all">
+                            <i class="fas fa-file-upload text-2xl text-blue-400 mb-2"></i>
+                            <div class="text-white font-medium">Upload Documents</div>
+                        </a>
+                        <a href="/static/timeline.html" class="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 transition-all">
+                            <i class="fas fa-clock text-2xl text-green-400 mb-2"></i>
+                            <div class="text-white font-medium">Case Timeline</div>
+                        </a>
+                    </div>
+
+                    <button onclick="window.location.href='/static/command_center.html'" class="px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold rounded-xl transition-all">
+                        <i class="fas fa-rocket mr-2"></i>
+                        Start Using Semptify
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let selectedProvider = null;
+        let currentStepNum = 1;
+
+        function goToStep(step) {
+            // Hide current step
+            document.getElementById(`step${currentStepNum}`).classList.remove('step-visible');
+            document.getElementById(`step${currentStepNum}`).classList.add('step-hidden');
+            
+            // Show new step
+            setTimeout(() => {
+                document.getElementById(`step${step}`).classList.remove('step-hidden');
+                document.getElementById(`step${step}`).classList.add('step-visible');
+                currentStepNum = step;
+                
+                // Update progress
+                document.getElementById('currentStep').textContent = step;
+                document.getElementById('progressBar').style.width = `${step * 25}%`;
+            }, 100);
+        }
+
+        function selectProvider(provider, isConnected) {
+            selectedProvider = provider;
+            
+            // Update UI - highlight selected card
+            document.querySelectorAll('.provider-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            const status = document.getElementById('providerStatus');
+            const statusText = document.getElementById('statusText');
+            const nextBtn = document.getElementById('step2Next');
+            
+            status.classList.remove('hidden');
+            
+            if (isConnected) {
+                // Already connected - enable continue immediately
+                statusText.innerHTML = `<i class="fas fa-check-circle text-green-400 mr-2"></i>Connected to ${formatProvider(provider)}`;
+                status.classList.remove('bg-blue-500/10', 'border-blue-500/30', 'bg-yellow-500/10', 'border-yellow-500/30');
+                status.classList.add('bg-green-500/10', 'border-green-500/30');
+                nextBtn.disabled = false;
+            } else {
+                // Not connected - show connect prompt
+                statusText.textContent = `Checking ${formatProvider(provider)} connection...`;
+                showConnectPrompt(provider);
+            }
+        }
+
+        async function checkProviderConnection(provider) {
+            const statusText = document.getElementById('statusText');
+            const nextBtn = document.getElementById('step2Next');
+            const providerStatus = document.getElementById('providerStatus');
+            
+            try {
+                // Check if user has connected this provider via the storage status endpoint
+                const response = await fetch('/storage/status');
+                
+                if (!response.ok) {
+                    throw new Error('Not authenticated');
+                }
+                
+                const data = await response.json();
+                
+                // Check if this provider is connected
+                const providerConnected = data.linked_providers && 
+                    data.linked_providers.some(p => p.provider === provider && p.connected);
+                
+                if (providerConnected || data.authenticated) {
+                    statusText.innerHTML = `<i class="fas fa-check-circle text-green-400 mr-2"></i>Connected to ${formatProvider(provider)}`;
+                    providerStatus.classList.remove('bg-blue-500/10', 'border-blue-500/30', 'bg-yellow-500/10', 'border-yellow-500/30');
+                    providerStatus.classList.add('bg-green-500/10', 'border-green-500/30');
+                    nextBtn.disabled = false;
+                } else {
+                    showConnectPrompt(provider);
+                }
+            } catch (error) {
+                showConnectPrompt(provider);
+            }
+        }
+        
+        function formatProvider(provider) {
+            return provider.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+        
+        function showConnectPrompt(provider) {
+            const providerStatus = document.getElementById('providerStatus');
+            const nextBtn = document.getElementById('step2Next');
+            
+            providerStatus.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="text-yellow-300"><i class="fas fa-exclamation-circle mr-2"></i>Not connected to ${formatProvider(provider)}</span>
+                    </div>
+                    <div class="text-sm text-gray-400">
+                        <p class="mb-3">To connect ${formatProvider(provider)}, you'll need to:</p>
+                        <ol class="list-decimal list-inside space-y-1 mb-4">
+                            <li>Sign in with your ${formatProvider(provider)} account</li>
+                            <li>Grant Semptify permission to create a folder</li>
+                            <li>Your data will be stored in <code class="bg-white/10 px-1 rounded">.semptify/</code></li>
+                        </ol>
+                    </div>
+                    <a href="/storage/auth/${provider}" class="block w-full bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-lg text-sm font-medium text-center transition-all">
+                        <i class="fab fa-${provider === 'google_drive' ? 'google' : provider === 'dropbox' ? 'dropbox' : 'microsoft'} mr-2"></i>
+                        Connect ${formatProvider(provider)}
+                    </a>
+                </div>
+            `;
+            providerStatus.classList.remove('bg-blue-500/10', 'border-blue-500/30', 'bg-green-500/10', 'border-green-500/30');
+            providerStatus.classList.add('bg-yellow-500/10', 'border-yellow-500/30');
+            nextBtn.disabled = true;
+        }
+
+        async function initializeStorage() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Initializing...';
+            
+            try {
+                // Gather settings
+                const settings = {
+                    provider: selectedProvider,
+                    display_name: document.getElementById('displayName').value,
+                    email: document.getElementById('email').value,
+                    auto_sync: document.getElementById('autoSync').checked,
+                    sync_documents: document.getElementById('syncDocs').checked,
+                    encrypt: document.getElementById('encrypt').checked
+                };
+                
+                // Initialize sync
+                const response = await fetch('/api/sync/full', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+                
+                if (response.ok) {
+                    // Save profile
+                    await fetch('/api/sync/profile', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            display_name: settings.display_name,
+                            email: settings.email,
+                            preferences: {
+                                auto_sync: settings.auto_sync,
+                                sync_documents: settings.sync_documents,
+                                encrypt_data: settings.encrypt
+                            }
+                        })
+                    });
+                    
+                    goToStep(4);
+                } else {
+                    throw new Error('Initialization failed');
+                }
+            } catch (error) {
+                console.error('Init error:', error);
+                btn.disabled = false;
+                btn.innerHTML = 'Initialize Storage <i class="fas fa-rocket ml-2"></i>';
+                
+                // Show error
+                alert('Failed to initialize storage. Please check your connection and try again.');
+            }
+        }
+
+        // Check URL params for returning from OAuth
+        window.addEventListener('load', () => {
+            const params = new URLSearchParams(window.location.search);
+            const provider = params.get('provider');
+            const connected = params.get('connected');
+            
+            if (provider && connected === 'true') {
+                goToStep(2);
+                setTimeout(() => {
+                    selectProvider(provider);
+                }, 500);
+            }
+        });
+    </script>
+</body>
+</html>

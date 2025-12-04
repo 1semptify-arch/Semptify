@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Semptify{% endblock %}
+{% block meta_description %}Your Semptify dashboard - view documents, timeline, and case status{% endblock %}
+
+{% block body_class %}page-dashboard{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+  <div class="page-header-title">
+    <h1>Dashboard</h1>
+    <div class="page-header-actions">
+      <button class="btn btn-secondary" id="refresh-btn">
+        <i class="fas fa-sync-alt"></i>
+        Refresh
+      </button>
+      <button class="btn btn-primary" id="new-document-btn">
+        <i class="fas fa-plus"></i>
+        New Document
+      </button>
+    </div>
+  </div>
+  <p class="page-header-description">
+    Welcome back! Here's an overview of your legal documents and upcoming deadlines.
+  </p>
+</div>
+
+<!-- Stats Row -->
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-primary">
+      <i class="fas fa-file-alt"></i>
+    </div>
+    <div class="stat-value" id="stat-documents">0</div>
+    <div class="stat-label">Total Documents</div>
+    <div class="stat-change stat-change-positive">
+      <i class="fas fa-arrow-up"></i>
+      <span>12% from last week</span>
+    </div>
+  </div>
+  
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-warning">
+      <i class="fas fa-clock"></i>
+    </div>
+    <div class="stat-value" id="stat-pending">0</div>
+    <div class="stat-label">Pending Review</div>
+  </div>
+  
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-success">
+      <i class="fas fa-calendar-check"></i>
+    </div>
+    <div class="stat-value" id="stat-deadlines">0</div>
+    <div class="stat-label">Upcoming Deadlines</div>
+  </div>
+  
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-danger">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <div class="stat-value" id="stat-urgent">0</div>
+    <div class="stat-label">Urgent Actions</div>
+  </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="dashboard-grid">
+  <!-- Recent Documents -->
+  <section class="card">
+    <div class="card-header">
+      <h2 class="card-title">Recent Documents</h2>
+      <a href="/documents" class="btn btn-ghost btn-sm">View All</a>
+    </div>
+    <div class="card-body p-0">
+      <div class="list" id="recent-documents">
+        <!-- Loading skeleton -->
+        <div class="list-item">
+          <div class="skeleton skeleton-avatar"></div>
+          <div class="list-item-content">
+            <div class="skeleton skeleton-text" style="width: 60%"></div>
+            <div class="skeleton skeleton-text" style="width: 40%"></div>
+          </div>
+        </div>
+        <div class="list-item">
+          <div class="skeleton skeleton-avatar"></div>
+          <div class="list-item-content">
+            <div class="skeleton skeleton-text" style="width: 70%"></div>
+            <div class="skeleton skeleton-text" style="width: 30%"></div>
+          </div>
+        </div>
+        <div class="list-item">
+          <div class="skeleton skeleton-avatar"></div>
+          <div class="list-item-content">
+            <div class="skeleton skeleton-text" style="width: 50%"></div>
+            <div class="skeleton skeleton-text" style="width: 45%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Upcoming Timeline -->
+  <section class="card">
+    <div class="card-header">
+      <h2 class="card-title">Upcoming Events</h2>
+      <a href="/timeline" class="btn btn-ghost btn-sm">View Timeline</a>
+    </div>
+    <div class="card-body p-0">
+      <div class="list" id="upcoming-events">
+        <!-- Loading skeleton -->
+        <div class="list-item">
+          <div class="skeleton skeleton-avatar"></div>
+          <div class="list-item-content">
+            <div class="skeleton skeleton-text" style="width: 55%"></div>
+            <div class="skeleton skeleton-text" style="width: 35%"></div>
+          </div>
+        </div>
+        <div class="list-item">
+          <div class="skeleton skeleton-avatar"></div>
+          <div class="list-item-content">
+            <div class="skeleton skeleton-text" style="width: 65%"></div>
+            <div class="skeleton skeleton-text" style="width: 40%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Actions -->
+  <section class="card">
+    <div class="card-header">
+      <h2 class="card-title">Quick Actions</h2>
+    </div>
+    <div class="card-body">
+      <div class="grid gap-3">
+        <a href="/documents/upload" class="btn btn-secondary w-full justify-start">
+          <i class="fas fa-upload"></i>
+          Upload Document
+        </a>
+        <a href="/eviction/flows" class="btn btn-secondary w-full justify-start">
+          <i class="fas fa-route"></i>
+          Start Eviction Flow
+        </a>
+        <a href="/vault" class="btn btn-secondary w-full justify-start">
+          <i class="fas fa-lock"></i>
+          Secure Vault
+        </a>
+        <a href="/calendar" class="btn btn-secondary w-full justify-start">
+          <i class="fas fa-calendar-plus"></i>
+          Add Calendar Event
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI Insights -->
+  <section class="card">
+    <div class="card-header">
+      <h2 class="card-title">
+        <i class="fas fa-robot text-primary mr-2"></i>
+        AI Insights
+      </h2>
+    </div>
+    <div class="card-body" id="ai-insights">
+      <div class="alert alert-info">
+        <div class="alert-icon">
+          <i class="fas fa-lightbulb"></i>
+        </div>
+        <div class="alert-content">
+          <p>Upload documents to receive AI-powered analysis and recommendations.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+  // Wait for app to be ready
+  window.addEventListener('semptify:ready', initDashboard);
+  
+  // If already ready, init now
+  if (window.app?.isReady()) {
+    initDashboard();
+  }
+
+  async function initDashboard() {
+    try {
+      await Promise.all([
+        loadStats(),
+        loadRecentDocuments(),
+        loadUpcomingEvents()
+      ]);
+    } catch (error) {
+      console.error('Dashboard init error:', error);
+      toast.error('Failed to load dashboard data');
+    }
+  }
+
+  async function loadStats() {
+    try {
+      // This would call your actual API
+      // const response = await api.get('/api/dashboard/stats');
+      
+      // Mock data for demonstration
+      const stats = {
+        documents: 24,
+        pending: 3,
+        deadlines: 5,
+        urgent: 1
+      };
+
+      document.getElementById('stat-documents').textContent = stats.documents;
+      document.getElementById('stat-pending').textContent = stats.pending;
+      document.getElementById('stat-deadlines').textContent = stats.deadlines;
+      document.getElementById('stat-urgent').textContent = stats.urgent;
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+    }
+  }
+
+  async function loadRecentDocuments() {
+    try {
+      // const response = await documentsApi.list({ limit: 5 });
+      
+      // Mock data
+      const documents = [
+        { id: 1, name: 'Lease Agreement.pdf', type: 'pdf', date: new Date() },
+        { id: 2, name: 'Court Notice.pdf', type: 'pdf', date: new Date(Date.now() - 86400000) },
+        { id: 3, name: 'Answer to Complaint.docx', type: 'doc', date: new Date(Date.now() - 172800000) }
+      ];
+
+      const container = document.getElementById('recent-documents');
+      
+      if (documents.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state p-6">
+            <p class="text-muted">No documents yet</p>
+            <a href="/documents/upload" class="btn btn-primary btn-sm mt-2">Upload First Document</a>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = documents.map(doc => `
+        <a href="/documents/${doc.id}" class="list-item">
+          <div class="list-item-icon">
+            <i class="fas fa-file-${doc.type === 'pdf' ? 'pdf' : 'alt'}"></i>
+          </div>
+          <div class="list-item-content">
+            <div class="list-item-title">${doc.name}</div>
+            <div class="list-item-subtitle">${formatRelativeTime(doc.date)}</div>
+          </div>
+          <div class="list-item-actions">
+            <button class="btn btn-ghost btn-icon btn-sm" aria-label="More options">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+          </div>
+        </a>
+      `).join('');
+    } catch (error) {
+      console.error('Failed to load documents:', error);
+    }
+  }
+
+  async function loadUpcomingEvents() {
+    try {
+      // const response = await timelineApi.get({ upcoming: true, limit: 5 });
+      
+      // Mock data
+      const events = [
+        { id: 1, title: 'Court Hearing', date: new Date(Date.now() + 3 * 86400000), type: 'hearing' },
+        { id: 2, title: 'Response Deadline', date: new Date(Date.now() + 7 * 86400000), type: 'deadline' }
+      ];
+
+      const container = document.getElementById('upcoming-events');
+      
+      if (events.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state p-6">
+            <p class="text-muted">No upcoming events</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = events.map(event => `
+        <a href="/timeline#event-${event.id}" class="list-item">
+          <div class="list-item-icon ${event.type === 'deadline' ? 'bg-warning-100 text-warning-600' : 'bg-primary-100 text-primary-600'}">
+            <i class="fas fa-${event.type === 'deadline' ? 'clock' : 'gavel'}"></i>
+          </div>
+          <div class="list-item-content">
+            <div class="list-item-title">${event.title}</div>
+            <div class="list-item-subtitle">${formatDate(event.date)}</div>
+          </div>
+        </a>
+      `).join('');
+    } catch (error) {
+      console.error('Failed to load events:', error);
+    }
+  }
+
+  // Button handlers
+  document.getElementById('refresh-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('refresh-btn');
+    loading.buttonLoading(btn, true);
+    
+    try {
+      await initDashboard();
+      toast.success('Dashboard refreshed');
+    } finally {
+      loading.buttonLoading(btn, false);
+    }
+  });
+
+  document.getElementById('new-document-btn')?.addEventListener('click', () => {
+    window.location.href = '/documents/upload';
+  });
+})();
+</script>
+{% endblock %}

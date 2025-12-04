@@ -1,0 +1,570 @@
+<!-- Header Component -->
+<div class="header-inner">
+  <!-- Mobile Menu Toggle -->
+  <button class="header-menu-toggle btn btn-ghost btn-icon lg:hidden" id="mobile-menu-toggle" aria-label="Open menu">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- Breadcrumb / Page Title -->
+  <div class="header-title">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <ol class="breadcrumb-list" id="breadcrumb-list">
+        <li class="breadcrumb-item">
+          <a href="/" class="breadcrumb-link">
+            <i class="fas fa-home" aria-hidden="true"></i>
+            <span class="sr-only">Home</span>
+          </a>
+        </li>
+        <!-- Dynamic breadcrumbs inserted here -->
+      </ol>
+    </nav>
+    <h1 class="page-title" id="page-title">Dashboard</h1>
+  </div>
+
+  <!-- Header Actions -->
+  <div class="header-actions">
+    <!-- Search -->
+    <div class="header-search" id="header-search">
+      <button class="btn btn-ghost btn-icon search-toggle" id="search-toggle" aria-label="Search">
+        <i class="fas fa-search"></i>
+      </button>
+      <div class="search-expanded" id="search-expanded" hidden>
+        <input type="search" class="form-input search-input" placeholder="Search documents, events..." aria-label="Search" id="global-search">
+        <button class="btn btn-ghost btn-icon search-close" id="search-close" aria-label="Close search">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="header-quick-actions">
+      <!-- Upload Document -->
+      <button class="btn btn-ghost btn-icon" id="quick-upload" aria-label="Upload document" title="Upload document">
+        <i class="fas fa-upload"></i>
+      </button>
+
+      <!-- Copilot -->
+      <button class="btn btn-ghost btn-icon" id="open-copilot" aria-label="Open AI Copilot" title="AI Copilot">
+        <i class="fas fa-robot"></i>
+      </button>
+    </div>
+
+    <!-- Notifications -->
+    <div class="header-notifications" id="notifications">
+      <button class="btn btn-ghost btn-icon notification-btn" id="notification-toggle" aria-label="Notifications" aria-haspopup="true" aria-expanded="false">
+        <i class="fas fa-bell"></i>
+        <span class="notification-badge" id="notification-badge" hidden>0</span>
+      </button>
+      <div class="notification-dropdown" id="notification-dropdown" hidden>
+        <div class="notification-header">
+          <h3 class="notification-title">Notifications</h3>
+          <button class="btn btn-ghost btn-sm" id="mark-all-read">Mark all read</button>
+        </div>
+        <div class="notification-list" id="notification-list">
+          <p class="notification-empty">No notifications</p>
+        </div>
+        <div class="notification-footer">
+          <a href="/notifications" class="btn btn-ghost btn-sm w-full">View all notifications</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme Toggle -->
+    <button class="btn btn-ghost btn-icon" id="theme-toggle" aria-label="Toggle theme" title="Toggle dark/light mode">
+      <i class="fas fa-moon" id="theme-icon"></i>
+    </button>
+
+    <!-- User Menu -->
+    <div class="header-user" id="header-user">
+      <button class="user-menu-trigger" id="user-menu-trigger" aria-label="User menu" aria-haspopup="true" aria-expanded="false">
+        <div class="user-avatar-sm">
+          <i class="fas fa-user"></i>
+        </div>
+      </button>
+      <div class="user-dropdown" id="user-dropdown" hidden>
+        <div class="user-dropdown-header">
+          <div class="user-avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="user-info">
+            <span class="user-name" id="header-user-name">Guest</span>
+            <span class="user-email" id="header-user-email">Not signed in</span>
+          </div>
+        </div>
+        <div class="user-dropdown-menu">
+          <a href="/profile" class="dropdown-item">
+            <i class="fas fa-user-circle"></i>
+            Profile
+          </a>
+          <a href="/settings" class="dropdown-item">
+            <i class="fas fa-cog"></i>
+            Settings
+          </a>
+          <a href="/help" class="dropdown-item">
+            <i class="fas fa-question-circle"></i>
+            Help & Support
+          </a>
+          <hr class="dropdown-divider">
+          <button class="dropdown-item text-danger" id="logout-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Header Styles */
+.header {
+  height: var(--header-height);
+  background-color: var(--color-bg-card);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 var(--space-6);
+  gap: var(--space-4);
+}
+
+.header-menu-toggle {
+  display: none;
+}
+
+@media (max-width: 1023px) {
+  .header-menu-toggle {
+    display: flex;
+  }
+}
+
+/* Page Title & Breadcrumb */
+.header-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.breadcrumb {
+  margin-bottom: var(--space-1);
+}
+
+.breadcrumb-list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+
+.breadcrumb-item {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb-item:not(:last-child)::after {
+  content: '/';
+  margin-left: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.breadcrumb-link {
+  color: var(--color-text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.breadcrumb-link:hover {
+  color: var(--color-primary-600);
+}
+
+.page-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Header Actions */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Search */
+.header-search {
+  position: relative;
+}
+
+.search-expanded {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-1);
+  box-shadow: var(--shadow-lg);
+  width: 320px;
+}
+
+.search-expanded[hidden] {
+  display: none;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: var(--space-2);
+}
+
+.search-input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Quick Actions */
+.header-quick-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-left: var(--space-2);
+  border-left: 1px solid var(--color-border);
+  margin-left: var(--space-2);
+}
+
+@media (max-width: 767px) {
+  .header-quick-actions {
+    display: none;
+  }
+}
+
+/* Notifications */
+.header-notifications {
+  position: relative;
+}
+
+.notification-btn {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--space-1);
+  background-color: var(--color-danger-500);
+  color: white;
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--space-2));
+  width: 360px;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+}
+
+.notification-dropdown[hidden] {
+  display: none;
+}
+
+.notification-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.notification-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+.notification-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.notification-empty {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.notification-item {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--transition-fast);
+}
+
+.notification-item:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+.notification-item.unread {
+  background-color: var(--color-primary-50);
+}
+
+.notification-footer {
+  padding: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-bg-secondary);
+}
+
+/* User Menu */
+.header-user {
+  position: relative;
+}
+
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  border-radius: var(--radius-lg);
+  transition: background-color var(--transition-fast);
+}
+
+.user-menu-trigger:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.user-avatar-sm {
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+}
+
+.user-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--space-2));
+  width: 240px;
+  background-color: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+}
+
+.user-dropdown[hidden] {
+  display: none;
+}
+
+.user-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg-secondary);
+}
+
+.user-dropdown-menu {
+  padding: var(--space-2);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  transition: var(--transition-colors);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+}
+
+.dropdown-item:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text);
+}
+
+.dropdown-item.text-danger:hover {
+  background-color: var(--color-danger-50);
+  color: var(--color-danger-600);
+}
+
+.dropdown-divider {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: var(--space-2) 0;
+}
+</style>
+
+<script>
+(function() {
+  // Search toggle
+  const searchToggle = document.getElementById('search-toggle');
+  const searchExpanded = document.getElementById('search-expanded');
+  const searchClose = document.getElementById('search-close');
+  const globalSearch = document.getElementById('global-search');
+
+  if (searchToggle && searchExpanded) {
+    searchToggle.addEventListener('click', () => {
+      searchExpanded.hidden = false;
+      searchToggle.hidden = true;
+      globalSearch?.focus();
+    });
+
+    searchClose?.addEventListener('click', () => {
+      searchExpanded.hidden = true;
+      searchToggle.hidden = false;
+    });
+
+    // Close on escape
+    globalSearch?.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        searchExpanded.hidden = true;
+        searchToggle.hidden = false;
+        searchToggle.focus();
+      }
+    });
+  }
+
+  // Notifications dropdown
+  const notificationToggle = document.getElementById('notification-toggle');
+  const notificationDropdown = document.getElementById('notification-dropdown');
+
+  if (notificationToggle && notificationDropdown) {
+    notificationToggle.addEventListener('click', () => {
+      const isOpen = !notificationDropdown.hidden;
+      notificationDropdown.hidden = isOpen;
+      notificationToggle.setAttribute('aria-expanded', !isOpen);
+    });
+  }
+
+  // User dropdown
+  const userMenuTrigger = document.getElementById('user-menu-trigger');
+  const userDropdown = document.getElementById('user-dropdown');
+
+  if (userMenuTrigger && userDropdown) {
+    userMenuTrigger.addEventListener('click', () => {
+      const isOpen = !userDropdown.hidden;
+      userDropdown.hidden = isOpen;
+      userMenuTrigger.setAttribute('aria-expanded', !isOpen);
+    });
+  }
+
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', (e) => {
+    if (notificationDropdown && !e.target.closest('#notifications')) {
+      notificationDropdown.hidden = true;
+      notificationToggle?.setAttribute('aria-expanded', 'false');
+    }
+    if (userDropdown && !e.target.closest('#header-user')) {
+      userDropdown.hidden = true;
+      userMenuTrigger?.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  // Theme toggle
+  const themeToggle = document.getElementById('theme-toggle');
+  const themeIcon = document.getElementById('theme-icon');
+
+  if (themeToggle) {
+    const updateThemeIcon = () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    };
+
+    themeToggle.addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const newTheme = isDark ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('semptify_theme', newTheme);
+      updateThemeIcon();
+      
+      if (typeof actions !== 'undefined') {
+        actions.setTheme(newTheme);
+      }
+    });
+
+    updateThemeIcon();
+  }
+
+  // Mobile menu toggle
+  const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+  const sidebar = document.getElementById('sidebar');
+
+  if (mobileMenuToggle && sidebar) {
+    mobileMenuToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+    });
+  }
+
+  // Logout
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      if (typeof authApi !== 'undefined') {
+        try {
+          await authApi.logout();
+        } catch (e) {
+          console.error('Logout error:', e);
+        }
+      }
+      window.location.href = '/';
+    });
+  }
+
+  // Update from state
+  if (typeof appStore !== 'undefined') {
+    appStore.subscribe('user', (user) => {
+      const nameEl = document.getElementById('header-user-name');
+      const emailEl = document.getElementById('header-user-email');
+      
+      if (nameEl) nameEl.textContent = user?.name || 'Guest';
+      if (emailEl) emailEl.textContent = user?.email || 'Not signed in';
+    });
+
+    appStore.subscribe('unreadCount', (count) => {
+      const badge = document.getElementById('notification-badge');
+      if (badge) {
+        badge.hidden = count === 0;
+        badge.textContent = count > 99 ? '99+' : count;
+      }
+    });
+  }
+})();
+</script>

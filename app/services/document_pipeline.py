@@ -21,6 +21,13 @@ try:
 except ImportError:
     HAS_CONTEXT_LOOP = False
 
+# Import module hub for routing documents to modules
+try:
+    from app.core.module_hub import module_hub, route_document_to_module
+    HAS_MODULE_HUB = True
+except ImportError:
+    HAS_MODULE_HUB = False
+
 
 class ProcessingStatus(str, Enum):
     """Document processing states."""
@@ -240,7 +247,7 @@ class DocumentPipeline:
                     },
                     source="document_pipeline",
                 )
-                
+
                 # Emit analyzed event with details
                 context_loop.emit_event(
                     EventType.DOCUMENT_ANALYZED,
@@ -258,7 +265,58 @@ class DocumentPipeline:
                 )
             except Exception as ctx_err:
                 print(f"Context loop event failed: {ctx_err}")
-        
+
+        # Route document to appropriate module via Module Hub
+        if HAS_MODULE_HUB and doc.status == ProcessingStatus.CLASSIFIED:
+            try:
+                # Build extracted data for module hub
+                extracted_data = {
+                    "title": doc.title,
+                    "summary": doc.summary,
+                    "full_text": doc.full_text,
+                }
+                
+                # Add key dates
+                if doc.key_dates:
+                    for date_info in doc.key_dates:
+                        if isinstance(date_info, dict):
+                            desc = date_info.get("description", "").lower().replace(" ", "_")
+                            extracted_data[desc] = date_info.get("date")
+                
+                # Add key parties
+                if doc.key_parties:
+                    for party_info in doc.key_parties:
+                        if isinstance(party_info, dict):
+                            role = party_info.get("role", "").lower().replace(" ", "_")
+                            if role:
+                                extracted_data[f"{role}_name"] = party_info.get("name")
+                
+                # Add key amounts
+                if doc.key_amounts:
+                    for amount_info in doc.key_amounts:
+                        if isinstance(amount_info, dict):
+                            desc = amount_info.get("description", "amount").lower().replace(" ", "_")
+                            extracted_data[desc] = amount_info.get("amount")
+                
+                # Add key terms
+                if doc.key_terms:
+                    extracted_data["key_terms"] = doc.key_terms
+                
+                # Route to module
+                info_pack = await route_document_to_module(
+                    user_id=doc.user_id,
+                    document_id=doc.id,
+                    document_type=doc.doc_type.value if doc.doc_type else "other",
+                    extracted_data=extracted_data,
+                    confidence_scores={"overall": doc.confidence or 0.5},
+                )
+                
+                if info_pack:
+                    print(f"📦 Document routed to module: {info_pack.target_module}")
+
+            except Exception as hub_err:
+                print(f"Module hub routing failed: {hub_err}")
+
         return doc
 
     async def ingest_and_process(

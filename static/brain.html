@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧠 Positronic Brain - Semptify</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3a 50%, #0a0a1a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .brain-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        .brain-header {
+            text-align: center;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .brain-title {
+            font-size: 3rem;
+            background: linear-gradient(90deg, #00ff88, #00aaff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradient 3s ease infinite;
+            background-size: 200% 200%;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .brain-subtitle {
+            color: #888;
+            margin-top: 10px;
+        }
+        
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 20px;
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+        }
+        
+        .status-item {
+            text-align: center;
+        }
+        
+        .status-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        
+        .status-label {
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+        
+        /* Neural Network Visualization */
+        .neural-network {
+            position: relative;
+            height: 500px;
+            background: radial-gradient(circle at center, rgba(0, 170, 255, 0.1) 0%, transparent 70%);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .brain-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, #00ff88 0%, #00aaff 50%, #1a1a3a 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            box-shadow: 0 0 60px rgba(0, 255, 136, 0.5);
+            animation: pulse 2s ease-in-out infinite;
+            cursor: pointer;
+            z-index: 10;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 60px rgba(0, 255, 136, 0.5); }
+            50% { box-shadow: 0 0 100px rgba(0, 255, 136, 0.8); }
+        }
+        
+        .module-node {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: rgba(30, 30, 60, 0.9);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(0, 170, 255, 0.3);
+        }
+        
+        .module-node:hover {
+            transform: scale(1.1);
+            border-color: #00ff88;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+        }
+        
+        .module-node.active {
+            border-color: #00ff88;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+        
+        .module-icon {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        
+        .module-name {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #aaa;
+        }
+        
+        /* Connection Lines (SVG) */
+        .connections-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .connection-line {
+            stroke: rgba(0, 170, 255, 0.3);
+            stroke-width: 2;
+            fill: none;
+        }
+        
+        .connection-line.active {
+            stroke: #00ff88;
+            stroke-width: 3;
+            animation: data-flow 1s ease-in-out infinite;
+        }
+        
+        @keyframes data-flow {
+            0% { stroke-dasharray: 0, 100; }
+            50% { stroke-dasharray: 50, 50; }
+            100% { stroke-dasharray: 100, 0; }
+        }
+        
+        /* Event Stream */
+        .event-stream {
+            background: rgba(20, 20, 40, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(0, 170, 255, 0.2);
+        }
+        
+        .event-stream h3 {
+            color: #00aaff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .event-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .event-time {
+            font-size: 0.7rem;
+            color: #666;
+            min-width: 60px;
+        }
+        
+        .event-type {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(0, 170, 255, 0.2);
+            color: #00aaff;
+        }
+        
+        .event-source {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        
+        .event-data {
+            font-size: 0.75rem;
+            color: #aaa;
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        /* Control Panel */
+        .control-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .control-btn {
+            padding: 15px 20px;
+            background: linear-gradient(135deg, rgba(0, 170, 255, 0.2), rgba(0, 255, 136, 0.1));
+            border: 1px solid rgba(0, 170, 255, 0.3);
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .control-btn:hover {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.3), rgba(0, 170, 255, 0.2));
+            border-color: #00ff88;
+            transform: translateY(-2px);
+        }
+        
+        /* State Display */
+        .state-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .state-card {
+            background: rgba(20, 20, 40, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid rgba(0, 170, 255, 0.2);
+        }
+        
+        .state-card h4 {
+            color: #00aaff;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .state-value {
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            max-height: 200px;
+            overflow: auto;
+        }
+        
+        /* Intensity Meter */
+        .intensity-meter {
+            height: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .intensity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #ffaa00, #ff4444);
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+        
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 170, 255, 0.3);
+            border-radius: 4px;
+        }
+        
+        /* Connection Status */
+        .connection-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .connection-status.connected {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid rgba(0, 255, 136, 0.5);
+            color: #00ff88;
+        }
+        
+        .connection-status.disconnected {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid rgba(255, 68, 68, 0.5);
+            color: #ff4444;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: blink 1s ease-in-out infinite;
+        }
+        
+        .connected .status-dot {
+            background: #00ff88;
+        }
+        
+        .disconnected .status-dot {
+            background: #ff4444;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="brain-container">
+        <header class="brain-header">
+            <h1 class="brain-title">🧠 Positronic Brain</h1>
+            <p class="brain-subtitle">Central Intelligence Hub - All Modules Connected</p>
+        </header>
+        
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-value" id="moduleCount">0</div>
+                <div class="status-label">Modules</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="eventCount">0</div>
+                <div class="status-label">Events</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="workflowCount">0</div>
+                <div class="status-label">Workflows</div>
+            </div>
+            <div class="status-item">
+                <div class="status-value" id="intensity">0%</div>
+                <div class="status-label">Intensity</div>
+            </div>
+        </div>
+        
+        <!-- Neural Network Visualization -->
+        <div class="neural-network" id="neuralNetwork">
+            <svg class="connections-svg" id="connectionsSvg"></svg>
+            
+            <div class="brain-core" id="brainCore" onclick="triggerSync()">🧠</div>
+            
+            <!-- Module Nodes - positioned via JS -->
+            <div class="module-node" id="mod-documents" data-module="documents">
+                <div class="module-icon">📄</div>
+                <div class="module-name">Documents</div>
+            </div>
+            
+            <div class="module-node" id="mod-timeline" data-module="timeline">
+                <div class="module-icon">📅</div>
+                <div class="module-name">Timeline</div>
+            </div>
+            
+            <div class="module-node" id="mod-calendar" data-module="calendar">
+                <div class="module-icon">🗓️</div>
+                <div class="module-name">Calendar</div>
+            </div>
+            
+            <div class="module-node" id="mod-eviction" data-module="eviction">
+                <div class="module-icon">⚖️</div>
+                <div class="module-name">Eviction</div>
+            </div>
+            
+            <div class="module-node" id="mod-copilot" data-module="copilot">
+                <div class="module-icon">🤖</div>
+                <div class="module-name">AI Copilot</div>
+            </div>
+            
+            <div class="module-node" id="mod-vault" data-module="vault">
+                <div class="module-icon">🔒</div>
+                <div class="module-name">Vault</div>
+            </div>
+            
+            <div class="module-node" id="mod-forms" data-module="forms">
+                <div class="module-icon">📝</div>
+                <div class="module-name">Forms</div>
+            </div>
+            
+            <div class="module-node" id="mod-context" data-module="context">
+                <div class="module-icon">🎯</div>
+                <div class="module-name">Context</div>
+            </div>
+        </div>
+        
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <button class="control-btn" onclick="triggerSync()">
+                🔄 Sync All Modules
+            </button>
+            <button class="control-btn" onclick="triggerWorkflow('document_intake')">
+                📤 Document Intake
+            </button>
+            <button class="control-btn" onclick="triggerWorkflow('eviction_defense')">
+                ⚖️ Eviction Defense
+            </button>
+            <button class="control-btn" onclick="triggerWorkflow('deadline_check')">
+                ⏰ Check Deadlines
+            </button>
+            <button class="control-btn" onclick="askBrainToThink()">
+                🤔 Brain Think
+            </button>
+            <button class="control-btn" onclick="location.href='/static/command_center.html'">
+                🎛️ Command Center
+            </button>
+        </div>
+        
+        <!-- Event Stream -->
+        <div class="event-stream">
+            <h3>📡 Event Stream <span id="eventStreamCount">(0)</span></h3>
+            <div id="eventList"></div>
+        </div>
+        
+        <!-- State Display -->
+        <div class="state-display">
+            <div class="state-card">
+                <h4>📊 System State</h4>
+                <div class="intensity-meter">
+                    <div class="intensity-fill" id="intensityBar" style="width: 0%"></div>
+                </div>
+                <div class="state-value" id="systemState">Loading...</div>
+            </div>
+            
+            <div class="state-card">
+                <h4>🔌 Connected Modules</h4>
+                <div class="state-value" id="moduleList">Loading...</div>
+            </div>
+            
+            <div class="state-card">
+                <h4>⚡ Active Workflows</h4>
+                <div class="state-value" id="workflowList">None</div>
+            </div>
+            
+            <div class="state-card">
+                <h4>💡 Brain Suggestions</h4>
+                <div class="state-value" id="suggestions">Click "Brain Think" to get suggestions</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Connection Status -->
+    <div class="connection-status disconnected" id="connectionStatus">
+        <div class="status-dot"></div>
+        <span>Disconnected</span>
+    </div>
+    
+    <script>
+        // State
+        let ws = null;
+        let events = [];
+        let state = {};
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            positionModules();
+            connectWebSocket();
+            loadInitialData();
+            drawConnections();
+        });
+        
+        // Position module nodes in a circle around the brain
+        function positionModules() {
+            const container = document.getElementById('neuralNetwork');
+            const modules = container.querySelectorAll('.module-node');
+            const centerX = container.offsetWidth / 2;
+            const centerY = container.offsetHeight / 2;
+            const radius = 180;
+            
+            modules.forEach((mod, i) => {
+                const angle = (i / modules.length) * 2 * Math.PI - Math.PI / 2;
+                const x = centerX + radius * Math.cos(angle) - 50;
+                const y = centerY + radius * Math.sin(angle) - 50;
+                mod.style.left = x + 'px';
+                mod.style.top = y + 'px';
+            });
+        }
+        
+        // Draw connection lines
+        function drawConnections() {
+            const svg = document.getElementById('connectionsSvg');
+            const container = document.getElementById('neuralNetwork');
+            const core = document.getElementById('brainCore');
+            const modules = container.querySelectorAll('.module-node');
+            
+            const coreX = core.offsetLeft + core.offsetWidth / 2;
+            const coreY = core.offsetTop + core.offsetHeight / 2;
+            
+            svg.innerHTML = '';
+            
+            modules.forEach(mod => {
+                const modX = mod.offsetLeft + mod.offsetWidth / 2;
+                const modY = mod.offsetTop + mod.offsetHeight / 2;
+                
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', coreX);
+                line.setAttribute('y1', coreY);
+                line.setAttribute('x2', modX);
+                line.setAttribute('y2', modY);
+                line.classList.add('connection-line');
+                line.id = 'line-' + mod.dataset.module;
+                svg.appendChild(line);
+            });
+        }
+        
+        // WebSocket connection
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}/api/brain/ws`);
+            
+            ws.onopen = () => {
+                updateConnectionStatus(true);
+                console.log('🧠 Connected to Positronic Brain');
+            };
+            
+            ws.onclose = () => {
+                updateConnectionStatus(false);
+                setTimeout(connectWebSocket, 3000);
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleBrainMessage(data);
+            };
+        }
+        
+        function updateConnectionStatus(connected) {
+            const el = document.getElementById('connectionStatus');
+            el.className = 'connection-status ' + (connected ? 'connected' : 'disconnected');
+            el.querySelector('span').textContent = connected ? 'Connected' : 'Disconnected';
+        }
+        
+        function handleBrainMessage(data) {
+            if (data.type === 'connected') {
+                state = data.state || {};
+                updateStateDisplay();
+                updateModuleList(data.modules || []);
+            } else if (data.type === 'brain_event') {
+                addEventToStream(data.event);
+                flashModule(data.event.source_module);
+                flashConnection(data.event.source_module);
+            } else if (data.type === 'state') {
+                state = data.state || {};
+                updateStateDisplay();
+            }
+        }
+        
+        // Add event to stream
+        function addEventToStream(event) {
+            events.unshift(event);
+            if (events.length > 100) events.pop();
+            
+            const list = document.getElementById('eventList');
+            const time = new Date(event.timestamp).toLocaleTimeString();
+            
+            const item = document.createElement('div');
+            item.className = 'event-item';
+            item.innerHTML = `
+                <span class="event-time">${time}</span>
+                <span class="event-type">${event.event_type}</span>
+                <span class="event-source">${event.source_module}</span>
+                <span class="event-data">${JSON.stringify(event.data).slice(0, 50)}...</span>
+            `;
+            
+            list.insertBefore(item, list.firstChild);
+            if (list.children.length > 50) list.removeChild(list.lastChild);
+            
+            document.getElementById('eventStreamCount').textContent = `(${events.length})`;
+            document.getElementById('eventCount').textContent = events.length;
+        }
+        
+        // Flash module when event received
+        function flashModule(moduleName) {
+            const mod = document.getElementById('mod-' + moduleName);
+            if (mod) {
+                mod.classList.add('active');
+                setTimeout(() => mod.classList.remove('active'), 500);
+            }
+        }
+        
+        // Flash connection line
+        function flashConnection(moduleName) {
+            const line = document.getElementById('line-' + moduleName);
+            if (line) {
+                line.classList.add('active');
+                setTimeout(() => line.classList.remove('active'), 1000);
+            }
+        }
+        
+        // Update state display
+        function updateStateDisplay() {
+            const intensity = (state.intensity || 0) * 100;
+            document.getElementById('intensity').textContent = intensity.toFixed(0) + '%';
+            document.getElementById('intensityBar').style.width = intensity + '%';
+            
+            document.getElementById('systemState').textContent = JSON.stringify({
+                documents: (state.documents || []).length,
+                timeline: (state.timeline || []).length,
+                defenses: (state.defenses || []).length,
+                intensity: state.intensity || 0
+            }, null, 2);
+        }
+        
+        // Update module list
+        function updateModuleList(modules) {
+            document.getElementById('moduleCount').textContent = modules.length;
+            document.getElementById('moduleList').textContent = modules.map(m => 
+                `${m.name} (${m.type})`
+            ).join('\n');
+            
+            // Activate modules in the network
+            modules.forEach(m => {
+                const mod = document.getElementById('mod-' + m.type);
+                if (mod) mod.classList.add('active');
+            });
+        }
+        
+        // Load initial data
+        async function loadInitialData() {
+            try {
+                const status = await fetch('/api/brain/status').then(r => r.json());
+                document.getElementById('moduleCount').textContent = status.modules_connected;
+                document.getElementById('eventCount').textContent = status.event_history_size;
+                document.getElementById('workflowCount').textContent = status.active_workflows;
+                
+                const events = await fetch('/api/brain/events?limit=20').then(r => r.json());
+                events.events.forEach(e => addEventToStream(e));
+                
+                const modules = await fetch('/api/brain/modules').then(r => r.json());
+                updateModuleList(modules.modules);
+            } catch (e) {
+                console.error('Failed to load initial data:', e);
+            }
+        }
+        
+        // Trigger sync
+        async function triggerSync() {
+            try {
+                const result = await fetch('/api/brain/sync', { method: 'POST' }).then(r => r.json());
+                console.log('Sync triggered:', result);
+                
+                // Pulse the brain
+                const core = document.getElementById('brainCore');
+                core.style.animation = 'none';
+                setTimeout(() => core.style.animation = 'pulse 2s ease-in-out infinite', 100);
+            } catch (e) {
+                console.error('Sync failed:', e);
+            }
+        }
+        
+        // Trigger workflow
+        async function triggerWorkflow(name) {
+            try {
+                const result = await fetch('/api/brain/workflow', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ workflow_name: name, data: {} })
+                }).then(r => r.json());
+                
+                document.getElementById('workflowList').textContent = 
+                    `${name}: ${result.status} (${result.workflow_id})`;
+                document.getElementById('workflowCount').textContent = 
+                    parseInt(document.getElementById('workflowCount').textContent) + 1;
+            } catch (e) {
+                console.error('Workflow failed:', e);
+            }
+        }
+        
+        // Ask brain to think
+        async function askBrainToThink() {
+            try {
+                const result = await fetch('/api/brain/think', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ context: state })
+                }).then(r => r.json());
+                
+                const suggestions = result.suggestions.map(s => 
+                    `[${s.priority.toUpperCase()}] ${s.message}`
+                ).join('\n') || 'No suggestions at this time.';
+                
+                document.getElementById('suggestions').textContent = suggestions;
+            } catch (e) {
+                console.error('Think failed:', e);
+            }
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            positionModules();
+            drawConnections();
+        });
+    </script>
+</body>
+</html>

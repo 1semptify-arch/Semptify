@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Semptify Dashboard - Your legal document assistant">
+  <title>Dashboard - Semptify</title>
+  
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Design System -->
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <link rel="stylesheet" href="/static/css/layouts.css">
+  
+  <!-- Skip Link for Accessibility -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+</head>
+<body>
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container" role="region" aria-label="Notifications"></div>
+  
+  <!-- Screen Reader Announcer -->
+  <div id="a11y-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- App Layout -->
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="Main navigation">
+      <div class="sidebar-inner">
+        <!-- Logo/Brand -->
+        <div class="sidebar-header">
+          <a href="/" class="sidebar-brand" aria-label="Semptify Home">
+            <div class="sidebar-logo-icon">
+              <i class="fas fa-balance-scale"></i>
+            </div>
+            <span class="sidebar-brand-text">Semptify</span>
+          </a>
+          <button class="sidebar-toggle btn btn-ghost btn-icon" id="sidebar-toggle" aria-label="Toggle sidebar">
+            <i class="fas fa-bars"></i>
+          </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+          <ul class="sidebar-menu">
+            <li class="sidebar-item">
+              <a href="/static/dashboard-v2.html" class="sidebar-link active" aria-current="page">
+                <i class="fas fa-home sidebar-icon"></i>
+                <span class="sidebar-text">Dashboard</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a href="/static/command_center.html" class="sidebar-link">
+                <i class="fas fa-terminal sidebar-icon"></i>
+                <span class="sidebar-text">Command Center</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a href="/static/documents.html" class="sidebar-link">
+                <i class="fas fa-file-alt sidebar-icon"></i>
+                <span class="sidebar-text">Documents</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a href="/static/timeline.html" class="sidebar-link">
+                <i class="fas fa-stream sidebar-icon"></i>
+                <span class="sidebar-text">Timeline</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a href="/static/calendar.html" class="sidebar-link">
+                <i class="fas fa-calendar sidebar-icon"></i>
+                <span class="sidebar-text">Calendar</span>
+              </a>
+            </li>
+
+            <li class="sidebar-divider" role="separator"></li>
+
+            <li class="sidebar-section">
+              <span class="sidebar-section-title">Eviction Defense</span>
+            </li>
+            <li class="sidebar-item">
+              <a href="/eviction/flows" class="sidebar-link">
+                <i class="fas fa-route sidebar-icon"></i>
+                <span class="sidebar-text">Guided Flows</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a href="/eviction/forms" class="sidebar-link">
+                <i class="fas fa-file-signature sidebar-icon"></i>
+                <span class="sidebar-text">Form Library</span>
+              </a>
+            </li>
+
+            <li class="sidebar-divider" role="separator"></li>
+
+            <li class="sidebar-item">
+              <a href="/static/storage_setup.html" class="sidebar-link">
+                <i class="fas fa-cloud sidebar-icon"></i>
+                <span class="sidebar-text">Cloud Storage</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="sidebar-footer">
+          <div class="sidebar-status" id="sync-status">
+            <span class="status-indicator status-offline" id="status-dot"></span>
+            <span class="sidebar-text status-text" id="status-text">Offline</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+      <!-- Header -->
+      <header class="header" role="banner">
+        <div class="header-inner">
+          <button class="header-menu-toggle btn btn-ghost btn-icon" id="mobile-menu-toggle" aria-label="Open menu">
+            <i class="fas fa-bars"></i>
+          </button>
+
+          <div class="header-title">
+            <h1 class="page-title">Dashboard</h1>
+          </div>
+
+          <div class="header-actions">
+            <button class="btn btn-ghost btn-icon" id="search-toggle" aria-label="Search">
+              <i class="fas fa-search"></i>
+            </button>
+            <button class="btn btn-ghost btn-icon" id="theme-toggle" aria-label="Toggle theme">
+              <i class="fas fa-moon" id="theme-icon"></i>
+            </button>
+            <div class="header-notifications">
+              <button class="btn btn-ghost btn-icon" id="notification-toggle" aria-label="Notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge" id="notification-badge" hidden>0</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <main id="main-content" class="main-content" role="main" tabindex="-1">
+        <!-- Welcome Section -->
+        <div class="page-header">
+          <div class="page-header-title">
+            <div>
+              <h2 class="h2">Welcome back!</h2>
+              <p class="page-header-description">Here's an overview of your legal documents and upcoming deadlines.</p>
+            </div>
+            <div class="page-header-actions">
+              <button class="btn btn-secondary" id="refresh-btn">
+                <i class="fas fa-sync-alt"></i>
+                <span class="btn-text">Refresh</span>
+              </button>
+              <button class="btn btn-primary" id="upload-btn">
+                <i class="fas fa-upload"></i>
+                <span class="btn-text">Upload Document</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row" id="stats-row">
+          <div class="stat-card">
+            <div class="stat-icon stat-icon-primary">
+              <i class="fas fa-file-alt"></i>
+            </div>
+            <div class="stat-value" id="stat-documents">--</div>
+            <div class="stat-label">Total Documents</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon stat-icon-warning">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-value" id="stat-pending">--</div>
+            <div class="stat-label">Pending Review</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon stat-icon-success">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="stat-value" id="stat-deadlines">--</div>
+            <div class="stat-label">Upcoming Deadlines</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon stat-icon-danger">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-value" id="stat-urgent">--</div>
+            <div class="stat-label">Urgent Actions</div>
+          </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="dashboard-grid">
+          <!-- Recent Documents Card -->
+          <section class="card">
+            <div class="card-header">
+              <h3 class="card-title">Recent Documents</h3>
+              <a href="/static/documents.html" class="btn btn-ghost btn-sm">View All</a>
+            </div>
+            <div class="card-body p-0">
+              <div class="list" id="recent-documents">
+                <div class="empty-state">
+                  <div class="empty-state-icon">
+                    <i class="fas fa-file-upload"></i>
+                  </div>
+                  <p class="text-muted">No documents yet</p>
+                  <button class="btn btn-primary btn-sm mt-4" onclick="document.getElementById('upload-btn').click()">
+                    Upload First Document
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Upcoming Events Card -->
+          <section class="card">
+            <div class="card-header">
+              <h3 class="card-title">Upcoming Events</h3>
+              <a href="/static/timeline.html" class="btn btn-ghost btn-sm">View Timeline</a>
+            </div>
+            <div class="card-body p-0">
+              <div class="list" id="upcoming-events">
+                <div class="empty-state">
+                  <div class="empty-state-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                  </div>
+                  <p class="text-muted">No upcoming events</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Quick Actions Card -->
+          <section class="card">
+            <div class="card-header">
+              <h3 class="card-title">Quick Actions</h3>
+            </div>
+            <div class="card-body">
+              <div class="quick-actions-grid">
+                <a href="/static/document_intake.html" class="quick-action-btn">
+                  <div class="quick-action-icon">
+                    <i class="fas fa-upload"></i>
+                  </div>
+                  <span>Upload Document</span>
+                </a>
+                <a href="/eviction/flows" class="quick-action-btn">
+                  <div class="quick-action-icon">
+                    <i class="fas fa-route"></i>
+                  </div>
+                  <span>Start Flow</span>
+                </a>
+                <a href="/static/calendar.html" class="quick-action-btn">
+                  <div class="quick-action-icon">
+                    <i class="fas fa-calendar-plus"></i>
+                  </div>
+                  <span>Add Event</span>
+                </a>
+                <a href="/static/brain.html" class="quick-action-btn">
+                  <div class="quick-action-icon">
+                    <i class="fas fa-robot"></i>
+                  </div>
+                  <span>AI Assistant</span>
+                </a>
+              </div>
+            </div>
+          </section>
+
+          <!-- AI Insights Card -->
+          <section class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <i class="fas fa-brain text-primary"></i>
+                AI Insights
+              </h3>
+            </div>
+            <div class="card-body" id="ai-insights">
+              <div class="alert alert-info">
+                <div class="alert-icon">
+                  <i class="fas fa-lightbulb"></i>
+                </div>
+                <div class="alert-content">
+                  <p>Upload documents to receive AI-powered analysis and recommendations for your case.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="footer" role="contentinfo">
+        <div class="footer-content">
+          <p class="footer-copyright">&copy; 2024 Semptify. All rights reserved.</p>
+          <p class="footer-version">
+            <span class="version-label">Version</span>
+            <span class="version-number">5.0.0</span>
+          </p>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div class="modal-backdrop" id="upload-modal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="upload-modal-title">
+      <div class="modal-header">
+        <h2 class="modal-title" id="upload-modal-title">Upload Document</h2>
+        <button class="modal-close" aria-label="Close dialog" onclick="closeUploadModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="upload-zone" id="upload-zone">
+          <div class="upload-zone-content">
+            <i class="fas fa-cloud-upload-alt upload-zone-icon"></i>
+            <p class="upload-zone-text">Drag & drop files here</p>
+            <p class="upload-zone-hint">or click to browse</p>
+            <input type="file" id="file-input" class="sr-only" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+          </div>
+        </div>
+        <div class="upload-progress" id="upload-progress" hidden>
+          <div class="upload-file-info">
+            <i class="fas fa-file"></i>
+            <span id="upload-filename">filename.pdf</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="upload-progress-bar" style="width: 0%"></div>
+          </div>
+          <span class="upload-percent" id="upload-percent">0%</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeUploadModal()">Cancel</button>
+        <button class="btn btn-primary" id="upload-submit-btn" disabled>
+          <i class="fas fa-upload"></i>
+          Upload
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core JavaScript Modules -->
+  <script src="/static/js/modules/api.js"></script>
+  <script src="/static/js/modules/websocket.js"></script>
+  <script src="/static/js/modules/ui.js"></script>
+  <script src="/static/js/modules/state.js"></script>
+  <script src="/static/js/app.main.js"></script>
+
+  <style>
+    /* Dashboard-specific styles */
+    .sidebar-logo-icon {
+      width: 2rem;
+      height: 2rem;
+      background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .quick-actions-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-3);
+    }
+
+    .quick-action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-4);
+      background-color: var(--color-bg-secondary);
+      border-radius: var(--radius-lg);
+      transition: var(--transition-normal);
+      text-decoration: none;
+      color: var(--color-text);
+    }
+
+    .quick-action-btn:hover {
+      background-color: var(--color-bg-tertiary);
+      transform: translateY(-2px);
+    }
+
+    .quick-action-icon {
+      width: 3rem;
+      height: 3rem;
+      background-color: var(--color-primary-100);
+      color: var(--color-primary-600);
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-size-xl);
+    }
+
+    .quick-action-btn span {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+    }
+
+    /* Upload Zone */
+    .upload-zone {
+      border: 2px dashed var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-8);
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition-normal);
+    }
+
+    .upload-zone:hover,
+    .upload-zone.dragover {
+      border-color: var(--color-primary-500);
+      background-color: var(--color-primary-50);
+    }
+
+    .upload-zone-icon {
+      font-size: 3rem;
+      color: var(--color-text-muted);
+      margin-bottom: var(--space-4);
+    }
+
+    .upload-zone-text {
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-medium);
+      margin-bottom: var(--space-1);
+    }
+
+    .upload-zone-hint {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-sm);
+    }
+
+    .upload-progress {
+      padding: var(--space-4);
+      background-color: var(--color-bg-secondary);
+      border-radius: var(--radius-lg);
+    }
+
+    .upload-file-info {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-2);
+    }
+
+    .progress-bar {
+      height: 8px;
+      background-color: var(--color-bg-tertiary);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: var(--color-primary-500);
+      transition: width 0.3s ease;
+    }
+
+    .upload-percent {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+    }
+
+    /* Empty state in cards */
+    .card .empty-state {
+      padding: var(--space-8) var(--space-4);
+    }
+
+    .card .empty-state-icon {
+      width: 3rem;
+      height: 3rem;
+      margin: 0 auto var(--space-3);
+      color: var(--color-text-muted);
+      font-size: 1.5rem;
+    }
+
+    @media (max-width: 767px) {
+      .btn-text {
+        display: none;
+      }
+      .page-header-actions .btn {
+        padding: var(--space-2);
+      }
+    }
+  </style>
+
+  <script>
+    // Dashboard-specific JavaScript
+    (function() {
+      // Wait for app ready
+      window.addEventListener('semptify:ready', initDashboard);
+      if (window.app?.isReady?.()) initDashboard();
+
+      async function initDashboard() {
+        await Promise.all([
+          loadStats(),
+          loadRecentDocuments(),
+          loadUpcomingEvents()
+        ]);
+        initUploadModal();
+        initSidebar();
+        initThemeToggle();
+      }
+
+      // Load Stats
+      async function loadStats() {
+        try {
+          const response = await api.get('/api/documents');
+          const docs = response.data?.documents || [];
+          
+          document.getElementById('stat-documents').textContent = docs.length;
+          document.getElementById('stat-pending').textContent = docs.filter(d => d.status === 'pending').length;
+          
+          // Load timeline for deadlines
+          const timelineResponse = await api.get('/api/timeline');
+          const events = timelineResponse.data?.events || [];
+          const upcoming = events.filter(e => new Date(e.date) > new Date()).length;
+          const urgent = events.filter(e => {
+            const days = (new Date(e.date) - new Date()) / (1000 * 60 * 60 * 24);
+            return days > 0 && days <= 7;
+          }).length;
+          
+          document.getElementById('stat-deadlines').textContent = upcoming;
+          document.getElementById('stat-urgent').textContent = urgent;
+        } catch (error) {
+          console.error('Failed to load stats:', error);
+          document.querySelectorAll('.stat-value').forEach(el => el.textContent = '0');
+        }
+      }
+
+      // Load Recent Documents
+      async function loadRecentDocuments() {
+        const container = document.getElementById('recent-documents');
+        try {
+          const response = await api.get('/api/documents');
+          const docs = (response.data?.documents || []).slice(0, 5);
+          
+          if (docs.length === 0) return;
+          
+          container.innerHTML = docs.map(doc => `
+            <a href="/static/documents.html?id=${doc.id}" class="list-item">
+              <div class="list-item-icon">
+                <i class="fas fa-file-${getFileIcon(doc.filename)}"></i>
+              </div>
+              <div class="list-item-content">
+                <div class="list-item-title">${doc.filename}</div>
+                <div class="list-item-subtitle">${formatRelativeTime(doc.created_at)}</div>
+              </div>
+            </a>
+          `).join('');
+        } catch (error) {
+          console.error('Failed to load documents:', error);
+        }
+      }
+
+      // Load Upcoming Events
+      async function loadUpcomingEvents() {
+        const container = document.getElementById('upcoming-events');
+        try {
+          const response = await api.get('/api/timeline');
+          const events = (response.data?.events || [])
+            .filter(e => new Date(e.date) > new Date())
+            .slice(0, 5);
+          
+          if (events.length === 0) return;
+          
+          container.innerHTML = events.map(event => `
+            <div class="list-item">
+              <div class="list-item-icon" style="background-color: var(--color-${event.type === 'deadline' ? 'warning' : 'primary'}-100); color: var(--color-${event.type === 'deadline' ? 'warning' : 'primary'}-600);">
+                <i class="fas fa-${event.type === 'deadline' ? 'clock' : 'calendar'}"></i>
+              </div>
+              <div class="list-item-content">
+                <div class="list-item-title">${event.title}</div>
+                <div class="list-item-subtitle">${formatDate(event.date)}</div>
+              </div>
+            </div>
+          `).join('');
+        } catch (error) {
+          console.error('Failed to load events:', error);
+        }
+      }
+
+      function getFileIcon(filename) {
+        const ext = filename?.split('.').pop()?.toLowerCase();
+        const icons = { pdf: 'pdf', doc: 'word', docx: 'word', jpg: 'image', jpeg: 'image', png: 'image' };
+        return icons[ext] || 'alt';
+      }
+
+      // Upload Modal
+      function initUploadModal() {
+        const uploadBtn = document.getElementById('upload-btn');
+        const modal = document.getElementById('upload-modal');
+        const uploadZone = document.getElementById('upload-zone');
+        const fileInput = document.getElementById('file-input');
+        const submitBtn = document.getElementById('upload-submit-btn');
+        let selectedFile = null;
+
+        uploadBtn?.addEventListener('click', () => {
+          modal.classList.add('active');
+        });
+
+        uploadZone?.addEventListener('click', () => fileInput.click());
+        
+        uploadZone?.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          uploadZone.classList.add('dragover');
+        });
+
+        uploadZone?.addEventListener('dragleave', () => {
+          uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone?.addEventListener('drop', (e) => {
+          e.preventDefault();
+          uploadZone.classList.remove('dragover');
+          if (e.dataTransfer.files.length) {
+            handleFileSelect(e.dataTransfer.files[0]);
+          }
+        });
+
+        fileInput?.addEventListener('change', (e) => {
+          if (e.target.files.length) {
+            handleFileSelect(e.target.files[0]);
+          }
+        });
+
+        function handleFileSelect(file) {
+          selectedFile = file;
+          document.getElementById('upload-filename').textContent = file.name;
+          document.getElementById('upload-progress').hidden = false;
+          document.getElementById('upload-zone').style.display = 'none';
+          submitBtn.disabled = false;
+        }
+
+        submitBtn?.addEventListener('click', async () => {
+          if (!selectedFile) return;
+          
+          submitBtn.disabled = true;
+          const progressBar = document.getElementById('upload-progress-bar');
+          const percentText = document.getElementById('upload-percent');
+          
+          try {
+            await api.upload('/api/documents/upload', selectedFile, {
+              onProgress: (percent) => {
+                progressBar.style.width = `${percent}%`;
+                percentText.textContent = `${percent}%`;
+              }
+            });
+            
+            toast.success('Document uploaded successfully!');
+            closeUploadModal();
+            loadStats();
+            loadRecentDocuments();
+          } catch (error) {
+            toast.error('Upload failed: ' + error.message);
+            submitBtn.disabled = false;
+          }
+        });
+      }
+
+      window.closeUploadModal = function() {
+        const modal = document.getElementById('upload-modal');
+        modal.classList.remove('active');
+        // Reset
+        document.getElementById('upload-zone').style.display = 'block';
+        document.getElementById('upload-progress').hidden = true;
+        document.getElementById('upload-progress-bar').style.width = '0%';
+        document.getElementById('upload-percent').textContent = '0%';
+        document.getElementById('upload-submit-btn').disabled = true;
+        document.getElementById('file-input').value = '';
+      };
+
+      // Sidebar
+      function initSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('sidebar-toggle');
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        
+        toggleBtn?.addEventListener('click', () => {
+          sidebar.classList.toggle('collapsed');
+          localStorage.setItem('sidebar_collapsed', sidebar.classList.contains('collapsed'));
+        });
+
+        mobileToggle?.addEventListener('click', () => {
+          sidebar.classList.toggle('open');
+        });
+
+        // Restore state
+        if (localStorage.getItem('sidebar_collapsed') === 'true') {
+          sidebar.classList.add('collapsed');
+        }
+
+        // Update sync status
+        updateSyncStatus();
+      }
+
+      async function updateSyncStatus() {
+        try {
+          const response = await api.get('/api/sync/status');
+          const status = response.data;
+          
+          const dot = document.getElementById('status-dot');
+          const text = document.getElementById('status-text');
+          
+          if (status?.connected) {
+            dot.className = 'status-indicator status-online';
+            text.textContent = `Synced to ${status.provider || 'Cloud'}`;
+          } else {
+            dot.className = 'status-indicator status-offline';
+            text.textContent = 'Offline';
+          }
+        } catch (e) {
+          // Ignore
+        }
+      }
+
+      // Theme Toggle
+      function initThemeToggle() {
+        const toggle = document.getElementById('theme-toggle');
+        const icon = document.getElementById('theme-icon');
+        
+        const updateIcon = () => {
+          const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+        };
+
+        toggle?.addEventListener('click', () => {
+          const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+          const newTheme = isDark ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', newTheme);
+          localStorage.setItem('semptify_theme', newTheme);
+          updateIcon();
+        });
+
+        updateIcon();
+      }
+
+      // Refresh button
+      document.getElementById('refresh-btn')?.addEventListener('click', async function() {
+        const btn = this;
+        btn.disabled = true;
+        btn.querySelector('i').classList.add('fa-spin');
+        
+        await Promise.all([loadStats(), loadRecentDocuments(), loadUpcomingEvents()]);
+        
+        btn.disabled = false;
+        btn.querySelector('i').classList.remove('fa-spin');
+        toast.success('Dashboard refreshed');
+      });
+    })();
+  </script>
+</body>
+</html>
