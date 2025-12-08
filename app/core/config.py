@@ -7,6 +7,7 @@ Single source of truth for all app settings.
 from functools import lru_cache
 from typing import Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
@@ -14,15 +15,13 @@ class Settings(BaseSettings):
     Application settings loaded from environment variables.
     Use .env file for local development, env vars for production.
     """
-    
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
-    )
-    
-    # ==========================================================================
+    )    # ==========================================================================
     # App Identity
     # ==========================================================================
     app_name: str = "Semptify"
@@ -83,6 +82,26 @@ Your data lives in YOUR cloud storage - we never store your files.
     # Example: DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/dbname
     database_url: str = "sqlite+aiosqlite:///./semptify.db"
     # For SQLite (dev fallback): "sqlite+aiosqlite:///./semptify.db"
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def convert_to_async_driver(cls, v: str) -> str:
+        """
+        Automatically convert database URLs to use async drivers.
+        Render.com and other providers use postgresql:// but we need postgresql+asyncpg://
+        """
+        if v and isinstance(v, str):
+            # Convert PostgreSQL to asyncpg
+            if v.startswith("postgresql://") or v.startswith("postgres://"):
+                # Replace postgresql:// or postgres:// with postgresql+asyncpg://
+                if v.startswith("postgres://"):
+                    v = v.replace("postgres://", "postgresql+asyncpg://", 1)
+                else:
+                    v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
+            # Convert SQLite to aiosqlite if not already
+            elif v.startswith("sqlite://") and "+aiosqlite" not in v:
+                v = v.replace("sqlite://", "sqlite+aiosqlite://", 1)
+        return v
 
     # ==========================================================================
     # File Storage
