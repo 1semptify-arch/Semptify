@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify - Court Packet Export</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2C5F2D;
+            --secondary: #3498DB;
+            --accent: #E67E22;
+        }
+
+        body {
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--primary), #1a4a1b);
+            color: white;
+            padding: 2rem;
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            padding: 1.25rem 1.5rem;
+            font-weight: 600;
+            border-radius: 16px 16px 0 0 !important;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* Checklist */
+        .checklist-category {
+            margin-bottom: 1.5rem;
+        }
+
+        .checklist-category h5 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .checklist-item.has-item {
+            background: #e8f5e9;
+        }
+
+        .checklist-item.required {
+            border-left: 3px solid var(--accent);
+        }
+
+        .checklist-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+
+        .checklist-item.has-item .checklist-icon {
+            background: var(--primary);
+            color: white;
+        }
+
+        .checklist-item:not(.has-item) .checklist-icon {
+            background: #ddd;
+            color: #666;
+        }
+
+        .checklist-info {
+            flex: 1;
+        }
+
+        .checklist-name {
+            font-weight: 600;
+        }
+
+        .checklist-help {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .checklist-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+        }
+
+        /* Progress Ring */
+        .progress-ring-container {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .progress-ring {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 1rem;
+        }
+
+        .progress-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-circle {
+            fill: transparent;
+            stroke: #e9ecef;
+            stroke-width: 10;
+        }
+
+        .progress-ring-progress {
+            fill: transparent;
+            stroke: var(--primary);
+            stroke-width: 10;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .progress-text {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Preview Items */
+        .preview-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-section h6 {
+            color: #666;
+            margin-bottom: 0.75rem;
+        }
+
+        .preview-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .preview-item i {
+            margin-right: 0.5rem;
+            color: var(--primary);
+        }
+
+        .preview-item.starred {
+            background: #fff3e0;
+        }
+
+        .preview-item.starred::after {
+            content: '★';
+            margin-left: auto;
+            color: var(--accent);
+        }
+
+        /* Export Options */
+        .export-option {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .export-option:hover {
+            border-color: var(--primary);
+        }
+
+        .export-option.selected {
+            border-color: var(--primary);
+            background: #e8f5e9;
+        }
+
+        .export-option input {
+            margin-right: 1rem;
+        }
+
+        /* Export Button */
+        .export-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            background: #234d24;
+            transform: translateY(-2px);
+        }
+
+        .export-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Highlight Colors */
+        .highlight-color {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .highlight-color.yellow { background: #fff9c4; }
+        .highlight-color.green { background: #c8e6c9; }
+        .highlight-color.blue { background: #bbdefb; }
+        .highlight-color.pink { background: #f8bbd9; }
+        .highlight-color.orange { background: #ffe0b2; }
+        .highlight-color.red { background: #ffcdd2; }
+
+        /* Status Messages */
+        .status-message {
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .status-message.show {
+            display: block;
+        }
+
+        .status-success {
+            background: #e8f5e9;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .status-error {
+            background: #ffebee;
+            border: 1px solid #e74c3c;
+            color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="page-header">
+        <div class="d-flex justify-content-between align-items-center" style="max-width: 1200px; margin: 0 auto;">
+            <div>
+                <h1 class="h3 mb-1">📦 Court Packet Export</h1>
+                <p class="mb-0 opacity-75">Generate court-ready document packets</p>
+            </div>
+            <div>
+                <a href="/static/mission_control.html" class="btn btn-outline-light btn-sm me-2">
+                    <i class="bi bi-arrow-left"></i> Mission Control
+                </a>
+                <a href="/static/briefcase.html" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-briefcase"></i> Briefcase
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="row">
+            <!-- Left Column - Checklist -->
+            <div class="col-lg-7">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-clipboard-check"></i> Court Packet Checklist
+                    </div>
+                    <div class="card-body" id="checklistContainer">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2 text-muted">Loading checklist...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-eye"></i> Packet Preview
+                    </div>
+                    <div class="card-body" id="previewContainer">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-2 text-muted">Loading preview...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Export -->
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-pie-chart"></i> Packet Readiness
+                    </div>
+                    <div class="card-body">
+                        <div class="progress-ring-container">
+                            <div class="progress-ring">
+                                <svg width="150" height="150">
+                                    <circle class="progress-ring-circle" cx="75" cy="75" r="65"></circle>
+                                    <circle class="progress-ring-progress" id="progressCircle" cx="75" cy="75" r="65"
+                                            stroke-dasharray="408" stroke-dashoffset="408"></circle>
+                                </svg>
+                            </div>
+                            <div class="progress-text" id="progressPercent">0%</div>
+                            <p class="text-muted" id="progressLabel">Required items</p>
+                        </div>
+
+                        <div class="d-flex justify-content-around text-center border-top pt-3">
+                            <div>
+                                <div class="h4 mb-0" id="statDocs">0</div>
+                                <small class="text-muted">Documents</small>
+                            </div>
+                            <div>
+                                <div class="h4 mb-0" id="statExtracts">0</div>
+                                <small class="text-muted">Extractions</small>
+                            </div>
+                            <div>
+                                <div class="h4 mb-0" id="statHighlights">0</div>
+                                <small class="text-muted">Highlights</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-gear"></i> Export Options
+                    </div>
+                    <div class="card-body">
+                        <label class="export-option selected">
+                            <input type="checkbox" id="includeIndex" checked>
+                            <div>
+                                <strong>Evidence Index</strong>
+                                <div class="text-muted small">List of all documents with descriptions</div>
+                            </div>
+                        </label>
+
+                        <label class="export-option selected">
+                            <input type="checkbox" id="includeHighlights" checked>
+                            <div>
+                                <strong>Highlights Summary</strong>
+                                <div class="text-muted small">All annotations organized by category</div>
+                            </div>
+                        </label>
+
+                        <label class="export-option selected">
+                            <input type="checkbox" id="includeExtractions" checked>
+                            <div>
+                                <strong>Extracted Pages</strong>
+                                <div class="text-muted small">Key pages pulled from documents</div>
+                            </div>
+                        </label>
+
+                        <label class="export-option">
+                            <input type="checkbox" id="starredOnly">
+                            <div>
+                                <strong>Starred Items Only</strong>
+                                <div class="text-muted small">Export only key evidence</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="status-message status-success" id="successMessage">
+                            <i class="bi bi-check-circle"></i> 
+                            <span id="successText">Court packet generated successfully!</span>
+                        </div>
+                        <div class="status-message status-error" id="errorMessage">
+                            <i class="bi bi-exclamation-circle"></i> 
+                            <span id="errorText">Error generating packet</span>
+                        </div>
+
+                        <button class="export-btn" id="exportBtn" onclick="generatePacket()">
+                            <i class="bi bi-download"></i>
+                            Generate Court Packet
+                        </button>
+                        <p class="text-center text-muted small mt-2 mb-0">
+                            Downloads as organized ZIP file
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h6><i class="bi bi-lightbulb text-warning"></i> Tips for Court</h6>
+                        <ul class="small mb-0">
+                            <li>Print at least 3 copies of everything</li>
+                            <li>Bring originals if you have them</li>
+                            <li>Organize documents in order you'll present</li>
+                            <li>Highlight key passages beforehand</li>
+                            <li>Practice explaining each document</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadChecklist();
+            loadPreview();
+            loadStatus();
+        });
+
+        async function loadChecklist() {
+            const container = document.getElementById('checklistContainer');
+            try {
+                const resp = await fetch('/api/court-packet/checklist');
+                const data = await resp.json();
+                
+                if (data.success) {
+                    renderChecklist(data.checklist, data.completion);
+                }
+            } catch (e) {
+                container.innerHTML = '<p class="text-danger">Error loading checklist</p>';
+            }
+        }
+
+        function renderChecklist(checklist, completion) {
+            const container = document.getElementById('checklistContainer');
+            
+            let html = '';
+            for (const category of checklist) {
+                html += `
+                    <div class="checklist-category">
+                        <h5>${category.category}</h5>
+                        ${category.items.map(item => `
+                            <div class="checklist-item ${item.has ? 'has-item' : ''} ${item.required ? 'required' : ''}">
+                                <div class="checklist-icon">
+                                    <i class="bi bi-${item.has ? 'check' : 'circle'}"></i>
+                                </div>
+                                <div class="checklist-info">
+                                    <div class="checklist-name">${item.name}</div>
+                                    <div class="checklist-help">${item.help}</div>
+                                </div>
+                                ${item.required ? '<span class="checklist-badge bg-warning text-dark">Required</span>' : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+
+            // Update progress ring
+            updateProgressRing(completion.percentage);
+        }
+
+        function updateProgressRing(percent) {
+            const circle = document.getElementById('progressCircle');
+            const circumference = 408; // 2 * PI * 65
+            const offset = circumference - (percent / 100 * circumference);
+            circle.style.strokeDashoffset = offset;
+            
+            document.getElementById('progressPercent').textContent = percent + '%';
+        }
+
+        async function loadPreview() {
+            const container = document.getElementById('previewContainer');
+            try {
+                const resp = await fetch('/api/court-packet/preview');
+                const data = await resp.json();
+                
+                if (data.success) {
+                    renderPreview(data.preview);
+                }
+            } catch (e) {
+                container.innerHTML = '<p class="text-muted">No items to preview</p>';
+            }
+        }
+
+        function renderPreview(preview) {
+            const container = document.getElementById('previewContainer');
+            let html = '';
+
+            // Documents
+            if (preview.documents.length > 0) {
+                html += `
+                    <div class="preview-section">
+                        <h6><i class="bi bi-file-earmark"></i> Documents (${preview.documents.length})</h6>
+                        ${preview.documents.map(doc => `
+                            <div class="preview-item ${doc.starred ? 'starred' : ''}">
+                                <i class="bi bi-file-earmark-text"></i>
+                                ${doc.name}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // Extractions
+            if (preview.extractions.length > 0) {
+                html += `
+                    <div class="preview-section">
+                        <h6><i class="bi bi-scissors"></i> Extracted Pages (${preview.extractions.length})</h6>
+                        ${preview.extractions.map(ext => `
+                            <div class="preview-item">
+                                <i class="bi bi-file-pdf"></i>
+                                ${ext.filename || 'Untitled'} (from ${ext.source})
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            // Highlights by color
+            if (Object.keys(preview.highlights_by_color).length > 0) {
+                html += `
+                    <div class="preview-section">
+                        <h6><i class="bi bi-highlighter"></i> Highlights</h6>
+                        <div>
+                            ${Object.entries(preview.highlights_by_color).map(([color, items]) => `
+                                <span class="highlight-color ${color}">
+                                    ${getColorLabel(color)}: ${items.length}
+                                </span>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (!html) {
+                html = '<p class="text-muted text-center">No items in briefcase yet.<br><a href="/static/briefcase.html">Add documents →</a></p>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function getColorLabel(color) {
+            const labels = {
+                yellow: 'Key Terms',
+                green: 'Dates',
+                blue: 'Names',
+                pink: 'Money',
+                orange: 'Deadlines',
+                red: 'Violations'
+            };
+            return labels[color] || color;
+        }
+
+        async function loadStatus() {
+            try {
+                const resp = await fetch('/api/court-packet/');
+                const data = await resp.json();
+                
+                if (data.success) {
+                    document.getElementById('statDocs').textContent = data.packet_summary.total_documents;
+                    document.getElementById('statExtracts').textContent = data.packet_summary.total_extractions;
+                    document.getElementById('statHighlights').textContent = data.packet_summary.total_highlights;
+                    
+                    document.getElementById('exportBtn').disabled = !data.packet_summary.ready_for_export;
+                }
+            } catch (e) {
+                console.error('Error loading status', e);
+            }
+        }
+
+        async function generatePacket() {
+            const btn = document.getElementById('exportBtn');
+            const successMsg = document.getElementById('successMessage');
+            const errorMsg = document.getElementById('errorMessage');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Generating...';
+            successMsg.classList.remove('show');
+            errorMsg.classList.remove('show');
+
+            try {
+                const params = new URLSearchParams({
+                    include_highlights: document.getElementById('includeHighlights').checked,
+                    include_extractions: document.getElementById('includeExtractions').checked,
+                    include_index: document.getElementById('includeIndex').checked
+                });
+
+                const resp = await fetch(`/api/court-packet/generate?${params}`, {
+                    method: 'POST'
+                });
+                const data = await resp.json();
+
+                if (data.success) {
+                    document.getElementById('successText').textContent = 
+                        `Packet ready! ${data.contents.documents} docs, ${data.contents.extractions} extractions, ${data.contents.highlights} highlights`;
+                    successMsg.classList.add('show');
+                    
+                    // In real implementation, would trigger download
+                    // window.location.href = data.download_url;
+                } else {
+                    document.getElementById('errorText').textContent = data.error || 'Failed to generate packet';
+                    errorMsg.classList.add('show');
+                }
+            } catch (e) {
+                document.getElementById('errorText').textContent = 'Network error. Please try again.';
+                errorMsg.classList.add('show');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-download"></i> Generate Court Packet';
+        }
+
+        // Toggle option styling
+        document.querySelectorAll('.export-option input').forEach(input => {
+            input.addEventListener('change', function() {
+                this.closest('.export-option').classList.toggle('selected', this.checked);
+            });
+        });
+    </script>
+</body>
+</html>

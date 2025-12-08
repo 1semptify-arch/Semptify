@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify - Mission Control</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2C5F2D;
+            --secondary: #3498DB;
+            --accent: #E67E22;
+            --background: #F8F9FA;
+            --text: #2D3436;
+            --success: #27AE60;
+            --warning: #F39C12;
+            --danger: #E74C3C;
+            --crisis-primary: #5B8C5A;
+            --crisis-bg: #FAF7F2;
+        }
+        
+        * {
+            transition: background-color 0.5s ease, color 0.3s ease;
+        }
+        
+        body {
+            background: var(--background);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+        
+        /* Crisis Mode Overrides */
+        body.crisis-mode {
+            --primary: #5B8C5A;
+            --secondary: #8B7355;
+            --accent: #D4A574;
+            --background: #FAF7F2;
+            --danger: #B87333;
+            --warning: #C9A227;
+        }
+        
+        body.crisis-mode .card {
+            border-color: var(--crisis-primary);
+        }
+        
+        /* Header */
+        .mission-header {
+            background: linear-gradient(135deg, var(--primary), #1a4a1b);
+            color: white;
+            padding: 1.5rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .mission-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .mission-subtitle {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        
+        /* Status Bar */
+        .status-bar {
+            background: rgba(0,0,0,0.2);
+            padding: 0.75rem 2rem;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .badge-urgent {
+            background: var(--danger);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        
+        .badge-warning {
+            background: var(--warning);
+            color: white;
+        }
+        
+        .badge-good {
+            background: var(--success);
+            color: white;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* Main Content */
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        /* Greeting Section */
+        .greeting-section {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+        }
+        
+        .greeting-message {
+            font-size: 1.4rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .encouragement-message {
+            color: #666;
+            font-size: 1rem;
+        }
+        
+        /* Single Action Card - Crisis Mode */
+        .single-action-card {
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            border: 3px solid var(--primary);
+        }
+        
+        .single-action-card h2 {
+            font-size: 1.3rem;
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        
+        .single-action-card .action-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+        
+        .huge-action-btn {
+            font-size: 1.5rem;
+            padding: 1.25rem 3rem;
+            border-radius: 15px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+        }
+        
+        .huge-action-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(44, 95, 45, 0.3);
+        }
+        
+        /* Mission Progress */
+        .mission-progress {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .mission-progress h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .progress-steps {
+            position: relative;
+        }
+        
+        .progress-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .progress-step:hover {
+            background: #f8f9fa;
+        }
+        
+        .step-indicator {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .step-completed .step-indicator {
+            background: var(--success);
+            color: white;
+        }
+        
+        .step-current .step-indicator {
+            background: var(--primary);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+        
+        .step-pending .step-indicator {
+            background: #ddd;
+            color: #666;
+        }
+        
+        .step-content h4 {
+            font-size: 1rem;
+            margin: 0 0 0.25rem 0;
+        }
+        
+        .step-content p {
+            font-size: 0.85rem;
+            color: #666;
+            margin: 0;
+        }
+        
+        .step-status {
+            margin-left: auto;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .step-completed .step-status {
+            color: var(--success);
+        }
+        
+        .step-current .step-status {
+            color: var(--primary);
+        }
+        
+        /* Today's Tasks */
+        .today-tasks {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 0.75rem;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .task-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+        
+        .task-checkbox {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            margin-right: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .task-item.completed .task-checkbox {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+        
+        .task-info {
+            flex: 1;
+        }
+        
+        .task-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .task-meta {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .task-urgency {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .urgency-high {
+            background: #ffebee;
+            color: var(--danger);
+        }
+        
+        .urgency-medium {
+            background: #fff3e0;
+            color: var(--warning);
+        }
+        
+        .urgency-low {
+            background: #e8f5e9;
+            color: var(--success);
+        }
+        
+        /* Quick Actions Grid */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .quick-action-btn {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 16px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-action-btn:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .quick-action-btn i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .quick-action-btn span {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        /* Stats Row */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* Timeline Preview */
+        .timeline-preview {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        .timeline-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            position: relative;
+            margin: 2rem 0;
+        }
+        
+        .timeline-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--primary));
+            border-radius: 4px;
+            position: relative;
+        }
+        
+        .timeline-marker {
+            position: absolute;
+            top: -25px;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        
+        .timeline-marker.current {
+            top: -30px;
+        }
+        
+        .timeline-marker .marker-dot {
+            width: 16px;
+            height: 16px;
+            background: var(--primary);
+            border-radius: 50%;
+            margin: 0 auto 4px;
+        }
+        
+        .timeline-marker.current .marker-dot {
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            animation: pulse 2s infinite;
+        }
+        
+        .timeline-marker .marker-label {
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+        
+        /* Floating Action Bar */
+        .floating-bar {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            gap: 1rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        
+        .floating-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.25rem;
+        }
+        
+        .floating-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+        
+        .floating-btn.primary {
+            background: var(--accent);
+            width: 60px;
+            height: 60px;
+        }
+        
+        .floating-btn.crisis {
+            background: var(--danger);
+            animation: pulse 2s infinite;
+        }
+        
+        /* Help Panel */
+        .help-panel {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 30px rgba(0,0,0,0.2);
+            z-index: 2000;
+            transition: right 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .help-panel.open {
+            right: 0;
+        }
+        
+        .help-panel-header {
+            background: var(--primary);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .help-panel-content {
+            padding: 1.5rem;
+        }
+        
+        /* Emotional State Indicator (dev mode) */
+        .emotion-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            z-index: 9999;
+            display: none;
+        }
+        
+        body.dev-mode .emotion-indicator {
+            display: block;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .mission-header {
+                padding: 1rem;
+            }
+            
+            .status-bar {
+                padding: 0.5rem 1rem;
+                gap: 1rem;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .single-action-card {
+                padding: 2rem 1rem;
+            }
+            
+            .single-action-card .action-title {
+                font-size: 1.5rem;
+            }
+            
+            .huge-action-btn {
+                font-size: 1.2rem;
+                padding: 1rem 2rem;
+            }
+            
+            .quick-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .floating-bar {
+                bottom: 1rem;
+                padding: 0.5rem 1rem;
+            }
+            
+            .floating-btn {
+                width: 45px;
+                height: 45px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Emotion Indicator (Dev Mode) -->
+    <div class="emotion-indicator" id="emotionIndicator">
+        <div>Mode: <span id="dashboardMode">guided</span></div>
+        <div>Crisis: <span id="crisisLevel">0.0</span></div>
+        <div>Emotion: <span id="dominantEmotion">neutral</span></div>
+    </div>
+
+    <!-- Header -->
+    <header class="mission-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mission-title">🎯 <span id="missionTitle">Your Mission: Fight Back</span></h1>
+                <p class="mission-subtitle" id="missionSubtitle">Building your defense, one step at a time</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-light btn-sm" onclick="toggleDevMode()">
+                    <i class="bi bi-gear"></i>
+                </button>
+                <a href="/static/command_center.html" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-grid-3x3-gap"></i> All Tools
+                </a>
+            </div>
+        </div>
+        
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <i class="bi bi-calendar-event"></i>
+                <span>Day <strong id="caseDay">1</strong> of <strong id="caseDaysTotal">14</strong></span>
+            </div>
+            <div class="status-item">
+                <i class="bi bi-clock"></i>
+                <span>Court: <strong id="courtDate">Not Set</strong></span>
+            </div>
+            <div class="status-item" id="urgentTasksContainer" style="display: none;">
+                <span class="status-badge badge-urgent" id="urgentTasksBadge">
+                    <i class="bi bi-exclamation-triangle"></i> <span id="urgentTasksCount">0</span> URGENT
+                </span>
+            </div>
+            <div class="status-item" id="caseStrengthContainer">
+                <span class="status-badge badge-good" id="caseStrengthBadge">
+                    <i class="bi bi-shield-check"></i> Case Strength: <span id="caseStrength">Building</span>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Greeting -->
+        <section class="greeting-section" id="greetingSection">
+            <p class="greeting-message" id="greetingMessage">Welcome back. Let's keep building your case.</p>
+            <p class="encouragement-message" id="encouragementMessage">Every piece of evidence makes you stronger.</p>
+        </section>
+
+        <!-- Single Action Card (Crisis Mode) -->
+        <section class="single-action-card" id="singleActionCard" style="display: none;">
+            <h2 id="actionPrompt">Just do this one thing:</h2>
+            <p class="action-title" id="singleActionTitle">Upload your eviction notice</p>
+            <button class="huge-action-btn" id="singleActionBtn" onclick="doSingleAction()">
+                <i class="bi bi-upload" id="singleActionIcon"></i>
+                <span id="singleActionBtnText">Do It Now</span>
+            </button>
+            <p class="mt-3 text-muted" id="singleActionHelp">This helps us understand your situation and find violations.</p>
+        </section>
+
+        <!-- Mission Progress -->
+        <section class="mission-progress" id="missionProgress">
+            <h3><i class="bi bi-flag"></i> Your Journey</h3>
+            <div class="progress-steps" id="progressSteps">
+                <!-- Filled by JS -->
+            </div>
+        </section>
+
+        <!-- Today's Tasks -->
+        <section class="today-tasks" id="todayTasks">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="mb-0"><i class="bi bi-check2-square"></i> Today's Tasks</h3>
+                <span class="text-muted" id="tasksProgress">0/0 done</span>
+            </div>
+            <div id="tasksList">
+                <!-- Filled by JS -->
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section id="quickActionsSection">
+            <h3 class="mb-3"><i class="bi bi-lightning"></i> Quick Actions</h3>
+            <div class="quick-actions" id="quickActions">
+                <div class="quick-action-btn" onclick="navigate('document_intake.html')">
+                    <i class="bi bi-camera"></i>
+                    <span>Scan Document</span>
+                </div>
+                <div class="quick-action-btn" onclick="navigate('briefcase.html')">
+                    <i class="bi bi-briefcase"></i>
+                    <span>My Briefcase</span>
+                </div>
+                <div class="quick-action-btn" onclick="navigate('pdf_tools.html')">
+                    <i class="bi bi-file-pdf"></i>
+                    <span>PDF Tools</span>
+                </div>
+                <div class="quick-action-btn" onclick="navigate('legal_analysis.html')">
+                    <i class="bi bi-search"></i>
+                    <span>Analyze Doc</span>
+                </div>
+                <div class="quick-action-btn" onclick="navigate('timeline.html')">
+                    <i class="bi bi-clock-history"></i>
+                    <span>Timeline</span>
+                </div>
+                <div class="quick-action-btn" onclick="navigate('calendar.html')">
+                    <i class="bi bi-calendar3"></i>
+                    <span>Deadlines</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats Row -->
+        <section class="stats-row" id="statsSection">
+            <div class="stat-card">
+                <div class="stat-value" id="statDocuments">0</div>
+                <div class="stat-label">Documents</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statEvidence">0</div>
+                <div class="stat-label">Evidence Items</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statViolations">0</div>
+                <div class="stat-label">Violations Found</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statDaysLeft">--</div>
+                <div class="stat-label">Days to Court</div>
+            </div>
+        </section>
+
+        <!-- Timeline Preview -->
+        <section class="timeline-preview" id="timelineSection">
+            <h3><i class="bi bi-signpost-2"></i> Your Timeline</h3>
+            <div class="timeline-bar">
+                <div class="timeline-progress" id="timelineProgress" style="width: 20%;">
+                    <div class="timeline-marker current" style="left: 100%;">
+                        <div class="marker-dot"></div>
+                        <div class="marker-label">TODAY</div>
+                    </div>
+                </div>
+                <div class="timeline-marker" style="left: 0%;">
+                    <div class="marker-dot"></div>
+                    <div class="marker-label">Start</div>
+                </div>
+                <div class="timeline-marker" style="left: 100%;">
+                    <div class="marker-dot"></div>
+                    <div class="marker-label" id="courtDateMarker">Court</div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <a href="/static/journey.html" class="btn btn-outline-primary">View Full Journey →</a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating Action Bar -->
+    <div class="floating-bar" id="floatingBar">
+        <button class="floating-btn" onclick="navigate('document_intake.html')" title="Capture Evidence">
+            <i class="bi bi-camera"></i>
+        </button>
+        <button class="floating-btn primary" onclick="showNextAction()" title="What's Next?">
+            <i class="bi bi-lightning-charge"></i>
+        </button>
+        <button class="floating-btn" onclick="toggleHelp()" title="Get Help">
+            <i class="bi bi-question-circle"></i>
+        </button>
+        <button class="floating-btn crisis" onclick="showCrisisHelp()" title="Crisis Line">
+            <i class="bi bi-telephone"></i>
+        </button>
+    </div>
+
+    <!-- Help Panel -->
+    <div class="help-panel" id="helpPanel">
+        <div class="help-panel-header">
+            <h4 class="mb-0"><i class="bi bi-life-preserver"></i> Help & Support</h4>
+            <button class="btn btn-link text-white" onclick="toggleHelp()">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="help-panel-content">
+            <div class="mb-4">
+                <h5>🆘 Crisis Resources</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="tel:211">📞 211 - Housing Help</a></li>
+                    <li class="mb-2"><a href="#">🏠 Local Legal Aid</a></li>
+                    <li class="mb-2"><a href="#">⚖️ Pro Bono Lawyers</a></li>
+                </ul>
+            </div>
+            <div class="mb-4">
+                <h5>📚 Quick Guides</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="#">How to Answer an Eviction</a></li>
+                    <li class="mb-2"><a href="#">Your Rights as a Tenant</a></li>
+                    <li class="mb-2"><a href="#">Preparing for Court</a></li>
+                </ul>
+            </div>
+            <div>
+                <h5>💬 Get Help</h5>
+                <p>Not sure what to do? Tell us your situation:</p>
+                <textarea class="form-control mb-2" rows="3" placeholder="Describe what's happening..."></textarea>
+                <button class="btn btn-primary w-100">Get Guidance</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // State
+        let dashboardConfig = null;
+        let devMode = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadDashboardConfig();
+            await loadCaseData();
+            recordTrigger('session_start');
+        });
+
+        // Load adaptive dashboard config from Emotion Engine
+        async function loadDashboardConfig() {
+            try {
+                const resp = await fetch('/api/emotion/dashboard-config');
+                const data = await resp.json();
+                if (data.success) {
+                    dashboardConfig = data.config;
+                    applyDashboardConfig(dashboardConfig);
+                }
+            } catch (e) {
+                console.log('Emotion engine not available, using defaults');
+                dashboardConfig = getDefaultConfig();
+                applyDashboardConfig(dashboardConfig);
+            }
+        }
+
+        function getDefaultConfig() {
+            return {
+                dashboard_mode: 'guided',
+                emotional_state: {
+                    composites: { crisis_level: 0.3 },
+                    dominant_emotion: 'neutral'
+                },
+                messages: {
+                    greeting: "Welcome back. Let's keep building your case.",
+                    encouragement: "Every piece of evidence makes you stronger.",
+                    action_prompt: "Your next step:"
+                },
+                visible_sections: ['mission_status', 'today_tasks', 'timeline', 'quick_actions', 'evidence_summary'],
+                ui_adaptation: {
+                    max_items_shown: 5,
+                    primary_action_size: 'normal'
+                }
+            };
+        }
+
+        function applyDashboardConfig(config) {
+            const mode = config.dashboard_mode;
+            const crisis = config.emotional_state?.composites?.crisis_level || 0;
+            const messages = config.messages || {};
+            const sections = config.visible_sections || [];
+
+            // Update dev indicator
+            document.getElementById('dashboardMode').textContent = mode;
+            document.getElementById('crisisLevel').textContent = crisis.toFixed(2);
+            document.getElementById('dominantEmotion').textContent = config.emotional_state?.dominant_emotion || 'neutral';
+
+            // Apply crisis mode styling
+            if (mode === 'crisis' || crisis > 0.7) {
+                document.body.classList.add('crisis-mode');
+                document.getElementById('singleActionCard').style.display = 'block';
+                document.getElementById('missionProgress').style.display = 'none';
+                document.getElementById('todayTasks').style.display = 'none';
+                document.getElementById('quickActionsSection').style.display = 'none';
+                document.getElementById('statsSection').style.display = 'none';
+            } else {
+                document.body.classList.remove('crisis-mode');
+                document.getElementById('singleActionCard').style.display = 'none';
+                document.getElementById('missionProgress').style.display = 'block';
+                document.getElementById('todayTasks').style.display = 'block';
+                
+                // Show/hide sections based on config
+                document.getElementById('quickActionsSection').style.display = 
+                    sections.includes('quick_actions') ? 'block' : 'none';
+                document.getElementById('statsSection').style.display = 
+                    sections.includes('evidence_summary') ? 'grid' : 'none';
+                document.getElementById('timelineSection').style.display = 
+                    sections.includes('timeline') ? 'block' : 'none';
+            }
+
+            // Apply messages
+            if (messages.greeting) {
+                document.getElementById('greetingMessage').textContent = messages.greeting;
+            }
+            if (messages.encouragement) {
+                document.getElementById('encouragementMessage').textContent = messages.encouragement;
+            }
+            if (messages.action_prompt) {
+                document.getElementById('actionPrompt').textContent = messages.action_prompt;
+            }
+
+            // Apply color scheme if provided
+            if (config.color_scheme) {
+                Object.entries(config.color_scheme).forEach(([key, value]) => {
+                    document.documentElement.style.setProperty(`--${key}`, value);
+                });
+            }
+        }
+
+        // Load case data
+        async function loadCaseData() {
+            // Mock data - in real app, fetch from API
+            const caseData = {
+                day: 3,
+                totalDays: 14,
+                courtDate: 'Dec 22, 2025',
+                daysToCourtNum: 14,
+                urgentTasks: 2,
+                documents: 5,
+                evidence: 12,
+                violations: 3,
+                caseStrength: 'Building'
+            };
+
+            // Update UI
+            document.getElementById('caseDay').textContent = caseData.day;
+            document.getElementById('caseDaysTotal').textContent = caseData.totalDays;
+            document.getElementById('courtDate').textContent = caseData.courtDate;
+            document.getElementById('statDocuments').textContent = caseData.documents;
+            document.getElementById('statEvidence').textContent = caseData.evidence;
+            document.getElementById('statViolations').textContent = caseData.violations;
+            document.getElementById('statDaysLeft').textContent = caseData.daysToCourtNum;
+            document.getElementById('caseStrength').textContent = caseData.caseStrength;
+            document.getElementById('courtDateMarker').textContent = caseData.courtDate;
+
+            // Urgent tasks
+            if (caseData.urgentTasks > 0) {
+                document.getElementById('urgentTasksContainer').style.display = 'block';
+                document.getElementById('urgentTasksCount').textContent = caseData.urgentTasks;
+            }
+
+            // Timeline progress
+            const progress = (caseData.day / caseData.totalDays) * 100;
+            document.getElementById('timelineProgress').style.width = progress + '%';
+
+            // Load mission steps
+            loadMissionSteps();
+            
+            // Load today's tasks
+            loadTodayTasks();
+        }
+
+        function loadMissionSteps() {
+            const steps = [
+                { title: 'Upload eviction notice', desc: 'Let AI analyze for violations', status: 'completed' },
+                { title: 'AI analyzed - found 3 violations!', desc: 'Improper notice, missing disclosures', status: 'completed' },
+                { title: 'Gather evidence photos', desc: 'Document property conditions', status: 'current' },
+                { title: 'File Answer with court', desc: 'Respond to eviction complaint', status: 'pending' },
+                { title: 'Prepare for hearing', desc: 'Organize evidence packet', status: 'pending' }
+            ];
+
+            const container = document.getElementById('progressSteps');
+            container.innerHTML = steps.map((step, i) => `
+                <div class="progress-step step-${step.status}">
+                    <div class="step-indicator">
+                        ${step.status === 'completed' ? '<i class="bi bi-check"></i>' : 
+                          step.status === 'current' ? '<i class="bi bi-arrow-right"></i>' : (i + 1)}
+                    </div>
+                    <div class="step-content">
+                        <h4>${step.title}</h4>
+                        <p>${step.desc}</p>
+                    </div>
+                    <div class="step-status">
+                        ${step.status === 'completed' ? 'DONE' :
+                          step.status === 'current' ? 'IN PROGRESS' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadTodayTasks() {
+            const tasks = [
+                { title: 'Take photos of mold in bathroom', urgency: 'high', completed: false },
+                { title: 'Save text messages from landlord', urgency: 'high', completed: false },
+                { title: 'Review lease for repair clauses', urgency: 'medium', completed: true },
+                { title: 'Check habitability standards', urgency: 'low', completed: true }
+            ];
+
+            const container = document.getElementById('tasksList');
+            const completed = tasks.filter(t => t.completed).length;
+            document.getElementById('tasksProgress').textContent = `${completed}/${tasks.length} done`;
+
+            container.innerHTML = tasks.map(task => `
+                <div class="task-item ${task.completed ? 'completed' : ''}" onclick="toggleTask(this)">
+                    <div class="task-checkbox">
+                        ${task.completed ? '<i class="bi bi-check"></i>' : ''}
+                    </div>
+                    <div class="task-info">
+                        <div class="task-title">${task.title}</div>
+                        <div class="task-meta">${task.completed ? 'Completed' : 'Tap to complete'}</div>
+                    </div>
+                    <span class="task-urgency urgency-${task.urgency}">${task.urgency.toUpperCase()}</span>
+                </div>
+            `).join('');
+        }
+
+        // Actions
+        function navigate(page) {
+            window.location.href = '/static/' + page;
+        }
+
+        function toggleTask(el) {
+            el.classList.toggle('completed');
+            const checkbox = el.querySelector('.task-checkbox');
+            if (el.classList.contains('completed')) {
+                checkbox.innerHTML = '<i class="bi bi-check"></i>';
+                el.querySelector('.task-meta').textContent = 'Completed';
+                recordTrigger('task_completed');
+            } else {
+                checkbox.innerHTML = '';
+                el.querySelector('.task-meta').textContent = 'Tap to complete';
+            }
+        }
+
+        function doSingleAction() {
+            // In crisis mode, do the single focused action
+            recordTrigger('task_completed');
+            navigate('document_intake.html');
+        }
+
+        function showNextAction() {
+            // Highlight next recommended action
+            const currentStep = document.querySelector('.step-current');
+            if (currentStep) {
+                currentStep.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                currentStep.style.background = '#e8f5e9';
+                setTimeout(() => {
+                    currentStep.style.background = '';
+                }, 2000);
+            }
+        }
+
+        function toggleHelp() {
+            const panel = document.getElementById('helpPanel');
+            panel.classList.toggle('open');
+            recordTrigger('help_accessed');
+        }
+
+        function showCrisisHelp() {
+            // Show crisis resources
+            toggleHelp();
+        }
+
+        function toggleDevMode() {
+            devMode = !devMode;
+            document.body.classList.toggle('dev-mode', devMode);
+        }
+
+        // Record emotional trigger
+        async function recordTrigger(trigger, context = {}) {
+            try {
+                let url = `/api/emotion/trigger?trigger=${trigger}`;
+                if (context.days_until_deadline) {
+                    url += `&days_until_deadline=${context.days_until_deadline}`;
+                }
+                if (context.days_until_court) {
+                    url += `&days_until_court=${context.days_until_court}`;
+                }
+                await fetch(url, { method: 'POST' });
+            } catch (e) {
+                // Emotion engine may not be available
+            }
+        }
+
+        // Simulate scenarios (for testing)
+        async function simulateScenario(scenario) {
+            try {
+                const resp = await fetch(`/api/emotion/simulate-scenario?scenario=${scenario}`, { method: 'POST' });
+                const data = await resp.json();
+                if (data.success) {
+                    applyDashboardConfig(data.config);
+                }
+            } catch (e) {
+                console.error('Failed to simulate scenario', e);
+            }
+        }
+
+        // Track behavior for emotion engine
+        let lastPageSwitch = Date.now();
+        let pageSwitchCount = 0;
+
+        window.addEventListener('beforeunload', () => {
+            const now = Date.now();
+            if (now - lastPageSwitch < 5000) {
+                pageSwitchCount++;
+                if (pageSwitchCount > 3) {
+                    recordTrigger('rapid_page_switching');
+                }
+            } else {
+                pageSwitchCount = 0;
+            }
+            lastPageSwitch = now;
+        });
+
+        // Help button repeated clicks
+        let helpClickCount = 0;
+        let helpClickTimer = null;
+        document.querySelector('[title="Get Help"]').addEventListener('click', () => {
+            helpClickCount++;
+            clearTimeout(helpClickTimer);
+            helpClickTimer = setTimeout(() => {
+                if (helpClickCount > 3) {
+                    recordTrigger('repeated_help_clicks');
+                }
+                helpClickCount = 0;
+            }, 10000);
+        });
+    </script>
+</body>
+</html>

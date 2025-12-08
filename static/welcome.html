@@ -370,8 +370,8 @@
             document.getElementById('uid-unique').textContent = uniquePart;
             document.getElementById('provider-name').textContent = PROVIDERS[selectedProvider].name;
 
-            // Show success
-            showStep(2);
+            // Check if crisis intake is needed
+            checkAndShowNextStep();
         });
 
         // Check if already logged in
@@ -410,7 +410,8 @@
                             navLinks.appendChild(freshBtn);
                         }
 
-                        showStep(2);
+                        // Check if crisis intake is needed
+                        checkAndShowNextStep();
                     }
                 }
             } catch (err) {
@@ -419,6 +420,20 @@
         }
 
         // Check on load
+        // Check if user needs crisis intake or can go to dashboard
+        function checkAndShowNextStep() {
+            // Check localStorage for intake completion
+            const intakeComplete = localStorage.getItem('semptify_intake_complete');
+            
+            if (intakeComplete === 'true') {
+                // User has completed intake, show normal welcome step 2
+                showStep(2);
+            } else {
+                // New user - redirect to crisis intake wizard
+                window.location.href = '/static/crisis_intake.html';
+            }
+        }
+
         checkExistingSession();
     </script>
 

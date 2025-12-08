@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify - Tell Us What's Happening</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2C5F2D;
+            --primary-light: #4A7C59;
+            --accent: #E67E22;
+            --calm-bg: #FAF7F2;
+            --text: #2D3436;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--calm-bg) 0%, #E8F5E9 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .intake-header {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        /* Main Content */
+        .intake-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .intake-card {
+            background: white;
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+
+        /* Progress */
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ddd;
+            transition: all 0.3s ease;
+        }
+
+        .progress-dot.active {
+            background: var(--primary);
+            width: 30px;
+            border-radius: 6px;
+        }
+
+        .progress-dot.completed {
+            background: var(--primary);
+        }
+
+        /* Question */
+        .question-container {
+            text-align: center;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .question-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .question-text {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            line-height: 1.3;
+        }
+
+        .question-subtext {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Options */
+        .options-grid {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .option-btn {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem 1.5rem;
+            background: #f8f9fa;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .option-btn:hover {
+            background: #e8f5e9;
+            border-color: var(--primary-light);
+            transform: translateX(5px);
+        }
+
+        .option-btn.selected {
+            background: #e8f5e9;
+            border-color: var(--primary);
+        }
+
+        .option-btn i {
+            font-size: 1.5rem;
+            color: var(--primary);
+            width: 40px;
+            text-align: center;
+        }
+
+        .option-content {
+            flex: 1;
+        }
+
+        .option-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .option-desc {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* Text Input */
+        .text-input-area {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1rem;
+            resize: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .text-input-area:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Date Input */
+        .date-input-wrapper {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .date-input {
+            padding: 1rem 1.5rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        .date-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .date-quick-btns {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .date-quick-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .date-quick-btn:hover {
+            background: #e8f5e9;
+            border-color: var(--primary);
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+
+        .nav-btn {
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn.back {
+            background: transparent;
+            border: 2px solid #ddd;
+            color: #666;
+        }
+
+        .nav-btn.back:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .nav-btn.next {
+            background: var(--primary);
+            border: none;
+            color: white;
+        }
+
+        .nav-btn.next:hover {
+            background: var(--primary-light);
+            transform: translateX(3px);
+        }
+
+        .nav-btn.next:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Crisis Alert */
+        .crisis-alert {
+            background: linear-gradient(135deg, #ffebee, #fce4ec);
+            border: 2px solid #ef5350;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: none;
+        }
+
+        .crisis-alert.show {
+            display: block;
+        }
+
+        .crisis-alert h4 {
+            color: #c62828;
+            margin-bottom: 0.5rem;
+        }
+
+        .crisis-alert p {
+            margin-bottom: 1rem;
+        }
+
+        .crisis-alert a {
+            color: #c62828;
+            font-weight: 600;
+        }
+
+        /* Summary Screen */
+        .summary-section {
+            text-align: left;
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-section h4 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            color: #666;
+        }
+
+        .summary-value {
+            font-weight: 600;
+        }
+
+        /* Final CTA */
+        .final-cta {
+            text-align: center;
+        }
+
+        .start-btn {
+            font-size: 1.3rem;
+            padding: 1.25rem 3rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .start-btn:hover {
+            background: var(--primary-light);
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(44, 95, 45, 0.3);
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .intake-card {
+                padding: 1.5rem;
+                border-radius: 16px;
+            }
+
+            .question-text {
+                font-size: 1.4rem;
+            }
+
+            .question-icon {
+                font-size: 3rem;
+            }
+
+            .option-btn {
+                padding: 1rem;
+            }
+
+            .nav-btn {
+                padding: 0.75rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="intake-header">
+        <div class="logo">⚖️ Semptify</div>
+        <p class="tagline">Your AI Legal Defense Assistant</p>
+    </header>
+
+    <!-- Main Container -->
+    <div class="intake-container">
+        <div class="intake-card">
+            <!-- Progress Dots -->
+            <div class="progress-dots" id="progressDots">
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+            </div>
+
+            <!-- Crisis Alert (shown when needed) -->
+            <div class="crisis-alert" id="crisisAlert">
+                <h4>🆘 Immediate Help Available</h4>
+                <p>If you're in crisis, help is available right now:</p>
+                <p>
+                    <a href="tel:211"><i class="bi bi-telephone"></i> Call 211</a> for housing assistance<br>
+                    <a href="#"><i class="bi bi-building"></i> Find Local Legal Aid</a>
+                </p>
+            </div>
+
+            <!-- Question Container -->
+            <div class="question-container" id="questionContainer">
+                <!-- Filled by JS -->
+            </div>
+
+            <!-- Navigation -->
+            <div class="nav-buttons">
+                <button class="nav-btn back" id="backBtn" onclick="goBack()" style="visibility: hidden;">
+                    <i class="bi bi-arrow-left"></i> Back
+                </button>
+                <button class="nav-btn next" id="nextBtn" onclick="goNext()" disabled>
+                    Continue <i class="bi bi-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Intake data
+        const intake = {
+            situation: null,
+            urgency: null,
+            courtDate: null,
+            hasDocs: null,
+            additionalInfo: ''
+        };
+
+        let currentStep = 0;
+
+        // Questions configuration
+        const questions = [
+            {
+                id: 'situation',
+                icon: '😟',
+                question: "What's happening right now?",
+                subtext: "Select what best describes your situation",
+                type: 'options',
+                options: [
+                    { 
+                        value: 'eviction_notice', 
+                        icon: 'bi-envelope-exclamation',
+                        title: "I got an eviction notice",
+                        desc: "Received a notice to vacate or eviction filing"
+                    },
+                    { 
+                        value: 'going_to_court', 
+                        icon: 'bi-building',
+                        title: "I have a court date coming",
+                        desc: "Scheduled for a hearing or trial"
+                    },
+                    { 
+                        value: 'landlord_problems', 
+                        icon: 'bi-person-x',
+                        title: "My landlord is causing problems",
+                        desc: "Harassment, repairs not done, illegal actions"
+                    },
+                    { 
+                        value: 'gathering_evidence', 
+                        icon: 'bi-folder-plus',
+                        title: "I need to gather evidence",
+                        desc: "Document issues for potential legal action"
+                    },
+                    { 
+                        value: 'exploring', 
+                        icon: 'bi-search',
+                        title: "Just want to explore",
+                        desc: "Learn about tenant rights and tools"
+                    }
+                ]
+            },
+            {
+                id: 'urgency',
+                icon: '⏰',
+                question: "How urgent is this?",
+                subtext: "This helps us prioritize what to show you",
+                type: 'options',
+                options: [
+                    { 
+                        value: 'emergency', 
+                        icon: 'bi-exclamation-triangle-fill',
+                        title: "Emergency - days or less",
+                        desc: "I need to act immediately"
+                    },
+                    { 
+                        value: 'urgent', 
+                        icon: 'bi-clock-fill',
+                        title: "Urgent - within 2 weeks",
+                        desc: "Deadline coming soon"
+                    },
+                    { 
+                        value: 'planning', 
+                        icon: 'bi-calendar3',
+                        title: "Planning ahead",
+                        desc: "Have some time to prepare"
+                    },
+                    { 
+                        value: 'learning', 
+                        icon: 'bi-book',
+                        title: "Just learning",
+                        desc: "No immediate deadline"
+                    }
+                ],
+                showCrisisFor: ['emergency']
+            },
+            {
+                id: 'courtDate',
+                icon: '📅',
+                question: "When is your court date?",
+                subtext: "We'll count down and remind you of deadlines",
+                type: 'date',
+                skipIf: (intake) => intake.situation === 'exploring' || intake.situation === 'gathering_evidence'
+            },
+            {
+                id: 'hasDocs',
+                icon: '📄',
+                question: "Do you have documents to upload?",
+                subtext: "Eviction notices, leases, photos, texts, etc.",
+                type: 'options',
+                options: [
+                    { 
+                        value: 'yes_ready', 
+                        icon: 'bi-check-circle',
+                        title: "Yes, ready to upload",
+                        desc: "I have them with me now"
+                    },
+                    { 
+                        value: 'yes_later', 
+                        icon: 'bi-clock',
+                        title: "Yes, but not right now",
+                        desc: "I'll upload them later"
+                    },
+                    { 
+                        value: 'no', 
+                        icon: 'bi-x-circle',
+                        title: "No documents yet",
+                        desc: "I need to gather them"
+                    },
+                    { 
+                        value: 'unsure', 
+                        icon: 'bi-question-circle',
+                        title: "Not sure what I need",
+                        desc: "Tell me what to gather"
+                    }
+                ]
+            },
+            {
+                id: 'summary',
+                icon: '🎯',
+                question: "Here's your personalized plan",
+                subtext: "Based on what you told us",
+                type: 'summary'
+            }
+        ];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderQuestion();
+        });
+
+        function renderQuestion() {
+            const q = questions[currentStep];
+            
+            // Skip if condition met
+            if (q.skipIf && q.skipIf(intake)) {
+                goNext();
+                return;
+            }
+
+            const container = document.getElementById('questionContainer');
+            container.innerHTML = '';
+            container.className = 'question-container fade-in';
+
+            // Update progress
+            updateProgress();
+
+            // Show/hide back button
+            document.getElementById('backBtn').style.visibility = currentStep > 0 ? 'visible' : 'hidden';
+
+            // Show crisis alert if needed
+            const crisisAlert = document.getElementById('crisisAlert');
+            if (q.showCrisisFor && intake[questions[currentStep - 1]?.id] && 
+                q.showCrisisFor.includes(intake[questions[currentStep - 1].id])) {
+                crisisAlert.classList.add('show');
+            } else {
+                crisisAlert.classList.remove('show');
+            }
+
+            // Render based on type
+            if (q.type === 'options') {
+                renderOptionsQuestion(q, container);
+            } else if (q.type === 'date') {
+                renderDateQuestion(q, container);
+            } else if (q.type === 'summary') {
+                renderSummary(container);
+            }
+        }
+
+        function renderOptionsQuestion(q, container) {
+            container.innerHTML = `
+                <div class="question-icon">${q.icon}</div>
+                <h2 class="question-text">${q.question}</h2>
+                <p class="question-subtext">${q.subtext}</p>
+                <div class="options-grid">
+                    ${q.options.map(opt => `
+                        <div class="option-btn ${intake[q.id] === opt.value ? 'selected' : ''}" 
+                             onclick="selectOption('${q.id}', '${opt.value}', this)">
+                            <i class="bi ${opt.icon}"></i>
+                            <div class="option-content">
+                                <div class="option-title">${opt.title}</div>
+                                <div class="option-desc">${opt.desc}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            // Enable next if already selected
+            document.getElementById('nextBtn').disabled = !intake[q.id];
+        }
+
+        function renderDateQuestion(q, container) {
+            const today = new Date();
+            const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+            const twoWeeks = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+            container.innerHTML = `
+                <div class="question-icon">${q.icon}</div>
+                <h2 class="question-text">${q.question}</h2>
+                <p class="question-subtext">${q.subtext}</p>
+                <div class="date-input-wrapper">
+                    <input type="date" class="date-input" id="courtDateInput" 
+                           value="${intake.courtDate || ''}"
+                           min="${today.toISOString().split('T')[0]}"
+                           onchange="selectDate(this.value)">
+                </div>
+                <div class="date-quick-btns">
+                    <button class="date-quick-btn" onclick="setQuickDate(7)">In 1 week</button>
+                    <button class="date-quick-btn" onclick="setQuickDate(14)">In 2 weeks</button>
+                    <button class="date-quick-btn" onclick="setQuickDate(30)">In 1 month</button>
+                    <button class="date-quick-btn" onclick="skipDate()">I don't know yet</button>
+                </div>
+            `;
+
+            document.getElementById('nextBtn').disabled = !intake.courtDate;
+        }
+
+        function renderSummary(container) {
+            const situationLabels = {
+                'eviction_notice': 'Fighting an eviction notice',
+                'going_to_court': 'Preparing for court',
+                'landlord_problems': 'Documenting landlord issues',
+                'gathering_evidence': 'Gathering evidence',
+                'exploring': 'Learning about tenant rights'
+            };
+
+            const urgencyLabels = {
+                'emergency': '🔴 Emergency - Immediate action needed',
+                'urgent': '🟠 Urgent - Within 2 weeks',
+                'planning': '🟡 Planning ahead',
+                'learning': '🟢 Learning mode'
+            };
+
+            const docsLabels = {
+                'yes_ready': 'Ready to upload',
+                'yes_later': 'Will upload later',
+                'no': 'Need to gather',
+                'unsure': 'Needs guidance'
+            };
+
+            // Calculate days to court
+            let daysToCourtText = 'Not set';
+            if (intake.courtDate) {
+                const days = Math.ceil((new Date(intake.courtDate) - new Date()) / (1000 * 60 * 60 * 24));
+                daysToCourtText = `${days} days (${new Date(intake.courtDate).toLocaleDateString()})`;
+            }
+
+            // Determine first action
+            let firstAction = {
+                icon: 'bi-upload',
+                text: 'Upload your documents',
+                page: 'document_intake.html'
+            };
+
+            if (intake.hasDocs === 'no' || intake.hasDocs === 'unsure') {
+                firstAction = {
+                    icon: 'bi-list-check',
+                    text: 'See what documents you need',
+                    page: 'journey.html'
+                };
+            } else if (intake.situation === 'exploring') {
+                firstAction = {
+                    icon: 'bi-book',
+                    text: 'Explore your rights',
+                    page: 'law_library.html'
+                };
+            }
+
+            container.innerHTML = `
+                <div class="question-icon">${questions[currentStep].icon}</div>
+                <h2 class="question-text">${questions[currentStep].question}</h2>
+                <p class="question-subtext">${questions[currentStep].subtext}</p>
+                
+                <div class="summary-section">
+                    <h4><i class="bi bi-clipboard-data"></i> Your Situation</h4>
+                    <div class="summary-item">
+                        <span class="summary-label">Mission</span>
+                        <span class="summary-value">${situationLabels[intake.situation] || 'General assistance'}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Urgency</span>
+                        <span class="summary-value">${urgencyLabels[intake.urgency] || 'Not specified'}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Time to Court</span>
+                        <span class="summary-value">${daysToCourtText}</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Documents</span>
+                        <span class="summary-value">${docsLabels[intake.hasDocs] || 'Unknown'}</span>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <h4><i class="bi bi-lightning"></i> Your First Step</h4>
+                    <p style="font-size: 1.1rem; margin-bottom: 0;">
+                        <i class="bi ${firstAction.icon}" style="color: var(--primary);"></i>
+                        <strong>${firstAction.text}</strong>
+                    </p>
+                </div>
+
+                <div class="final-cta">
+                    <button class="start-btn" onclick="startMission('${firstAction.page}')">
+                        <i class="bi bi-rocket-takeoff"></i>
+                        Start My Mission
+                    </button>
+                </div>
+            `;
+
+            // Hide next button on summary
+            document.getElementById('nextBtn').style.display = 'none';
+        }
+
+        function selectOption(questionId, value, element) {
+            intake[questionId] = value;
+            
+            // Update UI
+            document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('selected'));
+            element.classList.add('selected');
+            
+            // Enable next
+            document.getElementById('nextBtn').disabled = false;
+
+            // Show crisis alert for emergency
+            if (questionId === 'urgency' && value === 'emergency') {
+                document.getElementById('crisisAlert').classList.add('show');
+            }
+        }
+
+        function selectDate(value) {
+            intake.courtDate = value;
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function setQuickDate(days) {
+            const date = new Date();
+            date.setDate(date.getDate() + days);
+            const dateStr = date.toISOString().split('T')[0];
+            document.getElementById('courtDateInput').value = dateStr;
+            selectDate(dateStr);
+        }
+
+        function skipDate() {
+            intake.courtDate = null;
+            document.getElementById('nextBtn').disabled = false;
+            goNext();
+        }
+
+        function updateProgress() {
+            const dots = document.querySelectorAll('.progress-dot');
+            dots.forEach((dot, i) => {
+                dot.classList.remove('active', 'completed');
+                if (i < currentStep) {
+                    dot.classList.add('completed');
+                } else if (i === currentStep) {
+                    dot.classList.add('active');
+                }
+            });
+        }
+
+        function goBack() {
+            if (currentStep > 0) {
+                currentStep--;
+                // Skip questions that should be skipped
+                while (currentStep > 0 && questions[currentStep].skipIf && questions[currentStep].skipIf(intake)) {
+                    currentStep--;
+                }
+                renderQuestion();
+            }
+        }
+
+        function goNext() {
+            if (currentStep < questions.length - 1) {
+                currentStep++;
+                // Skip questions that should be skipped
+                while (currentStep < questions.length - 1 && questions[currentStep].skipIf && questions[currentStep].skipIf(intake)) {
+                    currentStep++;
+                }
+                renderQuestion();
+            }
+        }
+
+        async function startMission(firstPage) {
+            // Save intake data
+            try {
+                // Record emotional state based on intake
+                let scenario = 'guided';
+                if (intake.urgency === 'emergency') {
+                    scenario = 'crisis';
+                } else if (intake.urgency === 'urgent') {
+                    scenario = 'overwhelmed';
+                }
+
+                await fetch(`/api/emotion/simulate-scenario?scenario=${scenario}`, { method: 'POST' });
+
+                // Save intake to localStorage
+                localStorage.setItem('semptify_intake', JSON.stringify(intake));
+                localStorage.setItem('semptify_intake_complete', 'true');
+
+                // Go to first page
+                window.location.href = '/static/' + firstPage;
+            } catch (e) {
+                // Still navigate even if API fails
+                localStorage.setItem('semptify_intake', JSON.stringify(intake));
+                localStorage.setItem('semptify_intake_complete', 'true');
+                window.location.href = '/static/' + firstPage;
+            }
+        }
+    </script>
+</body>
+</html>
