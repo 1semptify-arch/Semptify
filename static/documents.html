@@ -613,6 +613,7 @@
             .document-item { flex-direction: column; align-items: flex-start; }
         }
     </style>
+    <script src="/static/js/law-linker.js"></script>
 </head>
 <body>
     <header class="header">
@@ -1199,6 +1200,17 @@
 
         // Init
         init();
+    </script>
+
+    <!-- Site-Wide Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/help-content.js"></script>
+    <script>SemptifyHelp.init('documents');</script>
+    <script>
+        // Initialize law linker for automatic statute linking
+        if (typeof LawLinker !== 'undefined') {
+            window.lawLinker = new LawLinker();
+        }
     </script>
 </body>
 </html>

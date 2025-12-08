@@ -21,6 +21,10 @@ from app.services.eviction.court_learning import (
     MotionOutcome,
     get_learning_engine,
 )
+from app.services.eviction.seed_court_data import (
+    seed_learning_engine,
+    get_baseline_stats,
+)
 
 
 router = APIRouter()
@@ -215,7 +219,7 @@ async def record_motion_outcome(
 # Endpoints - Querying Learned Patterns
 # =============================================================================
 
-@router.get("/learn/defense-rates")
+@router.get("/defense-rates")
 async def get_defense_success_rates(
     county: str = "Dakota",
     min_cases: int = 3,
@@ -248,7 +252,7 @@ async def get_defense_success_rates(
     }
 
 
-@router.get("/learn/judge-patterns")
+@router.get("/judge-patterns")
 async def get_judge_patterns(
     county: str = "Dakota",
     engine: CourtLearningEngine = Depends(get_learning_engine),
@@ -277,7 +281,7 @@ async def get_judge_patterns(
     }
 
 
-@router.get("/learn/landlord-patterns")
+@router.get("/landlord-patterns")
 async def get_landlord_patterns(
     landlord_name: Optional[str] = None,
     engine: CourtLearningEngine = Depends(get_learning_engine),
@@ -304,7 +308,7 @@ async def get_landlord_patterns(
     }
 
 
-@router.get("/learn/stats")
+@router.get("/stats")
 async def get_learning_stats(
     engine: CourtLearningEngine = Depends(get_learning_engine),
 ):
@@ -363,7 +367,7 @@ async def get_strategy_for_current_case(
 ):
     """
     Get strategy recommendation for the user's current case.
-    
+
     Pulls case details from user's data and generates recommendations.
     """
     # This would integrate with the case builder to get current case details
@@ -374,4 +378,63 @@ async def get_strategy_for_current_case(
             "manual": "POST /eviction/learn/strategy/recommend",
             "auto": "Coming soon - will auto-pull from your case data",
         },
+    }
+
+
+# =============================================================================
+# Endpoints - Seed Historical Data
+# =============================================================================
+
+@router.post("/seed")
+async def seed_historical_data(
+    num_cases: int = 500,
+    engine: CourtLearningEngine = Depends(get_learning_engine),
+):
+    """
+    Seed the learning engine with historical Minnesota eviction data.
+    
+    This initializes Semptify's knowledge with:
+    - 500+ historical case outcomes
+    - Defense success rates from MN courts
+    - Judge patterns from Dakota County
+    - Landlord/property manager patterns
+    
+    Run this once to give Semptify a head start on learning.
+    """
+    result = await seed_learning_engine(engine, num_cases)
+    
+    return {
+        "status": "seeded",
+        "summary": result,
+        "message": f"Learning engine seeded with {result['cases_seeded']} historical cases",
+        "next_steps": [
+            "Check /eviction/learn/stats for learning statistics",
+            "Check /eviction/learn/defense-rates for defense success rates",
+            "Check /eviction/learn/judge-patterns for judge information",
+            "Use /eviction/learn/strategy/recommend for data-driven recommendations",
+        ],
+    }
+
+
+@router.get("/baseline-stats")
+async def get_baseline_statistics():
+    """
+    Get baseline statistics about Minnesota evictions.
+    
+    This shows what Semptify knows from public court records,
+    even before recording any user outcomes.
+    """
+    stats = get_baseline_stats()
+    
+    return {
+        "baseline_data": stats,
+        "top_defenses": [
+            {"code": code, "success_rate": data["success_rate"], "description": data["description"]}
+            for code, data in sorted(
+                stats["defense_success_rates"].items(),
+                key=lambda x: x[1]["success_rate"],
+                reverse=True
+            )[:5]
+        ],
+        "message": "These are baseline statistics from Minnesota court records. Your case may differ.",
     }

@@ -8,6 +8,8 @@ in court if it goes that far - hopefully it won't.
 
 import asyncio
 import logging
+import sys
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -19,8 +21,18 @@ from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
 from app.core.config import get_settings
 from app.core.database import init_db, close_db
 
+# PyInstaller frozen executable detection
+def get_base_path() -> Path:
+    """Get base path - handles PyInstaller frozen mode."""
+    if getattr(sys, 'frozen', False):
+        # Running as compiled exe
+        return Path(sys._MEIPASS)
+    return Path(".")
+
+BASE_PATH = get_base_path()
+
 # Import routers
-from app.routers import auth, vault, timeline, calendar, copilot, health, storage, documents, adaptive_ui, context_loop
+from app.routers import auth, vault, timeline, calendar, copilot, health, storage, documents, adaptive_ui, context_loop, tactics
 from app.routers.intake import router as intake_router
 from app.routers.registry import router as registry_router
 from app.routers.vault_engine import router as vault_engine_router
@@ -32,9 +44,30 @@ from app.routers.setup import router as setup_router
 from app.routers.websocket import router as websocket_router
 from app.routers.brain import router as brain_router
 from app.routers.cloud_sync import router as cloud_sync_router
+from app.routers.complaints import router as complaints_router
 from app.routers.module_hub import router as module_hub_router
 from app.routers.positronic_mesh import router as positronic_mesh_router
 from app.routers.mesh_network import router as mesh_network_router
+from app.routers.location import router as location_router
+from app.routers.hud_funding import router as hud_funding_router
+from app.routers.fraud_exposure import router as fraud_exposure_router
+from app.routers.public_exposure import router as public_exposure_router
+from app.routers.research import router as research_router
+from app.routers.campaign import router as campaign_router
+from app.modules.research_module import router as research_module_router
+from app.routers.extraction import router as extraction_router
+from app.routers.funding_search import router as funding_search_router
+from app.routers.tenancy_hub import router as tenancy_hub_router
+from app.routers.legal_analysis import router as legal_analysis_router
+from app.routers.mesh import router as distributed_mesh_router
+from app.routers.legal_trails import router as legal_trails_router
+from app.routers.contacts import router as contacts_router
+from app.routers.recognition import router as recognition_router
+from app.routers.court_forms import router as court_forms_router
+from app.routers.zoom_court_prep import router as zoom_court_prep_router
+from app.routers.pdf_tools import router as pdf_tools_router
+from app.routers.briefcase import router as briefcase_router
+from app.core.mesh_integration import start_mesh_network, stop_mesh_network
 
 # Dakota County Eviction Defense Module
 try:
@@ -47,7 +80,7 @@ try:
     )
     DAKOTA_AVAILABLE = True
 except ImportError as e:
-    logging.getLogger(__name__).warning(f"Dakota County module import failed: {e}")
+    logging.getLogger(__name__).warning("Dakota County module import failed: %s", e)
     DAKOTA_AVAILABLE = False
 
 
@@ -101,7 +134,7 @@ async def lifespan(app: FastAPI):
         elapsed = time.time() - start_time
         remaining = time_remaining()
         bar = "█" * stage_num + "░" * (total - stage_num)
-        logger.info(f"[{bar}] Stage {stage_num}/{total}: {name} - {status} ({elapsed:.1f}s elapsed, {remaining:.1f}s remaining)")
+        logger.info("[%s] Stage %s/%s: %s - %s (%.1fs elapsed, %.1fs remaining)", bar, stage_num, total, name, status, elapsed, remaining)
     
     async def run_stage(stage_num: int, total: int, name: str, action, verify=None):
         """Run a stage with retries and verification."""
@@ -118,17 +151,17 @@ async def lifespan(app: FastAPI):
                     await asyncio.sleep(0.2)  # Brief pause before verify
                     is_valid = await verify() if asyncio.iscoroutinefunction(verify) else verify()
                     if not is_valid:
-                        raise Exception(f"Verification failed for {name}")
+                        raise RuntimeError(f"Verification failed for {name}")
                 
                 log_stage(stage_num, total, name, "✅ COMPLETE")
                 return True
                 
-            except Exception as e:
-                logger.warning(f"Stage {stage_num} '{name}' attempt {attempt} failed: {e}")
+            except (ValueError, RuntimeError, ImportError, AssertionError, TimeoutError) as e:
+                logger.warning("Stage %s '%s' attempt %s failed: %s", stage_num, name, attempt, e)
                 if attempt < MAX_RETRIES:
                     await asyncio.sleep(STAGE_DELAY)
                 else:
-                    raise Exception(f"Stage {stage_num} '{name}' failed after {MAX_RETRIES} attempts: {e}")
+                    raise RuntimeError(f"Stage {stage_num} '{name}' failed after {MAX_RETRIES} attempts: {e}") from e
         return False
     
     async def wipe_and_reset():
@@ -144,10 +177,10 @@ async def lifespan(app: FastAPI):
             if path.exists():
                 if path.is_file():
                     path.unlink()
-                    logger.info(f"  Removed file: {dir_path}")
+                    logger.info("  Removed file: %s", dir_path)
                 else:
                     shutil.rmtree(path, ignore_errors=True)
-                    logger.info(f"  Removed directory: {dir_path}")
+                    logger.info("  Removed directory: %s", dir_path)
         
         # Clear in-memory caches
         from app.routers.storage import SESSIONS, OAUTH_STATES
@@ -197,9 +230,9 @@ async def lifespan(app: FastAPI):
     }
     
     logger.info("=" * 60)
-    logger.info(f"🚀 STARTING {settings.app_name} v{settings.app_version}")
-    logger.info(f"   Security mode: {settings.security_mode}")
-    logger.info(f"   Timeout: {TOTAL_TIMEOUT}s | Retries per stage: {MAX_RETRIES}")
+    logger.info("🚀 STARTING %s v%s", settings.app_name, settings.app_version)
+    logger.info("   Security mode: %s", settings.security_mode)
+    logger.info("   Timeout: %ss | Retries per stage: %s", TOTAL_TIMEOUT, MAX_RETRIES)
     logger.info("=" * 60)
     
     try:
@@ -231,7 +264,7 @@ async def lifespan(app: FastAPI):
         def verify_requirements():
             if missing_optional:
                 for pkg in missing_optional:
-                    logger.warning(f"   ⚠️  Optional: {pkg} not installed")
+                    logger.warning("   ⚠️  Optional: %s not installed", pkg)
             return len(missing_required) == 0
         
         await run_stage(1, TOTAL_STAGES, "Verify Requirements", check_requirements, verify_requirements)
@@ -260,7 +293,7 @@ async def lifespan(app: FastAPI):
                     from sqlalchemy import text
                     await db.execute(text("SELECT 1"))
                     return True
-            except:
+            except Exception:
                 return False
         
         await run_stage(3, TOTAL_STAGES, "Initialize Database", init_database, verify_database)
@@ -296,11 +329,21 @@ async def lifespan(app: FastAPI):
             # Initialize Positronic Mesh and register all module actions
             register_all_actions()
             logger.info("   🧠 Positronic Mesh initialized with workflow orchestration")
-            
+
+            # Initialize Location Service (registers with mesh for cross-module awareness)
+            from app.services.location_service import location_service, register_with_mesh
+            register_with_mesh()
+            logger.info("   📍 Location Service initialized - Minnesota-focused tenant rights")
+
+            # Initialize Complaint Wizard Module (registers with mesh for complaint filing workflow)
+            from app.modules.complaint_wizard_module import register_with_mesh as register_complaint_wizard
+            register_complaint_wizard()
+            logger.info("   📝 Complaint Wizard initialized - MN regulatory agency filing")
+
             # Initialize Mesh Network for true bidirectional module communication
             from app.services.mesh_handlers import register_all_mesh_handlers
             mesh_stats = register_all_mesh_handlers()
-            logger.info(f"   🕸️ Mesh Network initialized: {mesh_stats['modules_registered']} modules, {mesh_stats['total_handlers']} handlers")
+            logger.info("   🕸️ Mesh Network initialized: %s modules, %s handlers", mesh_stats['modules_registered'], mesh_stats['total_handlers'])
         
         await run_stage(5, TOTAL_STAGES, "Initialize Services", init_services)
         
@@ -326,11 +369,11 @@ async def lifespan(app: FastAPI):
         logger.info("")
         logger.info("=" * 60)
         logger.info("✅ ✅ ✅  ALL STAGES COMPLETE  ✅ ✅ ✅")
-        logger.info(f"   Setup completed in {total_time:.2f} seconds")
+        logger.info("   Setup completed in %.2f seconds", total_time)
         logger.info("")
-        logger.info(f"   🌐 Server: http://localhost:8000")
-        logger.info(f"   📄 Welcome: http://localhost:8000/static/welcome.html")
-        logger.info(f"   📚 API Docs: http://localhost:8000/docs")
+        logger.info("   🌐 Server: http://localhost:8000")
+        logger.info("   📄 Welcome: http://localhost:8000/static/welcome.html")
+        logger.info("   📚 API Docs: http://localhost:8000/docs")
         logger.info("=" * 60)
         logger.info("")
         
@@ -344,8 +387,22 @@ async def lifespan(app: FastAPI):
         await wipe_and_reset()
         raise SystemExit(f"Setup failed after retries: {e}")
     
+    # Start distributed mesh network
+    try:
+        await start_mesh_network()
+        logger.info("🌐 Distributed Mesh Network started - P2P communication active")
+    except Exception as e:
+        logger.warning(f"⚠️ Mesh network start warning: {e}")
+
     yield  # Application runs here
-    
+
+    # Stop distributed mesh network
+    try:
+        await stop_mesh_network()
+        logger.info("🌐 Distributed Mesh Network stopped")
+    except Exception as e:
+        logger.warning(f"⚠️ Mesh network stop warning: {e}")
+
     # --- SHUTDOWN ---
     logger.info("")
     logger.info("=" * 50)
@@ -1390,6 +1447,7 @@ def create_app() -> FastAPI:
     app.include_router(timeline.router, prefix="/api/timeline", tags=["Timeline"])
     app.include_router(calendar.router, prefix="/api/calendar", tags=["Calendar"])
     app.include_router(copilot.router, prefix="/api/copilot", tags=["AI Copilot"])
+    app.include_router(tactics.router, prefix="/api/tactics", tags=["Proactive Tactics"])  # AI defense strategies
     app.include_router(documents.router, tags=["Documents"])  # Fresh document processing API
     app.include_router(adaptive_ui.router, tags=["Adaptive UI"])  # Self-building interface
     app.include_router(context_loop.router, tags=["Context Loop"])  # Core processing engine
@@ -1402,6 +1460,28 @@ def create_app() -> FastAPI:
     app.include_router(module_hub_router, prefix="/api", tags=["Module Hub"])  # Central module communication
     app.include_router(positronic_mesh_router, prefix="/api", tags=["Positronic Mesh"])  # Workflow orchestration
     app.include_router(mesh_network_router, prefix="/api", tags=["Mesh Network"])  # True bidirectional module communication
+    app.include_router(location_router, tags=["Location"])  # Location detection and state-specific resources
+    app.include_router(hud_funding_router, tags=["HUD Funding Guide"])  # HUD funding programs, tax credits, landlord eligibility
+    app.include_router(fraud_exposure_router, tags=["Fraud Exposure"])  # Fraud analysis and detection
+    app.include_router(public_exposure_router, tags=["Public Exposure"])  # Press releases and media campaigns
+    app.include_router(campaign_router, tags=["Campaign Orchestration"])  # Combined complaint, fraud, press campaigns
+    app.include_router(funding_search_router, tags=["Funding & Tax Credit Search"])  # LIHTC, NMTC, HUD funding search
+    app.include_router(research_router, tags=["Research Module"])  # Landlord/property research and dossier
+    app.include_router(research_module_router, tags=["Research Module SDK"])  # SDK-based landlord/property dossier
+    app.include_router(extraction_router, tags=["Form Field Extraction"])  # Extract and map document data to form fields
+    app.include_router(tenancy_hub_router, tags=["Tenancy Hub"])  # Central hub for all tenancy documentation
+    app.include_router(legal_analysis_router, tags=["Legal Analysis"])  # Legal merit, consistency, evidence analysis
+    app.include_router(legal_trails_router, tags=["Legal Trails"])  # Track violations, claims, broker oversight, filing deadlines
+    app.include_router(contacts_router, tags=["Contact Manager"])  # Track landlords, attorneys, witnesses, agencies
+    app.include_router(recognition_router, tags=["Document Recognition"])  # World-class document recognition engine
+    app.include_router(court_forms_router, tags=["Court Forms"])  # Auto-generate Minnesota court forms
+    app.include_router(zoom_court_prep_router, tags=["Zoom Court Prep"])  # Hearing preparation and tech checks
+    app.include_router(pdf_tools_router, tags=["PDF Tools"])  # PDF reader, viewer, page extractor
+    app.include_router(briefcase_router, tags=["Briefcase"])  # Document & folder organization system
+
+    # Distributed Mesh Network - P2P Module Communication
+    app.include_router(distributed_mesh_router, prefix="/api", tags=["Distributed Mesh"])
+    logging.getLogger(__name__).info("🌐 Distributed Mesh router connected - P2P architecture active")
 
     # Dakota County Eviction Defense Module
     if DAKOTA_AVAILABLE:
@@ -1421,12 +1501,16 @@ def create_app() -> FastAPI:
     logging.getLogger(__name__).info("✅ Legal Defense modules loaded (Law Library, Eviction Defense, Zoom Court)")
 
     # Positronic Brain - Central Intelligence Hub
-    app.include_router(brain_router, tags=["Positronic Brain"])
+    app.include_router(brain_router, prefix="/brain", tags=["Positronic Brain"])
     logging.getLogger(__name__).info("🧠 Positronic Brain connected - Central intelligence hub active")
     
     # Cloud Sync - User-Controlled Persistent Storage
     app.include_router(cloud_sync_router, tags=["Cloud Sync"])
     logging.getLogger(__name__).info("☁️ Cloud Sync router connected - User-controlled data persistence active")
+
+    # Complaint Filing Wizard - Regulatory Accountability
+    app.include_router(complaints_router, tags=["Complaint Wizard"])
+    logging.getLogger(__name__).info("⚖️ Complaint Filing Wizard loaded - Regulatory accountability tools active")
 
     # app.include_router(complaints.router, prefix="/api/complaints", tags=["Complaints"])
     # app.include_router(ledger.router, prefix="/api/ledger", tags=["Rent Ledger"])
@@ -1435,11 +1519,11 @@ def create_app() -> FastAPI:
     # =========================================================================
     # Static Files (for any frontend assets)
     # =========================================================================
-    
-    static_path = Path("static")
+
+    static_path = BASE_PATH / "static"
     if static_path.exists():
-        app.mount("/static", StaticFiles(directory="static"), name="static")
-    
+        app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
+
     # =========================================================================
     # Root endpoint - Serve SPA
     # =========================================================================
@@ -1451,7 +1535,7 @@ def create_app() -> FastAPI:
         if dashboard_path.exists():
             return HTMLResponse(content=dashboard_path.read_text(encoding="utf-8"))
         # Fallback to documents page
-        documents_path = Path("static/documents.html")
+        documents_path = BASE_PATH / "static" / "documents.html"
         if documents_path.exists():
             return HTMLResponse(content=documents_path.read_text(encoding="utf-8"))
         # Fallback JSON response if no frontend
@@ -1473,7 +1557,7 @@ def create_app() -> FastAPI:
                 content="<h1>404 - Not Found</h1><p>This page is only available in development mode.</p>",
                 status_code=404
             )
-        index_path = Path("static/index.html")
+        index_path = BASE_PATH / "static" / "index.html"
         if index_path.exists():
             return HTMLResponse(content=index_path.read_text(encoding="utf-8"))
         return JSONResponse(content={"error": "Elbow UI not found"}, status_code=404)    # =========================================================================
@@ -1753,7 +1837,7 @@ def create_app() -> FastAPI:
     @app.get("/timeline", response_class=HTMLResponse)
     async def timeline_page():
         """Serve the timeline viewer page."""
-        timeline_path = Path("static/timeline.html")
+        timeline_path = BASE_PATH / "static" / "timeline.html"
         if timeline_path.exists():
             return HTMLResponse(content=timeline_path.read_text(encoding="utf-8"))
         return HTMLResponse(
@@ -1768,7 +1852,7 @@ def create_app() -> FastAPI:
     @app.get("/documents", response_class=HTMLResponse)
     async def documents_page():
         """Serve the document intake page."""
-        documents_path = Path("static/documents.html")
+        documents_path = BASE_PATH / "static" / "documents.html"
         if documents_path.exists():
             return HTMLResponse(content=documents_path.read_text(encoding="utf-8"))
         return HTMLResponse(

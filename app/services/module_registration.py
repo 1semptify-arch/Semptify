@@ -355,7 +355,96 @@ def register_all_modules():
         handles_documents=[],
         accepts_packs=[],
     )
-    
+
+    # Complaint Wizard Module
+    module_hub.register_module(
+        module_type=ModuleType.COMPLAINT_WIZARD,
+        name="Complaint Filing Wizard",
+        description="File complaints with Minnesota regulatory agencies (AG, HUD, Commerce)",
+        handles_documents=[
+            DocumentCategory.COMMUNICATION,
+            DocumentCategory.LEASE,
+            DocumentCategory.PHOTO_EVIDENCE,
+        ],
+        accepts_packs=[
+            PackType.EVICTION_CASE,
+            PackType.LEASE_INFO,
+            PackType.REPAIR_ISSUE,
+        ],
+    )
+
+    # Location Service Module
+    module_hub.register_module(
+        module_type=ModuleType.LOCATION,
+        name="Location Service",
+        description="State-specific legal resources and court information",
+        handles_documents=[],
+        accepts_packs=[
+            PackType.LOCATION_DATA,
+        ],
+    )
+
+    # HUD Funding Guide Module
+    module_hub.register_module(
+        module_type=ModuleType.HUD_FUNDING,
+        name="HUD Funding Guide",
+        description="HUD funding programs, tax credits, and landlord eligibility requirements",
+        handles_documents=[],
+        accepts_packs=[
+            PackType.HUD_FUNDING_INFO,
+        ],
+    )
+
+    # Fraud Exposure Module
+    module_hub.register_module(
+        module_type=ModuleType.FRAUD_EXPOSURE,
+        name="Fraud Exposure",
+        description="Analyze potential fraud in landlord conduct, HUD subsidies, mortgage, and tenant rights violations",
+        handles_documents=[],
+        accepts_packs=[
+            PackType.CASE_CONTEXT,
+            PackType.DOCUMENT_ANALYSIS,
+        ],
+    )
+
+    # Public Exposure Module
+    module_hub.register_module(
+        module_type=ModuleType.PUBLIC_EXPOSURE,
+        name="Public Exposure",
+        description="Generate press releases, media kits, and public accountability campaigns for tenant rights",
+        handles_documents=[],
+        accepts_packs=[
+            PackType.CASE_CONTEXT,
+        ],
+    )
+
+    # Research Module
+    module_hub.register_module(
+        module_type=ModuleType.RESEARCH,
+        name="Research Module",
+        description="Landlord/property research: taxes, liens, UCC filings, emergency calls, news, bankruptcy, insurance",
+        handles_documents=[],
+        accepts_packs=[
+            PackType.CASE_CONTEXT,
+        ],
+    )
+
+    # Legal Trails Module
+    module_hub.register_module(
+        module_type=ModuleType.LEGAL_TRAILS,
+        name="Legal Trails",
+        description="Track violations, eviction threats, late fee abuse, broker oversight, legal claims, and filing deadlines",
+        handles_documents=[
+            DocumentCategory.EVICTION_NOTICE,
+            DocumentCategory.COURT_SUMMONS,
+            DocumentCategory.COMMUNICATION,
+        ],
+        accepts_packs=[
+            PackType.CASE_CONTEXT,
+            PackType.EVICTION_CASE,
+        ],
+    )
+
     status = module_hub.get_hub_status()
     logger.info(f"✅ Module Hub ready: {status['modules_registered']} modules registered")
     

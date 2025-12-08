@@ -692,6 +692,7 @@
             to { transform: translateX(100%); opacity: 0; }
         }
     </style>
+    <link rel="stylesheet" href="/static/css/help-system.css">
 </head>
 <body>
     <!-- Header -->
@@ -714,51 +715,72 @@
         <!-- Sidebar Navigation -->
         <nav class="sidebar">
             <div class="nav-section">
-                <h3>📋 Case Management</h3>
-                <a href="/static/document_intake.html" class="nav-item">
-                    <span class="icon">📤</span>
-                    <span>Upload Documents</span>
+                <h3>🏠 Tenant Journey</h3>
+                <a href="/static/journey.html" class="nav-item">
+                    <span class="icon">📝</span>
+                    <span>1. Lease & Move-In</span>
+                </a>
+                <a href="/static/document_intake.html?type=payment" class="nav-item">
+                    <span class="icon">💰</span>
+                    <span>2. Rent Payments</span>
+                </a>
+                <a href="/static/document_intake.html?type=maintenance" class="nav-item">
+                    <span class="icon">🔧</span>
+                    <span>3. Maintenance</span>
+                </a>
+                <a href="/static/document_intake.html?type=notice" class="nav-item">
+                    <span class="icon">⚠️</span>
+                    <span>4. Notices</span>
                 </a>
                 <a href="/static/timeline.html" class="nav-item">
                     <span class="icon">📅</span>
-                    <span>Timeline</span>
+                    <span>5. Timeline</span>
                     <span class="badge" id="timelineCount">0</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <h3>⚖️ Legal Defense</h3>
+                <a href="/law-library" class="nav-item">
+                    <span class="icon">📖</span>
+                    <span>6. Know Rights</span>
+                </a>
+                <a href="/eviction/answer" class="nav-item">
+                    <span class="icon">📝</span>
+                    <span>7. Answer Summons</span>
+                </a>
+                <a href="/eviction/counterclaim" class="nav-item">
+                    <span class="icon">⚔️</span>
+                    <span>8. Fight Back</span>
+                </a>
+                <a href="/eviction/zoom" class="nav-item">
+                    <span class="icon">💻</span>
+                    <span>9. Court Prep</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <h3>📁 My Stuff</h3>
+                <a href="/static/documents.html" class="nav-item">
+                    <span class="icon">📁</span>
+                    <span>Document Vault</span>
+                </a>
+                <a href="/static/briefcase.html" class="nav-item">
+                    <span class="icon">💼</span>
+                    <span>Briefcase</span>
+                </a>
+                <a href="/static/pdf_tools.html" class="nav-item">
+                    <span class="icon">📑</span>
+                    <span>PDF Tools</span>
                 </a>
                 <a href="/static/calendar.html" class="nav-item">
                     <span class="icon">🗓️</span>
                     <span>Calendar</span>
                 </a>
-                <a href="/static/documents.html" class="nav-item">
-                    <span class="icon">📁</span>
-                    <span>Document Vault</span>
+                <a href="/static/brain.html" class="nav-item">
+                    <span class="icon">🧠</span>
+                    <span>AI Assistant</span>
                 </a>
-            </div>
-            
-            <div class="nav-section">
-                <h3>⚖️ Eviction Defense</h3>
-                <a href="/eviction/" class="nav-item">
-                    <span class="icon">🏠</span>
-                    <span>Defense Portal</span>
-                </a>
-                <a href="/eviction/answer" class="nav-item">
-                    <span class="icon">📝</span>
-                    <span>Answer Summons</span>
-                </a>
-                <a href="/eviction/counterclaim" class="nav-item">
-                    <span class="icon">⚔️</span>
-                    <span>Counterclaim</span>
-                </a>
-                <a href="/eviction/motions" class="nav-item">
-                    <span class="icon">📋</span>
-                    <span>File Motions</span>
-                </a>
-            </div>
-            
-            <div class="nav-section">
-                <h3>📚 Legal Resources</h3>
-                <a href="/law-library" class="nav-item">
-                    <span class="icon">📖</span>
-                    <span>Law Library</span>
                 </a>
                 <a href="/eviction/forms/library" class="nav-item">
                     <span class="icon">📄</span>
@@ -771,6 +793,55 @@
                 <a href="/dakota/procedures/defenses" class="nav-item">
                     <span class="icon">🛡️</span>
                     <span>Defenses</span>
+                </a>
+                <a href="/static/court_learning.html" class="nav-item">
+                    <span class="icon">🧠</span>
+                    <span>Court Learning</span>
+                </a>
+                <a href="/static/funding_search.html" class="nav-item">
+                    <span class="icon">💰</span>
+                    <span>Funding Search</span>
+                </a>
+                <a href="/static/campaign.html" class="nav-item">
+                    <span class="icon">🎯</span>
+                    <span>Campaign</span>
+                </a>
+                <a href="/static/research.html" class="nav-item">
+                    <span class="icon">🔬</span>
+                    <span>Research</span>
+                </a>
+                <a href="/static/research_module.html" class="nav-item">
+                    <span class="icon">🕵️</span>
+                    <span>Dossier</span>
+                </a>
+                <a href="/static/legal_analysis.html" class="nav-item">
+                    <span class="icon">⚖️</span>
+                    <span>Legal Analysis</span>
+                </a>
+                <a href="/static/recognition.html" class="nav-item">
+                    <span class="icon">🔍</span>
+                    <span>Doc Recognition</span>
+                </a>
+                <a href="/static/legal_trails.html" class="nav-item">
+                    <span class="icon">🔥</span>
+                    <span>Legal Trails</span>
+                </a>
+                <a href="/static/contacts.html" class="nav-item">
+                    <span class="icon">📇</span>
+                    <span>Contacts</span>
+                </a>
+            </div>
+
+            <!-- System -->
+            <div class="nav-section">
+                <div class="nav-section-title">System</div>
+                <a href="/static/brain.html" class="nav-item">
+                    <span class="icon">🧠</span>
+                    <span>Brain Visualizer</span>
+                </a>
+                <a href="/static/mesh_network.html" class="nav-item">
+                    <span class="icon">🌐</span>
+                    <span>Mesh Network</span>
                 </a>
             </div>
             
@@ -811,6 +882,22 @@
                 <a href="/static/storage_setup.html" class="nav-item">
                     <span class="icon">☁️</span>
                     <span>Cloud Storage</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <h3>❓ Help & Info</h3>
+                <a href="/static/help.html" class="nav-item">
+                    <span class="icon">📚</span>
+                    <span>Help & Resources</span>
+                </a>
+                <a href="/static/help.html#emergency" class="nav-item">
+                    <span class="icon">🆘</span>
+                    <span>Emergency Help</span>
+                </a>
+                <a href="/static/privacy.html" class="nav-item">
+                    <span class="icon">🔒</span>
+                    <span>Privacy Policy</span>
                 </a>
             </div>
         </nav>
@@ -903,45 +990,71 @@
                 </div>
                 <div class="card-body">
                     <div class="quick-actions">
-                        <a href="/static/document_intake.html" class="action-btn">
-                            <span class="icon">📤</span>
-                            <span class="label">Upload Documents</span>
-                            <span class="sublabel">Add evidence files</span>
-                        </a>
-                        <a href="/eviction/answer" class="action-btn">
+                        <!-- PHASE 1: MOVE-IN -->
+                        <a href="/static/journey.html" class="action-btn">
                             <span class="icon">📝</span>
-                            <span class="label">Answer Summons</span>
-                            <span class="sublabel">Respond to complaint</span>
+                            <span class="label">1. Lease & Move-In</span>
+                            <span class="sublabel">Upload lease, deposits</span>
+                        </a>
+                        <!-- PHASE 2: LIVING THERE -->
+                        <a href="/static/document_intake.html?type=payment" class="action-btn">
+                            <span class="icon">💰</span>
+                            <span class="label">2. Rent Payments</span>
+                            <span class="sublabel">Track payments made</span>
+                        </a>
+                        <a href="/static/document_intake.html?type=maintenance" class="action-btn">
+                            <span class="icon">🔧</span>
+                            <span class="label">3. Maintenance</span>
+                            <span class="sublabel">Repair requests, issues</span>
+                        </a>
+                        <!-- PHASE 3: PROBLEMS -->
+                        <a href="/static/document_intake.html?type=notice" class="action-btn">
+                            <span class="icon">⚠️</span>
+                            <span class="label">4. Notices Received</span>
+                            <span class="sublabel">Violations, warnings</span>
+                        </a>
+                        <a href="/static/timeline.html" class="action-btn">
+                            <span class="icon">📅</span>
+                            <span class="label">5. Build Timeline</span>
+                            <span class="sublabel">Document everything</span>
+                        </a>
+                        <!-- PHASE 4: LEGAL ACTION -->
+                        <a href="/law-library" class="action-btn">
+                            <span class="icon">📖</span>
+                            <span class="label">6. Know Your Rights</span>
+                            <span class="sublabel">Research tenant laws</span>
+                        </a>
+                        <a href="/eviction/answer" class="action-btn" style="border-color: var(--warning);">
+                            <span class="icon">📝</span>
+                            <span class="label">7. Answer Summons</span>
+                            <span class="sublabel">⚠️ Required response</span>
                         </a>
                         <a href="/eviction/counterclaim" class="action-btn">
                             <span class="icon">⚔️</span>
-                            <span class="label">File Counterclaim</span>
-                            <span class="sublabel">Counter-sue landlord</span>
+                            <span class="label">8. Fight Back</span>
+                            <span class="sublabel">Counterclaim & motions</span>
                         </a>
-                        <a href="/eviction/motions" class="action-btn">
-                            <span class="icon">📋</span>
-                            <span class="label">File Motion</span>
-                            <span class="sublabel">Dismiss, stay, continue</span>
-                        </a>
+                        <!-- PHASE 5: COURT -->
                         <a href="/eviction/zoom" class="action-btn">
                             <span class="icon">💻</span>
-                            <span class="label">Zoom Court Prep</span>
-                            <span class="sublabel">Virtual hearing setup</span>
+                            <span class="label">9. Court Prep</span>
+                            <span class="sublabel">Zoom hearing setup</span>
                         </a>
-                        <a href="/eviction/forms/library" class="action-btn">
-                            <span class="icon">📁</span>
-                            <span class="label">Court Forms</span>
-                            <span class="sublabel">Official MN forms</span>
-                        </a>
+                        <!-- TOOLS -->
                         <a href="/static/brain.html" class="action-btn" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-color: #7c3aed;">
                             <span class="icon">🧠</span>
-                            <span class="label">Positronic Brain</span>
-                            <span class="sublabel">Central intelligence hub</span>
+                            <span class="label">AI Assistant</span>
+                            <span class="sublabel">Ask questions</span>
                         </a>
                         <a href="/static/storage_setup.html" class="action-btn" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-color: #0ea5e9;">
                             <span class="icon">☁️</span>
-                            <span class="label">Cloud Storage</span>
+                            <span class="label">Cloud Backup</span>
                             <span class="sublabel">Sync your data</span>
+                        </a>
+                        <a href="/static/contacts.html" class="action-btn" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-color: #10b981;">
+                            <span class="icon">📇</span>
+                            <span class="label">Contacts</span>
+                            <span class="sublabel">Track people</span>
                         </a>
                     </div>
                 </div>
@@ -1631,5 +1744,6 @@ What would you like help with?</div>
             });
         }
     </script>
+    <script src="/static/js/help-system.js"></script>
 </body>
 </html>

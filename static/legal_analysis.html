@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚖️ Legal Analysis Engine - Semptify</title>
+    <style>
+        :root {
+            --primary: #7c3aed;
+            --primary-dark: #6d28d9;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border: #334155;
+            --glow-green: rgba(16, 185, 129, 0.4);
+            --glow-yellow: rgba(245, 158, 11, 0.4);
+            --glow-red: rgba(239, 68, 68, 0.4);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--bg-card) 0%, #1a1a3a 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--primary), #ec4899);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .logo-text {
+            background: linear-gradient(90deg, var(--primary), #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brain-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-card);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+
+        .brain-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 0 0 var(--glow-green); }
+            50% { opacity: 0.8; box-shadow: 0 0 0 8px transparent; }
+        }
+
+        /* Main Layout */
+        .main-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #00ff88, #00aaff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Case Selector */
+        .case-selector {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+
+        .case-selector h3 {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .case-select-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .case-select-row select {
+            flex: 1;
+            min-width: 300px;
+            padding: 0.75rem 1rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #ec4899);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        /* Quick Health Check */
+        .health-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .health-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .health-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .health-card.green {
+            border-color: var(--success);
+            box-shadow: 0 0 20px var(--glow-green);
+        }
+
+        .health-card.yellow {
+            border-color: var(--warning);
+            box-shadow: 0 0 20px var(--glow-yellow);
+        }
+
+        .health-card.red {
+            border-color: var(--danger);
+            box-shadow: 0 0 20px var(--glow-red);
+        }
+
+        .health-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .health-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .health-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Analysis Panels */
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1200px) {
+            .analysis-grid { grid-template-columns: 1fr; }
+        }
+
+        .analysis-panel {
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(236, 72, 153, 0.2));
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .panel-body {
+            padding: 1.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* Evidence List */
+        .evidence-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-dark);
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid var(--border);
+        }
+
+        .evidence-item.binding { border-left-color: var(--success); }
+        .evidence-item.hearsay { border-left-color: var(--danger); }
+        .evidence-item.needs-review { border-left-color: var(--warning); }
+
+        .evidence-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            background: var(--bg-card);
+        }
+
+        .evidence-details { flex: 1; }
+
+        .evidence-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .evidence-meta {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .evidence-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-binding { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .badge-hearsay { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .badge-info { background: rgba(59, 130, 246, 0.2); color: var(--info); }
+
+        /* Timeline Issues */
+        .timeline-issue {
+            padding: 1rem;
+            background: var(--bg-dark);
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--border);
+        }
+
+        .timeline-issue.defense {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .timeline-issue.warning {
+            border-color: var(--warning);
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .issue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .issue-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .issue-strength {
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .strength-strong { background: var(--success); color: white; }
+        .strength-moderate { background: var(--warning); color: black; }
+
+        .issue-detail {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .issue-statute {
+            font-size: 0.8rem;
+            color: var(--info);
+            margin-top: 0.5rem;
+        }
+
+        /* Merit Assessment */
+        .merit-score {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            padding: 4px;
+            background: linear-gradient(135deg, var(--success), var(--info));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .merit-level {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .merit-level.strong { color: var(--success); }
+        .merit-level.moderate { color: var(--warning); }
+        .merit-level.weak { color: var(--danger); }
+
+        /* Strengths & Weaknesses */
+        .sw-list {
+            list-style: none;
+        }
+
+        .sw-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: var(--bg-dark);
+            border-radius: 8px;
+        }
+
+        .sw-item.strength { border-left: 3px solid var(--success); }
+        .sw-item.weakness { border-left: 3px solid var(--danger); }
+
+        .sw-icon {
+            font-size: 1.25rem;
+        }
+
+        /* Action Items */
+        .action-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-dark);
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid var(--border);
+        }
+
+        .action-item.critical { border-left-color: var(--danger); }
+        .action-item.high { border-left-color: var(--warning); }
+        .action-item.medium { border-left-color: var(--info); }
+
+        .action-priority {
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .priority-critical { background: var(--danger); color: white; }
+        .priority-high { background: var(--warning); color: black; }
+        .priority-medium { background: var(--info); color: white; }
+
+        /* Document Upload */
+        .upload-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 2px dashed var(--border);
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-section:hover {
+            border-color: var(--primary);
+            background: rgba(124, 58, 237, 0.1);
+        }
+
+        .upload-section.dragover {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Analysis Tabs */
+        .analysis-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary), #ec4899);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+    </style>
+    <link rel="stylesheet" href="/static/css/help-system.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">⚖️</div>
+            <span class="logo-text">Legal Analysis Engine</span>
+        </div>
+        <div class="brain-status" id="brainStatus">
+            <div class="brain-dot"></div>
+            <span>🧠 Brain Connected</span>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <div class="page-header">
+            <h1 class="page-title">⚖️ Legal Analysis Engine</h1>
+            <p class="page-subtitle">Analyze evidence, check consistency, evaluate legal merit</p>
+        </div>
+
+        <!-- Case Selector -->
+        <div class="case-selector">
+            <h3>📁 Select Case to Analyze</h3>
+            <div class="case-select-row">
+                <select id="caseSelect">
+                    <option value="">-- Select a Tenancy Case --</option>
+                </select>
+                <button class="btn btn-primary" onclick="runQuickCheck()">
+                    ⚡ Quick Health Check
+                </button>
+                <button class="btn btn-primary" onclick="runFullAnalysis()">
+                    🔍 Full Merit Assessment
+                </button>
+                <button class="btn btn-secondary" onclick="loadCases()">
+                    🔄 Refresh Cases
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Health Check Results -->
+        <div class="health-grid" id="healthGrid" style="display: none;">
+            <div class="health-card" id="healthEvidence">
+                <div class="health-icon">📄</div>
+                <div class="health-label">Evidence</div>
+                <div class="health-value" id="healthEvidenceValue">--</div>
+            </div>
+            <div class="health-card" id="healthConsistency">
+                <div class="health-icon">🔗</div>
+                <div class="health-label">Consistency</div>
+                <div class="health-value" id="healthConsistencyValue">--</div>
+            </div>
+            <div class="health-card" id="healthTimeline">
+                <div class="health-icon">📅</div>
+                <div class="health-label">Timeline</div>
+                <div class="health-value" id="healthTimelineValue">--</div>
+            </div>
+            <div class="health-card" id="healthDocs">
+                <div class="health-icon">📋</div>
+                <div class="health-label">Documentation</div>
+                <div class="health-value" id="healthDocsValue">--</div>
+            </div>
+        </div>
+
+        <!-- Analysis Tabs -->
+        <div class="analysis-tabs">
+            <button class="tab-btn active" data-tab="evidence" onclick="showTab('evidence')">📄 Evidence Analysis</button>
+            <button class="tab-btn" data-tab="timeline" onclick="showTab('timeline')">📅 Timeline Compliance</button>
+            <button class="tab-btn" data-tab="merit" onclick="showTab('merit')">⚖️ Merit Assessment</button>
+            <button class="tab-btn" data-tab="actions" onclick="showTab('actions')">✅ Action Items</button>
+            <button class="tab-btn" data-tab="upload" onclick="showTab('upload')">📤 Analyze Documents</button>
+        </div>
+
+        <!-- Evidence Analysis Panel -->
+        <div id="tab-evidence" class="tab-content">
+            <div class="analysis-grid">
+                <div class="analysis-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">✅ Direct Evidence (Admissible)</h3>
+                        <span class="evidence-badge badge-binding" id="directCount">0</span>
+                    </div>
+                    <div class="panel-body" id="directEvidenceList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <p>Run analysis to see direct evidence</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analysis-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">⚠️ Hearsay / Needs Review</h3>
+                        <span class="evidence-badge badge-hearsay" id="hearsayCount">0</span>
+                    </div>
+                    <div class="panel-body" id="hearsayEvidenceList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <p>Run analysis to see hearsay</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline Compliance Panel -->
+        <div id="tab-timeline" class="tab-content" style="display: none;">
+            <div class="analysis-grid">
+                <div class="analysis-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">🛡️ Defense Opportunities</h3>
+                    </div>
+                    <div class="panel-body" id="defenseList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🔍</div>
+                            <p>Run timeline analysis to find defenses</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analysis-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">⚠️ Compliance Issues</h3>
+                    </div>
+                    <div class="panel-body" id="complianceList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <p>Run timeline analysis to check compliance</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Merit Assessment Panel -->
+        <div id="tab-merit" class="tab-content" style="display: none;">
+            <div class="analysis-grid">
+                <div class="analysis-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">📊 Overall Assessment</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="merit-score" id="meritScore">
+                            <div class="score-circle">
+                                <span id="scoreValue">--</span>
+                            </div>
+                            <div class="merit-level" id="meritLevel">--</div>
+                            <p class="score-label">Case Strength Score</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analysis-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">📈 Summary</h3>
+                    </div>
+                    <div class="panel-body" id="summaryPanel">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📊</div>
+                            <p>Run full assessment to see summary</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="analysis-grid">
+                <div class="analysis-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">💪 Strengths</h3>
+                    </div>
+                    <div class="panel-body" id="strengthsList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">💪</div>
+                            <p>Run assessment to see strengths</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analysis-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">⚠️ Weaknesses</h3>
+                    </div>
+                    <div class="panel-body" id="weaknessesList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">⚠️</div>
+                            <p>Run assessment to see weaknesses</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Items Panel -->
+        <div id="tab-actions" class="tab-content" style="display: none;">
+            <div class="analysis-panel" style="max-width: 800px; margin: 0 auto;">
+                <div class="panel-header">
+                    <h3 class="panel-title">✅ Prioritized Action Items</h3>
+                </div>
+                <div class="panel-body" id="actionsList">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">✅</div>
+                        <p>Run full assessment to generate action items</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload & Analyze Panel -->
+        <div id="tab-upload" class="tab-content" style="display: none;">
+            <div class="upload-section" id="uploadZone">
+                <div class="upload-icon">📤</div>
+                <h3>Analyze Documents for Evidence Classification</h3>
+                <p style="color: var(--text-secondary); margin: 1rem 0;">
+                    Drop documents here or click to select files to analyze for hearsay, binding status, and evidence weight
+                </p>
+                <input type="file" id="fileInput" multiple style="display: none;">
+                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                    Select Files
+                </button>
+            </div>
+
+            <div class="analysis-panel" style="margin-top: 1.5rem;">
+                <div class="panel-header">
+                    <h3 class="panel-title">🔬 Quick Document Analysis</h3>
+                </div>
+                <div class="panel-body">
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Paste document text below to quickly analyze for hearsay and legal status:
+                    </p>
+                    <textarea id="quickAnalyzeText" rows="4" style="width: 100%; padding: 1rem; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: inherit; resize: vertical;" placeholder="Paste document content here..."></textarea>
+                    <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+                        <select id="docCategory" style="padding: 0.75rem; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary);">
+                            <option value="correspondence">Correspondence</option>
+                            <option value="lease">Lease</option>
+                            <option value="notice">Notice</option>
+                            <option value="court_filing">Court Filing</option>
+                            <option value="photo_evidence">Photo Evidence</option>
+                            <option value="witness_statement">Witness Statement</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="analyzeQuickDoc()">
+                            🔍 Analyze
+                        </button>
+                    </div>
+                    <div id="quickAnalyzeResult" style="margin-top: 1.5rem;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>⚖️ Legal Analysis Engine · Part of <a href="/static/brain.html" style="color: var(--primary);">🧠 Positronic Brain</a> Network</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="/api/legal-analysis/mn-eviction-requirements" target="_blank" style="color: var(--text-secondary);">📖 MN Eviction Requirements</a> · 
+                <a href="/api/legal-analysis/evidence-types" target="_blank" style="color: var(--text-secondary);">📋 Evidence Types</a> · 
+                <a href="/docs" target="_blank" style="color: var(--text-secondary);">📚 API Docs</a>
+            </p>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = '/api';
+        let currentCaseId = null;
+        let brainWs = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCases();
+            connectToBrain();
+        });
+
+        // Connect to Brain WebSocket
+        function connectToBrain() {
+            const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            brainWs = new WebSocket(`${wsProtocol}//${window.location.host}/ws/brain`);
+
+            brainWs.onopen = () => {
+                document.getElementById('brainStatus').innerHTML = `
+                    <div class="brain-dot"></div>
+                    <span>🧠 Brain Connected</span>
+                `;
+                // Register with the brain
+                brainWs.send(JSON.stringify({
+                    type: 'register',
+                    module: 'legal_analysis',
+                    capabilities: ['evidence_classification', 'timeline_analysis', 'merit_assessment']
+                }));
+            };
+
+            brainWs.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleBrainEvent(data);
+            };
+
+            brainWs.onclose = () => {
+                document.getElementById('brainStatus').innerHTML = `
+                    <div class="brain-dot" style="background: var(--danger);"></div>
+                    <span>🧠 Disconnected</span>
+                `;
+                // Attempt to reconnect
+                setTimeout(connectToBrain, 5000);
+            };
+        }
+
+        // Handle events from Brain
+        function handleBrainEvent(event) {
+            console.log('Brain event:', event);
+            if (event.event_type === 'document.uploaded' || event.event_type === 'document.analyzed') {
+                // Refresh analysis if we have a case selected
+                if (currentCaseId) {
+                    runQuickCheck();
+                }
+            }
+        }
+
+        // Emit event to Brain
+        function emitToBrain(eventType, data) {
+            if (brainWs && brainWs.readyState === WebSocket.OPEN) {
+                brainWs.send(JSON.stringify({
+                    type: 'event',
+                    event_type: eventType,
+                    source_module: 'legal_analysis',
+                    data: data
+                }));
+            }
+        }
+
+        // Load cases from tenancy hub
+        async function loadCases() {
+            try {
+                const response = await fetch(`${API_BASE}/tenancy/cases`);
+                const data = await response.json();
+                
+                const select = document.getElementById('caseSelect');
+                select.innerHTML = '<option value="">-- Select a Tenancy Case --</option>';
+                
+                if (data.cases && data.cases.length > 0) {
+                    data.cases.forEach(c => {
+                        const option = document.createElement('option');
+                        option.value = c.id;
+                        option.textContent = `${c.case_name} (${c.case_type}) - ${c.status}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load cases:', error);
+            }
+        }
+
+        // Tab switching
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(`tab-${tabName}`).style.display = 'block';
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        }
+
+        // Quick Health Check
+        async function runQuickCheck() {
+            const caseId = document.getElementById('caseSelect').value;
+            if (!caseId) {
+                alert('Please select a case first');
+                return;
+            }
+            currentCaseId = caseId;
+
+            try {
+                const response = await fetch(`${API_BASE}/legal-analysis/quick-check/${caseId}`);
+                const data = await response.json();
+
+                document.getElementById('healthGrid').style.display = 'grid';
+
+                // Update health cards
+                updateHealthCard('healthEvidence', data.checks.evidence);
+                updateHealthCard('healthConsistency', data.checks.consistency);
+                updateHealthCard('healthTimeline', data.checks.timeline);
+                updateHealthCard('healthDocs', data.checks.documentation);
+
+                // Emit to brain
+                emitToBrain('legal_analysis.quick_check_complete', {
+                    case_id: caseId,
+                    overall_status: data.overall_status,
+                    checks: data.checks
+                });
+
+            } catch (error) {
+                console.error('Quick check failed:', error);
+                alert('Failed to run quick check');
+            }
+        }
+
+        function updateHealthCard(cardId, check) {
+            const card = document.getElementById(cardId);
+            const valueEl = document.getElementById(cardId + 'Value');
+            
+            card.className = 'health-card ' + check.status;
+            valueEl.textContent = check.message;
+        }
+
+        // Full Merit Assessment
+        async function runFullAnalysis() {
+            const caseId = document.getElementById('caseSelect').value;
+            if (!caseId) {
+                alert('Please select a case first');
+                return;
+            }
+            currentCaseId = caseId;
+
+            try {
+                // Run merit assessment
+                const meritResponse = await fetch(`${API_BASE}/legal-analysis/assess-merit/from-case/${caseId}?perspective=defendant`);
+                const meritData = await meritResponse.json();
+
+                // Update merit tab
+                updateMeritTab(meritData);
+
+                // Update action items
+                updateActionItems(meritData.action_items);
+
+                // Get case data for evidence analysis
+                const caseResponse = await fetch(`${API_BASE}/tenancy/cases/${caseId}`);
+                const caseData = await caseResponse.json();
+
+                if (caseData.case && caseData.case.documents) {
+                    const docs = Object.values(caseData.case.documents);
+                    if (docs.length > 0) {
+                        const hearsayResponse = await fetch(`${API_BASE}/legal-analysis/analyze-hearsay`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(docs)
+                        });
+                        const hearsayData = await hearsayResponse.json();
+                        updateEvidenceTab(hearsayData);
+                    }
+                }
+
+                // Get timeline data
+                if (caseData.case && caseData.case.events) {
+                    const events = Object.values(caseData.case.events);
+                    if (events.length > 0) {
+                        const timelineResponse = await fetch(`${API_BASE}/legal-analysis/analyze-timeline`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                events: events,
+                                eviction_type: 'non_payment'
+                            })
+                        });
+                        const timelineData = await timelineResponse.json();
+                        updateTimelineTab(timelineData);
+                    }
+                }
+
+                // Emit to brain
+                emitToBrain('legal_analysis.full_assessment_complete', {
+                    case_id: caseId,
+                    merit_level: meritData.assessment.overall_merit,
+                    score: meritData.assessment.score
+                });
+
+                // Show merit tab
+                showTab('merit');
+
+            } catch (error) {
+                console.error('Full analysis failed:', error);
+                alert('Failed to run full analysis');
+            }
+        }
+
+        function updateMeritTab(data) {
+            const assessment = data.assessment;
+
+            // Update score
+            document.getElementById('scoreValue').textContent = Math.round(assessment.score);
+            const meritLevel = document.getElementById('meritLevel');
+            meritLevel.textContent = assessment.overall_merit.toUpperCase();
+            meritLevel.className = 'merit-level ' + assessment.overall_merit;
+
+            // Update summary
+            const summaryHtml = `
+                <div style="display: grid; gap: 1rem;">
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: var(--bg-dark); border-radius: 8px;">
+                        <span>Total Documents</span>
+                        <strong>${assessment.evidence_summary.total_documents}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: var(--bg-dark); border-radius: 8px;">
+                        <span>Binding Documents</span>
+                        <strong style="color: var(--success);">${assessment.evidence_summary.binding_documents}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: var(--bg-dark); border-radius: 8px;">
+                        <span>Hearsay Documents</span>
+                        <strong style="color: var(--danger);">${assessment.evidence_summary.hearsay_documents}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem; background: var(--bg-dark); border-radius: 8px;">
+                        <span>Notice Compliance</span>
+                        <strong style="color: ${assessment.timeline_summary.notice_compliance === 'compliant' ? 'var(--success)' : 'var(--danger)'};">${assessment.timeline_summary.notice_compliance}</strong>
+                    </div>
+                </div>
+            `;
+            document.getElementById('summaryPanel').innerHTML = summaryHtml;
+
+            // Update strengths
+            const strengthsHtml = assessment.strengths.map(s => `
+                <div class="sw-item strength">
+                    <span class="sw-icon">✅</span>
+                    <span>${s}</span>
+                </div>
+            `).join('') || '<p style="color: var(--text-secondary);">No strengths identified</p>';
+            document.getElementById('strengthsList').innerHTML = strengthsHtml;
+
+            // Update weaknesses
+            const weaknessesHtml = assessment.weaknesses.map(w => `
+                <div class="sw-item weakness">
+                    <span class="sw-icon">⚠️</span>
+                    <span>${w}</span>
+                </div>
+            `).join('') || '<p style="color: var(--text-secondary);">No weaknesses identified</p>';
+            document.getElementById('weaknessesList').innerHTML = weaknessesHtml;
+        }
+
+        function updateEvidenceTab(data) {
+            // Update direct evidence
+            document.getElementById('directCount').textContent = data.results.direct_evidence.length;
+            const directHtml = data.results.direct_evidence.map(e => `
+                <div class="evidence-item binding">
+                    <div class="evidence-icon">📄</div>
+                    <div class="evidence-details">
+                        <div class="evidence-title">${e.title}</div>
+                        <div class="evidence-meta">Weight: ${(e.weight * 100).toFixed(0)}% · ${e.evidence_type}</div>
+                    </div>
+                    <span class="evidence-badge badge-binding">Admissible</span>
+                </div>
+            `).join('') || '<p style="color: var(--text-secondary);">No direct evidence</p>';
+            document.getElementById('directEvidenceList').innerHTML = directHtml;
+
+            // Update hearsay
+            document.getElementById('hearsayCount').textContent = data.results.hearsay.length + data.results.needs_review.length;
+            let hearsayHtml = data.results.hearsay.map(e => `
+                <div class="evidence-item hearsay">
+                    <div class="evidence-icon">⚠️</div>
+                    <div class="evidence-details">
+                        <div class="evidence-title">${e.title}</div>
+                        <div class="evidence-meta">${e.issue}</div>
+                        <div class="evidence-meta" style="color: var(--info);">${e.recommendation}</div>
+                    </div>
+                    <span class="evidence-badge badge-hearsay">Hearsay</span>
+                </div>
+            `).join('');
+            
+            hearsayHtml += data.results.needs_review.map(e => `
+                <div class="evidence-item needs-review">
+                    <div class="evidence-icon">🔍</div>
+                    <div class="evidence-details">
+                        <div class="evidence-title">${e.title}</div>
+                        <div class="evidence-meta">${e.status}</div>
+                    </div>
+                    <span class="evidence-badge badge-info">Review</span>
+                </div>
+            `).join('');
+            
+            document.getElementById('hearsayEvidenceList').innerHTML = hearsayHtml || '<p style="color: var(--text-secondary);">No hearsay found</p>';
+        }
+
+        function updateTimelineTab(data) {
+            // Update defenses
+            const defensesHtml = data.defense_opportunities.map(d => `
+                <div class="timeline-issue defense">
+                    <div class="issue-header">
+                        <div class="issue-title">🛡️ ${d.defense}</div>
+                        <span class="issue-strength strength-${d.strength}">${d.strength}</span>
+                    </div>
+                    <div class="issue-detail">${d.basis}</div>
+                    <div class="issue-statute">📖 ${d.statute}</div>
+                </div>
+            `).join('') || '<p style="color: var(--text-secondary);">No defense opportunities identified</p>';
+            document.getElementById('defenseList').innerHTML = defensesHtml;
+
+            // Update compliance issues
+            const complianceHtml = data.compliance_issues.map(c => `
+                <div class="timeline-issue warning">
+                    <div class="issue-header">
+                        <div class="issue-title">⚠️ ${c.type.toUpperCase()}</div>
+                        <span class="issue-strength" style="background: ${c.severity === 'critical' ? 'var(--danger)' : 'var(--warning)'}; color: white;">${c.severity}</span>
+                    </div>
+                    <div class="issue-detail">${c.description}</div>
+                    <div class="issue-statute" style="color: var(--danger);">Impact: ${c.impact}</div>
+                </div>
+            `).join('') || '<p style="color: var(--text-secondary);">No compliance issues found</p>';
+            document.getElementById('complianceList').innerHTML = complianceHtml;
+        }
+
+        function updateActionItems(items) {
+            const html = items.map(item => `
+                <div class="action-item ${item.priority}">
+                    <span class="action-priority priority-${item.priority}">${item.priority}</span>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600;">${item.action}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-secondary);">Deadline: ${item.deadline}</div>
+                    </div>
+                </div>
+            `).join('') || '<p style="color: var(--text-secondary);">No action items</p>';
+            document.getElementById('actionsList').innerHTML = html;
+        }
+
+        // Quick document analysis
+        async function analyzeQuickDoc() {
+            const text = document.getElementById('quickAnalyzeText').value;
+            const category = document.getElementById('docCategory').value;
+
+            if (!text.trim()) {
+                alert('Please enter document text to analyze');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/legal-analysis/classify-evidence`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        document: {
+                            title: 'Quick Analysis',
+                            category: category,
+                            description: text
+                        }
+                    })
+                });
+                const data = await response.json();
+
+                const classification = data.classification;
+                const resultHtml = `
+                    <div style="background: var(--bg-dark); border-radius: 12px; padding: 1.5rem; border: 1px solid var(--border);">
+                        <h4 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            ${data.summary.is_hearsay ? '⚠️' : '✅'} Analysis Results
+                        </h4>
+                        <div style="display: grid; gap: 0.75rem;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Evidence Type:</span>
+                                <strong style="color: ${classification.evidence_type === 'hearsay' ? 'var(--danger)' : 'var(--success)'};">
+                                    ${classification.evidence_type.toUpperCase()}
+                                </strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Legal Status:</span>
+                                <strong>${classification.legal_status.replace('_', ' ').toUpperCase()}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Credibility:</span>
+                                <strong>${classification.credibility.toUpperCase()}</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Evidence Weight:</span>
+                                <strong>${(classification.weight * 100).toFixed(0)}%</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Is Binding:</span>
+                                <strong style="color: ${data.summary.is_binding ? 'var(--success)' : 'var(--text-secondary)'};">
+                                    ${data.summary.is_binding ? 'YES' : 'NO'}
+                                </strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>Is Hearsay:</span>
+                                <strong style="color: ${data.summary.is_hearsay ? 'var(--danger)' : 'var(--success)'};">
+                                    ${data.summary.is_hearsay ? 'YES - May be inadmissible' : 'NO'}
+                                </strong>
+                            </div>
+                            ${classification.weaknesses.length > 0 ? `
+                                <div style="margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border);">
+                                    <span style="color: var(--warning);">⚠️ Issues:</span>
+                                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem; color: var(--text-secondary);">
+                                        ${classification.weaknesses.map(w => `<li>${w}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                document.getElementById('quickAnalyzeResult').innerHTML = resultHtml;
+
+            } catch (error) {
+                console.error('Quick analysis failed:', error);
+                alert('Failed to analyze document');
+            }
+        }
+
+        // File upload handling
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            // For now just show a message - could integrate with document upload
+            alert(`Selected ${files.length} file(s). Integration with document upload coming soon!`);
+        }
+    </script>
+    <script src="/static/js/help-system.js"></script>
+</body>
+</html>

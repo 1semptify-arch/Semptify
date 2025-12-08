@@ -16,7 +16,7 @@ class TestLearningEndpoints:
     @pytest.mark.anyio
     async def test_defense_rates_public(self, client: AsyncClient):
         """Defense success rates should be publicly accessible."""
-        response = await client.get("/eviction/learn/learn/defense-rates")
+        response = await client.get("/eviction/learn/defense-rates")
         assert response.status_code == 200
         data = response.json()
         assert "county" in data
@@ -26,7 +26,7 @@ class TestLearningEndpoints:
     @pytest.mark.anyio
     async def test_judge_patterns_public(self, client: AsyncClient):
         """Judge patterns should be publicly accessible."""
-        response = await client.get("/eviction/learn/learn/judge-patterns")
+        response = await client.get("/eviction/learn/judge-patterns")
         assert response.status_code == 200
         data = response.json()
         assert "county" in data
@@ -35,7 +35,7 @@ class TestLearningEndpoints:
     @pytest.mark.anyio
     async def test_landlord_patterns_public(self, client: AsyncClient):
         """Landlord patterns should be publicly accessible."""
-        response = await client.get("/eviction/learn/learn/landlord-patterns")
+        response = await client.get("/eviction/learn/landlord-patterns")
         assert response.status_code == 200
         data = response.json()
         assert "landlords" in data
@@ -43,7 +43,7 @@ class TestLearningEndpoints:
     @pytest.mark.anyio
     async def test_learning_stats_public(self, client: AsyncClient):
         """Learning stats should be publicly accessible."""
-        response = await client.get("/eviction/learn/learn/stats")
+        response = await client.get("/eviction/learn/stats")
         assert response.status_code == 200
         data = response.json()
         assert "total_cases" in data

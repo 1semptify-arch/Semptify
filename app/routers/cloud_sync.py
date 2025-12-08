@@ -205,7 +205,7 @@ async def get_sync_status(
     try:
         sync = await get_sync_service(user, db, settings)        # Try to load cached data
         summary = QuickSyncData.from_sync(sync)
-        
+
         return SyncResponse(
             status=sync.status.value,
             user_id=user.user_id,
@@ -219,8 +219,14 @@ async def get_sync_status(
             user_id=user.user_id,
             message="Connect cloud storage to enable sync",
         )
-
-
+    except Exception as e:
+        # Any other error - return disconnected status with error message
+        logger.warning("Error getting sync status: %s", str(e))
+        return SyncResponse(
+            status="error",
+            user_id=user.user_id,
+            message=f"Sync service unavailable: {str(e)}",
+        )
 @router.post("/full", response_model=SyncResponse)
 async def full_sync(
     background_tasks: BackgroundTasks,

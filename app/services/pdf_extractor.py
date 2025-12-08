@@ -301,26 +301,35 @@ class PDFExtractor:
         key: str
     ) -> Optional[ExtractionResult]:
         """Use Azure Document Intelligence for OCR."""
+        # Early return if no valid credentials
+        if not endpoint or not key:
+            return None
+            
         try:
             import httpx
-            import asyncio
+        except ImportError:
+            logger.warning("httpx not installed, Azure OCR unavailable")
+            return None
             
-            async def do_ocr():
-                url = f"{endpoint.rstrip('/')}/documentintelligence/documentModels/prebuilt-read:analyze?api-version=2024-02-29-preview"
-                
-                headers = {
-                    "Ocp-Apim-Subscription-Key": key,
-                    "Content-Type": "application/pdf",
-                }
-                
+        import asyncio
+
+        async def do_ocr():
+            url = f"{endpoint.rstrip('/')}/documentintelligence/documentModels/prebuilt-read:analyze?api-version=2024-02-29-preview"
+
+            headers = {
+                "Ocp-Apim-Subscription-Key": key,
+                "Content-Type": "application/pdf",
+            }
+
+            try:
                 async with httpx.AsyncClient(timeout=60.0) as client:
                     # Submit for analysis
                     response = await client.post(url, headers=headers, content=content)
-                    
+
                     if response.status_code == 202:
                         # Poll for result
                         operation_url = response.headers.get("Operation-Location")
-                        
+
                         for _ in range(30):
                             await asyncio.sleep(1)
                             result = await client.get(
@@ -328,13 +337,13 @@ class PDFExtractor:
                                 headers={"Ocp-Apim-Subscription-Key": key}
                             )
                             data = result.json()
-                            
+
                             if data.get("status") == "succeeded":
                                 # Extract text from result
                                 analyze_result = data.get("analyzeResult", {})
                                 content_text = analyze_result.get("content", "")
                                 pages = analyze_result.get("pages", [])
-                                
+
                                 return ExtractionResult(
                                     text=content_text,
                                     page_count=len(pages),
@@ -345,7 +354,7 @@ class PDFExtractor:
                                 )
                             elif data.get("status") == "failed":
                                 return None
-                        
+
                     elif response.status_code == 200:
                         # Synchronous result
                         data = response.json()
@@ -358,11 +367,24 @@ class PDFExtractor:
                             confidence=0.95,
                             metadata={"ocr_provider": "azure"}
                         )
-                
+
                 return None
-            
-            return asyncio.run(do_ocr())
-            
+            except Exception as e:
+                logger.warning(f"Azure OCR request failed: {e}")
+                return None
+
+        try:
+            # Check if we're in an existing event loop
+            try:
+                loop = asyncio.get_running_loop()
+                # We're in an async context - create task properly
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    future = pool.submit(asyncio.run, do_ocr())
+                    return future.result(timeout=120)
+            except RuntimeError:
+                # No running loop - safe to use asyncio.run
+                return asyncio.run(do_ocr())
         except Exception as e:
             logger.warning(f"Azure OCR failed: {e}")
             return None

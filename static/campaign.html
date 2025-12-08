@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign Center - Semptify</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --light: #f8fafc;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        .navbar {
+            background: rgba(30, 41, 59, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .card-header {
+            background: rgba(79, 70, 229, 0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px 16px 0 0 !important;
+        }
+        
+        .card-header h4, .card-header h5 {
+            color: #f1f5f9 !important;
+        }
+        
+        .card-header small {
+            color: #94a3b8 !important;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        }
+        
+        .form-control, .form-select {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #e2e8f0;
+            border-radius: 8px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background: rgba(15, 23, 42, 0.9);
+            border-color: var(--primary);
+            color: #f1f5f9;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+        }
+        
+        .form-control::placeholder {
+            color: #94a3b8;
+        }
+        
+        .form-select option {
+            background: #1e293b;
+            color: #f1f5f9;
+        }
+        
+        .form-label {
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+        
+        .form-check-label {
+            color: #cbd5e1;
+        }
+        
+        .text-muted {
+            color: #94a3b8 !important;
+        }
+        
+        h5, h6, strong {
+            color: #f1f5f9;
+        }
+        
+        pre {
+            color: #e2e8f0;
+        }
+        
+        details summary {
+            color: #e2e8f0;
+            cursor: pointer;
+        }
+        
+        .nav-pills .nav-link {
+            color: #94a3b8;
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-pills .nav-link:hover {
+            background: rgba(79, 70, 229, 0.2);
+            color: #e2e8f0;
+        }
+        
+        .nav-pills .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .step.active .step-number {
+            background: var(--primary);
+            box-shadow: 0 0 20px rgba(79, 70, 229, 0.5);
+        }
+        
+        .step.completed .step-number {
+            background: var(--success);
+        }
+        
+        .step-line {
+            width: 60px;
+            height: 2px;
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .campaign-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .campaign-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-launched { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .status-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .status-completed { background: rgba(79, 70, 229, 0.2); color: #818cf8; }
+        
+        .module-toggle {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            color: #e2e8f0;
+        }
+        
+        .module-toggle.enabled {
+            border-color: var(--primary);
+            background: rgba(79, 70, 229, 0.1);
+        }
+        
+        .module-toggle small {
+            color: #94a3b8 !important;
+        }
+        
+        .module-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .results-panel {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .result-section {
+            border-left: 3px solid var(--primary);
+            padding-left: 1rem;
+            margin-bottom: 1rem;
+            color: #e2e8f0;
+        }
+        
+        .result-section p {
+            color: #cbd5e1;
+        }
+        
+        .finding-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            color: #e2e8f0;
+        }
+        
+        .finding-item.high { border-left: 3px solid var(--danger); }
+        .finding-item.medium { border-left: 3px solid var(--warning); }
+        .finding-item.low { border-left: 3px solid var(--success); }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .loading {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/static/welcome.html">
+                <i class="bi bi-shield-check me-2"></i>Semptify
+            </a>
+            <div class="d-flex align-items-center">
+                <span class="badge bg-primary me-3">Campaign Center</span>
+                <a href="/static/welcome.html" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-house"></i> Home
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-4">
+        <div class="row">
+            <!-- Left Sidebar - Quick Actions -->
+            <div class="col-md-3">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-lightning-charge me-2"></i>Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-primary w-100 mb-2" onclick="showTab('launch')">
+                            <i class="bi bi-rocket-takeoff me-2"></i>Launch Campaign
+                        </button>
+                        <button class="btn btn-outline-light w-100 mb-2" onclick="showTab('complaint')">
+                            <i class="bi bi-file-earmark-text me-2"></i>File Complaint
+                        </button>
+                        <button class="btn btn-outline-light w-100 mb-2" onclick="showTab('fraud')">
+                            <i class="bi bi-search me-2"></i>Analyze Fraud
+                        </button>
+                        <button class="btn btn-outline-light w-100 mb-2" onclick="showTab('press')">
+                            <i class="bi bi-newspaper me-2"></i>Press Release
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Campaigns</h5>
+                    </div>
+                    <div class="card-body" id="recentCampaigns">
+                        <p class="text-muted small">No campaigns yet</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <!-- Tab Navigation -->
+                <ul class="nav nav-pills mb-4" id="mainTabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-tab="launch" onclick="showTab('launch')">
+                            <i class="bi bi-rocket-takeoff me-2"></i>Full Campaign
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="complaint" onclick="showTab('complaint')">
+                            <i class="bi bi-file-earmark-text me-2"></i>Complaint
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="fraud" onclick="showTab('fraud')">
+                            <i class="bi bi-search me-2"></i>Fraud Analysis
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-tab="press" onclick="showTab('press')">
+                            <i class="bi bi-newspaper me-2"></i>Press Release
+                        </a>
+                    </li>
+                </ul>
+                
+                <!-- Launch Campaign Tab -->
+                <div class="tab-content" id="tab-launch">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0"><i class="bi bi-rocket-takeoff me-2"></i>Launch Accountability Campaign</h4>
+                            <small class="text-muted">Combine complaints, fraud analysis, and press releases into one coordinated action</small>
+                        </div>
+                        <div class="card-body">
+                            <!-- Campaign Name -->
+                            <div class="mb-4">
+                                <label class="form-label">Campaign Name</label>
+                                <input type="text" class="form-control" id="campaignName" placeholder="e.g., 123 Main St Habitability Campaign">
+                            </div>
+                            
+                            <!-- Module Toggles -->
+                            <h5 class="mb-3">Select Components</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="module-toggle enabled" id="toggle-complaint" onclick="toggleModule('complaint')">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enable-complaint" checked>
+                                            <label class="form-check-label">
+                                                <i class="bi bi-file-earmark-text module-icon text-primary d-block"></i>
+                                                <strong>File Complaint</strong>
+                                                <small class="d-block text-muted">Submit to regulatory agency</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="module-toggle enabled" id="toggle-fraud" onclick="toggleModule('fraud')">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enable-fraud" checked>
+                                            <label class="form-check-label">
+                                                <i class="bi bi-search module-icon text-warning d-block"></i>
+                                                <strong>Fraud Analysis</strong>
+                                                <small class="d-block text-muted">Detect violations & patterns</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="module-toggle enabled" id="toggle-press" onclick="toggleModule('press')">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="enable-press" checked>
+                                            <label class="form-check-label">
+                                                <i class="bi bi-newspaper module-icon text-info d-block"></i>
+                                                <strong>Press Release</strong>
+                                                <small class="d-block text-muted">Generate media content</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Complaint Section -->
+                            <div class="module-section mt-4" id="section-complaint">
+                                <h5><i class="bi bi-file-earmark-text me-2"></i>Complaint Details</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Target Agency</label>
+                                        <select class="form-select" id="campaign-agency">
+                                            <option value="MN_AG">Minnesota Attorney General</option>
+                                            <option value="HUD">HUD - Housing & Urban Development</option>
+                                            <option value="MHFA">Minnesota Housing Finance Agency</option>
+                                            <option value="LOCAL_HOUSING">Local Housing Authority</option>
+                                            <option value="HEALTH_DEPT">Health Department</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Violation Type</label>
+                                        <select class="form-select" id="campaign-violation">
+                                            <option value="habitability">Habitability Issues</option>
+                                            <option value="retaliation">Landlord Retaliation</option>
+                                            <option value="discrimination">Housing Discrimination</option>
+                                            <option value="illegal_eviction">Illegal Eviction</option>
+                                            <option value="security_deposit">Security Deposit Violation</option>
+                                            <option value="rent_escrow">Rent Escrow Issues</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <label class="form-label">Facts & Details</label>
+                                    <textarea class="form-control" id="campaign-facts" rows="3" placeholder="Describe the issues, dates, and relevant facts..."></textarea>
+                                </div>
+                            </div>
+                            
+                            <!-- Fraud Section -->
+                            <div class="module-section mt-4" id="section-fraud">
+                                <h5><i class="bi bi-search me-2"></i>Fraud Analysis Details</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Landlord/Property Manager ID</label>
+                                        <input type="text" class="form-control" id="campaign-landlord" placeholder="Name or business ID">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Property Address</label>
+                                        <input type="text" class="form-control" id="campaign-property" placeholder="123 Main St, City, MN">
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Known Subsidies</label>
+                                        <select class="form-select" id="campaign-subsidies" multiple>
+                                            <option value="Section 8">Section 8</option>
+                                            <option value="HUD">HUD</option>
+                                            <option value="LIHTC">LIHTC (Low-Income Housing Tax Credit)</option>
+                                            <option value="Public Housing">Public Housing</option>
+                                            <option value="None">None Known</option>
+                                        </select>
+                                        <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Known Issues with Documents</label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="doc-unsigned">
+                                            <label class="form-check-label">Unsigned/incomplete documents</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="doc-altered">
+                                            <label class="form-check-label">Suspected alterations</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="doc-missing">
+                                            <label class="form-check-label">Missing required disclosures</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Press Section -->
+                            <div class="module-section mt-4" id="section-press">
+                                <h5><i class="bi bi-newspaper me-2"></i>Press Release Details</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Property/Building Name</label>
+                                        <input type="text" class="form-control" id="campaign-press-property" placeholder="Property name for press release">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Language</label>
+                                        <select class="form-select" id="campaign-language">
+                                            <option value="en">English</option>
+                                            <option value="es">Spanish</option>
+                                            <option value="hmn">Hmong</option>
+                                            <option value="so">Somali</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Summary of Violations (for press)</label>
+                                        <textarea class="form-control" id="campaign-press-violations" rows="2" placeholder="Brief summary for media"></textarea>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Media Contact</label>
+                                        <input type="text" class="form-control" id="campaign-contact" placeholder="Name, email, or phone">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Launch Button -->
+                            <div class="mt-4 text-center">
+                                <button class="btn btn-primary btn-lg px-5" onclick="launchCampaign()">
+                                    <i class="bi bi-rocket-takeoff me-2"></i>Launch Campaign
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Results Panel -->
+                    <div class="results-panel mt-4" id="campaign-results" style="display: none;">
+                        <h4><i class="bi bi-check-circle text-success me-2"></i>Campaign Launched Successfully</h4>
+                        <div id="results-content"></div>
+                    </div>
+                </div>
+                
+                <!-- Complaint Only Tab -->
+                <div class="tab-content" id="tab-complaint" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>File a Complaint</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label">Target Agency</label>
+                                    <select class="form-select" id="quick-agency">
+                                        <option value="MN_AG">Minnesota Attorney General</option>
+                                        <option value="HUD">HUD - Housing & Urban Development</option>
+                                        <option value="MHFA">Minnesota Housing Finance Agency</option>
+                                        <option value="LOCAL_HOUSING">Local Housing Authority</option>
+                                        <option value="HEALTH_DEPT">Health Department</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Violation Type</label>
+                                    <select class="form-select" id="quick-violation">
+                                        <option value="habitability">Habitability Issues</option>
+                                        <option value="retaliation">Landlord Retaliation</option>
+                                        <option value="discrimination">Housing Discrimination</option>
+                                        <option value="illegal_eviction">Illegal Eviction</option>
+                                        <option value="security_deposit">Security Deposit Violation</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <label class="form-label">Facts & Details</label>
+                                <textarea class="form-control" id="quick-facts" rows="4" placeholder="Describe the issues in detail..."></textarea>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Property Address</label>
+                                    <input type="text" class="form-control" id="quick-property-address" placeholder="123 Main St, City, MN">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Landlord Name</label>
+                                    <input type="text" class="form-control" id="quick-landlord-name" placeholder="Landlord or management company">
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <button class="btn btn-primary" onclick="quickComplaint()">
+                                    <i class="bi bi-send me-2"></i>Submit Complaint
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="results-panel mt-4" id="complaint-results" style="display: none;"></div>
+                </div>
+                
+                <!-- Fraud Analysis Tab -->
+                <div class="tab-content" id="tab-fraud" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0"><i class="bi bi-search me-2"></i>Fraud Analysis</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label">Landlord/Property Manager</label>
+                                    <input type="text" class="form-control" id="fraud-landlord" placeholder="Name or business ID">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Property Address</label>
+                                    <input type="text" class="form-control" id="fraud-property" placeholder="123 Main St, City, MN">
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Known Subsidies</label>
+                                    <select class="form-select" id="fraud-subsidies" multiple>
+                                        <option value="Section 8">Section 8</option>
+                                        <option value="HUD">HUD</option>
+                                        <option value="LIHTC">LIHTC</option>
+                                        <option value="Public Housing">Public Housing</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Known Lenders</label>
+                                    <input type="text" class="form-control" id="fraud-lenders" placeholder="Bank names, separated by commas">
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <label class="form-label">Document Issues</label>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="fraud-unsigned">
+                                            <label class="form-check-label">Unsigned documents</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="fraud-altered">
+                                            <label class="form-check-label">Altered documents</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="fraud-forged">
+                                            <label class="form-check-label">Suspected forgery</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <button class="btn btn-warning" onclick="quickFraud()">
+                                    <i class="bi bi-search me-2"></i>Analyze for Fraud
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="results-panel mt-4" id="fraud-results" style="display: none;"></div>
+                </div>
+                
+                <!-- Press Release Tab -->
+                <div class="tab-content" id="tab-press" style="display: none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0"><i class="bi bi-newspaper me-2"></i>Generate Press Release</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label">Property/Building Name</label>
+                                    <input type="text" class="form-control" id="press-property" placeholder="e.g., Sunset Apartments">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Language</label>
+                                    <select class="form-select" id="press-language">
+                                        <option value="en">English</option>
+                                        <option value="es">Spanish</option>
+                                        <option value="hmn">Hmong</option>
+                                        <option value="so">Somali</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <label class="form-label">Summary of Violations</label>
+                                <textarea class="form-control" id="press-violations" rows="3" placeholder="Describe the issues for media..."></textarea>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Media Contact</label>
+                                    <input type="text" class="form-control" id="press-contact" placeholder="Name and contact info">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Evidence Bundle Link (optional)</label>
+                                    <input type="text" class="form-control" id="press-bundle" placeholder="URL to evidence package">
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <button class="btn btn-info" onclick="quickPress()">
+                                    <i class="bi bi-newspaper me-2"></i>Generate Press Release
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="results-panel mt-4" id="press-results" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = '/api/campaign';
+        
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(`tab-${tabName}`).style.display = 'block';
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+        }
+        
+        function toggleModule(module) {
+            const toggle = document.getElementById(`toggle-${module}`);
+            const checkbox = document.getElementById(`enable-${module}`);
+            const section = document.getElementById(`section-${module}`);
+            
+            checkbox.checked = !checkbox.checked;
+            toggle.classList.toggle('enabled', checkbox.checked);
+            if (section) {
+                section.style.display = checkbox.checked ? 'block' : 'none';
+            }
+        }
+        
+        async function launchCampaign() {
+            const payload = {
+                name: document.getElementById('campaignName').value || 'Unnamed Campaign',
+                auto_generate_bundle: true
+            };
+            
+            // Add complaint if enabled
+            if (document.getElementById('enable-complaint').checked) {
+                payload.complaint = {
+                    target_agency: document.getElementById('campaign-agency').value,
+                    violation_type: document.getElementById('campaign-violation').value,
+                    facts: document.getElementById('campaign-facts').value,
+                    language: document.getElementById('campaign-language').value,
+                    property_address: document.getElementById('campaign-property').value
+                };
+            }
+            
+            // Add fraud analysis if enabled
+            if (document.getElementById('enable-fraud').checked) {
+                const caseDocs = [];
+                if (document.getElementById('doc-unsigned').checked) {
+                    caseDocs.push({ type: 'lease', signature_status: 'missing' });
+                }
+                if (document.getElementById('doc-altered').checked) {
+                    caseDocs.push({ type: 'document', alteration_suspected: true });
+                }
+                
+                const subsidies = Array.from(document.getElementById('campaign-subsidies').selectedOptions).map(o => o.value);
+                
+                payload.fraud = {
+                    landlord_id: document.getElementById('campaign-landlord').value,
+                    case_docs: caseDocs,
+                    subsidies: subsidies,
+                    lenders: [],
+                    property_address: document.getElementById('campaign-property').value
+                };
+            }
+            
+            // Add press release if enabled
+            if (document.getElementById('enable-press').checked) {
+                payload.press = {
+                    property: document.getElementById('campaign-press-property').value || document.getElementById('campaign-property').value,
+                    violations: document.getElementById('campaign-press-violations').value || document.getElementById('campaign-facts').value,
+                    contact: document.getElementById('campaign-contact').value,
+                    language: document.getElementById('campaign-language').value
+                };
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/launch`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                displayCampaignResults(result);
+                loadRecentCampaigns();
+            } catch (error) {
+                alert('Error launching campaign: ' + error.message);
+            }
+        }
+        
+        function displayCampaignResults(result) {
+            const panel = document.getElementById('campaign-results');
+            const content = document.getElementById('results-content');
+            
+            let html = `
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <p><strong>Campaign ID:</strong> ${result.campaign_id}</p>
+                        <p><strong>Status:</strong> <span class="status-badge status-launched">${result.status}</span></p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Created:</strong> ${new Date(result.created_at).toLocaleString()}</p>
+                    </div>
+                </div>
+            `;
+            
+            if (result.components.complaint) {
+                const c = result.components.complaint.complaint_record;
+                html += `
+                    <div class="result-section">
+                        <h5><i class="bi bi-file-earmark-text me-2"></i>Complaint Filed</h5>
+                        <p><strong>ID:</strong> ${c.id}</p>
+                        <p><strong>Agency:</strong> ${c.target_agency}</p>
+                        <p><strong>Status:</strong> ${c.status}</p>
+                    </div>
+                `;
+            }
+            
+            if (result.components.fraud) {
+                const f = result.components.fraud.fraud_report;
+                html += `
+                    <div class="result-section">
+                        <h5><i class="bi bi-search me-2"></i>Fraud Analysis</h5>
+                        <p><strong>Risk Level:</strong> <span class="badge bg-${f.risk_level === 'high' ? 'danger' : f.risk_level === 'medium' ? 'warning' : 'success'}">${f.risk_level.toUpperCase()}</span></p>
+                        <p><strong>Risk Score:</strong> ${f.risk_score}/100</p>
+                        <p><strong>Findings:</strong> ${f.findings.length}</p>
+                        ${f.findings.map(finding => `
+                            <div class="finding-item ${finding.severity || 'medium'}">
+                                <strong>${finding.rule}</strong>
+                                <small class="d-block">${finding.description || ''}</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            if (result.components.press) {
+                const p = result.components.press.press_release;
+                html += `
+                    <div class="result-section">
+                        <h5><i class="bi bi-newspaper me-2"></i>Press Release Generated</h5>
+                        <p><strong>Headline:</strong> ${p.headline}</p>
+                        <p><strong>Language:</strong> ${p.language}</p>
+                        <details class="mt-2">
+                            <summary>View Full Release</summary>
+                            <pre class="mt-2 p-3 bg-dark rounded" style="white-space: pre-wrap;">${p.body}</pre>
+                        </details>
+                    </div>
+                `;
+            }
+            
+            if (result.components.export) {
+                html += `
+                    <div class="result-section">
+                        <h5><i class="bi bi-file-zip me-2"></i>Evidence Bundle</h5>
+                        <p><strong>Path:</strong> ${result.components.export.zip_bundle.zip_path}</p>
+                        <button class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-download me-2"></i>Download Bundle
+                        </button>
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = html;
+            panel.style.display = 'block';
+        }
+        
+        async function quickComplaint() {
+            const payload = {
+                target_agency: document.getElementById('quick-agency').value,
+                violation_type: document.getElementById('quick-violation').value,
+                facts: document.getElementById('quick-facts').value,
+                language: 'en',
+                property_address: document.getElementById('quick-property-address').value,
+                landlord_name: document.getElementById('quick-landlord-name').value
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/quick-file`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                const panel = document.getElementById('complaint-results');
+                panel.innerHTML = `
+                    <h5><i class="bi bi-check-circle text-success me-2"></i>Complaint Submitted</h5>
+                    <p><strong>ID:</strong> ${result.complaint_record.id}</p>
+                    <p><strong>Status:</strong> ${result.complaint_record.status}</p>
+                    <p><strong>Agency:</strong> ${result.complaint_record.target_agency}</p>
+                `;
+                panel.style.display = 'block';
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function quickFraud() {
+            const caseDocs = [];
+            if (document.getElementById('fraud-unsigned').checked) {
+                caseDocs.push({ type: 'document', signature_status: 'missing' });
+            }
+            if (document.getElementById('fraud-altered').checked) {
+                caseDocs.push({ type: 'document', alteration_suspected: true });
+            }
+            if (document.getElementById('fraud-forged').checked) {
+                caseDocs.push({ type: 'document', forgery_suspected: true });
+            }
+            
+            const subsidies = Array.from(document.getElementById('fraud-subsidies').selectedOptions).map(o => o.value);
+            const lenders = document.getElementById('fraud-lenders').value.split(',').map(l => l.trim()).filter(l => l);
+            
+            const payload = {
+                landlord_id: document.getElementById('fraud-landlord').value,
+                case_docs: caseDocs,
+                subsidies: subsidies,
+                lenders: lenders,
+                property_address: document.getElementById('fraud-property').value
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/quick-analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                const f = result.fraud_report;
+                const panel = document.getElementById('fraud-results');
+                panel.innerHTML = `
+                    <h5><i class="bi bi-search text-warning me-2"></i>Fraud Analysis Complete</h5>
+                    <p><strong>Risk Level:</strong> <span class="badge bg-${f.risk_level === 'high' ? 'danger' : f.risk_level === 'medium' ? 'warning' : 'success'}">${f.risk_level.toUpperCase()}</span></p>
+                    <p><strong>Risk Score:</strong> ${f.risk_score}/100</p>
+                    <h6 class="mt-3">Findings (${f.findings.length}):</h6>
+                    ${f.findings.map(finding => `
+                        <div class="finding-item ${finding.severity || 'medium'}">
+                            <strong>${finding.rule}</strong>
+                            <small class="d-block">${finding.description || ''}</small>
+                        </div>
+                    `).join('') || '<p class="text-muted">No fraud indicators detected</p>'}
+                `;
+                panel.style.display = 'block';
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        async function quickPress() {
+            const payload = {
+                property: document.getElementById('press-property').value,
+                violations: document.getElementById('press-violations').value,
+                contact: document.getElementById('press-contact').value,
+                bundle_link: document.getElementById('press-bundle').value,
+                language: document.getElementById('press-language').value
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/quick-press`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                const p = result.press_release;
+                const panel = document.getElementById('press-results');
+                panel.innerHTML = `
+                    <h5><i class="bi bi-newspaper text-info me-2"></i>Press Release Generated</h5>
+                    <p><strong>Headline:</strong> ${p.headline}</p>
+                    <p><strong>Language:</strong> ${p.language}</p>
+                    <h6 class="mt-3">Full Release:</h6>
+                    <pre class="p-3 bg-dark rounded" style="white-space: pre-wrap;">${p.body}</pre>
+                    <button class="btn btn-sm btn-outline-info mt-2" onclick="copyToClipboard(\`${p.body.replace(/`/g, '\\`')}\`)">
+                        <i class="bi bi-clipboard me-2"></i>Copy to Clipboard
+                    </button>
+                `;
+                panel.style.display = 'block';
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            });
+        }
+        
+        async function loadRecentCampaigns() {
+            try {
+                const response = await fetch(`${API_BASE}/list`);
+                const result = await response.json();
+                
+                const container = document.getElementById('recentCampaigns');
+                if (result.campaigns.length === 0) {
+                    container.innerHTML = '<p class="text-muted small">No campaigns yet</p>';
+                    return;
+                }
+                
+                container.innerHTML = result.campaigns.slice(0, 5).map(c => `
+                    <div class="campaign-card p-2 mb-2 rounded" style="background: rgba(255,255,255,0.05);">
+                        <strong class="small">${c.name}</strong>
+                        <small class="d-block text-muted">${new Date(c.created_at).toLocaleDateString()}</small>
+                        <span class="status-badge status-${c.status}">${c.status}</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading campaigns:', error);
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRecentCampaigns();
+        });
+    </script>
+</body>
+</html>

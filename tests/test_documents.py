@@ -6,7 +6,7 @@ Tests for document processing, vault, and law engine.
 import pytest
 from httpx import AsyncClient
 from io import BytesIO
-from unittest.mock import patch, AsyncMock
+import httpx
 
 
 # =============================================================================
@@ -201,8 +201,8 @@ async def test_vault_upload_requires_auth(client: AsyncClient):
         # Vault is backend-only, upload via /api/documents/
         # Various error codes possible depending on security mode
         assert response.status_code in [400, 401, 403, 404, 422, 500]
-    except Exception:
-        # External service errors (like Google Drive 401) may raise exceptions
+    except httpx.HTTPError:
+        # External service errors (like Google Drive 401) may raise HTTP errors
         # This is expected behavior when using fake tokens
         pass
 

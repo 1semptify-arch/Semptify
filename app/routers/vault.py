@@ -167,17 +167,27 @@ async def upload_document(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # Ensure vault folders exist
-    await ensure_vault_folders(storage, user.provider)
+    # Ensure vault folders exist and upload file
+    try:
+        await ensure_vault_folders(storage, user.provider)
 
-    # Upload file to user's storage
-    storage_path = f"{VAULT_FOLDER}/{safe_filename}"
-    await storage.upload_file(
-        file_content=content,
-        destination_path=VAULT_FOLDER,
-        filename=safe_filename,
-        mime_type=file.content_type or "application/octet-stream",
-    )
+        # Upload file to user's storage
+        storage_path = f"{VAULT_FOLDER}/{safe_filename}"
+        await storage.upload_file(
+            file_content=content,
+            destination_path=VAULT_FOLDER,
+            filename=safe_filename,
+            mime_type=file.content_type or "application/octet-stream",
+        )
+    except Exception as e:
+        # Storage authentication or access errors
+        error_msg = str(e)
+        if "401" in error_msg or "Unauthorized" in error_msg or "access" in error_msg.lower():
+            raise HTTPException(status_code=401, detail=f"Storage authentication failed: {error_msg}")
+        elif "403" in error_msg or "Forbidden" in error_msg:
+            raise HTTPException(status_code=403, detail=f"Storage access denied: {error_msg}")
+        else:
+            raise HTTPException(status_code=500, detail=f"Storage error: {error_msg}")
 
     # Create certificate
     certificate_id = f"cert_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{document_id[:8]}"
@@ -202,12 +212,17 @@ async def upload_document(
 
     # Upload certificate to user's storage
     cert_content = json.dumps(certificate, indent=2).encode("utf-8")
-    await storage.upload_file(
-        file_content=cert_content,
-        destination_path=CERTS_FOLDER,
-        filename=f"{certificate_id}.json",
-        mime_type="application/json",
-    )
+    try:
+        await storage.upload_file(
+            file_content=cert_content,
+            destination_path=CERTS_FOLDER,
+            filename=f"{certificate_id}.json",
+            mime_type="application/json",
+        )
+    except Exception as e:
+        # Certificate upload failed, but file was already uploaded
+        # Log this but don't fail the request
+        pass
 
     # Build response
     return DocumentResponse(

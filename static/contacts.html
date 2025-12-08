@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Manager - Semptify</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --bg-input: #0f172a;
+            --border-color: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --purple: #8b5cf6;
+            --cyan: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-section {
+            padding: 1rem 0;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 0 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: var(--bg-dark);
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 2rem;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* Actions Bar */
+        .actions-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.75rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .filter-select {
+            padding: 0.75rem 2rem 0.75rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+            border: none;
+            font-size: 0.875rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* Contact Cards Grid */
+        .contacts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .contact-card {
+            background: var(--bg-card);
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .contact-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+
+        .contact-header {
+            padding: 1.25rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .contact-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .avatar-landlord { background: #fef3c7; color: #b45309; }
+        .avatar-attorney { background: #dbeafe; color: #1d4ed8; }
+        .avatar-witness { background: #dcfce7; color: #15803d; }
+        .avatar-inspector { background: #f3e8ff; color: #7c3aed; }
+        .avatar-agency { background: #fce7f3; color: #be185d; }
+        .avatar-court { background: #e0e7ff; color: #4338ca; }
+        .avatar-legal_aid { background: #ccfbf1; color: #0d9488; }
+        .avatar-other { background: #f1f5f9; color: #475569; }
+
+        .contact-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .contact-name {
+            font-weight: 600;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .contact-name .star {
+            color: var(--warning);
+            cursor: pointer;
+        }
+
+        .contact-name .star.inactive {
+            color: var(--text-muted);
+        }
+
+        .contact-org {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .contact-type-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .type-landlord { background: #fef3c7; color: #b45309; }
+        .type-attorney { background: #dbeafe; color: #1d4ed8; }
+        .type-witness { background: #dcfce7; color: #15803d; }
+        .type-inspector { background: #f3e8ff; color: #7c3aed; }
+        .type-agency { background: #fce7f3; color: #be185d; }
+
+        .contact-body {
+            padding: 0 1.25rem 1.25rem;
+        }
+
+        .contact-detail {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .contact-detail i {
+            width: 16px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .contact-detail a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .contact-detail a:hover {
+            text-decoration: underline;
+        }
+
+        .contact-footer {
+            padding: 1rem 1.25rem;
+            background: var(--bg-dark);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .last-contact {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .contact-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 0.375rem;
+            border: none;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.25rem;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: var(--bg-card);
+            border-radius: 0.75rem;
+            border: 1px dashed var(--border-color);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--success);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 2000;
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .toast.show {
+            display: flex;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                z-index: 100;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1><i class="fas fa-address-book"></i> Contacts</h1>
+        </div>
+        
+        <nav class="nav-section">
+            <div class="nav-section-title">Filter by Type</div>
+            <a href="#" class="nav-link active" data-type="all">
+                <i class="fas fa-users"></i> All Contacts
+                <span class="nav-badge" id="count-all">0</span>
+            </a>
+            <a href="#" class="nav-link" data-type="landlord">
+                <i class="fas fa-building"></i> Landlords
+                <span class="nav-badge" id="count-landlord">0</span>
+            </a>
+            <a href="#" class="nav-link" data-type="attorney">
+                <i class="fas fa-gavel"></i> Attorneys
+                <span class="nav-badge" id="count-attorney">0</span>
+            </a>
+            <a href="#" class="nav-link" data-type="witness">
+                <i class="fas fa-eye"></i> Witnesses
+                <span class="nav-badge" id="count-witness">0</span>
+            </a>
+            <a href="#" class="nav-link" data-type="inspector">
+                <i class="fas fa-search"></i> Inspectors
+                <span class="nav-badge" id="count-inspector">0</span>
+            </a>
+            <a href="#" class="nav-link" data-type="agency">
+                <i class="fas fa-landmark"></i> Agencies
+                <span class="nav-badge" id="count-agency">0</span>
+            </a>
+            <a href="#" class="nav-link" data-type="legal_aid">
+                <i class="fas fa-hands-helping"></i> Legal Aid
+                <span class="nav-badge" id="count-legal_aid">0</span>
+            </a>
+        </nav>
+
+        <nav class="nav-section">
+            <div class="nav-section-title">Quick Links</div>
+            <a href="welcome.html" class="nav-link">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="dashboard-v2.html" class="nav-link">
+                <i class="fas fa-chart-line"></i> Dashboard v2
+            </a>
+            <a href="legal_trails.html" class="nav-link">
+                <i class="fas fa-route"></i> Legal Trails
+            </a>
+            <a href="documents-v2.html" class="nav-link">
+                <i class="fas fa-folder"></i> Documents
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Contact Manager</h1>
+                <p class="page-subtitle">Track landlords, attorneys, witnesses, and case contacts</p>
+            </div>
+            <button class="btn btn-primary" onclick="openAddModal()">
+                <i class="fas fa-plus"></i> Add Contact
+            </button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="stat-total">0</div>
+                <div class="stat-label">Total Contacts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-starred">0</div>
+                <div class="stat-label">Starred</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="stat-recent">0</div>
+                <div class="stat-label">Recent (30d)</div>
+            </div>
+        </div>
+
+        <!-- Actions Bar -->
+        <div class="actions-bar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Search by name, organization, email...">
+            </div>
+            <select class="filter-select" id="role-filter">
+                <option value="">All Roles</option>
+                <option value="opposing_party">Opposing Party</option>
+                <option value="opposing_counsel">Opposing Counsel</option>
+                <option value="my_witness">My Witness</option>
+                <option value="their_witness">Their Witness</option>
+                <option value="inspector">Inspector</option>
+                <option value="caseworker">Caseworker</option>
+                <option value="support">Support Contact</option>
+            </select>
+            <label class="btn btn-secondary" style="cursor: pointer;">
+                <input type="checkbox" id="starred-only" style="margin-right: 0.5rem;">
+                <i class="fas fa-star"></i> Starred Only
+            </label>
+        </div>
+
+        <!-- Contacts Grid -->
+        <div id="contacts-container">
+            <div class="empty-state" id="empty-state">
+                <i class="fas fa-address-book"></i>
+                <h3>No contacts yet</h3>
+                <p>Add your first contact to start tracking important people in your case.</p>
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> Add Contact
+                </button>
+            </div>
+            <div class="contacts-grid" id="contacts-grid"></div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Contact Modal -->
+    <div class="modal-overlay" id="contact-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modal-title">Add New Contact</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="contact-form">
+                    <input type="hidden" id="contact-id">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="contact-type">Contact Type *</label>
+                            <select id="contact-type" required>
+                                <option value="">Select type...</option>
+                                <option value="landlord">🏠 Landlord</option>
+                                <option value="property_manager">🏢 Property Manager</option>
+                                <option value="attorney">⚖️ Attorney</option>
+                                <option value="witness">👁️ Witness</option>
+                                <option value="inspector">🔍 Inspector</option>
+                                <option value="agency">🏛️ Government Agency</option>
+                                <option value="court">⚖️ Court</option>
+                                <option value="legal_aid">🤝 Legal Aid</option>
+                                <option value="tenant_org">✊ Tenant Organization</option>
+                                <option value="other">📋 Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-role">Role in Case</label>
+                            <select id="contact-role">
+                                <option value="">Select role...</option>
+                                <option value="opposing_party">Opposing Party</option>
+                                <option value="opposing_counsel">Opposing Counsel</option>
+                                <option value="my_witness">My Witness</option>
+                                <option value="their_witness">Their Witness</option>
+                                <option value="inspector">Inspector</option>
+                                <option value="caseworker">Caseworker</option>
+                                <option value="judge">Judge</option>
+                                <option value="mediator">Mediator</option>
+                                <option value="support">Support Contact</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="contact-name">Name *</label>
+                            <input type="text" id="contact-name" required placeholder="Full name">
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-org">Organization</label>
+                            <input type="text" id="contact-org" placeholder="Company or firm name">
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-title">Title</label>
+                            <input type="text" id="contact-title" placeholder="Job title or relationship">
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-phone">Phone</label>
+                            <input type="tel" id="contact-phone" placeholder="(555) 555-5555">
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-email">Email</label>
+                            <input type="email" id="contact-email" placeholder="email@example.com">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="contact-address">Address</label>
+                            <input type="text" id="contact-address" placeholder="Street address">
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-city">City</label>
+                            <input type="text" id="contact-city" placeholder="City">
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-state">State</label>
+                            <input type="text" id="contact-state" placeholder="MN" maxlength="2">
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-zip">ZIP Code</label>
+                            <input type="text" id="contact-zip" placeholder="55401">
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-website">Website</label>
+                            <input type="url" id="contact-website" placeholder="https://...">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="contact-notes">Notes</label>
+                            <textarea id="contact-notes" placeholder="Any additional notes about this contact..."></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveContact()">
+                    <i class="fas fa-save"></i> Save Contact
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toast-message">Contact saved successfully!</span>
+    </div>
+
+    <script>
+        // State
+        let contacts = [];
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        // API Helpers
+        async function fetchContacts() {
+            try {
+                let url = '/api/contacts/?active_only=true';
+                if (currentFilter !== 'all') {
+                    url += `&contact_type=${currentFilter}`;
+                }
+                if (searchQuery) {
+                    url += `&search=${encodeURIComponent(searchQuery)}`;
+                }
+                
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to fetch contacts');
+                
+                const data = await response.json();
+                contacts = data.contacts || [];
+                
+                updateCounts(data.by_type || {}, data.total || 0);
+                renderContacts();
+            } catch (err) {
+                console.error('Error fetching contacts:', err);
+                showToast('Failed to load contacts', true);
+            }
+        }
+
+        function updateCounts(byType, total) {
+            document.getElementById('count-all').textContent = total;
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-starred').textContent = contacts.filter(c => c.is_starred).length;
+            
+            // Recent contacts (last 30 days)
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            document.getElementById('stat-recent').textContent = contacts.filter(c => {
+                if (!c.last_contact_date) return false;
+                return new Date(c.last_contact_date) > thirtyDaysAgo;
+            }).length;
+            
+            // Type counts
+            const types = ['landlord', 'attorney', 'witness', 'inspector', 'agency', 'legal_aid'];
+            types.forEach(type => {
+                const el = document.getElementById(`count-${type}`);
+                if (el) el.textContent = byType[type] || 0;
+            });
+        }
+
+        function renderContacts() {
+            const grid = document.getElementById('contacts-grid');
+            const emptyState = document.getElementById('empty-state');
+            
+            // Filter starred if needed
+            let filteredContacts = contacts;
+            if (document.getElementById('starred-only').checked) {
+                filteredContacts = filteredContacts.filter(c => c.is_starred);
+            }
+            
+            // Filter by role
+            const roleFilter = document.getElementById('role-filter').value;
+            if (roleFilter) {
+                filteredContacts = filteredContacts.filter(c => c.role === roleFilter);
+            }
+            
+            if (filteredContacts.length === 0) {
+                grid.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            grid.innerHTML = filteredContacts.map(contact => createContactCard(contact)).join('');
+        }
+
+        function createContactCard(contact) {
+            const avatarClass = `avatar-${contact.contact_type}`;
+            const typeLabel = getTypeLabel(contact.contact_type);
+            const icon = getTypeIcon(contact.contact_type);
+            
+            const address = [contact.city, contact.state].filter(Boolean).join(', ');
+            const lastContact = contact.last_contact_date 
+                ? `Last contact: ${new Date(contact.last_contact_date).toLocaleDateString()}`
+                : 'No interactions yet';
+            
+            return `
+                <div class="contact-card">
+                    <div class="contact-header">
+                        <div class="contact-avatar ${avatarClass}">${icon}</div>
+                        <div class="contact-info">
+                            <div class="contact-name">
+                                ${contact.name}
+                                <i class="fas fa-star star ${contact.is_starred ? '' : 'inactive'}" 
+                                   onclick="toggleStar('${contact.id}')"></i>
+                            </div>
+                            ${contact.organization ? `<div class="contact-org">${contact.organization}</div>` : ''}
+                            <span class="contact-type-badge type-${contact.contact_type}">${typeLabel}</span>
+                        </div>
+                    </div>
+                    <div class="contact-body">
+                        ${contact.phone ? `
+                            <div class="contact-detail">
+                                <i class="fas fa-phone"></i>
+                                <a href="tel:${contact.phone}">${contact.phone}</a>
+                            </div>
+                        ` : ''}
+                        ${contact.email ? `
+                            <div class="contact-detail">
+                                <i class="fas fa-envelope"></i>
+                                <a href="mailto:${contact.email}">${contact.email}</a>
+                            </div>
+                        ` : ''}
+                        ${address ? `
+                            <div class="contact-detail">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>${address}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="contact-footer">
+                        <span class="last-contact">${lastContact}</span>
+                        <div class="contact-actions">
+                            <button class="action-btn" title="Edit" onclick="editContact('${contact.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn" title="Log Interaction" onclick="logInteraction('${contact.id}')">
+                                <i class="fas fa-comment-dots"></i>
+                            </button>
+                            <button class="action-btn" title="Delete" onclick="deleteContact('${contact.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getTypeIcon(type) {
+            const icons = {
+                landlord: '🏠',
+                property_manager: '🏢',
+                attorney: '⚖️',
+                witness: '👁️',
+                inspector: '🔍',
+                agency: '🏛️',
+                court: '⚖️',
+                legal_aid: '🤝',
+                tenant_org: '✊',
+                other: '📋'
+            };
+            return icons[type] || '📋';
+        }
+
+        function getTypeLabel(type) {
+            const labels = {
+                landlord: 'Landlord',
+                property_manager: 'Property Mgr',
+                attorney: 'Attorney',
+                witness: 'Witness',
+                inspector: 'Inspector',
+                agency: 'Agency',
+                court: 'Court',
+                legal_aid: 'Legal Aid',
+                tenant_org: 'Tenant Org',
+                other: 'Other'
+            };
+            return labels[type] || type;
+        }
+
+        // Modal Functions
+        function openAddModal() {
+            document.getElementById('modal-title').textContent = 'Add New Contact';
+            document.getElementById('contact-form').reset();
+            document.getElementById('contact-id').value = '';
+            document.getElementById('contact-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('contact-modal').classList.remove('active');
+        }
+
+        async function editContact(id) {
+            const contact = contacts.find(c => c.id === id);
+            if (!contact) return;
+            
+            document.getElementById('modal-title').textContent = 'Edit Contact';
+            document.getElementById('contact-id').value = contact.id;
+            document.getElementById('contact-type').value = contact.contact_type || '';
+            document.getElementById('contact-role').value = contact.role || '';
+            document.getElementById('contact-name').value = contact.name || '';
+            document.getElementById('contact-org').value = contact.organization || '';
+            document.getElementById('contact-title').value = contact.title || '';
+            document.getElementById('contact-phone').value = contact.phone || '';
+            document.getElementById('contact-email').value = contact.email || '';
+            document.getElementById('contact-address').value = contact.address_line1 || '';
+            document.getElementById('contact-city').value = contact.city || '';
+            document.getElementById('contact-state').value = contact.state || '';
+            document.getElementById('contact-zip').value = contact.zip_code || '';
+            document.getElementById('contact-website').value = contact.website || '';
+            document.getElementById('contact-notes').value = contact.notes || '';
+            
+            document.getElementById('contact-modal').classList.add('active');
+        }
+
+        async function saveContact() {
+            const id = document.getElementById('contact-id').value;
+            const data = {
+                contact_type: document.getElementById('contact-type').value,
+                role: document.getElementById('contact-role').value || null,
+                name: document.getElementById('contact-name').value,
+                organization: document.getElementById('contact-org').value || null,
+                title: document.getElementById('contact-title').value || null,
+                phone: document.getElementById('contact-phone').value || null,
+                email: document.getElementById('contact-email').value || null,
+                address_line1: document.getElementById('contact-address').value || null,
+                city: document.getElementById('contact-city').value || null,
+                state: document.getElementById('contact-state').value || null,
+                zip_code: document.getElementById('contact-zip').value || null,
+                website: document.getElementById('contact-website').value || null,
+                notes: document.getElementById('contact-notes').value || null
+            };
+            
+            try {
+                const url = id ? `/api/contacts/${id}` : '/api/contacts/';
+                const method = id ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (!response.ok) throw new Error('Failed to save contact');
+                
+                closeModal();
+                showToast(id ? 'Contact updated!' : 'Contact added!');
+                fetchContacts();
+            } catch (err) {
+                console.error('Error saving contact:', err);
+                showToast('Failed to save contact', true);
+            }
+        }
+
+        async function deleteContact(id) {
+            if (!confirm('Are you sure you want to delete this contact?')) return;
+            
+            try {
+                const response = await fetch(`/api/contacts/${id}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error('Failed to delete contact');
+                
+                showToast('Contact deleted');
+                fetchContacts();
+            } catch (err) {
+                console.error('Error deleting contact:', err);
+                showToast('Failed to delete contact', true);
+            }
+        }
+
+        async function toggleStar(id) {
+            try {
+                const response = await fetch(`/api/contacts/${id}/star`, { method: 'POST' });
+                if (!response.ok) throw new Error('Failed to toggle star');
+                
+                fetchContacts();
+            } catch (err) {
+                console.error('Error toggling star:', err);
+            }
+        }
+
+        function logInteraction(id) {
+            // TODO: Implement interaction logging modal
+            showToast('Interaction logging coming soon!');
+        }
+
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toast.classList.toggle('error', isError);
+            toastMessage.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Event Listeners
+        document.querySelectorAll('.nav-link[data-type]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.nav-link[data-type]').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                currentFilter = link.dataset.type;
+                fetchContacts();
+            });
+        });
+
+        document.getElementById('search-input').addEventListener('input', debounce((e) => {
+            searchQuery = e.target.value;
+            fetchContacts();
+        }, 300));
+
+        document.getElementById('starred-only').addEventListener('change', renderContacts);
+        document.getElementById('role-filter').addEventListener('change', renderContacts);
+
+        function debounce(fn, delay) {
+            let timeout;
+            return (...args) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => fn(...args), delay);
+            };
+        }
+
+        // Initialize
+        fetchContacts();
+    </script>
+</body>
+</html>

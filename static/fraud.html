@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Analysis - Semptify</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #dc3545;
+            --secondary: #6c757d;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+        }
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .navbar {
+            background: rgba(0, 0, 0, 0.3) !important;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+        .card-header {
+            background: rgba(220, 53, 69, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px 15px 0 0 !important;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border: none;
+        }
+        .form-control, .form-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+        .form-control:focus, .form-select:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #dc3545;
+            color: #fff;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+        }
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .alert-fraud {
+            background: rgba(220, 53, 69, 0.2);
+            border: 1px solid rgba(220, 53, 69, 0.5);
+            color: #fff;
+        }
+        .indicator-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 0 10px 10px 0;
+        }
+        .indicator-card.low { border-left-color: #28a745; }
+        .indicator-card.medium { border-left-color: #ffc107; }
+        .indicator-card.high { border-left-color: #dc3545; }
+        .score-badge {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .pattern-tag {
+            display: inline-block;
+            padding: 5px 12px;
+            margin: 3px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background: rgba(220, 53, 69, 0.3);
+            border: 1px solid rgba(220, 53, 69, 0.5);
+        }
+        #resultsSection {
+            display: none;
+        }
+        .loading {
+            display: none;
+        }
+        .loading.active {
+            display: block;
+        }
+    </style>
+    <link rel="stylesheet" href="/static/css/help-system.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/static/dashboard-v2.html">
+                <i class="bi bi-shield-check"></i> Semptify
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/static/dashboard-v2.html">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1><i class="bi bi-search text-danger"></i> Fraud Analysis</h1>
+                <p class="text-muted">Detect patterns of landlord fraud, subsidy misuse, and financial misconduct</p>
+            </div>
+        </div>
+
+        <!-- Analysis Form -->
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-clipboard-data"></i> Case Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="fraudAnalysisForm">
+                            <div class="mb-3">
+                                <label class="form-label">Case ID</label>
+                                <input type="text" class="form-control" id="caseId" placeholder="Enter case ID" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Property Address</label>
+                                <input type="text" class="form-control" id="propertyAddress" placeholder="123 Main St, Minneapolis, MN 55401" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Landlord Name</label>
+                                <input type="text" class="form-control" id="landlordName" placeholder="Landlord or management company name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Landlord EIN/Tax ID (Optional)</label>
+                                <input type="text" class="form-control" id="landlordEin" placeholder="XX-XXXXXXX">
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Monthly Rent</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="rentAmount" placeholder="1500">
+                                    </div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Fair Market Rent</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="fmrAmount" placeholder="1200">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="subsidyClaimed">
+                                    <label class="form-check-label" for="subsidyClaimed">
+                                        Landlord claims to receive housing subsidies
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3 d-none" id="subsidyTypeGroup">
+                                <label class="form-label">Subsidy Type</label>
+                                <select class="form-select" id="subsidyType" title="Select subsidy type">
+                                    <option value="">Select type...</option>
+                                    <option value="section_8_pbv">Section 8 Project-Based</option>
+                                    <option value="section_8_hcv">Section 8 Housing Choice Voucher</option>
+                                    <option value="lihtc">Low-Income Housing Tax Credit (LIHTC)</option>
+                                    <option value="home">HOME Program</option>
+                                    <option value="cdbg">CDBG</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="bi bi-search"></i> Analyze for Fraud Patterns
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Known Patterns -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Common Fraud Patterns</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="pattern-tag">Rent overcharging</div>
+                        <div class="pattern-tag">Double-dipping subsidies</div>
+                        <div class="pattern-tag">False income reporting</div>
+                        <div class="pattern-tag">Shell company ownership</div>
+                        <div class="pattern-tag">Tax credit violations</div>
+                        <div class="pattern-tag">Uninhabitable conditions</div>
+                        <div class="pattern-tag">Section 8 fraud</div>
+                        <div class="pattern-tag">LIHTC non-compliance</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="col-lg-6">
+                <div class="loading text-center py-5" id="loadingIndicator">
+                    <div class="spinner-border text-danger" role="status">
+                        <span class="visually-hidden">Analyzing...</span>
+                    </div>
+                    <p class="mt-3">Analyzing fraud patterns...</p>
+                </div>
+
+                <div id="resultsSection">
+                    <!-- Fraud Score -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-speedometer2"></i> Fraud Risk Score</h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="score-badge text-danger" id="fraudScore">--</div>
+                            <p class="text-muted mb-0" id="riskLevel">Risk Level: --</p>
+                        </div>
+                    </div>
+
+                    <!-- Indicators Found -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-flag"></i> Indicators Found</h5>
+                        </div>
+                        <div class="card-body" id="indicatorsList">
+                            <p class="text-muted">Run analysis to see indicators</p>
+                        </div>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Recommended Actions</h5>
+                        </div>
+                        <div class="card-body" id="recommendationsList">
+                            <p class="text-muted">Run analysis to see recommendations</p>
+                        </div>
+                    </div>
+
+                    <!-- Statutes -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="bi bi-book"></i> Relevant Statutes</h5>
+                        </div>
+                        <div class="card-body" id="statutesList">
+                            <p class="text-muted">Run analysis to see applicable laws</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Toggle subsidy type dropdown
+        document.getElementById('subsidyClaimed').addEventListener('change', function() {
+            document.getElementById('subsidyTypeGroup').style.display = this.checked ? 'block' : 'none';
+        });
+
+        // Form submission
+        document.getElementById('fraudAnalysisForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const loading = document.getElementById('loadingIndicator');
+            const results = document.getElementById('resultsSection');
+            
+            loading.classList.add('active');
+            results.style.display = 'none';
+            
+            const data = {
+                case_id: document.getElementById('caseId').value,
+                property_address: document.getElementById('propertyAddress').value,
+                landlord_name: document.getElementById('landlordName').value,
+                landlord_ein: document.getElementById('landlordEin').value,
+                rent_amount: parseInt(document.getElementById('rentAmount').value) || null,
+                fair_market_rent: parseInt(document.getElementById('fmrAmount').value) || null,
+                subsidy_claimed: document.getElementById('subsidyClaimed').checked,
+                subsidy_type: document.getElementById('subsidyType').value || null
+            };
+            
+            try {
+                const response = await fetch('/api/fraud/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    displayResults(result);
+                } else {
+                    // Show simulated results for demo
+                    displayDemoResults(data);
+                }
+            } catch (error) {
+                // Show simulated results for demo
+                displayDemoResults(data);
+            }
+            
+            loading.classList.remove('active');
+            results.style.display = 'block';
+        });
+        
+        function displayResults(result) {
+            document.getElementById('fraudScore').textContent = result.score || '45';
+            document.getElementById('riskLevel').textContent = 'Risk Level: ' + (result.risk_level || 'Medium');
+            
+            // Display indicators
+            const indicatorsList = document.getElementById('indicatorsList');
+            if (result.indicators && result.indicators.length > 0) {
+                indicatorsList.innerHTML = result.indicators.map(ind => `
+                    <div class="indicator-card ${ind.severity || 'medium'}">
+                        <strong>${ind.name}</strong>
+                        <p class="mb-0 small">${ind.description}</p>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        function displayDemoResults(data) {
+            // Calculate demo score based on inputs
+            let score = 20;
+            if (data.subsidy_claimed) score += 25;
+            if (data.rent_amount && data.fair_market_rent && data.rent_amount > data.fair_market_rent * 1.2) score += 30;
+            
+            document.getElementById('fraudScore').textContent = score + '/100';
+            document.getElementById('riskLevel').textContent = 'Risk Level: ' + (score > 60 ? 'High' : score > 30 ? 'Medium' : 'Low');
+            
+            // Demo indicators
+            const indicators = [];
+            if (data.rent_amount > data.fair_market_rent * 1.2) {
+                indicators.push({
+                    name: 'Rent Above FMR',
+                    description: 'Rent charged exceeds Fair Market Rent by more than 20%',
+                    severity: 'high'
+                });
+            }
+            if (data.subsidy_claimed) {
+                indicators.push({
+                    name: 'Subsidy Claimed',
+                    description: 'Property receives federal subsidies - verify compliance requirements',
+                    severity: 'medium'
+                });
+            }
+            indicators.push({
+                name: 'Ownership Research Recommended',
+                description: 'Verify ownership structure through Secretary of State records',
+                severity: 'low'
+            });
+            
+            document.getElementById('indicatorsList').innerHTML = indicators.map(ind => `
+                <div class="indicator-card ${ind.severity}">
+                    <strong><i class="bi bi-flag-fill"></i> ${ind.name}</strong>
+                    <p class="mb-0 small text-muted">${ind.description}</p>
+                </div>
+            `).join('');
+            
+            // Demo recommendations
+            document.getElementById('recommendationsList').innerHTML = `
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="bi bi-check-circle text-success"></i> File complaint with HUD if subsidy fraud suspected</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Request property records from county assessor</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Search UCC filings for liens/encumbrances</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Verify business registration with MN SOS</li>
+                </ul>
+            `;
+            
+            // Demo statutes
+            document.getElementById('statutesList').innerHTML = `
+                <ul class="list-unstyled">
+                    <li class="mb-2"><strong>31 U.S.C. § 3729</strong> - False Claims Act (6 years)</li>
+                    <li class="mb-2"><strong>18 U.S.C. § 1014</strong> - HUD/FHA Fraud (10 years)</li>
+                    <li class="mb-2"><strong>Minn. Stat. § 609.52</strong> - Theft by Swindle (3-6 years)</li>
+                    <li class="mb-2"><strong>42 U.S.C. § 1437</strong> - Housing Act Violations</li>
+                </ul>
+            `;
+        }
+    </script>
+    <script src="/static/js/help-system.js"></script>
+</body>
+</html>

@@ -39,6 +39,15 @@ class ModuleType(str, Enum):
     LAW_LIBRARY = "law_library"
     ZOOM_COURT = "zoom_court"
     NOTIFICATIONS = "notifications"
+    LOCATION = "location"  # Location detection and state-specific resources
+    LEGAL_ANALYSIS = "legal_analysis"  # Legal merit, evidence, consistency analysis
+    TENANCY_HUB = "tenancy_hub"  # Central tenancy documentation hub
+    LEGAL_TRAILS = "legal_trails"  # Track violations, claims, filing deadlines, broker oversight
+    COURT_FORMS = "court_forms"  # Auto-generate Minnesota court forms
+    ZOOM_COURT_PREP = "zoom_court_prep"  # Zoom hearing preparation and tech checks
+    DOCUMENT_FLOW = "document_flow"  # Document pipeline orchestration
+    OCR_SERVICE = "ocr_service"  # OCR text extraction from scans
+    CONTACTS = "contacts"  # Contact management for parties
 
 
 class EventType(str, Enum):
@@ -66,11 +75,19 @@ class EventType(str, Enum):
     # AI/Copilot events
     AI_ANALYSIS_COMPLETE = "ai.analysis_complete"
     AI_SUGGESTION_READY = "ai.suggestion_ready"
+
+    # Legal Analysis events
+    LEGAL_QUICK_CHECK = "legal.quick_check"
+    LEGAL_MERIT_ASSESSED = "legal.merit_assessed"
+    LEGAL_HEARSAY_DETECTED = "legal.hearsay_detected"
+    LEGAL_DEFENSE_FOUND = "legal.defense_found"
+    LEGAL_TIMELINE_ANALYZED = "legal.timeline_analyzed"
     
     # Context events
     CONTEXT_UPDATED = "context.updated"
     INTENSITY_CHANGED = "context.intensity_changed"
-    
+    LOCATION_CHANGED = "location.changed"  # User location updated
+
     # User events
     USER_ACTION = "user.action"
     SESSION_STARTED = "user.session_started"
@@ -79,6 +96,25 @@ class EventType(str, Enum):
     MODULE_REGISTERED = "system.module_registered"
     BRAIN_SYNC = "system.brain_sync"
     ERROR_OCCURRED = "system.error"
+
+    # Court Form events
+    COURT_FORM_GENERATED = "forms.generated"
+    COURT_FORM_BATCH = "forms.batch_generated"
+
+    # Zoom Court Prep events
+    ZOOM_PREP_STARTED = "zoom_prep.started"
+    ZOOM_PREP_TECH_CHECK = "zoom_prep.tech_check"
+    ZOOM_PREP_COMPLETED = "zoom_prep.completed"
+
+    # Document Flow events
+    DOCUMENT_FLOW_STARTED = "document_flow.started"
+    DOCUMENT_FLOW_COMPLETED = "document_flow.completed"
+    OCR_COMPLETED = "ocr.completed"
+    OCR_FAILED = "ocr.failed"
+
+    # Contact events
+    CONTACT_ADDED = "contacts.added"
+    CONTACT_UPDATED = "contacts.updated"
 
 
 @dataclass
@@ -174,6 +210,11 @@ class PositronicBrain:
             ModuleType.COPILOT: {ModuleType.DOCUMENTS, ModuleType.CONTEXT},
             ModuleType.FORMS: {ModuleType.EVICTION, ModuleType.DOCUMENTS},
             ModuleType.NOTIFICATIONS: {ModuleType.CALENDAR, ModuleType.TIMELINE},
+            ModuleType.COURT_FORMS: {ModuleType.DOCUMENTS, ModuleType.EVICTION, ModuleType.CONTACTS},
+            ModuleType.ZOOM_COURT_PREP: {ModuleType.CALENDAR, ModuleType.DOCUMENTS},
+            ModuleType.DOCUMENT_FLOW: {ModuleType.DOCUMENTS, ModuleType.TIMELINE, ModuleType.VAULT},
+            ModuleType.OCR_SERVICE: {ModuleType.DOCUMENTS},
+            ModuleType.CONTACTS: {ModuleType.DOCUMENTS},
         }
         
         logger.info("🧠 Positronic Brain initialized")

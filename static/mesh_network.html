@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributed Mesh Network - Semptify</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0d0d1a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, #00ff88, #00d4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #00ff88;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 10px #00ff88; }
+            50% { opacity: 0.5; box-shadow: 0 0 5px #00ff88; }
+        }
+
+        /* Main Container */
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 1rem;
+            padding: 1rem;
+            height: calc(100vh - 80px);
+        }
+
+        /* Mesh Visualization */
+        .mesh-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 1rem;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mesh-title {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            font-size: 0.9rem;
+            color: #00ff88;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #mesh-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Side Panel */
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .panel-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 1rem;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            padding: 1rem;
+        }
+
+        .panel-title {
+            font-size: 0.85rem;
+            color: #00ff88;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Metrics */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+
+        .metric-item {
+            background: rgba(0, 255, 136, 0.05);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #00ff88;
+        }
+
+        .metric-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 0.25rem;
+        }
+
+        /* Node List */
+        .node-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .node-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .node-item:hover {
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .node-item.selected {
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .node-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .node-info {
+            flex: 1;
+        }
+
+        .node-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .node-caps {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .node-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+        }
+
+        .node-status.offline {
+            background: #ff4444;
+        }
+
+        /* Activity Feed */
+        .activity-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 0.25rem;
+            border-left: 2px solid #00ff88;
+        }
+
+        .activity-item.request {
+            border-left-color: #00d4ff;
+        }
+
+        .activity-item.event {
+            border-left-color: #ff9900;
+        }
+
+        .activity-time {
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .activity-msg {
+            flex: 1;
+            color: #aaa;
+        }
+
+        /* Capabilities Panel */
+        .cap-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .cap-tag {
+            padding: 0.25rem 0.75rem;
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            color: #00d4ff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cap-tag:hover {
+            background: rgba(0, 212, 255, 0.2);
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            color: #0a0a1a;
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 136, 0.3);
+            border-radius: 3px;
+        }
+
+        /* Comparison */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .arch-card {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .arch-card.old {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+        }
+
+        .arch-card.new {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .arch-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .arch-desc {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Connection lines animation */
+        @keyframes dataFlow {
+            0% { stroke-dashoffset: 100; }
+            100% { stroke-dashoffset: 0; }
+        }
+    </style>
+    <link rel="stylesheet" href="/static/css/help-system.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            🌐 Distributed Mesh Network
+        </div>
+        <div class="status-badge">
+            <div class="status-dot"></div>
+            <span id="mesh-status">Connecting...</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Mesh Visualization -->
+        <div class="mesh-container">
+            <div class="mesh-title">🔗 Peer-to-Peer Topology</div>
+            <canvas id="mesh-canvas"></canvas>
+        </div>
+
+        <!-- Side Panel -->
+        <div class="side-panel">
+            <!-- Metrics -->
+            <div class="panel-card">
+                <div class="panel-title">📊 Mesh Metrics</div>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-value" id="metric-nodes">0</div>
+                        <div class="metric-label">Nodes</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="metric-connections">0</div>
+                        <div class="metric-label">Connections</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="metric-messages">0</div>
+                        <div class="metric-label">Messages</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="metric-latency">0ms</div>
+                        <div class="metric-label">Avg Latency</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nodes -->
+            <div class="panel-card" style="flex: 1;">
+                <div class="panel-title">🔷 Active Nodes</div>
+                <div class="node-list" id="node-list">
+                    <div style="text-align: center; color: #666; padding: 1rem;">
+                        Loading nodes...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Capabilities -->
+            <div class="panel-card">
+                <div class="panel-title">⚡ Available Capabilities</div>
+                <div class="cap-list" id="cap-list">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Activity -->
+            <div class="panel-card">
+                <div class="panel-title">📡 Activity</div>
+                <div class="activity-feed" id="activity-feed">
+                    <div class="activity-item">
+                        <span class="activity-time">--:--</span>
+                        <span class="activity-msg">Waiting for activity...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Architecture Comparison -->
+            <div class="panel-card">
+                <div class="panel-title">🏗️ Architecture</div>
+                <div class="comparison">
+                    <div class="arch-card old">
+                        <div class="arch-title">❌ Old: Centralized</div>
+                        <div class="arch-desc">Single brain bottleneck</div>
+                    </div>
+                    <div class="arch-card new">
+                        <div class="arch-title">✅ New: Distributed</div>
+                        <div class="arch-desc">P2P mesh - no bottleneck</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('mesh-canvas');
+        const ctx = canvas.getContext('2d');
+        let nodes = [];
+        let edges = [];
+        let animationFrame;
+        let selectedNode = null;
+
+        // Node icons by type
+        const nodeIcons = {
+            'legal_analysis': '⚖️',
+            'documents': '📄',
+            'timeline': '📅',
+            'calendar': '🗓️',
+            'eviction': '🏠',
+            'court_learning': '🎓',
+            'forms': '📝',
+            'tenancy': '🏘️',
+            'copilot': '🤖',
+            'ui': '🖥️',
+        };
+
+        // Resize canvas
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Fetch mesh topology
+        async function fetchTopology() {
+            try {
+                const res = await fetch('/api/mesh/topology');
+                const data = await res.json();
+                
+                // Position nodes in a circle
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const radius = Math.min(centerX, centerY) - 100;
+                
+                nodes = data.nodes.map((node, i) => {
+                    const angle = (2 * Math.PI * i) / data.nodes.length - Math.PI / 2;
+                    return {
+                        ...node,
+                        x: centerX + radius * Math.cos(angle),
+                        y: centerY + radius * Math.sin(angle),
+                        targetX: centerX + radius * Math.cos(angle),
+                        targetY: centerY + radius * Math.sin(angle),
+                        icon: nodeIcons[node.type] || '🔷',
+                    };
+                });
+                
+                edges = data.edges;
+                
+                // Update metrics
+                document.getElementById('metric-nodes').textContent = data.total_nodes;
+                document.getElementById('metric-connections').textContent = data.total_connections;
+                document.getElementById('mesh-status').textContent = `${data.total_nodes} nodes online`;
+                
+                // Update node list
+                updateNodeList();
+                
+            } catch (e) {
+                console.error('Failed to fetch topology:', e);
+                document.getElementById('mesh-status').textContent = 'Disconnected';
+            }
+        }
+
+        // Fetch metrics
+        async function fetchMetrics() {
+            try {
+                const res = await fetch('/api/mesh/metrics');
+                const data = await res.json();
+                
+                document.getElementById('metric-messages').textContent = data.total_messages_sent || 0;
+                document.getElementById('metric-latency').textContent = 
+                    Math.round(data.avg_response_time_ms || 0) + 'ms';
+                
+            } catch (e) {
+                console.error('Failed to fetch metrics:', e);
+            }
+        }
+
+        // Fetch capabilities
+        async function fetchCapabilities() {
+            try {
+                const res = await fetch('/api/mesh/capabilities');
+                const data = await res.json();
+                
+                const capList = document.getElementById('cap-list');
+                capList.innerHTML = Object.keys(data.capabilities).map(cap => 
+                    `<span class="cap-tag" onclick="testCapability('${cap}')">${cap}</span>`
+                ).join('');
+                
+            } catch (e) {
+                console.error('Failed to fetch capabilities:', e);
+            }
+        }
+
+        // Update node list UI
+        function updateNodeList() {
+            const list = document.getElementById('node-list');
+            list.innerHTML = nodes.map(node => `
+                <div class="node-item ${selectedNode === node.id ? 'selected' : ''}" 
+                     onclick="selectNode('${node.id}')">
+                    <div class="node-icon">${node.icon}</div>
+                    <div class="node-info">
+                        <div class="node-name">${node.type.replace(/_/g, ' ')}</div>
+                        <div class="node-caps">${node.capabilities.length} capabilities</div>
+                    </div>
+                    <div class="node-status"></div>
+                </div>
+            `).join('');
+        }
+
+        // Select node
+        function selectNode(nodeId) {
+            selectedNode = selectedNode === nodeId ? null : nodeId;
+            updateNodeList();
+        }
+
+        // Test capability
+        async function testCapability(cap) {
+            addActivity(`Testing capability: ${cap}`, 'request');
+            
+            try {
+                const res = await fetch(`/api/mesh/call/${cap}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                });
+                
+                if (res.ok) {
+                    addActivity(`✅ ${cap} responded`, 'event');
+                } else {
+                    addActivity(`❌ ${cap} failed`, 'event');
+                }
+            } catch (e) {
+                addActivity(`❌ ${cap} error: ${e.message}`, 'event');
+            }
+        }
+
+        // Add activity
+        function addActivity(msg, type = '') {
+            const feed = document.getElementById('activity-feed');
+            const time = new Date().toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            const item = document.createElement('div');
+            item.className = `activity-item ${type}`;
+            item.innerHTML = `
+                <span class="activity-time">${time}</span>
+                <span class="activity-msg">${msg}</span>
+            `;
+            
+            feed.insertBefore(item, feed.firstChild);
+            
+            // Keep max 20 items
+            while (feed.children.length > 20) {
+                feed.removeChild(feed.lastChild);
+            }
+        }
+
+        // Draw mesh
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw edges
+            ctx.strokeStyle = 'rgba(0, 255, 136, 0.15)';
+            ctx.lineWidth = 1;
+            
+            edges.forEach(edge => {
+                const source = nodes.find(n => n.id === edge.source);
+                const target = nodes.find(n => n.id === edge.target);
+                
+                if (source && target) {
+                    ctx.beginPath();
+                    ctx.moveTo(source.x, source.y);
+                    ctx.lineTo(target.x, target.y);
+                    ctx.stroke();
+                }
+            });
+
+            // Draw nodes
+            nodes.forEach(node => {
+                const isSelected = selectedNode === node.id;
+                const size = isSelected ? 50 : 40;
+                
+                // Glow effect
+                if (isSelected) {
+                    ctx.shadowColor = '#00ff88';
+                    ctx.shadowBlur = 20;
+                }
+                
+                // Node circle
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, size / 2, 0, Math.PI * 2);
+                
+                const gradient = ctx.createRadialGradient(
+                    node.x, node.y, 0,
+                    node.x, node.y, size / 2
+                );
+                gradient.addColorStop(0, 'rgba(0, 255, 136, 0.3)');
+                gradient.addColorStop(1, 'rgba(0, 212, 255, 0.1)');
+                
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                
+                ctx.strokeStyle = isSelected ? '#00ff88' : 'rgba(0, 255, 136, 0.5)';
+                ctx.lineWidth = isSelected ? 2 : 1;
+                ctx.stroke();
+                
+                ctx.shadowBlur = 0;
+                
+                // Icon
+                ctx.font = `${size * 0.5}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node.icon, node.x, node.y);
+                
+                // Label
+                ctx.font = '11px Segoe UI';
+                ctx.fillStyle = '#aaa';
+                ctx.fillText(node.type.replace(/_/g, ' '), node.x, node.y + size / 2 + 15);
+            });
+            
+            animationFrame = requestAnimationFrame(draw);
+        }
+
+        // WebSocket for real-time updates
+        let ws;
+        function connectWebSocket() {
+            ws = new WebSocket(`ws://${window.location.host}/api/mesh/ws`);
+            
+            ws.onopen = () => {
+                addActivity('Connected to mesh network', 'event');
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                if (data.type === 'mesh_update') {
+                    // Refresh topology
+                    fetchTopology();
+                }
+            };
+            
+            ws.onclose = () => {
+                addActivity('Disconnected - reconnecting...', 'event');
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        // Initialize
+        async function init() {
+            await fetchTopology();
+            await fetchMetrics();
+            await fetchCapabilities();
+            draw();
+            connectWebSocket();
+            
+            // Periodic refresh
+            setInterval(fetchMetrics, 5000);
+            setInterval(fetchTopology, 10000);
+        }
+
+        init();
+    </script>
+    <script src="/static/js/help-system.js"></script>
+</body>
+</html>

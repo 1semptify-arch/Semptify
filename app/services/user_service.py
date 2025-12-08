@@ -7,7 +7,7 @@ Solves the "returning user" problem:
 2. What role to load? → Check user's default_role
 """
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
 import uuid
 
@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.models import User, LinkedProvider
 from app.core.database import get_db_session
+from app.core.utc import utc_now
 
 
 # =============================================================================
@@ -55,8 +56,8 @@ async def create_user(
             email=email,
             display_name=display_name,
             default_role=default_role,
-            created_at=datetime.now(timezone.utc),
-            last_login=datetime.now(timezone.utc),
+            created_at=datetime.utcnow(),
+            last_login=datetime.utcnow(),
         )
         session.add(user)
         await session.commit()
@@ -80,7 +81,7 @@ async def get_or_create_user(
     if user:
         # Update last login
         async with get_db_session() as session:
-            user.last_login = datetime.now(timezone.utc)
+            user.last_login = datetime.utcnow()
             if email and not user.email:
                 user.email = email
             if display_name and not user.display_name:
@@ -109,7 +110,7 @@ async def update_user_role(user_id: str, role: str) -> Optional[User]:
         user = result.scalar_one_or_none()
         if user:
             user.default_role = role
-            user.updated_at = datetime.now(timezone.utc)
+            user.updated_at = datetime.utcnow()
             await session.commit()
             await session.refresh(user)
         return user
@@ -134,7 +135,7 @@ async def update_user_profile(
                 user.display_name = display_name
             if avatar_url is not None:
                 user.avatar_url = avatar_url
-            user.updated_at = datetime.now(timezone.utc)
+            user.updated_at = datetime.utcnow()
             await session.commit()
             await session.refresh(user)
         return user
@@ -160,7 +161,7 @@ async def link_provider(
             storage_user_id=storage_user_id,
             email=email,
             display_name=display_name,
-            linked_at=datetime.now(timezone.utc),
+            linked_at=datetime.utcnow(),
         )
         session.add(linked)
         await session.commit()

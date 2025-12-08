@@ -1,0 +1,38 @@
+<!-- 
+    Semptify Help System Include
+    
+    Add this to any page to enable site-wide help:
+    
+    1. Include this file in your HTML:
+       {% include 'components/help-include.html' %}
+       
+       OR copy these two lines:
+       <script src="/static/js/help-system.js"></script>
+       <script src="/static/js/help-content.js"></script>
+    
+    2. Add data-help-page attribute to your body or main element:
+       <body data-help-page="document-intake">
+       
+       Available page names:
+       - document-intake
+       - dashboard
+       - documents
+       - timeline
+       - calendar
+       - eviction
+       - complaints
+       - brain
+       - settings
+       - welcome
+    
+    3. Or initialize manually in your script:
+       SemptifyHelp.init('page-name');
+    
+    Usage:
+    - Click the ❓ button (bottom-left) to toggle help mode
+    - When ON: Card banners appear, hover over buttons for tooltips
+    - Setting is saved and persists across page loads
+-->
+
+<script src="/static/js/help-system.js"></script>
+<script src="/static/js/help-content.js"></script>

@@ -12,7 +12,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/static/css/design-system.css">
   <link rel="stylesheet" href="/static/css/layouts.css">
-  
+  <link rel="stylesheet" href="/static/css/help-system.css">
+
   <a href="#main-content" class="skip-link">Skip to main content</a>
 </head>
 <body>
@@ -61,13 +62,13 @@
             <li class="sidebar-divider"></li>
             <li class="sidebar-section"><span class="sidebar-section-title">Eviction Defense</span></li>
             <li class="sidebar-item">
-              <a href="/eviction/flows" class="sidebar-link">
+              <a href="/eviction/" class="sidebar-link">
                 <i class="fas fa-route sidebar-icon"></i>
                 <span class="sidebar-text">Guided Flows</span>
               </a>
             </li>
             <li class="sidebar-item">
-              <a href="/eviction/forms" class="sidebar-link">
+              <a href="/eviction/forms/library" class="sidebar-link">
                 <i class="fas fa-file-signature sidebar-icon"></i>
                 <span class="sidebar-text">Form Library</span>
               </a>
@@ -500,7 +501,7 @@
       // Load Events
       async function loadEvents() {
         try {
-          const response = await api.get('/api/timeline/events');
+          const response = await api.get('/api/timeline/');
           events = response.data?.events || getMockEvents();
         } catch (error) {
           console.log('Using mock events');
@@ -787,5 +788,6 @@
       }
     })();
   </script>
+  <script src="/static/js/help-system.js"></script>
 </body>
 </html>

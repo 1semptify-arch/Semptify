@@ -265,6 +265,51 @@ async def list_documents(
     return [_doc_to_response(d) for d in docs]
 
 
+@router.delete("/documents/{doc_id}")
+async def delete_document(doc_id: str):
+    """Delete a single registered document."""
+    registry = get_document_registry()
+    
+    doc = registry.get_document(doc_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
+    
+    # Remove from registry
+    if doc_id in registry._documents:
+        del registry._documents[doc_id]
+    
+    # Remove from hash index
+    if doc.content_hash in registry._hash_index:
+        registry._hash_index[doc.content_hash].discard(doc_id)
+        if not registry._hash_index[doc.content_hash]:
+            del registry._hash_index[doc.content_hash]
+    
+    return {"status": "deleted", "document_id": doc_id, "message": f"Document {doc_id} has been removed"}
+
+
+@router.delete("/documents")
+async def clear_all_documents(confirm: bool = Query(False, description="Set to true to confirm deletion")):
+    """Clear ALL registered documents. Requires confirm=true."""
+    if not confirm:
+        raise HTTPException(
+            status_code=400, 
+            detail="Set confirm=true to delete all documents. This action cannot be undone."
+        )
+    
+    registry = get_document_registry()
+    count = len(registry._documents)
+    
+    # Clear all documents
+    registry._documents.clear()
+    registry._hash_index.clear()
+    
+    return {
+        "status": "cleared",
+        "deleted_count": count,
+        "message": f"Successfully deleted {count} documents"
+    }
+
+
 @router.get("/documents/{doc_id}/duplicates", response_model=list[RegisteredDocumentResponse])
 async def get_duplicates(doc_id: str):
     """Get all duplicates of a document."""
@@ -343,15 +388,47 @@ async def verify_document(
     )
 
 
+@router.get("/documents/{doc_id}/verify")
+async def get_integrity_status(doc_id: str):
+    """
+    Get the current integrity status of a document.
+    
+    This returns the stored integrity status without re-verification.
+    Use POST /verify with a file upload for full re-verification.
+    """
+    registry = get_document_registry()
+
+    doc = registry.get_document(doc_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
+
+    messages = {
+        IntegrityStatus.VERIFIED: "✅ Document integrity verified - no tampering detected",
+        IntegrityStatus.TAMPERED: "🚨 TAMPER DETECTED - Document content has been modified!",
+        IntegrityStatus.METADATA_CHANGED: "⚠️ Document metadata has been altered",
+        IntegrityStatus.CORRUPTED: "❌ Document appears to be corrupted",
+        IntegrityStatus.UNVERIFIED: "⏳ Document has not been verified yet",
+    }
+
+    return {
+        "document_id": doc.document_id,
+        "status": doc.integrity_status.value,
+        "is_valid": doc.integrity_status == IntegrityStatus.VERIFIED,
+        "message": messages.get(doc.integrity_status, "Unknown status"),
+        "content_hash": doc.content_hash,
+        "registered_at": doc.registered_at.isoformat(),
+    }
+
+
 @router.get("/documents/{doc_id}/hash")
 async def get_document_hash(doc_id: str):
     """Get the stored hashes for a document (for external verification)."""
     registry = get_document_registry()
-    
+
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
-    
+
     return {
         "document_id": doc.document_id,
         "content_hash": doc.content_hash,
@@ -360,8 +437,6 @@ async def get_document_hash(doc_id: str):
         "algorithm": "SHA-256",
         "registered_at": doc.registered_at.isoformat(),
     }
-
-
 # =============================================================================
 # FLAGGING & CASE ASSOCIATION
 # =============================================================================

@@ -1240,7 +1240,20 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Utility classes for spacing */
+        .mt-1rem {
+            margin-top: 1rem;
+        }
+        .mt-1-5rem {
+            margin-top: 1.5rem;
+        }
+        .muted-text {
+            color: var(--muted);
+            margin-bottom: 1.5rem;
+        }
     </style>
+    <script src="/static/js/law-linker.js"></script>
 </head>
 <body>
     <!-- Sidebar -->
@@ -1266,7 +1279,7 @@
                 <span>Timeline</span>
             </a>
             
-            <div class="nav-label" style="margin-top: 1rem;">Defense Tools</div>
+            <div class="nav-label mt-1rem">Defense Tools</div>
             <a class="nav-item" data-panel="defense">
                 <span class="icon">🛡️</span>
                 <span>Defenses</span>
@@ -1280,8 +1293,8 @@
                 <span>Counterclaims</span>
             </a>
             
-            <div class="nav-label" style="margin-top: 1rem;">Resources</div>
-            <a class="nav-item" data-panel="library">
+            <div class="nav-label mt-1rem">Resources</div>
+            <a class="nav-item" href="/static/law_library.html">
                 <span class="icon">📚</span>
                 <span>Law Library</span>
             </a>
@@ -1293,8 +1306,42 @@
                 <span class="icon">📖</span>
                 <span>Procedures</span>
             </a>
+
+            <div class="nav-label mt-1rem">Accountability</div>
+            <a class="nav-item" href="/static/complaints.html">
+                <span class="icon">📢</span>
+                <span>File Complaint</span>
+            </a>
+            <a class="nav-item" href="/static/funding_search.html">
+                <span class="icon">💰</span>
+                <span>Funding Search</span>
+            </a>
+            <a class="nav-item" href="/static/campaign.html">
+                <span class="icon">🎯</span>
+                <span>Campaign Center</span>
+            </a>
+            <a class="nav-item" href="/api/fraud/health">
+                <span class="icon">🔍</span>
+                <span>Fraud Analysis</span>
+            </a>
+            <a class="nav-item" href="/api/exposure/health">
+                <span class="icon">📰</span>
+                <span>Press Release</span>
+            </a>
+            <a class="nav-item" href="/static/research.html">
+                <span class="icon">🔬</span>
+                <span>Research</span>
+            </a>
+            <a class="nav-item" href="/static/research_module.html">
+                <span class="icon">🕵️</span>
+                <span>Dossier</span>
+            </a>
+            <a class="nav-item" href="/static/court_learning.html">
+                <span class="icon">🧠</span>
+                <span>Court Learning</span>
+            </a>
         </div>
-        
+
         <div class="case-status">
             <div class="case-card">
                 <h4>Active Case</h4>
@@ -1376,27 +1423,35 @@
                             <h3>⚡ Quick Actions</h3>
                         </div>
                         <div class="quick-actions">
-                            <div class="quick-action" onclick="showPanel('motions')">
-                                <span class="icon">📋</span>
-                                <span>File a Motion</span>
+                            <div class="quick-action" onclick="window.location='/static/document_intake.html?type=lease'">
+                                <span class="icon">📝</span>
+                                <span>1. Lease & Move-In</span>
                             </div>
-                            <div class="quick-action" onclick="showPanel('defense')">
-                                <span class="icon">🛡️</span>
-                                <span>Review Defenses</span>
+                            <div class="quick-action" onclick="window.location='/static/document_intake.html?type=payment'">
+                                <span class="icon">💰</span>
+                                <span>2. Rent Payments</span>
+                            </div>
+                            <div class="quick-action" onclick="window.location='/static/document_intake.html?type=maintenance'">
+                                <span class="icon">🔧</span>
+                                <span>3. Maintenance</span>
+                            </div>
+                            <div class="quick-action" onclick="window.location='/static/timeline.html'">
+                                <span class="icon">📅</span>
+                                <span>5. Timeline</span>
                             </div>
                             <div class="quick-action" onclick="showPanel('library')">
-                                <span class="icon">📚</span>
-                                <span>Research Law</span>
+                                <span class="icon">📖</span>
+                                <span>6. Know Rights</span>
                             </div>
-                            <div class="quick-action" onclick="showPanel('zoom')">
-                                <span class="icon">💻</span>
-                                <span>Zoom Court Prep</span>
+                            <div class="quick-action" onclick="window.location='/eviction/answer'">
+                                <span class="icon">📝</span>
+                                <span>7. Answer Summons</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="widget" style="margin-top: 1.5rem;">
+                <div class="widget mt-1-5rem">
                     <div class="widget-header">
                         <h3>📄 Recent Documents</h3>
                         <span class="view-all" onclick="showPanel('documents')">View All →</span>
@@ -1427,7 +1482,7 @@
             <!-- Timeline Panel -->
             <div class="panel" id="panel-timeline">
                 <h2>📅 Case Timeline</h2>
-                <div class="timeline-list" id="timeline-full" style="margin-top: 1.5rem;">
+                <div class="timeline-list mt-1-5rem" id="timeline-full">
                     <div class="loading"><div class="spinner"></div> Loading timeline...</div>
                 </div>
             </div>
@@ -1435,7 +1490,7 @@
             <!-- Defense Panel -->
             <div class="panel" id="panel-defense">
                 <h2>🛡️ Defense Strategies</h2>
-                <p style="color: var(--muted); margin-bottom: 1.5rem;">Minnesota eviction defense strategies applicable to your case</p>
+                <p class="muted-text">Minnesota eviction defense strategies applicable to your case</p>
                 <div class="defense-grid" id="defense-list">
                     <div class="loading"><div class="spinner"></div> Loading defenses...</div>
                 </div>
@@ -1444,7 +1499,7 @@
             <!-- Motions Panel -->
             <div class="panel" id="panel-motions">
                 <h2>📋 Motion Templates</h2>
-                <p style="color: var(--muted); margin-bottom: 1.5rem;">Pre-drafted motions ready for your case</p>
+                <p class="muted-text">Pre-drafted motions ready for your case</p>
                 <div class="motions-grid" id="motions-list">
                     <div class="loading"><div class="spinner"></div> Loading motions...</div>
                 </div>
@@ -1453,7 +1508,7 @@
             <!-- Counterclaims Panel -->
             <div class="panel" id="panel-counterclaims">
                 <h2>⚔️ Counterclaims</h2>
-                <p style="color: var(--muted); margin-bottom: 1.5rem;">Potential counterclaims against the landlord</p>
+                <p class="muted-text">Potential counterclaims against the landlord</p>
                 <div class="defense-grid" id="counterclaims-list">
                     <div class="loading"><div class="spinner"></div> Loading counterclaims...</div>
                 </div>
@@ -1462,12 +1517,12 @@
             <!-- Library Panel -->
             <div class="panel" id="panel-library">
                 <h2>📚 Law Library</h2>
-                <p style="color: var(--muted); margin-bottom: 1.5rem;">Minnesota tenant law resources and references</p>
+                <p class="muted-text">Minnesota tenant law resources and references</p>
                 <div class="library-categories" id="library-categories">
                     <div class="loading"><div class="spinner"></div> Loading library...</div>
                 </div>
-                
-                <div class="widget" style="margin-top: 1.5rem;">
+
+                <div class="widget mt-1-5rem">
                     <div class="widget-header">
                         <h3>🔍 Quick Reference</h3>
                     </div>
@@ -1480,7 +1535,7 @@
             <!-- Zoom Panel -->
             <div class="panel" id="panel-zoom">
                 <h2>💻 Zoom Court Preparation</h2>
-                <p style="color: var(--muted); margin-bottom: 1.5rem;">Everything you need for virtual court appearances</p>
+                <p class="muted-text">Everything you need for virtual court appearances</p>
                 <div class="zoom-grid" id="zoom-content">
                     <div class="loading"><div class="spinner"></div> Loading Zoom tips...</div>
                 </div>
@@ -1489,7 +1544,7 @@
             <!-- Procedures Panel -->
             <div class="panel" id="panel-procedures">
                 <h2>📖 Court Procedures</h2>
-                <p style="color: var(--muted); margin-bottom: 1.5rem;">Step-by-step guides for eviction proceedings</p>
+                <p class="muted-text">Step-by-step guides for eviction proceedings</p>
                 <div class="defense-grid" id="procedures-list">
                     <div class="loading"><div class="spinner"></div> Loading procedures...</div>
                 </div>
@@ -2299,6 +2354,16 @@
 
         // Start
         initDashboard();
+        
+        // Initialize law linker for automatic statute linking
+        if (typeof LawLinker !== 'undefined') {
+            window.lawLinker = new LawLinker();
+        }
     </script>
+
+    <!-- Site-Wide Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/help-content.js"></script>
+    <script>SemptifyHelp.init('dashboard');</script>
 </body>
 </html>

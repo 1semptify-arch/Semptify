@@ -21,7 +21,7 @@ from app.services.positronic_brain import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/brain", tags=["Positronic Brain"])
+router = APIRouter(tags=["Positronic Brain"])
 
 
 # =============================================================================

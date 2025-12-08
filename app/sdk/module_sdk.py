@@ -426,6 +426,8 @@ class ModuleSDK:
         if self._hub:
             self._hub.register_module(
                 module_type=self.definition.name,
+                name=self.definition.display_name,
+                description=self.definition.description,
                 handles_documents=[d.value for d in self.definition.handles_documents],
                 accepts_packs=[p.value for p in self.definition.accepts_packs],
             )

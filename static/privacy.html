@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Semptify</title>
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-tertiary: #1a1a2e;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent-primary: #4f46e5;
+            --accent-success: #10b981;
+            --border-color: #2d2d3d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            padding: 3rem 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .last-updated {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(79, 70, 229, 0.1));
+            border: 2px solid var(--accent-success);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .highlight-box h2 {
+            color: var(--accent-success);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .highlight-box .icons {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .highlight-box ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+
+        .highlight-box li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-tertiary);
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+        }
+
+        .highlight-box li .check {
+            color: var(--accent-success);
+            font-weight: bold;
+        }
+
+        section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        section h2 {
+            color: var(--accent-primary);
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        section p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        section p:last-child {
+            margin-bottom: 0;
+        }
+
+        ul {
+            margin-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table th {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .data-table td {
+            color: var(--text-secondary);
+        }
+
+        .status-yes {
+            color: var(--accent-success);
+            font-weight: bold;
+        }
+
+        .status-no {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .donation-box {
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(124, 58, 237, 0.1));
+            border: 2px solid var(--accent-primary);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .donation-box h3 {
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
+        }
+
+        .donation-box p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4338ca;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .highlight-box ul {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">🔒</div>
+            <h1>Privacy Policy</h1>
+            <p class="last-updated">Last Updated: December 7, 2025</p>
+        </header>
+
+        <!-- Key Points Highlight -->
+        <div class="highlight-box">
+            <div class="icons">🚫📊 🚫👤 🚫📧 ✅🔒</div>
+            <h2>Our Privacy Promise</h2>
+            <ul>
+                <li><span class="check">✓</span> No User Registration</li>
+                <li><span class="check">✓</span> No Personal Data Collection</li>
+                <li><span class="check">✓</span> No User Logs or Tracking</li>
+                <li><span class="check">✓</span> No Advertising</li>
+                <li><span class="check">✓</span> 100% Free Forever</li>
+            </ul>
+        </div>
+
+        <!-- Overview -->
+        <section>
+            <h2>📋 Overview</h2>
+            <p>
+                Semptify is a free, open-source tenant rights assistance tool designed to help tenants 
+                understand their rights and navigate housing-related legal matters. We are committed to 
+                protecting your privacy by simply <strong>not collecting any personal information</strong>.
+            </p>
+            <p>
+                This privacy policy explains what data we do and don't collect, how the application works, 
+                and your rights as a user.
+            </p>
+        </section>
+
+        <!-- What We DON'T Collect -->
+        <section>
+            <h2>🚫 What We Don't Collect</h2>
+            <table class="data-table">
+                <tr>
+                    <th>Data Type</th>
+                    <th>Collected?</th>
+                    <th>Explanation</th>
+                </tr>
+                <tr>
+                    <td>Personal Information (name, email, phone)</td>
+                    <td><span class="status-no">NO</span></td>
+                    <td>We never ask for or store personal details</td>
+                </tr>
+                <tr>
+                    <td>User Registration / Accounts</td>
+                    <td><span class="status-no">NO</span></td>
+                    <td>No signup, login, or account creation required</td>
+                </tr>
+                <tr>
+                    <td>Usage Logs / Activity Tracking</td>
+                    <td><span class="status-no">NO</span></td>
+                    <td>We don't track what pages you visit or actions you take</td>
+                </tr>
+                <tr>
+                    <td>Analytics / Behavioral Data</td>
+                    <td><span class="status-no">NO</span></td>
+                    <td>No Google Analytics, Facebook Pixel, or similar</td>
+                </tr>
+                <tr>
+                    <td>Advertising IDs</td>
+                    <td><span class="status-no">NO</span></td>
+                    <td>There are no ads on Semptify</td>
+                </tr>
+                <tr>
+                    <td>Location Data</td>
+                    <td><span class="status-no">NO</span></td>
+                    <td>We don't request or store your location</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- What We DO Store Locally -->
+        <section>
+            <h2>💾 What's Stored Locally (On Your Device)</h2>
+            <p>
+                Semptify stores certain data <strong>locally on your device only</strong> using your browser's 
+                built-in storage (localStorage/IndexedDB). This data never leaves your device and is not 
+                accessible to us or anyone else.
+            </p>
+            <table class="data-table">
+                <tr>
+                    <th>Data Type</th>
+                    <th>Storage</th>
+                    <th>Purpose</th>
+                </tr>
+                <tr>
+                    <td>Anonymous Session ID</td>
+                    <td><span class="status-yes">Local Only</span></td>
+                    <td>A random ID to maintain your session (not linked to your identity)</td>
+                </tr>
+                <tr>
+                    <td>Your Documents</td>
+                    <td><span class="status-yes">Local Only</span></td>
+                    <td>Documents you upload stay on your device unless you connect cloud storage</td>
+                </tr>
+                <tr>
+                    <td>Timeline & Calendar</td>
+                    <td><span class="status-yes">Local Only</span></td>
+                    <td>Important dates and events you add</td>
+                </tr>
+                <tr>
+                    <td>Notes & Checklists</td>
+                    <td><span class="status-yes">Local Only</span></td>
+                    <td>Personal notes you create</td>
+                </tr>
+                <tr>
+                    <td>Preferences</td>
+                    <td><span class="status-yes">Local Only</span></td>
+                    <td>Your UI preferences and settings</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Cloud Storage -->
+        <section>
+            <h2>☁️ Optional Cloud Storage Integration</h2>
+            <p>
+                Semptify offers <strong>optional</strong> integration with third-party cloud storage providers:
+            </p>
+            <ul>
+                <li>Google Drive</li>
+                <li>Microsoft OneDrive</li>
+                <li>Dropbox</li>
+            </ul>
+            <p>
+                If you choose to connect cloud storage:
+            </p>
+            <ul>
+                <li>Your documents are stored in <strong>your own cloud account</strong>, not on our servers</li>
+                <li>We only store an encrypted access token to connect to your storage</li>
+                <li>You can disconnect at any time, and we immediately delete the access token</li>
+                <li>We never have direct access to your cloud storage contents</li>
+            </ul>
+        </section>
+
+        <!-- AI Features -->
+        <section>
+            <h2>🤖 AI Assistant Features</h2>
+            <p>
+                Semptify includes AI-powered features to help you understand legal concepts and documents. 
+                When you use these features:
+            </p>
+            <ul>
+                <li>Your queries are processed to generate helpful responses</li>
+                <li>We don't store your conversations or queries after the session ends</li>
+                <li>No conversation history is retained on our servers</li>
+                <li>AI responses are for informational purposes only and do not constitute legal advice</li>
+            </ul>
+        </section>
+
+        <!-- No Advertising -->
+        <section>
+            <h2>🚫 No Advertising</h2>
+            <p>
+                Semptify is and will always be <strong>100% ad-free</strong>. We will never:
+            </p>
+            <ul>
+                <li>Display advertisements of any kind</li>
+                <li>Sell or share data with advertisers</li>
+                <li>Use tracking pixels or advertising cookies</li>
+                <li>Participate in advertising networks</li>
+            </ul>
+        </section>
+
+        <!-- Free Forever -->
+        <section>
+            <h2>💚 100% Free Forever</h2>
+            <p>
+                Semptify is completely free to use. There are no premium features, no paywalls, 
+                no hidden costs. All features are available to everyone.
+            </p>
+            <p>
+                We believe access to housing rights information should never be limited by ability to pay.
+            </p>
+        </section>
+
+        <!-- Donations -->
+        <section>
+            <h2>❤️ Donations</h2>
+            <p>
+                While Semptify is free, we do accept voluntary donations to help cover hosting costs 
+                and continued development. Donations are:
+            </p>
+            <ul>
+                <li>Completely optional</li>
+                <li>Anonymous (we don't track donors)</li>
+                <li>Never required for any feature access</li>
+                <li>Used solely for hosting, development, and legal research</li>
+            </ul>
+        </section>
+
+        <!-- Your Rights -->
+        <section>
+            <h2>⚖️ Your Rights</h2>
+            <p>
+                Because we don't collect personal data, traditional data rights (access, deletion, portability) 
+                don't apply in the usual sense. However, you always have the right to:
+            </p>
+            <ul>
+                <li><strong>Clear local data:</strong> Use your browser's settings to clear localStorage and cookies</li>
+                <li><strong>Disconnect cloud storage:</strong> Remove cloud integrations at any time</li>
+                <li><strong>Use anonymously:</strong> No registration or identification required</li>
+                <li><strong>Contact us:</strong> Ask questions about our privacy practices</li>
+            </ul>
+        </section>
+
+        <!-- Security -->
+        <section>
+            <h2>🔐 Security</h2>
+            <p>
+                We take security seriously:
+            </p>
+            <ul>
+                <li>All connections use HTTPS encryption</li>
+                <li>Cloud storage tokens are encrypted with AES-256-GCM</li>
+                <li>No sensitive data is stored on our servers</li>
+                <li>Regular security audits and updates</li>
+            </ul>
+        </section>
+
+        <!-- Third-Party Services -->
+        <section>
+            <h2>🔗 Third-Party Services</h2>
+            <p>
+                The only third-party services Semptify interacts with are:
+            </p>
+            <ul>
+                <li><strong>Cloud Storage Providers:</strong> Google, Microsoft, Dropbox (only if you choose to connect)</li>
+                <li><strong>AI Services:</strong> For processing natural language queries (no data retained)</li>
+            </ul>
+            <p>
+                Each third-party service has their own privacy policy. We encourage you to review them 
+                if you choose to use these optional integrations.
+            </p>
+        </section>
+
+        <!-- Changes -->
+        <section>
+            <h2>📝 Changes to This Policy</h2>
+            <p>
+                We may update this privacy policy from time to time. Any changes will be posted on this page 
+                with an updated "Last Updated" date. Our commitment to not collecting personal data will not change.
+            </p>
+        </section>
+
+        <!-- Contact -->
+        <section>
+            <h2>📧 Contact</h2>
+            <p>
+                If you have questions about this privacy policy or Semptify's privacy practices, 
+                you can reach us through the GitHub repository or community channels.
+            </p>
+        </section>
+
+        <!-- Donation Box -->
+        <div class="donation-box">
+            <h3>💖 Support Semptify</h3>
+            <p>
+                Help us keep Semptify free, ad-free, and privacy-respecting. 
+                Every donation helps us serve more tenants in need.
+            </p>
+            <a href="/donate" class="btn btn-primary">❤️ Donate</a>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-links">
+            <a href="/static/welcome.html" class="btn btn-secondary">🏠 Home</a>
+            <a href="/static/command_center.html" class="btn btn-secondary">🚀 Command Center</a>
+            <a href="/static/help.html" class="btn btn-secondary">❓ Help & Resources</a>
+        </div>
+
+        <footer>
+            <p>Semptify - Free Tenant Rights Assistance</p>
+            <p>🔒 Your Privacy is Our Priority</p>
+        </footer>
+    </div>
+</body>
+</html>

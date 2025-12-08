@@ -556,13 +556,29 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Utility classes for inline style replacement */
+        .text-muted-header { color: var(--text-muted); }
+        .text-center { text-align: center; }
+        .justify-center { justify-content: center; }
+        .max-width-500 { max-width: 500px; margin: 0 auto 2rem; }
+        .section-heading { margin: 2rem 0 1rem; font-size: 1rem; color: var(--text-secondary); }
+        .hidden { display: none; }
+        .mt-top { margin-top: 1rem; }
+        .processing-center { text-align: center; padding: 3rem; }
+        .loading-lg { width: 60px; height: 60px; border-width: 4px; }
+        .mt-1-5 { margin-top: 1.5rem; }
+        .processing-text { margin-top: 1.5rem; color: var(--text-secondary); }
+        .loading-sm { width: 16px; height: 16px; }
+        .text-warning { color: var(--warning); }
     </style>
+    <link rel="stylesheet" href="/static/css/help-system.css">
 </head>
 <body>
     <!-- Header -->
     <header class="header">
         <div class="logo">⚖️ <span>Semptify</span></div>
-        <div style="color: var(--text-muted);">Court Defense System</div>
+        <div class="text-muted-header">Court Defense System</div>
     </header>
 
     <!-- Progress Bar -->
@@ -603,10 +619,10 @@
     <main class="main-content">
         <!-- Step 1: Welcome -->
         <div class="step-content active" data-step="1">
-            <div style="text-align: center;">
+            <div class="text-center">
                 <div class="welcome-icon">🏠</div>
-                <h1 class="step-title" style="justify-content: center;">Welcome to Semptify</h1>
-                <p class="step-description" style="max-width: 500px; margin: 0 auto 2rem;">
+                <h1 class="step-title justify-center">Welcome to Semptify</h1>
+                <p class="step-description max-width-500">
                     Your comprehensive court defense system. Let's set up your case properly so all your forms and documents are ready.
                 </p>
             </div>
@@ -642,7 +658,7 @@
                 </div>
             </div>
 
-            <div class="button-row" style="justify-content: center;">
+            <div class="button-row justify-center">
                 <button class="btn-primary" onclick="goToStep(2)">
                     Get Started <span>→</span>
                 </button>
@@ -694,10 +710,10 @@
                         <select id="state" name="state" required>
                             <option value="MN" selected>Minnesota</option>
                             <option value="WI">Wisconsin</option>
-                            <option value="ND">North Dakota</option>
                             <option value="SD">South Dakota</option>
                             <option value="IA">Iowa</option>
                         </select>
+                        <small class="text-muted">Semptify is optimized for Minnesota tenant rights</small>
                     </div>
                     <div class="form-group">
                         <label class="required" for="zipCode">ZIP Code</label>
@@ -751,7 +767,7 @@
                 </div>
 
                 <!-- Property Address -->
-                <h3 style="margin: 2rem 0 1rem; font-size: 1rem; color: var(--text-secondary);">
+                <h3 class="section-heading">
                     🏠 Rental Property Address
                 </h3>
                 
@@ -781,7 +797,7 @@
                 </div>
 
                 <!-- Landlord/Plaintiff -->
-                <h3 style="margin: 2rem 0 1rem; font-size: 1rem; color: var(--text-secondary);">
+                <h3 class="section-heading">
                     👤 Landlord/Plaintiff Information
                 </h3>
 
@@ -814,7 +830,7 @@
                 </div>
 
                 <!-- Key Dates -->
-                <h3 style="margin: 2rem 0 1rem; font-size: 1rem; color: var(--text-secondary);">
+                <h3 class="section-heading">
                     📅 Important Dates
                 </h3>
 
@@ -853,7 +869,7 @@
                 </div>
 
                 <!-- Amounts -->
-                <h3 style="margin: 2rem 0 1rem; font-size: 1rem; color: var(--text-secondary);">
+                <h3 class="section-heading">
                     💰 Amounts Claimed (from complaint)
                 </h3>
 
@@ -876,7 +892,7 @@
                 </div>
 
                 <!-- Lease Info -->
-                <h3 style="margin: 2rem 0 1rem; font-size: 1rem; color: var(--text-secondary);">
+                <h3 class="section-heading">
                     📝 Lease Information
                 </h3>
 
@@ -983,7 +999,7 @@
                 </div>
             </div>
 
-            <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt" style="display: none;">
+            <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt" class="hidden">
             
             <div class="upload-zone" id="uploadZone">
                 <div class="icon">📁</div>
@@ -991,7 +1007,7 @@
                 <div class="supported">Supported: PDF, Images, Word, Text</div>
             </div>
 
-            <div class="form-group" style="margin-top: 1rem;">
+            <div class="form-group mt-top">
                 <label for="docTypeSelect">Document Type (for next upload)</label>
                 <select id="docTypeSelect">
                     <option value="summons">Summons</option>
@@ -1026,12 +1042,12 @@
                 We're extracting information from your documents to auto-fill your court forms.
             </p>
 
-            <div id="processingStatus" style="text-align: center; padding: 3rem;">
-                <div class="loading" style="width: 60px; height: 60px; border-width: 4px;"></div>
-                <p style="margin-top: 1.5rem; color: var(--text-secondary);">Analyzing documents...</p>
+            <div id="processingStatus" class="processing-center">
+                <div class="loading loading-lg"></div>
+                <p class="processing-text">Analyzing documents...</p>
             </div>
 
-            <div id="processingResults" style="display: none;">
+            <div id="processingResults" class="hidden">
                 <div class="alert alert-success">
                     <span class="icon">✅</span>
                     <div>
@@ -1056,7 +1072,7 @@
                     <span>←</span> Back
                 </button>
                 <button class="btn-primary" id="processNextBtn" onclick="processDocuments()" disabled>
-                    <span class="loading" style="width: 16px; height: 16px;"></span>
+                    <span class="loading loading-sm"></span>
                     Processing...
                 </button>
             </div>
@@ -1540,7 +1556,7 @@
                             </div>
                             ${data.case_info.hearing_date ? `<div class="summary-item">
                                 <span class="label">Hearing Date</span>
-                                <span class="value" style="color: var(--warning);">${data.case_info.hearing_date} ${data.case_info.hearing_time || ''}</span>
+                                <span class="value text-warning">${data.case_info.hearing_date} ${data.case_info.hearing_time || ''}</span>
                             </div>` : ''}
                         </div>
                     `;
@@ -1621,5 +1637,6 @@
             if (data.lease_end_date) document.getElementById('leaseEndDate').value = data.lease_end_date;
         }
     </script>
+    <script src="/static/js/help-system.js"></script>
 </body>
 </html>

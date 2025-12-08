@@ -8,6 +8,10 @@ Each module registers handlers that can:
 3. Contribute to collaborative sessions
 
 This is where modules "talk" to each other through the mesh.
+
+NOTE: This bridges TWO mesh systems:
+1. mesh_network.py - MeshNetwork class (for /api/mesh/modules, mesh workflows)
+2. mesh_integration.py - ServiceMeshRegistry (for /api/mesh/nodes/{node}/call/{cap})
 """
 
 import logging
@@ -20,8 +24,24 @@ from app.core.mesh_network import (
     mesh_handler,
     mesh_contributor
 )
+from app.core.mesh_integration import service_mesh
 
 logger = logging.getLogger(__name__)
+
+
+def dual_mesh_handler(module_id: str, action: str):
+    """
+    Decorator that registers a handler with BOTH mesh systems:
+    1. mesh_network.py (MeshNetwork) - for mesh workflows
+    2. mesh_integration.py (ServiceMeshRegistry) - for node calls
+    """
+    def decorator(func):
+        # Register with MeshNetwork
+        wrapped = mesh_handler(module_id, action)(func)
+        # Also register with ServiceMeshRegistry (for /api/mesh/nodes calls)
+        service_mesh.register_handler(module_id, action, wrapped)
+        return wrapped
+    return decorator
 
 
 def register_all_mesh_handlers():
@@ -558,11 +578,184 @@ def register_all_mesh_handlers():
                 }
             }
         return {"hearing_prep_ready": True}
-    
+
+    # =========================================================================
+    # COURT LEARNING MODULE - Bidirectional Learning from Court Outcomes
+    # =========================================================================
+
+    mesh.register_module(
+        module_id="court_learning",
+        name="Court Learning Engine",
+        capabilities=[
+            "get_defense_rates", "get_judge_patterns", "get_landlord_patterns",
+            "get_learning_stats", "recommend_strategy", "record_outcome",
+            "seed_data", "get_case_summary"
+        ],
+        provides=["defense_success_rates", "judge_patterns", "landlord_patterns", "strategy_recommendation"],
+        requires=["case_data", "outcome_data"]
+    )
+
+    @dual_mesh_handler("court_learning", "get_defense_rates")
+    async def court_learning_get_defense_rates(payload: dict) -> dict:
+        """Get defense success rates from learning engine."""
+        try:
+            from app.services.eviction.court_learning import get_learning_engine
+            engine = await get_learning_engine()
+            rates = await engine.get_defense_success_rates(
+                county=payload.get("county", "Dakota"),
+                min_cases=payload.get("min_cases", 3)
+            )
+            return {
+                "defense_rates": [
+                    {
+                        "code": r.defense_code,
+                        "name": r.defense_name,
+                        "win_rate": r.win_rate,
+                        "total_uses": r.total_uses,
+                        "confidence": r.confidence
+                    }
+                    for r in rates
+                ]
+            }
+        except Exception as e:
+            logger.error(f"Court learning get_defense_rates error: {e}")
+            return {"error": str(e), "defense_rates": []}
+
+    @dual_mesh_handler("court_learning", "get_judge_patterns")
+    async def court_learning_get_judge_patterns(payload: dict) -> dict:
+        """Get judge patterns from learning engine."""
+        try:
+            from app.services.eviction.court_learning import get_learning_engine
+            engine = await get_learning_engine()
+            patterns = await engine.get_judge_patterns(
+                county=payload.get("county", "Dakota")
+            )
+            return {
+                "judge_patterns": [
+                    {
+                        "name": p.judge_name,
+                        "tenant_win_rate": p.tenant_win_rate,
+                        "total_cases": p.total_cases,
+                        "favored_defenses": p.favored_defenses,
+                        "motion_grant_rate": p.motion_grant_rate
+                    }
+                    for p in patterns
+                ]
+            }
+        except Exception as e:
+            logger.error(f"Court learning get_judge_patterns error: {e}")
+            return {"error": str(e), "judge_patterns": []}
+
+    @dual_mesh_handler("court_learning", "get_learning_stats")
+    async def court_learning_get_stats(payload: dict) -> dict:
+        """Get overall learning statistics."""
+        try:
+            from app.services.eviction.court_learning import get_learning_engine
+            engine = await get_learning_engine()
+            stats = await engine.get_learning_stats()
+            return {
+                "total_cases": stats.get("total_cases_recorded", 0),
+                "total_defenses": stats.get("total_defense_outcomes", 0),
+                "counties": stats.get("counties_covered", []),
+                "learning_active": True
+            }
+        except Exception as e:
+            logger.error(f"Court learning get_stats error: {e}")
+            return {"error": str(e), "total_cases": 0, "learning_active": False}
+
+    @dual_mesh_handler("court_learning", "recommend_strategy")
+    async def court_learning_recommend_strategy(payload: dict) -> dict:
+        """Get strategy recommendation based on case characteristics."""
+        try:
+            from app.services.eviction.court_learning import get_learning_engine
+            engine = await get_learning_engine()
+            recommendation = await engine.get_recommended_strategy(
+                notice_type=payload.get("notice_type", ""),
+                amount_claimed_cents=payload.get("amount_claimed_cents", 0),
+                available_defenses=payload.get("available_defenses", []),
+                judge_name=payload.get("judge_name"),
+                landlord_name=payload.get("landlord_name")
+            )
+            return {"recommendation": recommendation}
+        except Exception as e:
+            logger.error(f"Court learning recommend_strategy error: {e}")
+            return {"error": str(e), "recommendation": None}
+
+    @dual_mesh_handler("court_learning", "get_case_summary")
+    async def court_learning_get_case_summary(payload: dict) -> dict:
+        """Get court learning insights for case summary."""
+        try:
+            from app.services.eviction.court_learning import get_learning_engine
+            engine = await get_learning_engine()
+            
+            # Get top defenses
+            rates = await engine.get_defense_success_rates(county="Dakota", min_cases=3)
+            top_defenses = [
+                {"code": r.defense_code, "win_rate": r.win_rate}
+                for r in rates[:5]
+            ] if rates else []
+            
+            stats = await engine.get_learning_stats()
+            
+            return {
+                "learning_insights": {
+                    "top_defenses": top_defenses,
+                    "total_cases_learned": stats.get("total_cases_recorded", 0),
+                    "data_driven": stats.get("total_cases_recorded", 0) > 0
+                }
+            }
+        except Exception as e:
+            logger.error(f"Court learning get_case_summary error: {e}")
+            return {"learning_insights": {"top_defenses": [], "total_cases_learned": 0, "data_driven": False}}
+
+    @mesh_contributor("court_learning")
+    async def court_learning_contribute(context: dict, goal: str) -> dict:
+        """Contribute court learning data to collaborative requests."""
+        if goal == "build_defense":
+            try:
+                from app.services.eviction.court_learning import get_learning_engine
+                engine = await get_learning_engine()
+                
+                rates = await engine.get_defense_success_rates(county="Dakota", min_cases=3)
+                top_defenses = rates[:5] if rates else []
+                
+                judge_name = context.get("judge_name")
+                judge_insight = None
+                if judge_name:
+                    patterns = await engine.get_judge_patterns(county="Dakota")
+                    judge_data = next((p for p in patterns if p.judge_name == judge_name), None)
+                    if judge_data:
+                        judge_insight = {
+                            "name": judge_data.judge_name,
+                            "tenant_win_rate": judge_data.tenant_win_rate,
+                            "favored_defenses": judge_data.favored_defenses
+                        }
+                
+                return {
+                    "court_learning_analysis": {
+                        "recommended_defenses": [
+                            {
+                                "code": r.defense_code,
+                                "name": r.defense_name,
+                                "success_rate": r.win_rate,
+                                "confidence": r.confidence
+                            }
+                            for r in top_defenses
+                        ],
+                        "judge_insights": judge_insight,
+                        "data_based": True,
+                        "cases_analyzed": len(engine._case_outcomes) if hasattr(engine, '_case_outcomes') else 0
+                    }
+                }
+            except Exception as e:
+                logger.error(f"Court learning contribute error: {e}")
+                return {"court_learning_analysis": {"error": str(e), "data_based": False}}
+        return {"court_learning_data": True}
+
     # =========================================================================
     # CONTEXT MODULE
     # =========================================================================
-    
+
     mesh.register_module(
         module_id="context",
         name="Context Engine",
@@ -624,10 +817,118 @@ def register_all_mesh_handlers():
                 }
             }
         return {"ui_updated": True}
-    
-    logger.info("✅ All mesh handlers registered")
-    
-    # Return stats
+
+    # =========================================================================
+    # LEGAL TRAILS MODULE
+    # =========================================================================
+    mesh.register_module(
+        module_id="legal_trails",
+        name="Legal Trails",
+        capabilities=[
+            "log_violation", "log_eviction_threat", "log_late_fee",
+            "track_broker", "create_claim", "calculate_deadlines",
+            "generate_complaint", "find_attorney"
+        ],
+        provides=["violations", "claims", "deadlines", "attorneys", "complaints"],
+        requires=["case_data", "violation_data"]
+    )
+
+    @dual_mesh_handler("legal_trails", "log_violation")
+    async def legal_trails_log_violation(payload: dict) -> dict:
+        """Log a violation through the mesh."""
+        try:
+            from app.routers.legal_trails import violations_db, Violation
+            import uuid
+            from datetime import datetime
+            
+            violation_id = str(uuid.uuid4())[:8]
+            violation_data = {
+                "id": violation_id,
+                "violation_type": payload.get("violation_type"),
+                "date_occurred": payload.get("date_occurred"),
+                "description": payload.get("description"),
+                "perpetrator": payload.get("perpetrator"),
+                "perpetrator_role": payload.get("perpetrator_role"),
+                "company": payload.get("company"),
+                "amount_if_financial": payload.get("amount_if_financial"),
+                "statutes_violated": payload.get("statutes_violated", []),
+                "evidence_ids": payload.get("evidence_ids", []),
+                "witnesses": payload.get("witnesses", []),
+                "created_at": datetime.now().isoformat()
+            }
+            violations_db[violation_id] = violation_data
+            return {"success": True, "violation_id": violation_id}
+        except Exception as e:
+            return {"error": str(e)}
+
+    @dual_mesh_handler("legal_trails", "calculate_deadlines")
+    async def legal_trails_calculate_deadlines(payload: dict) -> dict:
+        """Calculate filing deadlines through the mesh."""
+        try:
+            from datetime import date, timedelta
+            violation_date_str = payload.get("violation_date")
+            if not violation_date_str:
+                return {"error": "violation_date required"}
+            
+            violation_date = date.fromisoformat(violation_date_str)
+            today = date.today()
+            
+            STATUTE_OF_LIMITATIONS = {
+                "civil_retaliation": 6,
+                "civil_fraud": 6,
+                "hud_complaint": 1,
+                "criminal_theft": 5,
+                "license_complaint": 2,
+            }
+            
+            windows = []
+            for claim_type, years in STATUTE_OF_LIMITATIONS.items():
+                deadline = violation_date + timedelta(days=years * 365)
+                days_remaining = (deadline - today).days
+                urgency = "expired" if days_remaining < 0 else "critical" if days_remaining < 90 else "warning" if days_remaining < 365 else "safe"
+                windows.append({
+                    "claim_type": claim_type,
+                    "deadline": deadline.isoformat(),
+                    "days_remaining": max(0, days_remaining),
+                    "urgency": urgency
+                })
+            return {"windows": windows}
+        except Exception as e:
+            return {"error": str(e)}
+
+    @dual_mesh_handler("legal_trails", "find_attorney")
+    async def legal_trails_find_attorney(payload: dict) -> dict:
+        """Get attorney recommendations through the mesh."""
+        return {
+            "attorneys": [
+                {"name": "Madia Law LLC", "specialty": "Fraud, tenant justice", "website": "https://madialaw.com"},
+                {"name": "Burns & Hansen, P.A.", "specialty": "Real estate litigation", "website": "https://patrickburnslaw.com"},
+                {"name": "HOME Line", "specialty": "Free tenant hotline", "phone": "612-728-5767"},
+                {"name": "Legal Aid - Housing", "specialty": "Free legal services", "phone": "612-334-5970"}
+            ]
+        }
+
+    @mesh_contributor("legal_trails")
+    async def legal_trails_contribute(context: dict, goal: str) -> dict:
+        """Contribute legal trails data to collaborative workflows."""
+        if goal == "build_defense":
+            from app.routers.legal_trails import violations_db, eviction_threats_db, late_fees_db
+            return {
+                "legal_trails": {
+                    "violations_count": len(violations_db),
+                    "threats_count": len(eviction_threats_db),
+                    "late_fees_count": len(late_fees_db),
+                    "statutes": ["MN 504B.177", "MN 504B.285", "MN 504B.161"],
+                    "filing_windows": {
+                        "civil": "6 years",
+                        "hud": "1 year",
+                        "license": "2 years"
+                    }
+                }
+            }
+        return {"legal_trails_ready": True}
+
+    logger.info("✅ All mesh handlers registered")    # Return stats
     mesh_status = mesh.get_status()
     return {
         "modules_registered": mesh_status["modules_connected"],

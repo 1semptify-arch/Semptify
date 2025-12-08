@@ -4,7 +4,7 @@ Scheduling, deadlines, and reminders.
 """
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
 from app.core.security import require_user, StorageUser
+from app.core.utc import utc_now
 from app.models.models import CalendarEvent as CalendarEventModel
 
 
@@ -149,7 +150,7 @@ async def create_event(
             event_type=event.event_type,
             is_critical=event.is_critical,
             reminder_days=event.reminder_days,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.utcnow(),
         )
         session.add(db_event)
         await session.commit()
@@ -226,7 +227,7 @@ async def upcoming_deadlines(
 
     This endpoint is designed for dashboard widgets and the intensity engine.
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()
     cutoff = now + timedelta(days=days)
 
     async with get_db_session() as session:

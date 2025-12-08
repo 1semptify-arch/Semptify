@@ -1,0 +1,108 @@
+{
+  "name": "Semptify Legal Defense",
+  "short_name": "Semptify",
+  "description": "Your Personal Legal Defense Assistant - Eviction defense made simple",
+  "start_url": "/static/welcome.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "orientation": "any",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/static/icons/icon-72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities", "legal"],
+  "shortcuts": [
+    {
+      "name": "Command Center",
+      "short_name": "Dashboard",
+      "description": "Open your case dashboard",
+      "url": "/static/command_center.html",
+      "icons": [{"src": "/static/icons/dashboard-96.png", "sizes": "96x96"}]
+    },
+    {
+      "name": "Upload Document",
+      "short_name": "Upload",
+      "description": "Upload a new document",
+      "url": "/static/document_intake.html",
+      "icons": [{"src": "/static/icons/upload-96.png", "sizes": "96x96"}]
+    },
+    {
+      "name": "Generate Answer",
+      "short_name": "Answer",
+      "description": "Generate Answer to Complaint",
+      "url": "/api/forms/quick-answer",
+      "icons": [{"src": "/static/icons/form-96.png", "sizes": "96x96"}]
+    },
+    {
+      "name": "Court Prep",
+      "short_name": "Court",
+      "description": "Prepare for your hearing",
+      "url": "/static/zoom_court.html",
+      "icons": [{"src": "/static/icons/court-96.png", "sizes": "96x96"}]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/screenshots/dashboard.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Command Center Dashboard"
+    },
+    {
+      "src": "/static/screenshots/timeline.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Case Timeline"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

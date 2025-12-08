@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Briefcase - Semptify</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4ade80;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+        }
+        
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+        
+        /* Navigation */
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary) !important;
+        }
+        
+        /* Three Column Layout */
+        .app-container {
+            display: grid;
+            grid-template-columns: 260px 1fr 320px;
+            height: calc(100vh - 60px);
+            gap: 1px;
+            background: var(--border-color);
+        }
+        
+        .sidebar, .main-content, .right-panel {
+            background: var(--bg-dark);
+            overflow-y: auto;
+        }
+        
+        /* Sidebar - Folder Tree */
+        .sidebar {
+            padding: 1rem;
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .folder-tree {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .folder-item {
+            padding: 0.5rem 0.75rem;
+            margin: 0.25rem 0;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+        
+        .folder-item:hover {
+            background: var(--bg-hover);
+        }
+        
+        .folder-item.active {
+            background: var(--primary);
+            color: #000;
+        }
+        
+        .folder-item .folder-icon {
+            font-size: 1.2rem;
+        }
+        
+        .folder-item.system {
+            font-style: italic;
+        }
+        
+        .folder-children {
+            margin-left: 1rem;
+            border-left: 2px solid var(--border-color);
+            padding-left: 0.5rem;
+        }
+        
+        /* Main Content - Documents Grid */
+        .main-content {
+            padding: 1.5rem;
+        }
+        
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .breadcrumb-nav {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .breadcrumb-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+        
+        .breadcrumb-nav a:hover {
+            color: var(--primary);
+        }
+        
+        .breadcrumb-nav .current {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .toolbar {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .toolbar .btn {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.85rem;
+        }
+        
+        /* Document Grid */
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+        
+        .doc-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            position: relative;
+        }
+        
+        .doc-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+        
+        .doc-card.selected {
+            border-color: var(--primary);
+            background: rgba(74, 222, 128, 0.1);
+        }
+        
+        .doc-icon {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 0.75rem;
+        }
+        
+        .doc-icon.pdf { color: #ef4444; }
+        .doc-icon.word { color: #3b82f6; }
+        .doc-icon.excel { color: #22c55e; }
+        .doc-icon.image { color: #f59e0b; }
+        .doc-icon.text { color: #94a3b8; }
+        .doc-icon.other { color: #64748b; }
+        
+        .doc-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: center;
+            word-break: break-word;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .doc-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+        
+        .doc-star {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            color: #fbbf24;
+            font-size: 1rem;
+        }
+        
+        /* Folder Cards */
+        .folder-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .folder-card:hover {
+            transform: translateY(-2px);
+            background: var(--bg-hover);
+        }
+        
+        .folder-card .folder-icon {
+            font-size: 2rem;
+        }
+        
+        /* Right Panel */
+        .right-panel {
+            padding: 1rem;
+            border-left: 1px solid var(--border-color);
+        }
+        
+        .panel-section {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .panel-title {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Extractions List */
+        .extraction-item {
+            padding: 0.75rem;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+        }
+        
+        .extraction-item .pdf-name {
+            font-weight: 500;
+            color: var(--primary);
+        }
+        
+        .extraction-item .pages {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+        
+        /* Highlights List */
+        .highlight-item {
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            border-left: 4px solid;
+        }
+        
+        .highlight-item .note {
+            font-style: italic;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        
+        /* Color indicators */
+        .color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        
+        /* Stats Panel */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        
+        .stat-item {
+            background: var(--bg-dark);
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Tags */
+        .tag {
+            display: inline-block;
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin: 0.1rem;
+        }
+        
+        /* Upload Area */
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--bg-card);
+        }
+        
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--primary);
+            background: rgba(74, 222, 128, 0.1);
+        }
+        
+        .upload-zone i {
+            font-size: 3rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+        
+        /* Modals */
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .modal-footer {
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .form-control, .form-select {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background: var(--bg-dark);
+            border-color: var(--primary);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.2rem rgba(74, 222, 128, 0.25);
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* Draggable Help Button */
+        .help-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #22c55e);
+            color: #000;
+            border: none;
+            box-shadow: 0 4px 15px rgba(74, 222, 128, 0.4);
+            cursor: grab;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: transform 0.2s, box-shadow 0.2s;
+            user-select: none;
+        }
+        
+        .help-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(74, 222, 128, 0.6);
+        }
+        
+        .help-btn:active, .help-btn.dragging {
+            cursor: grabbing;
+            transform: scale(1.15);
+        }
+        
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.5rem 0;
+            min-width: 180px;
+            z-index: 10000;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            display: none;
+        }
+        
+        .context-menu.show {
+            display: block;
+        }
+        
+        .context-menu-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .context-menu-item:hover {
+            background: var(--bg-hover);
+        }
+        
+        .context-menu-item.danger {
+            color: #ef4444;
+        }
+        
+        .context-menu-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-dark" style="background: var(--bg-card); border-bottom: 1px solid var(--border-color);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="command_center.html">
+                <i class="bi bi-briefcase-fill me-2"></i>Briefcase
+            </a>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-light btn-sm" onclick="exportBriefcase()">
+                    <i class="bi bi-download me-1"></i>Export
+                </button>
+                <a href="command_center.html" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-house"></i>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="app-container">
+        <!-- Sidebar - Folder Tree -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <span class="fw-semibold">Folders</span>
+                <button class="btn btn-sm btn-outline-success" onclick="showNewFolderModal()">
+                    <i class="bi bi-folder-plus"></i>
+                </button>
+            </div>
+            <ul class="folder-tree" id="folderTree">
+                <!-- Folder tree will be populated here -->
+            </ul>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="content-header">
+                <div class="breadcrumb-nav" id="breadcrumb"></div>
+                <div class="toolbar">
+                    <button class="btn btn-success" onclick="showUploadModal()">
+                        <i class="bi bi-upload me-1"></i>Upload
+                    </button>
+                    <button class="btn btn-outline-light" onclick="toggleView()">
+                        <i class="bi bi-grid" id="viewToggleIcon"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="documentsContainer">
+                <!-- Documents will be displayed here -->
+            </div>
+        </div>
+        
+        <!-- Right Panel -->
+        <div class="right-panel">
+            <!-- Stats -->
+            <div class="panel-section">
+                <div class="panel-title"><i class="bi bi-bar-chart"></i> Stats</div>
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="statDocs">0</div>
+                        <div class="stat-label">Documents</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statFolders">0</div>
+                        <div class="stat-label">Folders</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statExtracts">0</div>
+                        <div class="stat-label">Extractions</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="statHighlights">0</div>
+                        <div class="stat-label">Highlights</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Extractions -->
+            <div class="panel-section">
+                <div class="panel-title"><i class="bi bi-file-earmark-pdf"></i> Extracted Pages</div>
+                <div id="extractionsList">
+                    <div class="text-secondary small">No extractions yet</div>
+                </div>
+            </div>
+            
+            <!-- Recent Highlights -->
+            <div class="panel-section">
+                <div class="panel-title"><i class="bi bi-highlighter"></i> Highlights & Notes</div>
+                <div id="highlightsList">
+                    <div class="text-secondary small">No highlights yet</div>
+                </div>
+            </div>
+            
+            <!-- Starred Documents -->
+            <div class="panel-section">
+                <div class="panel-title"><i class="bi bi-star-fill text-warning"></i> Starred</div>
+                <div id="starredList">
+                    <div class="text-secondary small">No starred documents</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Draggable Help Button -->
+    <button class="help-btn" id="helpBtn" title="Need help? Drag me anywhere!">
+        <i class="bi bi-question-lg"></i>
+    </button>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item" onclick="previewDocument()">
+            <i class="bi bi-eye"></i> Preview
+        </div>
+        <div class="context-menu-item" onclick="downloadDocument()">
+            <i class="bi bi-download"></i> Download
+        </div>
+        <div class="context-menu-item" onclick="starDocument()">
+            <i class="bi bi-star"></i> <span id="starLabel">Star</span>
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" onclick="moveDocument()">
+            <i class="bi bi-folder-symlink"></i> Move to...
+        </div>
+        <div class="context-menu-item" onclick="copyDocument()">
+            <i class="bi bi-copy"></i> Copy to...
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item danger" onclick="deleteDocument()">
+            <i class="bi bi-trash"></i> Delete
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-upload me-2"></i>Upload Document</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="upload-zone" id="uploadZone">
+                        <i class="bi bi-cloud-upload"></i>
+                        <p class="mb-1">Drop files here or click to browse</p>
+                        <small class="text-secondary">PDF, Word, Excel, Images, etc.</small>
+                        <input type="file" id="fileInput" hidden multiple>
+                    </div>
+                    <div class="mt-3" id="selectedFiles" style="display: none;">
+                        <label class="form-label">Selected Files</label>
+                        <div id="fileList"></div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label">Tags (comma separated)</label>
+                        <input type="text" class="form-control" id="uploadTags" placeholder="e.g., Evidence, Important">
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-control" id="uploadNotes" rows="2" placeholder="Optional notes..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="uploadFiles()">
+                        <i class="bi bi-upload me-1"></i>Upload
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Folder Modal -->
+    <div class="modal fade" id="newFolderModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-folder-plus me-2"></i>New Folder</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" class="form-control" id="newFolderName" placeholder="Folder name">
+                    <div class="mt-3">
+                        <label class="form-label">Color</label>
+                        <div class="d-flex gap-2">
+                            <input type="color" id="folderColor" value="#3b82f6" class="form-control form-control-color">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="createFolder()">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="previewTitle">Document Preview</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="min-height: 400px;">
+                    <div id="previewContent" class="text-center">
+                        <!-- Preview content here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-question-circle me-2"></i>Briefcase Help</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6><i class="bi bi-briefcase me-2 text-success"></i>About Briefcase</h6>
+                    <p class="small text-secondary">
+                        Your digital briefcase for organizing legal documents, evidence, and case files.
+                    </p>
+                    
+                    <h6 class="mt-3"><i class="bi bi-folder me-2 text-warning"></i>Folders</h6>
+                    <ul class="small text-secondary">
+                        <li><strong>📄 Extracted Pages</strong> - Pages extracted from PDF Tools</li>
+                        <li><strong>🖍️ Highlights & Notes</strong> - Annotations from PDF Tools</li>
+                        <li><strong>📸 Evidence</strong> - Important evidence files</li>
+                    </ul>
+                    
+                    <h6 class="mt-3"><i class="bi bi-lightbulb me-2 text-info"></i>Tips</h6>
+                    <ul class="small text-secondary">
+                        <li>Right-click documents for more options</li>
+                        <li>Star important documents for quick access</li>
+                        <li>Use tags to organize and search</li>
+                        <li>Export folders as ZIP for backup</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // State
+        let currentFolderId = 'root';
+        let folders = {};
+        let documents = [];
+        let selectedDocument = null;
+        let viewMode = 'grid';
+        let pendingFiles = [];
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBriefcase();
+            setupEventListeners();
+            setupDraggableHelp();
+        });
+        
+        function setupEventListeners() {
+            // Upload zone
+            const uploadZone = document.getElementById('uploadZone');
+            const fileInput = document.getElementById('fileInput');
+            
+            uploadZone.addEventListener('click', () => fileInput.click());
+            uploadZone.addEventListener('dragover', e => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
+            });
+            uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+            uploadZone.addEventListener('drop', e => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            });
+            
+            fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+            
+            // Context menu
+            document.addEventListener('click', () => {
+                document.getElementById('contextMenu').classList.remove('show');
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') {
+                    document.getElementById('contextMenu').classList.remove('show');
+                }
+            });
+        }
+        
+        // Draggable Help Button
+        function setupDraggableHelp() {
+            const helpBtn = document.getElementById('helpBtn');
+            let isDragging = false;
+            let startX, startY, startLeft, startTop;
+            
+            helpBtn.addEventListener('mousedown', e => {
+                if (e.button !== 0) return;
+                
+                isDragging = false;
+                startX = e.clientX;
+                startY = e.clientY;
+                
+                const rect = helpBtn.getBoundingClientRect();
+                startLeft = rect.left;
+                startTop = rect.top;
+                
+                helpBtn.classList.add('dragging');
+                
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+            
+            function onMouseMove(e) {
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                
+                if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+                    isDragging = true;
+                }
+                
+                if (isDragging) {
+                    let newLeft = startLeft + dx;
+                    let newTop = startTop + dy;
+                    
+                    // Keep within viewport
+                    newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - 56));
+                    newTop = Math.max(0, Math.min(newTop, window.innerHeight - 56));
+                    
+                    helpBtn.style.left = newLeft + 'px';
+                    helpBtn.style.top = newTop + 'px';
+                    helpBtn.style.right = 'auto';
+                    helpBtn.style.bottom = 'auto';
+                }
+            }
+            
+            function onMouseUp() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                helpBtn.classList.remove('dragging');
+                
+                if (!isDragging) {
+                    // It was a click, show help
+                    const modal = new bootstrap.Modal(document.getElementById('helpModal'));
+                    modal.show();
+                }
+            }
+        }
+        
+        // API Functions
+        async function loadBriefcase() {
+            try {
+                const response = await fetch('/api/briefcase/');
+                const data = await response.json();
+                
+                // Convert folders array to object
+                folders = {};
+                data.folders.forEach(f => folders[f.id] = f);
+                
+                documents = data.documents;
+                
+                renderFolderTree();
+                loadFolderContents(currentFolderId);
+                loadStats();
+                loadExtractions();
+                loadHighlights();
+                loadStarred();
+            } catch (error) {
+                console.error('Failed to load briefcase:', error);
+            }
+        }
+        
+        async function loadFolderContents(folderId) {
+            currentFolderId = folderId;
+            
+            try {
+                const response = await fetch(`/api/briefcase/folder/${folderId}`);
+                const data = await response.json();
+                
+                renderBreadcrumb(data.breadcrumb);
+                renderDocuments(data.subfolders, data.documents);
+                
+                // Update active folder in tree
+                document.querySelectorAll('.folder-item').forEach(item => {
+                    item.classList.toggle('active', item.dataset.id === folderId);
+                });
+            } catch (error) {
+                console.error('Failed to load folder:', error);
+            }
+        }
+        
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/briefcase/stats');
+                const stats = await response.json();
+                
+                document.getElementById('statDocs').textContent = stats.total_documents;
+                document.getElementById('statFolders').textContent = stats.total_folders;
+                document.getElementById('statExtracts').textContent = stats.extractions_count || 0;
+                document.getElementById('statHighlights').textContent = stats.highlights_count || 0;
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+        
+        async function loadExtractions() {
+            try {
+                const response = await fetch('/api/briefcase/extractions');
+                const data = await response.json();
+                
+                const container = document.getElementById('extractionsList');
+                
+                if (data.extractions.length === 0) {
+                    container.innerHTML = '<div class="text-secondary small">No extractions yet</div>';
+                    return;
+                }
+                
+                container.innerHTML = data.extractions.slice(0, 5).map(ext => `
+                    <div class="extraction-item">
+                        <div class="pdf-name">${ext.pdf_name}</div>
+                        <div class="pages">Pages: ${ext.pages.join(', ')}</div>
+                        <div class="d-flex gap-2 mt-2">
+                            ${ext.file_path ? `<a href="/api/briefcase/extraction/${ext.id}/download" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-download"></i>
+                            </a>` : ''}
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteExtraction('${ext.id}')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load extractions:', error);
+            }
+        }
+        
+        async function loadHighlights() {
+            try {
+                const response = await fetch('/api/briefcase/highlights');
+                const data = await response.json();
+                
+                const container = document.getElementById('highlightsList');
+                
+                if (data.highlights.length === 0) {
+                    container.innerHTML = '<div class="text-secondary small">No highlights yet</div>';
+                    return;
+                }
+                
+                container.innerHTML = data.highlights.slice(0, 5).map(h => `
+                    <div class="highlight-item" style="border-color: ${h.color}; background: ${h.color}20;">
+                        <div><strong>${h.pdf_name}</strong> - Page ${h.page_number}</div>
+                        <div><span class="color-dot" style="background: ${h.color};"></span>${h.color_name || 'Highlight'}</div>
+                        ${h.note ? `<div class="note">"${h.note}"</div>` : ''}
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load highlights:', error);
+            }
+        }
+        
+        async function loadStarred() {
+            try {
+                const response = await fetch('/api/briefcase/starred');
+                const data = await response.json();
+                
+                const container = document.getElementById('starredList');
+                
+                if (data.documents.length === 0) {
+                    container.innerHTML = '<div class="text-secondary small">No starred documents</div>';
+                    return;
+                }
+                
+                container.innerHTML = data.documents.slice(0, 5).map(doc => `
+                    <div class="extraction-item" onclick="loadFolderContents('${doc.folder_id}')" style="cursor: pointer;">
+                        <div class="pdf-name"><i class="bi bi-star-fill text-warning me-1"></i>${doc.name}</div>
+                        <div class="pages">${formatFileSize(doc.size)}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load starred:', error);
+            }
+        }
+        
+        // Render Functions
+        function renderFolderTree() {
+            const container = document.getElementById('folderTree');
+            container.innerHTML = renderFolderItem(folders.root);
+        }
+        
+        function renderFolderItem(folder, depth = 0) {
+            const children = Object.values(folders).filter(f => f.parent_id === folder.id);
+            const isSystem = folder.system ? 'system' : '';
+            
+            let html = `
+                <li class="folder-item ${isSystem}" data-id="${folder.id}" onclick="loadFolderContents('${folder.id}')">
+                    <span class="folder-icon" style="color: ${folder.color || '#3b82f6'};">
+                        <i class="bi bi-${folder.icon || 'folder'}"></i>
+                    </span>
+                    <span>${folder.name}</span>
+                </li>
+            `;
+            
+            if (children.length > 0) {
+                html += `<ul class="folder-children">`;
+                children.forEach(child => {
+                    html += renderFolderItem(child, depth + 1);
+                });
+                html += `</ul>`;
+            }
+            
+            return html;
+        }
+        
+        function renderBreadcrumb(breadcrumb) {
+            const container = document.getElementById('breadcrumb');
+            container.innerHTML = breadcrumb.map((item, index) => {
+                if (index === breadcrumb.length - 1) {
+                    return `<span class="current">${item.name}</span>`;
+                }
+                return `<a href="#" onclick="loadFolderContents('${item.id}'); return false;">${item.name}</a> <i class="bi bi-chevron-right"></i>`;
+            }).join(' ');
+        }
+        
+        function renderDocuments(subfolders, docs) {
+            const container = document.getElementById('documentsContainer');
+            
+            if (subfolders.length === 0 && docs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-folder-x"></i>
+                        <h5>Empty Folder</h5>
+                        <p>Upload documents or create subfolders</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div class="documents-grid">';
+            
+            // Folders first
+            subfolders.forEach(folder => {
+                html += `
+                    <div class="folder-card" onclick="loadFolderContents('${folder.id}')">
+                        <span class="folder-icon" style="color: ${folder.color || '#3b82f6'};">
+                            <i class="bi bi-${folder.icon || 'folder-fill'}"></i>
+                        </span>
+                        <div>
+                            <div class="fw-semibold">${folder.name}</div>
+                            <div class="small text-secondary">Folder</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Documents
+            docs.forEach(doc => {
+                const icon = getDocIcon(doc.type);
+                html += `
+                    <div class="doc-card" data-id="${doc.id}" oncontextmenu="showContextMenu(event, '${doc.id}')" onclick="selectDocument('${doc.id}')">
+                        ${doc.starred ? '<i class="bi bi-star-fill doc-star"></i>' : ''}
+                        <div class="doc-icon ${doc.type}"><i class="bi bi-${icon}"></i></div>
+                        <div class="doc-name">${doc.name}</div>
+                        <div class="doc-meta">${formatFileSize(doc.size)}</div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+        
+        function getDocIcon(type) {
+            const icons = {
+                'pdf': 'file-pdf',
+                'word': 'file-word',
+                'excel': 'file-excel',
+                'powerpoint': 'file-ppt',
+                'image': 'file-image',
+                'text': 'file-text',
+                'audio': 'file-music',
+                'video': 'file-play',
+                'archive': 'file-zip',
+                'web': 'file-code',
+                'data': 'file-earmark-code'
+            };
+            return icons[type] || 'file-earmark';
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+        
+        // Document Actions
+        function selectDocument(docId) {
+            selectedDocument = docId;
+            document.querySelectorAll('.doc-card').forEach(card => {
+                card.classList.toggle('selected', card.dataset.id === docId);
+            });
+        }
+        
+        function showContextMenu(e, docId) {
+            e.preventDefault();
+            selectDocument(docId);
+            
+            const menu = document.getElementById('contextMenu');
+            const doc = documents.find(d => d.id === docId);
+            
+            document.getElementById('starLabel').textContent = doc?.starred ? 'Unstar' : 'Star';
+            
+            menu.style.left = e.pageX + 'px';
+            menu.style.top = e.pageY + 'px';
+            menu.classList.add('show');
+        }
+        
+        async function previewDocument() {
+            if (!selectedDocument) return;
+            
+            try {
+                const response = await fetch(`/api/briefcase/document/${selectedDocument}/preview`);
+                const data = await response.json();
+                
+                document.getElementById('previewTitle').textContent = data.name;
+                
+                const content = document.getElementById('previewContent');
+                if (data.type === 'image') {
+                    content.innerHTML = `<img src="${data.content}" class="img-fluid" alt="${data.name}">`;
+                } else if (data.type === 'pdf') {
+                    content.innerHTML = `<embed src="${data.content}" type="application/pdf" width="100%" height="500px">`;
+                } else if (data.type === 'text') {
+                    content.innerHTML = `<pre style="text-align: left;">${atob(data.content.split(',')[1])}</pre>`;
+                } else {
+                    content.innerHTML = `<p>Preview not available for this file type.</p>
+                        <a href="/api/briefcase/document/${selectedDocument}/download" class="btn btn-success">
+                            <i class="bi bi-download me-1"></i>Download
+                        </a>`;
+                }
+                
+                const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+                modal.show();
+            } catch (error) {
+                console.error('Failed to preview:', error);
+            }
+        }
+        
+        function downloadDocument() {
+            if (!selectedDocument) return;
+            window.location.href = `/api/briefcase/document/${selectedDocument}/download`;
+        }
+        
+        async function starDocument() {
+            if (!selectedDocument) return;
+            
+            const doc = documents.find(d => d.id === selectedDocument);
+            if (!doc) return;
+            
+            try {
+                await fetch(`/api/briefcase/document/${selectedDocument}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ starred: !doc.starred })
+                });
+                
+                loadBriefcase();
+            } catch (error) {
+                console.error('Failed to star document:', error);
+            }
+        }
+        
+        async function deleteDocument() {
+            if (!selectedDocument) return;
+            
+            if (!confirm('Delete this document?')) return;
+            
+            try {
+                await fetch(`/api/briefcase/document/${selectedDocument}`, { method: 'DELETE' });
+                loadBriefcase();
+            } catch (error) {
+                console.error('Failed to delete:', error);
+            }
+        }
+        
+        async function deleteExtraction(extractionId) {
+            if (!confirm('Delete this extraction?')) return;
+            
+            try {
+                await fetch(`/api/briefcase/extraction/${extractionId}`, { method: 'DELETE' });
+                loadExtractions();
+                loadStats();
+            } catch (error) {
+                console.error('Failed to delete extraction:', error);
+            }
+        }
+        
+        // Upload Functions
+        function showUploadModal() {
+            pendingFiles = [];
+            document.getElementById('selectedFiles').style.display = 'none';
+            document.getElementById('fileList').innerHTML = '';
+            document.getElementById('uploadTags').value = '';
+            document.getElementById('uploadNotes').value = '';
+            
+            const modal = new bootstrap.Modal(document.getElementById('uploadModal'));
+            modal.show();
+        }
+        
+        function handleFiles(files) {
+            pendingFiles = Array.from(files);
+            
+            document.getElementById('selectedFiles').style.display = 'block';
+            document.getElementById('fileList').innerHTML = pendingFiles.map(f => `
+                <div class="d-flex justify-content-between align-items-center p-2 bg-dark rounded mb-1">
+                    <span>${f.name}</span>
+                    <span class="text-secondary">${formatFileSize(f.size)}</span>
+                </div>
+            `).join('');
+        }
+        
+        async function uploadFiles() {
+            if (pendingFiles.length === 0) {
+                alert('Please select files to upload');
+                return;
+            }
+            
+            const tags = document.getElementById('uploadTags').value;
+            const notes = document.getElementById('uploadNotes').value;
+            
+            for (const file of pendingFiles) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('folder_id', currentFolderId);
+                formData.append('tags', tags);
+                formData.append('notes', notes);
+                
+                try {
+                    await fetch('/api/briefcase/document', {
+                        method: 'POST',
+                        body: formData
+                    });
+                } catch (error) {
+                    console.error('Failed to upload:', file.name, error);
+                }
+            }
+            
+            bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+            loadBriefcase();
+        }
+        
+        // Folder Functions
+        function showNewFolderModal() {
+            document.getElementById('newFolderName').value = '';
+            const modal = new bootstrap.Modal(document.getElementById('newFolderModal'));
+            modal.show();
+        }
+        
+        async function createFolder() {
+            const name = document.getElementById('newFolderName').value.trim();
+            const color = document.getElementById('folderColor').value;
+            
+            if (!name) {
+                alert('Please enter a folder name');
+                return;
+            }
+            
+            try {
+                await fetch('/api/briefcase/folder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name,
+                        parent_id: currentFolderId,
+                        color
+                    })
+                });
+                
+                bootstrap.Modal.getInstance(document.getElementById('newFolderModal')).hide();
+                loadBriefcase();
+            } catch (error) {
+                console.error('Failed to create folder:', error);
+            }
+        }
+        
+        async function exportBriefcase() {
+            const formData = new FormData();
+            formData.append('folder_id', currentFolderId);
+            
+            try {
+                const response = await fetch('/api/briefcase/export', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'briefcase_export.zip';
+                a.click();
+            } catch (error) {
+                console.error('Failed to export:', error);
+            }
+        }
+        
+        function toggleView() {
+            viewMode = viewMode === 'grid' ? 'list' : 'grid';
+            document.getElementById('viewToggleIcon').className = viewMode === 'grid' ? 'bi bi-list' : 'bi bi-grid';
+            loadFolderContents(currentFolderId);
+        }
+        
+        // Placeholder functions for move/copy
+        function moveDocument() {
+            alert('Move functionality - select target folder');
+        }
+        
+        function copyDocument() {
+            alert('Copy functionality - select target folder');
+        }
+    </script>
+</body>
+</html>

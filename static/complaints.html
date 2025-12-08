@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complaint Filing Wizard - Semptify</title>
+    <!-- Page uses inline styles below -->
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .page-title span {
+            font-size: 2rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Navigation Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: var(--bg-card);
+            padding: 0.5rem;
+            border-radius: 12px;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            background: var(--bg-card-hover);
+            color: var(--text);
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Panels */
+        .panel {
+            display: none;
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Agency Grid */
+        .agency-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .agency-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .agency-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .agency-card.selected {
+            border-color: var(--success);
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .agency-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .agency-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .agency-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            background: var(--primary);
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .agency-description {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .agency-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .meta-tag {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-card-hover);
+            border-radius: 6px;
+            color: var(--text-muted);
+        }
+
+        .agency-contact {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .agency-contact a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .agency-contact a:hover {
+            text-decoration: underline;
+        }
+
+        /* Keyword Search */
+        .search-box {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.875rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card-hover);
+            color: var(--text);
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        /* Draft Wizard */
+        .wizard-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .wizard-steps::before {
+            content: '';
+            position: absolute;
+            top: 24px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: var(--border);
+        }
+
+        .wizard-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .wizard-step.active .step-number {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .wizard-step.completed .step-number {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .step-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .wizard-step.active .step-label {
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .form-label span {
+            color: var(--danger);
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-card-hover);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-help {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Two Column Layout */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Complaint Preview */
+        .preview-box {
+            background: #0f172a;
+            border-radius: 10px;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        /* Document List */
+        .document-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .document-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-card-hover);
+            border-radius: 10px;
+        }
+
+        .document-icon {
+            font-size: 1.5rem;
+        }
+
+        .document-info {
+            flex: 1;
+        }
+
+        .document-name {
+            font-weight: 500;
+        }
+
+        .document-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.375rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-draft {
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary);
+        }
+
+        .status-ready {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .status-filed {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        /* Draft List */
+        .draft-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .draft-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.25rem;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .draft-item:hover {
+            border-color: var(--primary);
+        }
+
+        .draft-icon {
+            font-size: 2rem;
+        }
+
+        .draft-info {
+            flex: 1;
+        }
+
+        .draft-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .draft-meta {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .draft-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Quick Tips */
+        .tips-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .tip-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 10px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .tip-icon {
+            font-size: 1.25rem;
+        }
+
+        .tip-text {
+            font-size: 0.95rem;
+        }
+
+        /* Checklist */
+        .checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card-hover);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .checklist-item input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checklist-item.checked {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+
+        /* Strategy Card */
+        .strategy-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, rgba(99, 102, 241, 0.1) 100%);
+            border: 1px solid var(--primary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .strategy-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .strategy-content {
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        /* Loading State */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 20px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Success Message */
+        .success-message {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .success-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .success-text {
+            color: var(--text-muted);
+        }
+
+        /* Utility classes for inline style replacement */
+        .text-muted { color: var(--text-muted); }
+        .mb-1 { margin-bottom: 1rem; }
+        .mt-1 { margin-top: 1rem; }
+        .mt-1-5 { margin-top: 1.5rem; }
+        .text-right { text-align: right; }
+        .flex-between { display: flex; justify-content: space-between; }
+        .mr-half { margin-right: 0.5rem; }
+        .grid-auto-fit { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .h4-warning { color: var(--warning); margin-bottom: 0.75rem; }
+        .required-docs-list { color: var(--text-muted); padding-left: 1.5rem; }
+        .checklist-header { margin-bottom: 1rem; }
+        .required-docs-card { background: rgba(245, 158, 11, 0.1); border-color: var(--warning); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="page-header">
+            <h1 class="page-title">
+                <span>⚖️</span>
+                Complaint Filing Wizard
+            </h1>
+            <div class="header-actions">
+                <a href="/static/dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="tabs">
+            <button class="tab active" data-tab="agencies">🏛️ Agencies</button>
+            <button class="tab" data-tab="new-complaint">✏️ New Complaint</button>
+            <button class="tab" data-tab="my-complaints">📁 My Complaints</button>
+            <button class="tab" data-tab="guide">📚 Guide</button>
+        </div>
+
+        <!-- Panel: Agencies -->
+        <div id="panel-agencies" class="panel active">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🔍 Find the Right Agency</h2>
+                </div>
+                <div class="search-box">
+                    <input type="text" class="search-input" id="keyword-search" 
+                           placeholder="Describe your issue (e.g., discrimination, security deposit, harassment)">
+                    <button class="btn btn-primary" id="search-agencies-btn">
+                        Get Recommendations
+                    </button>
+                </div>
+            </div>
+
+            <!-- Strategy Card (shown after search) -->
+            <div id="strategy-section" class="hidden">
+                <div class="strategy-card">
+                    <h3 class="strategy-title">📋 Recommended Strategy</h3>
+                    <div id="strategy-content" class="strategy-content"></div>
+                </div>
+            </div>
+
+            <!-- Agency Grid -->
+            <div class="agency-grid" id="agency-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    Loading agencies...
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel: New Complaint -->
+        <div id="panel-new-complaint" class="panel">
+            <!-- Wizard Steps -->
+            <div class="wizard-steps">
+                <div class="wizard-step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <span class="step-label">Select Agency</span>
+                </div>
+                <div class="wizard-step" data-step="2">
+                    <div class="step-number">2</div>
+                    <span class="step-label">Complaint Details</span>
+                </div>
+                <div class="wizard-step" data-step="3">
+                    <div class="step-number">3</div>
+                    <span class="step-label">Attach Evidence</span>
+                </div>
+                <div class="wizard-step" data-step="4">
+                    <div class="step-number">4</div>
+                    <span class="step-label">Review & File</span>
+                </div>
+            </div>
+
+            <!-- Step 1: Select Agency -->
+            <div id="wizard-step-1" class="wizard-content">
+                <div class="card">
+                    <h3 class="card-title">Select an Agency</h3>
+                    <p class="text-muted mb-1">
+                        Choose the agency you want to file a complaint with.
+                    </p>
+                    <div class="agency-grid" id="wizard-agency-grid"></div>
+                    <div class="mt-1-5 text-right">
+                        <button class="btn btn-primary" id="step1-next" disabled>
+                            Continue →
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Complaint Details -->
+            <div id="wizard-step-2" class="wizard-content hidden">
+                <div class="card">
+                    <h3 class="card-title">Complaint Details</h3>
+                    <div class="form-group">
+                        <label class="form-label">Subject <span>*</span></label>
+                        <input type="text" class="form-input" id="complaint-subject"
+                               placeholder="Brief summary of your complaint">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description <span>*</span></label>
+                        <textarea class="form-textarea" id="complaint-description"
+                                  placeholder="Describe what happened in detail..."></textarea>
+                        <p class="form-help">Include dates, names, and specific incidents.</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Incident Dates</label>
+                        <input type="text" class="form-input" id="complaint-dates"
+                               placeholder="e.g., January 15, 2025 - February 1, 2025">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Damages Claimed ($)</label>
+                            <input type="number" class="form-input" id="complaint-damages"
+                                   placeholder="0.00">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Relief Sought</label>
+                            <input type="text" class="form-input" id="complaint-relief"
+                                   placeholder="What outcome do you want?">
+                        </div>
+                    </div>
+                    <h4 class="mt-1-5">Respondent Information</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Respondent Name <span>*</span></label>
+                            <input type="text" class="form-input" id="respondent-name"
+                                   placeholder="Landlord or company name">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Company (if applicable)</label>
+                            <input type="text" class="form-input" id="respondent-company"
+                                   placeholder="Property management company">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Address</label>
+                            <input type="text" class="form-input" id="respondent-address"
+                                   placeholder="Property address">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone</label>
+                            <input type="text" class="form-input" id="respondent-phone"
+                                   placeholder="(xxx) xxx-xxxx">
+                        </div>
+                    </div>
+                    <div class="mt-1-5 flex-between">
+                        <button class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
+                        <button class="btn btn-primary" onclick="goToStep(3)">Continue →</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Attach Evidence -->
+            <div id="wizard-step-3" class="wizard-content hidden">
+                <div class="card">
+                    <h3 class="card-title">📎 Attach Evidence</h3>
+                    <p class="text-muted mb-1">
+                        Select documents from your uploaded files to attach as evidence.
+                    </p>
+                    <div class="document-list" id="evidence-list">
+                        <div class="empty-state">
+                            <div class="empty-icon">📄</div>
+                            <p>No documents uploaded yet.</p>
+                            <a href="/static/documents.html" class="btn btn-primary btn-sm mt-1">
+                                Upload Documents
+                            </a>
+                        </div>
+                    </div>
+                    <div id="required-docs" class="card mt-1-5 required-docs-card">
+                        <h4 class="h4-warning">📋 Required Documents</h4>
+                        <ul id="required-docs-list" class="required-docs-list"></ul>
+                    </div>
+                    <div class="mt-1-5 flex-between">
+                        <button class="btn btn-secondary" onclick="goToStep(2)">← Back</button>
+                        <button class="btn btn-primary" onclick="goToStep(4)">Continue →</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Review & File -->
+            <div id="wizard-step-4" class="wizard-content hidden">
+                <div class="card">
+                    <h3 class="card-title">📝 Review Your Complaint</h3>
+                    <div class="preview-box" id="complaint-preview"></div>
+                    
+                    <div class="checklist mt-1-5">
+                        <h4 class="checklist-header">✅ Pre-Filing Checklist</h4>
+                        <label class="checklist-item">
+                            <input type="checkbox" id="check-1">
+                            <span>All information is accurate and complete</span>
+                        </label>
+                        <label class="checklist-item">
+                            <input type="checkbox" id="check-2">
+                            <span>Evidence documents are attached</span>
+                        </label>
+                        <label class="checklist-item">
+                            <input type="checkbox" id="check-3">
+                            <span>Made copies for my records</span>
+                        </label>
+                        <label class="checklist-item">
+                            <input type="checkbox" id="check-4">
+                            <span>Respondent information is correct</span>
+                        </label>
+                    </div>
+
+                    <div class="mt-1-5 flex-between">
+                        <button class="btn btn-secondary" onclick="goToStep(3)">← Back</button>
+                        <div>
+                            <button class="btn btn-secondary mr-half" id="save-draft-btn">
+                                💾 Save Draft
+                            </button>
+                            <button class="btn btn-success" id="file-complaint-btn">
+                                📤 File Complaint
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filed Success -->
+            <div id="wizard-success" class="wizard-content hidden">
+                <div class="success-message">
+                    <div class="success-icon">✅</div>
+                    <h3 class="success-title">Complaint Filed!</h3>
+                    <p class="success-text">Your complaint has been recorded. Follow the link below to complete filing.</p>
+                    <a id="filing-link" href="#" target="_blank" rel="noopener" class="btn btn-primary mt-1">
+                        📤 Go to Agency Filing Portal
+                    </a>
+                    <p class="mt-1 text-muted form-help">
+                        Confirmation Number: <strong id="confirmation-number">-</strong>
+                    </p>
+                    <p class="text-muted form-help">
+                        Follow-up Date: <strong id="followup-date">-</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel: My Complaints -->
+        <div id="panel-my-complaints" class="panel">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">📁 My Complaint Drafts</h2>
+                    <button class="btn btn-primary btn-sm" onclick="switchTab('new-complaint')">
+                        + New Complaint
+                    </button>
+                </div>
+                <div class="draft-list" id="draft-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Loading your complaints...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel: Guide -->
+        <div id="panel-guide" class="panel">
+            <div class="card">
+                <h2 class="card-title">📚 Complaint Filing Guide</h2>
+                <div class="tips-list mt-1">
+                    <div class="tip-item">
+                        <span class="tip-icon">1️⃣</span>
+                        <span class="tip-text"><strong>Call HOME Line First:</strong> (612) 728-5767 - Get free tenant advice before filing formal complaints.</span>
+                    </div>
+                    <div class="tip-item">
+                        <span class="tip-icon">2️⃣</span>
+                        <span class="tip-text"><strong>Contact Legal Aid:</strong> If you qualify, they can represent you for free and help with complaint strategy.</span>
+                    </div>
+                    <div class="tip-item">
+                        <span class="tip-icon">3️⃣</span>
+                        <span class="tip-text"><strong>File with MN Attorney General:</strong> Strong enforcement powers for fraud and deceptive practices.</span>
+                    </div>
+                    <div class="tip-item">
+                        <span class="tip-icon">4️⃣</span>
+                        <span class="tip-text"><strong>HUD for Discrimination:</strong> If you faced any discrimination based on protected class, file with HUD.</span>
+                    </div>
+                    <div class="tip-item">
+                        <span class="tip-icon">5️⃣</span>
+                        <span class="tip-text"><strong>Multi-Agency Strategy:</strong> Filing with multiple agencies creates pressure from multiple directions.</span>
+                    </div>
+                    <div class="tip-item">
+                        <span class="tip-icon">6️⃣</span>
+                        <span class="tip-text"><strong>BBB for Public Pressure:</strong> BBB complaints become public record and can damage business reputation.</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">🔗 Quick Links</h3>
+                <div class="grid-auto-fit mt-1">
+                    <a href="https://homelinemn.org/" target="_blank" rel="noopener" class="btn btn-secondary">HOME Line MN</a>
+                    <a href="https://www.lawhelpmn.org/" target="_blank" rel="noopener" class="btn btn-secondary">Legal Aid MN</a>
+                    <a href="https://www.ag.state.mn.us/Office/Complaint.asp" target="_blank" rel="noopener" class="btn btn-secondary">MN Attorney General</a>
+                    <a href="https://portalapps.hud.gov/FHEO903/Form903/Form903Start.action" target="_blank" rel="noopener" class="btn btn-secondary">HUD Fair Housing</a>
+                    <a href="https://mn.gov/commerce/consumers/file-a-complaint/" target="_blank" rel="noopener" class="btn btn-secondary">MN Commerce</a>
+                    <a href="https://www.bbb.org/file-a-complaint" target="_blank" rel="noopener" class="btn btn-secondary">BBB Complaint</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="file-modal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">📤 Confirm Filing</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>You're about to file your complaint with <strong id="modal-agency-name"></strong>.</p>
+                <div class="form-group mt-1">
+                    <label class="form-label">Confirmation Number (optional)</label>
+                    <input type="text" class="form-input" id="modal-confirmation"
+                           placeholder="Enter after filing with agency">
+                    <p class="form-help">You can add this after you receive it from the agency.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-success" id="confirm-file-btn">
+                    ✅ Mark as Filed
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let agencies = [];
+        let selectedAgencyId = null;
+        let currentDraftId = null;
+        let currentStep = 1;
+        let userDocuments = [];
+
+        // Get user ID
+        function getUserId() {
+            let userId = localStorage.getItem('semptify_user_id');
+            if (!userId) {
+                userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('semptify_user_id', userId);
+            }
+            return userId;
+        }
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => switchTab(tab.dataset.tab));
+        });
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`panel-${tabName}`).classList.add('active');
+
+            if (tabName === 'my-complaints') loadDrafts();
+            if (tabName === 'new-complaint') loadWizardAgencies();
+        }
+
+        // Load agencies
+        async function loadAgencies() {
+            try {
+                const response = await fetch('/api/complaints/agencies');
+                agencies = await response.json();
+                renderAgencies(agencies);
+            } catch (err) {
+                console.error('Failed to load agencies:', err);
+            }
+        }
+
+        function renderAgencies(agencyList) {
+            const grid = document.getElementById('agency-grid');
+            if (agencyList.length === 0) {
+                grid.innerHTML = '<div class="empty-state"><div class="empty-icon">🏛️</div><p>No agencies found</p></div>';
+                return;
+            }
+
+            grid.innerHTML = agencyList.map(agency => `
+                <div class="agency-card" data-id="${agency.id}" onclick="selectAgencyAndStart('${agency.id}')">
+                    <div class="agency-header">
+                        <h3 class="agency-name">${agency.name}</h3>
+                        <span class="agency-badge">${agency.jurisdiction}</span>
+                    </div>
+                    <p class="agency-description">${agency.description}</p>
+                    <div class="agency-meta">
+                        ${agency.complaint_types.slice(0, 3).map(t => `<span class="meta-tag">${t}</span>`).join('')}
+                    </div>
+                    <div class="agency-contact">
+                        ${agency.phone ? `<span>📞 ${agency.phone}</span>` : ''}
+                        ${agency.filing_url ? `<a href="${agency.filing_url}" target="_blank" onclick="event.stopPropagation()">🔗 File Online</a>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Search agencies
+        document.getElementById('search-agencies-btn').addEventListener('click', searchAgencies);
+        document.getElementById('keyword-search').addEventListener('keypress', e => {
+            if (e.key === 'Enter') searchAgencies();
+        });
+
+        async function searchAgencies() {
+            const keywords = document.getElementById('keyword-search').value;
+            if (!keywords.trim()) {
+                loadAgencies();
+                document.getElementById('strategy-section').classList.add('hidden');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/complaints/agencies/recommend', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ keywords: keywords.split(',').map(k => k.trim()) })
+                });
+                const recommended = await response.json();
+                renderAgencies(recommended);
+
+                // Show strategy
+                document.getElementById('strategy-section').classList.remove('hidden');
+                document.getElementById('strategy-content').textContent = 
+                    `Based on your keywords "${keywords}", we recommend starting with ${recommended[0]?.name || 'Legal Aid'}.\n\n` +
+                    `Filing with multiple agencies (${recommended.length} recommended) creates pressure from multiple directions.`;
+            } catch (err) {
+                console.error('Search failed:', err);
+            }
+        }
+
+        // Wizard functions
+        function loadWizardAgencies() {
+            const grid = document.getElementById('wizard-agency-grid');
+            grid.innerHTML = agencies.map(agency => `
+                <div class="agency-card ${selectedAgencyId === agency.id ? 'selected' : ''}" 
+                     data-id="${agency.id}" onclick="selectWizardAgency('${agency.id}')">
+                    <div class="agency-header">
+                        <h3 class="agency-name">${agency.name}</h3>
+                        <span class="agency-badge">${agency.jurisdiction}</span>
+                    </div>
+                    <p class="agency-description">${agency.description}</p>
+                </div>
+            `).join('');
+        }
+
+        function selectWizardAgency(agencyId) {
+            selectedAgencyId = agencyId;
+            document.querySelectorAll('#wizard-agency-grid .agency-card').forEach(card => {
+                card.classList.toggle('selected', card.dataset.id === agencyId);
+            });
+            document.getElementById('step1-next').disabled = false;
+        }
+
+        function selectAgencyAndStart(agencyId) {
+            selectedAgencyId = agencyId;
+            switchTab('new-complaint');
+            loadWizardAgencies();
+            document.getElementById('step1-next').disabled = false;
+        }
+
+        document.getElementById('step1-next').addEventListener('click', async () => {
+            if (!selectedAgencyId) return;
+            
+            // Create draft
+            try {
+                const response = await fetch(`/api/complaints/drafts?user_id=${getUserId()}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ agency_id: selectedAgencyId, subject: '' })
+                });
+                const draft = await response.json();
+                currentDraftId = draft.id;
+
+                // Load required docs for this agency
+                const agency = agencies.find(a => a.id === selectedAgencyId);
+                if (agency) {
+                    document.getElementById('required-docs-list').innerHTML = 
+                        agency.required_documents.map(d => `<li>${d}</li>`).join('');
+                }
+
+                goToStep(2);
+            } catch (err) {
+                console.error('Failed to create draft:', err);
+            }
+        });
+
+        function goToStep(step) {
+            currentStep = step;
+            
+            // Update step indicators
+            document.querySelectorAll('.wizard-step').forEach(s => {
+                const stepNum = parseInt(s.dataset.step);
+                s.classList.remove('active', 'completed');
+                if (stepNum < step) s.classList.add('completed');
+                if (stepNum === step) s.classList.add('active');
+            });
+
+            // Show/hide content
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`wizard-step-${i}`).classList.toggle('hidden', i !== step);
+            }
+            document.getElementById('wizard-success').classList.add('hidden');
+
+            // Load preview on step 4
+            if (step === 4) loadPreview();
+        }
+
+        async function loadPreview() {
+            if (!currentDraftId) return;
+
+            // First update the draft with form data
+            await saveDraft();
+
+            try {
+                const response = await fetch(`/api/complaints/drafts/${currentDraftId}/preview`);
+                const preview = await response.json();
+                document.getElementById('complaint-preview').textContent = preview.complaint_text;
+            } catch (err) {
+                console.error('Failed to load preview:', err);
+            }
+        }
+
+        async function saveDraft() {
+            if (!currentDraftId) return;
+
+            const dates = document.getElementById('complaint-dates').value;
+            const data = {
+                subject: document.getElementById('complaint-subject').value,
+                description: document.getElementById('complaint-description').value,
+                incident_dates: dates ? dates.split(',').map(d => d.trim()) : [],
+                damages_claimed: parseFloat(document.getElementById('complaint-damages').value) || null,
+                relief_sought: document.getElementById('complaint-relief').value,
+                respondent_name: document.getElementById('respondent-name').value,
+                respondent_company: document.getElementById('respondent-company').value,
+                respondent_address: document.getElementById('respondent-address').value,
+                respondent_phone: document.getElementById('respondent-phone').value,
+            };
+
+            try {
+                await fetch(`/api/complaints/drafts/${currentDraftId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            } catch (err) {
+                console.error('Failed to save draft:', err);
+            }
+        }
+
+        document.getElementById('save-draft-btn').addEventListener('click', async () => {
+            await saveDraft();
+            alert('Draft saved!');
+        });
+
+        // File complaint
+        document.getElementById('file-complaint-btn').addEventListener('click', () => {
+            const agency = agencies.find(a => a.id === selectedAgencyId);
+            document.getElementById('modal-agency-name').textContent = agency?.name || 'the agency';
+            document.getElementById('file-modal').classList.remove('hidden');
+        });
+
+        document.getElementById('confirm-file-btn').addEventListener('click', async () => {
+            const confirmation = document.getElementById('modal-confirmation').value;
+            
+            try {
+                const response = await fetch(`/api/complaints/drafts/${currentDraftId}/file`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ confirmation_number: confirmation || null })
+                });
+                const result = await response.json();
+
+                // Show success
+                closeModal();
+                for (let i = 1; i <= 4; i++) {
+                    document.getElementById(`wizard-step-${i}`).classList.add('hidden');
+                }
+                document.getElementById('wizard-success').classList.remove('hidden');
+
+                const agency = agencies.find(a => a.id === selectedAgencyId);
+                document.getElementById('filing-link').href = agency?.filing_url || '#';
+                document.getElementById('confirmation-number').textContent = confirmation || 'Pending';
+                document.getElementById('followup-date').textContent = 
+                    new Date(Date.now() + (agency?.typical_response_days || 30) * 86400000).toLocaleDateString();
+
+            } catch (err) {
+                console.error('Failed to file:', err);
+            }
+        });
+
+        function closeModal() {
+            document.getElementById('file-modal').classList.add('hidden');
+        }
+
+        // Load drafts
+        async function loadDrafts() {
+            try {
+                const response = await fetch(`/api/complaints/drafts?user_id=${getUserId()}`);
+                const drafts = await response.json();
+                renderDrafts(drafts);
+            } catch (err) {
+                console.error('Failed to load drafts:', err);
+            }
+        }
+
+        function renderDrafts(drafts) {
+            const list = document.getElementById('draft-list');
+            if (drafts.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <p>No complaints yet</p>
+                        <button class="btn btn-primary btn-sm mt-1" onclick="switchTab('new-complaint')">
+                            Start Your First Complaint
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = drafts.map(draft => {
+                const agency = agencies.find(a => a.id === draft.agency_id);
+                const statusClass = draft.status === 'filed' ? 'status-filed' : 
+                                   draft.status === 'ready' ? 'status-ready' : 'status-draft';
+                return `
+                    <div class="draft-item" onclick="loadDraft('${draft.id}')">
+                        <span class="draft-icon">📋</span>
+                        <div class="draft-info">
+                            <div class="draft-title">${draft.subject || 'Untitled Complaint'}</div>
+                            <div class="draft-meta">
+                                ${agency?.name || 'Unknown Agency'} • 
+                                Updated ${new Date(draft.updated_at).toLocaleDateString()}
+                            </div>
+                        </div>
+                        <span class="status-badge ${statusClass}">${draft.status}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadDraft(draftId) {
+            try {
+                const response = await fetch(`/api/complaints/drafts/${draftId}`);
+                const draft = await response.json();
+
+                currentDraftId = draftId;
+                selectedAgencyId = draft.agency_id;
+
+                // Populate form
+                document.getElementById('complaint-subject').value = draft.subject || '';
+                document.getElementById('complaint-description').value = draft.description || '';
+                document.getElementById('complaint-dates').value = (draft.incident_dates || []).join(', ');
+                document.getElementById('complaint-damages').value = draft.damages_claimed || '';
+                document.getElementById('complaint-relief').value = draft.relief_sought || '';
+                document.getElementById('respondent-name').value = draft.respondent_name || '';
+                document.getElementById('respondent-company').value = draft.respondent_company || '';
+                document.getElementById('respondent-address').value = draft.respondent_address || '';
+                document.getElementById('respondent-phone').value = draft.respondent_phone || '';
+
+                // Switch to new complaint tab and step 2
+                switchTab('new-complaint');
+                goToStep(2);
+            } catch (err) {
+                console.error('Failed to load draft:', err);
+            }
+        }
+
+        // Initialize
+        loadAgencies();
+    </script>
+
+    <!-- Site-Wide Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/help-content.js"></script>
+    <script>SemptifyHelp.init('complaints');</script>
+</body>
+</html>

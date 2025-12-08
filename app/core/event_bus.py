@@ -62,6 +62,22 @@ class EventType(str, Enum):
     UI_REFRESH_NEEDED = "ui_refresh_needed"
     NOTIFICATION = "notification"
 
+    # Court Form events
+    COURT_FORM_GENERATED = "court_form_generated"
+    COURT_FORM_DOWNLOADED = "court_form_downloaded"
+    COURT_FORM_PREVIEW = "court_form_preview"
+
+    # Zoom Court Prep events
+    ZOOM_PREP_STARTED = "zoom_prep_started"
+    ZOOM_PREP_TECH_CHECK = "zoom_prep_tech_check"
+    ZOOM_PREP_COMPLETED = "zoom_prep_completed"
+
+    # Document Flow events
+    DOCUMENT_FLOW_STARTED = "document_flow_started"
+    DOCUMENT_FLOW_COMPLETED = "document_flow_completed"
+    OCR_COMPLETED = "ocr_completed"
+    OCR_FAILED = "ocr_failed"
+
 
 @dataclass
 class Event:

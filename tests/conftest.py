@@ -13,6 +13,8 @@ from httpx import AsyncClient, ASGITransport
 os.environ["SECURITY_MODE"] = "open"
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///./test_semptify.db"
 os.environ["TESTING"] = "true"
+os.environ["INVITE_CODES"] = "TEST-INVITE-CODE"
+os.environ["ADMIN_PIN"] = "TEST-PIN"
 
 from app.main import app
 from app.core.config import get_settings

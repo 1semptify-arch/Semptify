@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Center - Semptify</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #17a2b8;
+            --secondary: #6c757d;
+        }
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .navbar {
+            background: rgba(0, 0, 0, 0.3) !important;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+        .card-header {
+            background: rgba(23, 162, 184, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px 15px 0 0 !important;
+        }
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            border: none;
+            color: #fff;
+        }
+        .btn-info:hover {
+            background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
+            color: #fff;
+        }
+        .form-control, .form-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+        .form-control:focus, .form-select:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #17a2b8;
+            color: #fff;
+            box-shadow: 0 0 0 0.2rem rgba(23, 162, 184, 0.25);
+        }
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .source-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .source-card:hover {
+            background: rgba(23, 162, 184, 0.2);
+            transform: translateY(-3px);
+        }
+        .source-card.active {
+            background: rgba(23, 162, 184, 0.3);
+            border-color: #17a2b8;
+        }
+        .source-card.complete {
+            border-color: #28a745;
+        }
+        .source-card.complete::after {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            color: #28a745;
+            font-weight: bold;
+        }
+        .source-card i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .result-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .result-section h6 {
+            color: #17a2b8;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .progress {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .flag-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            margin: 3px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+        .flag-badge.red { background: rgba(220, 53, 69, 0.3); border: 1px solid #dc3545; }
+        .flag-badge.yellow { background: rgba(255, 193, 7, 0.3); border: 1px solid #ffc107; }
+        .flag-badge.green { background: rgba(40, 167, 69, 0.3); border: 1px solid #28a745; }
+        #resultsArea {
+            display: none;
+        }
+    </style>
+    <link rel="stylesheet" href="/static/css/help-system.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/static/dashboard-v2.html">
+                <i class="bi bi-shield-check"></i> Semptify
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/static/dashboard-v2.html">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1><i class="bi bi-search text-info"></i> Research Center</h1>
+                <p class="text-muted">Deep investigation into landlords, properties, and ownership structures</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Search Panel -->
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-search"></i> Research Target</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="researchForm">
+                            <div class="mb-3">
+                                <label class="form-label">Property Address</label>
+                                <input type="text" class="form-control" id="propertyAddress" placeholder="123 Main St, Minneapolis, MN">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Property ID / PID</label>
+                                <input type="text" class="form-control" id="propertyId" placeholder="County parcel ID">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Landlord/Owner Name</label>
+                                <input type="text" class="form-control" id="landlordName" placeholder="Person or company name">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">County</label>
+                                <select class="form-select" id="county" title="Select county">
+                                    <option value="hennepin">Hennepin County</option>
+                                    <option value="ramsey">Ramsey County</option>
+                                    <option value="dakota">Dakota County</option>
+                                    <option value="anoka">Anoka County</option>
+                                    <option value="washington">Washington County</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-info w-100">
+                                <i class="bi bi-search"></i> Start Research
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Data Sources -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-database"></i> Data Sources</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="source-card position-relative" id="src-assessor">
+                                    <i class="bi bi-building"></i>
+                                    <small>Assessor</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="source-card position-relative" id="src-recorder">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                    <small>Recorder</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="source-card position-relative" id="src-ucc">
+                                    <i class="bi bi-file-earmark-lock"></i>
+                                    <small>UCC Filings</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="source-card position-relative" id="src-dispatch">
+                                    <i class="bi bi-telephone"></i>
+                                    <small>911 Calls</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="source-card position-relative" id="src-news">
+                                    <i class="bi bi-newspaper"></i>
+                                    <small>News</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="source-card position-relative" id="src-sos">
+                                    <i class="bi bi-briefcase"></i>
+                                    <small>SOS Business</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="source-card position-relative" id="src-bankruptcy">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <small>Bankruptcy</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="source-card position-relative" id="src-insurance">
+                                    <i class="bi bi-shield"></i>
+                                    <small>Insurance</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="progress">
+                                <div class="progress-bar bg-info" id="progressBar" role="progressbar" style="width: 0%" title="Research progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <small class="text-muted" id="progressText">0 of 8 sources queried</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Area -->
+            <div class="col-lg-8">
+                <div id="initialState" class="text-center py-5">
+                    <i class="bi bi-folder-symlink display-1 text-muted"></i>
+                    <h4 class="mt-3">Enter Research Target</h4>
+                    <p class="text-muted">Search by address, property ID, or owner name to begin investigation</p>
+                </div>
+
+                <div id="resultsArea">
+                    <!-- Fraud Flags -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0"><i class="bi bi-flag"></i> Fraud Flags</h5>
+                            <span class="badge bg-danger" id="flagCount">0 flags</span>
+                        </div>
+                        <div class="card-body" id="fraudFlags">
+                            <p class="text-muted">Analyzing data for fraud indicators...</p>
+                        </div>
+                    </div>
+
+                    <!-- Property Info -->
+                    <div class="result-section" id="propertyResults">
+                        <h6><i class="bi bi-building"></i> Property Information</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Address:</strong> <span id="res-address">--</span></p>
+                                <p><strong>PID:</strong> <span id="res-pid">--</span></p>
+                                <p><strong>Owner:</strong> <span id="res-owner">--</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Market Value:</strong> <span id="res-value">--</span></p>
+                                <p><strong>Year Built:</strong> <span id="res-year">--</span></p>
+                                <p><strong>Property Type:</strong> <span id="res-type">--</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ownership History -->
+                    <div class="result-section" id="ownershipResults">
+                        <h6><i class="bi bi-clock-history"></i> Ownership History</h6>
+                        <div id="ownership-timeline">
+                            <p class="text-muted">Loading...</p>
+                        </div>
+                    </div>
+
+                    <!-- Business Info -->
+                    <div class="result-section" id="businessResults">
+                        <h6><i class="bi bi-briefcase"></i> Business Information</h6>
+                        <div id="business-info">
+                            <p class="text-muted">Loading...</p>
+                        </div>
+                    </div>
+
+                    <!-- Liens & Encumbrances -->
+                    <div class="result-section" id="lienResults">
+                        <h6><i class="bi bi-file-earmark-lock"></i> Liens & UCC Filings</h6>
+                        <div id="lien-info">
+                            <p class="text-muted">Loading...</p>
+                        </div>
+                    </div>
+
+                    <!-- 911 Calls -->
+                    <div class="result-section" id="dispatchResults">
+                        <h6><i class="bi bi-telephone"></i> 911 Dispatch History</h6>
+                        <div id="dispatch-info">
+                            <p class="text-muted">Loading...</p>
+                        </div>
+                    </div>
+
+                    <!-- News -->
+                    <div class="result-section" id="newsResults">
+                        <h6><i class="bi bi-newspaper"></i> News Mentions</h6>
+                        <div id="news-info">
+                            <p class="text-muted">Loading...</p>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="card">
+                        <div class="card-body d-flex gap-2">
+                            <button class="btn btn-info" onclick="exportReport()">
+                                <i class="bi bi-download"></i> Export Report
+                            </button>
+                            <button class="btn btn-outline-light" onclick="saveCheckpoint()">
+                                <i class="bi bi-save"></i> Save Checkpoint
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="linkToFraud()">
+                                <i class="bi bi-link-45deg"></i> Link to Fraud Analysis
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let researchData = {};
+        
+        document.getElementById('researchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            document.getElementById('initialState').style.display = 'none';
+            document.getElementById('resultsArea').style.display = 'block';
+            
+            // Reset sources
+            document.querySelectorAll('.source-card').forEach(card => {
+                card.classList.remove('active', 'complete');
+            });
+            
+            const sources = ['assessor', 'recorder', 'ucc', 'dispatch', 'news', 'sos', 'bankruptcy', 'insurance'];
+            let completed = 0;
+            
+            const propertyAddress = document.getElementById('propertyAddress').value;
+            const propertyId = document.getElementById('propertyId').value;
+            const landlordName = document.getElementById('landlordName').value;
+            
+            // Simulate querying each source
+            for (const source of sources) {
+                document.getElementById(`src-${source}`).classList.add('active');
+                
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                document.getElementById(`src-${source}`).classList.remove('active');
+                document.getElementById(`src-${source}`).classList.add('complete');
+                
+                completed++;
+                document.getElementById('progressBar').style.width = `${(completed / sources.length) * 100}%`;
+                document.getElementById('progressText').textContent = `${completed} of ${sources.length} sources queried`;
+            }
+            
+            // Display demo results
+            displayDemoResults(propertyAddress, propertyId, landlordName);
+        });
+        
+        function displayDemoResults(address, pid, owner) {
+            // Property info
+            document.getElementById('res-address').textContent = address || '123 Main St, Minneapolis, MN 55401';
+            document.getElementById('res-pid').textContent = pid || '27-029-24-44-0001';
+            document.getElementById('res-owner').textContent = owner || 'ABC Property Holdings LLC';
+            document.getElementById('res-value').textContent = '$425,000';
+            document.getElementById('res-year').textContent = '1965';
+            document.getElementById('res-type').textContent = 'Apartment (12 units)';
+            
+            // Ownership timeline
+            document.getElementById('ownership-timeline').innerHTML = `
+                <ul class="list-unstyled">
+                    <li class="mb-2">📅 <strong>2021</strong> - ABC Property Holdings LLC (Current)</li>
+                    <li class="mb-2">📅 <strong>2018</strong> - Smith Investment Group</li>
+                    <li class="mb-2">📅 <strong>2010</strong> - Johnson Family Trust</li>
+                    <li class="mb-2">📅 <strong>1995</strong> - Original Owner</li>
+                </ul>
+            `;
+            
+            // Business info
+            document.getElementById('business-info').innerHTML = `
+                <p><strong>ABC Property Holdings LLC</strong></p>
+                <ul>
+                    <li>Status: Active</li>
+                    <li>Registered: 2021-03-15</li>
+                    <li>Registered Agent: John Smith</li>
+                    <li>Principal Address: 456 Business Ave, Suite 200</li>
+                </ul>
+            `;
+            
+            // Liens
+            document.getElementById('lien-info').innerHTML = `
+                <ul>
+                    <li><span class="flag-badge yellow">⚠️ UCC Filing</span> Bank of America - Equipment Loan - $125,000 (2022)</li>
+                    <li><span class="flag-badge green">✓</span> Previous mortgage - Paid/Released (2021)</li>
+                </ul>
+            `;
+            
+            // 911 Dispatch
+            document.getElementById('dispatch-info').innerHTML = `
+                <p><strong>Last 12 months:</strong> 23 calls to this address</p>
+                <ul>
+                    <li>Noise complaints: 8</li>
+                    <li>Welfare checks: 5</li>
+                    <li>Property damage: 4</li>
+                    <li>Disturbance: 6</li>
+                </ul>
+                <small class="text-muted">High call volume may indicate management issues</small>
+            `;
+            
+            // News
+            document.getElementById('news-info').innerHTML = `
+                <ul>
+                    <li><a href="#" class="text-info">Star Tribune (2023): "Tenants complain of unsafe conditions at Minneapolis apartment"</a></li>
+                    <li><a href="#" class="text-info">MinnPost (2022): "Property management company faces multiple lawsuits"</a></li>
+                </ul>
+            `;
+            
+            // Fraud flags
+            const flags = [
+                { text: 'High 911 call volume', level: 'yellow' },
+                { text: 'Recent ownership change', level: 'yellow' },
+                { text: 'News mentions of violations', level: 'red' },
+                { text: 'Multiple UCC filings', level: 'yellow' }
+            ];
+            
+            document.getElementById('flagCount').textContent = `${flags.length} flags`;
+            document.getElementById('fraudFlags').innerHTML = flags.map(f => 
+                `<span class="flag-badge ${f.level}">${f.text}</span>`
+            ).join('');
+        }
+        
+        function exportReport() {
+            alert('Report export would generate a PDF with all research findings');
+        }
+        
+        function saveCheckpoint() {
+            alert('Research checkpoint saved! You can resume this investigation later.');
+        }
+        
+        function linkToFraud() {
+            window.location.href = '/static/fraud.html';
+        }
+    </script>
+    <script src="/static/js/help-system.js"></script>
+</body>
+</html>

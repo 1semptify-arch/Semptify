@@ -582,7 +582,81 @@
             font-size: 14px;
             color: var(--gray-600);
         }
-        
+
+        /* Recognition Engine Styles */
+        .reasoning-chain {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .reasoning-step {
+            padding: 12px;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            border-left: 3px solid var(--primary);
+        }
+
+        .reasoning-step strong {
+            color: var(--primary);
+        }
+
+        .reasoning-step p {
+            margin: 8px 0;
+            color: var(--gray-700);
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--primary);
+            color: white;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: var(--secondary);
+            color: white;
+            border-radius: 4px;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        .forgery-indicators {
+            margin-top: 12px;
+            padding: 12px;
+            background: #fef2f2;
+            border-radius: 8px;
+            border-left: 3px solid var(--danger);
+        }
+
+        .forgery-indicators ul {
+            margin: 8px 0 0 20px;
+            padding: 0;
+        }
+
+        .loading-state, .error-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         /* Forgery Alerts */
         .forgery-alert {
             display: flex;
@@ -831,10 +905,454 @@
         .score-fill.low { background: var(--success); }
         .score-fill.medium { background: var(--warning); }
         .score-fill.high { background: var(--danger); }
-        
+
         .score-value {
             font-weight: 600;
             min-width: 40px;
+        }
+
+        /* ================================================================
+           HELP TOOLTIP SYSTEM
+           ================================================================ */
+        
+        /* Help Toggle Button */
+        .help-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            transition: all 0.3s;
+        }
+
+        .help-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+        }
+
+        .help-toggle.active {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .help-toggle .toggle-icon {
+            font-size: 18px;
+        }
+
+        /* Tooltip Container - wraps elements that need help */
+        .has-help {
+            position: relative;
+        }
+
+        /* The tooltip itself */
+        .help-tooltip {
+            position: fixed;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            line-height: 1.5;
+            width: max-content;
+            max-width: 320px;
+            display: none;
+            z-index: 99999;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            pointer-events: none;
+        }
+
+        .help-tooltip::after {
+            content: '';
+            position: absolute;
+            border: 8px solid transparent;
+        }
+        
+        .help-tooltip.arrow-down::after {
+            top: 100%;
+            left: 20px;
+            border-top-color: #111827;
+        }
+        
+        .help-tooltip.arrow-up::after {
+            bottom: 100%;
+            left: 20px;
+            border-bottom-color: #111827;
+        }
+
+        /* Highlight elements with help in help mode */
+        body.help-mode .has-help {
+            outline: 2px dashed #3b82f6;
+            outline-offset: 2px;
+        }
+
+        /* Tooltip styling variations */
+        .help-tooltip .tooltip-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #60a5fa;
+        }
+
+        .help-tooltip .tooltip-when {
+            color: #fbbf24;
+            font-size: 12px;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .help-tooltip .tooltip-when::before {
+            content: '⏰ When to use: ';
+            font-weight: 600;
+        }
+
+        /* Pulsing indicator when help mode is on */
+        body.help-mode .has-help::before {
+            content: '?';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            background: #2563eb;
+            color: white;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            animation: pulse-help 2s infinite;
+        }
+
+        @keyframes pulse-help {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        /* Card-level help indicator */
+        .card-help {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #1e40af;
+        }
+
+        body.help-mode .card-help {
+            display: flex;
+        }
+
+        .card-help .help-icon {
+            font-size: 16px;
+        }
+
+        /* Form Field Extraction Review Styles */
+        .form-fields-section {
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .form-fields-section.needs-review {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+        }
+
+        .form-fields-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--gray-100);
+            border-bottom: 1px solid var(--gray-200);
+            cursor: pointer;
+        }
+
+        .form-fields-header:hover {
+            background: var(--gray-200);
+        }
+
+        .form-fields-header h5 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-fields-body {
+            padding: 16px;
+            background: white;
+        }
+
+        .form-field-row {
+            display: grid;
+            grid-template-columns: 140px 1fr auto auto;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 12px;
+            margin: -4px -12px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .form-field-row:hover {
+            background: var(--gray-50);
+        }
+
+        .form-field-row + .form-field-row {
+            border-top: 1px solid var(--gray-100);
+            margin-top: 4px;
+            padding-top: 14px;
+        }
+
+        .field-label {
+            font-size: 13px;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        .field-value {
+            font-size: 14px;
+            color: var(--gray-900);
+        }
+
+        .field-value input {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .field-value input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .field-value input.needs-review {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+
+        .field-value input.confirmed {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+
+        .confidence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .confidence-high {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .confidence-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .confidence-low {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .confidence-guess {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .field-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .field-action-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .field-action-btn.confirm {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .field-action-btn.confirm:hover {
+            background: #a7f3d0;
+        }
+
+        .field-action-btn.edit {
+            background: var(--gray-100);
+            color: var(--gray-600);
+        }
+
+        .field-action-btn.edit:hover {
+            background: var(--gray-200);
+        }
+
+        .review-stats {
+            display: flex;
+            gap: 16px;
+            padding: 12px 16px;
+            background: var(--gray-50);
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .review-stat {
+            text-align: center;
+        }
+
+        .review-stat .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .review-stat .stat-label {
+            font-size: 11px;
+            color: var(--gray-500);
+            text-transform: uppercase;
+        }
+
+        .review-stat.needs-review .stat-value {
+            color: #f59e0b;
+        }
+
+        .review-stat.confirmed .stat-value {
+            color: #10b981;
+        }
+
+        .extract-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .extract-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .extract-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .extract-btn.primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .extract-btn.secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .extract-btn.secondary:hover {
+            background: var(--gray-200);
+        }
+
+        .extract-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .alternatives-dropdown {
+            position: relative;
+        }
+
+        .alternatives-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 100;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .alternatives-list.show {
+            display: block;
+        }
+
+        .alternative-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            border-bottom: 1px solid var(--gray-100);
+        }
+
+        .alternative-item:last-child {
+            border-bottom: none;
+        }
+
+        .alternative-item:hover {
+            background: var(--gray-50);
+        }
+
+        .section-toggle {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .section-toggle.collapsed {
+            transform: rotate(-90deg);
         }
     </style>
 </head>
@@ -874,15 +1392,26 @@
                         <h2>Upload Documents</h2>
                     </div>
                     <div class="card-body">
+                        <!-- Card-level help -->
+                        <div class="card-help">
+                            <span class="help-icon">💡</span>
+                            <span><strong>Upload Card:</strong> This is where you add new documents to the system. Upload legal documents like eviction notices, leases, or court papers to have them analyzed and securely registered.</span>
+                        </div>
+
                         <!-- User info is now from session -->
                         <input type="hidden" id="userId" value="">
-                        
-                        <div class="form-group">
+
+                        <div class="form-group has-help">
                             <label for="caseNumber">Case Number (Optional)</label>
                             <input type="text" id="caseNumber" placeholder="e.g., CASE-2024-001">
+                            <div class="help-tooltip">
+                                <div class="tooltip-title">📋 Case Number</div>
+                                Link documents to a specific legal case. This helps organize all related documents together.
+                                <div class="tooltip-when">Enter this if you have a court case number or want to group documents.</div>
+                            </div>
                         </div>
-                        
-                        <div class="upload-zone" id="uploadZone">
+
+                        <div class="upload-zone has-help" id="uploadZone">
                             <div class="icon">📁</div>
                             <h3>Drop files here or click to upload</h3>
                             <p>Supports PDF, DOCX, JPEG, PNG, TIFF up to 25MB</p>
@@ -894,8 +1423,13 @@
                                 <span class="file-type-badge">TIFF</span>
                             </div>
                             <input type="file" id="fileInput" multiple accept=".pdf,.docx,.doc,.jpg,.jpeg,.png,.tiff,.tif">
+                            <div class="help-tooltip tooltip-bottom">
+                                <div class="tooltip-title">📤 Upload Zone</div>
+                                Drag and drop files here OR click to browse your computer. You can upload multiple files at once.
+                                <div class="tooltip-when">Use this to add any legal document you've received (eviction notice, lease, court summons, etc.)</div>
+                            </div>
                         </div>
-                        
+
                         <div class="progress-container" id="uploadProgress">
                             <div class="progress-bar">
                                 <div class="progress-fill" id="progressFill"></div>
@@ -906,37 +1440,110 @@
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Document Queue -->
+                </div>                <!-- Document Queue -->
                 <div class="card" style="margin-top: 20px;">
                     <div class="card-header">
                         <div class="icon">📋</div>
                         <h2>Document Queue</h2>
                     </div>
                     <div class="card-body">
+                        <!-- Card-level help -->
+                        <div class="card-help">
+                            <span class="help-icon">💡</span>
+                            <span><strong>Document Queue:</strong> Shows documents you've uploaded that are waiting to be processed or registered. Click any document to select it and see its analysis results on the right.</span>
+                        </div>
                         <div class="document-queue" id="documentQueue">
                             <div class="empty-state">
                                 <div class="icon">📭</div>
                                 <p>No documents uploaded yet</p>
                             </div>
                         </div>
-                        
+
                         <div class="button-group">
-                            <button class="btn btn-primary" id="processAllBtn" disabled>
-                                ⚙️ Process All
+                            <div class="has-help" style="display: inline-block;">
+                                <button class="btn btn-primary" id="processAllBtn" disabled>
+                                    ⚙️ Process All
+                                </button>
+                                <div class="help-tooltip tooltip-bottom">
+                                    <div class="tooltip-title">⚙️ Process All Documents</div>
+                                    <strong>What:</strong> Analyzes all uploaded documents using AI to extract dates, parties, deadlines, and legal issues.<br><br>
+                                    <strong>Why:</strong> Processing identifies key information and potential problems in your documents automatically.<br><br>
+                                    <strong>When:</strong> Click after uploading documents. Button is disabled until you have unprocessed documents.
+                                    <div class="tooltip-when">Tip: Processing takes a few seconds per document.</div>
+                                </div>
+                            </div>
+                            <div class="has-help" style="display: inline-block;">
+                                <button class="btn btn-success" id="registerAllBtn" disabled>
+                                    ✓ Register All
+                                </button>
+                                <div class="help-tooltip tooltip-bottom">
+                                    <div class="tooltip-title">✓ Register All Documents</div>
+                                    <strong>What:</strong> Creates a tamper-proof record of each document with cryptographic hash verification.<br><br>
+                                    <strong>Why:</strong> Registration proves the document existed at this time and hasn't been altered - critical for court evidence.<br><br>
+                                    <strong>When:</strong> Click after processing to permanently register documents. Cannot be undone.
+                                    <div class="tooltip-when">Tip: Registered documents get a unique ID like SEM-2025-000001.</div>
+                                </div>
+                            </div>
+                            <div class="has-help" style="display: inline-block;">
+                                <button class="btn btn-outline" id="clearQueueBtn" disabled>
+                                    🗑️ Clear
+                                </button>
+                                <div class="help-tooltip tooltip-bottom">
+                                    <div class="tooltip-title">🗑️ Clear Upload Queue</div>
+                                    <strong>What:</strong> Removes all documents from the current upload queue (NOT registered documents).<br><br>
+                                    <strong>Why:</strong> Start fresh if you uploaded wrong files or want to begin a new batch.<br><br>
+                                    <strong>When:</strong> Click to clear the queue. Already registered documents are NOT affected.
+                                    <div class="tooltip-when">Tip: Use "Clear All" in Registered Documents to delete from database.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Registered Documents List -->
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <div class="icon">📚</div>
+                        <h2>Registered Documents</h2>
+                        <div class="has-help" style="display: inline-block; margin-left: auto;">
+                            <button class="btn btn-outline" onclick="loadRegisteredDocuments()" style="padding: 6px 12px; font-size: 12px;">
+                                🔄 Refresh
                             </button>
-                            <button class="btn btn-success" id="registerAllBtn" disabled>
-                                ✓ Register All
+                            <div class="help-tooltip tooltip-bottom">
+                                <div class="tooltip-title">🔄 Refresh List</div>
+                                <strong>What:</strong> Reloads the list of registered documents from the server.<br><br>
+                                <strong>When:</strong> Click if you registered documents in another tab or want to see the latest status.
+                            </div>
+                        </div>
+                        <div class="has-help" style="display: inline-block;">
+                            <button class="btn btn-outline" onclick="clearAllRegisteredDocuments()" style="padding: 6px 12px; font-size: 12px; margin-left: 8px; color: #dc2626; border-color: #dc2626;">
+                                🗑️ Clear All
                             </button>
-                            <button class="btn btn-outline" id="clearQueueBtn" disabled>
-                                🗑️ Clear
-                            </button>
+                            <div class="help-tooltip tooltip-bottom">
+                                <div class="tooltip-title">🗑️ Clear ALL Registered Documents</div>
+                                <strong>What:</strong> PERMANENTLY deletes ALL registered documents from the database.<br><br>
+                                <strong>Why:</strong> Use to start completely fresh with a clean slate.<br><br>
+                                <strong>When:</strong> Only when you want to remove ALL documents. This cannot be undone!
+                                <div class="tooltip-when">⚠️ WARNING: This action is irreversible!</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Card-level help -->
+                        <div class="card-help">
+                            <span class="help-icon">💡</span>
+                            <span><strong>Registered Documents:</strong> Shows ALL documents that have been officially registered. Click any document to view its details, verify integrity, or see chain of custody.</span>
+                        </div>
+                        <div id="registeredDocsList" class="document-queue" style="max-height: 400px;">
+                            <div class="empty-state">
+                                <div class="icon">📭</div>
+                                <p>Loading registered documents...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Right Column - Results -->
             <div>
                 <div class="card">
@@ -945,14 +1552,70 @@
                         <h2>Analysis Results</h2>
                     </div>
                     <div class="card-body">
-                        <div class="tabs">
-                            <button class="tab active" data-tab="overview">Overview</button>
-                            <button class="tab" data-tab="extraction">Extracted Data</button>
-                            <button class="tab" data-tab="issues">Issues</button>
-                            <button class="tab" data-tab="registry">Registry</button>
-                            <button class="tab" data-tab="custody">Chain of Custody</button>
+                        <!-- Card-level help -->
+                        <div class="card-help">
+                            <span class="help-icon">💡</span>
+                            <span><strong>Analysis Results:</strong> View extracted data from your documents. Use the tabs to see different types of information: Overview, Extracted Data, Issues, Registry details, and Chain of Custody.</span>
                         </div>
-                        
+                        <div class="tabs">
+                            <div class="has-help" style="display: inline-block;">
+                                <button class="tab active" data-tab="overview">Overview</button>
+                                <div class="help-tooltip tooltip-bottom">
+                                    <div class="tooltip-title">📄 Overview Tab</div>
+                                    Shows a summary of the selected document: filename, type, size, and processing status.
+                                    <div class="tooltip-when">Click to see basic document info at a glance.</div>
+                                </div>
+                            </div>
+                            <div class="has-help" style="display: inline-block;">
+                                <button class="tab" data-tab="extraction">Extracted Data</button>
+                                <div class="help-tooltip tooltip-bottom">
+                                    <div class="tooltip-title">🔍 Extracted Data Tab</div>
+                                    Shows all data extracted from the document: dates, deadlines, monetary amounts, and parties mentioned.
+                                    <div class="tooltip-when">Click to see what information was found in your document.</div>
+                                </div>
+                            </div>
+                            <div class="has-help" style="display: inline-block;">
+                                <button class="tab" data-tab="issues">Issues</button>
+                                <div class="help-tooltip tooltip-bottom">
+                                    <div class="tooltip-title">⚠️ Issues Tab</div>
+                                    Shows any problems or concerns detected: illegal clauses, missing deadlines, or potential tenant rights violations.
+                                    <div class="tooltip-when">Click to see warnings that need your attention.</div>
+                                </div>
+                            </div>
+                            <div class="has-help" style="display: inline-block;">
+                                <button class="tab" data-tab="formfields">Form Fields</button>
+                                <div class="help-tooltip tooltip-bottom">
+                                    <div class="tooltip-title">📝 Form Fields Tab</div>
+                                    Review and confirm data extracted for court forms. Verify tenant info, landlord info, property details, and amounts before generating forms.
+                                    <div class="tooltip-when">Click to review all form-ready data before filling out court documents.</div>
+                                </div>
+                            </div>
+                            <div class="has-help" style="display: inline-block;">
+                                <button class="tab" data-tab="registry">Registry</button>
+                                <div class="help-tooltip tooltip-bottom">
+                                    <div class="tooltip-title">🔐 Registry Tab</div>
+                                    Shows the official registration: unique document ID, content hash, forgery analysis, and verification status.
+                                    <div class="tooltip-when">Click to see proof that your document is securely registered.</div>
+                                </div>
+                            </div>
+                            <div class="has-help" style="display: inline-block;">
+                                <button class="tab" data-tab="custody">Chain of Custody</button>
+                                <div class="help-tooltip tooltip-bottom">
+                                    <div class="tooltip-title">🔗 Chain of Custody Tab</div>
+                                    Shows complete history: when the document was uploaded, processed, registered, accessed, and by whom.
+                                    <div class="tooltip-when">Click to see the full audit trail - useful for legal evidence.</div>
+                                </div>
+                            </div>
+                            <div class="has-help" style="display: inline-block;">
+                                <button class="tab" data-tab="recognition">🔍 Recognition</button>
+                                <div class="help-tooltip tooltip-bottom">
+                                    <div class="tooltip-title">🔍 AI Recognition Tab</div>
+                                    Advanced AI-powered document analysis with multi-pass reasoning, legal domain expertise, handwriting analysis, and forgery detection.
+                                    <div class="tooltip-when">Click to run deep analysis with confidence scoring and relationship mapping.</div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Overview Tab -->
                         <div class="tab-content active" id="tab-overview">
                             <div id="overviewContent">
@@ -982,7 +1645,20 @@
                                 </div>
                             </div>
                         </div>
-                        
+
+                        <!-- Form Fields Tab -->
+                        <div class="tab-content" id="tab-formfields">
+                            <div id="formFieldsContent">
+                                <div class="empty-state">
+                                    <div class="icon">📝</div>
+                                    <p>Extract form fields from your documents to prepare for court form filling</p>
+                                    <button class="btn btn-primary" onclick="extractFormFields()" style="margin-top: 12px;">
+                                        🔍 Extract Form Fields
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Registry Tab -->
                         <div class="tab-content" id="tab-registry">
                             <div id="registryContent">
@@ -1002,20 +1678,142 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Recognition Tab -->
+                        <div class="tab-content" id="tab-recognition">
+                            <div id="recognitionContent">
+                                <div class="empty-state">
+                                    <div class="icon">🔍</div>
+                                    <p>Select a document and click "Run Recognition" to analyze</p>
+                                    <button class="btn btn-primary" onclick="runRecognitionAnalysis()" id="runRecognitionBtn" disabled>
+                                        🧠 Run Recognition Analysis
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <div class="toast-container" id="toastContainer"></div>
-    
+
+    <!-- Help Toggle Button -->
+    <button class="help-toggle" id="helpToggle" onclick="toggleHelpMode()">
+        <span class="toggle-icon">❓</span>
+        <span id="helpToggleText">Show Help</span>
+    </button>
+
     <script>
         // =====================================================================
         // Configuration
         // =====================================================================
         const API_BASE = window.location.origin;
+
+        // =====================================================================
+        // Help Mode System
+        // =====================================================================
+        let helpModeEnabled = localStorage.getItem('helpMode') === 'true';
+
+        function toggleHelpMode() {
+            helpModeEnabled = !helpModeEnabled;
+            localStorage.setItem('helpMode', helpModeEnabled);
+            updateHelpMode();
+        }
+
+        function updateHelpMode() {
+            const toggle = document.getElementById('helpToggle');
+            const toggleText = document.getElementById('helpToggleText');
+            
+            if (helpModeEnabled) {
+                document.body.classList.add('help-mode');
+                toggle.classList.add('active');
+                toggleText.textContent = 'Hide Help';
+            } else {
+                document.body.classList.remove('help-mode');
+                toggle.classList.remove('active');
+                toggleText.textContent = 'Show Help';
+            }
+        }
+
+        // Initialize help mode on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateHelpMode();
+            setupTooltipPositioning();
+        });
         
+        // Setup tooltip positioning for .has-help elements
+        function setupTooltipPositioning() {
+            document.querySelectorAll('.has-help').forEach(el => {
+                const tooltip = el.querySelector('.help-tooltip');
+                if (!tooltip) return;
+                
+                // Move tooltip to body for proper z-index and overflow handling
+                document.body.appendChild(tooltip);
+                
+                el.addEventListener('mouseenter', () => {
+                    if (!document.body.classList.contains('help-mode')) return;
+                    positionTooltip(el, tooltip);
+                    tooltip.style.display = 'block';
+                });
+                
+                el.addEventListener('mouseleave', () => {
+                    tooltip.style.display = 'none';
+                });
+            });
+        }
+        
+        // Position tooltip toward center of card
+        function positionTooltip(element, tooltip) {
+            tooltip.style.visibility = 'hidden';
+            tooltip.style.display = 'block';
+            
+            const rect = element.getBoundingClientRect();
+            const tooltipRect = tooltip.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            // Find parent card
+            const card = element.closest('.card, .intake-section, .tab-content');
+            const cardRect = card ? card.getBoundingClientRect() : { left: 0, right: viewportWidth, top: 0, bottom: viewportHeight };
+            
+            const cardCenterY = (cardRect.top + cardRect.bottom) / 2;
+            const elemCenterY = rect.top + rect.height / 2;
+            const inTopHalf = elemCenterY < cardCenterY;
+            
+            // Reset arrows
+            tooltip.classList.remove('arrow-up', 'arrow-down');
+            
+            let top, left;
+            
+            // Position toward card center vertically
+            if (inTopHalf) {
+                top = rect.bottom + 12;
+                tooltip.classList.add('arrow-up');
+            } else {
+                top = rect.top - tooltipRect.height - 12;
+                tooltip.classList.add('arrow-down');
+            }
+            
+            // Position horizontally - align left edge with element, shift toward center
+            left = rect.left;
+            
+            // Keep within viewport
+            if (left + tooltipRect.width > viewportWidth - 20) {
+                left = viewportWidth - tooltipRect.width - 20;
+            }
+            if (left < 20) left = 20;
+            if (top < 10) top = rect.bottom + 12;
+            if (top + tooltipRect.height > viewportHeight - 10) {
+                top = rect.top - tooltipRect.height - 12;
+            }
+            
+            tooltip.style.top = `${top}px`;
+            tooltip.style.left = `${left}px`;
+            tooltip.style.visibility = 'visible';
+        }
+
         // =====================================================================
         // State
         // =====================================================================
@@ -1072,7 +1870,7 @@
             'L': { id: 'legal', name: 'Legal' },
             'A': { id: 'admin', name: 'Admin' }
         };
-        
+
         function parseUserId(userId) {
             if (!userId || userId.length < 3) return null;
             
@@ -1105,33 +1903,46 @@
         
         async function checkAuthStatus(retryCount = 0) {
             try {
-                // First check cookie directly for user ID
+                // Check cookie for user ID
                 let semptifyUid = getCookie('semptify_uid');
 
                 // If coming from welcome page and no cookie yet, wait and retry
                 const fromWelcome = new URLSearchParams(window.location.search).get('from') === 'welcome';
-                
+
                 if (!semptifyUid && fromWelcome && retryCount < 3) {
-                    console.log(`Cookie not ready yet, retry ${retryCount + 1}/3...`);
                     await new Promise(resolve => setTimeout(resolve, 300));
                     return checkAuthStatus(retryCount + 1);
                 }
 
+                // If no cookie, auto-create a session user (allow immediate use)
                 if (!semptifyUid) {
-                    // No cookie - redirect to welcome page to sign up/sign in
-                    console.log('No session found, redirecting to welcome...');
-                    window.location.href = '/static/welcome.html';
-                    return;
+                    const uniquePart = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+                    semptifyUid = 'SU' + uniquePart; // S = Session, U = User
+                    const maxAge = 24 * 60 * 60; // 24 hours for session user
+                    document.cookie = `semptify_uid=${semptifyUid}; path=/; max-age=${maxAge}; SameSite=Lax`;
+                    console.log('Session user created:', semptifyUid);
                 }
 
-                // Parse user ID to get provider and role
-                const parsed = parseUserId(semptifyUid);
+                // Parse user ID to get provider
+                let parsed = parseUserId(semptifyUid);
 
+                // If parsing fails, create a session user context
                 if (!parsed) {
-                    // Invalid user ID format - clear cookie and redirect
-                    document.cookie = 'semptify_uid=; path=/; max-age=0';
-                    window.location.href = '/static/welcome.html';
-                    return;
+                    parsed = {
+                        provider: 'S',
+                        providerName: 'Session',
+                        providerIcon: '🔐',
+                        role: 'U',
+                        roleName: 'User',
+                        uniquePart: semptifyUid.substring(2)
+                    };
+                }
+                
+                // Clear URL parameters after reading them (clean URL)
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('type') || urlParams.has('from')) {
+                    const cleanUrl = window.location.pathname;
+                    window.history.replaceState({}, document.title, cleanUrl);
                 }
 
                 // Valid cookie - set up user context
@@ -1190,10 +2001,12 @@
                         return;
                     }
                 }
-                // No valid session at all
-                window.location.href = '/static/welcome.html';
+                // No valid session at all - continue anyway with limited functionality
+                console.log('No valid session - continuing in session mode');
             }
-        }        function updateAuthUI(authenticated, needsReauth = false) {
+        }
+
+        function updateAuthUI(authenticated, needsReauth = false) {
             if (authenticated && currentUser) {
                 authBanner.classList.remove('not-authenticated');
                 authAvatar.textContent = currentUser.providerIcon || getProviderIcon(currentUser.provider);
@@ -1464,7 +2277,7 @@
                 }
                 
                 // Get full document data
-                const docResponse = await fetch(`${API_BASE}/api/intake/document/${doc.id}`, {
+                const docResponse = await fetch(`${API_BASE}/api/intake/documents/${doc.id}`, {
                     credentials: 'include'
                 });
                 const docData = await docResponse.json();
@@ -1633,7 +2446,7 @@
         async function verifyIntegrity(documentId) {
             try {
                 const response = await fetch(`${API_BASE}/api/registry/documents/${documentId}/verify`, {
-                    method: 'POST',
+                    method: 'GET',
                     credentials: 'include'
                 });
                 if (!response.ok) throw new Error('Verification failed');
@@ -1643,7 +2456,240 @@
                 return null;
             }
         }
-        
+
+        // =====================================================================
+        // Registered Documents List
+        // =====================================================================
+        let registeredDocs = [];
+
+        async function loadRegisteredDocuments() {
+            const listContainer = document.getElementById('registeredDocsList');
+            listContainer.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">⏳</div>
+                    <p>Loading...</p>
+                </div>
+            `;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/registry/documents`, {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) throw new Error('Failed to load documents');
+                
+                registeredDocs = await response.json();
+                renderRegisteredDocuments();
+            } catch (error) {
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">❌</div>
+                        <p>Failed to load documents: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function clearAllRegisteredDocuments() {
+            const count = registeredDocs ? registeredDocs.length : 0;
+            
+            if (count === 0) {
+                showToast('No documents to clear', 'info');
+                return;
+            }
+            
+            if (!confirm(`⚠️ WARNING: This will permanently delete ${count} registered document(s).\n\nThis action cannot be undone!\n\nAre you sure you want to continue?`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/registry/documents?confirm=true`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Failed to clear documents');
+                }
+                
+                const result = await response.json();
+                showToast(`✅ ${result.message}`, 'success');
+                
+                // Clear local state and reload
+                registeredDocs = [];
+                renderRegisteredDocuments();
+                
+            } catch (error) {
+                showToast(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function renderRegisteredDocuments() {
+            const listContainer = document.getElementById('registeredDocsList');
+            
+            if (!registeredDocs || registeredDocs.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <p>No registered documents yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listContainer.innerHTML = registeredDocs.map(doc => {
+                const filename = doc.original_filename || doc.filename || 'Unknown';
+                const status = doc.integrity_status || doc.status || 'unknown';
+                const forgeryScore = doc.forgery_score || 0;
+                const isDuplicate = doc.is_duplicate || false;
+                const registeredAt = doc.registered_at ? new Date(doc.registered_at).toLocaleDateString() : 'N/A';
+                
+                return `
+                <div class="queue-item" onclick="viewRegisteredDoc('${doc.document_id}')" style="cursor: pointer;">
+                    <div class="file-icon">${getFileIcon(filename)}</div>
+                    <div class="info" style="flex: 1;">
+                        <div class="filename" style="font-weight: 600;">${filename}</div>
+                        <div class="meta" style="font-size: 12px; color: #666;">
+                            <span style="font-family: monospace; background: #f3f4f6; padding: 2px 6px; border-radius: 4px;">${doc.document_id}</span>
+                        </div>
+                        <div class="meta" style="font-size: 11px; margin-top: 4px;">
+                            ${status === 'verified' || status === 'registered' ? '✅' : status === 'quarantined' ? '⚠️' : '📋'} ${status}
+                            ${forgeryScore > 0.3 ? `<span style="color: #dc2626;">| ⚠️ Forgery: ${Math.round(forgeryScore * 100)}%</span>` : ''}
+                            ${isDuplicate ? '<span style="color: #f59e0b;">| 📋 Duplicate</span>' : ''}
+                        </div>
+                    </div>
+                    <div style="text-align: right; font-size: 11px; color: #888;">
+                        ${registeredAt}
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        async function viewRegisteredDoc(docId) {
+            try {
+                // Fetch full document details
+                const response = await fetch(`${API_BASE}/api/registry/documents/${docId}`, {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) throw new Error('Failed to load document');
+                
+                const doc = await response.json();
+                
+                // Show in the registry tab
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.querySelector('[data-tab="registry"]').classList.add('active');
+                document.getElementById('tab-registry').classList.add('active');
+                
+                // Display document info
+                const registryContent = document.getElementById('registryContent');
+                registryContent.innerHTML = `
+                    <div class="integrity-indicator ${doc.integrity_status === 'verified' ? 'integrity-verified' : 'integrity-tampered'}">
+                        <span>${doc.integrity_status === 'verified' ? '✅' : '⚠️'}</span>
+                        <span><strong>${doc.integrity_status.toUpperCase()}</strong></span>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <span class="label">Document ID:</span>
+                        <span class="value" style="font-family: monospace;">${doc.document_id}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Filename:</span>
+                        <span class="value">${doc.filename}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Status:</span>
+                        <span class="value">${doc.status}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Registered:</span>
+                        <span class="value">${new Date(doc.registered_at).toLocaleString()}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Forgery Score:</span>
+                        <span class="value" style="color: ${doc.forgery_score > 0.3 ? '#dc2626' : '#10b981'}">
+                            ${Math.round(doc.forgery_score * 100)}%
+                        </span>
+                    </div>
+                    ${doc.is_duplicate ? `
+                        <div class="detail-row">
+                            <span class="label">Original Document:</span>
+                            <span class="value" style="font-family: monospace;">${doc.original_document_id || 'N/A'}</span>
+                        </div>
+                    ` : ''}
+                    
+                    <h4 style="margin-top: 20px; margin-bottom: 10px;">Content Hash</h4>
+                    <div class="hash-display">${doc.content_hash}</div>
+                    
+                    ${doc.forgery_alerts && doc.forgery_alerts.length > 0 ? `
+                        <h4 style="margin-top: 20px; margin-bottom: 10px;">⚠️ Forgery Alerts</h4>
+                        ${doc.forgery_alerts.map(alert => `
+                            <div class="forgery-alert">
+                                <div class="content">
+                                    <div class="indicator">${alert.indicator}</div>
+                                    <div class="description">${alert.description}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    ` : ''}
+                    
+                    <div class="button-group" style="margin-top: 20px;">
+                        <button class="btn btn-outline" onclick="viewRegisteredDocCustody('${docId}')">
+                            🔗 View Chain of Custody
+                        </button>
+                        <button class="btn btn-outline" onclick="verifyAndUpdate('${docId}')">
+                            🔍 Verify Integrity
+                        </button>
+                    </div>
+                `;
+                
+                showToast(`Loaded document ${docId}`, 'success');
+            } catch (error) {
+                showToast(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function viewRegisteredDocCustody(docId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/registry/documents/${docId}/custody`, {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) throw new Error('Failed to load custody chain');
+                
+                const custody = await response.json();
+                
+                // Switch to custody tab
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.querySelector('[data-tab="custody"]').classList.add('active');
+                document.getElementById('tab-custody').classList.add('active');
+                
+                const custodyContent = document.getElementById('custodyContent');
+                custodyContent.innerHTML = `
+                    <h4 style="margin-bottom: 15px;">Chain of Custody for ${docId}</h4>
+                    <div class="custody-chain">
+                        ${custody.map((record, i) => `
+                            <div class="custody-record" style="padding: 12px; background: ${i % 2 === 0 ? '#f9fafb' : '#fff'}; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid #2563eb;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <strong>${record.action}</strong>
+                                    <span style="font-size: 12px; color: #666;">${new Date(record.timestamp).toLocaleString()}</span>
+                                </div>
+                                <div style="font-size: 13px; color: #444;">${record.details || 'No details'}</div>
+                                <div style="font-size: 11px; color: #888; margin-top: 4px;">
+                                    Actor: ${record.actor} ${record.ip_address ? `| IP: ${record.ip_address}` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                showToast(`Error: ${error.message}`, 'error');
+            }
+        }
+
         // =====================================================================
         // Queue Rendering
         // =====================================================================
@@ -1713,8 +2759,10 @@
             showOverview(doc);
             showExtraction(doc);
             showIssues(doc);
+            showFormFields(doc);
             showRegistry(doc);
             showCustody(doc);
+            showRecognition(doc);
         }
         
         function showOverview(doc) {
@@ -1937,6 +2985,485 @@
                 </div>
             `).join('');
         }
+
+        // =====================================================================
+        // Form Field Extraction Functions
+        // =====================================================================
+        
+        let extractedFormFields = null;
+        let confirmedFields = new Set();
+        
+        function showFormFields(doc) {
+            const container = document.getElementById('formFieldsContent');
+            
+            if (!doc.extraction && !extractedFormFields) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📝</div>
+                        <p>Extract form fields from your documents to prepare for court form filling</p>
+                        <button class="btn btn-primary" onclick="extractFormFields()" style="margin-top: 12px;">
+                            🔍 Extract Form Fields
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // If we have extraction results, show the form field review UI
+            if (extractedFormFields) {
+                renderFormFieldsReview(container, extractedFormFields);
+            } else {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📝</div>
+                        <p>Document processed. Click below to extract form fields for court documents.</p>
+                        <button class="btn btn-primary" onclick="extractFormFields()" style="margin-top: 12px;">
+                            🔍 Extract Form Fields
+                        </button>
+                    </div>
+                `;
+            }
+        }
+        
+        async function extractFormFields() {
+            const container = document.getElementById('formFieldsContent');
+            
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">⏳</div>
+                    <p>Extracting form fields from all vault documents...</p>
+                    <div class="loading-spinner" style="margin-top: 12px;"></div>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/extraction/extract-from-vault`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to extract form fields');
+                }
+                
+                const data = await response.json();
+                extractedFormFields = data;
+                confirmedFields = new Set();
+                
+                renderFormFieldsReview(container, data);
+                showToast('Form fields extracted successfully', 'success');
+                
+            } catch (error) {
+                console.error('Error extracting form fields:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">❌</div>
+                        <p>Error extracting form fields: ${error.message}</p>
+                        <button class="btn btn-primary" onclick="extractFormFields()" style="margin-top: 12px;">
+                            🔄 Try Again
+                        </button>
+                    </div>
+                `;
+                showToast('Error extracting form fields', 'error');
+            }
+        }
+        
+        function renderFormFieldsReview(container, data) {
+            const fields = data.fields || data;
+            
+            // Count stats
+            let totalFields = 0;
+            let needsReview = 0;
+            let confirmed = confirmedFields.size;
+            
+            const categories = ['case_info', 'tenant', 'landlord', 'property', 'lease', 'dates', 'amounts'];
+            categories.forEach(cat => {
+                if (fields[cat]) {
+                    Object.keys(fields[cat]).forEach(key => {
+                        const field = fields[cat][key];
+                        if (field && (field.value || field.value === 0)) {
+                            totalFields++;
+                            if (field.needs_review) needsReview++;
+                        }
+                    });
+                }
+            });
+            
+            container.innerHTML = `
+                <!-- Stats -->
+                <div class="review-stats">
+                    <div class="review-stat">
+                        <div class="stat-value">${totalFields}</div>
+                        <div class="stat-label">Total Fields</div>
+                    </div>
+                    <div class="review-stat needs-review">
+                        <div class="stat-value">${needsReview}</div>
+                        <div class="stat-label">Needs Review</div>
+                    </div>
+                    <div class="review-stat confirmed">
+                        <div class="stat-value">${confirmed}</div>
+                        <div class="stat-label">Confirmed</div>
+                    </div>
+                </div>
+                
+                <!-- Case Information -->
+                ${renderFieldSection('case_info', '📋 Case Information', fields.case_info, {
+                    case_number: 'Case Number',
+                    court_name: 'Court Name',
+                    county: 'County',
+                    judicial_district: 'Judicial District'
+                })}
+                
+                <!-- Tenant Information -->
+                ${renderFieldSection('tenant', '👤 Tenant Information', fields.tenant, {
+                    name: 'Full Name',
+                    address: 'Street Address',
+                    unit: 'Unit/Apt',
+                    city: 'City',
+                    state: 'State',
+                    zip_code: 'ZIP Code',
+                    phone: 'Phone',
+                    email: 'Email'
+                })}
+                
+                <!-- Landlord Information -->
+                ${renderFieldSection('landlord', '🏢 Landlord Information', fields.landlord, {
+                    name: 'Full Name / Company',
+                    address: 'Street Address',
+                    city: 'City',
+                    state: 'State',
+                    zip_code: 'ZIP Code',
+                    phone: 'Phone',
+                    email: 'Email'
+                })}
+                
+                <!-- Property Information -->
+                ${renderFieldSection('property', '🏠 Property Details', fields.property, {
+                    address: 'Property Address',
+                    unit: 'Unit/Apt',
+                    city: 'City',
+                    state: 'State',
+                    zip_code: 'ZIP Code'
+                })}
+                
+                <!-- Lease Information -->
+                ${renderFieldSection('lease', '📝 Lease Details', fields.lease, {
+                    monthly_rent: 'Monthly Rent',
+                    security_deposit: 'Security Deposit',
+                    lease_start: 'Lease Start Date',
+                    lease_end: 'Lease End Date'
+                })}
+                
+                <!-- Important Dates -->
+                ${renderFieldSection('dates', '📅 Important Dates', fields.dates, {
+                    summons_date: 'Summons Date',
+                    hearing_date: 'Hearing Date',
+                    hearing_time: 'Hearing Time',
+                    answer_deadline: 'Answer Deadline',
+                    notice_date: 'Notice Date'
+                })}
+                
+                <!-- Amounts Claimed -->
+                ${renderFieldSection('amounts', '💰 Amounts Claimed', fields.amounts, {
+                    rent_claimed: 'Rent Claimed',
+                    late_fees: 'Late Fees',
+                    damages_claimed: 'Damages',
+                    total_claimed: 'Total Claimed'
+                })}
+                
+                <!-- Actions -->
+                <div class="extract-actions">
+                    <button class="extract-btn secondary" onclick="extractFormFields()">
+                        🔄 Re-Extract
+                    </button>
+                    <button class="extract-btn primary" onclick="applyToFormData()" ${needsReview > 0 && confirmed < needsReview ? 'disabled title="Please review flagged fields first"' : ''}>
+                        ✅ Apply to Forms
+                    </button>
+                </div>
+            `;
+            
+            // Attach event listeners to field inputs
+            container.querySelectorAll('.field-input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    updateFieldValue(e.target.dataset.category, e.target.dataset.field, e.target.value);
+                });
+            });
+        }
+        
+        function renderFieldSection(category, title, fields, fieldDefs) {
+            if (!fields) return '';
+            
+            const hasNeedsReview = Object.values(fields).some(f => f && f.needs_review);
+            const entries = Object.entries(fieldDefs).filter(([key]) => fields[key]);
+            
+            if (entries.length === 0) return '';
+            
+            return `
+                <div class="form-fields-section ${hasNeedsReview ? 'needs-review' : ''}">
+                    <div class="form-fields-header" onclick="toggleSection(this)">
+                        <h5>
+                            <span>${title}</span>
+                            ${hasNeedsReview ? '<span style="color: #f59e0b; font-size: 12px;">⚠️ Review needed</span>' : ''}
+                        </h5>
+                        <div class="section-toggle">▼</div>
+                    </div>
+                    <div class="form-fields-body">
+                        ${entries.map(([key, label]) => renderField(category, key, label, fields[key])).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderField(category, fieldKey, label, field) {
+            if (!field) return '';
+            
+            const fieldId = `${category}_${fieldKey}`;
+            const isConfirmed = confirmedFields.has(fieldId);
+            const confidenceClass = getConfidenceClass(field.confidence);
+            const needsReviewClass = field.needs_review ? 'needs-review' : '';
+            const confirmedClass = isConfirmed ? 'confirmed' : '';
+            
+            return `
+                <div class="form-field-row">
+                    <div class="field-label">${label}</div>
+                    <div class="field-value">
+                        <input type="text" 
+                               class="field-input ${needsReviewClass} ${confirmedClass}"
+                               data-category="${category}"
+                               data-field="${fieldKey}"
+                               value="${escapeHtml(field.value || '')}"
+                               placeholder="Not found">
+                    </div>
+                    <div class="confidence-badge ${confidenceClass}">
+                        ${getConfidenceIcon(field.confidence)} ${field.confidence || 'EMPTY'}
+                    </div>
+                    <div class="field-actions">
+                        <button class="field-action-btn confirm" 
+                                onclick="confirmField('${category}', '${fieldKey}')"
+                                title="Confirm this value">
+                            ✓
+                        </button>
+                        ${field.alternatives && field.alternatives.length > 0 ? `
+                            <button class="field-action-btn edit" 
+                                    onclick="showAlternatives('${category}', '${fieldKey}')"
+                                    title="Show alternatives">
+                                ▼
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function getConfidenceClass(confidence) {
+            if (!confidence) return 'confidence-low';
+            const c = confidence.toUpperCase();
+            if (c === 'HIGH') return 'confidence-high';
+            if (c === 'MEDIUM') return 'confidence-medium';
+            if (c === 'LOW') return 'confidence-low';
+            if (c === 'GUESS') return 'confidence-guess';
+            return 'confidence-low';
+        }
+        
+        function getConfidenceIcon(confidence) {
+            if (!confidence) return '❓';
+            const c = confidence.toUpperCase();
+            if (c === 'HIGH') return '✅';
+            if (c === 'MEDIUM') return '⚠️';
+            if (c === 'LOW') return '🔴';
+            if (c === 'GUESS') return '🤔';
+            return '❓';
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.toString()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+        
+        function toggleSection(header) {
+            const body = header.nextElementSibling;
+            const toggle = header.querySelector('.section-toggle');
+            
+            if (body.style.display === 'none') {
+                body.style.display = 'block';
+                toggle.classList.remove('collapsed');
+            } else {
+                body.style.display = 'none';
+                toggle.classList.add('collapsed');
+            }
+        }
+        
+        function confirmField(category, fieldKey) {
+            const fieldId = `${category}_${fieldKey}`;
+            confirmedFields.add(fieldId);
+            
+            // Update the input styling
+            const input = document.querySelector(`input[data-category="${category}"][data-field="${fieldKey}"]`);
+            if (input) {
+                input.classList.remove('needs-review');
+                input.classList.add('confirmed');
+            }
+            
+            // Update stats
+            updateReviewStats();
+            showToast('Field confirmed', 'success');
+        }
+        
+        function updateFieldValue(category, fieldKey, newValue) {
+            if (extractedFormFields && extractedFormFields.fields) {
+                if (extractedFormFields.fields[category] && extractedFormFields.fields[category][fieldKey]) {
+                    extractedFormFields.fields[category][fieldKey].value = newValue;
+                    // Auto-confirm when user edits a field
+                    confirmField(category, fieldKey);
+                }
+            }
+        }
+        
+        function updateReviewStats() {
+            const statsContainer = document.querySelector('.review-stats');
+            if (!statsContainer || !extractedFormFields) return;
+            
+            const fields = extractedFormFields.fields || extractedFormFields;
+            let needsReview = 0;
+            
+            const categories = ['case_info', 'tenant', 'landlord', 'property', 'lease', 'dates', 'amounts'];
+            categories.forEach(cat => {
+                if (fields[cat]) {
+                    Object.keys(fields[cat]).forEach(key => {
+                        const field = fields[cat][key];
+                        const fieldId = `${cat}_${key}`;
+                        if (field && field.needs_review && !confirmedFields.has(fieldId)) {
+                            needsReview++;
+                        }
+                    });
+                }
+            });
+            
+            const needsReviewStat = statsContainer.querySelector('.needs-review .stat-value');
+            const confirmedStat = statsContainer.querySelector('.confirmed .stat-value');
+            
+            if (needsReviewStat) needsReviewStat.textContent = needsReview;
+            if (confirmedStat) confirmedStat.textContent = confirmedFields.size;
+            
+            // Enable/disable apply button
+            const applyBtn = document.querySelector('.extract-btn.primary');
+            if (applyBtn) {
+                if (needsReview === 0) {
+                    applyBtn.disabled = false;
+                    applyBtn.removeAttribute('title');
+                }
+            }
+        }
+        
+        function showAlternatives(category, fieldKey) {
+            const fields = extractedFormFields?.fields || extractedFormFields;
+            const field = fields?.[category]?.[fieldKey];
+            
+            if (!field || !field.alternatives || field.alternatives.length === 0) {
+                showToast('No alternatives found', 'info');
+                return;
+            }
+            
+            const input = document.querySelector(`input[data-category="${category}"][data-field="${fieldKey}"]`);
+            if (!input) return;
+            
+            // Create dropdown
+            let dropdown = input.parentElement.querySelector('.alternatives-list');
+            if (dropdown) {
+                dropdown.classList.toggle('show');
+                return;
+            }
+            
+            dropdown = document.createElement('div');
+            dropdown.className = 'alternatives-list show';
+            dropdown.innerHTML = field.alternatives.map(alt => 
+                `<div class="alternative-item" onclick="selectAlternative('${category}', '${fieldKey}', '${escapeHtml(alt)}')">${escapeHtml(alt)}</div>`
+            ).join('');
+            
+            input.parentElement.style.position = 'relative';
+            input.parentElement.appendChild(dropdown);
+            
+            // Close on outside click
+            setTimeout(() => {
+                document.addEventListener('click', function closeDropdown(e) {
+                    if (!dropdown.contains(e.target)) {
+                        dropdown.remove();
+                        document.removeEventListener('click', closeDropdown);
+                    }
+                });
+            }, 0);
+        }
+        
+        function selectAlternative(category, fieldKey, value) {
+            const input = document.querySelector(`input[data-category="${category}"][data-field="${fieldKey}"]`);
+            if (input) {
+                input.value = value;
+                updateFieldValue(category, fieldKey, value);
+            }
+            
+            // Remove dropdown
+            const dropdown = input?.parentElement?.querySelector('.alternatives-list');
+            if (dropdown) dropdown.remove();
+        }
+        
+        async function applyToFormData() {
+            if (!extractedFormFields) {
+                showToast('No form fields to apply', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/extraction/apply-to-forms`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        fields: extractedFormFields.fields || extractedFormFields
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to apply form data');
+                }
+                
+                const result = await response.json();
+                showToast('Form data applied successfully! Ready for form filling.', 'success');
+                
+                // Optionally navigate to form filler or show success state
+                const container = document.getElementById('formFieldsContent');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="background: #d1fae5; border-radius: 12px; padding: 24px;">
+                            <div class="icon">✅</div>
+                            <p style="color: #065f46; font-weight: 600;">Form data applied successfully!</p>
+                            <p style="color: #047857; font-size: 14px;">Your extracted data is now ready to be used in court form filling.</p>
+                            <div class="button-group" style="margin-top: 16px;">
+                                <button class="btn btn-primary" onclick="window.location.href='/static/form_filler.html'">
+                                    📝 Go to Form Filler
+                                </button>
+                                <button class="btn btn-outline" onclick="extractFormFields()">
+                                    🔄 Extract Again
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Error applying form data:', error);
+                showToast('Error applying form data: ' + error.message, 'error');
+            }
+        }
         
         async function showRegistry(doc) {
             const container = document.getElementById('registryContent');
@@ -2085,7 +3612,7 @@
             const result = await verifyIntegrity(documentId);
             if (result) {
                 showToast(`Integrity: ${result.is_valid ? '✅ Verified' : '❌ Tampered'}`, result.is_valid ? 'success' : 'error');
-                
+
                 // Refresh document data
                 const doc = documents.find(d => d.registration?.document_id === documentId);
                 if (doc) {
@@ -2095,7 +3622,214 @@
                 }
             }
         }
-        
+
+        // =====================================================================
+        // Recognition Engine Integration
+        // =====================================================================
+        async function showRecognition(doc) {
+            const container = document.getElementById('recognitionContent');
+            const btn = document.getElementById('runRecognitionBtn');
+
+            if (btn) {
+                btn.disabled = !doc.processed;
+            }
+
+            if (!doc.recognitionResult) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🔍</div>
+                        <p>Run advanced AI recognition analysis on this document</p>
+                        <button class="btn btn-primary" onclick="runRecognitionAnalysis()" ${!doc.processed ? 'disabled' : ''}>
+                            🧠 Run Recognition Analysis
+                        </button>
+                        ${!doc.processed ? '<p style="color: var(--warning); font-size: 12px; margin-top: 8px;">⚠️ Process the document first</p>' : ''}
+                    </div>
+                `;
+                return;
+            }
+
+            const result = doc.recognitionResult;
+            container.innerHTML = `
+                <div class="result-card">
+                    <h4>🎯 Document Classification</h4>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="label">Type</div>
+                            <div class="value">${result.document_type || 'Unknown'}</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">Confidence</div>
+                            <div class="value">${((result.confidence?.overall || 0) * 100).toFixed(1)}%</div>
+                        </div>
+                    </div>
+                </div>
+
+                ${result.entities?.length ? `
+                <div class="result-card">
+                    <h4>📋 Extracted Entities (${result.entities.length})</h4>
+                    <div class="extracted-list">
+                        ${result.entities.map(e => `
+                            <div class="extracted-item">
+                                <span class="type-badge">${e.type}</span>
+                                <span>${e.value}</span>
+                                ${e.confidence ? `<span class="confidence">${(e.confidence * 100).toFixed(0)}%</span>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                ${result.issues?.length ? `
+                <div class="result-card">
+                    <h4>⚠️ Issues Detected (${result.issues.length})</h4>
+                    ${result.issues.map(issue => `
+                        <div class="issue-item issue-${(issue.severity || 'info').toLowerCase()}">
+                            <div class="issue-title">${getSeverityIcon(issue.severity || 'INFO')} ${issue.title || issue.type}</div>
+                            <div class="issue-desc">${issue.description}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                ` : ''}
+
+                ${result.reasoning_chain?.length ? `
+                <div class="result-card">
+                    <h4>🧠 Reasoning Chain</h4>
+                    <div class="reasoning-chain">
+                        ${result.reasoning_chain.map((step, i) => `
+                            <div class="reasoning-step">
+                                <strong>Step ${i + 1}: ${step.step}</strong>
+                                <p>${step.reasoning}</p>
+                                <span class="confidence-badge">${(step.confidence * 100).toFixed(0)}% confident</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+
+                ${result.handwriting ? `
+                <div class="result-card">
+                    <h4>✍️ Handwriting Analysis</h4>
+                    <div class="result-grid">
+                        <div class="result-item">
+                            <div class="label">Detected</div>
+                            <div class="value">${result.handwriting.detected ? 'Yes' : 'No'}</div>
+                        </div>
+                        ${result.handwriting.forgery_risk ? `
+                        <div class="result-item">
+                            <div class="label">Forgery Risk</div>
+                            <div class="value" style="color: ${result.handwriting.forgery_risk === 'high' || result.handwriting.forgery_risk === 'critical' ? 'var(--danger)' : 'inherit'}">
+                                ${result.handwriting.forgery_risk.toUpperCase()}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                    ${result.handwriting.indicators?.length ? `
+                        <div class="forgery-indicators">
+                            <strong>⚠️ Forgery Indicators:</strong>
+                            <ul>
+                                ${result.handwriting.indicators.map(ind => `<li>${ind.type}: ${ind.description}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+                ` : ''}
+
+                <div class="button-group">
+                    <button class="btn btn-outline" onclick="runRecognitionAnalysis()">
+                        🔄 Re-analyze
+                    </button>
+                    <button class="btn btn-outline" onclick="openRecognitionPage()">
+                        🔍 Open Full Recognition
+                    </button>
+                </div>
+            `;
+        }
+
+        async function runRecognitionAnalysis() {
+            const doc = documents.find(d => d.id === selectedDocId);
+            if (!doc) {
+                showToast('Please select a document first', 'warning');
+                return;
+            }
+
+            if (!doc.processed || !doc.extraction) {
+                showToast('Please process the document first', 'warning');
+                return;
+            }
+
+            const container = document.getElementById('recognitionContent');
+            container.innerHTML = `
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Running advanced AI recognition analysis...</p>
+                    <p style="font-size: 12px; color: var(--gray-500);">Multi-pass reasoning • Legal domain expertise • Handwriting detection</p>
+                </div>
+            `;
+
+            try {
+                // Get document text from extraction
+                const text = doc.extraction?.summary || doc.extraction?.raw_text || '';
+
+                const response = await fetch(`${API_BASE}/api/recognition/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        text: text,
+                        filename: doc.filename,
+                        include_reasoning: true
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Recognition analysis failed');
+                }
+
+                const result = await response.json();
+                doc.recognitionResult = result;
+
+                showRecognition(doc);
+                showToast('Recognition analysis complete', 'success');
+
+                // Emit brain event for cross-module awareness
+                if (window.brainWs && window.brainWs.readyState === WebSocket.OPEN) {
+                    window.brainWs.send(JSON.stringify({
+                        type: 'recognition_complete',
+                        document_id: doc.id,
+                        document_type: result.document_type,
+                        confidence: result.confidence?.overall,
+                        issues_count: result.issues?.length || 0
+                    }));
+                }
+
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="error-state">
+                        <div class="icon">❌</div>
+                        <p>Recognition analysis failed: ${error.message}</p>
+                        <button class="btn btn-primary" onclick="runRecognitionAnalysis()">
+                            🔄 Retry
+                        </button>
+                    </div>
+                `;
+                showToast(`Recognition failed: ${error.message}`, 'error');
+            }
+        }
+
+        function openRecognitionPage() {
+            const doc = documents.find(d => d.id === selectedDocId);
+            if (doc) {
+                // Store doc info for recognition page
+                sessionStorage.setItem('recognitionDoc', JSON.stringify({
+                    id: doc.id,
+                    filename: doc.filename,
+                    text: doc.extraction?.summary || doc.extraction?.raw_text || '',
+                    result: doc.recognitionResult
+                }));
+            }
+            window.location.href = '/static/recognition.html';
+        }
+
         // =====================================================================
         // Tab Handling
         // =====================================================================
@@ -2193,6 +3927,7 @@
         // =====================================================================
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthStatus();
+            loadRegisteredDocuments();
         });
     </script>
 </body>

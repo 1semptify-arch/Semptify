@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Document Recognition Engine - Semptify</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --critical: #dc2626;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #1a365d 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            color: var(--gray-800);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2 .icon {
+            font-size: 1.5rem;
+        }
+
+        /* Input Area */
+        .input-area {
+            grid-column: 1 / -1;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 200px;
+            padding: 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-200);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Options */
+        .options {
+            display: flex;
+            gap: 20px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+        }
+
+        /* Document Type Badge */
+        .doc-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Confidence Meter */
+        .confidence-meter {
+            margin: 20px 0;
+        }
+
+        .meter-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .meter-bar {
+            height: 12px;
+            background: var(--gray-200);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        .meter-fill.high { background: linear-gradient(90deg, var(--success), #34d399); }
+        .meter-fill.medium { background: linear-gradient(90deg, var(--warning), #fbbf24); }
+        .meter-fill.low { background: linear-gradient(90deg, var(--danger), #f87171); }
+
+        /* Entity Grid */
+        .entity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .entity-card {
+            background: var(--gray-50);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .entity-type {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--gray-500);
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .entity-value {
+            font-weight: 600;
+            color: var(--gray-800);
+            word-break: break-word;
+        }
+
+        .entity-confidence {
+            font-size: 12px;
+            color: var(--gray-400);
+            margin-top: 4px;
+        }
+
+        /* Legal Issues */
+        .issue-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .issue-card {
+            padding: 16px;
+            border-radius: 10px;
+            border-left: 4px solid;
+        }
+
+        .issue-card.critical {
+            background: #fef2f2;
+            border-color: var(--critical);
+        }
+
+        .issue-card.high {
+            background: #fef2f2;
+            border-color: var(--danger);
+        }
+
+        .issue-card.medium {
+            background: #fffbeb;
+            border-color: var(--warning);
+        }
+
+        .issue-card.low {
+            background: #eff6ff;
+            border-color: var(--primary);
+        }
+
+        .issue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .issue-title {
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .issue-severity {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .issue-severity.critical { background: var(--critical); color: white; }
+        .issue-severity.high { background: var(--danger); color: white; }
+        .issue-severity.medium { background: var(--warning); color: white; }
+        .issue-severity.low { background: var(--primary); color: white; }
+
+        .issue-desc {
+            font-size: 14px;
+            color: var(--gray-600);
+            margin-bottom: 8px;
+        }
+
+        .issue-statute {
+            font-size: 12px;
+            color: var(--gray-500);
+            font-family: monospace;
+        }
+
+        .issue-defense {
+            margin-top: 8px;
+            padding: 8px 12px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 6px;
+            font-size: 13px;
+            color: #065f46;
+        }
+
+        /* Forgery Section */
+        .forgery-section {
+            margin-top: 24px;
+        }
+
+        .risk-indicator {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .risk-indicator.none { background: #d1fae5; }
+        .risk-indicator.low { background: #dbeafe; }
+        .risk-indicator.medium { background: #fef3c7; }
+        .risk-indicator.high { background: #fee2e2; }
+        .risk-indicator.critical { background: #fecaca; }
+
+        .risk-icon {
+            font-size: 2.5rem;
+        }
+
+        .risk-info h3 {
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .risk-info p {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .risk-score {
+            margin-left: auto;
+            text-align: center;
+        }
+
+        .risk-score .score {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .risk-score .label {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        /* Signatures */
+        .signature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .signature-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--gray-50);
+            border-radius: 10px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .signature-icon {
+            font-size: 2rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--gray-100), var(--gray-200));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .signature-info {
+            flex: 1;
+        }
+
+        .signature-name {
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: 4px;
+        }
+
+        .signature-location {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .signature-confidence {
+            text-align: right;
+        }
+
+        .signature-confidence .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--success);
+        }
+
+        .signature-confidence .label {
+            font-size: 11px;
+            color: var(--gray-400);
+        }
+
+        /* Forgery Indicators */
+        .forgery-indicators {
+            margin-top: 20px;
+        }
+
+        .forgery-card {
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            border-left: 4px solid;
+        }
+
+        .forgery-card.critical {
+            background: #fef2f2;
+            border-color: var(--critical);
+        }
+
+        .forgery-card.high {
+            background: #fee2e2;
+            border-color: var(--danger);
+        }
+
+        .forgery-card.medium {
+            background: #fef3c7;
+            border-color: var(--warning);
+        }
+
+        .forgery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .forgery-type {
+            font-weight: 600;
+            color: var(--gray-800);
+        }
+
+        .forgery-desc {
+            font-size: 14px;
+            color: var(--gray-600);
+            margin-bottom: 8px;
+        }
+
+        .forgery-evidence {
+            font-size: 13px;
+            color: var(--gray-500);
+            background: rgba(0,0,0,0.05);
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .forgery-action {
+            font-size: 13px;
+            padding: 8px 12px;
+            background: rgba(37, 99, 235, 0.1);
+            border-radius: 6px;
+            color: var(--primary-dark);
+        }
+
+        /* Recommendations */
+        .recommendations {
+            margin-top: 20px;
+        }
+
+        .recommendation-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recommendation-list li {
+            padding: 12px 16px;
+            background: var(--gray-50);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--gray-700);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .recommendation-list li::before {
+            content: "→";
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Statutes */
+        .statutes-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .statute-tag {
+            padding: 6px 12px;
+            background: var(--gray-100);
+            border-radius: 20px;
+            font-size: 13px;
+            color: var(--gray-700);
+            font-family: monospace;
+        }
+
+        /* Defense Options */
+        .defense-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .defense-item {
+            padding: 12px 16px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+            font-size: 14px;
+            color: #065f46;
+            border-left: 3px solid var(--success);
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 16px;
+            background: var(--gray-50);
+            border-radius: 12px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray-400);
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .toast {
+            padding: 16px 24px;
+            border-radius: 10px;
+            margin-top: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            animation: slideIn 0.3s ease;
+            color: white;
+        }
+
+        .toast-success { background: var(--success); }
+        .toast-error { background: var(--danger); }
+        .toast-warning { background: var(--warning); }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            background: var(--gray-100);
+            padding: 4px;
+            border-radius: 10px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Navigation */
+        .nav-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .nav-link:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <a href="/static/document_intake.html" class="nav-link">← Back to Document Intake</a>
+
+    <div class="container">
+        <header class="header">
+            <h1>🔍 Document Recognition Engine</h1>
+            <p>Advanced AI-powered document analysis with handwriting recognition and forgery detection</p>
+        </header>
+
+        <!-- Input Section -->
+        <div class="main-grid">
+            <div class="card input-area">
+                <h2><span class="icon">📄</span> Document Text</h2>
+                <textarea 
+                    id="documentText" 
+                    class="text-input" 
+                    placeholder="Paste your document text here for analysis...
+
+Example documents:
+- Eviction notices
+- Lease agreements
+- Court summons
+- Payment receipts
+- Correspondence
+
+The engine will automatically:
+✓ Identify document type
+✓ Extract key entities (parties, dates, amounts)
+✓ Detect legal issues under Minnesota tenant law
+✓ Check for forgery indicators
+✓ Verify signatures"
+                ></textarea>
+                
+                <div class="options">
+                    <label class="option">
+                        <input type="checkbox" id="includeHandwriting" checked>
+                        Include handwriting/forgery analysis
+                    </label>
+                    <label class="option">
+                        <input type="checkbox" id="includeLegal" checked>
+                        Include Minnesota legal analysis
+                    </label>
+                </div>
+
+                <div class="input-actions">
+                    <button class="btn btn-primary" id="analyzeBtn" onclick="analyzeDocument()">
+                        🔍 Analyze Document
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadSample('eviction')">
+                        Load Sample: Eviction Notice
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadSample('lease')">
+                        Load Sample: Lease
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearAll()">
+                        Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loadingSection">
+            <div class="spinner"></div>
+            <p>Analyzing document...</p>
+            <p style="font-size: 13px; color: var(--gray-400);">Multi-pass reasoning in progress</p>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <!-- Stats -->
+            <div class="card" style="margin-bottom: 20px;">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="statEntities">0</div>
+                        <div class="stat-label">Entities Found</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statIssues">0</div>
+                        <div class="stat-label">Legal Issues</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statSignatures">0</div>
+                        <div class="stat-label">Signatures</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statProcessing">0</div>
+                        <div class="stat-label">Processing (ms)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <!-- Left Column: Document Analysis -->
+                <div class="card">
+                    <h2><span class="icon">📋</span> Document Analysis</h2>
+                    
+                    <div id="docTypeSection">
+                        <span class="doc-type-badge" id="docTypeBadge">
+                            <span>📄</span> <span id="docTypeText">Unknown</span>
+                        </span>
+                    </div>
+
+                    <div class="confidence-meter">
+                        <div class="meter-label">
+                            <span>Confidence</span>
+                            <span id="confidenceValue">0%</span>
+                        </div>
+                        <div class="meter-bar">
+                            <div class="meter-fill high" id="confidenceFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Navigation -->
+                    <div class="tab-nav">
+                        <button class="tab-btn active" onclick="showTab('entities')">Entities</button>
+                        <button class="tab-btn" onclick="showTab('legal')">Legal Issues</button>
+                        <button class="tab-btn" onclick="showTab('defenses')">Defenses</button>
+                    </div>
+
+                    <!-- Entities Tab -->
+                    <div class="tab-content active" id="entitiesTab">
+                        <div class="entity-grid" id="entityGrid">
+                            <div class="empty-state">
+                                <div class="icon">🔍</div>
+                                <p>No entities extracted yet</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legal Issues Tab -->
+                    <div class="tab-content" id="legalTab">
+                        <div class="issue-list" id="issueList">
+                            <div class="empty-state">
+                                <div class="icon">⚖️</div>
+                                <p>No legal issues detected</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Defenses Tab -->
+                    <div class="tab-content" id="defensesTab">
+                        <h3 style="margin-bottom: 12px; color: var(--gray-700);">Applicable Statutes</h3>
+                        <div class="statutes-list" id="statutesList"></div>
+
+                        <h3 style="margin: 20px 0 12px; color: var(--gray-700);">Defense Options</h3>
+                        <div class="defense-list" id="defenseList">
+                            <div class="empty-state">
+                                <div class="icon">🛡️</div>
+                                <p>No defense options identified</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Handwriting & Forgery -->
+                <div class="card">
+                    <h2><span class="icon">✍️</span> Handwriting & Forgery Analysis</h2>
+
+                    <!-- Risk Indicator -->
+                    <div class="risk-indicator none" id="riskIndicator">
+                        <div class="risk-icon" id="riskIcon">✅</div>
+                        <div class="risk-info">
+                            <h3 id="riskTitle">No Risk Detected</h3>
+                            <p id="riskDesc">Document appears authentic</p>
+                        </div>
+                        <div class="risk-score">
+                            <div class="score" id="riskScoreValue">0</div>
+                            <div class="label">Risk Score</div>
+                        </div>
+                    </div>
+
+                    <!-- Signatures -->
+                    <h3 style="margin: 20px 0 12px; color: var(--gray-700);">Signatures Detected</h3>
+                    <div class="signature-list" id="signatureList">
+                        <div class="empty-state">
+                            <div class="icon">✒️</div>
+                            <p>No signatures detected</p>
+                        </div>
+                    </div>
+
+                    <!-- Forgery Indicators -->
+                    <div class="forgery-indicators" id="forgerySection">
+                        <h3 style="margin: 20px 0 12px; color: var(--gray-700);">Forgery Indicators</h3>
+                        <div id="forgeryList">
+                            <div class="empty-state">
+                                <div class="icon">🔒</div>
+                                <p>No forgery indicators found</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="recommendations" id="recommendationsSection">
+                        <h3 style="margin: 20px 0 12px; color: var(--gray-700);">Recommendations</h3>
+                        <ul class="recommendation-list" id="recommendationList"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let currentResult = null;
+
+        // Sample documents
+        const SAMPLES = {
+            eviction: `JOHNSON PROPERTY MANAGEMENT LLC
+1234 Main Street, Suite 200
+Minneapolis, MN 55401
+Phone: (612) 555-1234
+
+January 15, 2024
+
+NOTICE TO TENANT
+
+To: Sarah Williams
+    456 Oak Avenue, Apt 3B
+    Minneapolis, MN 55403
+
+RE: 14-DAY NOTICE TO PAY RENT OR QUIT
+
+Dear Ms. Williams,
+
+This notice is to inform you that you are in violation of your lease agreement dated 
+March 1, 2023 for the premises located at 456 Oak Avenue, Apartment 3B, Minneapolis, 
+Minnesota 55403.
+
+As of the date of this notice, you owe the following amounts:
+
+    Rent for December 2023:     $1,200.00
+    Rent for January 2024:      $1,200.00
+    Late Fee (December):        $   75.00
+    Late Fee (January):         $   75.00
+    TOTAL AMOUNT DUE:           $2,550.00
+
+Pursuant to Minnesota Statutes Section 504B.291, you have fourteen (14) days from 
+the date of this notice to pay the full amount owed or vacate the premises.
+
+If you fail to pay the full amount or vacate within 14 days, legal proceedings will 
+be initiated to recover possession of the premises and any amounts owed.
+
+Sincerely,
+
+_______________________
+Robert Johnson
+Property Manager
+Johnson Property Management LLC`,
+
+            lease: `RESIDENTIAL LEASE AGREEMENT
+
+This Lease Agreement ("Lease") is made and entered into this 1st day of March, 2023,
+by and between:
+
+LANDLORD:    Johnson Property Management LLC
+             1234 Main Street, Suite 200
+             Minneapolis, MN 55401
+
+TENANT:      Sarah Williams
+             Previous Address: 123 Former St, St. Paul, MN 55101
+
+PREMISES:    456 Oak Avenue, Apartment 3B
+             Minneapolis, Minnesota 55403
+
+TERM: The term of this Lease shall be for a period of twelve (12) months, 
+commencing on March 1, 2023 and ending on February 28, 2024.
+
+RENT: Tenant agrees to pay Landlord the sum of $1,200.00 per month as rent 
+for the Premises. Rent is due on the first day of each month.
+
+SECURITY DEPOSIT: Upon execution of this Lease, Tenant shall deposit with 
+Landlord the sum of $1,200.00 as a security deposit.
+
+LATE FEE: If rent is not received by the 5th day of the month, Tenant shall 
+pay a late fee of $75.00.
+
+UTILITIES: Tenant shall be responsible for payment of electricity and gas. 
+Landlord shall provide water and trash removal.
+
+IN WITNESS WHEREOF, the parties have executed this Lease as of the date first 
+written above.
+
+LANDLORD:                          TENANT:
+_________________________          _________________________
+Robert Johnson                     Sarah Williams
+Johnson Property Management LLC
+
+Date: March 1, 2023                Date: March 1, 2023`
+        };
+
+        function loadSample(type) {
+            document.getElementById('documentText').value = SAMPLES[type] || '';
+            showToast(`Loaded ${type} sample`, 'success');
+        }
+
+        function clearAll() {
+            document.getElementById('documentText').value = '';
+            document.getElementById('resultsSection').classList.remove('active');
+            currentResult = null;
+        }
+
+        async function analyzeDocument() {
+            const text = document.getElementById('documentText').value.trim();
+            if (text.length < 10) {
+                showToast('Please enter at least 10 characters of text', 'warning');
+                return;
+            }
+
+            const includeHandwriting = document.getElementById('includeHandwriting').checked;
+            const btn = document.getElementById('analyzeBtn');
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;margin-right:8px;"></span> Analyzing...';
+            
+            document.getElementById('loadingSection').classList.add('active');
+            document.getElementById('resultsSection').classList.remove('active');
+
+            try {
+                const response = await fetch(`${API_BASE}/api/recognition/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        text: text,
+                        include_handwriting: includeHandwriting
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Analysis failed: ${response.status}`);
+                }
+
+                const result = await response.json();
+                currentResult = result;
+                displayResults(result);
+                showToast('Analysis complete!', 'success');
+
+            } catch (error) {
+                console.error('Analysis error:', error);
+                showToast(`Error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🔍 Analyze Document';
+                document.getElementById('loadingSection').classList.remove('active');
+            }
+        }
+
+        function displayResults(result) {
+            document.getElementById('resultsSection').classList.add('active');
+
+            // Stats
+            document.getElementById('statEntities').textContent = result.entities?.length || 0;
+            document.getElementById('statIssues').textContent = result.legal_issues?.length || 0;
+            document.getElementById('statSignatures').textContent = result.handwriting?.total_signatures || 0;
+            document.getElementById('statProcessing').textContent = Math.round(result.processing_time_ms || 0);
+
+            // Document type
+            document.getElementById('docTypeText').textContent = formatDocType(result.document_type);
+
+            // Confidence
+            const confidence = result.confidence_score || 0;
+            document.getElementById('confidenceValue').textContent = `${Math.round(confidence)}%`;
+            const fill = document.getElementById('confidenceFill');
+            fill.style.width = `${confidence}%`;
+            fill.className = 'meter-fill ' + (confidence >= 70 ? 'high' : confidence >= 40 ? 'medium' : 'low');
+
+            // Entities
+            displayEntities(result.entities || []);
+
+            // Legal issues
+            displayLegalIssues(result.legal_issues || []);
+
+            // Statutes and defenses
+            displayStatutesAndDefenses(result.applicable_statutes || [], result.defense_options || []);
+
+            // Handwriting analysis
+            if (result.handwriting) {
+                displayHandwritingAnalysis(result.handwriting);
+            }
+        }
+
+        function displayEntities(entities) {
+            const grid = document.getElementById('entityGrid');
+            if (!entities.length) {
+                grid.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>No entities extracted</p></div>`;
+                return;
+            }
+
+            grid.innerHTML = entities.map(e => `
+                <div class="entity-card">
+                    <div class="entity-type">${getEntityIcon(e.type)} ${e.type}</div>
+                    <div class="entity-value">${escapeHtml(e.value)}</div>
+                    <div class="entity-confidence">${Math.round(e.confidence * 100)}% confidence</div>
+                </div>
+            `).join('');
+        }
+
+        function displayLegalIssues(issues) {
+            const list = document.getElementById('issueList');
+            if (!issues.length) {
+                list.innerHTML = `<div class="empty-state"><div class="icon">⚖️</div><p>No legal issues detected</p></div>`;
+                return;
+            }
+
+            list.innerHTML = issues.map(i => `
+                <div class="issue-card ${i.severity}">
+                    <div class="issue-header">
+                        <span class="issue-title">${escapeHtml(i.title)}</span>
+                        <span class="issue-severity ${i.severity}">${i.severity}</span>
+                    </div>
+                    <div class="issue-desc">${escapeHtml(i.description)}</div>
+                    ${i.statute ? `<div class="issue-statute">📜 ${escapeHtml(i.statute)}</div>` : ''}
+                    ${i.defense_available ? `<div class="issue-defense">✅ Defense may be available</div>` : ''}
+                </div>
+            `).join('');
+        }
+
+        function displayStatutesAndDefenses(statutes, defenses) {
+            const statutesList = document.getElementById('statutesList');
+            statutesList.innerHTML = statutes.length 
+                ? statutes.map(s => `<span class="statute-tag">${escapeHtml(s)}</span>`).join('')
+                : '<span class="statute-tag">None identified</span>';
+
+            const defenseList = document.getElementById('defenseList');
+            if (!defenses.length) {
+                defenseList.innerHTML = `<div class="empty-state"><div class="icon">🛡️</div><p>No defense options identified</p></div>`;
+                return;
+            }
+            defenseList.innerHTML = defenses.map(d => `<div class="defense-item">${escapeHtml(d)}</div>`).join('');
+        }
+
+        function displayHandwritingAnalysis(hw) {
+            // Risk indicator
+            const indicator = document.getElementById('riskIndicator');
+            const riskLevel = hw.risk_level || 'none';
+            indicator.className = `risk-indicator ${riskLevel}`;
+            
+            const riskConfig = {
+                none: { icon: '✅', title: 'No Risk Detected', desc: 'Document appears authentic' },
+                low: { icon: '⚠️', title: 'Low Risk', desc: 'Minor concerns detected' },
+                medium: { icon: '⚠️', title: 'Medium Risk', desc: 'Some irregularities found' },
+                high: { icon: '🚨', title: 'High Risk', desc: 'Significant concerns detected' },
+                critical: { icon: '🚫', title: 'Critical Risk', desc: 'Strong forgery indicators!' }
+            };
+            
+            const config = riskConfig[riskLevel] || riskConfig.none;
+            document.getElementById('riskIcon').textContent = config.icon;
+            document.getElementById('riskTitle').textContent = config.title;
+            document.getElementById('riskDesc').textContent = config.desc;
+            document.getElementById('riskScoreValue').textContent = Math.round(hw.risk_score || 0);
+
+            // Signatures
+            const sigList = document.getElementById('signatureList');
+            if (!hw.signatures?.length) {
+                sigList.innerHTML = `<div class="empty-state"><div class="icon">✒️</div><p>No signatures detected</p></div>`;
+            } else {
+                sigList.innerHTML = hw.signatures.map(s => `
+                    <div class="signature-card">
+                        <div class="signature-icon">✍️</div>
+                        <div class="signature-info">
+                            <div class="signature-name">${escapeHtml(s.signer_name)}</div>
+                            <div class="signature-location">Location: ${escapeHtml(s.location)}</div>
+                        </div>
+                        <div class="signature-confidence">
+                            <div class="value">${Math.round(s.confidence * 100)}%</div>
+                            <div class="label">Confidence</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Forgery indicators
+            const forgeryList = document.getElementById('forgeryList');
+            if (!hw.forgery_indicators?.length) {
+                forgeryList.innerHTML = `<div class="empty-state"><div class="icon">🔒</div><p>No forgery indicators found</p></div>`;
+            } else {
+                forgeryList.innerHTML = hw.forgery_indicators.map(f => `
+                    <div class="forgery-card ${f.risk_level}">
+                        <div class="forgery-header">
+                            <span class="forgery-type">${escapeHtml(f.type.replace(/_/g, ' '))}</span>
+                            <span class="issue-severity ${f.risk_level}">${f.risk_level}</span>
+                        </div>
+                        <div class="forgery-desc">${escapeHtml(f.description)}</div>
+                        ${f.evidence?.length ? `<div class="forgery-evidence">Evidence: ${f.evidence.map(e => escapeHtml(e)).join('; ')}</div>` : ''}
+                        ${f.recommended_action ? `<div class="forgery-action">💡 ${escapeHtml(f.recommended_action)}</div>` : ''}
+                    </div>
+                `).join('');
+            }
+
+            // Recommendations
+            const recList = document.getElementById('recommendationList');
+            if (hw.recommendations?.length) {
+                recList.innerHTML = hw.recommendations.map(r => `<li>${escapeHtml(r)}</li>`).join('');
+            } else {
+                recList.innerHTML = '<li>No specific recommendations</li>';
+            }
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            
+            document.querySelector(`[onclick="showTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+        }
+
+        function formatDocType(type) {
+            if (!type) return 'Unknown';
+            return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        function getEntityIcon(type) {
+            const icons = {
+                person: '👤',
+                organization: '🏢',
+                address: '📍',
+                date: '📅',
+                money: '💰',
+                phone: '📞',
+                email: '✉️',
+                court_case: '⚖️',
+                statute: '📜',
+                deadline: '⏰'
+            };
+            return icons[type] || '📋';
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+    </script>
+</body>
+</html>

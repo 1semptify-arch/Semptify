@@ -1,6 +1,6 @@
 """
-Semptify Server Runner - Windows 11 Compatible
-==============================================
+Semptify Server Runner - Windows 10/11/22 Compatible
+=====================================================
 Run this directly: python run_server.py
 This keeps the server alive and handles Windows properly.
 """
@@ -10,26 +10,37 @@ import subprocess
 import time
 import signal
 
+# Fix console encoding for Windows (handles emojis in frozen exe)
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except (AttributeError, OSError):
+        pass  # Older Python or redirected output
+
 def main():
-    # Set environment
-    os.environ["SECURITY_MODE"] = "open"
-    os.environ["DEBUG"] = "false"
-    
+    # Load from .env if not already set (don't override environment variables)
+    if "SECURITY_MODE" not in os.environ:
+        os.environ["SECURITY_MODE"] = "enforced"  # Default to enforced/production
+    if "DEBUG" not in os.environ:
+        os.environ["DEBUG"] = "false"
+
+    security_mode = os.environ.get("SECURITY_MODE", "enforced")
+
     print()
     print("=" * 60)
-    print("  🚀 SEMPTIFY SERVER - Windows 11")
+    print("  SEMPTIFY SERVER - Production Mode")
     print("=" * 60)
     print()
-    print("  🌐 Command Center: http://localhost:8000/static/command_center.html")
-    print("  📊 Dashboard:      http://localhost:8000/static/dashboard.html")
-    print("  📚 API Docs:       http://localhost:8000/docs")
-    print("  ⚖️  Eviction:       http://localhost:8000/eviction/")
+    print(f"  Security:       {security_mode.upper()}")
+    print("  Command Center: http://localhost:8000/static/command_center.html")
+    print("  Dashboard:      http://localhost:8000/static/dashboard.html")
+    print("  API Docs:       http://localhost:8000/docs")
+    print("  Eviction:       http://localhost:8000/eviction/")
     print()
     print("  Press Ctrl+C to stop")
     print("=" * 60)
-    print()
-    
-    # Open browser after 3 seconds
+    print()    # Open browser after 3 seconds
     import threading
     import webbrowser
     def open_browser():

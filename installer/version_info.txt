@@ -1,0 +1,37 @@
+# UTF-8
+#
+# Semptify Version Info for Windows EXE
+#
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(5, 0, 0, 0),
+    prodvers=(5, 0, 0, 0),
+    mask=0x3f,
+    flags=0x0,
+    OS=0x40004,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0)
+  ),
+  kids=[
+    StringFileInfo(
+      [
+        StringTable(
+          u'040904B0',
+          [
+            StringStruct(u'CompanyName', u'Semptify - Pro Se Legal Assistant'),
+            StringStruct(u'FileDescription', u'Semptify - AI-Powered Legal Self-Help for Tenants'),
+            StringStruct(u'FileVersion', u'5.0.0.0'),
+            StringStruct(u'InternalName', u'Semptify'),
+            StringStruct(u'LegalCopyright', u'Free Software - No Rights Reserved - Donations Welcome'),
+            StringStruct(u'OriginalFilename', u'Semptify.exe'),
+            StringStruct(u'ProductName', u'Semptify Pro Se Legal Assistant'),
+            StringStruct(u'ProductVersion', u'5.0.0.0'),
+            StringStruct(u'Comments', u'100% Free - No Ads - No Data Collection - Privacy First')
+          ]
+        )
+      ]
+    ),
+    VarFileInfo([VarStruct(u'Translation', [1033, 1200])])
+  ]
+)

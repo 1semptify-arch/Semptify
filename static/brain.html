@@ -451,8 +451,33 @@
                 <div class="module-icon">🎯</div>
                 <div class="module-name">Context</div>
             </div>
+
+            <div class="module-node" id="mod-legal" data-module="legal_analysis" onclick="window.location='/static/legal_analysis.html'" style="cursor: pointer;">
+                <div class="module-icon">⚖️</div>
+                <div class="module-name">Legal Analysis</div>
+            </div>
+
+            <div class="module-node" id="mod-tenancy" data-module="tenancy_hub" onclick="window.location='/api/tenancy/cases'" style="cursor: pointer;">
+                <div class="module-icon">🏠</div>
+                <div class="module-name">Tenancy Hub</div>
+            </div>
+
+            <div class="module-node" id="mod-recognition" data-module="recognition" onclick="window.location='/static/recognition.html'" style="cursor: pointer;">
+                <div class="module-icon">🔍</div>
+                <div class="module-name">Recognition</div>
+            </div>
+
+            <div class="module-node" id="mod-handwriting" data-module="handwriting" onclick="window.location='/static/recognition.html#handwriting'" style="cursor: pointer;">
+                <div class="module-icon">✍️</div>
+                <div class="module-name">Handwriting</div>
+            </div>
+
+            <div class="module-node" id="mod-forgery" data-module="forgery" onclick="window.location='/static/recognition.html#forgery'" style="cursor: pointer;">
+                <div class="module-icon">🔎</div>
+                <div class="module-name">Forgery Detect</div>
+            </div>
         </div>
-        
+
         <!-- Control Panel -->
         <div class="control-panel">
             <button class="control-btn" onclick="triggerSync()">
@@ -575,7 +600,7 @@
         // WebSocket connection
         function connectWebSocket() {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            ws = new WebSocket(`${protocol}//${window.location.host}/api/brain/ws`);
+            ws = new WebSocket(`${protocol}//${window.location.host}/brain/ws`);
             
             ws.onopen = () => {
                 updateConnectionStatus(true);
@@ -687,15 +712,15 @@
         // Load initial data
         async function loadInitialData() {
             try {
-                const status = await fetch('/api/brain/status').then(r => r.json());
+                const status = await fetch('/brain/status').then(r => r.json());
                 document.getElementById('moduleCount').textContent = status.modules_connected;
                 document.getElementById('eventCount').textContent = status.event_history_size;
                 document.getElementById('workflowCount').textContent = status.active_workflows;
                 
-                const events = await fetch('/api/brain/events?limit=20').then(r => r.json());
+                const events = await fetch('/brain/events?limit=20').then(r => r.json());
                 events.events.forEach(e => addEventToStream(e));
                 
-                const modules = await fetch('/api/brain/modules').then(r => r.json());
+                const modules = await fetch('/brain/modules').then(r => r.json());
                 updateModuleList(modules.modules);
             } catch (e) {
                 console.error('Failed to load initial data:', e);
@@ -705,7 +730,7 @@
         // Trigger sync
         async function triggerSync() {
             try {
-                const result = await fetch('/api/brain/sync', { method: 'POST' }).then(r => r.json());
+                const result = await fetch('/brain/sync', { method: 'POST' }).then(r => r.json());
                 console.log('Sync triggered:', result);
                 
                 // Pulse the brain
@@ -720,7 +745,7 @@
         // Trigger workflow
         async function triggerWorkflow(name) {
             try {
-                const result = await fetch('/api/brain/workflow', {
+                const result = await fetch('/brain/workflow', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ workflow_name: name, data: {} })
@@ -738,7 +763,7 @@
         // Ask brain to think
         async function askBrainToThink() {
             try {
-                const result = await fetch('/api/brain/think', {
+                const result = await fetch('/brain/think', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ context: state })
@@ -760,5 +785,12 @@
             drawConnections();
         });
     </script>
+
+    <!-- Site-Wide Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/help-content.js"></script>
+    <script>SemptifyHelp.init('brain');</script>
 </body>
 </html>
+
+

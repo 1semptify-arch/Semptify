@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Law Linker Test - Semptify</title>
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+        }
+        
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card h2 {
+            margin-top: 0;
+            color: #60a5fa;
+            font-size: 18px;
+        }
+        
+        .card p {
+            margin: 0 0 16px;
+        }
+        
+        .test-section {
+            margin-bottom: 16px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+        
+        .test-section h3 {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin: 0 0 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+            padding: 16px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .legend-dot.linked {
+            background: var(--primary);
+        }
+        
+        .legend-dot.unlinked {
+            background: #6b7280;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-links a {
+            color: var(--primary);
+            text-decoration: none;
+            padding: 8px 16px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 6px;
+        }
+        
+        .nav-links a:hover {
+            background: rgba(59, 130, 246, 0.2);
+        }
+        
+        .info-box {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box strong {
+            color: #10b981;
+        }
+    </style>
+    <script src="/static/js/law-linker.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Law Linker Test Page</h1>
+        <p class="subtitle">Click any highlighted statute citation to view full details from the law library</p>
+        
+        <div class="nav-links">
+            <a href="/law-library">📖 Law Library</a>
+            <a href="/dashboard">🏠 Dashboard</a>
+        </div>
+        
+        <div class="info-box">
+            <strong>ℹ️ How it works:</strong> The Law Linker automatically scans text on any page and converts statute citations (like "42 U.S.C. § 3601" or "Minn. Stat. § 504B.211") into clickable links that show full law details in a popup modal.
+        </div>
+        
+        <div class="card">
+            <h2>Federal Housing Laws</h2>
+            <div class="test-section">
+                <h3>Fair Housing Act</h3>
+                <p>The Fair Housing Act (42 U.S.C. § 3601-3619) prohibits discrimination in housing based on race, color, religion, sex, national origin, familial status, and disability. The 1988 Amendments to the FHA (42 USC 3604) expanded protections significantly.</p>
+            </div>
+            
+            <div class="test-section">
+                <h3>ADA & Section 504</h3>
+                <p>The Americans with Disabilities Act Title II (42 U.S.C. § 12131) applies to public housing authorities. Title III (42 USC 12181) covers private entities. Section 504 of the Rehabilitation Act (29 U.S.C. § 794) provides additional protections in federally funded programs.</p>
+            </div>
+            
+            <div class="test-section">
+                <h3>Tenant Screening</h3>
+                <p>The Fair Credit Reporting Act (15 U.S.C. § 1681) regulates how landlords can use credit reports for tenant screening. The CFPB's debt collection rules (15 USC 1692) also impact tenant-landlord relationships.</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Minnesota Tenant Laws</h2>
+            <div class="test-section">
+                <h3>Tenant Protections</h3>
+                <p>Under Minn. Stat. § 504B.211, landlords must provide written notice before taking action on tenant rights. The eviction process is governed by Minn. Stat. § 504B.285 and Minn. Stat. § 504B.321 covers the tenant's right to redemption.</p>
+            </div>
+            
+            <div class="test-section">
+                <h3>Security Deposits</h3>
+                <p>Minnesota law (M.S. 504B.178) requires landlords to return security deposits within 21 days. Late fees are capped by Minn. Stat. 504B.177. Emergency tenant protections are found in MN Stat. 504B.375.</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Tax Laws</h2>
+            <div class="test-section">
+                <h3>Federal Tax Deductions</h3>
+                <p>Rental property owners can claim deductions under IRC § 280A for expenses. The like-kind exchange rules (IRC 1031) allow deferral of capital gains. The QBI deduction (IRC § 199A) provides additional benefits for pass-through entities.</p>
+            </div>
+            
+            <div class="test-section">
+                <h3>Minnesota Tax</h3>
+                <p>Property tax classification is governed by Minn. Stat. § 273.13. Renters may qualify for the Minnesota Renters Credit under Minn. Stat. 290A. Landlords have reporting requirements under MN Stat. 290A.19.</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Real Estate Laws</h2>
+            <div class="test-section">
+                <h3>Federal Requirements</h3>
+                <p>RESPA (12 U.S.C. § 2601) requires disclosures in real estate transactions. TILA (15 USC 1601) covers truth in lending. Lead paint disclosure is mandated by 42 U.S.C. § 4852d for pre-1978 housing.</p>
+            </div>
+            
+            <div class="test-section">
+                <h3>Minnesota Real Estate</h3>
+                <p>Contract for deed transactions are governed by Minn. Stat. § 559.21. Seller disclosure requirements are in Minn. Stat. 513.52. Foreclosure procedures follow Minn. Stat. 580.</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Local Ordinances</h2>
+            <div class="test-section">
+                <h3>Minneapolis</h3>
+                <p>Minneapolis Code § 244 covers rental licensing requirements. The city's rent stabilization ordinance limits rent increases to 3% annually. Truth in Housing requirements are in Minneapolis Code 248.</p>
+            </div>
+            
+            <div class="test-section">
+                <h3>St. Paul</h3>
+                <p>St. Paul's rent stabilization (St. Paul Ordinance 193A) caps rent increases at 3% per year, similar to Minneapolis.</p>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <span class="legend-dot linked"></span>
+                <span>Linked to Law Library (click to view)</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-dot unlinked"></span>
+                <span>Citation detected but not in database (opens search)</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Ensure law linker is initialized
+        if (typeof LawLinker !== 'undefined' && !window.lawLinker) {
+            window.lawLinker = new LawLinker();
+        }
+    </script>
+</body>
+</html>

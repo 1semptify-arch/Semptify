@@ -139,7 +139,7 @@ async def test_role_switch_advocate_requires_invite(authenticated_client: AsyncC
     # With valid invite code - should succeed
     response = await authenticated_client.post(
         "/storage/role",
-        json={"role": "advocate", "invite_code": "ADV-2024-SEMPTIFY"}
+        json={"role": "advocate", "invite_code": "TEST-INVITE-CODE"}
     )
     assert response.status_code == 200
     data = response.json()
@@ -157,7 +157,7 @@ async def test_role_switch_legal_requires_invite(authenticated_client: AsyncClie
     # With valid invite code - should succeed
     response = await authenticated_client.post(
         "/storage/role",
-        json={"role": "legal", "invite_code": "LEGAL-2024-AUTH"}
+        json={"role": "legal", "invite_code": "TEST-INVITE-CODE"}
     )
     assert response.status_code == 200
 
@@ -201,7 +201,7 @@ async def test_role_switch_admin_requires_pin(authenticated_client: AsyncClient)
     # With correct PIN - should succeed
     response = await authenticated_client.post(
         "/storage/role",
-        json={"role": "admin", "pin": "0414"}
+        json={"role": "admin", "pin": "TEST-PIN"}
     )
     assert response.status_code == 200
     data = response.json()
@@ -269,7 +269,7 @@ async def test_sync_device_valid_user_id(client: AsyncClient):
     """Test sync endpoint with valid user ID sets cookie."""
     response = await client.get("/storage/sync/GUtest1234", follow_redirects=False)
     assert response.status_code == 200
-    assert "Sync Complete" in response.text
+    assert "Reconnected" in response.text
     assert "semptify_uid" in response.headers.get("set-cookie", "")
 
 
@@ -278,7 +278,7 @@ async def test_sync_device_invalid_user_id(client: AsyncClient):
     """Test sync endpoint with invalid user ID returns error."""
     response = await client.get("/storage/sync/invalid", follow_redirects=False)
     assert response.status_code == 400
-    assert "Sync Failed" in response.text
+    assert "Invalid" in response.text
 
 
 @pytest.mark.anyio

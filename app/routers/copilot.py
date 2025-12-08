@@ -216,12 +216,12 @@ async def call_ollama(message: str, context: Optional[str], settings: Settings) 
     """Call local Ollama API."""
     try:
         import httpx
-        
+
         prompt = SYSTEM_PROMPT + "\n\n"
         if context:
             prompt += f"Context: {context}\n\n"
         prompt += f"User: {message}\n\nAssistant:"
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{settings.ollama_base_url}/api/generate",
@@ -242,6 +242,86 @@ async def call_ollama(message: str, context: Optional[str], settings: Settings) 
         )
 
 
+async def call_groq(message: str, context: Optional[str], settings: Settings) -> str:
+    """Call Groq API (fast inference)."""
+    try:
+        import httpx
+
+        messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+
+        if context:
+            messages.append({"role": "user", "content": f"Context: {context}"})
+
+        messages.append({"role": "user", "content": message})
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {settings.groq_api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": settings.groq_model,
+                    "messages": messages,
+                    "max_tokens": 1000,
+                    "temperature": 0.7,
+                },
+                timeout=30.0,
+            )
+            response.raise_for_status()
+            data = response.json()
+            return data["choices"][0]["message"]["content"]
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Groq API error: {str(e)}",
+        )
+
+
+async def call_anthropic(message: str, context: Optional[str], settings: Settings) -> str:
+    """Call Anthropic Claude API (best accuracy for legal work)."""
+    try:
+        import httpx
+
+        # Build messages for Claude format
+        user_content = ""
+        if context:
+            user_content = f"Context: {context}\n\n"
+        user_content += message
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={
+                    "x-api-key": settings.anthropic_api_key,
+                    "anthropic-version": "2023-06-01",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": settings.anthropic_model,
+                    "max_tokens": 4096,
+                    "system": SYSTEM_PROMPT,
+                    "messages": [
+                        {"role": "user", "content": user_content}
+                    ],
+                },
+                timeout=60.0,  # Claude can take longer for thorough responses
+            )
+            response.raise_for_status()
+            data = response.json()
+            # Claude returns content as array of content blocks
+            content_blocks = data.get("content", [])
+            if content_blocks and len(content_blocks) > 0:
+                return content_blocks[0].get("text", "No response generated")
+            return "No response generated"
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Anthropic Claude API error: {str(e)}",
+        )
+
+
 # =============================================================================
 # Endpoints
 # =============================================================================
@@ -252,7 +332,7 @@ async def copilot_status(settings: Settings = Depends(get_settings)):
     Check if AI copilot is available and which provider is configured.
     """
     provider = settings.ai_provider
-    
+
     if provider == "none":
         return CopilotStatusResponse(
             available=False,
@@ -264,8 +344,10 @@ async def copilot_status(settings: Settings = Depends(get_settings)):
         "openai": settings.openai_model,
         "azure": settings.azure_openai_deployment,
         "ollama": settings.ollama_model,
+        "groq": settings.groq_model,
+        "anthropic": settings.anthropic_model,
     }.get(provider, "unknown")
-    
+
     # Check if API keys are configured
     available = False
     if provider == "openai" and settings.openai_api_key:
@@ -274,14 +356,16 @@ async def copilot_status(settings: Settings = Depends(get_settings)):
         available = True
     elif provider == "ollama":
         available = True  # Ollama doesn't need API key
-    
+    elif provider == "groq" and settings.groq_api_key:
+        available = True
+    elif provider == "anthropic" and settings.anthropic_api_key:
+        available = True
+
     return CopilotStatusResponse(
         available=available,
         provider=provider,
         model=model,
     )
-
-
 @router.post(
     "/",
     response_model=CopilotResponse,
@@ -320,6 +404,10 @@ async def ask_copilot(
         response_text = await call_azure_openai(request.message, request.context, settings)
     elif provider == "ollama":
         response_text = await call_ollama(request.message, request.context, settings)
+    elif provider == "groq":
+        response_text = await call_groq(request.message, request.context, settings)
+    elif provider == "anthropic":
+        response_text = await call_anthropic(request.message, request.context, settings)
     else:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -411,6 +499,10 @@ Document Content:
             analysis = await call_azure_openai(analysis_prompt, None, settings)
         elif provider == "ollama":
             analysis = await call_ollama(analysis_prompt, None, settings)
+        elif provider == "groq":
+            analysis = await call_groq(analysis_prompt, None, settings)
+        elif provider == "anthropic":
+            analysis = await call_anthropic(analysis_prompt, None, settings)
         else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -465,18 +557,21 @@ async def analyze_case(
     """
     Perform a comprehensive AI analysis of the entire case.
     
+    ALWAYS uses Claude (Anthropic) for maximum accuracy - regardless of primary AI_PROVIDER.
+
     Analyzes:
     - All uploaded documents
     - Timeline events
     - Current case data from FormDataHub
     - Relevant laws and defenses
-    
+
     Returns case strength, issues, recommendations.
     """
     from app.services.form_data import get_form_data_service
     from app.services.law_engine import get_law_engine
-    
-    provider = settings.ai_provider
+
+    # ALWAYS use Claude for full case analysis - accuracy matters most here
+    analysis_provider = "anthropic" if settings.anthropic_api_key else settings.ai_provider
     user_id = getattr(user, 'user_id', 'open-mode-user')
     form_data_svc = get_form_data_service(user_id)
     law_engine = get_law_engine()
@@ -518,9 +613,29 @@ async def analyze_case(
             context_parts.append(f"  - {s.get('title', 'Unknown')}: {s.get('strength', 'unknown')}")
     
     context = "\n".join(context_parts)
-    
-    # If AI is available, enhance with AI analysis
-    if provider != "none":
+
+    # Use Claude for thorough case analysis (if available), fall back to primary provider
+    if analysis_provider == "anthropic" and settings.anthropic_api_key:
+        try:
+            analysis_prompt = f"""As a legal assistant specializing in tenant rights and eviction defense, perform a THOROUGH and ACCURATE analysis of this case. Take your time - accuracy matters more than speed.
+
+{context}
+
+Provide a comprehensive analysis including:
+1. Overall case strength assessment (0-100 score) with detailed reasoning
+2. Key legal issues that need to be addressed - cite specific statutes where applicable
+3. Strengths in the tenant's position - what works in their favor
+4. Potential weaknesses or concerns - be honest about challenges
+5. Recommended priority actions with specific deadlines if applicable
+6. Any procedural defenses available (improper notice, service issues, etc.)
+
+Be specific, thorough, and practical. Focus on Minnesota eviction law (Minn. Stat. Chapter 504B).
+If you're uncertain about anything, say so rather than guessing."""
+
+            ai_analysis = await call_anthropic(analysis_prompt, None, settings)
+        except Exception:
+            ai_analysis = None
+    elif analysis_provider != "none":
         try:
             analysis_prompt = f"""As a legal assistant specializing in tenant rights and eviction defense, analyze this case:
 
@@ -535,17 +650,22 @@ Provide:
 
 Be specific and practical. Focus on Minnesota eviction law."""
 
+            provider = settings.ai_provider
             if provider == "openai":
                 ai_analysis = await call_openai(analysis_prompt, None, settings)
             elif provider == "azure":
                 ai_analysis = await call_azure_openai(analysis_prompt, None, settings)
             elif provider == "ollama":
                 ai_analysis = await call_ollama(analysis_prompt, None, settings)
+            elif provider == "groq":
+                ai_analysis = await call_groq(analysis_prompt, None, settings)
+            elif provider == "anthropic":
+                ai_analysis = await call_anthropic(analysis_prompt, None, settings)
         except Exception:
             ai_analysis = None
     else:
         ai_analysis = None
-    
+
     # Calculate case strength based on data
     strength = 30  # Base score
     if violations:
@@ -588,7 +708,7 @@ Be specific and practical. Focus on Minnesota eviction law."""
         defense_options=[{"code": s.get('code'), "title": s.get('title'), "strength": s.get('strength')} for s in strategies[:5]],
         evidence_gaps=evidence_gaps[:5],
         recommended_actions=recommended[:5],
-        provider=provider,
+        provider=analysis_provider,  # Shows "anthropic" when Claude is used for analysis
     )
 
 
@@ -778,6 +898,10 @@ Include:
                 content = await call_azure_openai(prompt, None, settings)
             elif provider == "ollama":
                 content = await call_ollama(prompt, None, settings)
+            elif provider == "groq":
+                content = await call_groq(prompt, None, settings)
+            elif provider == "anthropic":
+                content = await call_anthropic(prompt, None, settings)
             else:
                 content = f"[AI generation not available. Template type: {request.template_type}]"
         except Exception as e:

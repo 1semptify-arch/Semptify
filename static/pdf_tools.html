@@ -1,0 +1,1885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Reader & Extractor - Semptify</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: #4ade80;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            gap: 20px;
+            min-height: calc(100vh - 120px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .upload-zone {
+            border: 2px dashed rgba(74, 222, 128, 0.5);
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+        }
+
+        .upload-zone i {
+            font-size: 3rem;
+            color: #4ade80;
+            margin-bottom: 12px;
+        }
+
+        .upload-zone h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .upload-zone p {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .pdf-info {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .pdf-info.active {
+            display: block;
+        }
+
+        .pdf-info h4 {
+            font-size: 0.9rem;
+            color: #4ade80;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pdf-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.85rem;
+        }
+
+        .pdf-info-item:last-child {
+            border: none;
+        }
+
+        .pdf-info-item span:first-child {
+            color: #888;
+        }
+
+        /* Thumbnails */
+        .thumbnails-section {
+            margin-top: 20px;
+        }
+
+        .thumbnails-section h4 {
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+            color: #4ade80;
+        }
+
+        .thumbnails-container {
+            max-height: 400px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .thumbnail {
+            position: relative;
+            cursor: pointer;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .thumbnail:hover {
+            border-color: rgba(74, 222, 128, 0.5);
+            transform: scale(1.02);
+        }
+
+        .thumbnail.selected {
+            border-color: #4ade80;
+            box-shadow: 0 0 15px rgba(74, 222, 128, 0.4);
+        }
+
+        .thumbnail.active {
+            border-color: #3b82f6;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .thumbnail img {
+            width: 100%;
+            display: block;
+        }
+
+        .thumbnail-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.9));
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .thumbnail-page {
+            font-size: 0.8rem;
+            color: white;
+            font-weight: 600;
+        }
+
+        .thumbnail-badge {
+            background: #4ade80;
+            color: #1a1a2e;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        .thumbnail.selected .thumbnail-badge {
+            display: block;
+        }
+
+        /* Viewer */
+        .viewer {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .viewer-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .page-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-nav button {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .page-nav button:hover:not(:disabled) {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .page-nav button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-nav input {
+            width: 60px;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3);
+            color: #e0e0e0;
+            text-align: center;
+        }
+
+        .page-nav span {
+            color: #888;
+        }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .zoom-controls button {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .zoom-controls button:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .zoom-controls span {
+            font-size: 0.9rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .toolbar-center {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toolbar-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        .toolbar-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.1);
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .toolbar-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .toolbar-btn.primary {
+            background: #4ade80;
+            border-color: #4ade80;
+            color: #1a1a2e;
+        }
+
+        .toolbar-btn.primary:hover {
+            background: #22c55e;
+        }
+
+        .toolbar-btn.danger {
+            background: #ef4444;
+            border-color: #ef4444;
+            color: white;
+        }
+
+        .toolbar-btn.danger:hover {
+            background: #dc2626;
+        }
+
+        .toolbar-btn.add-list {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .toolbar-btn.add-list:hover {
+            background: #2563eb;
+        }
+
+        /* Page Actions Row */
+        .page-actions-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: rgba(0,0,0,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .viewer-content {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .page-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .page-image {
+            max-width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            border-radius: 4px;
+            cursor: crosshair;
+        }
+
+        .page-image.highlight-mode {
+            cursor: crosshair;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+
+        /* Highlighter Toolbar */
+        .highlighter-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 25px;
+            margin-left: 15px;
+        }
+
+        .highlighter-toolbar label {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .color-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .color-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .color-btn.active {
+            border-color: white;
+            box-shadow: 0 0 8px rgba(255,255,255,0.5);
+        }
+
+        .color-btn.yellow { background: #fef08a; }
+        .color-btn.green { background: #86efac; }
+        .color-btn.blue { background: #93c5fd; }
+        .color-btn.pink { background: #f9a8d4; }
+        .color-btn.orange { background: #fdba74; }
+        .color-btn.red { background: #fca5a5; }
+
+        /* Highlights on page */
+        .highlight-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .highlight-rect {
+            position: absolute;
+            opacity: 0.4;
+            pointer-events: auto;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .highlight-rect:hover {
+            opacity: 0.6;
+        }
+
+        .highlight-rect.yellow { background: #fef08a; }
+        .highlight-rect.green { background: #86efac; }
+        .highlight-rect.blue { background: #93c5fd; }
+        .highlight-rect.pink { background: #f9a8d4; }
+        .highlight-rect.orange { background: #fdba74; }
+        .highlight-rect.red { background: #fca5a5; }
+
+        /* Right Panel - Extract List & Notes */
+        .right-panel {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel-section {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .panel-section h4 {
+            font-size: 0.9rem;
+            color: #4ade80;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Extract List */
+        .extract-list {
+            max-height: 200px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .extract-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255,255,255,0.05);
+            padding: 10px 12px;
+            border-radius: 8px;
+            border-left: 3px solid #4ade80;
+        }
+
+        .extract-item span {
+            font-size: 0.9rem;
+        }
+
+        .extract-item button {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .extract-item button:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .extract-empty {
+            color: #666;
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .extract-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .extract-actions button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        /* Notes Section */
+        .notes-list {
+            max-height: 250px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .note-item {
+            background: rgba(255,255,255,0.05);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid;
+        }
+
+        .note-item.yellow { border-color: #fef08a; }
+        .note-item.green { border-color: #86efac; }
+        .note-item.blue { border-color: #93c5fd; }
+        .note-item.pink { border-color: #f9a8d4; }
+        .note-item.orange { border-color: #fdba74; }
+        .note-item.red { border-color: #fca5a5; }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .note-page {
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        .note-color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .note-text {
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .note-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .note-actions button {
+            background: transparent;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .note-actions button:hover {
+            background: rgba(255,255,255,0.1);
+            color: #e0e0e0;
+        }
+
+        .notes-empty {
+            color: #666;
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 20px;
+        }
+
+        /* Add Note Input */
+        .add-note-form {
+            margin-top: 12px;
+            display: none;
+        }
+
+        .add-note-form.active {
+            display: block;
+        }
+
+        .add-note-form textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3);
+            color: #e0e0e0;
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 80px;
+            margin-bottom: 10px;
+        }
+
+        .add-note-form .form-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .add-note-form button {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #1e1e2e;
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .modal h2 {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal h2 i {
+            color: #4ade80;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3);
+            color: #e0e0e0;
+            font-size: 1rem;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 6px;
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-actions button {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .modal-actions .cancel-btn {
+            background: rgba(255,255,255,0.1);
+            color: #e0e0e0;
+        }
+
+        .modal-actions .cancel-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .modal-actions .extract-btn {
+            background: #4ade80;
+            color: #1a1a2e;
+        }
+
+        .modal-actions .extract-btn:hover {
+            background: #22c55e;
+        }
+
+        /* Text View */
+        .text-view {
+            display: none;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            margin: 20px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .text-view.active {
+            display: block;
+        }
+
+        /* Selection count */
+        .selection-count {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: none;
+        }
+
+        .selection-count.active {
+            display: block;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top-color: #4ade80;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Key Notes Legend */
+        .notes-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar, .right-panel {
+                order: 2;
+            }
+
+            .viewer {
+                order: 1;
+                min-height: 60vh;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .viewer-toolbar {
+                flex-direction: column;
+            }
+
+            .highlighter-toolbar {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-file-pdf"></i>
+                <h1>PDF Reader & Extractor</h1>
+            </div>
+            <a href="command_center.html" class="back-btn">
+                <i class="fas fa-arrow-left"></i>
+                Back to Command Center
+            </a>
+            <a href="briefcase.html" class="back-btn" style="margin-left: 10px; background: rgba(59,130,246,0.3);">
+                <i class="fas fa-briefcase"></i>
+                Briefcase
+            </a>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Sidebar -->
+            <div class="sidebar">
+                <div class="upload-zone" id="uploadZone">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>Upload PDF</h3>
+                    <p>Drop file here or click to browse</p>
+                    <input type="file" id="fileInput" accept=".pdf">
+                </div>
+
+                <div class="pdf-info" id="pdfInfo">
+                    <h4><i class="fas fa-info-circle"></i> Document Info</h4>
+                    <div class="pdf-info-item">
+                        <span>Filename</span>
+                        <span id="infoFilename">-</span>
+                    </div>
+                    <div class="pdf-info-item">
+                        <span>Pages</span>
+                        <span id="infoPages">-</span>
+                    </div>
+                    <div class="pdf-info-item">
+                        <span>Title</span>
+                        <span id="infoTitle">-</span>
+                    </div>
+                    <div class="pdf-info-item">
+                        <span>Author</span>
+                        <span id="infoAuthor">-</span>
+                    </div>
+                </div>
+
+                <div class="thumbnails-section" id="thumbnailsSection" style="display: none;">
+                    <h4><i class="fas fa-images"></i> Pages (click to add)</h4>
+                    <div class="thumbnails-container" id="thumbnailsContainer">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Viewer -->
+            <div class="viewer">
+                <div class="viewer-toolbar" id="viewerToolbar" style="display: none;">
+                    <div class="toolbar-left">
+                        <div class="page-nav">
+                            <button id="prevPage" title="Previous Page">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <input type="number" id="pageInput" min="1" value="1">
+                            <span>of <span id="totalPages">0</span></span>
+                            <button id="nextPage" title="Next Page">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+
+                        <div class="zoom-controls">
+                            <button id="zoomOut" title="Zoom Out">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span id="zoomLevel">100%</span>
+                            <button id="zoomIn" title="Zoom In">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+
+                        <!-- Highlighter Colors -->
+                        <div class="highlighter-toolbar">
+                            <label><i class="fas fa-highlighter"></i></label>
+                            <button class="color-btn yellow" data-color="yellow" title="Yellow - Key Terms"></button>
+                            <button class="color-btn green" data-color="green" title="Green - Important Dates"></button>
+                            <button class="color-btn blue" data-color="blue" title="Blue - Names/Parties"></button>
+                            <button class="color-btn pink" data-color="pink" title="Pink - Money/Amounts"></button>
+                            <button class="color-btn orange" data-color="orange" title="Orange - Deadlines"></button>
+                            <button class="color-btn red" data-color="red" title="Red - Violations/Issues"></button>
+                        </div>
+                    </div>
+
+                    <div class="toolbar-right">
+                        <button class="toolbar-btn" id="textViewBtn" title="Extract Text">
+                            <i class="fas fa-file-alt"></i>
+                            Text
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Page Action Buttons -->
+                <div class="page-actions-row" id="pageActionsRow" style="display: none;">
+                    <button class="toolbar-btn add-list" id="addToListBtn" title="Add current page to extract list">
+                        <i class="fas fa-plus"></i>
+                        Add to List
+                    </button>
+                    <button class="toolbar-btn danger" id="deletePageBtn" title="Mark page for deletion">
+                        <i class="fas fa-trash"></i>
+                        Delete Page
+                    </button>
+                    <button class="toolbar-btn" id="addNoteBtn" title="Add note to current highlight">
+                        <i class="fas fa-sticky-note"></i>
+                        Add Note
+                    </button>
+                </div>
+
+                <div class="viewer-content" id="viewerContent">
+                    <div class="empty-state" id="emptyState">
+                        <i class="fas fa-file-pdf"></i>
+                        <h3>No PDF Loaded</h3>
+                        <p>Upload a PDF to start viewing and extracting pages</p>
+                    </div>
+                    <div class="page-container" id="pageContainer" style="display: none;">
+                        <img id="pageImage" class="page-image" alt="PDF Page">
+                        <div class="highlight-layer" id="highlightLayer"></div>
+                    </div>
+                    <div class="text-view" id="textView"></div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <!-- Extract List -->
+                <div class="panel-section">
+                    <h4><i class="fas fa-list-check"></i> Extract List <span id="extractCount">(0)</span></h4>
+                    <div class="extract-list" id="extractList">
+                        <div class="extract-empty">Click pages or use "Add to List" button</div>
+                    </div>
+                    <div class="extract-actions">
+                        <button id="clearListBtn" style="background: rgba(239,68,68,0.2); color: #ef4444;">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                        <button id="extractAllBtn" style="background: #4ade80; color: #1a1a2e;">
+                            <i class="fas fa-download"></i> Extract PDF
+                        </button>
+                    </div>
+                    <div class="extract-actions" style="margin-top: 8px;">
+                        <button id="saveToBriefcaseBtn" style="background: rgba(59,130,246,0.8); color: white;">
+                            <i class="fas fa-briefcase"></i> Save to Briefcase
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Key Notes Legend -->
+                <div class="panel-section">
+                    <h4><i class="fas fa-palette"></i> Highlight Colors</h4>
+                    <div class="notes-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #fef08a;"></div>
+                            <span>Key Terms</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #86efac;"></div>
+                            <span>Dates</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #93c5fd;"></div>
+                            <span>Names</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #f9a8d4;"></div>
+                            <span>Money</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #fdba74;"></div>
+                            <span>Deadlines</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #fca5a5;"></div>
+                            <span>Violations</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="panel-section">
+                    <h4><i class="fas fa-sticky-note"></i> Notes <span id="notesCount">(0)</span></h4>
+                    <div class="notes-list" id="notesList">
+                        <div class="notes-empty">Highlight text and add notes</div>
+                    </div>
+                    <div class="add-note-form" id="addNoteForm">
+                        <textarea id="noteText" placeholder="Enter your note..."></textarea>
+                        <div class="form-actions">
+                            <button id="cancelNoteBtn" style="background: rgba(255,255,255,0.1); color: #e0e0e0;">Cancel</button>
+                            <button id="saveNoteBtn" style="background: #4ade80; color: #1a1a2e;">Save Note</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deleted Pages -->
+                <div class="panel-section">
+                    <h4><i class="fas fa-trash-alt"></i> Deleted Pages <span id="deletedCount">(0)</span></h4>
+                    <div class="extract-list" id="deletedList">
+                        <div class="extract-empty">No pages marked for deletion</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Note Modal -->
+    <div class="modal-overlay" id="noteModal">
+        <div class="modal">
+            <h2><i class="fas fa-sticky-note"></i> Add Note</h2>
+            <div class="form-group">
+                <label>Select highlight color:</label>
+                <div class="highlighter-toolbar" style="margin: 10px 0; padding: 15px; justify-content: center;">
+                    <button class="color-btn yellow modal-color" data-color="yellow" title="Key Terms"></button>
+                    <button class="color-btn green modal-color" data-color="green" title="Important Dates"></button>
+                    <button class="color-btn blue modal-color" data-color="blue" title="Names/Parties"></button>
+                    <button class="color-btn pink modal-color" data-color="pink" title="Money/Amounts"></button>
+                    <button class="color-btn orange modal-color" data-color="orange" title="Deadlines"></button>
+                    <button class="color-btn red modal-color" data-color="red" title="Violations/Issues"></button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="modalNoteText">Your note:</label>
+                <textarea id="modalNoteText" rows="4" placeholder="Enter your note about this section..."></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="cancel-btn" id="cancelNoteModal">Cancel</button>
+                <button class="extract-btn" id="saveNoteModal">
+                    <i class="fas fa-save"></i> Save Note
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        // State
+        let currentPdfId = null;
+        let currentPage = 1;
+        let totalPages = 0;
+        let zoomLevel = 1.5;
+        let extractList = new Set();
+        let deletedPages = new Set();
+        let isTextView = false;
+        let currentHighlightColor = 'yellow';
+        let highlights = {}; // { pageNum: [{ x, y, width, height, color, note }] }
+        let notes = []; // { id, pageNum, color, text, timestamp }
+        let isDrawing = false;
+        let startX, startY;
+        let tempHighlight = null;
+
+        // Elements
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const pdfInfo = document.getElementById('pdfInfo');
+        const thumbnailsSection = document.getElementById('thumbnailsSection');
+        const thumbnailsContainer = document.getElementById('thumbnailsContainer');
+        const viewerToolbar = document.getElementById('viewerToolbar');
+        const pageActionsRow = document.getElementById('pageActionsRow');
+        const viewerContent = document.getElementById('viewerContent');
+        const emptyState = document.getElementById('emptyState');
+        const pageContainer = document.getElementById('pageContainer');
+        const pageImage = document.getElementById('pageImage');
+        const highlightLayer = document.getElementById('highlightLayer');
+        const textView = document.getElementById('textView');
+        const pageInput = document.getElementById('pageInput');
+        const totalPagesSpan = document.getElementById('totalPages');
+        const zoomLevelSpan = document.getElementById('zoomLevel');
+        const extractListEl = document.getElementById('extractList');
+        const deletedListEl = document.getElementById('deletedList');
+        const notesListEl = document.getElementById('notesList');
+        const loading = document.getElementById('loading');
+
+        // Upload handling
+        uploadZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                uploadPdf(e.target.files[0]);
+            }
+        });
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            if (e.dataTransfer.files[0]) {
+                uploadPdf(e.dataTransfer.files[0]);
+            }
+        });
+
+        async function uploadPdf(file) {
+            showLoading();
+            
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/pdf/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Upload failed');
+                }
+
+                const data = await response.json();
+                currentPdfId = data.pdf_id;
+                totalPages = data.page_count;
+                currentPage = 1;
+                extractList.clear();
+                deletedPages.clear();
+                highlights = {};
+                notes = [];
+
+                // Update UI
+                updatePdfInfo(data);
+                await loadThumbnails();
+                await loadPage(1);
+
+                pdfInfo.classList.add('active');
+                thumbnailsSection.style.display = 'block';
+                viewerToolbar.style.display = 'flex';
+                pageActionsRow.style.display = 'flex';
+                emptyState.style.display = 'none';
+                pageContainer.style.display = 'block';
+                totalPagesSpan.textContent = totalPages;
+                
+                updateExtractList();
+                updateDeletedList();
+                updateNotesList();
+
+            } catch (error) {
+                alert('Error uploading PDF: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function updatePdfInfo(data) {
+            document.getElementById('infoFilename').textContent = truncate(data.filename, 20);
+            document.getElementById('infoPages').textContent = data.page_count;
+            document.getElementById('infoTitle').textContent = truncate(data.metadata.title || '-', 20);
+            document.getElementById('infoAuthor').textContent = truncate(data.metadata.author || '-', 20);
+        }
+
+        function truncate(str, len) {
+            return str.length > len ? str.substring(0, len) + '...' : str;
+        }
+
+        async function loadThumbnails() {
+            try {
+                const response = await fetch(`/api/pdf/thumbnails/${currentPdfId}`);
+                const data = await response.json();
+
+                thumbnailsContainer.innerHTML = data.thumbnails.map(t => `
+                    <div class="thumbnail ${extractList.has(t.page_number) ? 'selected' : ''}" 
+                         data-page="${t.page_number}" 
+                         onclick="handleThumbnailClick(${t.page_number})">
+                        <img src="${t.thumbnail}" alt="Page ${t.page_number}">
+                        <div class="thumbnail-overlay">
+                            <span class="thumbnail-page">Page ${t.page_number}</span>
+                            <span class="thumbnail-badge">✓ In List</span>
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading thumbnails:', error);
+            }
+        }
+
+        function handleThumbnailClick(pageNum) {
+            // Toggle selection AND navigate
+            toggleExtractPage(pageNum);
+            goToPage(pageNum);
+        }
+
+        function toggleExtractPage(pageNum) {
+            if (extractList.has(pageNum)) {
+                extractList.delete(pageNum);
+            } else {
+                extractList.add(pageNum);
+                // Remove from deleted if it was there
+                deletedPages.delete(pageNum);
+            }
+            updateExtractList();
+            updateDeletedList();
+            updateThumbnailStates();
+        }
+
+        function updateThumbnailStates() {
+            document.querySelectorAll('.thumbnail').forEach(thumb => {
+                const pageNum = parseInt(thumb.dataset.page);
+                thumb.classList.toggle('selected', extractList.has(pageNum));
+                thumb.classList.toggle('active', pageNum === currentPage);
+            });
+        }
+
+        function updateExtractList() {
+            const sorted = [...extractList].sort((a, b) => a - b);
+            document.getElementById('extractCount').textContent = `(${sorted.length})`;
+            
+            if (sorted.length === 0) {
+                extractListEl.innerHTML = '<div class="extract-empty">Click pages or use "Add to List" button</div>';
+            } else {
+                extractListEl.innerHTML = sorted.map(p => `
+                    <div class="extract-item">
+                        <span><i class="fas fa-file"></i> Page ${p}</span>
+                        <button onclick="removeFromExtract(${p})" title="Remove">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function updateDeletedList() {
+            const sorted = [...deletedPages].sort((a, b) => a - b);
+            document.getElementById('deletedCount').textContent = `(${sorted.length})`;
+            
+            if (sorted.length === 0) {
+                deletedListEl.innerHTML = '<div class="extract-empty">No pages marked for deletion</div>';
+            } else {
+                deletedListEl.innerHTML = sorted.map(p => `
+                    <div class="extract-item" style="border-color: #ef4444;">
+                        <span><i class="fas fa-trash"></i> Page ${p}</span>
+                        <button onclick="restorePage(${p})" title="Restore" style="color: #4ade80;">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function removeFromExtract(pageNum) {
+            extractList.delete(pageNum);
+            updateExtractList();
+            updateThumbnailStates();
+        }
+
+        function restorePage(pageNum) {
+            deletedPages.delete(pageNum);
+            updateDeletedList();
+        }
+
+        async function loadPage(pageNum) {
+            if (!currentPdfId || pageNum < 1 || pageNum > totalPages) return;
+
+            showLoading();
+            currentPage = pageNum;
+            pageInput.value = pageNum;
+
+            updateThumbnailStates();
+
+            // Load image
+            if (!isTextView) {
+                pageImage.src = `/api/pdf/page/${currentPdfId}/${pageNum}?zoom=${zoomLevel}`;
+                pageContainer.style.display = 'block';
+                textView.classList.remove('active');
+                renderHighlights();
+            } else {
+                await loadPageText(pageNum);
+            }
+
+            updateNavButtons();
+            hideLoading();
+        }
+
+        async function loadPageText(pageNum) {
+            try {
+                const response = await fetch(`/api/pdf/text/${currentPdfId}/${pageNum}`);
+                const data = await response.json();
+                textView.textContent = data.text || '(No text found on this page)';
+                textView.classList.add('active');
+                pageContainer.style.display = 'none';
+            } catch (error) {
+                textView.textContent = 'Error loading text';
+            }
+        }
+
+        function updateNavButtons() {
+            document.getElementById('prevPage').disabled = currentPage <= 1;
+            document.getElementById('nextPage').disabled = currentPage >= totalPages;
+        }
+
+        function goToPage(pageNum) {
+            loadPage(Math.max(1, Math.min(totalPages, pageNum)));
+        }
+
+        // Navigation
+        document.getElementById('prevPage').addEventListener('click', () => goToPage(currentPage - 1));
+        document.getElementById('nextPage').addEventListener('click', () => goToPage(currentPage + 1));
+        pageInput.addEventListener('change', () => goToPage(parseInt(pageInput.value)));
+
+        // Zoom
+        document.getElementById('zoomIn').addEventListener('click', () => {
+            zoomLevel = Math.min(4, zoomLevel + 0.25);
+            zoomLevelSpan.textContent = Math.round(zoomLevel * 100 / 1.5) + '%';
+            loadPage(currentPage);
+        });
+
+        document.getElementById('zoomOut').addEventListener('click', () => {
+            zoomLevel = Math.max(0.5, zoomLevel - 0.25);
+            zoomLevelSpan.textContent = Math.round(zoomLevel * 100 / 1.5) + '%';
+            loadPage(currentPage);
+        });
+
+        // Text view toggle
+        document.getElementById('textViewBtn').addEventListener('click', () => {
+            isTextView = !isTextView;
+            document.getElementById('textViewBtn').classList.toggle('primary', isTextView);
+            loadPage(currentPage);
+        });
+
+        // Add to List button
+        document.getElementById('addToListBtn').addEventListener('click', () => {
+            if (!extractList.has(currentPage)) {
+                extractList.add(currentPage);
+                deletedPages.delete(currentPage);
+                updateExtractList();
+                updateDeletedList();
+                updateThumbnailStates();
+            }
+        });
+
+        // Delete Page button
+        document.getElementById('deletePageBtn').addEventListener('click', () => {
+            if (!deletedPages.has(currentPage)) {
+                deletedPages.add(currentPage);
+                extractList.delete(currentPage);
+                updateExtractList();
+                updateDeletedList();
+                updateThumbnailStates();
+            }
+        });
+
+        // Clear list
+        document.getElementById('clearListBtn').addEventListener('click', () => {
+            extractList.clear();
+            updateExtractList();
+            updateThumbnailStates();
+        });
+
+        // Extract PDF
+        document.getElementById('extractAllBtn').addEventListener('click', async () => {
+            if (extractList.size === 0) {
+                alert('No pages selected. Click on page thumbnails to add them to the list.');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const pages = [...extractList].sort((a, b) => a - b).join(',');
+                const formData = new FormData();
+                formData.append('pdf_id', currentPdfId);
+                formData.append('pages', pages);
+
+                const response = await fetch('/api/pdf/extract', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Extraction failed');
+                }
+
+                // Download the file
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = response.headers.get('Content-Disposition')?.split('filename=')[1] || 'extracted.pdf';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+            } catch (error) {
+                alert('Error extracting pages: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Save to Briefcase - extracted pages AND highlights/notes
+        document.getElementById('saveToBriefcaseBtn').addEventListener('click', async () => {
+            showLoading();
+            let savedItems = [];
+
+            try {
+                // Save extracted pages if any selected
+                if (extractList.size > 0) {
+                    const pages = [...extractList].sort((a, b) => a - b);
+                    const pdfName = document.getElementById('infoFilename').textContent || 'Unknown PDF';
+                    
+                    // First extract the PDF
+                    const extractFormData = new FormData();
+                    extractFormData.append('pdf_id', currentPdfId);
+                    extractFormData.append('pages', pages.join(','));
+
+                    const extractResponse = await fetch('/api/pdf/extract', {
+                        method: 'POST',
+                        body: extractFormData
+                    });
+
+                    if (extractResponse.ok) {
+                        const blob = await extractResponse.blob();
+                        
+                        // Now save to briefcase
+                        const briefcaseFormData = new FormData();
+                        briefcaseFormData.append('pdf_name', pdfName);
+                        briefcaseFormData.append('pages', JSON.stringify(pages));
+                        briefcaseFormData.append('extracted_data', blob, 'extracted.pdf');
+                        briefcaseFormData.append('notes', `Extracted pages ${pages.join(', ')} from ${pdfName}`);
+
+                        const saveResponse = await fetch('/api/briefcase/extraction', {
+                            method: 'POST',
+                            body: briefcaseFormData
+                        });
+
+                        if (saveResponse.ok) {
+                            savedItems.push(`${pages.length} pages`);
+                        }
+                    }
+                }
+
+                // Save highlights/notes if any
+                if (notes.length > 0) {
+                    const pdfName = document.getElementById('infoFilename').textContent || 'Unknown PDF';
+                    
+                    const highlightsData = notes.map(n => ({
+                        page: n.pageNum,
+                        color: getColorHex(n.color),
+                        colorName: n.color.charAt(0).toUpperCase() + n.color.slice(1),
+                        text: '',
+                        note: n.text
+                    }));
+
+                    const saveResponse = await fetch('/api/briefcase/highlights/batch', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            pdf_name: pdfName,
+                            highlights: highlightsData
+                        })
+                    });
+
+                    if (saveResponse.ok) {
+                        savedItems.push(`${notes.length} notes`);
+                    }
+                }
+
+                if (savedItems.length > 0) {
+                    alert(`✅ Saved to Briefcase:\n• ${savedItems.join('\n• ')}\n\nOpen Briefcase to view your saved items.`);
+                } else {
+                    alert('Nothing to save. Add pages to extract list or create highlights with notes.');
+                }
+
+            } catch (error) {
+                alert('Error saving to briefcase: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        });
+
+        // Highlighter color selection
+        document.querySelectorAll('.color-btn:not(.modal-color)').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.color-btn:not(.modal-color)').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentHighlightColor = btn.dataset.color;
+            });
+        });
+
+        // Set default color
+        document.querySelector('.color-btn.yellow:not(.modal-color)').classList.add('active');
+
+        // Highlighting on page
+        pageImage.addEventListener('mousedown', (e) => {
+            if (isTextView) return;
+            
+            const rect = pageImage.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+            isDrawing = true;
+            
+            // Create temporary highlight
+            tempHighlight = document.createElement('div');
+            tempHighlight.className = `highlight-rect ${currentHighlightColor}`;
+            tempHighlight.style.left = startX + 'px';
+            tempHighlight.style.top = startY + 'px';
+            tempHighlight.style.width = '0';
+            tempHighlight.style.height = '0';
+            tempHighlight.style.pointerEvents = 'none';
+            highlightLayer.appendChild(tempHighlight);
+        });
+
+        pageImage.addEventListener('mousemove', (e) => {
+            if (!isDrawing || !tempHighlight) return;
+            
+            const rect = pageImage.getBoundingClientRect();
+            const currentX = e.clientX - rect.left;
+            const currentY = e.clientY - rect.top;
+            
+            const width = currentX - startX;
+            const height = currentY - startY;
+            
+            tempHighlight.style.width = Math.abs(width) + 'px';
+            tempHighlight.style.height = Math.abs(height) + 'px';
+            tempHighlight.style.left = (width < 0 ? currentX : startX) + 'px';
+            tempHighlight.style.top = (height < 0 ? currentY : startY) + 'px';
+        });
+
+        pageImage.addEventListener('mouseup', (e) => {
+            if (!isDrawing || !tempHighlight) return;
+            isDrawing = false;
+            
+            const rect = pageImage.getBoundingClientRect();
+            const endX = e.clientX - rect.left;
+            const endY = e.clientY - rect.top;
+            
+            const width = Math.abs(endX - startX);
+            const height = Math.abs(endY - startY);
+            
+            // Only save if highlight is big enough
+            if (width > 10 && height > 10) {
+                const highlight = {
+                    x: Math.min(startX, endX),
+                    y: Math.min(startY, endY),
+                    width: width,
+                    height: height,
+                    color: currentHighlightColor,
+                    note: ''
+                };
+                
+                if (!highlights[currentPage]) {
+                    highlights[currentPage] = [];
+                }
+                highlights[currentPage].push(highlight);
+                
+                // Open note modal
+                openNoteModal(highlight);
+            }
+            
+            // Remove temp highlight
+            if (tempHighlight) {
+                tempHighlight.remove();
+                tempHighlight = null;
+            }
+            
+            renderHighlights();
+        });
+
+        function renderHighlights() {
+            highlightLayer.innerHTML = '';
+            const pageHighlights = highlights[currentPage] || [];
+            
+            pageHighlights.forEach((h, index) => {
+                const div = document.createElement('div');
+                div.className = `highlight-rect ${h.color}`;
+                div.style.left = h.x + 'px';
+                div.style.top = h.y + 'px';
+                div.style.width = h.width + 'px';
+                div.style.height = h.height + 'px';
+                div.title = h.note || 'Click to edit';
+                div.onclick = () => editHighlight(index);
+                highlightLayer.appendChild(div);
+            });
+        }
+
+        function editHighlight(index) {
+            const h = highlights[currentPage][index];
+            openNoteModal(h, index);
+        }
+
+        // Note Modal
+        let currentEditHighlight = null;
+        let currentEditIndex = null;
+        let modalColor = 'yellow';
+
+        function openNoteModal(highlight, index = null) {
+            currentEditHighlight = highlight;
+            currentEditIndex = index;
+            modalColor = highlight.color;
+            
+            document.getElementById('modalNoteText').value = highlight.note || '';
+            document.querySelectorAll('.modal-color').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.color === modalColor);
+            });
+            
+            document.getElementById('noteModal').classList.add('active');
+        }
+
+        document.querySelectorAll('.modal-color').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.modal-color').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                modalColor = btn.dataset.color;
+            });
+        });
+
+        document.getElementById('cancelNoteModal').addEventListener('click', () => {
+            document.getElementById('noteModal').classList.remove('active');
+            currentEditHighlight = null;
+            currentEditIndex = null;
+        });
+
+        document.getElementById('saveNoteModal').addEventListener('click', () => {
+            const noteText = document.getElementById('modalNoteText').value.trim();
+            
+            if (currentEditHighlight) {
+                currentEditHighlight.color = modalColor;
+                currentEditHighlight.note = noteText;
+                
+                if (noteText) {
+                    // Add to notes list
+                    notes.push({
+                        id: Date.now(),
+                        pageNum: currentPage,
+                        color: modalColor,
+                        text: noteText,
+                        timestamp: new Date().toLocaleString()
+                    });
+                    updateNotesList();
+                }
+            }
+            
+            document.getElementById('noteModal').classList.remove('active');
+            renderHighlights();
+            currentEditHighlight = null;
+            currentEditIndex = null;
+        });
+
+        function updateNotesList() {
+            document.getElementById('notesCount').textContent = `(${notes.length})`;
+            
+            if (notes.length === 0) {
+                notesListEl.innerHTML = '<div class="notes-empty">Highlight text and add notes</div>';
+            } else {
+                notesListEl.innerHTML = notes.map(n => `
+                    <div class="note-item ${n.color}">
+                        <div class="note-header">
+                            <span class="note-page">Page ${n.pageNum}</span>
+                            <div class="note-color-dot" style="background: var(--${n.color}-color, ${getColorHex(n.color)});"></div>
+                        </div>
+                        <div class="note-text">${escapeHtml(n.text)}</div>
+                        <div class="note-actions">
+                            <button onclick="goToPage(${n.pageNum})"><i class="fas fa-eye"></i> View</button>
+                            <button onclick="deleteNote(${n.id})"><i class="fas fa-trash"></i> Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function getColorHex(color) {
+            const colors = {
+                yellow: '#fef08a',
+                green: '#86efac',
+                blue: '#93c5fd',
+                pink: '#f9a8d4',
+                orange: '#fdba74',
+                red: '#fca5a5'
+            };
+            return colors[color] || '#fef08a';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function deleteNote(noteId) {
+            notes = notes.filter(n => n.id !== noteId);
+            updateNotesList();
+        }
+
+        // Add Note button
+        document.getElementById('addNoteBtn').addEventListener('click', () => {
+            // Create a highlight for the full page
+            const highlight = {
+                x: 10,
+                y: 10,
+                width: 100,
+                height: 30,
+                color: currentHighlightColor,
+                note: ''
+            };
+            
+            if (!highlights[currentPage]) {
+                highlights[currentPage] = [];
+            }
+            highlights[currentPage].push(highlight);
+            
+            openNoteModal(highlight);
+        });
+
+        // Loading helpers
+        function showLoading() {
+            loading.classList.add('active');
+        }
+
+        function hideLoading() {
+            loading.classList.remove('active');
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (!currentPdfId) return;
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            if (e.key === 'ArrowLeft') {
+                goToPage(currentPage - 1);
+            } else if (e.key === 'ArrowRight') {
+                goToPage(currentPage + 1);
+            } else if (e.key === 'Escape') {
+                document.getElementById('noteModal').classList.remove('active');
+            } else if (e.key === 'a' || e.key === 'A') {
+                // Add to list shortcut
+                document.getElementById('addToListBtn').click();
+            } else if (e.key === 'd' || e.key === 'D') {
+                // Delete page shortcut
+                document.getElementById('deletePageBtn').click();
+            }
+        });
+
+        // Image load handler
+        pageImage.addEventListener('load', hideLoading);
+    </script>
+</body>
+</html>

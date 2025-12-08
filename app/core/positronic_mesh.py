@@ -156,9 +156,12 @@ class PositronicMesh:
         return cls._instance
     
     def __init__(self):
+        # Always initialize _initialized before checking it
+        if not hasattr(self, "_initialized"):
+            self._initialized = False
         if self._initialized:
             return
-            
+
         self._initialized = True
         
         # Module action registry

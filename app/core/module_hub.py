@@ -56,6 +56,14 @@ class ModuleType(str, Enum):
     ZOOM_COURT = "zoom_court"
     CONTEXT_ENGINE = "context"
     ADAPTIVE_UI = "ui"
+    COMPLAINT_WIZARD = "complaint_wizard"
+    LOCATION = "location"
+    HUD_FUNDING = "hud_funding"
+    FRAUD_EXPOSURE = "fraud_exposure"
+    PUBLIC_EXPOSURE = "public_exposure"
+    RESEARCH = "research"
+    LEGAL_TRAILS = "legal_trails"
+    CUSTOM = "custom"  # For unknown/plugin modules
 
 
 class DocumentCategory(str, Enum):
@@ -85,6 +93,11 @@ class PackType(str, Enum):
     TIMELINE_EVENTS = "timeline_events"
     CALENDAR_DEADLINES = "calendar_deadlines"
     DOCUMENT_ANALYSIS = "document_analysis"
+    COMPLAINT_FILING = "complaint_filing"
+    LOCATION_DATA = "location_data"
+    HUD_FUNDING_INFO = "hud_funding_info"
+    CASE_CONTEXT = "case_context"
+    FRAUD_ANALYSIS = "fraud_analysis"
 
 
 class RequestType(str, Enum):
@@ -364,9 +377,12 @@ class ModuleHub:
         return cls._instance
     
     def __init__(self):
-        if hasattr(self, "_initialized") and self._initialized:
+        # Always initialize _initialized before checking it
+        if not hasattr(self, "_initialized"):
+            self._initialized = False
+        if self._initialized:
             return
-            
+
         self._initialized = True
         
         # Module registry
@@ -393,30 +409,67 @@ class ModuleHub:
     
     def register_module(
         self,
-        module_type: ModuleType,
+        module_type: Union[ModuleType, str],
         name: str,
         description: str = "",
-        handles_documents: List[DocumentCategory] = None,
-        accepts_packs: List[PackType] = None,
+        handles_documents: List[Union[DocumentCategory, str]] = [],
+        accepts_packs: List[Union[PackType, str]] = [],
         on_pack_received: Callable = None,
         on_data_request: Callable = None,
         on_update_received: Callable = None,
     ) -> RegisteredModule:
         """Register a module with the hub"""
+        # Convert string to enum if needed
+        if isinstance(module_type, str):
+            try:
+                module_type = ModuleType(module_type)
+            except ValueError:
+                # Try to find by name
+                module_type_lower = module_type.lower()
+                for mt in ModuleType:
+                    if mt.value == module_type_lower or mt.name.lower() == module_type_lower:
+                        module_type = mt
+                        break
+                else:
+                    # Create a pseudo-module type for unknown modules
+                    logger.warning(f"Unknown module type: {module_type}, using CUSTOM")
+                    module_type = ModuleType.CUSTOM
+        
+        # Convert document categories
+        doc_categories = []
+        for doc in (handles_documents or []):
+            if isinstance(doc, str):
+                try:
+                    doc_categories.append(DocumentCategory(doc))
+                except ValueError:
+                    logger.warning(f"Unknown document category: {doc}")
+            else:
+                doc_categories.append(doc)
+        
+        # Convert pack types
+        pack_types = []
+        for pack in (accepts_packs or []):
+            if isinstance(pack, str):
+                try:
+                    pack_types.append(PackType(pack))
+                except ValueError:
+                    logger.warning(f"Unknown pack type: {pack}")
+            else:
+                pack_types.append(pack)
+        
         module = RegisteredModule(
             module_type=module_type,
             name=name,
             description=description,
-            handles_documents=handles_documents or [],
-            accepts_packs=accepts_packs or [],
+            handles_documents=doc_categories,
+            accepts_packs=pack_types,
             on_pack_received=on_pack_received,
             on_data_request=on_data_request,
             on_update_received=on_update_received,
         )
-        
+
         self._modules[module_type] = module
         self._log_comm("register", module_type.value, {"name": name})
-        
         logger.info(f"📦 Module registered: {name} ({module_type.value})")
         return module
     

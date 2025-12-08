@@ -4,7 +4,7 @@ Event tracking and history for tenant journey.
 """
 
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
 from app.core.security import require_user, StorageUser
+from app.core.utc import utc_now
 from app.models.models import TimelineEvent as TimelineEventModel
 
 
@@ -131,7 +132,7 @@ async def create_event(
             event_date=event_date,
             document_id=event.document_id,
             is_evidence=event.is_evidence,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.utcnow(),
         )
         session.add(db_event)
         await session.commit()

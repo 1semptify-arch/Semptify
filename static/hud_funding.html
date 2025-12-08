@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HUD Funding Guide - Semptify</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #28a745;
+            --secondary: #6c757d;
+        }
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        .navbar {
+            background: rgba(0, 0, 0, 0.3) !important;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+        .card-header {
+            background: rgba(40, 167, 69, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px 15px 0 0 !important;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            border: none;
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #218838 0%, #1e7e34 100%);
+        }
+        .form-control, .form-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+        .form-control:focus, .form-select:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #28a745;
+            color: #fff;
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+        }
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .program-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        .program-card:hover {
+            background: rgba(40, 167, 69, 0.1);
+            transform: translateY(-3px);
+        }
+        .program-card.eligible {
+            border-color: #28a745;
+            box-shadow: 0 0 20px rgba(40, 167, 69, 0.2);
+        }
+        .program-card.ineligible {
+            opacity: 0.6;
+        }
+        .badge-eligible {
+            background: rgba(40, 167, 69, 0.3);
+            border: 1px solid #28a745;
+            color: #28a745;
+        }
+        .badge-likely {
+            background: rgba(255, 193, 7, 0.3);
+            border: 1px solid #ffc107;
+            color: #ffc107;
+        }
+        .badge-check {
+            background: rgba(23, 162, 184, 0.3);
+            border: 1px solid #17a2b8;
+            color: #17a2b8;
+        }
+        .eligibility-meter {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .eligibility-fill {
+            height: 100%;
+            transition: width 0.5s;
+        }
+        .stat-box {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-box h3 {
+            color: #28a745;
+            margin-bottom: 5px;
+        }
+        .timeline-step {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 20px;
+        }
+        .timeline-step::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: -20px;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .timeline-step::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 5px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #28a745;
+            border: 2px solid #fff;
+        }
+        .timeline-step:last-child::before {
+            display: none;
+        }
+        .landlord-match {
+            background: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+        }
+    </style>
+    <link rel="stylesheet" href="/static/css/help-system.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/static/dashboard-v2.html">
+                <i class="bi bi-shield-check"></i> Semptify
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/static/dashboard-v2.html">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1><i class="bi bi-currency-dollar text-success"></i> HUD Funding Guide</h1>
+                <p class="text-muted">Find emergency assistance programs you may qualify for</p>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="row mb-4">
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-box">
+                    <h3 id="totalPrograms">12</h3>
+                    <small class="text-muted">Programs Available</small>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-box">
+                    <h3 id="eligibleCount">0</h3>
+                    <small class="text-muted">You May Qualify</small>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-box">
+                    <h3 id="maxFunding">$0</h3>
+                    <small class="text-muted">Max Assistance</small>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-3">
+                <div class="stat-box">
+                    <h3 id="deadlines">3</h3>
+                    <small class="text-muted">Open Deadlines</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Eligibility Checker -->
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-clipboard-check"></i> Eligibility Checker</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="eligibilityForm">
+                            <div class="mb-3">
+                                <label class="form-label">Household Size</label>
+                                <select class="form-select" id="householdSize" title="Select household size">
+                                    <option value="1">1 person</option>
+                                    <option value="2">2 people</option>
+                                    <option value="3">3 people</option>
+                                    <option value="4" selected>4 people</option>
+                                    <option value="5">5 people</option>
+                                    <option value="6">6 people</option>
+                                    <option value="7">7+ people</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Annual Household Income</label>
+                                <input type="number" class="form-control" id="annualIncome" placeholder="e.g., 35000">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">County</label>
+                                <select class="form-select" id="county" title="Select county">
+                                    <option value="hennepin">Hennepin</option>
+                                    <option value="ramsey">Ramsey</option>
+                                    <option value="dakota">Dakota</option>
+                                    <option value="anoka">Anoka</option>
+                                    <option value="washington">Washington</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Current Situation</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="facingEviction" checked>
+                                    <label class="form-check-label" for="facingEviction">Facing eviction</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="behindRent">
+                                    <label class="form-check-label" for="behindRent">Behind on rent</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="covidImpact">
+                                    <label class="form-check-label" for="covidImpact">COVID-19 impacted</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="veterans">
+                                    <label class="form-check-label" for="veterans">Veteran household</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="disability">
+                                    <label class="form-check-label" for="disability">Disability</label>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-search"></i> Check Eligibility
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Landlord Match -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-person-badge"></i> Landlord-Specific Programs</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Your Landlord's Name</label>
+                            <input type="text" class="form-control" id="landlordName" placeholder="Search landlord...">
+                        </div>
+                        <button class="btn btn-outline-success w-100" onclick="checkLandlordPrograms()">
+                            <i class="bi bi-search"></i> Find Programs
+                        </button>
+                        <div id="landlordResults" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Programs List -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-list-check"></i> Available Programs</h5>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-light active" onclick="filterPrograms('all')">All</button>
+                            <button class="btn btn-outline-light" onclick="filterPrograms('eligible')">Eligible</button>
+                            <button class="btn btn-outline-light" onclick="filterPrograms('rental')">Rental</button>
+                            <button class="btn btn-outline-light" onclick="filterPrograms('emergency')">Emergency</button>
+                        </div>
+                    </div>
+                    <div class="card-body" id="programsList">
+                        <!-- Programs will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Application Steps -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-list-ol"></i> Application Process</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline-step">
+                            <h6>Step 1: Gather Documents</h6>
+                            <p class="text-muted small mb-0">ID, proof of income, lease, eviction notice</p>
+                        </div>
+                        <div class="timeline-step">
+                            <h6>Step 2: Check Eligibility</h6>
+                            <p class="text-muted small mb-0">Use our checker to find matching programs</p>
+                        </div>
+                        <div class="timeline-step">
+                            <h6>Step 3: Submit Applications</h6>
+                            <p class="text-muted small mb-0">Apply to multiple programs simultaneously</p>
+                        </div>
+                        <div class="timeline-step">
+                            <h6>Step 4: Follow Up</h6>
+                            <p class="text-muted small mb-0">Track status and provide additional info if requested</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sample program data
+        const programs = [
+            {
+                name: "Emergency Rental Assistance Program (ERAP)",
+                category: "rental",
+                maxAmount: 15000,
+                description: "Covers up to 18 months of past-due and future rent",
+                eligibility: "income",
+                incomeLimit: 80,
+                deadline: "Open",
+                url: "https://www.renthelpmn.org"
+            },
+            {
+                name: "Family Homeless Prevention & Assistance Program (FHPAP)",
+                category: "emergency",
+                maxAmount: 5000,
+                description: "Short-term assistance to prevent homelessness",
+                eligibility: "eviction",
+                incomeLimit: 60,
+                deadline: "Rolling",
+                url: "https://mn.gov/dhs"
+            },
+            {
+                name: "Housing Support (GRH)",
+                category: "rental",
+                maxAmount: 0,
+                description: "Ongoing rental assistance for eligible adults",
+                eligibility: "disability",
+                incomeLimit: 50,
+                deadline: "Open",
+                url: "https://mn.gov/dhs"
+            },
+            {
+                name: "Section 8 Housing Choice Voucher",
+                category: "rental",
+                maxAmount: 0,
+                description: "Long-term rental subsidy (waitlist may apply)",
+                eligibility: "income",
+                incomeLimit: 50,
+                deadline: "Waitlist",
+                url: "https://www.hud.gov"
+            },
+            {
+                name: "Minnesota COVID-19 Housing Assistance Program",
+                category: "emergency",
+                maxAmount: 10000,
+                description: "For COVID-19 impacted households",
+                eligibility: "covid",
+                incomeLimit: 80,
+                deadline: "Dec 2024",
+                url: "https://www.renthelpmn.org"
+            },
+            {
+                name: "Supportive Services for Veteran Families (SSVF)",
+                category: "emergency",
+                maxAmount: 8000,
+                description: "Rapid re-housing for veteran households",
+                eligibility: "veteran",
+                incomeLimit: 80,
+                deadline: "Open",
+                url: "https://www.va.gov"
+            },
+            {
+                name: "HUD-Veterans Affairs Supportive Housing (HUD-VASH)",
+                category: "rental",
+                maxAmount: 0,
+                description: "Section 8 vouchers for homeless veterans",
+                eligibility: "veteran",
+                incomeLimit: 50,
+                deadline: "Open",
+                url: "https://www.hud.gov"
+            },
+            {
+                name: "Hennepin County Emergency Assistance",
+                category: "emergency",
+                maxAmount: 3000,
+                description: "One-time emergency help for county residents",
+                eligibility: "eviction",
+                incomeLimit: 200,
+                deadline: "Open",
+                url: "https://www.hennepin.us"
+            },
+            {
+                name: "Energy Assistance Program (EAP)",
+                category: "emergency",
+                maxAmount: 2000,
+                description: "Help with heating and utility costs",
+                eligibility: "income",
+                incomeLimit: 60,
+                deadline: "May 2025",
+                url: "https://mn.gov/commerce"
+            },
+            {
+                name: "HOME Investment Partnerships",
+                category: "rental",
+                maxAmount: 5000,
+                description: "Tenant-based rental assistance",
+                eligibility: "income",
+                incomeLimit: 80,
+                deadline: "Varies",
+                url: "https://www.hud.gov"
+            },
+            {
+                name: "Project-Based Vouchers",
+                category: "rental",
+                maxAmount: 0,
+                description: "Subsidized units in specific buildings",
+                eligibility: "income",
+                incomeLimit: 50,
+                deadline: "Open",
+                url: "https://www.hud.gov"
+            },
+            {
+                name: "Public Housing",
+                category: "rental",
+                maxAmount: 0,
+                description: "Government-owned affordable housing units",
+                eligibility: "income",
+                incomeLimit: 80,
+                deadline: "Waitlist",
+                url: "https://www.hud.gov"
+            }
+        ];
+
+        // AMI limits for Hennepin County 2024 (example)
+        const amiLimits = {
+            1: { 50: 40900, 60: 49080, 80: 65450 },
+            2: { 50: 46750, 60: 56100, 80: 74800 },
+            3: { 50: 52600, 60: 63120, 80: 84150 },
+            4: { 50: 58400, 60: 70080, 80: 93450 },
+            5: { 50: 63100, 60: 75720, 80: 100950 },
+            6: { 50: 67800, 60: 81360, 80: 108450 },
+            7: { 50: 72500, 60: 87000, 80: 116000 }
+        };
+
+        function renderPrograms(filter = 'all') {
+            const container = document.getElementById('programsList');
+            container.innerHTML = '';
+            
+            let filtered = programs;
+            if (filter !== 'all') {
+                if (filter === 'eligible') {
+                    filtered = programs.filter(p => p.isEligible);
+                } else {
+                    filtered = programs.filter(p => p.category === filter);
+                }
+            }
+            
+            filtered.forEach(program => {
+                const card = document.createElement('div');
+                card.className = `program-card ${program.isEligible ? 'eligible' : ''}`;
+                card.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="mb-0">${program.name}</h5>
+                        ${getEligibilityBadge(program)}
+                    </div>
+                    <p class="text-muted mb-2">${program.description}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            ${program.maxAmount > 0 ? `<span class="badge bg-success me-2">Up to $${program.maxAmount.toLocaleString()}</span>` : ''}
+                            <span class="badge bg-secondary">${program.category}</span>
+                            <span class="badge bg-info">${program.deadline}</span>
+                        </div>
+                        <a href="${program.url}" target="_blank" class="btn btn-sm btn-outline-success">
+                            Apply <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                    ${program.isEligible ? `
+                        <div class="mt-3">
+                            <small class="text-muted">Eligibility Score</small>
+                            <div class="eligibility-meter">
+                                <div class="eligibility-fill bg-success" style="width: ${program.eligibilityScore}%"></div>
+                            </div>
+                        </div>
+                    ` : ''}
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function getEligibilityBadge(program) {
+            if (program.isEligible) {
+                return '<span class="badge badge-eligible">✓ Likely Eligible</span>';
+            } else if (program.maybeEligible) {
+                return '<span class="badge badge-likely">? Check Requirements</span>';
+            }
+            return '';
+        }
+
+        function filterPrograms(filter) {
+            document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderPrograms(filter);
+        }
+
+        document.getElementById('eligibilityForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const householdSize = parseInt(document.getElementById('householdSize').value);
+            const annualIncome = parseInt(document.getElementById('annualIncome').value) || 0;
+            const facingEviction = document.getElementById('facingEviction').checked;
+            const covidImpact = document.getElementById('covidImpact').checked;
+            const isVeteran = document.getElementById('veterans').checked;
+            const hasDisability = document.getElementById('disability').checked;
+            
+            let eligibleCount = 0;
+            let maxFunding = 0;
+            
+            programs.forEach(program => {
+                program.isEligible = false;
+                program.maybeEligible = false;
+                program.eligibilityScore = 0;
+                
+                // Check income limits
+                const limits = amiLimits[Math.min(householdSize, 7)];
+                const incomeOk = annualIncome <= (limits[program.incomeLimit] || 999999);
+                
+                // Check specific eligibility
+                let specificOk = false;
+                switch (program.eligibility) {
+                    case 'income':
+                        specificOk = incomeOk;
+                        break;
+                    case 'eviction':
+                        specificOk = facingEviction && incomeOk;
+                        break;
+                    case 'covid':
+                        specificOk = covidImpact && incomeOk;
+                        break;
+                    case 'veteran':
+                        specificOk = isVeteran && incomeOk;
+                        break;
+                    case 'disability':
+                        specificOk = hasDisability && incomeOk;
+                        break;
+                }
+                
+                if (specificOk) {
+                    program.isEligible = true;
+                    program.eligibilityScore = Math.min(100, Math.round((1 - (annualIncome / (limits[program.incomeLimit] || 100000))) * 100));
+                    eligibleCount++;
+                    if (program.maxAmount > 0) {
+                        maxFunding += program.maxAmount;
+                    }
+                } else if (incomeOk) {
+                    program.maybeEligible = true;
+                }
+            });
+            
+            // Update stats
+            document.getElementById('eligibleCount').textContent = eligibleCount;
+            document.getElementById('maxFunding').textContent = `$${maxFunding.toLocaleString()}`;
+            
+            renderPrograms('eligible');
+            document.querySelector('.btn-group .btn:nth-child(2)').classList.add('active');
+            document.querySelector('.btn-group .btn:nth-child(1)').classList.remove('active');
+        });
+
+        function checkLandlordPrograms() {
+            const landlordName = document.getElementById('landlordName').value;
+            const resultsDiv = document.getElementById('landlordResults');
+            
+            if (!landlordName) {
+                resultsDiv.innerHTML = '<p class="text-muted">Enter a landlord name to search</p>';
+                return;
+            }
+            
+            // Demo landlord programs
+            resultsDiv.innerHTML = `
+                <div class="landlord-match">
+                    <h6><i class="bi bi-exclamation-circle text-warning"></i> Landlord Participation Status</h6>
+                    <p class="small mb-2">Some assistance programs require landlord participation</p>
+                    <ul class="small mb-0">
+                        <li><strong>ERAP:</strong> Landlord must agree to accept payment</li>
+                        <li><strong>Section 8:</strong> Property must pass inspection</li>
+                        <li><strong>FHPAP:</strong> Direct to tenant available</li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        // Initial render
+        renderPrograms();
+    </script>
+    <script src="/static/js/help-system.js"></script>
+</body>
+</html>

@@ -79,10 +79,11 @@ Your data lives in YOUR cloud storage - we never store your files.
     # ==========================================================================
     # Database
     # ==========================================================================
-    # SQLite for dev, PostgreSQL for production
+    # PostgreSQL (production) - Set DATABASE_URL in .env
+    # Example: DATABASE_URL=postgresql+asyncpg://user:password@localhost:5432/dbname
     database_url: str = "sqlite+aiosqlite:///./semptify.db"
-    # For Postgres: "postgresql+asyncpg://user:pass@host:port/dbname"
-    
+    # For SQLite (dev fallback): "sqlite+aiosqlite:///./semptify.db"
+
     # ==========================================================================
     # File Storage
     # ==========================================================================
@@ -94,7 +95,7 @@ Your data lives in YOUR cloud storage - we never store your files.
     # ==========================================================================
     # AI Provider Configuration
     # ==========================================================================
-    ai_provider: Literal["openai", "azure", "ollama", "groq", "none"] = "groq"
+    ai_provider: Literal["openai", "azure", "ollama", "groq", "anthropic", "none"] = "anthropic"
 
     # OpenAI
     openai_api_key: str = ""
@@ -103,6 +104,10 @@ Your data lives in YOUR cloud storage - we never store your files.
     # Groq (fast & affordable)
     groq_api_key: str = ""
     groq_model: str = "llama-3.3-70b-versatile"
+
+    # Anthropic Claude (best accuracy)
+    anthropic_api_key: str = ""
+    anthropic_model: str = "claude-sonnet-4-20250514"
 
     # Azure OpenAI
     azure_openai_api_key: str = ""
@@ -156,6 +161,13 @@ Your data lives in YOUR cloud storage - we never store your files.
     log_level: str = "INFO"
     log_json_format: bool = False
     enable_metrics: bool = True
+
+    # ==========================================================================
+    # Chat Console Auto-Allow Settings
+    # ==========================================================================
+    session_duration_hours: int = 6
+    auto_allow_timeout_ms: int = 500
+    auto_allow_enabled: bool = True
     
     # ==========================================================================
     # Deployment

@@ -2,9 +2,20 @@
 
 {% block title %}Register - Semptify{% endblock %}
 
+{% block extra_styles %}
+<style>
+    .mt-top { margin-top: 2rem; }
+    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .flex-row-gap { display: flex; gap: 0.5rem; }
+    .flex-1 { flex: 1; }
+    .full-width { width: 100%; }
+    .location-status { display: none; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container container--narrow">
-    <div class="card" style="margin-top: 2rem;">
+    <div class="card mt-top">
         <div class="text-center mb-xl">
             <h1>📋 Create Your Account</h1>
             <p class="text-secondary mt-sm">
@@ -40,7 +51,7 @@
                 <input type="text" class="form-input" id="address" name="address" required placeholder="123 Main St">
             </div>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="grid-2col">
                 <div class="form-group">
                     <label class="form-label" for="city">City *</label>
                     <input type="text" class="form-input" id="city" name="city" required>
@@ -48,19 +59,23 @@
                 
                 <div class="form-group">
                     <label class="form-label" for="state">State *</label>
-                    <select class="form-select" id="state" name="state" required>
-                        <option value="">Select...</option>
-                        <option value="MN">Minnesota</option>
-                        <option value="WI">Wisconsin</option>
-                        <option value="IA">Iowa</option>
-                        <option value="ND">North Dakota</option>
-                        <option value="SD">South Dakota</option>
-                        <!-- Add more states as needed -->
-                    </select>
+                    <div class="flex-row-gap">
+                        <select class="form-select flex-1" id="state" name="state" required>
+                            <option value="">Select...</option>
+                            <option value="MN" selected>Minnesota</option>
+                            <option value="WI">Wisconsin</option>
+                            <option value="IA">Iowa</option>
+                            <option value="SD">South Dakota</option>
+                        </select>
+                        <button type="button" class="btn btn--secondary btn--sm" onclick="LocationDetect.refresh()" title="Detect my location">
+                            📍
+                        </button>
+                    </div>
+                    <small id="location-status" class="text-muted location-status"></small>
                 </div>
             </div>
             
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="grid-2col">
                 <div class="form-group">
                     <label class="form-label" for="zip">ZIP Code *</label>
                     <input type="text" class="form-input" id="zip" name="zip" required pattern="[0-9]{5}" maxlength="5">
@@ -72,17 +87,37 @@
                 </div>
             </div>
             
-            <div class="alert alert--info mb-lg">
+<div class="alert alert--info mb-lg">
                 <strong>📍 Why we need your address:</strong>
                 Your location helps us provide state-specific tenant rights information and connect you with local resources.
+                <br><small>Semptify is optimized for Minnesota tenant rights. Other states have limited support.</small>
             </div>
-            
-            <button type="submit" class="btn btn--primary btn--lg" style="width: 100%;">
+
+            <button type="submit" class="btn btn--primary btn--lg full-width">
                 Create My Account
             </button>
         </form>
-        
-        <div class="text-center mt-lg text-muted text-sm">
+
+        <!-- Location Detection Script -->
+        <script src="/static/js/location-detect.js"></script>
+        <script>
+            LocationDetect.init({
+                stateSelectId: 'state',
+                countyInputId: 'county',
+                cityInputId: 'city',
+                zipInputId: 'zip',
+                onDetected: function(location) {
+                    const statusEl = document.getElementById('location-status');
+                    if (statusEl) {
+                        statusEl.style.display = 'block';
+                        statusEl.textContent = LocationDetect.getSupportMessage(location.state);
+                    }
+                },
+                onError: function(error) {
+                    console.log('Location detection unavailable, defaulting to Minnesota');
+                }
+            });
+        </script>        <div class="text-center mt-lg text-muted text-sm">
             By registering, you agree to our <a href="/terms">Terms of Service</a> 
             and <a href="/privacy">Privacy Policy</a>.
         </div>

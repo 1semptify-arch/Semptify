@@ -160,10 +160,10 @@ async def upload_document(
 
     # Emit brain event for document upload
     try:
-        from app.services.positronic_brain import get_brain, BrainEvent, EventType, ModuleType
+        from app.services.positronic_brain import get_brain, BrainEvent, EventType as BrainEventType, ModuleType
         brain = get_brain()
         await brain.emit(BrainEvent(
-            event_type=EventType.DOCUMENT_UPLOADED,
+            event_type=BrainEventType.DOCUMENT_UPLOADED,
             source_module=ModuleType.DOCUMENTS,
             data={
                 "document_id": doc.id,
@@ -582,7 +582,8 @@ async def auto_populate_timeline(
     case timeline with minimal interaction.
     """
     import uuid
-    from datetime import datetime, timezone
+    from datetime import datetime
+    from app.core.utc import utc_now
     from app.services.event_extractor import get_event_extractor
     from app.core.database import get_db_session
     from app.models.models import TimelineEvent as TimelineEventModel
@@ -644,7 +645,7 @@ async def auto_populate_timeline(
                 event_date=event.date,
                 document_id=doc_id,
                 is_evidence=event.is_deadline,  # Mark deadlines as evidence
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.utcnow(),
             )
             session.add(db_event)
             events_created += 1
@@ -681,7 +682,8 @@ async def auto_timeline_all_documents(
     Useful for building a complete case timeline in one action.
     """
     import uuid
-    from datetime import datetime, timezone
+    from datetime import datetime
+    from app.core.utc import utc_now
     from app.services.event_extractor import get_event_extractor
     from app.core.database import get_db_session
     from app.models.models import TimelineEvent as TimelineEventModel
@@ -737,7 +739,7 @@ async def auto_timeline_all_documents(
                     event_date=event.date,
                     document_id=doc.id,
                     is_evidence=event.is_deadline,
-                    created_at=datetime.now(timezone.utc),
+                    created_at=datetime.utcnow(),
                 )
                 session.add(db_event)
                 total_created += 1

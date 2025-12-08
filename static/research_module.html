@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Module - Landlord/Property Dossier | Semptify</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-purple: #8b5cf6;
+            --border-color: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .logo span {
+            color: var(--text-primary);
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-left: 20px;
+            transition: color 0.2s;
+        }
+
+        nav a:hover {
+            color: var(--text-primary);
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        /* Search Section */
+        .search-section {
+            background: var(--bg-card);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .btn-success {
+            background: var(--accent-green);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Demo Properties */
+        .demo-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .demo-section h3 {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .demo-properties {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            padding: 8px 16px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .demo-btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--text-primary);
+        }
+
+        .demo-btn.high-risk {
+            border-color: var(--accent-red);
+        }
+
+        .demo-btn.low-risk {
+            border-color: var(--accent-green);
+        }
+
+        /* Status Panel */
+        .status-panel {
+            background: var(--bg-card);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            cursor: pointer;
+            background: var(--bg-card-hover);
+            transition: background 0.2s;
+        }
+
+        .status-header:hover {
+            background: #475569;
+        }
+
+        .status-indicator {
+            font-size: 1.2rem;
+            color: var(--accent-green);
+        }
+
+        .status-indicator.error {
+            color: var(--accent-red);
+        }
+
+        .status-content {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .status-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .status-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .lang-selector {
+            max-width: 180px;
+        }
+
+        /* Results Grid */
+        .results-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Profile Card */
+        .profile-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 25px;
+            position: sticky;
+            top: 20px;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .risk-low {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+        }
+
+        .risk-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-amber);
+        }
+
+        .risk-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
+
+        .risk-critical {
+            background: var(--accent-red);
+            color: white;
+        }
+
+        .profile-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+
+        .profile-header p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .profile-actions .btn {
+            flex: 1;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            background: var(--bg-card);
+            padding: 5px;
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 500;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .tab .count {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            margin-left: 5px;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .card-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Fraud Flags */
+        .fraud-flag {
+            display: flex;
+            align-items: flex-start;
+            padding: 15px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border-left: 4px solid;
+        }
+
+        .fraud-flag.critical {
+            border-color: var(--accent-red);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .fraud-flag.high {
+            border-color: var(--accent-amber);
+            background: rgba(245, 158, 11, 0.1);
+        }
+
+        .fraud-flag.medium {
+            border-color: var(--accent-blue);
+        }
+
+        .flag-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .flag-content h4 {
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .flag-content p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .data-table tr:hover {
+            background: var(--bg-card-hover);
+        }
+
+        /* Timeline */
+        .timeline-item {
+            display: flex;
+            padding: 15px 0;
+            border-left: 2px solid var(--border-color);
+            margin-left: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            width: 12px;
+            height: 12px;
+            background: var(--accent-blue);
+            border-radius: 50%;
+            position: absolute;
+            left: -7px;
+        }
+
+        .timeline-date {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            min-width: 100px;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-content h4 {
+            margin-bottom: 5px;
+        }
+
+        .timeline-content p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* News Item */
+        .news-item {
+            padding: 15px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .news-item h4 {
+            margin-bottom: 5px;
+        }
+
+        .news-item h4 a {
+            color: var(--accent-blue);
+            text-decoration: none;
+        }
+
+        .news-item h4 a:hover {
+            text-decoration: underline;
+        }
+
+        .news-meta {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state .icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Hidden */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Entity Info */
+        .entity-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .entity-field {
+            padding: 12px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+        }
+
+        .entity-field label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .entity-field value {
+            display: block;
+            font-weight: 500;
+        }
+
+        /* Status badges */
+        .status-active { color: var(--accent-green); }
+        .status-delinquent { color: var(--accent-red); }
+        .status-inactive { color: var(--text-secondary); }
+        .status-dissolved { color: var(--accent-red); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">Semptify<span>Research</span></div>
+            <nav>
+                <a href="/static/dashboard.html">Dashboard</a>
+                <a href="/static/research.html">Research Center</a>
+                <a href="/static/documents.html">Documents</a>
+                <a href="/static/timeline.html">Timeline</a>
+            </nav>
+        </header>
+
+        <h1>🔬 Landlord/Property Dossier</h1>
+        <p class="subtitle">Comprehensive research on landlords, property ownership, liens, emergency calls, and more.</p>
+
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-box">
+                <div class="input-group">
+                    <label for="propertyId">Property ID / Parcel Number</label>
+                    <input type="text" id="propertyId" placeholder="e.g., 27-028-24-31-0001" />
+                </div>
+                <div class="input-group" style="max-width: 180px;">
+                    <label for="langSelect">Language</label>
+                    <select id="langSelect">
+                        <option value="en">🇺🇸 English</option>
+                        <option value="es">🇲🇽 Español</option>
+                        <option value="so">🇸🇴 Soomaali</option>
+                        <option value="hmn">Hmoob</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="searchBtn" onclick="runResearch()">
+                    🔍 Run Research
+                </button>
+            </div>
+
+            <div class="demo-section">
+                <h3>📋 Demo Properties (Click to load)</h3>
+                <div class="demo-properties" id="demoProperties">
+                    <button class="demo-btn low-risk" onclick="loadDemo('27-028-24-31-0001')">
+                        27-028-24-31-0001 (Low Risk)
+                    </button>
+                    <button class="demo-btn high-risk" onclick="loadDemo('19-116-21-44-0025')">
+                        19-116-21-44-0025 (High Risk)
+                    </button>
+                    <button class="demo-btn" onclick="loadDemo('demo-property')">
+                        demo-property
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Status Panel -->
+        <div class="status-panel" id="statusPanel">
+            <div class="status-header" onclick="toggleStatus()">
+                <span>⚙️ System Status</span>
+                <span class="status-indicator" id="statusIndicator">●</span>
+            </div>
+            <div class="status-content hidden" id="statusContent">
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="status-label">Version</span>
+                        <span class="status-value" id="sysVersion">--</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Mock Data</span>
+                        <span class="status-value" id="sysMockData">--</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Storage Mode</span>
+                        <span class="status-value" id="sysStorage">--</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Languages</span>
+                        <span class="status-value" id="sysLangs">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading hidden" id="loadingState">
+            <div class="spinner"></div>
+            <h3>Researching Property...</h3>
+            <p>Querying assessor, recorder, SOS, dispatch, news, and more...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState">
+            <div class="icon">🔍</div>
+            <h3>Enter a Property ID to Begin</h3>
+            <p>Search for a parcel ID or use one of the demo properties above.</p>
+        </div>
+
+        <!-- Results -->
+        <div class="results-grid hidden" id="resultsSection">
+            <!-- Profile Card -->
+            <div class="profile-card">
+                <div id="riskBadge" class="risk-badge risk-low">Risk Score: 0</div>
+                
+                <div class="profile-header">
+                    <h2 id="ownerName">Loading...</h2>
+                    <p id="siteAddress">-</p>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="liensCount">0</div>
+                        <div class="stat-label">Liens</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="flagsCount">0</div>
+                        <div class="stat-label">Fraud Flags</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="callsCount">0</div>
+                        <div class="stat-label">911 Calls</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="newsCount">0</div>
+                        <div class="stat-label">News</div>
+                    </div>
+                </div>
+
+                <div id="entityStatus" class="entity-field">
+                    <label>Entity Status</label>
+                    <value class="status-active">-</value>
+                </div>
+
+                <div class="profile-actions">
+                    <button class="btn btn-success" onclick="downloadZip()">
+                        📥 Download ZIP
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div>
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab active" data-tab="flags">
+                        ⚠️ Fraud Flags <span class="count" id="flagsTabCount">0</span>
+                    </button>
+                    <button class="tab" data-tab="liens">
+                        📋 Liens <span class="count" id="liensTabCount">0</span>
+                    </button>
+                    <button class="tab" data-tab="deeds">
+                        📜 Deeds
+                    </button>
+                    <button class="tab" data-tab="dispatch">
+                        🚨 911 Calls <span class="count" id="dispatchTabCount">0</span>
+                    </button>
+                    <button class="tab" data-tab="news">
+                        📰 News
+                    </button>
+                    <button class="tab" data-tab="entity">
+                        🏢 Entity Info
+                    </button>
+                    <button class="tab" data-tab="taxes">
+                        💰 Taxes
+                    </button>
+                    <button class="tab" data-tab="insurance">
+                        🛡️ Insurance
+                    </button>
+                </div>
+
+                <!-- Fraud Flags Tab -->
+                <div class="tab-content active" id="tab-flags">
+                    <div id="flagsList"></div>
+                </div>
+
+                <!-- Liens Tab -->
+                <div class="tab-content" id="tab-liens">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Recorded Liens</div>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>Date</th>
+                                    <th>Creditor</th>
+                                </tr>
+                            </thead>
+                            <tbody id="liensTable"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">UCC Filings</div>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Filing Number</th>
+                                    <th>Date</th>
+                                    <th>Secured Party</th>
+                                    <th>Collateral</th>
+                                </tr>
+                            </thead>
+                            <tbody id="uccTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Deeds Tab -->
+                <div class="tab-content" id="tab-deeds">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Transfer History</div>
+                        </div>
+                        <div id="deedsTimeline"></div>
+                    </div>
+                </div>
+
+                <!-- Dispatch Tab -->
+                <div class="tab-content" id="tab-dispatch">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Emergency Call History</div>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Type</th>
+                                    <th>Disposition</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dispatchTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- News Tab -->
+                <div class="tab-content" id="tab-news">
+                    <div id="newsList"></div>
+                </div>
+
+                <!-- Entity Tab -->
+                <div class="tab-content" id="tab-entity">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Secretary of State Records</div>
+                        </div>
+                        <div class="entity-info" id="entityInfo"></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Bankruptcy Records</div>
+                        </div>
+                        <div id="bankruptcyInfo"></div>
+                    </div>
+                </div>
+
+                <!-- Taxes Tab -->
+                <div class="tab-content" id="tab-taxes">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Property Assessment</div>
+                        </div>
+                        <div class="entity-info" id="assessmentInfo"></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Tax History</div>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Year</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="taxTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Insurance Tab -->
+                <div class="tab-content" id="tab-insurance">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Insurance Brokers</div>
+                        </div>
+                        <div id="brokersList"></div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Active Policies</div>
+                        </div>
+                        <div id="policiesList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentProfile = null;
+        let currentPropertyId = null;
+        let currentLabels = null;
+        let systemStatus = null;
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSystemStatus();
+        });
+
+        // Load system status
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch('/api/research-module/status');
+                if (response.ok) {
+                    systemStatus = await response.json();
+                    updateStatusPanel(systemStatus);
+                }
+            } catch (e) {
+                console.error('Failed to load status:', e);
+                document.getElementById('statusIndicator').classList.add('error');
+            }
+        }
+
+        // Update status panel
+        function updateStatusPanel(status) {
+            document.getElementById('sysVersion').textContent = status.version || '--';
+            document.getElementById('sysMockData').textContent = status.config?.use_mock_data ? 'Enabled' : 'Disabled';
+            document.getElementById('sysStorage').textContent = status.config?.storage_mode || '--';
+            document.getElementById('sysLangs').textContent = status.supported_languages?.join(', ') || '--';
+            document.getElementById('statusIndicator').classList.remove('error');
+        }
+
+        // Toggle status panel
+        function toggleStatus() {
+            document.getElementById('statusContent').classList.toggle('hidden');
+        }
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+                tab.classList.add('active');
+                document.getElementById(`tab-${tab.dataset.tab}`).classList.add('active');
+            });
+        });
+
+        // Load demo property
+        function loadDemo(propertyId) {
+            document.getElementById('propertyId').value = propertyId;
+            runResearch();
+        }
+
+        // Run research
+        async function runResearch() {
+            const propertyId = document.getElementById('propertyId').value.trim();
+            const lang = document.getElementById('langSelect').value;
+            
+            if (!propertyId) {
+                alert('Please enter a Property ID');
+                return;
+            }
+
+            currentPropertyId = propertyId;
+
+            // Show loading
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('resultsSection').classList.add('hidden');
+            document.getElementById('loadingState').classList.remove('hidden');
+
+            try {
+                // Build URL with language parameter
+                const url = `/api/research-module/research/${encodeURIComponent(propertyId)}?lang=${lang}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Research failed: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                currentProfile = data.landlord_profile;
+                currentLabels = data.labels || null;
+                displayResults(currentProfile);
+                
+            } catch (error) {
+                console.error('Research error:', error);
+                alert(`Error: ${error.message}`);
+                document.getElementById('loadingState').classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+            }
+        }
+
+        // Display results
+        function displayResults(profile) {
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('resultsSection').classList.remove('hidden');
+
+            // Profile card
+            document.getElementById('ownerName').textContent = profile.owner_name || 'Unknown Owner';
+            document.getElementById('siteAddress').textContent = profile.site_address || 'Address Unknown';
+            
+            // Risk badge
+            const riskScore = profile.risk_score || 0;
+            const riskBadge = document.getElementById('riskBadge');
+            riskBadge.textContent = `Risk Score: ${riskScore}/100`;
+            riskBadge.className = 'risk-badge';
+            if (riskScore >= 75) riskBadge.classList.add('risk-critical');
+            else if (riskScore >= 50) riskBadge.classList.add('risk-high');
+            else if (riskScore >= 25) riskBadge.classList.add('risk-medium');
+            else riskBadge.classList.add('risk-low');
+
+            // Stats
+            const liens = profile.liens || [];
+            const flags = profile.fraud_flags || [];
+            const calls = profile.emergency_calls || [];
+            const news = profile.news_mentions || [];
+
+            document.getElementById('liensCount').textContent = liens.length;
+            document.getElementById('flagsCount').textContent = flags.length;
+            document.getElementById('callsCount').textContent = calls.length;
+            document.getElementById('newsCount').textContent = news.length;
+
+            // Tab counts
+            document.getElementById('flagsTabCount').textContent = flags.length;
+            document.getElementById('liensTabCount').textContent = liens.length + (profile.ucc_filings || []).length;
+            document.getElementById('dispatchTabCount').textContent = calls.length;
+
+            // Entity status
+            const entityInfo = profile.entity_info || {};
+            const statusEl = document.querySelector('#entityStatus value');
+            const status = entityInfo.status || 'Unknown';
+            statusEl.textContent = status;
+            statusEl.className = `status-${status.toLowerCase()}`;
+
+            // Populate tabs
+            populateFraudFlags(flags);
+            populateLiens(liens, profile.ucc_filings || []);
+            populateDeeds(profile.deeds || []);
+            populateDispatch(calls);
+            populateNews(news);
+            populateEntity(entityInfo, profile.bankruptcy_cases || []);
+            populateTaxes(profile.taxes || {}, profile.assessed || {});
+            populateInsurance(profile.insurance || {});
+        }
+
+        // Populate fraud flags
+        function populateFraudFlags(flags) {
+            const container = document.getElementById('flagsList');
+            if (flags.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No fraud indicators detected ✅</p></div>';
+                return;
+            }
+
+            container.innerHTML = flags.map(flag => {
+                const icons = {
+                    'owner_mismatch': '👤',
+                    'multiple_liens': '⚠️',
+                    'liens_present': '📋',
+                    'entity_status': '🏢',
+                    'bankruptcy': '⚖️',
+                    'tax_delinquent': '💰',
+                    'no_insurance': '🛡️'
+                };
+                return `
+                    <div class="fraud-flag ${flag.severity}">
+                        <div class="flag-icon">${icons[flag.type] || '⚠️'}</div>
+                        <div class="flag-content">
+                            <h4>${flag.type.replace(/_/g, ' ')}</h4>
+                            <p>${flag.detail}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Populate liens
+        function populateLiens(liens, ucc) {
+            const liensTable = document.getElementById('liensTable');
+            if (liens.length === 0) {
+                liensTable.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary)">No liens recorded</td></tr>';
+            } else {
+                liensTable.innerHTML = liens.map(lien => `
+                    <tr>
+                        <td>${lien.type}</td>
+                        <td>$${(lien.amount || 0).toLocaleString()}</td>
+                        <td>${lien.date}</td>
+                        <td>${lien.creditor}</td>
+                    </tr>
+                `).join('');
+            }
+
+            const uccTable = document.getElementById('uccTable');
+            if (ucc.length === 0) {
+                uccTable.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-secondary)">No UCC filings</td></tr>';
+            } else {
+                uccTable.innerHTML = ucc.map(filing => `
+                    <tr>
+                        <td>${filing.filing_number}</td>
+                        <td>${filing.date}</td>
+                        <td>${filing.secured_party}</td>
+                        <td>${filing.collateral}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // Populate deeds
+        function populateDeeds(deeds) {
+            const container = document.getElementById('deedsTimeline');
+            if (deeds.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No transfer history available</p></div>';
+                return;
+            }
+
+            container.innerHTML = deeds.map(deed => `
+                <div class="timeline-item">
+                    <div class="timeline-date">${deed.date}</div>
+                    <div class="timeline-content">
+                        <h4>${deed.type}</h4>
+                        <p>${deed.grantor} → ${deed.grantee}</p>
+                        <p>$${(deed.amount || 0).toLocaleString()}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Populate dispatch
+        function populateDispatch(calls) {
+            const table = document.getElementById('dispatchTable');
+            if (calls.length === 0) {
+                table.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-secondary)">No emergency calls on record</td></tr>';
+                return;
+            }
+
+            table.innerHTML = calls.map(call => `
+                <tr>
+                    <td>${call.date}</td>
+                    <td>${call.type}</td>
+                    <td>${call.disposition}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Populate news
+        function populateNews(news) {
+            const container = document.getElementById('newsList');
+            if (news.length === 0) {
+                container.innerHTML = '<div class="empty-state"><p>No news mentions found</p></div>';
+                return;
+            }
+
+            container.innerHTML = news.map(item => `
+                <div class="news-item">
+                    <h4><a href="${item.url}" target="_blank">${item.title}</a></h4>
+                    <div class="news-meta">${item.source} • ${item.date}</div>
+                </div>
+            `).join('');
+        }
+
+        // Populate entity
+        function populateEntity(entity, bankruptcy) {
+            const container = document.getElementById('entityInfo');
+            if (!entity || Object.keys(entity).length === 0) {
+                container.innerHTML = '<p style="color:var(--text-secondary)">No entity information available</p>';
+            } else {
+                container.innerHTML = `
+                    <div class="entity-field">
+                        <label>Legal Name</label>
+                        <value>${entity.legal_name || '-'}</value>
+                    </div>
+                    <div class="entity-field">
+                        <label>Status</label>
+                        <value class="status-${(entity.status || '').toLowerCase()}">${entity.status || '-'}</value>
+                    </div>
+                    <div class="entity-field">
+                        <label>Formation Date</label>
+                        <value>${entity.formation_date || '-'}</value>
+                    </div>
+                    <div class="entity-field">
+                        <label>Registered Agent</label>
+                        <value>${entity.registered_agent || '-'}</value>
+                    </div>
+                    <div class="entity-field">
+                        <label>Registered Address</label>
+                        <value>${entity.registered_address || '-'}</value>
+                    </div>
+                    <div class="entity-field">
+                        <label>Principals</label>
+                        <value>${(entity.principals || []).join(', ') || '-'}</value>
+                    </div>
+                `;
+            }
+
+            const bankruptcyContainer = document.getElementById('bankruptcyInfo');
+            if (bankruptcy.length === 0) {
+                bankruptcyContainer.innerHTML = '<p style="color:var(--text-secondary)">No bankruptcy records found</p>';
+            } else {
+                bankruptcyContainer.innerHTML = bankruptcy.map(c => `
+                    <div class="entity-info">
+                        <div class="entity-field">
+                            <label>Case Number</label>
+                            <value>${c.case_number}</value>
+                        </div>
+                        <div class="entity-field">
+                            <label>Chapter</label>
+                            <value>Chapter ${c.chapter}</value>
+                        </div>
+                        <div class="entity-field">
+                            <label>Filed</label>
+                            <value>${c.filed}</value>
+                        </div>
+                        <div class="entity-field">
+                            <label>Status</label>
+                            <value class="status-delinquent">${c.status}</value>
+                        </div>
+                        <div class="entity-field">
+                            <label>Court</label>
+                            <value>${c.court}</value>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Populate taxes
+        function populateTaxes(taxes, assessed) {
+            const assessContainer = document.getElementById('assessmentInfo');
+            assessContainer.innerHTML = `
+                <div class="entity-field">
+                    <label>Land Value</label>
+                    <value>$${(assessed.land || 0).toLocaleString()}</value>
+                </div>
+                <div class="entity-field">
+                    <label>Building Value</label>
+                    <value>$${(assessed.building || 0).toLocaleString()}</value>
+                </div>
+                <div class="entity-field">
+                    <label>Total Assessed</label>
+                    <value>$${(assessed.total || 0).toLocaleString()}</value>
+                </div>
+            `;
+
+            const taxTable = document.getElementById('taxTable');
+            const years = Object.keys(taxes).sort().reverse();
+            if (years.length === 0) {
+                taxTable.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text-secondary)">No tax history available</td></tr>';
+            } else {
+                taxTable.innerHTML = years.map(year => {
+                    const tax = taxes[year];
+                    const status = tax.status || 'Unknown';
+                    return `
+                        <tr>
+                            <td>${year}</td>
+                            <td>$${(tax.amount || 0).toLocaleString()}</td>
+                            <td class="status-${status.toLowerCase()}">${status}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Populate insurance
+        function populateInsurance(insurance) {
+            const brokers = insurance.brokers || [];
+            const policies = insurance.policies || [];
+
+            const brokersContainer = document.getElementById('brokersList');
+            if (brokers.length === 0) {
+                brokersContainer.innerHTML = '<p style="color:var(--text-secondary)">No brokers on file</p>';
+            } else {
+                brokersContainer.innerHTML = brokers.map(b => `
+                    <div class="entity-info">
+                        <div class="entity-field">
+                            <label>Name</label>
+                            <value>${b.name}</value>
+                        </div>
+                        <div class="entity-field">
+                            <label>License</label>
+                            <value>${b.license}</value>
+                        </div>
+                        <div class="entity-field">
+                            <label>Phone</label>
+                            <value>${b.phone}</value>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const policiesContainer = document.getElementById('policiesList');
+            if (policies.length === 0) {
+                policiesContainer.innerHTML = '<p style="color:var(--accent-red)">⚠️ No active insurance policies found</p>';
+            } else {
+                policiesContainer.innerHTML = policies.map(p => `
+                    <div class="entity-info">
+                        <div class="entity-field">
+                            <label>Type</label>
+                            <value>${p.type}</value>
+                        </div>
+                        <div class="entity-field">
+                            <label>Carrier</label>
+                            <value>${p.carrier}</value>
+                        </div>
+                        <div class="entity-field">
+                            <label>Policy Number</label>
+                            <value>${p.policy_number}</value>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Download ZIP
+        async function downloadZip() {
+            if (!currentPropertyId) {
+                alert('No property researched yet');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/research-module/download/${encodeURIComponent(currentPropertyId)}`);
+                if (!response.ok) throw new Error('Download failed');
+                
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${currentPropertyId}_evidence.zip`;
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (error) {
+                alert(`Download error: ${error.message}`);
+            }
+        }
+
+        // Initialize - load demo properties
+        async function init() {
+            try {
+                const response = await fetch('/api/research-module/demo-properties');
+                if (response.ok) {
+                    const data = await response.json();
+                    const container = document.getElementById('demoProperties');
+                    container.innerHTML = data.demo_properties.map(p => `
+                        <button class="demo-btn ${p.description.includes('High') ? 'high-risk' : p.description.includes('Low') ? 'low-risk' : ''}" 
+                                onclick="loadDemo('${p.property_id}')">
+                            ${p.property_id}<br><small>${p.description}</small>
+                        </button>
+                    `).join('');
+                }
+            } catch (e) {
+                console.log('Could not load demo properties:', e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
