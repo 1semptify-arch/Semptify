@@ -73,9 +73,9 @@ services:
     #   mountPath: /data
     #   sizeGB: 1
 
+databases:
   # PostgreSQL Database
-  - type: pgsql
-    name: semptify-db
+  - name: semptify-db
     region: oregon
     plan: free  # free tier: 1GB, 97 days retention
     databaseName: semptify
