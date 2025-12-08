@@ -8,7 +8,7 @@ and case context.
 """
 
 from fastapi import APIRouter, Query
-from typing import Dict, Any, Optional, List
+from typing import Optional
 from pydantic import BaseModel
 
 from ..services.action_router import action_router, ActionCategory, ActionPriority
@@ -31,13 +31,16 @@ class CaseContext(BaseModel):
     documents_count: int = 0
 
 
+from fastapi import Header, HTTPException
+
 @router.get("/plan")
 async def get_action_plan(
     has_court_date: bool = Query(False),
     has_lease: bool = Query(False),
     has_payment_records: bool = Query(False),
     maintenance_issues: bool = Query(False),
-    has_notice: bool = Query(False)
+    has_notice: bool = Query(False),
+    x_user_id: Optional[str] = Header(None, alias="X-User-Id")
 ):
     """
     Get a personalized action plan based on current emotional state and case context.
@@ -46,7 +49,9 @@ async def get_action_plan(
     the most appropriate next actions for the user.
     """
     # Get current emotional state
-    emotional_state = emotion_engine.get_state()
+    if not x_user_id:
+        raise HTTPException(status_code=400, detail="Missing X-User-Id header")
+    emotional_state = emotion_engine.get_state(user_id=x_user_id)
     
     # Build case context
     case_context = {
@@ -59,7 +64,7 @@ async def get_action_plan(
     
     # Generate action plan
     plan = action_router.generate_action_plan(
-        emotional_state=emotional_state,
+        emotional_state=emotional_state.to_dict() if hasattr(emotional_state, "to_dict") else dict(emotional_state),
         case_context=case_context
     )
     
@@ -72,7 +77,8 @@ async def get_action_plan_with_context(context: CaseContext):
     Get a personalized action plan with full case context.
     """
     # Get current emotional state
-    emotional_state = emotion_engine.get_state()
+    # TODO: Replace 'user_id' with actual user identifier from request/session
+    emotional_state = emotion_engine.get_state(user_id="user_id")
     
     # Convert context to dict
     case_context = context.dict()
