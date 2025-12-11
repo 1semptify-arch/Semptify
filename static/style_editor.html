@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify Style Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        .editor-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Left Panel - Controls */
+        .controls-panel {
+            background: #1e3a5f;
+            color: #fff;
+            padding: 1.5rem;
+            overflow-y: auto;
+            max-height: 100vh;
+            position: sticky;
+            top: 0;
+        }
+
+        .controls-panel h1 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .controls-panel .subtitle {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 1.5rem;
+        }
+
+        .control-section {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .control-section h3 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 1rem;
+        }
+
+        .control-group {
+            margin-bottom: 1rem;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 0.85rem;
+            margin-bottom: 0.35rem;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .control-group input[type="color"] {
+            width: 100%;
+            height: 40px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .control-group input[type="text"],
+        .control-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .control-group select option {
+            background: #1e3a5f;
+            color: #fff;
+        }
+
+        .range-value {
+            font-size: 0.8rem;
+            color: rgba(255,255,255,0.7);
+            text-align: right;
+        }
+
+        .color-preview {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .color-preview input[type="color"] {
+            width: 50px;
+            height: 30px;
+        }
+
+        .color-preview code {
+            font-size: 0.8rem;
+            background: rgba(0,0,0,0.2);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            flex: 1;
+        }
+
+        /* Buttons */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #60a5fa;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #3b82f6;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .btn-success {
+            background: #22c55e;
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #16a34a;
+        }
+
+        /* Right Panel - Preview */
+        .preview-panel {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .preview-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Live Preview Elements */
+        .preview-header {
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .preview-header img {
+            height: 60px;
+            margin-bottom: 0.5rem;
+        }
+
+        .preview-nav {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .preview-nav a {
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .preview-card {
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-radius: 12px;
+        }
+
+        .preview-card h2 {
+            margin-bottom: 0.75rem;
+        }
+
+        .preview-card p {
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .preview-btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .preview-footer {
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        /* Code Output */
+        .code-output {
+            background: #0d1117;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .code-output pre {
+            color: #e6edf3;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .code-output .comment {
+            color: #8b949e;
+        }
+
+        .code-output .property {
+            color: #79c0ff;
+        }
+
+        .code-output .value {
+            color: #a5d6ff;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab {
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 6px;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .tab.active {
+            background: #60a5fa;
+            color: #fff;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #22c55e;
+            color: #fff;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Presets */
+        .preset-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .preset-btn {
+            padding: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            background: transparent;
+            color: #fff;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preset-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        @media (max-width: 900px) {
+            .editor-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .controls-panel {
+                position: relative;
+                max-height: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-layout">
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <h1>🎨 Style Editor</h1>
+            <p class="subtitle">Customize Semptify's look & feel</p>
+
+            <!-- Presets -->
+            <div class="control-section">
+                <h3>Quick Presets</h3>
+                <div class="preset-grid">
+                    <button class="preset-btn" onclick="applyPreset('default')">Default Blue</button>
+                    <button class="preset-btn" onclick="applyPreset('dark')">Dark Mode</button>
+                    <button class="preset-btn" onclick="applyPreset('warm')">Warm Earth</button>
+                    <button class="preset-btn" onclick="applyPreset('minimal')">Minimal Light</button>
+                </div>
+            </div>
+
+            <!-- Colors -->
+            <div class="control-section">
+                <h3>Colors</h3>
+                
+                <div class="control-group">
+                    <label>Primary Color</label>
+                    <div class="color-preview">
+                        <input type="color" id="primaryColor" value="#1e3a5f" onchange="updatePreview()">
+                        <code id="primaryColorCode">#1e3a5f</code>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Accent Color</label>
+                    <div class="color-preview">
+                        <input type="color" id="accentColor" value="#3B5998" onchange="updatePreview()">
+                        <code id="accentColorCode">#3B5998</code>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Background Color</label>
+                    <div class="color-preview">
+                        <input type="color" id="bgColor" value="#fafafa" onchange="updatePreview()">
+                        <code id="bgColorCode">#fafafa</code>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Card Background</label>
+                    <div class="color-preview">
+                        <input type="color" id="cardBgColor" value="#ffffff" onchange="updatePreview()">
+                        <code id="cardBgColorCode">#ffffff</code>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Text Color</label>
+                    <div class="color-preview">
+                        <input type="color" id="textColor" value="#333333" onchange="updatePreview()">
+                        <code id="textColorCode">#333333</code>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label>Button Color</label>
+                    <div class="color-preview">
+                        <input type="color" id="buttonColor" value="#3B5998" onchange="updatePreview()">
+                        <code id="buttonColorCode">#3B5998</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typography -->
+            <div class="control-section">
+                <h3>Typography</h3>
+                
+                <div class="control-group">
+                    <label>Font Family</label>
+                    <select id="fontFamily" onchange="updatePreview()">
+                        <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">System Default</option>
+                        <option value="'Inter', sans-serif">Inter</option>
+                        <option value="'Poppins', sans-serif">Poppins</option>
+                        <option value="'Roboto', sans-serif">Roboto</option>
+                        <option value="'Open Sans', sans-serif">Open Sans</option>
+                        <option value="Georgia, serif">Georgia (Serif)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>Base Font Size</label>
+                    <input type="range" id="fontSize" min="14" max="20" value="16" onchange="updatePreview()">
+                    <div class="range-value"><span id="fontSizeValue">16</span>px</div>
+                </div>
+
+                <div class="control-group">
+                    <label>Heading Size</label>
+                    <input type="range" id="headingSize" min="18" max="32" value="24" onchange="updatePreview()">
+                    <div class="range-value"><span id="headingSizeValue">24</span>px</div>
+                </div>
+            </div>
+
+            <!-- Spacing & Borders -->
+            <div class="control-section">
+                <h3>Spacing & Borders</h3>
+                
+                <div class="control-group">
+                    <label>Border Radius</label>
+                    <input type="range" id="borderRadius" min="0" max="24" value="12" onchange="updatePreview()">
+                    <div class="range-value"><span id="borderRadiusValue">12</span>px</div>
+                </div>
+
+                <div class="control-group">
+                    <label>Card Padding</label>
+                    <input type="range" id="cardPadding" min="12" max="32" value="24" onchange="updatePreview()">
+                    <div class="range-value"><span id="cardPaddingValue">24</span>px</div>
+                </div>
+
+                <div class="control-group">
+                    <label>Card Shadow</label>
+                    <select id="cardShadow" onchange="updatePreview()">
+                        <option value="none">None</option>
+                        <option value="0 1px 3px rgba(0,0,0,0.1)">Subtle</option>
+                        <option value="0 4px 6px rgba(0,0,0,0.1)" selected>Medium</option>
+                        <option value="0 10px 25px rgba(0,0,0,0.15)">Strong</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="control-section" style="border-bottom: none;">
+                <h3>Export</h3>
+                <button class="btn btn-primary" onclick="copyCSS()">📋 Copy CSS Code</button>
+                <button class="btn btn-success" onclick="copyVariables()">📦 Copy CSS Variables</button>
+                <button class="btn btn-secondary" onclick="resetStyles()">↩️ Reset to Default</button>
+            </div>
+        </div>
+
+        <!-- Preview Panel -->
+        <div class="preview-panel">
+            <div class="preview-container">
+                <h2 style="margin-bottom: 1rem; color: #666;">Live Preview</h2>
+
+                <!-- Header Preview -->
+                <div class="preview-header" id="previewHeader">
+                    <img src="/static/logo.png" alt="Semptify" onerror="this.style.display='none'">
+                    <div class="preview-nav" id="previewNav">
+                        <a href="#">Home</a>
+                        <a href="#">Dashboard</a>
+                        <a href="#">Documents</a>
+                        <a href="#">Crisis Help</a>
+                    </div>
+                </div>
+
+                <!-- Card Preview -->
+                <div class="preview-card" id="previewCard">
+                    <h2 id="previewHeading">About Semptify</h2>
+                    <p id="previewText">Semptify was created to carry forward the spirit of loyalty and resilience — always faithful to tenants, always faithful to community. We're here to help you with practical tools, clear suggestions, and organized flows that make your situation easier to manage.</p>
+                    <button class="preview-btn" id="previewButton">Get Started</button>
+                </div>
+
+                <!-- Another Card -->
+                <div class="preview-card" id="previewCard2">
+                    <h2>Your Documents</h2>
+                    <p>Upload and organize your important documents. Our system will help you identify what you have and what you might need.</p>
+                    <button class="preview-btn" id="previewButton2">Upload Document</button>
+                </div>
+
+                <!-- Footer Preview -->
+                <div class="preview-footer" id="previewFooter">
+                    <p style="margin-bottom: 0.5rem;">Always Faithful to Tenants</p>
+                    <p style="font-size: 0.85rem; opacity: 0.8;">© 2025 Semptify. 100% Free - Donations Welcome.</p>
+                </div>
+
+                <!-- Generated Code -->
+                <div class="code-output">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: #8b949e; font-size: 0.8rem;">Generated CSS</span>
+                    </div>
+                    <pre id="codeOutput">/* Your custom styles will appear here */</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">✓ Copied to clipboard!</div>
+
+    <script>
+        // Update preview and generate code
+        function updatePreview() {
+            const styles = getStyles();
+            
+            // Update color codes
+            document.getElementById('primaryColorCode').textContent = styles.primaryColor;
+            document.getElementById('accentColorCode').textContent = styles.accentColor;
+            document.getElementById('bgColorCode').textContent = styles.bgColor;
+            document.getElementById('cardBgColorCode').textContent = styles.cardBgColor;
+            document.getElementById('textColorCode').textContent = styles.textColor;
+            document.getElementById('buttonColorCode').textContent = styles.buttonColor;
+            
+            // Update range values
+            document.getElementById('fontSizeValue').textContent = styles.fontSize;
+            document.getElementById('headingSizeValue').textContent = styles.headingSize;
+            document.getElementById('borderRadiusValue').textContent = styles.borderRadius;
+            document.getElementById('cardPaddingValue').textContent = styles.cardPadding;
+
+            // Apply to preview
+            const previewPanel = document.querySelector('.preview-panel');
+            previewPanel.style.background = styles.bgColor;
+            previewPanel.style.fontFamily = styles.fontFamily;
+            previewPanel.style.fontSize = styles.fontSize + 'px';
+            previewPanel.style.color = styles.textColor;
+
+            // Header
+            const header = document.getElementById('previewHeader');
+            header.style.background = styles.cardBgColor;
+            header.style.borderRadius = styles.borderRadius + 'px';
+            header.style.boxShadow = styles.cardShadow;
+
+            // Nav links
+            document.querySelectorAll('#previewNav a').forEach(a => {
+                a.style.color = styles.primaryColor;
+            });
+
+            // Cards
+            document.querySelectorAll('.preview-card').forEach(card => {
+                card.style.background = styles.cardBgColor;
+                card.style.borderRadius = styles.borderRadius + 'px';
+                card.style.padding = styles.cardPadding + 'px';
+                card.style.boxShadow = styles.cardShadow;
+                card.style.color = styles.textColor;
+            });
+
+            // Headings
+            document.querySelectorAll('.preview-card h2').forEach(h => {
+                h.style.fontSize = styles.headingSize + 'px';
+                h.style.color = styles.primaryColor;
+            });
+
+            // Buttons
+            document.querySelectorAll('.preview-btn').forEach(btn => {
+                btn.style.background = styles.buttonColor;
+                btn.style.color = '#fff';
+                btn.style.borderRadius = (styles.borderRadius * 0.66) + 'px';
+            });
+
+            // Footer
+            const footer = document.getElementById('previewFooter');
+            footer.style.background = styles.primaryColor;
+            footer.style.color = '#fff';
+            footer.style.borderRadius = styles.borderRadius + 'px';
+
+            // Generate code
+            generateCode(styles);
+        }
+
+        function getStyles() {
+            return {
+                primaryColor: document.getElementById('primaryColor').value,
+                accentColor: document.getElementById('accentColor').value,
+                bgColor: document.getElementById('bgColor').value,
+                cardBgColor: document.getElementById('cardBgColor').value,
+                textColor: document.getElementById('textColor').value,
+                buttonColor: document.getElementById('buttonColor').value,
+                fontFamily: document.getElementById('fontFamily').value,
+                fontSize: document.getElementById('fontSize').value,
+                headingSize: document.getElementById('headingSize').value,
+                borderRadius: document.getElementById('borderRadius').value,
+                cardPadding: document.getElementById('cardPadding').value,
+                cardShadow: document.getElementById('cardShadow').value
+            };
+        }
+
+        function generateCode(styles) {
+            const css = `/* Semptify Custom Styles */
+/* Generated: ${new Date().toLocaleDateString()} */
+
+:root {
+    --primary-color: ${styles.primaryColor};
+    --accent-color: ${styles.accentColor};
+    --bg-color: ${styles.bgColor};
+    --card-bg: ${styles.cardBgColor};
+    --text-color: ${styles.textColor};
+    --button-color: ${styles.buttonColor};
+    --font-family: ${styles.fontFamily};
+    --font-size: ${styles.fontSize}px;
+    --heading-size: ${styles.headingSize}px;
+    --border-radius: ${styles.borderRadius}px;
+    --card-padding: ${styles.cardPadding}px;
+    --card-shadow: ${styles.cardShadow};
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+.card, .preview-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: var(--card-padding);
+    box-shadow: var(--card-shadow);
+}
+
+h1, h2, h3 {
+    color: var(--primary-color);
+}
+
+h2 {
+    font-size: var(--heading-size);
+}
+
+.btn, button.primary {
+    background: var(--button-color);
+    color: #fff;
+    border-radius: calc(var(--border-radius) * 0.66);
+    padding: 0.75rem 1.5rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn:hover, button.primary:hover {
+    opacity: 0.9;
+}
+
+a {
+    color: var(--accent-color);
+}
+
+/* Header */
+.semptify-header {
+    background: var(--card-bg);
+    box-shadow: var(--card-shadow);
+}
+
+.header-nav a {
+    color: var(--primary-color);
+}
+
+/* Footer */
+.semptify-footer {
+    background: var(--primary-color);
+    color: #fff;
+}`;
+
+            document.getElementById('codeOutput').textContent = css;
+        }
+
+        function copyCSS() {
+            const code = document.getElementById('codeOutput').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                showToast('✓ CSS copied to clipboard!');
+            });
+        }
+
+        function copyVariables() {
+            const styles = getStyles();
+            const vars = `:root {
+    --primary-color: ${styles.primaryColor};
+    --accent-color: ${styles.accentColor};
+    --bg-color: ${styles.bgColor};
+    --card-bg: ${styles.cardBgColor};
+    --text-color: ${styles.textColor};
+    --button-color: ${styles.buttonColor};
+    --font-family: ${styles.fontFamily};
+    --font-size: ${styles.fontSize}px;
+    --heading-size: ${styles.headingSize}px;
+    --border-radius: ${styles.borderRadius}px;
+    --card-padding: ${styles.cardPadding}px;
+    --card-shadow: ${styles.cardShadow};
+}`;
+            navigator.clipboard.writeText(vars).then(() => {
+                showToast('✓ CSS Variables copied!');
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        function resetStyles() {
+            document.getElementById('primaryColor').value = '#1e3a5f';
+            document.getElementById('accentColor').value = '#3B5998';
+            document.getElementById('bgColor').value = '#fafafa';
+            document.getElementById('cardBgColor').value = '#ffffff';
+            document.getElementById('textColor').value = '#333333';
+            document.getElementById('buttonColor').value = '#3B5998';
+            document.getElementById('fontFamily').value = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+            document.getElementById('fontSize').value = '16';
+            document.getElementById('headingSize').value = '24';
+            document.getElementById('borderRadius').value = '12';
+            document.getElementById('cardPadding').value = '24';
+            document.getElementById('cardShadow').value = '0 4px 6px rgba(0,0,0,0.1)';
+            updatePreview();
+            showToast('↩️ Reset to defaults');
+        }
+
+        function applyPreset(preset) {
+            const presets = {
+                default: {
+                    primary: '#1e3a5f', accent: '#3B5998', bg: '#fafafa', 
+                    cardBg: '#ffffff', text: '#333333', button: '#3B5998',
+                    radius: 12, shadow: '0 4px 6px rgba(0,0,0,0.1)'
+                },
+                dark: {
+                    primary: '#60a5fa', accent: '#818cf8', bg: '#0f172a',
+                    cardBg: '#1e293b', text: '#e2e8f0', button: '#3b82f6',
+                    radius: 12, shadow: '0 4px 6px rgba(0,0,0,0.3)'
+                },
+                warm: {
+                    primary: '#92400e', accent: '#d97706', bg: '#fef3c7',
+                    cardBg: '#fffbeb', text: '#451a03', button: '#b45309',
+                    radius: 16, shadow: '0 4px 6px rgba(0,0,0,0.08)'
+                },
+                minimal: {
+                    primary: '#18181b', accent: '#52525b', bg: '#ffffff',
+                    cardBg: '#fafafa', text: '#27272a', button: '#18181b',
+                    radius: 4, shadow: 'none'
+                }
+            };
+
+            const p = presets[preset];
+            document.getElementById('primaryColor').value = p.primary;
+            document.getElementById('accentColor').value = p.accent;
+            document.getElementById('bgColor').value = p.bg;
+            document.getElementById('cardBgColor').value = p.cardBg;
+            document.getElementById('textColor').value = p.text;
+            document.getElementById('buttonColor').value = p.button;
+            document.getElementById('borderRadius').value = p.radius;
+            document.getElementById('cardShadow').value = p.shadow;
+            updatePreview();
+            showToast(`Applied: ${preset.charAt(0).toUpperCase() + preset.slice(1)} preset`);
+        }
+
+        // Initialize
+        updatePreview();
+    </script>
+</body>
+</html>

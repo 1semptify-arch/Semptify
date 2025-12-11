@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #fafafa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 1px solid #eee;
+            background: #fff;
+        }
+
+        .header img {
+            width: 36px;
+            height: 36px;
+        }
+
+        .header span {
+            font-weight: 600;
+            color: #1e3a5f;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .message {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 2rem;
+            max-width: 400px;
+            line-height: 1.5;
+        }
+
+        .big-button {
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            padding: 1.25rem 2.5rem;
+            font-size: 1.25rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .big-button:hover {
+            background: #152a45;
+        }
+
+        .skip-link {
+            color: #666;
+            font-size: 0.9rem;
+            text-decoration: none;
+            padding: 0.5rem;
+        }
+
+        .skip-link:hover {
+            text-decoration: underline;
+            color: #1e3a5f;
+        }
+
+        .progress-dots {
+            display: flex;
+            gap: 8px;
+            margin-top: 3rem;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #ddd;
+        }
+
+        .dot.done {
+            background: #1e3a5f;
+        }
+
+        .dot.current {
+            background: #1e3a5f;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
+
+        .help-text {
+            position: fixed;
+            bottom: 1rem;
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        .help-text a {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <!-- Site-wide header -->
+    <script src="/static/js/header.js"></script>
+
+    <div class="container">
+        <p class="message" id="message">
+            Do you have an eviction notice or court papers?
+        </p>
+
+        <button class="big-button" id="yesBtn" onclick="handleYes()">
+            Yes, I have papers
+        </button>
+
+        <a href="#" class="skip-link" id="noLink" onclick="handleNo()">
+            No, not yet
+        </a>
+
+        <div class="progress-dots" id="dots">
+            <div class="dot current"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+
+    <div class="help-text">
+        Confused? <a href="tel:211">Call 211</a> or <a href="help.html">get help</a>
+    </div>
+
+    <script>
+        // Simple state machine - just guide them step by step
+        let step = 0;
+        
+        const flow = [
+            {
+                message: "Do you have an eviction notice or court papers?",
+                yesText: "Yes, I have papers",
+                yesAction: () => goTo('document_intake.html'),
+                noText: "No, not yet",
+                noAction: () => nextStep()
+            },
+            {
+                message: "Are you worried about being evicted soon?",
+                yesText: "Yes, I'm worried",
+                yesAction: () => goTo('crisis_intake.html'),
+                noText: "Just exploring",
+                noAction: () => nextStep()
+            },
+            {
+                message: "Do you have problems with your apartment? (Mold, bugs, no heat, etc.)",
+                yesText: "Yes, there are problems",
+                yesAction: () => goTo('document_intake.html'),
+                noText: "No problems",
+                noAction: () => nextStep()
+            },
+            {
+                message: "Do you need help understanding your rights as a tenant?",
+                yesText: "Yes, teach me",
+                yesAction: () => goTo('law_library.html'),
+                noText: "I know my rights",
+                noAction: () => nextStep()
+            },
+            {
+                message: "Okay! Let's set up your case file so you're ready if anything happens.",
+                yesText: "Let's do it",
+                yesAction: () => goTo('crisis_intake.html'),
+                noText: "Maybe later",
+                noAction: () => goTo('focus.html')
+            }
+        ];
+
+        function render() {
+            const current = flow[step];
+            document.getElementById('message').textContent = current.message;
+            document.getElementById('yesBtn').textContent = current.yesText;
+            document.getElementById('noLink').textContent = current.noText;
+            
+            // Update dots
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, i) => {
+                dot.className = 'dot';
+                if (i < step) dot.classList.add('done');
+                if (i === step) dot.classList.add('current');
+            });
+        }
+
+        function handleYes() {
+            flow[step].yesAction();
+        }
+
+        function handleNo() {
+            flow[step].noAction();
+        }
+
+        function nextStep() {
+            if (step < flow.length - 1) {
+                step++;
+                render();
+            }
+        }
+
+        function goTo(page) {
+            // Save that they've been onboarded
+            localStorage.setItem('semptify_started', 'true');
+            window.location.href = '/static/' + page;
+        }
+
+        // Check if returning user
+        if (localStorage.getItem('semptify_started')) {
+            // They've been here before, go to focus mode
+            window.location.href = '/static/focus.html';
+        }
+
+        render();
+    </script>
+
+    <!-- Site-wide footer -->
+    <script src="/static/js/footer.js"></script>
+</body>
+</html>

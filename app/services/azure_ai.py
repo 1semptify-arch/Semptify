@@ -415,20 +415,117 @@ Respond in JSON format:
 
     def _rule_based_classify(self, text: str) -> dict:
         """
-        Enhanced rule-based document classification with improved legal document recognition.
+        World-class document recognition using multi-layered analysis:
+        1. Structural Analysis - Document layout, headers, signatures
+        2. Contextual Analysis - Surrounding text, document flow  
+        3. Keyword Pattern Matching - Legal terminology with weights
+        4. Reasoning Logic - Cross-referencing signals for confidence
+        5. Entity Extraction - Parties, dates, amounts with context
+        
         Specifically tuned for Minnesota tenant/eviction court documents.
         """
         import re
-        text_lower = text.lower()
+        from app.services.document_recognition import recognize_document, DocumentType as NewDocType
         
         # Extract from the full prompt text (includes filename)
         filename_match = re.search(r'Document filename:\s*(.+)', text)
         filename = filename_match.group(1).strip() if filename_match else ""
-        filename_lower = filename.lower()
         
         # Get document text section
         text_section_match = re.search(r'Document text:\s*(.+)', text, re.DOTALL)
         doc_text = text_section_match.group(1) if text_section_match else text
+        
+        # ======================================================================
+        # USE NEW ADVANCED RECOGNITION ENGINE
+        # ======================================================================
+        try:
+            result = recognize_document(doc_text, filename)
+            
+            # Map new document types to legacy format
+            type_mapping = {
+                NewDocType.SUMMONS: "court_filing",
+                NewDocType.COMPLAINT: "court_filing",
+                NewDocType.EVICTION_FILING: "court_filing",
+                NewDocType.MOTION: "court_filing",
+                NewDocType.COURT_ORDER: "court_filing",
+                NewDocType.JUDGMENT: "court_filing",
+                NewDocType.WRIT: "court_filing",
+                NewDocType.SUBPOENA: "court_filing",
+                NewDocType.ANSWER: "court_filing",
+                NewDocType.AFFIDAVIT: "court_filing",
+                NewDocType.LEASE: "lease",
+                NewDocType.EVICTION_NOTICE: "notice",
+                NewDocType.RENT_INCREASE: "notice",
+                NewDocType.NOTICE_TO_QUIT: "notice",
+                NewDocType.LATE_NOTICE: "notice",
+                NewDocType.LEASE_VIOLATION: "notice",
+                NewDocType.NON_RENEWAL: "notice",
+                NewDocType.ENTRY_NOTICE: "notice",
+                NewDocType.RECEIPT: "receipt",
+                NewDocType.INVOICE: "receipt",
+                NewDocType.LEDGER: "receipt",
+                NewDocType.DEPOSIT_STATEMENT: "receipt",
+                NewDocType.INSPECTION: "inspection",
+                NewDocType.CONDITION_REPORT: "inspection",
+                NewDocType.REPAIR_REQUEST: "repair_request",
+                NewDocType.WORK_ORDER: "repair_request",
+                NewDocType.LETTER: "letter",
+                NewDocType.EMAIL: "letter",
+                NewDocType.TEXT_MESSAGE: "communication",
+                NewDocType.PHOTO: "photo",
+                NewDocType.VIDEO: "photo",
+                NewDocType.UNKNOWN: "unknown",
+            }
+            
+            doc_type = type_mapping.get(result.doc_type, "unknown")
+            confidence = result.confidence
+            title = result.title
+            summary = result.summary
+            
+            # Convert entities to legacy format
+            key_dates = result.to_dict().get("key_dates", [])
+            key_parties = result.to_dict().get("key_parties", [])
+            key_amounts = result.to_dict().get("key_amounts", [])
+            key_terms = result.key_terms
+            
+            # Log reasoning chain for debugging
+            if result.reasoning_chain:
+                logger.debug(f"Recognition reasoning: {result.reasoning_chain}")
+            
+            # Add urgency info to summary if critical
+            if result.urgency_level in ("critical", "high"):
+                if result.has_deadline and result.days_to_respond is not None:
+                    if result.days_to_respond < 0:
+                        summary = f"⚠️ URGENT: Deadline has PASSED! {summary}"
+                    elif result.days_to_respond <= 3:
+                        summary = f"⚠️ CRITICAL: Only {result.days_to_respond} days to respond! {summary}"
+                    elif result.days_to_respond <= 7:
+                        summary = f"⚠️ URGENT: {result.days_to_respond} days to respond. {summary}"
+            
+            return {
+                "doc_type": doc_type,
+                "confidence": confidence,
+                "title": title,
+                "summary": summary,
+                "key_dates": key_dates[:10],
+                "key_parties": key_parties[:5],
+                "key_amounts": key_amounts[:10],
+                "key_terms": key_terms[:10],
+                "detailed_type": result.doc_type.value,
+                "category": result.category.value,
+                "urgency_level": result.urgency_level,
+                "reasoning": result.reasoning_chain[:5] if result.reasoning_chain else [],
+            }
+            
+        except Exception as e:
+            logger.warning(f"Advanced recognition failed, using legacy fallback: {e}")
+            # Fall through to legacy classification below
+        
+        # ======================================================================
+        # LEGACY FALLBACK (kept for safety)
+        # ======================================================================
+        text_lower = text.lower()
+        filename_lower = filename.lower()
         doc_text_lower = doc_text.lower()
 
         # Initialize results

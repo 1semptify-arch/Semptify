@@ -642,12 +642,14 @@ async def initiate_oauth(
     request: Request,
     role: str = "user",
     existing_uid: Optional[str] = None,
+    return_to: Optional[str] = None,
 ):
     """
     Start OAuth flow.
     
     - New user: role param determines their role
     - Returning user: existing_uid preserves their user ID
+    - return_to: URL to redirect to after OAuth (for setup wizards)
     """
     if provider not in OAUTH_CONFIGS:
         raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
@@ -660,6 +662,7 @@ async def initiate_oauth(
         "provider": provider,
         "role": role,
         "existing_uid": existing_uid,
+        "return_to": return_to,
         "created_at": utc_now(),  # In-memory state, use aware for comparison
     }
 
@@ -779,15 +782,21 @@ async def oauth_callback(
     await create_or_update_user(db, user_id, provider)
     await get_or_create_storage_config(db, user_id, provider)
 
-    # Redirect to appropriate landing based on role
-    _, role, _ = parse_user_id(user_id)
-    landing_pages = {
-        "tenant": "/vault",
-        "landlord": "/properties",
-        "advocate": "/clients",
-        "admin": "/admin",
-    }
-    landing = landing_pages.get(role, "/vault")
+    # Determine landing page
+    # If return_to was specified (e.g., from storage setup wizard), use that
+    return_to = state_data.get("return_to")
+    if return_to:
+        landing = return_to
+    else:
+        # Default: redirect based on role
+        _, role, _ = parse_user_id(user_id)
+        landing_pages = {
+            "tenant": "/static/welcome.html",
+            "landlord": "/properties",
+            "advocate": "/clients",
+            "admin": "/admin",
+        }
+        landing = landing_pages.get(role, "/static/welcome.html")
 
     response = RedirectResponse(url=landing, status_code=302)
 
@@ -938,7 +947,7 @@ async def rehome_device(
 <html>
 <head>
     <title>Reconnected!</title>
-    <meta http-equiv="refresh" content="2;url=/static/command_center.html">
+    <meta http-equiv="refresh" content="2;url=/static/welcome.html">
     <style>
         body {{ 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

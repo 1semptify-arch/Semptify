@@ -132,6 +132,40 @@ class HandwritingResponse(BaseModel):
     requires_expert_review: bool
 
 
+class PartyResponse(BaseModel):
+    """Party information (sender or recipient)."""
+    name: str = ""
+    role: str = ""  # landlord, tenant, court, attorney, etc.
+    organization: str = ""
+    confidence: float = 0.0
+
+
+class ToneResponse(BaseModel):
+    """Document tone and direction analysis."""
+    # WHO sent it and WHO received it
+    sender: PartyResponse
+    recipient: PartyResponse
+    communication_flow: str  # e.g., "landlord_to_tenant"
+    from_to_summary: str  # e.g., "From Landlord → To Tenant"
+    
+    # Tone analysis
+    primary_tone: str
+    tone_confidence: float
+    tone_description: str
+    
+    # Process direction
+    primary_direction: str
+    direction_confidence: float
+    what_this_means: str
+    likely_next_step: str
+    recommended_response: str
+    
+    # Urgency
+    urgency_score: float
+    days_to_respond: Optional[int] = None
+    tone_breakdown: Dict[str, float] = {}
+
+
 class RecognitionResponse(BaseModel):
     """Full recognition analysis response."""
     analysis_id: str
@@ -147,6 +181,8 @@ class RecognitionResponse(BaseModel):
     risk_score: float
     passes_completed: int
     processing_time_ms: float
+    # Tone and direction analysis
+    tone: Optional[ToneResponse] = None
     # Handwriting analysis (if included)
     handwriting: Optional[HandwritingResponse] = None
 
@@ -310,6 +346,42 @@ def result_to_response(
             requires_expert_review=handwriting_result.requires_expert_review,
         )
     
+    # Build tone response if available
+    tone_response = None
+    if result.tone_analysis:
+        tone = result.tone_analysis
+        tone_response = ToneResponse(
+            # WHO sent and received
+            sender=PartyResponse(
+                name=tone.sender.name,
+                role=tone.sender.role,
+                organization=tone.sender.organization,
+                confidence=tone.sender.confidence,
+            ),
+            recipient=PartyResponse(
+                name=tone.recipient.name,
+                role=tone.recipient.role,
+                organization=tone.recipient.organization,
+                confidence=tone.recipient.confidence,
+            ),
+            communication_flow=tone.communication_flow.value,
+            from_to_summary=f"From {tone.sender.role or 'Unknown'} → To {tone.recipient.role or 'Unknown'}",
+            # Tone
+            primary_tone=tone.primary_tone.value,
+            tone_confidence=tone.tone_confidence,
+            tone_description=tone.plain_english_tone,
+            # Direction
+            primary_direction=tone.primary_direction.value,
+            direction_confidence=tone.direction_confidence,
+            what_this_means=tone.what_this_means,
+            likely_next_step=tone.likely_next_step,
+            recommended_response=tone.recommended_response_tone,
+            # Urgency
+            urgency_score=tone.urgency_score,
+            days_to_respond=tone.days_to_respond,
+            tone_breakdown={k.value: v for k, v in tone.tone_breakdown.items()},
+        )
+
     return RecognitionResponse(
         analysis_id=result.analysis_id,
         document_type=result.document_type.value,
@@ -344,6 +416,7 @@ def result_to_response(
         risk_score=result.legal_analysis.risk_score,
         passes_completed=result.passes_completed,
         processing_time_ms=processing_time_ms,
+        tone=tone_response,
         handwriting=handwriting_response,
     )
 

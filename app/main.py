@@ -74,6 +74,9 @@ from app.routers.progress import router as progress_router
 from app.routers.dashboard import router as dashboard_router
 from app.core.mesh_integration import start_mesh_network, stop_mesh_network
 
+# Tenant Defense Module
+from app.modules.tenant_defense import router as tenant_defense_router, initialize as init_tenant_defense
+
 # Dakota County Eviction Defense Module
 try:
     from app.routers.eviction import (
@@ -1488,6 +1491,10 @@ def create_app() -> FastAPI:
     app.include_router(actions_router, tags=["Smart Actions"])  # Personalized action recommendations
     app.include_router(progress_router, tags=["Progress Tracker"])  # User journey progress tracking
     app.include_router(dashboard_router, tags=["Unified Dashboard"])  # Combined dashboard data
+
+    # Tenant Defense Module - Evidence collection, sealing petitions, demand letters
+    app.include_router(tenant_defense_router, tags=["Tenant Defense"])
+    logging.getLogger(__name__).info("⚖️ Tenant Defense module loaded - Evidence, petitions, and screening disputes")
 
     # Distributed Mesh Network - P2P Module Communication
     app.include_router(distributed_mesh_router, prefix="/api", tags=["Distributed Mesh"])

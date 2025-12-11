@@ -1,0 +1,175 @@
+<!-- Thin Auth Strip - Include at very top of body, before navbar -->
+<style>
+    /* Thin Auth Strip - sits above navbar */
+    .auth-strip {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 9999;
+        background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+        color: white;
+        padding: 6px 16px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 12px;
+        font-size: 13px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    
+    .auth-strip.not-authenticated {
+        background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+    }
+    
+    .auth-strip.connected {
+        background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+    }
+    
+    .auth-strip-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .auth-strip-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+    }
+    
+    .auth-strip-dot.disconnected {
+        background: #ef4444;
+        animation: pulse-red 2s infinite;
+    }
+    
+    @keyframes pulse-red {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    .auth-strip-status {
+        font-weight: 500;
+    }
+    
+    .auth-strip-provider {
+        opacity: 0.85;
+        font-size: 12px;
+    }
+    
+    .auth-strip-btn {
+        padding: 4px 12px;
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        border-radius: 4px;
+        color: white;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+    
+    .auth-strip-btn:hover {
+        background: rgba(255,255,255,0.3);
+    }
+    
+    /* Push content down to account for fixed strip */
+    body.has-auth-strip {
+        padding-top: 36px;
+    }
+    
+    /* Adjust any fixed navbars */
+    body.has-auth-strip .navbar,
+    body.has-auth-strip nav.fixed,
+    body.has-auth-strip .fixed-nav {
+        top: 36px !important;
+    }
+</style>
+
+<div class="auth-strip" id="authStrip">
+    <div class="auth-strip-info">
+        <span class="auth-strip-dot" id="authStripDot"></span>
+        <span class="auth-strip-status" id="authStripStatus">Checking...</span>
+        <span class="auth-strip-provider" id="authStripProvider"></span>
+    </div>
+    <a href="/static/storage_setup.html" class="auth-strip-btn" id="authStripBtn">Connect Storage</a>
+</div>
+
+<script>
+(function() {
+    // Add body class for spacing
+    document.body.classList.add('has-auth-strip');
+    
+    const strip = document.getElementById('authStrip');
+    const dot = document.getElementById('authStripDot');
+    const status = document.getElementById('authStripStatus');
+    const provider = document.getElementById('authStripProvider');
+    const btn = document.getElementById('authStripBtn');
+    
+    async function checkAuthStatus() {
+        try {
+            const response = await fetch('/storage/status');
+            const data = await response.json();
+            
+            if (data.authenticated) {
+                // Connected
+                strip.classList.remove('not-authenticated');
+                strip.classList.add('connected');
+                dot.classList.remove('disconnected');
+                
+                const providerNames = {
+                    'google_drive': 'Google Drive',
+                    'dropbox': 'Dropbox',
+                    'onedrive': 'OneDrive'
+                };
+                const providerIcons = {
+                    'google_drive': '🔵',
+                    'dropbox': '💧',
+                    'onedrive': '☁️'
+                };
+                
+                status.textContent = 'Connected';
+                provider.textContent = `${providerIcons[data.provider] || '☁️'} ${providerNames[data.provider] || data.provider}`;
+                btn.textContent = 'Storage Settings';
+                btn.href = '/static/storage_setup.html';
+                
+            } else if (data.needs_reauth) {
+                // Session expired
+                strip.classList.add('not-authenticated');
+                strip.classList.remove('connected');
+                dot.classList.add('disconnected');
+                
+                status.textContent = 'Session Expired';
+                provider.textContent = 'Reconnect needed';
+                btn.textContent = 'Reconnect';
+                btn.href = `/storage/auth/${data.provider}?existing_uid=${data.user_id}`;
+                
+            } else {
+                // Not connected
+                strip.classList.add('not-authenticated');
+                strip.classList.remove('connected');
+                dot.classList.add('disconnected');
+                
+                status.textContent = 'Not Connected';
+                provider.textContent = '';
+                btn.textContent = 'Connect Storage';
+                btn.href = '/static/storage_setup.html';
+            }
+        } catch (error) {
+            console.error('Auth strip check failed:', error);
+            strip.classList.add('not-authenticated');
+            dot.classList.add('disconnected');
+            status.textContent = 'Connection Error';
+            provider.textContent = '';
+        }
+    }
+    
+    // Check immediately
+    checkAuthStatus();
+    
+    // Re-check every 30 seconds
+    setInterval(checkAuthStatus, 30000);
+})();
+</script>

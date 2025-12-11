@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Document Recognition Engine Demo - Semptify</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #1e3a5f;
+            --primary-light: #2d5a87;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --border: #e2e8f0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding-top: 40px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .panel-body {
+            padding: 1.5rem;
+        }
+        
+        .sample-docs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .sample-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        
+        .sample-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 400px;
+            padding: 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.875rem;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #2563eb);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--border);
+            color: var(--text);
+        }
+        
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .action-bar {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .result-section {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+        
+        .result-section h3 {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .badge-purple { background: #ede9fe; color: #5b21b6; }
+        
+        .doc-type {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .confidence-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .entity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .entity-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem;
+        }
+        
+        .entity-type {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        
+        .entity-value {
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+        
+        .entity-confidence {
+            font-size: 0.75rem;
+            color: var(--success);
+        }
+        
+        .issue-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        
+        .issue-card {
+            background: white;
+            border-left: 4px solid var(--danger);
+            padding: 0.75rem;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .issue-card.high { border-color: var(--warning); }
+        .issue-card.medium { border-color: var(--accent); }
+        .issue-card.low { border-color: var(--success); }
+        
+        .issue-title {
+            font-weight: 600;
+        }
+        
+        .issue-desc {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+        
+        .reasoning-chain {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .reasoning-step {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed var(--border);
+        }
+        
+        .reasoning-step:last-child {
+            border-bottom: none;
+        }
+        
+        .step-num {
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .stats-row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-item {
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .handwriting-section {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #fef3c7;
+            border-radius: 8px;
+            border: 1px solid #f59e0b;
+        }
+        
+        .handwriting-title {
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 0.5rem;
+        }
+        
+        .forgery-alert {
+            background: #fee2e2;
+            border: 2px solid #ef4444;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        
+        .forgery-alert h4 {
+            color: #991b1b;
+        }
+        
+        .tab-bar {
+            display: flex;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 1rem;
+        }
+        
+        .tab {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+        
+        .tab:hover:not(.active) {
+            color: var(--text);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Tone & Direction Styles */
+        .tone-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .tone-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+        
+        .tone-card.primary-tone {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(251, 146, 60, 0.15));
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+        
+        .tone-card.direction-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(99, 102, 241, 0.15));
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+        
+        .tone-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        
+        .tone-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+        
+        .tone-description {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        
+        .tone-details {
+            background: rgba(30, 30, 50, 0.5);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .detail-label {
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+        
+        .detail-value {
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .urgency-bar {
+            width: 100px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .urgency-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+        
+        .tone-indicators {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .tone-indicator {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 20px;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+            color: var(--text);
+        }
+        
+        .tone-indicator.detected {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.4);
+        }
+        
+        /* Communication Flow Card - WHO sent to WHOM */
+        .communication-flow-card {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(59, 130, 246, 0.1));
+            border: 2px solid rgba(34, 197, 94, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .flow-header {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .flow-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+        
+        .party-box {
+            background: rgba(30, 30, 50, 0.6);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            min-width: 180px;
+            text-align: center;
+        }
+        
+        .party-box.sender-box {
+            border: 2px solid rgba(239, 68, 68, 0.4);
+        }
+        
+        .party-box.recipient-box {
+            border: 2px solid rgba(34, 197, 94, 0.4);
+        }
+        
+        .party-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        
+        .party-role {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+        
+        .party-name {
+            font-size: 0.9rem;
+            color: var(--accent);
+        }
+        
+        .party-org {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+        
+        .flow-arrow {
+            font-size: 2.5rem;
+            color: var(--accent);
+            font-weight: 300;
+        }
+        
+        .flow-summary {
+            text-align: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: var(--text);
+            font-weight: 500;
+        }
+        
+        .json-viewer {
+            background: #1a1a2e;
+            color: #a5f3fc;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.75rem;
+            max-height: 500px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .timeline-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .timeline-item {
+            display: flex;
+            gap: 1rem;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        
+        .timeline-date {
+            font-weight: 600;
+            color: var(--primary);
+            min-width: 100px;
+        }
+        
+        .timeline-event {
+            flex: 1;
+        }
+        
+        /* Auth strip adjustment */
+        body.has-auth-strip {
+            padding-top: 36px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth Strip -->
+    <div id="auth-strip-container"></div>
+    <script>
+        fetch('/static/components/auth-strip.html')
+            .then(r => r.text())
+            .then(html => document.getElementById('auth-strip-container').innerHTML = html);
+    </script>
+
+    <header class="header">
+        <h1>🔍 Document Recognition Engine</h1>
+        <p>World-Class Legal Document Analysis for Minnesota Tenant Law</p>
+    </header>
+
+    <div class="container">
+        <div class="demo-grid">
+            <!-- Input Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    📄 Document Input
+                </div>
+                <div class="panel-body">
+                    <p style="margin-bottom: 1rem; color: var(--text-muted);">
+                        Paste document text or select a sample document to analyze:
+                    </p>
+                    
+                    <div class="sample-docs">
+                        <button class="sample-btn" onclick="loadSample('eviction_14day')">📋 14-Day Eviction Notice</button>
+                        <button class="sample-btn" onclick="loadSample('summons')">⚖️ Court Summons</button>
+                        <button class="sample-btn" onclick="loadSample('lease')">📝 Lease Agreement</button>
+                        <button class="sample-btn" onclick="loadSample('repair_request')">🔧 Repair Request</button>
+                        <button class="sample-btn" onclick="loadSample('security_deposit')">💰 Security Deposit</button>
+                        <button class="sample-btn" onclick="loadSample('rent_increase')">📈 Rent Increase</button>
+                    </div>
+                    
+                    <textarea id="documentText" placeholder="Paste your document text here...
+
+The recognition engine will analyze:
+• Document type classification
+• Entity extraction (parties, dates, amounts, addresses)
+• Minnesota tenant law issues
+• Deadline detection
+• Relationship mapping
+• Confidence scoring
+• Handwriting/forgery detection"></textarea>
+                    
+                    <div class="action-bar">
+                        <button class="btn btn-primary" id="analyzeBtn" onclick="analyzeDocument()">
+                            🧠 Analyze Document
+                        </button>
+                        <button class="btn btn-outline" onclick="clearAll()">
+                            🗑️ Clear
+                        </button>
+                        <span style="margin-left: auto; color: var(--text-muted); font-size: 0.875rem;">
+                            Powered by Multi-Pass Reasoning Engine
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Results Panel -->
+            <div class="panel">
+                <div class="panel-header">
+                    📊 Recognition Results
+                </div>
+                <div class="panel-body">
+                    <div id="resultsPlaceholder" class="loading">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                        <p>Enter document text and click "Analyze Document" to see results</p>
+                    </div>
+                    
+                    <div id="loadingState" class="loading" style="display: none;">
+                        <div class="loading-spinner"></div>
+                        <p>Analyzing document with multi-pass reasoning...</p>
+                        <p style="font-size: 0.875rem; margin-top: 0.5rem;">
+                            Pass 1: Context Analysis → Pass 2: Entity Extraction → Pass 3: Legal Analysis → Pass 4: Validation
+                        </p>
+                    </div>
+                    
+                    <div id="resultsContent" style="display: none;">
+                        <!-- Classification -->
+                        <div class="result-section">
+                            <h3>📋 Classification</h3>
+                            <div class="doc-type" id="docType">-</div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <span class="badge badge-info" id="docCategory">-</span>
+                                <span class="badge" id="confidenceBadge">-</span>
+                            </div>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="confidenceFill" style="width: 0%; background: var(--success);"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                                <span>0%</span>
+                                <span id="confidenceText">Confidence: -</span>
+                                <span>100%</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Stats -->
+                        <div class="stats-row">
+                            <div class="stat-item">
+                                <div class="stat-value" id="entityCount">0</div>
+                                <div class="stat-label">Entities</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="issueCount">0</div>
+                                <div class="stat-label">Issues</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="deadlineCount">0</div>
+                                <div class="stat-label">Deadlines</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="processingTime">0ms</div>
+                                <div class="stat-label">Time</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tabs -->
+                        <div class="tab-bar">
+                            <button class="tab active" onclick="showTab('entities')">Entities</button>
+                            <button class="tab" onclick="showTab('issues')">Legal Issues</button>
+                            <button class="tab" onclick="showTab('tone')">Tone & Direction</button>
+                            <button class="tab" onclick="showTab('timeline')">Timeline</button>
+                            <button class="tab" onclick="showTab('handwriting')">Handwriting</button>
+                            <button class="tab" onclick="showTab('reasoning')">Reasoning</button>
+                            <button class="tab" onclick="showTab('json')">Raw JSON</button>
+                        </div>
+                        
+                        <!-- Entities Tab -->
+                        <div class="tab-content active" id="tab-entities">
+                            <div class="entity-grid" id="entityGrid">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                        
+                        <!-- Legal Issues Tab -->
+                        <div class="tab-content" id="tab-issues">
+                            <div class="issue-list" id="issueList">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                        
+                        <!-- Tone & Direction Tab -->
+                        <div class="tab-content" id="tab-tone">
+                            <div id="toneAnalysis">
+                                <!-- FROM → TO Communication Flow -->
+                                <div class="communication-flow-card">
+                                    <div class="flow-header">📨 Communication Direction</div>
+                                    <div class="flow-content">
+                                        <div class="party-box sender-box">
+                                            <div class="party-label">FROM (Sender)</div>
+                                            <div class="party-role" id="senderRole">--</div>
+                                            <div class="party-name" id="senderName">Analyzing...</div>
+                                            <div class="party-org" id="senderOrg"></div>
+                                        </div>
+                                        <div class="flow-arrow">→</div>
+                                        <div class="party-box recipient-box">
+                                            <div class="party-label">TO (Recipient)</div>
+                                            <div class="party-role" id="recipientRole">--</div>
+                                            <div class="party-name" id="recipientName">Analyzing...</div>
+                                            <div class="party-org" id="recipientOrg"></div>
+                                        </div>
+                                    </div>
+                                    <div class="flow-summary" id="flowSummary">--</div>
+                                </div>
+                                
+                                <!-- Tone & Process Direction -->
+                                <div class="tone-grid">
+                                    <div class="tone-card primary-tone">
+                                        <div class="tone-label">Document Tone</div>
+                                        <div class="tone-value" id="primaryTone">--</div>
+                                        <div class="tone-description" id="toneDescription">Analyze a document to see tone</div>
+                                    </div>
+                                    <div class="tone-card direction-card">
+                                        <div class="tone-label">Process Stage</div>
+                                        <div class="tone-value" id="processDirection">--</div>
+                                        <div class="tone-description" id="directionDescription">Where this is heading</div>
+                                    </div>
+                                </div>
+                                <div class="tone-details">
+                                    <div class="detail-row">
+                                        <span class="detail-label">🎯 Likely Next Step:</span>
+                                        <span class="detail-value" id="likelyNextStep">--</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">⚠️ Urgency Level:</span>
+                                        <span class="detail-value">
+                                            <div class="urgency-bar">
+                                                <div class="urgency-fill" id="urgencyFill"></div>
+                                            </div>
+                                            <span id="urgencyText">--</span>
+                                        </span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">📅 Days to Respond:</span>
+                                        <span class="detail-value" id="daysToRespond">--</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">💬 Recommended Response:</span>
+                                        <span class="detail-value" id="recommendedResponse">--</span>
+                                    </div>
+                                </div>
+                                <div class="tone-indicators" id="toneIndicators">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Timeline Tab -->
+                        <div class="tab-content" id="tab-timeline">
+                            <div class="timeline-list" id="timelineList">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                        
+                        <!-- Handwriting Tab -->
+                        <div class="tab-content" id="tab-handwriting">
+                            <div id="handwritingResults">
+                                <p style="color: var(--text-muted);">No handwriting analysis available</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Reasoning Tab -->
+                        <div class="tab-content" id="tab-reasoning">
+                            <div id="reasoningChains">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                        
+                        <!-- JSON Tab -->
+                        <div class="tab-content" id="tab-json">
+                            <div class="json-viewer" id="jsonViewer">
+                                {}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let lastResult = null;
+        
+        // Sample documents
+        const sampleDocs = {
+            eviction_14day: `FOURTEEN (14) DAY NOTICE TO PAY RENT OR QUIT
+
+TO: John Smith
+    1234 Main Street, Apt 302
+    Minneapolis, MN 55401
+
+FROM: ABC Property Management LLC
+      Property Manager for: Riverside Apartments
+
+DATE: December 5, 2025
+
+NOTICE IS HEREBY GIVEN that you are required to pay the following past-due rent within fourteen (14) days from the date of service of this notice or vacate the premises.
+
+AMOUNT DUE:
+November 2025 Rent: $1,450.00
+Late Fee: $75.00
+TOTAL DUE: $1,525.00
+
+The above premises are rented under a lease agreement dated March 1, 2024, with a monthly rent of $1,450.00, due on the first day of each month.
+
+If you fail to pay the full amount due or vacate the premises within fourteen (14) days, we will commence legal proceedings to have you evicted and to recover possession of the premises, along with all rent due, damages, court costs, and attorney's fees.
+
+Payment must be made by certified check or money order to:
+ABC Property Management LLC
+5678 Corporate Drive, Suite 100
+Minneapolis, MN 55402
+
+THIS IS A LEGAL NOTICE. SEEK LEGAL ADVICE IMMEDIATELY.
+
+____________________________
+Jane Anderson
+Property Manager
+ABC Property Management LLC
+Phone: (612) 555-0123`,
+
+            summons: `STATE OF MINNESOTA                    DISTRICT COURT
+COUNTY OF HENNEPIN               FOURTH JUDICIAL DISTRICT
+                                Case No.: 27-CV-25-12345
+
+Riverside Apartments, LLC,
+            Plaintiff,
+      vs.                            SUMMONS
+                                     
+John Smith,
+            Defendant.
+
+THE STATE OF MINNESOTA TO THE ABOVE-NAMED DEFENDANT:
+
+YOU ARE BEING SUED. The Plaintiff has started a lawsuit against you. The Plaintiff's Complaint against you is attached to this Summons. Do not throw these papers away. They are official papers that affect your rights. You must respond to this lawsuit even though it may not yet be filed with the Court and there may be no court file number on this Summons.
+
+YOU MUST REPLY WITHIN 21 DAYS TO PROTECT YOUR RIGHTS. You must give or mail to the person who signed this Summons a written response called an Answer to the Complaint. The Answer is your written response to the Plaintiff's Complaint. In your Answer, you must state whether you agree or disagree with each paragraph of the Complaint. If you believe you have a defense, you must state it in your Answer.
+
+THE COURT HEARING IS SCHEDULED FOR:
+Date: January 15, 2025
+Time: 9:00 AM
+Location: Hennepin County District Court
+          Government Center, Courtroom 856
+          300 South Sixth Street
+          Minneapolis, MN 55487
+
+IF YOU DO NOT RESPOND WITHIN 21 DAYS, you will lose this case. You will be evicted and may owe the Plaintiff money.
+
+Attorney for Plaintiff:
+Sarah Johnson, Esq.
+Johnson & Associates Law Firm
+100 Legal Way, Suite 500
+Minneapolis, MN 55402
+(612) 555-9876
+Attorney No.: 0398765`,
+
+            lease: `RESIDENTIAL LEASE AGREEMENT
+
+This Lease Agreement ("Lease") is entered into this 1st day of March, 2024, between:
+
+LANDLORD: Riverside Apartments, LLC
+          5678 Corporate Drive, Suite 100
+          Minneapolis, MN 55402
+
+TENANT: John Smith
+        Social Security No.: XXX-XX-1234
+        
+PROPERTY: 1234 Main Street, Apartment 302
+          Minneapolis, MN 55401
+
+TERM: This lease shall begin on March 1, 2024, and shall terminate on February 28, 2025, unless renewed or terminated as provided herein.
+
+RENT: Tenant agrees to pay monthly rent of One Thousand Four Hundred Fifty Dollars ($1,450.00), due on the first (1st) day of each month.
+
+LATE FEE: Rent received after the 5th day of the month shall be subject to a late fee of Seventy-Five Dollars ($75.00).
+
+SECURITY DEPOSIT: Tenant has deposited with Landlord the sum of One Thousand Four Hundred Fifty Dollars ($1,450.00) as a security deposit, to be held by Landlord as security for the faithful performance of Tenant's obligations.
+
+UTILITIES: Tenant shall be responsible for payment of: Electric, Gas, Internet/Cable
+           Landlord shall be responsible for: Water, Sewer, Trash
+
+OCCUPANTS: The premises shall be occupied only by:
+           - John Smith (Primary Tenant)
+           - Maximum occupancy: 2 persons
+
+PETS: No pets allowed without prior written consent and additional deposit.
+
+____________________________        ____________________________
+Landlord Signature                  Tenant Signature
+Date: March 1, 2024                 Date: March 1, 2024`,
+
+            repair_request: `NOTICE OF REPAIR REQUEST
+(Pursuant to Minnesota Statutes § 504B.185)
+
+Date: December 3, 2025
+
+TO: ABC Property Management LLC
+    5678 Corporate Drive, Suite 100
+    Minneapolis, MN 55402
+
+FROM: John Smith
+      1234 Main Street, Apt 302
+      Minneapolis, MN 55401
+
+RE: Urgent Repair Request - Heating System Failure
+
+Dear Property Management,
+
+I am writing to formally notify you of the following repair issues that require immediate attention at the above-referenced property:
+
+1. HEATING SYSTEM FAILURE (URGENT)
+   - The furnace stopped working completely on December 1, 2025
+   - Current indoor temperature is approximately 52°F
+   - This is a health and safety hazard, especially with children in the unit
+   - Minnesota law requires landlords to maintain heating systems capable of maintaining 68°F
+
+2. WATER LEAK UNDER KITCHEN SINK
+   - First reported: November 15, 2025
+   - Causing water damage to cabinet and potential mold growth
+   - No repair has been made despite two prior verbal requests
+
+3. BROKEN LOCK ON MAIN ENTRY DOOR
+   - First reported: October 20, 2025
+   - Security concern - door does not lock properly
+
+Under Minnesota Statute § 504B.161, landlords must maintain rental properties in reasonable repair and keep them fit for the use intended. The heating issue constitutes a violation of the covenant of habitability.
+
+If repairs are not made within 14 days, I may exercise my legal remedies under Minnesota law, including:
+- Rent escrow under § 504B.385
+- Tenant remedies action under § 504B.395
+
+Please contact me immediately at (612) 555-4321 to schedule repairs.
+
+Sincerely,
+John Smith
+
+CC: Minneapolis Housing Inspections`,
+
+            security_deposit: `SECURITY DEPOSIT ITEMIZATION STATEMENT
+
+Date: March 15, 2025
+
+TO: John Smith
+    (Former address: 1234 Main Street, Apt 302, Minneapolis, MN 55401)
+    Current address: 9876 Oak Avenue, Minneapolis, MN 55408
+
+FROM: ABC Property Management LLC
+      5678 Corporate Drive, Suite 100
+      Minneapolis, MN 55402
+
+RE: Security Deposit Accounting for Unit 302, 1234 Main Street
+
+Move-in Date: March 1, 2024
+Move-out Date: February 28, 2025
+Security Deposit Held: $1,450.00
+
+ITEMIZED DEDUCTIONS:
+
+1. Carpet Cleaning (entire unit)                    $250.00
+   - Excessive staining beyond normal wear
+
+2. Wall Repair & Painting                           $350.00
+   - 15 holes from pictures/shelves
+   - Scuff marks and crayon marks in bedroom
+
+3. Cleaning Fee                                     $200.00
+   - Kitchen appliances not cleaned
+   - Bathroom fixtures required deep cleaning
+
+4. Broken Blinds (living room)                      $85.00
+   - 2 sets of blinds damaged beyond repair
+
+5. Missing Smoke Detector                           $45.00
+   - Bedroom smoke detector removed/missing
+
+TOTAL DEDUCTIONS:                                   $930.00
+SECURITY DEPOSIT HELD:                            $1,450.00
+AMOUNT DUE TO TENANT:                               $520.00
+
+A check in the amount of $520.00 is enclosed.
+
+If you dispute these deductions, you may contact our office within 14 days.
+
+____________________________
+Jane Anderson, Property Manager
+ABC Property Management LLC`,
+
+            rent_increase: `NOTICE OF RENT INCREASE
+
+Date: December 1, 2025
+
+TO: John Smith
+    1234 Main Street, Apt 302
+    Minneapolis, MN 55401
+
+FROM: ABC Property Management LLC
+      5678 Corporate Drive, Suite 100
+      Minneapolis, MN 55402
+
+RE: Rent Increase Effective March 1, 2026
+
+Dear Mr. Smith,
+
+This letter serves as official notice that your monthly rent will increase effective March 1, 2026.
+
+CURRENT RENT:     $1,450.00 per month
+NEW RENT:         $1,595.00 per month
+INCREASE AMOUNT:  $145.00 (10% increase)
+
+This rent increase is being implemented due to:
+- Increased property taxes
+- Rising maintenance costs
+- General market conditions
+
+NOTICE PERIOD: In accordance with Minnesota law, this notice is being provided more than one full rental period (30 days) in advance of the effective date.
+
+LEASE RENEWAL: Your current lease expires on February 28, 2026. If you wish to continue your tenancy at the new rate, please sign and return the enclosed lease renewal agreement by February 15, 2026.
+
+If you have questions about this rent increase or wish to discuss your options, please contact our office at (612) 555-0123.
+
+Thank you for your continued tenancy.
+
+Sincerely,
+
+____________________________
+Jane Anderson
+Property Manager
+ABC Property Management LLC`
+        };
+        
+        function loadSample(type) {
+            document.getElementById('documentText').value = sampleDocs[type] || '';
+        }
+        
+        function clearAll() {
+            document.getElementById('documentText').value = '';
+            document.getElementById('resultsPlaceholder').style.display = 'block';
+            document.getElementById('resultsContent').style.display = 'none';
+            lastResult = null;
+        }
+        
+        function showTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.textContent.toLowerCase().includes(tabName.toLowerCase()) || 
+                    (tabName === 'json' && tab.textContent === 'Raw JSON') ||
+                    (tabName === 'reasoning' && tab.textContent === 'Reasoning')) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+        
+        async function analyzeDocument() {
+            const text = document.getElementById('documentText').value.trim();
+            if (!text || text.length < 10) {
+                alert('Please enter at least 10 characters of document text.');
+                return;
+            }
+            
+            const btn = document.getElementById('analyzeBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading-spinner" style="width: 20px; height: 20px; margin-right: 8px;"></span> Analyzing...';
+            
+            document.getElementById('resultsPlaceholder').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('resultsContent').style.display = 'none';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/recognition/analyze`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        text: text,
+                        filename: 'demo_document.txt',
+                        include_handwriting: true
+                    })
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Please connect your cloud storage first to use the recognition engine.');
+                    }
+                    throw new Error(`Analysis failed: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                lastResult = result;
+                displayResults(result);
+                
+            } catch (error) {
+                console.error('Analysis error:', error);
+                alert(error.message);
+                document.getElementById('resultsPlaceholder').style.display = 'block';
+                document.getElementById('loadingState').style.display = 'none';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🧠 Analyze Document';
+            }
+        }
+        
+        function displayResults(result) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('resultsContent').style.display = 'block';
+            
+            // Classification
+            const docType = result.document_type || 'Unknown';
+            document.getElementById('docType').textContent = formatDocType(docType);
+            document.getElementById('docCategory').textContent = result.document_category || 'Unknown';
+            
+            // Confidence
+            const confidence = result.confidence?.overall_score || result.overall_confidence || 0;
+            const confidenceLevel = result.confidence?.level || result.confidence_level || 'unknown';
+            document.getElementById('confidenceFill').style.width = `${confidence}%`;
+            document.getElementById('confidenceFill').style.background = getConfidenceColor(confidence);
+            document.getElementById('confidenceText').textContent = `Confidence: ${confidence.toFixed(1)}%`;
+            
+            const confBadge = document.getElementById('confidenceBadge');
+            confBadge.textContent = confidenceLevel;
+            confBadge.className = `badge ${getConfidenceBadgeClass(confidence)}`;
+            
+            // Stats
+            document.getElementById('entityCount').textContent = result.entities?.length || 0;
+            document.getElementById('issueCount').textContent = result.legal_issues?.length || result.legal_analysis?.issues?.length || 0;
+            document.getElementById('deadlineCount').textContent = result.deadlines?.length || result.legal_analysis?.upcoming_deadlines?.length || 0;
+            document.getElementById('processingTime').textContent = `${Math.round(result.processing_time_ms || 0)}ms`;
+            
+            // Entities
+            displayEntities(result.entities || []);
+            
+            // Legal Issues
+            displayIssues(result.legal_issues || result.legal_analysis?.issues || []);
+            
+            // Timeline/Deadlines
+            displayTimeline(result.deadlines || result.legal_analysis?.upcoming_deadlines || []);
+            
+            // Handwriting
+            displayHandwriting(result.handwriting_analysis);
+            
+            // Tone & Direction
+            displayTone(result.tone);
+            
+            // Reasoning chains
+            displayReasoning(result.reasoning_chains || result.reasoning_trace || []);
+            
+            // JSON
+            document.getElementById('jsonViewer').textContent = JSON.stringify(result, null, 2);
+        }
+        
+        function formatDocType(type) {
+            return type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
+        
+        function getConfidenceColor(confidence) {
+            if (confidence >= 80) return 'var(--success)';
+            if (confidence >= 60) return 'var(--warning)';
+            return 'var(--danger)';
+        }
+        
+        function getConfidenceBadgeClass(confidence) {
+            if (confidence >= 80) return 'badge-success';
+            if (confidence >= 60) return 'badge-warning';
+            return 'badge-danger';
+        }
+        
+        function displayEntities(entities) {
+            const grid = document.getElementById('entityGrid');
+            if (!entities.length) {
+                grid.innerHTML = '<p style="color: var(--text-muted);">No entities extracted</p>';
+                return;
+            }
+            
+            grid.innerHTML = entities.map(e => `
+                <div class="entity-card">
+                    <div class="entity-type">${e.type}</div>
+                    <div class="entity-value">${e.value}</div>
+                    <div class="entity-confidence">
+                        ${(e.confidence * 100).toFixed(0)}% confidence
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function displayIssues(issues) {
+            const list = document.getElementById('issueList');
+            if (!issues.length) {
+                list.innerHTML = '<p style="color: var(--text-muted);">No legal issues detected</p>';
+                return;
+            }
+            
+            list.innerHTML = issues.map(issue => `
+                <div class="issue-card ${issue.severity?.toLowerCase() || 'medium'}">
+                    <div class="issue-title">
+                        ${getSeverityIcon(issue.severity)} ${issue.title || issue.type}
+                    </div>
+                    <div class="issue-desc">${issue.description}</div>
+                    ${issue.statute ? `<div style="font-size: 0.75rem; color: var(--accent); margin-top: 0.25rem;">📜 ${issue.statute}</div>` : ''}
+                </div>
+            `).join('');
+        }
+        
+        function getSeverityIcon(severity) {
+            const icons = {
+                critical: '🚨',
+                high: '⚠️',
+                medium: '📋',
+                low: 'ℹ️'
+            };
+            return icons[severity?.toLowerCase()] || '📋';
+        }
+        
+        function displayTimeline(deadlines) {
+            const list = document.getElementById('timelineList');
+            if (!deadlines.length) {
+                list.innerHTML = '<p style="color: var(--text-muted);">No deadlines detected</p>';
+                return;
+            }
+            
+            list.innerHTML = deadlines.map(d => `
+                <div class="timeline-item">
+                    <div class="timeline-date">${d.date || d.deadline_date || 'TBD'}</div>
+                    <div class="timeline-event">
+                        <strong>${d.type || d.event_type || 'Deadline'}</strong>
+                        <div style="font-size: 0.875rem; color: var(--text-muted);">${d.description || d.event_description || ''}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function displayHandwriting(analysis) {
+            const container = document.getElementById('handwritingResults');
+            if (!analysis) {
+                container.innerHTML = '<p style="color: var(--text-muted);">No handwriting analysis performed</p>';
+                return;
+            }
+            
+            let html = '';
+            
+            if (analysis.forgery_indicators?.length > 0 || analysis.risk_level === 'high') {
+                html += `
+                    <div class="forgery-alert">
+                        <h4>⚠️ Potential Forgery Detected</h4>
+                        <p>Risk Level: <strong>${analysis.risk_level}</strong></p>
+                        <ul>
+                            ${(analysis.forgery_indicators || []).map(i => `<li>${i}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            if (analysis.signatures?.length > 0) {
+                html += `
+                    <div class="handwriting-section" style="background: #dbeafe; border-color: var(--accent);">
+                        <div class="handwriting-title">✍️ Signature Analysis</div>
+                        ${analysis.signatures.map(s => `
+                            <div style="margin-top: 0.5rem;">
+                                <strong>${s.name || 'Unknown'}</strong>: ${s.status || 'detected'}
+                                ${s.confidence ? `(${(s.confidence * 100).toFixed(0)}% confidence)` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            if (!html) {
+                html = '<p style="color: var(--text-muted);">No handwriting or signature issues detected</p>';
+            }
+            
+            container.innerHTML = html;
+        }
+        
+        function displayTone(tone) {
+            // Sender/Recipient elements
+            const senderRole = document.getElementById('senderRole');
+            const senderName = document.getElementById('senderName');
+            const senderOrg = document.getElementById('senderOrg');
+            const recipientRole = document.getElementById('recipientRole');
+            const recipientName = document.getElementById('recipientName');
+            const recipientOrg = document.getElementById('recipientOrg');
+            const flowSummary = document.getElementById('flowSummary');
+            
+            // Tone elements
+            const primaryTone = document.getElementById('primaryTone');
+            const toneDesc = document.getElementById('toneDescription');
+            const direction = document.getElementById('processDirection');
+            const directionDesc = document.getElementById('directionDescription');
+            const likelyNext = document.getElementById('likelyNextStep');
+            const urgencyFill = document.getElementById('urgencyFill');
+            const urgencyText = document.getElementById('urgencyText');
+            const daysToRespond = document.getElementById('daysToRespond');
+            const recommended = document.getElementById('recommendedResponse');
+            const indicators = document.getElementById('toneIndicators');
+            
+            if (!tone) {
+                // Reset sender/recipient
+                senderRole.textContent = '--';
+                senderName.textContent = 'Unknown';
+                senderOrg.textContent = '';
+                recipientRole.textContent = '--';
+                recipientName.textContent = 'Unknown';
+                recipientOrg.textContent = '';
+                flowSummary.textContent = 'Analyze a document to identify parties';
+                
+                // Reset tone
+                primaryTone.textContent = 'Unknown';
+                toneDesc.textContent = 'Tone analysis not available';
+                direction.textContent = 'Unknown';
+                directionDesc.textContent = 'Direction analysis not available';
+                likelyNext.textContent = '--';
+                urgencyFill.style.width = '0%';
+                urgencyText.textContent = '--';
+                daysToRespond.textContent = '--';
+                recommended.textContent = '--';
+                indicators.innerHTML = '';
+                return;
+            }
+            
+            // ========================================
+            // Display WHO sent it → WHO received it
+            // ========================================
+            
+            // Role icons
+            const roleIcons = {
+                'Landlord': '🏠',
+                'Tenant': '👤',
+                'Court': '⚖️',
+                'Attorney': '📜',
+                'Sheriff': '🛡️',
+                'City/Municipality': '🏛️',
+                'Collection Agency': '💰',
+                'Property Manager': '🔑',
+            };
+            
+            // Sender
+            const senderRoleText = tone.sender?.role || 'Unknown';
+            senderRole.textContent = `${roleIcons[senderRoleText] || '📤'} ${senderRoleText}`;
+            senderName.textContent = tone.sender?.name || '';
+            senderOrg.textContent = tone.sender?.organization || '';
+            
+            // Recipient  
+            const recipientRoleText = tone.recipient?.role || 'Unknown';
+            recipientRole.textContent = `${roleIcons[recipientRoleText] || '📥'} ${recipientRoleText}`;
+            recipientName.textContent = tone.recipient?.name || '';
+            recipientOrg.textContent = tone.recipient?.organization || '';
+            
+            // Flow summary
+            flowSummary.textContent = tone.from_to_summary || `From ${senderRoleText} → To ${recipientRoleText}`;
+            
+            // ========================================
+            // Format tone name
+            // ========================================
+            const toneNames = {
+                'THREATENING': '⚠️ Threatening',
+                'DEMANDING': '📢 Demanding',
+                'URGENT': '🚨 Urgent',
+                'WARNING': '⚡ Warning',
+                'FORMAL_LEGAL': '⚖️ Formal Legal',
+                'INFORMATIONAL': 'ℹ️ Informational',
+                'NEUTRAL': '😐 Neutral',
+                'COOPERATIVE': '🤝 Cooperative',
+                'HOSTILE': '😠 Hostile',
+                'APOLOGETIC': '🙏 Apologetic'
+            };
+            
+            const toneDescriptions = {
+                'THREATENING': 'This document uses language intended to intimidate or warn of consequences',
+                'DEMANDING': 'This document insists on specific actions or compliance',
+                'URGENT': 'Time-sensitive matter requiring immediate attention',
+                'WARNING': 'Alerts to potential consequences or upcoming actions',
+                'FORMAL_LEGAL': 'Standard legal communication following formal protocols',
+                'INFORMATIONAL': 'Provides information without demanding specific action',
+                'NEUTRAL': 'Balanced tone without strong emotional language',
+                'COOPERATIVE': 'Shows willingness to work together toward resolution',
+                'HOSTILE': 'Confrontational or aggressive language detected',
+                'APOLOGETIC': 'Expresses regret or seeks to make amends'
+            };
+            
+            const directionNames = {
+                'EVICTION_START': '🏠 Eviction Process Starting',
+                'COURT_FILED': '⚖️ Court Action Filed',
+                'ENFORCEMENT': '👮 Enforcement Action',
+                'SETTLEMENT_OFFER': '🤝 Settlement Offered',
+                'ESCALATION': '📈 Escalating',
+                'DE_ESCALATION': '📉 De-escalating',
+                'COLLECTION': '💰 Debt Collection',
+                'MAINTENANCE': '🔧 Maintenance Issue',
+                'LEASE_RENEWAL': '📋 Lease Renewal',
+                'TERMINATION': '🚪 Tenancy Ending',
+                'STATUS_UPDATE': '📊 Status Update',
+                'FINAL_NOTICE': '🛑 Final Notice',
+                'INFORMATION_REQUEST': '❓ Information Requested',
+                'COMPLIANCE': '✅ Compliance Required',
+                'UNKNOWN': '❓ Unknown Direction'
+            };
+            
+            const directionDescriptions = {
+                'EVICTION_START': 'This is the beginning of an eviction process. Response may be required within specific timeframe.',
+                'COURT_FILED': 'A court case has been filed. You may need to appear or respond by a deadline.',
+                'ENFORCEMENT': 'Legal enforcement actions are being taken or threatened.',
+                'SETTLEMENT_OFFER': 'An opportunity to resolve the matter outside of court.',
+                'ESCALATION': 'The situation is becoming more serious. Prompt attention recommended.',
+                'DE_ESCALATION': 'Progress is being made toward resolution.',
+                'COLLECTION': 'This relates to collecting money owed.',
+                'MAINTENANCE': 'Property maintenance or repair matter.',
+                'LEASE_RENEWAL': 'Regarding lease renewal or extension.',
+                'TERMINATION': 'Notice related to ending the tenancy.',
+                'STATUS_UPDATE': 'General update on an ongoing matter.',
+                'FINAL_NOTICE': 'This is a final notice before further action.',
+                'INFORMATION_REQUEST': 'Information is being requested from you.',
+                'COMPLIANCE': 'Action required to comply with lease or law.',
+                'UNKNOWN': 'The direction of this document is unclear.'
+            };
+            
+            // Set primary tone
+            const toneKey = tone.primary_tone || 'NEUTRAL';
+            primaryTone.textContent = toneNames[toneKey] || toneKey;
+            toneDesc.textContent = toneDescriptions[toneKey] || '';
+            
+            // Set direction
+            const dirKey = tone.process_direction || 'UNKNOWN';
+            direction.textContent = directionNames[dirKey] || dirKey;
+            directionDesc.textContent = directionDescriptions[dirKey] || '';
+            
+            // Likely next step
+            likelyNext.textContent = tone.likely_next_step || 'Unknown';
+            
+            // Urgency
+            const urgencyScore = tone.urgency_score || 0;
+            urgencyFill.style.width = `${urgencyScore}%`;
+            urgencyFill.style.background = urgencyScore >= 70 ? 'var(--danger)' : 
+                                            urgencyScore >= 40 ? 'var(--warning)' : 'var(--success)';
+            urgencyText.textContent = `${urgencyScore}%`;
+            
+            // Days to respond
+            const days = tone.days_to_respond;
+            if (days !== null && days !== undefined) {
+                daysToRespond.innerHTML = days <= 3 
+                    ? `<span style="color: var(--danger); font-weight: 700;">${days} days</span>` 
+                    : days <= 7 
+                    ? `<span style="color: var(--warning); font-weight: 600;">${days} days</span>`
+                    : `${days} days`;
+            } else {
+                daysToRespond.textContent = 'Not specified';
+            }
+            
+            // Recommended response
+            recommended.textContent = tone.recommended_response || 'No specific recommendation';
+            
+            // Build indicators from detected patterns
+            let indicatorHtml = '';
+            if (tone.tone_indicators && tone.tone_indicators.length > 0) {
+                indicatorHtml = tone.tone_indicators.map(ind => 
+                    `<span class="tone-indicator detected">${ind}</span>`
+                ).join('');
+            }
+            indicators.innerHTML = indicatorHtml;
+        }
+        
+        function displayReasoning(chains) {
+            const container = document.getElementById('reasoningChains');
+            if (!chains || !chains.length) {
+                container.innerHTML = '<p style="color: var(--text-muted);">No reasoning chains available</p>';
+                return;
+            }
+            
+            container.innerHTML = chains.map((chain, idx) => `
+                <div class="reasoning-chain">
+                    <h4 style="margin-bottom: 0.5rem;">Pass ${idx + 1}: ${chain.name || chain.pass_name || 'Analysis'}</h4>
+                    ${(chain.steps || chain.reasoning_steps || []).map((step, i) => `
+                        <div class="reasoning-step">
+                            <div class="step-num">${i + 1}</div>
+                            <div>${step.description || step}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+        
+        // Click handler for tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabName = this.textContent.toLowerCase().replace(' ', '');
+                if (this.textContent === 'Raw JSON') showTab('json');
+                else if (this.textContent === 'Legal Issues') showTab('issues');
+                else showTab(tabName);
+            });
+        });
+    </script>
+</body>
+</html>

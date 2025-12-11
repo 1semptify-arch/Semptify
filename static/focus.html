@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify - Focus Mode</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #fafafa;
+            --card: #ffffff;
+            --text: #1a1a1a;
+            --text-muted: #6b7280;
+            --accent: #2C5F2D;
+            --accent-light: #e8f5e9;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Simple top bar */
+        .top-bar {
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .logo span {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #1e3a5f;
+        }
+
+        .nav-simple {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        /* Main content - centered and focused */
+        .main {
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Greeting - calm and personal */
+        .greeting {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .greeting h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .greeting p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* The ONE thing to focus on */
+        .focus-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .focus-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .focus-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .focus-desc {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .focus-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--accent);
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .focus-action:hover {
+            background: #234d24;
+            transform: translateY(-1px);
+        }
+
+        /* Simple progress */
+        .progress-simple {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .progress-header span {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .progress-header strong {
+            color: var(--accent);
+        }
+
+        .progress-bar-simple {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Up next - collapsed by default */
+        .up-next {
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .up-next-header {
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .up-next-header h3 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .up-next-header i {
+            transition: transform 0.2s;
+        }
+
+        .up-next.expanded .up-next-header i {
+            transform: rotate(180deg);
+        }
+
+        .up-next-list {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .up-next.expanded .up-next-list {
+            max-height: 400px;
+        }
+
+        .next-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            border-top: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .next-item:hover {
+            background: var(--bg);
+        }
+
+        .next-item.done {
+            opacity: 0.5;
+        }
+
+        .next-item.done .next-title {
+            text-decoration: line-through;
+        }
+
+        .next-check {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            margin-right: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .next-item.done .next-check {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        .next-content {
+            flex: 1;
+        }
+
+        .next-title {
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .next-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Quick access - minimal */
+        .quick-access {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .quick-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Footer */
+        .footer-simple {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Help button - subtle */
+        .help-float {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 48px;
+            height: 48px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .help-float:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Breathing animation for focus card - very subtle */
+        @keyframes subtle-pulse {
+            0%, 100% { box-shadow: var(--shadow); }
+            50% { box-shadow: 0 2px 8px rgba(44, 95, 45, 0.12); }
+        }
+
+        .focus-card {
+            animation: subtle-pulse 4s ease-in-out infinite;
+        }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+            .main {
+                padding: 1.5rem 1rem;
+            }
+            
+            .greeting h1 {
+                font-size: 1.5rem;
+            }
+            
+            .focus-title {
+                font-size: 1.25rem;
+            }
+            
+            .quick-access {
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Site-wide header -->
+    <script src="/static/js/header.js"></script>
+
+    <!-- Main content -->
+        <nav class="nav-simple">
+            <button class="nav-btn active">Today</button>
+            <button class="nav-btn" onclick="location.href='documents.html'">Files</button>
+            <button class="nav-btn" onclick="location.href='briefcase.html'">Case</button>
+        </nav>
+    </header>
+
+    <!-- Main focused content -->
+    <main class="main">
+        <!-- Calm greeting -->
+        <div class="greeting">
+            <h1 id="greeting">Good morning</h1>
+            <p id="greetingMessage">One step at a time. You've got this.</p>
+        </div>
+
+        <!-- THE one thing to focus on -->
+        <div class="focus-card">
+            <div class="focus-label">Focus on this</div>
+            <h2 class="focus-title" id="focusTitle">Upload your eviction notice</h2>
+            <p class="focus-desc" id="focusDesc">Let's analyze it for issues that could help your case. This takes about 2 minutes.</p>
+            <a href="document_intake.html" class="focus-action" id="focusAction">
+                <i class="bi bi-arrow-right-circle"></i>
+                <span>Start now</span>
+            </a>
+        </div>
+
+        <!-- Simple progress -->
+        <div class="progress-simple">
+            <div class="progress-header">
+                <span>Your progress</span>
+                <strong id="progressText">2 of 5 steps</strong>
+            </div>
+            <div class="progress-bar-simple">
+                <div class="progress-fill" id="progressFill" style="width: 40%"></div>
+            </div>
+        </div>
+
+        <!-- Up next - hidden by default -->
+        <div class="up-next" id="upNext">
+            <div class="up-next-header" onclick="toggleUpNext()">
+                <h3><i class="bi bi-list-check"></i> Up next</h3>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            <div class="up-next-list" id="upNextList">
+                <!-- Filled by JS -->
+            </div>
+        </div>
+
+        <!-- Quick access - minimal -->
+        <div class="quick-access">
+            <a href="document_intake.html" class="quick-btn">
+                <i class="bi bi-upload"></i> Upload
+            </a>
+            <a href="law_library.html" class="quick-btn">
+                <i class="bi bi-book"></i> Laws
+            </a>
+            <a href="court_packet.html" class="quick-btn">
+                <i class="bi bi-folder"></i> Court Packet
+            </a>
+            <a href="help.html" class="quick-btn">
+                <i class="bi bi-question-circle"></i> Help
+            </a>
+        </div>
+    </main>
+
+    <footer class="footer-simple">
+        Need more options? <a href="mission_control.html" style="color: var(--accent);">Full dashboard →</a>
+    </footer>
+
+    <!-- Subtle help button -->
+    <div class="help-float" onclick="showHelp()">
+        <i class="bi bi-chat-dots"></i>
+    </div>
+
+    <script src="/static/js/emotion-integration.js"></script>
+    <script>
+        // Simple focused data
+        const journey = {
+            steps: [
+                { id: 'upload', title: 'Upload eviction notice', desc: 'Let AI find issues', page: 'document_intake.html', done: true },
+                { id: 'analyze', title: 'Review AI findings', desc: '3 violations found', page: 'legal_analysis.html', done: true },
+                { id: 'evidence', title: 'Add evidence photos', desc: 'Document conditions', page: 'document_intake.html', done: false },
+                { id: 'answer', title: 'Prepare your Answer', desc: 'Respond to complaint', page: 'court_packet.html', done: false },
+                { id: 'court', title: 'Get ready for court', desc: 'Final preparation', page: 'court_learning.html', done: false }
+            ]
+        };
+
+        // Set greeting based on time
+        function setGreeting() {
+            const hour = new Date().getHours();
+            const el = document.getElementById('greeting');
+            
+            if (hour < 12) {
+                el.textContent = 'Good morning';
+            } else if (hour < 17) {
+                el.textContent = 'Good afternoon';
+            } else {
+                el.textContent = 'Good evening';
+            }
+        }
+
+        // Find next incomplete step and focus on it
+        function setFocus() {
+            const nextStep = journey.steps.find(s => !s.done);
+            if (!nextStep) {
+                document.getElementById('focusTitle').textContent = "You're all caught up!";
+                document.getElementById('focusDesc').textContent = "Great job. Take a moment to breathe.";
+                document.getElementById('focusAction').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('focusTitle').textContent = nextStep.title;
+            document.getElementById('focusDesc').textContent = nextStep.desc + '. This won\'t take long.';
+            document.getElementById('focusAction').href = nextStep.page;
+        }
+
+        // Update progress
+        function updateProgress() {
+            const done = journey.steps.filter(s => s.done).length;
+            const total = journey.steps.length;
+            const percent = Math.round((done / total) * 100);
+
+            document.getElementById('progressText').textContent = `${done} of ${total} steps`;
+            document.getElementById('progressFill').style.width = percent + '%';
+        }
+
+        // Render up next list
+        function renderUpNext() {
+            const container = document.getElementById('upNextList');
+            container.innerHTML = journey.steps.map(step => `
+                <div class="next-item ${step.done ? 'done' : ''}" onclick="goTo('${step.page}')">
+                    <div class="next-check">
+                        ${step.done ? '<i class="bi bi-check"></i>' : ''}
+                    </div>
+                    <div class="next-content">
+                        <div class="next-title">${step.title}</div>
+                        <div class="next-meta">${step.desc}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleUpNext() {
+            document.getElementById('upNext').classList.toggle('expanded');
+        }
+
+        function goTo(page) {
+            window.location.href = '/static/' + page;
+        }
+
+        function showHelp() {
+            alert('Need help? Call 211 or visit your local Legal Aid office.');
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            setGreeting();
+            setFocus();
+            updateProgress();
+            renderUpNext();
+
+            // Init emotion engine quietly
+            if (typeof EmotionEngine !== 'undefined') {
+                EmotionEngine.init();
+            }
+        });
+    </script>
+
+    <!-- Site-wide footer -->
+    <script src="/static/js/footer.js"></script>
+</body>
+</html>

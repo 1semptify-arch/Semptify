@@ -517,6 +517,9 @@
             const providerStatus = document.getElementById('providerStatus');
             const nextBtn = document.getElementById('step2Next');
             
+            // Encode current URL to return after OAuth
+            const returnUrl = encodeURIComponent(window.location.href);
+            
             providerStatus.innerHTML = `
                 <div class="space-y-4">
                     <div class="flex items-center justify-between">
@@ -530,7 +533,7 @@
                             <li>Your data will be stored in <code class="bg-white/10 px-1 rounded">.semptify/</code></li>
                         </ol>
                     </div>
-                    <a href="/storage/auth/${provider}" class="block w-full bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-lg text-sm font-medium text-center transition-all">
+                    <a href="/storage/auth/${provider}?return_to=${returnUrl}" class="block w-full bg-blue-600 hover:bg-blue-500 text-white px-4 py-3 rounded-lg text-sm font-medium text-center transition-all">
                         <i class="fab fa-${provider === 'google_drive' ? 'google' : provider === 'dropbox' ? 'dropbox' : 'microsoft'} mr-2"></i>
                         Connect ${formatProvider(provider)}
                     </a>
@@ -557,7 +560,7 @@
                     encrypt: document.getElementById('encrypt').checked
                 };
                 
-                // Initialize sync
+                // Initialize sync - requires OAuth
                 const response = await fetch('/api/sync/full', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -565,7 +568,7 @@
                 });
                 
                 if (response.ok) {
-                    // Save profile
+                    // Save profile to cloud
                     await fetch('/api/sync/profile', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
@@ -581,6 +584,12 @@
                     });
                     
                     goToStep(4);
+                } else if (response.status === 401) {
+                    // Not authenticated - must connect to cloud storage first
+                    btn.disabled = false;
+                    btn.innerHTML = 'Initialize Storage <i class="fas fa-rocket ml-2"></i>';
+                    alert('Please connect your cloud storage first. Go back to Step 2 and click "Connect" on your preferred provider.');
+                    goToStep(2);
                 } else {
                     throw new Error('Initialization failed');
                 }
@@ -588,13 +597,35 @@
                 console.error('Init error:', error);
                 btn.disabled = false;
                 btn.innerHTML = 'Initialize Storage <i class="fas fa-rocket ml-2"></i>';
-                
-                // Show error
-                alert('Failed to initialize storage. Please check your connection and try again.');
+                alert('Failed to initialize storage. Please connect your cloud storage first.');
+                goToStep(2);
             }
         }
 
-        // Check URL params for returning from OAuth
+        // Check authentication on page load
+        async function checkAuthOnLoad() {
+            try {
+                const response = await fetch('/storage/status');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.authenticated && data.provider) {
+                        // User is connected via OAuth - skip to step 3
+                        selectedProvider = data.provider;
+                        goToStep(3);
+                        
+                        // Pre-fill email if available
+                        if (data.email) {
+                            document.getElementById('email').value = data.email;
+                        }
+                    }
+                    // If not authenticated, stay on step 1 - user must connect OAuth
+                }
+            } catch (e) {
+                console.log('Auth check failed, starting from step 1');
+            }
+        }
+
+        // Check URL params for returning from OAuth or auto-check auth
         window.addEventListener('load', () => {
             const params = new URLSearchParams(window.location.search);
             const provider = params.get('provider');
@@ -605,6 +636,9 @@
                 setTimeout(() => {
                     selectProvider(provider);
                 }, 500);
+            } else {
+                // Check if already authenticated
+                checkAuthOnLoad();
             }
         });
     </script>

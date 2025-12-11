@@ -695,6 +695,17 @@
     <link rel="stylesheet" href="/static/css/help-system.css">
 </head>
 <body>
+    <!-- Auth Strip - Connection Status -->
+    <div id="auth-strip-container"></div>
+    <script>
+        fetch('/static/components/auth-strip.html')
+            .then(r => r.text())
+            .then(html => document.getElementById('auth-strip-container').innerHTML = html);
+    </script>
+
+    <!-- Site-wide header -->
+    <script src="/static/js/header.js"></script>
+
     <!-- Header -->
     <header class="header">
         <div class="logo">

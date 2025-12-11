@@ -32,6 +32,9 @@ from .multi_pass_reasoner import MultiPassReasoner
 from .legal_expert import MinnesotaTenantLawExpert
 from .relationship_mapper import RelationshipMapper
 from .confidence_scorer import ConfidenceScorer
+from .text_preprocessor import get_preprocessor
+from .legal_dictionary import get_legal_dictionary
+from .tone_analyzer import get_tone_analyzer
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +58,7 @@ class DocumentRecognitionEngine:
     5. Confidence Scoring → Quantify certainty
     """
     
-    VERSION = "1.0.0"
+    VERSION = "2.0.0"  # Upgraded with preprocessing and legal dictionary
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
@@ -67,6 +70,9 @@ class DocumentRecognitionEngine:
         self.config = config or {}
         
         # Initialize components
+        self.preprocessor = get_preprocessor()
+        self.legal_dictionary = get_legal_dictionary()
+        self.tone_analyzer = get_tone_analyzer()
         self.context_analyzer = ContextAnalyzer()
         self.reasoner = MultiPassReasoner(
             max_passes=self.config.get("max_passes", 4)
@@ -77,6 +83,7 @@ class DocumentRecognitionEngine:
         
         # Configuration
         self.enable_legal_analysis = self.config.get("enable_legal_analysis", True)
+        self.enable_preprocessing = self.config.get("enable_preprocessing", True)
         self.min_confidence_threshold = self.config.get("min_confidence_threshold", 0.0)
         
         logger.info(f"DocumentRecognitionEngine v{self.VERSION} initialized")
@@ -105,48 +112,129 @@ class DocumentRecognitionEngine:
         )
         
         try:
-            # Step 1: Context Analysis
-            logger.debug("Starting context analysis...")
+            # ============================================================
+            # PASS 0: TEXT PREPROCESSING (NEW - Courtroom Accuracy)
+            # ============================================================
+            working_text = text
+            if self.enable_preprocessing:
+                logger.debug("Pass 0: Preprocessing text for accuracy...")
+                preprocess_result = self.preprocessor.preprocess(text)
+                working_text = preprocess_result.cleaned_text
+                result.cleaned_text = working_text
+                
+                # Add preprocessing info to result
+                if preprocess_result.corrections_made:
+                    result.notes.append(
+                        f"Applied {len(preprocess_result.corrections_made)} OCR corrections"
+                    )
+                if preprocess_result.warnings:
+                    result.warnings.extend(preprocess_result.warnings)
+                
+                # Quality check
+                if preprocess_result.quality_score < 50:
+                    result.warnings.append(
+                        f"Low text quality score ({preprocess_result.quality_score:.0f}%) - OCR may have issues"
+                    )
+            
+            # ============================================================
+            # PASS 0.5: DICTIONARY-BASED PHRASE RECOGNITION (NEW)
+            # ============================================================
+            logger.debug("Pass 0.5: Dictionary-based phrase recognition...")
+            
+            # Identify legal phrases
+            legal_phrases = self.legal_dictionary.identify_phrases(working_text)
+            
+            # Quick document type detection via dictionary
+            dict_doc_type, dict_confidence, dict_patterns = self.legal_dictionary.identify_document_type(working_text)
+            
+            # Extract statute references
+            statutes_found = self.legal_dictionary.extract_statutes(working_text)
+            
+            # Extract critical numbers
+            critical_numbers = self.legal_dictionary.extract_critical_numbers(working_text)
+            
+            # Store for later use
+            result.notes.append(f"Dictionary identified {len(legal_phrases)} legal phrases")
+            if statutes_found:
+                result.notes.append(f"Found {len(statutes_found)} MN statute references")
+            
+            # ============================================================
+            # PASS 1: Context Analysis
+            # ============================================================
+            logger.debug("Pass 1: Context analysis...")
             context, context_chain = await self._analyze_context(
-                text, filename, file_type
+                working_text, filename, file_type
             )
             result.context = context
             result.reasoning_chains.append(context_chain)
             
-            # Step 2: Multi-Pass Reasoning
-            logger.debug("Starting multi-pass reasoning...")
+            # ============================================================
+            # PASS 2: Multi-Pass Reasoning (Entity Extraction)
+            # ============================================================
+            logger.debug("Pass 2: Multi-pass reasoning...")
             entities, reasoning_chains, initial_confidence = await self._reason(
-                text, context
+                working_text, context
+            )
+            
+            # Enhance entities with dictionary findings
+            entities = self._enhance_entities_from_dictionary(
+                entities, legal_phrases, statutes_found, critical_numbers
             )
             result.entities = entities
             result.reasoning_chains.extend(reasoning_chains)
             
-            # Step 3: Document Type Classification
-            result.document_type = await self._classify_document(
-                text, context, entities
+            # ============================================================
+            # PASS 3: Document Type Classification
+            # ============================================================
+            # Use both dictionary and pattern-based classification
+            result.document_type = await self._classify_document_enhanced(
+                working_text, context, entities, dict_doc_type, dict_confidence
             )
             result.document_category = self._get_category(result.document_type)
             
-            # Step 4: Legal Analysis (if enabled)
+            # ============================================================
+            # PASS 4: Legal Analysis (if enabled)
+            # ============================================================
             if self.enable_legal_analysis:
-                logger.debug("Starting legal analysis...")
+                logger.debug("Pass 4: Legal analysis...")
                 legal_analysis, legal_chain = await self._analyze_legal(
-                    text, entities, result.document_type
+                    working_text, entities, result.document_type
                 )
+                
+                # Enhance with statute information
+                if statutes_found:
+                    for statute in statutes_found:
+                        legal_analysis.statute_references.append({
+                            "citation": statute["full_citation"],
+                            "title": statute["title"],
+                            "summary": statute["summary"],
+                        })
+                
                 result.legal_analysis = legal_analysis
                 result.reasoning_chains.append(legal_chain)
             
-            # Step 5: Relationship Mapping
-            logger.debug("Starting relationship mapping...")
+            # ============================================================
+            # PASS 5: Relationship Mapping
+            # ============================================================
+            logger.debug("Pass 5: Relationship mapping...")
             relationships, rel_chain = await self._map_relationships(
-                text, entities, result.legal_analysis.upcoming_deadlines
+                working_text, entities, result.legal_analysis.upcoming_deadlines
                 if result.legal_analysis else []
             )
             result.relationships = relationships
             result.reasoning_chains.append(rel_chain)
             
-            # Step 6: Confidence Scoring
-            logger.debug("Calculating confidence scores...")
+            # ============================================================
+            # PASS 6: Tone & Direction Analysis (NEW)
+            # ============================================================
+            logger.debug("Pass 6: Tone & Direction analysis...")
+            tone_result = self.tone_analyzer.analyze(working_text, result.document_type.value)
+            result.tone_analysis = tone_result
+            
+            # ============================================================
+            # PASS 7: Confidence Scoring
+            # ============================================================
+            logger.debug("Pass 7: Confidence scoring...")
             confidence, conf_chain = await self._score_confidence(
                 context, entities, result.document_type,
                 relationships, 
@@ -157,9 +245,10 @@ class DocumentRecognitionEngine:
             result.confidence = confidence
             result.reasoning_chains.append(conf_chain)
             
-            # Step 7: Post-processing
-            result.cleaned_text = self._clean_text(text)
-            result.passes_completed = len(reasoning_chains)
+            # ============================================================
+            # FINAL: Post-processing and Quality Assurance
+            # ============================================================
+            result.passes_completed = len(reasoning_chains) + 4  # Include new passes
             
             # Add warnings for low confidence areas
             if confidence.overall_score < 60:
@@ -483,6 +572,102 @@ class DocumentRecognitionEngine:
         
         return cleaned.strip()
     
+    def _enhance_entities_from_dictionary(
+        self,
+        entities: List[ExtractedEntity],
+        legal_phrases: List[Dict],
+        statutes_found: List[Dict],
+        critical_numbers: Dict
+    ) -> List[ExtractedEntity]:
+        """
+        Enhance extracted entities with dictionary-based findings.
+        
+        This adds high-confidence entities from the legal dictionary
+        that may have been missed by pattern matching.
+        """
+        enhanced = list(entities)
+        existing_values = {e.value.lower() for e in entities}
+        
+        # Add statute citations as entities
+        for statute in statutes_found:
+            if statute["full_citation"].lower() not in existing_values:
+                enhanced.append(ExtractedEntity(
+                    entity_type=EntityType.STATUTE,
+                    value=statute["full_citation"],
+                    confidence=0.98,  # Very high - dictionary match
+                    extraction_method="legal_dictionary",
+                    start_position=statute["position"][0],
+                    end_position=statute["position"][1],
+                    attributes={
+                        "title": statute["title"],
+                        "summary": statute["summary"],
+                    }
+                ))
+        
+        # Add critical amounts with validation
+        if "money_amount" in critical_numbers:
+            for amount in critical_numbers["money_amount"]:
+                amount_str = f"${amount['value']}"
+                if amount_str.lower() not in existing_values and amount["valid"]:
+                    enhanced.append(ExtractedEntity(
+                        entity_type=EntityType.MONEY,
+                        value=amount_str,
+                        confidence=0.95,
+                        extraction_method="critical_number_extraction",
+                        start_position=amount["position"][0],
+                        end_position=amount["position"][1],
+                    ))
+        
+        # Add deadline days
+        if "deadline_days" in critical_numbers:
+            for deadline in critical_numbers["deadline_days"]:
+                if deadline["valid"]:
+                    enhanced.append(ExtractedEntity(
+                        entity_type=EntityType.DEADLINE,
+                        value=f"{deadline['value']} days",
+                        confidence=0.95,
+                        extraction_method="critical_number_extraction",
+                        start_position=deadline["position"][0],
+                        end_position=deadline["position"][1],
+                        attributes={"full_text": deadline["full_match"]}
+                    ))
+        
+        return enhanced
+    
+    async def _classify_document_enhanced(
+        self,
+        text: str,
+        context: DocumentContext,
+        entities: List[ExtractedEntity],
+        dict_doc_type: str,
+        dict_confidence: float
+    ) -> DocumentType:
+        """
+        Enhanced document classification using both dictionary and pattern matching.
+        
+        This combines the legal dictionary's pattern-based detection with
+        the original classification logic for maximum accuracy.
+        """
+        # If dictionary has high confidence, use it directly
+        if dict_confidence >= 80:
+            # Map dictionary type to DocumentType enum
+            type_mapping = {
+                "EVICTION_NOTICE_14_DAY": DocumentType.FOURTEEN_DAY_NOTICE,
+                "SUMMONS": DocumentType.SUMMONS,
+                "COMPLAINT": DocumentType.COMPLAINT,
+                "LEASE_AGREEMENT": DocumentType.LEASE,
+                "RENT_RECEIPT": DocumentType.RENT_RECEIPT,
+                "SECURITY_DEPOSIT_STATEMENT": DocumentType.SECURITY_DEPOSIT_ITEMIZATION,
+                "REPAIR_REQUEST": DocumentType.REPAIR_REQUEST,
+                "RENT_INCREASE": DocumentType.RENT_INCREASE_NOTICE,
+                "WRIT_OF_RECOVERY": DocumentType.WRIT_OF_RECOVERY,
+            }
+            if dict_doc_type in type_mapping:
+                return type_mapping[dict_doc_type]
+        
+        # Fall back to original classification
+        return await self._classify_document(text, context, entities)
+
     def get_quick_summary(self, result: RecognitionResult) -> Dict[str, Any]:
         """Get a quick summary of recognition result"""
         return {

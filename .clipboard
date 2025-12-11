@@ -1,0 +1,158 @@
+================================================================================
+                    PERSISTENT CLIPBOARD
+                    Quick Copy/Paste Storage for VS Code
+                    
+                    Last Updated: December 9, 2025
+================================================================================
+
+HOW TO USE:
+- Paste anything here you want to save temporarily or permanently
+- Use Ctrl+F to search for items
+- Items persist across VS Code sessions
+- Add tags like [CODE] [TEXT] [URL] [TODO] for easy searching
+
+================================================================================
+                    📋 QUICK CLIPS (temporary storage)
+================================================================================
+
+[PASTE QUICK CLIPS HERE - delete when done]
+
+
+--- [HTML] Origin Story Block (removed from welcome.html) ---
+<div class="origin">
+    <div class="origin-word">Semper Fidelis</div>
+    <div class="origin-meaning">"Always Faithful" — The Marine Corps Motto</div>
+    <div class="arrow">↓</div>
+    <div class="origin-word">Semptify</div>
+    <div class="origin-meaning">Always Faithful to Tenants, Justice & Community</div>
+</div>
+
+--- [TEXT] Origin Story (plain text version) ---
+Semper Fidelis
+"Always Faithful" — The Marine Corps Motto
+↓
+Semptify
+Always Faithful to Tenants, Justice & Community
+
+
+================================================================================
+                    💾 SAVED CODE SNIPPETS
+================================================================================
+
+--- [CODE] Example API endpoint ---
+@app.get("/api/example")
+async def example():
+    return {"status": "ok"}
+
+--- [CODE] Add more below ---
+
+
+
+
+================================================================================
+                    🔗 SAVED URLS & LINKS
+================================================================================
+
+--- [URL] Localhost ---
+http://localhost:8000
+
+--- [URL] Static pages ---
+http://localhost:8000/static/welcome.html
+http://localhost:8000/static/home.html
+http://localhost:8000/static/focus.html
+http://localhost:8000/static/mission_control.html
+http://localhost:8000/static/document_intake.html
+
+--- [URL] Add more below ---
+
+
+
+
+================================================================================
+                    📝 SAVED TEXT & NOTES
+================================================================================
+
+--- [TEXT] Add text clips below ---
+
+
+
+
+================================================================================
+                    ✅ TODO / REMINDERS
+================================================================================
+
+--- [TODO] Add tasks below ---
+
+
+
+
+================================================================================
+                    🎨 COLORS & STYLES
+================================================================================
+
+--- Semptify Brand Colors ---
+Primary Blue:    #1e3a5f (dark navy)
+Accent Blue:     #3B5998 (slate blue)
+Light Blue:      #5B7DC7
+Background:      #fafafa (off-white)
+Text Dark:       #333
+Text Light:      #666
+
+--- [STYLE] Add more below ---
+
+
+
+
+================================================================================
+                    📁 FILE PATHS
+================================================================================
+
+--- [PATH] Project paths ---
+C:\Semptify\Semptify-FastAPI\
+C:\Semptify\Semptify-FastAPI\static\
+C:\Semptify\Semptify-FastAPI\app\
+C:\Semptify\Semptify-FastAPI\static\logo.png
+
+--- [PATH] Add more below ---
+
+
+
+
+================================================================================
+                    🔧 TERMINAL COMMANDS
+================================================================================
+
+--- [CMD] Common commands ---
+cd C:\Semptify\Semptify-FastAPI
+.venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+git add . ; git commit -m "message" ; git push
+
+--- [CMD] Add more below ---
+
+
+
+
+================================================================================
+                    📦 IMPORTS & DEPENDENCIES
+================================================================================
+
+--- [IMPORT] Python ---
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import asyncio
+
+--- [IMPORT] Add more below ---
+
+
+
+
+================================================================================
+                    🗑️ TRASH (items to delete later)
+================================================================================
+
+[Move items here before deleting - just in case]
+
+
+
+
+================================================================================

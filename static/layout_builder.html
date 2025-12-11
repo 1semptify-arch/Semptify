@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify Layout Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Top Toolbar */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            background: #16213e;
+            border-bottom: 1px solid #0f3460;
+            height: 50px;
+            z-index: 1000;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .toolbar-logo {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #60a5fa;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+        }
+
+        .tool-btn {
+            padding: 0.5rem 0.75rem;
+            background: transparent;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .tool-btn.active {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .toolbar-center {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .zoom-display {
+            background: rgba(255,255,255,0.1);
+            padding: 0.35rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-export {
+            padding: 0.5rem 1rem;
+            background: #22c55e;
+            border: none;
+            color: #fff;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .btn-export:hover {
+            background: #16a34a;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: flex;
+            height: calc(100vh - 50px);
+        }
+
+        /* Left Sidebar - Components */
+        .sidebar-left {
+            width: 220px;
+            background: #16213e;
+            border-right: 1px solid #0f3460;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .sidebar-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 0.75rem;
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .component-item {
+            padding: 0.75rem;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            text-align: center;
+            cursor: grab;
+            transition: all 0.2s;
+            font-size: 0.75rem;
+        }
+
+        .component-item:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+        }
+
+        .component-item:active {
+            cursor: grabbing;
+        }
+
+        .component-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.35rem;
+        }
+
+        /* Canvas Area */
+        .canvas-container {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            background: #0d1117;
+        }
+
+        .canvas-wrapper {
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            position: relative;
+        }
+
+        .canvas {
+            position: relative;
+            background: #fafafa;
+            margin: 40px auto;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            transform-origin: center top;
+            transition: transform 0.1s ease-out;
+        }
+
+        .canvas.show-grid {
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* Dropped Elements */
+        .dropped-element {
+            position: absolute;
+            min-width: 100px;
+            min-height: 50px;
+            cursor: move;
+            user-select: none;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .dropped-element:hover {
+            border-color: #3b82f6;
+        }
+
+        .dropped-element.selected {
+            border-color: #3b82f6;
+        }
+
+        .dropped-element.dragging {
+            opacity: 0.7;
+            z-index: 1000;
+        }
+
+        /* Resize Handles */
+        .resize-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #3b82f6;
+            border: 2px solid #fff;
+            border-radius: 2px;
+            display: none;
+        }
+
+        .dropped-element.selected .resize-handle {
+            display: block;
+        }
+
+        .resize-handle.nw { top: -5px; left: -5px; cursor: nw-resize; }
+        .resize-handle.ne { top: -5px; right: -5px; cursor: ne-resize; }
+        .resize-handle.sw { bottom: -5px; left: -5px; cursor: sw-resize; }
+        .resize-handle.se { bottom: -5px; right: -5px; cursor: se-resize; }
+        .resize-handle.n { top: -5px; left: 50%; transform: translateX(-50%); cursor: n-resize; }
+        .resize-handle.s { bottom: -5px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
+        .resize-handle.e { right: -5px; top: 50%; transform: translateY(-50%); cursor: e-resize; }
+        .resize-handle.w { left: -5px; top: 50%; transform: translateY(-50%); cursor: w-resize; }
+
+        /* Right Sidebar - Properties */
+        .sidebar-right {
+            width: 280px;
+            background: #16213e;
+            border-left: 1px solid #0f3460;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+
+        .property-section {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .property-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #60a5fa;
+        }
+
+        .property-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            gap: 0.5rem;
+        }
+
+        .property-label {
+            font-size: 0.75rem;
+            color: #888;
+            width: 70px;
+            flex-shrink: 0;
+        }
+
+        .property-input {
+            flex: 1;
+            padding: 0.4rem 0.5rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 0.8rem;
+        }
+
+        .property-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        .property-color {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .property-row-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .property-small-input {
+            padding: 0.4rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 4px;
+            color: #fff;
+            font-size: 0.75rem;
+            width: 100%;
+            text-align: center;
+        }
+
+        .no-selection {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        /* Element Content Styles */
+        .element-header {
+            background: #fff;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .element-header img {
+            max-height: 60px;
+        }
+
+        .element-header nav {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .element-header nav a {
+            color: #1e3a5f;
+            text-decoration: none;
+        }
+
+        .element-card {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .element-card h3 {
+            color: #1e3a5f;
+            margin-bottom: 0.5rem;
+        }
+
+        .element-card p {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .element-button {
+            background: #3b82f6;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .element-text {
+            background: transparent;
+            padding: 0.5rem;
+        }
+
+        .element-text h2 {
+            color: #1e3a5f;
+            font-size: 1.5rem;
+        }
+
+        .element-text p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .element-image {
+            background: #e5e5e5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            border-radius: 8px;
+            min-height: 150px;
+        }
+
+        .element-footer {
+            background: #1e3a5f;
+            color: #fff;
+            padding: 1.5rem;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        .element-nav {
+            background: #fff;
+            padding: 0.75rem 1rem;
+            display: flex;
+            gap: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .element-nav a {
+            color: #1e3a5f;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .element-input {
+            background: #fff;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .element-input input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .element-container {
+            background: rgba(59, 130, 246, 0.1);
+            border: 2px dashed #3b82f6;
+            border-radius: 8px;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3b82f6;
+        }
+
+        .element-divider {
+            background: transparent;
+            border-top: 2px solid #e5e5e5;
+            height: 2px;
+        }
+
+        .element-spacer {
+            background: rgba(0,0,0,0.02);
+            border: 1px dashed #ddd;
+        }
+
+        /* Code Output Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: #1e293b;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .modal-header h3 {
+            font-size: 1rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            max-height: calc(80vh - 120px);
+        }
+
+        .modal-code {
+            background: #0d1117;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .modal-code pre {
+            color: #e6edf3;
+            font-family: 'Consolas', monospace;
+            font-size: 0.8rem;
+            white-space: pre-wrap;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Context Menu */
+        .context-menu {
+            position: fixed;
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 0.5rem 0;
+            min-width: 150px;
+            display: none;
+            z-index: 3000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .context-menu.show {
+            display: block;
+        }
+
+        .context-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .context-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .context-divider {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            margin: 0.25rem 0;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #22c55e;
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 4000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Help hint */
+        .help-hint {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background: rgba(0,0,0,0.8);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: #888;
+            max-width: 300px;
+        }
+
+        .help-hint kbd {
+            background: rgba(255,255,255,0.1);
+            padding: 0.15rem 0.4rem;
+            border-radius: 3px;
+            margin: 0 0.15rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <span class="toolbar-logo">🎨 Layout Builder</span>
+            
+            <div class="toolbar-group">
+                <button class="tool-btn" onclick="undo()" title="Undo (Ctrl+Z)">↩️</button>
+                <button class="tool-btn" onclick="redo()" title="Redo (Ctrl+Y)">↪️</button>
+            </div>
+
+            <div class="toolbar-group">
+                <button class="tool-btn active" id="selectTool" onclick="setTool('select')" title="Select (V)">🔲 Select</button>
+                <button class="tool-btn" id="panTool" onclick="setTool('pan')" title="Pan (H)">✋ Pan</button>
+            </div>
+
+            <div class="toolbar-group">
+                <button class="tool-btn" onclick="toggleGrid()" title="Toggle Grid (G)">⊞ Grid</button>
+                <button class="tool-btn" onclick="toggleSnap()" title="Toggle Snap">🧲 Snap</button>
+            </div>
+        </div>
+
+        <div class="toolbar-center">
+            <button class="tool-btn" onclick="zoomOut()">➖</button>
+            <span class="zoom-display" id="zoomDisplay">100%</span>
+            <button class="tool-btn" onclick="zoomIn()">➕</button>
+            <button class="tool-btn" onclick="resetZoom()">↺</button>
+        </div>
+
+        <div class="toolbar-right">
+            <select class="property-input" id="canvasSize" onchange="changeCanvasSize()" style="width: auto;">
+                <option value="1200x800">Desktop (1200×800)</option>
+                <option value="768x1024">Tablet (768×1024)</option>
+                <option value="375x667">Mobile (375×667)</option>
+                <option value="custom">Custom...</option>
+            </select>
+            <button class="tool-btn" onclick="clearCanvas()">🗑️ Clear</button>
+            <button class="btn-export" onclick="exportCode()">📦 Export HTML</button>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <!-- Left Sidebar - Components -->
+        <div class="sidebar-left">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Layout</div>
+                <div class="component-grid">
+                    <div class="component-item" draggable="true" data-type="container">
+                        <div class="component-icon">📦</div>
+                        <div>Container</div>
+                    </div>
+                    <div class="component-item" draggable="true" data-type="spacer">
+                        <div class="component-icon">↕️</div>
+                        <div>Spacer</div>
+                    </div>
+                    <div class="component-item" draggable="true" data-type="divider">
+                        <div class="component-icon">➖</div>
+                        <div>Divider</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title">Components</div>
+                <div class="component-grid">
+                    <div class="component-item" draggable="true" data-type="header">
+                        <div class="component-icon">🏠</div>
+                        <div>Header</div>
+                    </div>
+                    <div class="component-item" draggable="true" data-type="nav">
+                        <div class="component-icon">🧭</div>
+                        <div>Nav Bar</div>
+                    </div>
+                    <div class="component-item" draggable="true" data-type="card">
+                        <div class="component-icon">🃏</div>
+                        <div>Card</div>
+                    </div>
+                    <div class="component-item" draggable="true" data-type="footer">
+                        <div class="component-icon">📄</div>
+                        <div>Footer</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title">Content</div>
+                <div class="component-grid">
+                    <div class="component-item" draggable="true" data-type="heading">
+                        <div class="component-icon">H</div>
+                        <div>Heading</div>
+                    </div>
+                    <div class="component-item" draggable="true" data-type="text">
+                        <div class="component-icon">T</div>
+                        <div>Text</div>
+                    </div>
+                    <div class="component-item" draggable="true" data-type="button">
+                        <div class="component-icon">🔘</div>
+                        <div>Button</div>
+                    </div>
+                    <div class="component-item" draggable="true" data-type="image">
+                        <div class="component-icon">🖼️</div>
+                        <div>Image</div>
+                    </div>
+                    <div class="component-item" draggable="true" data-type="input">
+                        <div class="component-icon">📝</div>
+                        <div>Input</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Canvas Area -->
+        <div class="canvas-container" id="canvasContainer">
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <div class="canvas show-grid" id="canvas" style="width: 1200px; height: 800px;">
+                    <!-- Dropped elements appear here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar - Properties -->
+        <div class="sidebar-right">
+            <div id="propertiesPanel">
+                <div class="no-selection">
+                    <p>👆 Select an element to edit its properties</p>
+                    <p style="margin-top: 1rem; font-size: 0.75rem;">Or drag components from the left panel</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="contextMenu">
+        <div class="context-item" onclick="duplicateSelected()">📋 Duplicate</div>
+        <div class="context-item" onclick="bringToFront()">⬆️ Bring to Front</div>
+        <div class="context-item" onclick="sendToBack()">⬇️ Send to Back</div>
+        <div class="context-divider"></div>
+        <div class="context-item" onclick="deleteSelected()" style="color: #ef4444;">🗑️ Delete</div>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>📦 Export HTML Code</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-code">
+                    <pre id="exportCode"></pre>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-export" onclick="copyExportCode()">📋 Copy Code</button>
+                <button class="tool-btn" onclick="downloadHTML()">💾 Download .html</button>
+                <button class="tool-btn" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">Copied!</div>
+
+    <!-- Help Hint -->
+    <div class="help-hint">
+        <kbd>Ctrl</kbd>+<kbd>Scroll</kbd> Zoom &nbsp;|&nbsp;
+        <kbd>Delete</kbd> Remove &nbsp;|&nbsp;
+        <kbd>Ctrl</kbd>+<kbd>D</kbd> Duplicate
+    </div>
+
+    <script>
+        // State
+        let elements = [];
+        let selectedElement = null;
+        let zoom = 1;
+        let tool = 'select';
+        let snapToGrid = true;
+        let gridSize = 20;
+        let isDragging = false;
+        let isResizing = false;
+        let dragOffset = { x: 0, y: 0 };
+        let resizeHandle = null;
+        let history = [];
+        let historyIndex = -1;
+
+        const canvas = document.getElementById('canvas');
+        const canvasContainer = document.getElementById('canvasContainer');
+
+        // Initialize drag and drop
+        document.querySelectorAll('.component-item').forEach(item => {
+            item.addEventListener('dragstart', handleDragStart);
+            item.addEventListener('dragend', handleDragEnd);
+        });
+
+        canvas.addEventListener('dragover', handleDragOver);
+        canvas.addEventListener('drop', handleDrop);
+        canvas.addEventListener('click', handleCanvasClick);
+        canvas.addEventListener('mousedown', handleMouseDown);
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+        document.addEventListener('keydown', handleKeyDown);
+
+        // Zoom with Ctrl + Scroll
+        canvasContainer.addEventListener('wheel', (e) => {
+            if (e.ctrlKey) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                setZoom(zoom + delta);
+            }
+        }, { passive: false });
+
+        // Context menu
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            if (selectedElement) {
+                showContextMenu(e.clientX, e.clientY);
+            }
+        });
+
+        document.addEventListener('click', () => {
+            document.getElementById('contextMenu').classList.remove('show');
+        });
+
+        // Drag handlers
+        let draggedType = null;
+
+        function handleDragStart(e) {
+            draggedType = e.target.closest('.component-item').dataset.type;
+            e.dataTransfer.effectAllowed = 'copy';
+        }
+
+        function handleDragEnd(e) {
+            draggedType = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            if (!draggedType) return;
+
+            const rect = canvas.getBoundingClientRect();
+            let x = (e.clientX - rect.left) / zoom;
+            let y = (e.clientY - rect.top) / zoom;
+
+            if (snapToGrid) {
+                x = Math.round(x / gridSize) * gridSize;
+                y = Math.round(y / gridSize) * gridSize;
+            }
+
+            createElement(draggedType, x, y);
+            saveHistory();
+        }
+
+        function createElement(type, x, y) {
+            const id = 'el-' + Date.now();
+            const defaults = getElementDefaults(type);
+            
+            const element = {
+                id,
+                type,
+                x,
+                y,
+                width: defaults.width,
+                height: defaults.height,
+                content: defaults.content,
+                styles: defaults.styles
+            };
+
+            elements.push(element);
+            renderElement(element);
+            selectElement(id);
+        }
+
+        function getElementDefaults(type) {
+            const defaults = {
+                header: { width: 400, height: 100, content: { logo: true, nav: ['Home', 'Dashboard', 'Documents'] }, styles: { bg: '#ffffff', radius: 8 } },
+                nav: { width: 350, height: 50, content: { links: ['Home', 'Dashboard', 'Documents', 'Help'] }, styles: { bg: '#ffffff', radius: 8 } },
+                card: { width: 300, height: 200, content: { title: 'Card Title', text: 'Card content goes here...' }, styles: { bg: '#ffffff', radius: 12 } },
+                footer: { width: 400, height: 100, content: { text: 'Always Faithful to Tenants' }, styles: { bg: '#1e3a5f', color: '#ffffff', radius: 8 } },
+                heading: { width: 300, height: 50, content: { text: 'Heading Text' }, styles: { color: '#1e3a5f', size: 24 } },
+                text: { width: 300, height: 80, content: { text: 'Your text content here. Edit this in the properties panel.' }, styles: { color: '#666666', size: 16 } },
+                button: { width: 150, height: 45, content: { text: 'Click Me' }, styles: { bg: '#3b82f6', color: '#ffffff', radius: 8 } },
+                image: { width: 300, height: 200, content: { placeholder: true }, styles: { radius: 8 } },
+                input: { width: 300, height: 70, content: { placeholder: 'Enter text...' }, styles: { bg: '#ffffff', radius: 8 } },
+                container: { width: 400, height: 300, content: {}, styles: { radius: 8 } },
+                divider: { width: 300, height: 20, content: {}, styles: { color: '#e5e5e5' } },
+                spacer: { width: 100, height: 50, content: {}, styles: {} }
+            };
+            return defaults[type] || { width: 200, height: 100, content: {}, styles: {} };
+        }
+
+        function renderElement(el) {
+            const div = document.createElement('div');
+            div.id = el.id;
+            div.className = 'dropped-element';
+            div.style.left = el.x + 'px';
+            div.style.top = el.y + 'px';
+            div.style.width = el.width + 'px';
+            div.style.height = el.height + 'px';
+            
+            div.innerHTML = getElementHTML(el) + getResizeHandles();
+            canvas.appendChild(div);
+        }
+
+        function getElementHTML(el) {
+            switch(el.type) {
+                case 'header':
+                    return `<div class="element-header" style="height:100%; background:${el.styles.bg}; border-radius:${el.styles.radius}px;">
+                        <img src="/static/logo.png" alt="Logo" onerror="this.style.display='none'">
+                        <nav>${el.content.nav.map(n => `<a href="#">${n}</a>`).join('')}</nav>
+                    </div>`;
+                case 'nav':
+                    return `<div class="element-nav" style="height:100%; background:${el.styles.bg}; border-radius:${el.styles.radius}px;">
+                        ${el.content.links.map(l => `<a href="#">${l}</a>`).join('')}
+                    </div>`;
+                case 'card':
+                    return `<div class="element-card" style="height:100%; background:${el.styles.bg}; border-radius:${el.styles.radius}px;">
+                        <h3>${el.content.title}</h3>
+                        <p>${el.content.text}</p>
+                    </div>`;
+                case 'footer':
+                    return `<div class="element-footer" style="height:100%; background:${el.styles.bg}; color:${el.styles.color}; border-radius:${el.styles.radius}px;">
+                        <p>${el.content.text}</p>
+                        <p style="font-size:0.85rem; opacity:0.8;">© 2025 Semptify</p>
+                    </div>`;
+                case 'heading':
+                    return `<div class="element-text" style="height:100%;"><h2 style="color:${el.styles.color}; font-size:${el.styles.size}px;">${el.content.text}</h2></div>`;
+                case 'text':
+                    return `<div class="element-text" style="height:100%;"><p style="color:${el.styles.color}; font-size:${el.styles.size}px;">${el.content.text}</p></div>`;
+                case 'button':
+                    return `<div class="element-button" style="height:100%; display:flex; align-items:center; justify-content:center; background:${el.styles.bg}; color:${el.styles.color}; border-radius:${el.styles.radius}px;">${el.content.text}</div>`;
+                case 'image':
+                    return `<div class="element-image" style="height:100%; border-radius:${el.styles.radius}px;">🖼️ Image Placeholder</div>`;
+                case 'input':
+                    return `<div class="element-input" style="height:100%; background:${el.styles.bg}; border-radius:${el.styles.radius}px;"><input type="text" placeholder="${el.content.placeholder}"></div>`;
+                case 'container':
+                    return `<div class="element-container" style="height:100%; border-radius:${el.styles.radius}px;">Drop elements here</div>`;
+                case 'divider':
+                    return `<div class="element-divider" style="height:100%; border-color:${el.styles.color};"></div>`;
+                case 'spacer':
+                    return `<div class="element-spacer" style="height:100%;"></div>`;
+                default:
+                    return `<div style="height:100%; background:#eee; display:flex; align-items:center; justify-content:center;">${el.type}</div>`;
+            }
+        }
+
+        function getResizeHandles() {
+            return `
+                <div class="resize-handle nw" data-handle="nw"></div>
+                <div class="resize-handle n" data-handle="n"></div>
+                <div class="resize-handle ne" data-handle="ne"></div>
+                <div class="resize-handle e" data-handle="e"></div>
+                <div class="resize-handle se" data-handle="se"></div>
+                <div class="resize-handle s" data-handle="s"></div>
+                <div class="resize-handle sw" data-handle="sw"></div>
+                <div class="resize-handle w" data-handle="w"></div>
+            `;
+        }
+
+        function handleCanvasClick(e) {
+            if (e.target === canvas) {
+                deselectAll();
+            }
+        }
+
+        function handleMouseDown(e) {
+            const element = e.target.closest('.dropped-element');
+            const handle = e.target.closest('.resize-handle');
+
+            if (handle && selectedElement) {
+                isResizing = true;
+                resizeHandle = handle.dataset.handle;
+                e.preventDefault();
+                return;
+            }
+
+            if (element) {
+                selectElement(element.id);
+                isDragging = true;
+                const rect = element.getBoundingClientRect();
+                dragOffset.x = e.clientX - rect.left;
+                dragOffset.y = e.clientY - rect.top;
+                element.classList.add('dragging');
+                e.preventDefault();
+            }
+        }
+
+        function handleMouseMove(e) {
+            if (isDragging && selectedElement) {
+                const rect = canvas.getBoundingClientRect();
+                let x = (e.clientX - rect.left - dragOffset.x) / zoom;
+                let y = (e.clientY - rect.top - dragOffset.y) / zoom;
+
+                if (snapToGrid) {
+                    x = Math.round(x / gridSize) * gridSize;
+                    y = Math.round(y / gridSize) * gridSize;
+                }
+
+                x = Math.max(0, Math.min(x, canvas.offsetWidth - selectedElement.offsetWidth));
+                y = Math.max(0, Math.min(y, canvas.offsetHeight - selectedElement.offsetHeight));
+
+                selectedElement.style.left = x + 'px';
+                selectedElement.style.top = y + 'px';
+
+                // Update element data
+                const el = elements.find(e => e.id === selectedElement.id);
+                if (el) {
+                    el.x = x;
+                    el.y = y;
+                }
+            }
+
+            if (isResizing && selectedElement) {
+                const rect = canvas.getBoundingClientRect();
+                const el = elements.find(e => e.id === selectedElement.id);
+                if (!el) return;
+
+                const mouseX = (e.clientX - rect.left) / zoom;
+                const mouseY = (e.clientY - rect.top) / zoom;
+
+                let newX = el.x, newY = el.y, newW = el.width, newH = el.height;
+
+                if (resizeHandle.includes('e')) newW = Math.max(50, mouseX - el.x);
+                if (resizeHandle.includes('w')) {
+                    newW = Math.max(50, el.x + el.width - mouseX);
+                    newX = mouseX;
+                }
+                if (resizeHandle.includes('s')) newH = Math.max(30, mouseY - el.y);
+                if (resizeHandle.includes('n')) {
+                    newH = Math.max(30, el.y + el.height - mouseY);
+                    newY = mouseY;
+                }
+
+                if (snapToGrid) {
+                    newX = Math.round(newX / gridSize) * gridSize;
+                    newY = Math.round(newY / gridSize) * gridSize;
+                    newW = Math.round(newW / gridSize) * gridSize;
+                    newH = Math.round(newH / gridSize) * gridSize;
+                }
+
+                el.x = newX;
+                el.y = newY;
+                el.width = newW;
+                el.height = newH;
+
+                selectedElement.style.left = newX + 'px';
+                selectedElement.style.top = newY + 'px';
+                selectedElement.style.width = newW + 'px';
+                selectedElement.style.height = newH + 'px';
+
+                updateProperties();
+            }
+        }
+
+        function handleMouseUp(e) {
+            if (isDragging || isResizing) {
+                saveHistory();
+            }
+            if (selectedElement) {
+                selectedElement.classList.remove('dragging');
+            }
+            isDragging = false;
+            isResizing = false;
+            resizeHandle = null;
+        }
+
+        function handleKeyDown(e) {
+            if (e.key === 'Delete' || e.key === 'Backspace') {
+                if (selectedElement && document.activeElement.tagName !== 'INPUT') {
+                    deleteSelected();
+                }
+            }
+            if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                duplicateSelected();
+            }
+            if (e.ctrlKey && e.key === 'z') {
+                e.preventDefault();
+                undo();
+            }
+            if (e.ctrlKey && e.key === 'y') {
+                e.preventDefault();
+                redo();
+            }
+            if (e.key === 'g') toggleGrid();
+            if (e.key === 'v') setTool('select');
+            if (e.key === 'h') setTool('pan');
+        }
+
+        function selectElement(id) {
+            deselectAll();
+            selectedElement = document.getElementById(id);
+            if (selectedElement) {
+                selectedElement.classList.add('selected');
+                updateProperties();
+            }
+        }
+
+        function deselectAll() {
+            document.querySelectorAll('.dropped-element').forEach(el => el.classList.remove('selected'));
+            selectedElement = null;
+            showNoSelection();
+        }
+
+        function showNoSelection() {
+            document.getElementById('propertiesPanel').innerHTML = `
+                <div class="no-selection">
+                    <p>👆 Select an element to edit its properties</p>
+                    <p style="margin-top: 1rem; font-size: 0.75rem;">Or drag components from the left panel</p>
+                </div>
+            `;
+        }
+
+        function updateProperties() {
+            if (!selectedElement) return;
+            const el = elements.find(e => e.id === selectedElement.id);
+            if (!el) return;
+
+            const panel = document.getElementById('propertiesPanel');
+            panel.innerHTML = `
+                <div class="property-section">
+                    <div class="property-title">📍 Position & Size</div>
+                    <div class="property-row-split">
+                        <div>
+                            <label class="property-label">X</label>
+                            <input type="number" class="property-small-input" value="${Math.round(el.x)}" onchange="updateElementProp('${el.id}', 'x', this.value)">
+                        </div>
+                        <div>
+                            <label class="property-label">Y</label>
+                            <input type="number" class="property-small-input" value="${Math.round(el.y)}" onchange="updateElementProp('${el.id}', 'y', this.value)">
+                        </div>
+                    </div>
+                    <div class="property-row-split" style="margin-top: 0.5rem;">
+                        <div>
+                            <label class="property-label">Width</label>
+                            <input type="number" class="property-small-input" value="${Math.round(el.width)}" onchange="updateElementProp('${el.id}', 'width', this.value)">
+                        </div>
+                        <div>
+                            <label class="property-label">Height</label>
+                            <input type="number" class="property-small-input" value="${Math.round(el.height)}" onchange="updateElementProp('${el.id}', 'height', this.value)">
+                        </div>
+                    </div>
+                </div>
+
+                ${getContentProperties(el)}
+                ${getStyleProperties(el)}
+
+                <div class="property-section" style="border-bottom: none;">
+                    <button class="tool-btn" style="width:100%; margin-bottom:0.5rem;" onclick="duplicateSelected()">📋 Duplicate</button>
+                    <button class="tool-btn" style="width:100%; color:#ef4444;" onclick="deleteSelected()">🗑️ Delete</button>
+                </div>
+            `;
+        }
+
+        function getContentProperties(el) {
+            let html = '<div class="property-section"><div class="property-title">📝 Content</div>';
+            
+            if (el.content.text !== undefined) {
+                html += `<div class="property-row">
+                    <label class="property-label">Text</label>
+                    <input type="text" class="property-input" value="${el.content.text}" onchange="updateElementContent('${el.id}', 'text', this.value)">
+                </div>`;
+            }
+            if (el.content.title !== undefined) {
+                html += `<div class="property-row">
+                    <label class="property-label">Title</label>
+                    <input type="text" class="property-input" value="${el.content.title}" onchange="updateElementContent('${el.id}', 'title', this.value)">
+                </div>`;
+            }
+            if (el.content.placeholder !== undefined) {
+                html += `<div class="property-row">
+                    <label class="property-label">Placeholder</label>
+                    <input type="text" class="property-input" value="${el.content.placeholder}" onchange="updateElementContent('${el.id}', 'placeholder', this.value)">
+                </div>`;
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function getStyleProperties(el) {
+            let html = '<div class="property-section"><div class="property-title">🎨 Styles</div>';
+            
+            if (el.styles.bg !== undefined) {
+                html += `<div class="property-row">
+                    <label class="property-label">Background</label>
+                    <input type="color" class="property-color" value="${el.styles.bg}" onchange="updateElementStyle('${el.id}', 'bg', this.value)">
+                    <input type="text" class="property-input" value="${el.styles.bg}" onchange="updateElementStyle('${el.id}', 'bg', this.value)">
+                </div>`;
+            }
+            if (el.styles.color !== undefined) {
+                html += `<div class="property-row">
+                    <label class="property-label">Color</label>
+                    <input type="color" class="property-color" value="${el.styles.color}" onchange="updateElementStyle('${el.id}', 'color', this.value)">
+                    <input type="text" class="property-input" value="${el.styles.color}" onchange="updateElementStyle('${el.id}', 'color', this.value)">
+                </div>`;
+            }
+            if (el.styles.radius !== undefined) {
+                html += `<div class="property-row">
+                    <label class="property-label">Radius</label>
+                    <input type="range" class="property-input" min="0" max="30" value="${el.styles.radius}" onchange="updateElementStyle('${el.id}', 'radius', this.value)">
+                </div>`;
+            }
+            if (el.styles.size !== undefined) {
+                html += `<div class="property-row">
+                    <label class="property-label">Font Size</label>
+                    <input type="number" class="property-input" min="10" max="72" value="${el.styles.size}" onchange="updateElementStyle('${el.id}', 'size', this.value)">
+                </div>`;
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function updateElementProp(id, prop, value) {
+            const el = elements.find(e => e.id === id);
+            if (!el) return;
+            el[prop] = parseFloat(value);
+            refreshElement(el);
+            saveHistory();
+        }
+
+        function updateElementContent(id, prop, value) {
+            const el = elements.find(e => e.id === id);
+            if (!el) return;
+            el.content[prop] = value;
+            refreshElement(el);
+            saveHistory();
+        }
+
+        function updateElementStyle(id, prop, value) {
+            const el = elements.find(e => e.id === id);
+            if (!el) return;
+            el.styles[prop] = prop === 'radius' || prop === 'size' ? parseFloat(value) : value;
+            refreshElement(el);
+            saveHistory();
+        }
+
+        function refreshElement(el) {
+            const dom = document.getElementById(el.id);
+            if (!dom) return;
+            dom.style.left = el.x + 'px';
+            dom.style.top = el.y + 'px';
+            dom.style.width = el.width + 'px';
+            dom.style.height = el.height + 'px';
+            dom.innerHTML = getElementHTML(el) + getResizeHandles();
+        }
+
+        function deleteSelected() {
+            if (!selectedElement) return;
+            const id = selectedElement.id;
+            elements = elements.filter(e => e.id !== id);
+            selectedElement.remove();
+            selectedElement = null;
+            showNoSelection();
+            saveHistory();
+        }
+
+        function duplicateSelected() {
+            if (!selectedElement) return;
+            const el = elements.find(e => e.id === selectedElement.id);
+            if (!el) return;
+
+            const newEl = JSON.parse(JSON.stringify(el));
+            newEl.id = 'el-' + Date.now();
+            newEl.x += 20;
+            newEl.y += 20;
+            elements.push(newEl);
+            renderElement(newEl);
+            selectElement(newEl.id);
+            saveHistory();
+        }
+
+        function bringToFront() {
+            if (!selectedElement) return;
+            canvas.appendChild(selectedElement);
+        }
+
+        function sendToBack() {
+            if (!selectedElement) return;
+            canvas.insertBefore(selectedElement, canvas.firstChild);
+        }
+
+        // Zoom functions
+        function setZoom(value) {
+            zoom = Math.max(0.25, Math.min(2, value));
+            canvas.style.transform = `scale(${zoom})`;
+            document.getElementById('zoomDisplay').textContent = Math.round(zoom * 100) + '%';
+        }
+
+        function zoomIn() { setZoom(zoom + 0.1); }
+        function zoomOut() { setZoom(zoom - 0.1); }
+        function resetZoom() { setZoom(1); }
+
+        // Tool functions
+        function setTool(t) {
+            tool = t;
+            document.querySelectorAll('.toolbar-group .tool-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(t + 'Tool')?.classList.add('active');
+        }
+
+        function toggleGrid() {
+            canvas.classList.toggle('show-grid');
+        }
+
+        function toggleSnap() {
+            snapToGrid = !snapToGrid;
+            showToast(snapToGrid ? 'Snap enabled' : 'Snap disabled');
+        }
+
+        function changeCanvasSize() {
+            const size = document.getElementById('canvasSize').value;
+            if (size === 'custom') {
+                const w = prompt('Width:', canvas.offsetWidth);
+                const h = prompt('Height:', canvas.offsetHeight);
+                if (w && h) {
+                    canvas.style.width = w + 'px';
+                    canvas.style.height = h + 'px';
+                }
+            } else {
+                const [w, h] = size.split('x');
+                canvas.style.width = w + 'px';
+                canvas.style.height = h + 'px';
+            }
+        }
+
+        function clearCanvas() {
+            if (confirm('Clear all elements?')) {
+                elements = [];
+                canvas.innerHTML = '';
+                deselectAll();
+                saveHistory();
+            }
+        }
+
+        // History
+        function saveHistory() {
+            history = history.slice(0, historyIndex + 1);
+            history.push(JSON.stringify(elements));
+            historyIndex = history.length - 1;
+        }
+
+        function undo() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                loadHistory();
+            }
+        }
+
+        function redo() {
+            if (historyIndex < history.length - 1) {
+                historyIndex++;
+                loadHistory();
+            }
+        }
+
+        function loadHistory() {
+            elements = JSON.parse(history[historyIndex]);
+            canvas.innerHTML = '';
+            elements.forEach(el => renderElement(el));
+            deselectAll();
+        }
+
+        // Context menu
+        function showContextMenu(x, y) {
+            const menu = document.getElementById('contextMenu');
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
+            menu.classList.add('show');
+        }
+
+        // Export
+        function exportCode() {
+            const code = generateHTML();
+            document.getElementById('exportCode').textContent = code;
+            document.getElementById('exportModal').classList.add('show');
+        }
+
+        function generateHTML() {
+            let html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify Page</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fafafa; }
+        .page-container { position: relative; max-width: ${canvas.offsetWidth}px; min-height: ${canvas.offsetHeight}px; margin: 0 auto; }
+`;
+            // Generate CSS for each element
+            elements.forEach(el => {
+                html += `        #${el.id} { position: absolute; left: ${el.x}px; top: ${el.y}px; width: ${el.width}px; height: ${el.height}px; }\n`;
+            });
+
+            html += `    </style>
+</head>
+<body>
+    <div class="page-container">
+`;
+            // Generate HTML for each element
+            elements.forEach(el => {
+                html += `        <div id="${el.id}">${getExportHTML(el)}</div>\n`;
+            });
+
+            html += `    </div>
+</body>
+</html>`;
+            return html;
+        }
+
+        function getExportHTML(el) {
+            // Simplified export HTML
+            switch(el.type) {
+                case 'header':
+                    return `<header style="height:100%; background:${el.styles.bg}; border-radius:${el.styles.radius}px; padding:1rem; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.1);"><img src="/static/logo.png" alt="Logo" style="height:60px;"><nav style="margin-top:0.5rem;">${el.content.nav.map(n => `<a href="#" style="margin:0 0.5rem; color:#1e3a5f; text-decoration:none;">${n}</a>`).join('')}</nav></header>`;
+                case 'card':
+                    return `<div style="height:100%; background:${el.styles.bg}; border-radius:${el.styles.radius}px; padding:1.5rem; box-shadow:0 4px 6px rgba(0,0,0,0.1);"><h3 style="color:#1e3a5f; margin-bottom:0.5rem;">${el.content.title}</h3><p style="color:#666;">${el.content.text}</p></div>`;
+                case 'button':
+                    return `<button style="width:100%; height:100%; background:${el.styles.bg}; color:${el.styles.color}; border:none; border-radius:${el.styles.radius}px; font-weight:600; cursor:pointer;">${el.content.text}</button>`;
+                case 'heading':
+                    return `<h2 style="color:${el.styles.color}; font-size:${el.styles.size}px;">${el.content.text}</h2>`;
+                case 'text':
+                    return `<p style="color:${el.styles.color}; font-size:${el.styles.size}px; line-height:1.6;">${el.content.text}</p>`;
+                case 'footer':
+                    return `<footer style="height:100%; background:${el.styles.bg}; color:${el.styles.color}; border-radius:${el.styles.radius}px; padding:1.5rem; text-align:center;"><p>${el.content.text}</p><p style="font-size:0.85rem; opacity:0.8; margin-top:0.5rem;">© 2025 Semptify</p></footer>`;
+                default:
+                    return `<div style="height:100%; background:#eee; display:flex; align-items:center; justify-content:center;">${el.type}</div>`;
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('exportModal').classList.remove('show');
+        }
+
+        function copyExportCode() {
+            const code = document.getElementById('exportCode').textContent;
+            navigator.clipboard.writeText(code);
+            showToast('Code copied!');
+        }
+
+        function downloadHTML() {
+            const code = generateHTML();
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'semptify-page.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Initialize
+        saveHistory();
+    </script>
+</body>
+</html>

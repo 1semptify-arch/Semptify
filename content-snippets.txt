@@ -1,0 +1,146 @@
+================================================================================
+                    SEMPTIFY CONTENT SNIPPETS
+                    Available for Reuse Across Site
+                    
+                    Last Updated: December 9, 2025
+                    
+                    HOW TO USE: Edit this file anytime to add, remove, or 
+                    modify content. Just add new items under the appropriate
+                    section. Use these snippets anywhere in the app!
+================================================================================
+
+────────────────────────────────────────────────────────────────────────────────
+TAGLINES & SLOGANS
+(Add new taglines below - one per line)
+────────────────────────────────────────────────────────────────────────────────
+
+1. Always Faithful to Tenants
+
+2. Semper Fidelis — "Always Faithful"
+
+3. Always Faithful to Tenants, Justice & Community
+
+4. No One Left Behind in Housing Justice
+
+[ADD MORE TAGLINES HERE]
+
+
+────────────────────────────────────────────────────────────────────────────────
+ABOUT / MISSION TEXT
+(Add new paragraphs below)
+────────────────────────────────────────────────────────────────────────────────
+
+5. Inspired by the feeling behind Semper Fi, Semptify is a platform built to 
+   reassure: it will be okay.
+
+6. Semptify is a tenant justice platform built on one promise: 
+   no one gets left behind.
+
+7. Our name draws inspiration from the U.S. Marine Corps motto "Semper Fidelis" 
+   — Latin for "Always Faithful." We honor that spirit of loyalty, solidarity, 
+   and protection.
+
+8. Semptify was created to carry forward the spirit of loyalty and resilience — 
+   always faithful to tenants, always faithful to community.
+
+9. We're here to help you with practical tools, clear suggestions, and organized 
+   flows that make your situation easier to manage.
+
+10. Whether you're facing eviction, fraud, or confusion about your rights, 
+    Semptify gives you a way to take control, organize your case, and move 
+    forward with dignity and support.
+
+[ADD MORE MISSION TEXT HERE]
+
+
+────────────────────────────────────────────────────────────────────────────────
+BRAND HEADERS
+(Add new headers below)
+────────────────────────────────────────────────────────────────────────────────
+
+11. SEMPTIFY
+
+12. About Semptify
+
+13. Welcome to Semptify
+
+[ADD MORE HEADERS HERE]
+
+
+────────────────────────────────────────────────────────────────────────────────
+VALUE WORDS
+(For icons, cards, badges - add new words below)
+────────────────────────────────────────────────────────────────────────────────
+
+14. Security
+15. Solidarity
+16. Resilience
+17. Justice
+18. Loyalty
+19. Protection
+20. Dignity
+21. Support
+
+[ADD MORE VALUE WORDS HERE]
+
+
+────────────────────────────────────────────────────────────────────────────────
+SHORT PHRASES
+(For buttons, tooltips, loading screens - add new phrases below)
+────────────────────────────────────────────────────────────────────────────────
+
+22. It will be okay.
+23. Take control.
+24. Move forward with dignity.
+25. No one gets left behind.
+26. We're here to help.
+27. Organize your case.
+28. Know your rights.
+
+[ADD MORE SHORT PHRASES HERE]
+
+
+────────────────────────────────────────────────────────────────────────────────
+ORIGIN STORY ELEMENTS
+(Add new origin content below)
+────────────────────────────────────────────────────────────────────────────────
+
+29. Semper Fidelis → Semptify
+    (The Marine Corps motto transformed into tenant justice)
+
+30. "Always Faithful" — The Marine Corps Motto
+    ↓
+    "Always Faithful to Tenants, Justice & Community"
+
+[ADD MORE ORIGIN CONTENT HERE]
+
+
+────────────────────────────────────────────────────────────────────────────────
+CUSTOM SECTION
+(Add your own content here as needed)
+────────────────────────────────────────────────────────────────────────────────
+
+[ADD CUSTOM CONTENT HERE]
+
+
+================================================================================
+                    USAGE SUGGESTIONS
+================================================================================
+
+• Headers/Footers: #1, #11, #22
+• Loading screens: #5, #22, #25
+• Tooltips: #26, #27, #28
+• Value cards/icons: #14-21
+• About pages: #6, #7, #8, #9, #10
+• Buttons: #23, #27, #28
+• Error pages: #5, #22, #26
+
+================================================================================
+                    NOTES / IDEAS
+                    (Jot down future content ideas here)
+================================================================================
+
+[ADD NOTES HERE]
+
+
+================================================================================

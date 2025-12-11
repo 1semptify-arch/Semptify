@@ -714,6 +714,7 @@ class LegalAnalysis:
     
     # Minnesota law specific
     applicable_mn_statutes: List[str] = field(default_factory=list)
+    statute_references: List[Dict[str, Any]] = field(default_factory=list)  # Enhanced statute info
     procedural_requirements: List[str] = field(default_factory=list)
     procedural_violations: List[str] = field(default_factory=list)
     
@@ -808,6 +809,9 @@ class RecognitionResult:
     document_type: DocumentType = DocumentType.UNKNOWN
     document_category: DocumentCategory = DocumentCategory.UNKNOWN
     legal_analysis: LegalAnalysis = field(default_factory=LegalAnalysis)
+    
+    # Tone and direction analysis
+    tone_analysis: Any = None  # ToneAnalysisResult (avoid circular import)
     
     # Confidence and reasoning
     confidence: ConfidenceMetrics = field(default_factory=ConfidenceMetrics)

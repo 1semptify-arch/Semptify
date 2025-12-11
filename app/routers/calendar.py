@@ -4,7 +4,7 @@ Scheduling, deadlines, and reminders.
 """
 
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -227,7 +227,7 @@ async def upcoming_deadlines(
 
     This endpoint is designed for dashboard widgets and the intensity engine.
     """
-    now = datetime.utcnow()
+    now = utc_now()
     cutoff = now + timedelta(days=days)
 
     async with get_db_session() as session:
@@ -249,9 +249,13 @@ async def upcoming_deadlines(
         days_to_next = None
         if critical:
             next_critical_date = critical[0].start_datetime
+            # Normalize timezone for comparison
             if next_critical_date.tzinfo is None:
                 next_critical_date = next_critical_date.replace(tzinfo=timezone.utc)
-            days_to_next = (next_critical_date - now).days
+            # Compare using naive datetimes to avoid issues
+            now_naive = now.replace(tzinfo=None)
+            next_naive = next_critical_date.replace(tzinfo=None)
+            days_to_next = (next_naive - now_naive).days
 
         return UpcomingDeadlinesResponse(
             critical=[_model_to_response(e) for e in critical],

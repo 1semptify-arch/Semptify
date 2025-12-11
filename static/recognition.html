@@ -733,9 +733,47 @@
         .nav-link:hover {
             background: rgba(255,255,255,0.3);
         }
+        
+        /* Document type selector styling */
+        .document-type-selector select:hover {
+            border-color: var(--blue-400);
+        }
+        .document-type-selector select:focus {
+            outline: none;
+            border-color: var(--blue-500);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .quick-templates {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .quick-template-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border: 1px solid var(--gray-200);
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quick-template-btn:hover {
+            background: var(--blue-50);
+            border-color: var(--blue-300);
+            color: var(--blue-600);
+        }
     </style>
+    
+    <!-- Celebration Libraries -->
+    <script src="/static/js/notification-toast.js"></script>
+    <script src="/static/js/confetti.js"></script>
+    <script src="/static/js/emotion-integration.js"></script>
 </head>
 <body>
+    <!-- Site-wide header -->
+    <script src="/static/js/header.js"></script>
+
     <a href="/static/document_intake.html" class="nav-link">← Back to Document Intake</a>
 
     <div class="container">
@@ -767,7 +805,62 @@ The engine will automatically:
 ✓ Check for forgery indicators
 ✓ Verify signatures"
                 ></textarea>
-                
+
+                <!-- Document Type Selector -->
+                <div class="document-type-selector" style="margin-top: 16px; margin-bottom: 16px;">
+                    <label for="documentTypeSelect" style="display: block; font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 8px;">
+                        📋 Select Document Type to Load Template:
+                    </label>
+                    <select id="documentTypeSelect" onchange="loadDocumentTemplate(this.value)" style="width: 100%; padding: 12px 16px; border: 2px solid var(--gray-200); border-radius: 12px; font-size: 14px; background: white; cursor: pointer; transition: all 0.2s;">
+                        <option value="">-- Choose a document type --</option>
+                        <optgroup label="🏠 Housing & Eviction">
+                            <option value="eviction_notice">Eviction Notice (3-Day, 14-Day, etc.)</option>
+                            <option value="lease_agreement">Lease Agreement</option>
+                            <option value="lease_violation">Lease Violation Notice</option>
+                            <option value="rent_increase">Rent Increase Notice</option>
+                            <option value="move_out_notice">Move-Out / Non-Renewal Notice</option>
+                            <option value="security_deposit">Security Deposit Statement</option>
+                        </optgroup>
+                        <optgroup label="⚖️ Court Documents">
+                            <option value="court_summons">Court Summons</option>
+                            <option value="complaint">Complaint / Petition</option>
+                            <option value="answer">Answer to Complaint</option>
+                            <option value="motion">Motion</option>
+                            <option value="court_order">Court Order</option>
+                            <option value="judgment">Judgment</option>
+                            <option value="writ_of_recovery">Writ of Recovery</option>
+                        </optgroup>
+                        <optgroup label="💰 Financial">
+                            <option value="payment_receipt">Payment Receipt</option>
+                            <option value="ledger">Rent Ledger / Payment History</option>
+                            <option value="demand_letter">Demand Letter</option>
+                            <option value="fee_notice">Late Fee / Charge Notice</option>
+                        </optgroup>
+                        <optgroup label="📝 Correspondence">
+                            <option value="landlord_letter">Letter from Landlord/Property Manager</option>
+                            <option value="tenant_letter">Letter to Landlord (Template)</option>
+                            <option value="repair_request">Repair Request</option>
+                            <option value="habitability_complaint">Habitability Complaint</option>
+                        </optgroup>
+                        <optgroup label="📄 Other Legal">
+                            <option value="affidavit">Affidavit</option>
+                            <option value="declaration">Declaration</option>
+                            <option value="stipulation">Stipulation Agreement</option>
+                            <option value="settlement">Settlement Agreement</option>
+                        </optgroup>
+                    </select>
+                    
+                    <!-- Quick template buttons -->
+                    <div class="quick-templates">
+                        <span style="font-size: 12px; color: var(--gray-500); margin-right: 8px;">Quick:</span>
+                        <button class="quick-template-btn" onclick="loadDocumentTemplate('eviction_notice')">🏠 Eviction</button>
+                        <button class="quick-template-btn" onclick="loadDocumentTemplate('court_summons')">⚖️ Summons</button>
+                        <button class="quick-template-btn" onclick="loadDocumentTemplate('repair_request')">🔧 Repair</button>
+                        <button class="quick-template-btn" onclick="loadDocumentTemplate('demand_letter')">📨 Demand</button>
+                        <button class="quick-template-btn" onclick="loadDocumentTemplate('security_deposit')">💰 Deposit</button>
+                    </div>
+                </div>
+
                 <div class="options">
                     <label class="option">
                         <input type="checkbox" id="includeHandwriting" checked>
@@ -1025,8 +1118,354 @@ _________________________          _________________________
 Robert Johnson                     Sarah Williams
 Johnson Property Management LLC
 
-Date: March 1, 2023                Date: March 1, 2023`
+Date: March 1, 2023                Date: March 1, 2023`,
+
+            // Additional document templates
+            eviction_notice: `NOTICE TO VACATE / EVICTION NOTICE
+
+Property Address: _______________________________
+Tenant Name(s): _________________________________
+Date: ________________
+
+☐ 3-Day Notice to Pay Rent or Quit
+☐ 14-Day Notice to Cure or Quit  
+☐ 30-Day Notice to Vacate (Month-to-Month)
+☐ Immediate Notice (Illegal Activity)
+
+AMOUNT DUE (if applicable):
+Rent: $__________
+Late Fees: $__________
+Other Charges: $__________
+TOTAL: $__________
+
+You are hereby notified that you must:
+☐ Pay the total amount due within ___ days
+☐ Cure the lease violation within ___ days
+☐ Vacate the premises by ________________
+
+Failure to comply will result in legal action to recover possession of the premises.
+
+Landlord/Agent Signature: _______________________
+Date Served: ________________
+Method of Service: ☐ Personal ☐ Posted ☐ Certified Mail`,
+
+            lease_violation: `NOTICE OF LEASE VIOLATION
+
+Date: ________________
+To: _________________________________ (Tenant)
+Property: _____________________________
+
+This notice is to inform you that you are in violation of your lease agreement.
+
+VIOLATION(S):
+☐ Unauthorized occupants
+☐ Unauthorized pets
+☐ Noise complaints
+☐ Damage to property
+☐ Failure to maintain premises
+☐ Other: _______________________________
+
+Description of violation:
+_________________________________________________
+_________________________________________________
+
+REQUIRED ACTION:
+You must cure this violation within ___ days by:
+_________________________________________________
+
+If you fail to cure this violation, further legal action may be taken, including termination of your tenancy.
+
+Landlord/Property Manager: _______________________
+Date: ________________`,
+
+            court_summons: `STATE OF MINNESOTA                    DISTRICT COURT
+COUNTY OF HENNEPIN                    FOURTH JUDICIAL DISTRICT
+
+________________________________,
+                    Plaintiff,        Case No.: ______________
+        vs.
+________________________________,     SUMMONS
+                    Defendant.
+
+THE STATE OF MINNESOTA TO THE ABOVE-NAMED DEFENDANT:
+
+You are hereby summoned and required to serve upon plaintiff's attorney an Answer to the Complaint which is herewith served upon you within twenty (20) days after service of this Summons upon you, exclusive of the day of service.
+
+If you fail to do so, judgment by default will be taken against you for the relief demanded in the Complaint.
+
+This action involves, affects, or brings into question real property situated in Hennepin County, Minnesota, described as follows:
+
+Property Address: _________________________________
+
+Dated: ________________
+
+_________________________________
+Plaintiff/Attorney for Plaintiff
+Address: _________________________
+Phone: __________________________`,
+
+            payment_receipt: `RENT PAYMENT RECEIPT
+
+Receipt #: ______________
+Date: ________________
+
+RECEIVED FROM: _________________________________
+               (Tenant Name)
+
+PROPERTY ADDRESS: ______________________________
+
+PAYMENT FOR:
+☐ Rent for month of: ________________
+☐ Security Deposit
+☐ Last Month's Rent
+☐ Late Fee
+☐ Other: _______________________________
+
+PAYMENT AMOUNT: $______________
+
+PAYMENT METHOD:
+☐ Cash  ☐ Check #________  ☐ Money Order  ☐ Electronic
+
+BALANCE DUE (if any): $______________
+
+_________________________________
+Landlord/Property Manager Signature
+
+_________________________________
+Print Name
+
+This receipt confirms payment. Keep for your records.`,
+
+            repair_request: `MAINTENANCE/REPAIR REQUEST
+
+Date: ________________
+Tenant Name: _________________________________
+Property Address: _____________________________
+Unit #: __________  Phone: ____________________
+
+NATURE OF PROBLEM:
+☐ Plumbing    ☐ Electrical    ☐ HVAC/Heating
+☐ Appliance   ☐ Structural    ☐ Pest Control
+☐ Safety Issue ☐ Other: _____________________
+
+LOCATION IN UNIT: _____________________________
+
+DESCRIPTION OF PROBLEM:
+_________________________________________________
+_________________________________________________
+_________________________________________________
+
+URGENCY:
+☐ Emergency (No heat, flooding, no electricity, security issue)
+☐ Urgent (Within 24-48 hours)
+☐ Routine (Within 1 week)
+
+PREFERRED CONTACT TIME: _______________________
+
+PERMISSION TO ENTER:
+☐ Yes, maintenance may enter when I'm not home
+☐ No, please schedule with me first
+
+Tenant Signature: _______________________________
+Date Submitted: ________________
+
+--- FOR OFFICE USE ---
+Date Received: ________  Work Order #: __________
+Assigned To: ____________  Completed: __________`,
+
+            demand_letter: `DEMAND LETTER
+
+Date: ________________
+
+VIA CERTIFIED MAIL, RETURN RECEIPT REQUESTED
+
+To: _________________________________
+    _________________________________
+    _________________________________
+
+RE: Demand for Payment / Return of Security Deposit
+    Property: _____________________________
+
+Dear _________________:
+
+This letter serves as formal demand for the following:
+
+☐ Return of security deposit in the amount of: $__________
+☐ Payment of unpaid wages/amounts owed: $__________
+☐ Repair of the following conditions: ________________
+☐ Other: _________________________________________
+
+FACTS:
+_________________________________________________
+_________________________________________________
+
+LEGAL BASIS:
+Under Minnesota Statute § ________, you are required to:
+_________________________________________________
+
+DEMAND:
+You have FOURTEEN (14) DAYS from receipt of this letter to:
+_________________________________________________
+
+FAILURE TO COMPLY will result in legal action, and you may be liable for:
+• The amount demanded
+• Court costs and filing fees
+• Attorney's fees (if applicable)
+• Statutory penalties
+
+Please contact me immediately to resolve this matter.
+
+Sincerely,
+
+_________________________________
+Print Name
+Address: _________________________
+Phone: __________________________
+Email: __________________________`,
+
+            habitability_complaint: `COMPLAINT OF UNINHABITABLE CONDITIONS
+
+Date: ________________
+
+To: _________________________________ (Landlord/Property Manager)
+    _________________________________ (Address)
+    _________________________________
+
+From: _______________________________ (Tenant)
+Property Address: _____________________
+
+I am writing to formally notify you of serious habitability issues at the above property that require immediate attention under Minnesota law.
+
+CONDITIONS AFFECTING HABITABILITY:
+
+☐ No heat or inadequate heating
+☐ No hot water
+☐ Plumbing not working / sewage backup
+☐ No electricity
+☐ Broken windows or doors (security issue)
+☐ Roof leaks / water damage
+☐ Mold or mildew
+☐ Pest infestation (roaches, mice, bedbugs)
+☐ Structural damage
+☐ Lead paint hazards
+☐ Carbon monoxide / smoke detector issues
+☐ Other: _______________________________
+
+DETAILED DESCRIPTION:
+_________________________________________________
+_________________________________________________
+_________________________________________________
+
+DATE PROBLEM FIRST NOTICED: ________________
+PREVIOUS COMPLAINTS MADE ON: ________________
+
+Under Minnesota Statute § 504B.161, you are required to maintain the premises in reasonable repair and keep it fit for the use intended.
+
+I REQUEST that these conditions be repaired within ____ days.
+
+If repairs are not made, I reserve all rights under Minnesota law, including but not limited to rent escrow, repair and deduct, and lease termination.
+
+_________________________________
+Tenant Signature
+
+CC: Housing Inspector, Legal Aid`,
+
+            affidavit: `STATE OF MINNESOTA           )
+                             ) ss.
+COUNTY OF __________________ )
+
+AFFIDAVIT OF _________________________________
+
+I, _________________________________, being first duly sworn, depose and state as follows:
+
+1. I am over 18 years of age and competent to make this affidavit.
+
+2. I reside at _________________________________________.
+
+3. I have personal knowledge of the facts stated herein.
+
+4. _________________________________________________
+   _________________________________________________
+
+5. _________________________________________________
+   _________________________________________________
+
+6. _________________________________________________
+   _________________________________________________
+
+7. _________________________________________________
+   _________________________________________________
+
+I declare under penalty of perjury that the foregoing is true and correct.
+
+Executed on ________________, 20___, at ________________, Minnesota.
+
+
+_________________________________
+Affiant Signature
+
+
+SUBSCRIBED AND SWORN to before me this ____ day of _____________, 20___.
+
+
+_________________________________
+Notary Public
+My Commission Expires: ____________`,
+
+            security_deposit: `SECURITY DEPOSIT ITEMIZATION
+
+Date: ________________
+Tenant: _________________________________
+Property Address: _________________________
+Move-Out Date: ________________
+
+SECURITY DEPOSIT HELD: $______________
+
+ITEMIZED DEDUCTIONS:
+
+Description                              Amount
+─────────────────────────────────────────────────
+Unpaid Rent (_________ to _________)    $________
+Cleaning (beyond normal wear & tear)    $________
+Carpet cleaning/replacement             $________
+Wall damage/painting                    $________
+Broken fixtures/appliances              $________
+Key replacement                         $________
+Other: _____________________________    $________
+Other: _____________________________    $________
+─────────────────────────────────────────────────
+TOTAL DEDUCTIONS:                       $________
+
+AMOUNT RETURNED TO TENANT:              $________
+
+☐ Check enclosed  ☐ Mailed separately  ☐ Amount owed by tenant
+
+NOTE: Under Minnesota Statute § 504B.178, this itemization must be provided within 21 days after termination of tenancy.
+
+_________________________________
+Landlord/Property Manager Signature
+Date: ________________
+
+Forwarding Address for Tenant:
+_________________________________
+_________________________________`
         };
+
+        // Load document template from dropdown
+        function loadDocumentTemplate(type) {
+            if (!type) return;
+            
+            const template = SAMPLES[type];
+            if (template) {
+                document.getElementById('documentText').value = template;
+                showToast(`📋 Loaded ${type.replace(/_/g, ' ')} template`, 'success');
+                
+                // Reset dropdown to placeholder
+                document.getElementById('documentTypeSelect').value = '';
+            } else {
+                showToast(`Template not found: ${type}`, 'error');
+            }
+        }
 
         function loadSample(type) {
             document.getElementById('documentText').value = SAMPLES[type] || '';
