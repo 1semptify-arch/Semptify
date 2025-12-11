@@ -1,6 +1,8 @@
 """
 Semptify 5.0 - Documents API Router
 Fresh API for document management, processing, and law cross-referencing.
+
+Enhanced with world-class document intelligence endpoints.
 """
 
 from typing import Optional
@@ -82,6 +84,70 @@ class RightsResponse(BaseModel):
     your_rights: list[str]
     important_deadlines: list[dict]
     documents_analyzed: int
+
+
+# =============================================================================
+# Intelligence Response Models - World-Class Document Analysis
+# =============================================================================
+
+class ActionItemResponse(BaseModel):
+    """An action item the user should take."""
+    id: str
+    priority: int
+    title: str
+    description: str
+    deadline: Optional[str] = None
+    deadline_type: str = "recommended"
+    legal_basis: Optional[str] = None
+    completed: bool = False
+
+
+class LegalInsightResponse(BaseModel):
+    """A legal insight related to the document."""
+    statute: str
+    title: str
+    relevance: str
+    protection_level: str
+    key_points: list[str] = []
+    tenant_rights: list[str] = []
+    landlord_obligations: list[str] = []
+    deadlines_imposed: list[str] = []
+
+
+class IntelligenceEventResponse(BaseModel):
+    """A timeline event generated from the document."""
+    id: str
+    event_type: str
+    title: str
+    description: str
+    date: str
+    source: str
+    is_critical: bool = False
+    days_until: Optional[int] = None
+
+
+class IntelligenceResponse(BaseModel):
+    """Complete document intelligence analysis."""
+    document_id: str
+    filename: str
+    classification: dict  # category, document_type, confidence
+    understanding: dict  # title, summary, plain_english
+    urgency: dict  # level, reason
+    extracted_data: dict  # dates, parties, amounts, terms, case_numbers, addresses
+    insights: dict  # action_items, legal_insights, timeline_events
+    reasoning: list[str]  # reasoning chain
+    metadata: dict  # analyzed_at, version
+
+
+class UrgentDocumentResponse(BaseModel):
+    """An urgent document requiring attention."""
+    id: str
+    filename: str
+    doc_type: str
+    title: Optional[str] = None
+    urgency_level: str
+    action_items: list[dict] = []
+    uploaded_at: Optional[str] = None
 
 
 # =============================================================================
@@ -273,6 +339,114 @@ async def reprocess_document(doc_id: str):
     doc = await pipeline.process(doc_id)
 
     return {"status": doc.status.value, "message": "Document reprocessed"}
+
+
+# =============================================================================
+# Document Intelligence Endpoints - World-Class Analysis
+# =============================================================================
+
+@router.get("/{doc_id}/intelligence", response_model=IntelligenceResponse)
+async def get_document_intelligence(
+    doc_id: str,
+    user: StorageUser = Depends(require_user)
+):
+    """
+    Get full document intelligence analysis.
+    
+    This world-class analysis includes:
+    - **Multi-layered classification** with reasoning chain
+    - **Entity extraction** (dates, parties, amounts, case numbers, addresses)
+    - **Legal reasoning** with Minnesota tenant law cross-references
+    - **Timeline events** automatically extracted from dates
+    - **Action items** with deadlines and legal basis
+    - **Urgency assessment** with explanations
+    - **Plain English explanation** of what the document means
+    
+    This is the most comprehensive analysis available.
+    """
+    pipeline = get_document_pipeline()
+    doc = pipeline.get_document(doc_id)
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    if doc.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    if doc.status != ProcessingStatus.CLASSIFIED:
+        raise HTTPException(
+            status_code=400,
+            detail="Document must be processed first. Use /reprocess endpoint."
+        )
+
+    # Get intelligence analysis
+    result = await pipeline.get_intelligence(doc_id)
+    
+    if not result:
+        raise HTTPException(
+            status_code=500,
+            detail="Intelligence analysis failed. Document may not have extractable text."
+        )
+
+    return IntelligenceResponse(**result)
+
+
+@router.get("/urgent/", response_model=list[UrgentDocumentResponse])
+async def get_urgent_documents(
+    user: StorageUser = Depends(require_user)
+):
+    """
+    Get all urgent documents requiring immediate attention.
+    
+    Returns documents with urgency level 'critical' or 'high', sorted by urgency.
+    Each document includes action items with deadlines.
+    """
+    pipeline = get_document_pipeline()
+    urgent = await pipeline.get_urgent_documents(user.user_id)
+    
+    return [UrgentDocumentResponse(**d) for d in urgent]
+
+
+@router.post("/{doc_id}/analyze-intelligence")
+async def analyze_document_intelligence(
+    doc_id: str,
+    user: StorageUser = Depends(require_user)
+):
+    """
+    Trigger fresh intelligence analysis for a document.
+    
+    Use this to get updated analysis after document changes or
+    to refresh cached intelligence results.
+    """
+    pipeline = get_document_pipeline()
+    doc = pipeline.get_document(doc_id)
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+
+    if doc.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    if doc.status != ProcessingStatus.CLASSIFIED:
+        raise HTTPException(
+            status_code=400,
+            detail="Document must be processed first"
+        )
+
+    # Force fresh analysis
+    doc.intelligence_result = None
+    result = await pipeline.get_intelligence(doc_id)
+    
+    if not result:
+        raise HTTPException(status_code=500, detail="Analysis failed")
+
+    return {
+        "document_id": doc_id,
+        "status": "analyzed",
+        "urgency": result.get("urgency", {}),
+        "action_count": len(result.get("insights", {}).get("action_items", [])),
+        "message": "Intelligence analysis complete"
+    }
 
 
 class DocumentTextResponse(BaseModel):
