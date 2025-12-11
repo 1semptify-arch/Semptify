@@ -1,0 +1,52 @@
+{
+  "project": "Semptify",
+  "version": "5.0",
+  "last_sync": "2025-12-11T17:00:00Z",
+  "agents": {
+    "agent_1": {
+      "role": "Frontend/UI",
+      "status": "active",
+      "current_task": null,
+      "files_locked": [],
+      "last_seen": "2025-12-11T17:00:00Z"
+    },
+    "agent_2": {
+      "role": "Backend/API", 
+      "status": "ready",
+      "current_task": null,
+      "files_locked": [],
+      "last_seen": null
+    },
+    "agent_3": {
+      "role": "Testing/Docs",
+      "status": "ready", 
+      "current_task": null,
+      "files_locked": [],
+      "last_seen": null
+    }
+  },
+  "file_locks": {},
+  "task_queue": [
+    {"id": "TASK-001", "title": "Add voice input for accessibility", "priority": "high", "assigned": null},
+    {"id": "TASK-002", "title": "Mobile responsive fixes", "priority": "high", "assigned": null},
+    {"id": "TASK-003", "title": "Offline mode / PWA enhancements", "priority": "high", "assigned": null},
+    {"id": "TASK-004", "title": "Export timeline to PDF", "priority": "medium", "assigned": null},
+    {"id": "TASK-005", "title": "Share timeline via link", "priority": "medium", "assigned": null},
+    {"id": "TASK-006", "title": "Email notifications for deadlines", "priority": "medium", "assigned": null},
+    {"id": "TASK-007", "title": "Dark mode polish", "priority": "low", "assigned": null},
+    {"id": "TASK-008", "title": "Keyboard shortcuts", "priority": "low", "assigned": null},
+    {"id": "TASK-009", "title": "Tutorial/onboarding flow", "priority": "low", "assigned": null}
+  ],
+  "completed": [
+    {"id": "DONE-001", "title": "Interactive zoomable timeline", "agent": "agent_1"},
+    {"id": "DONE-002", "title": "Drag & drop file upload", "agent": "agent_1"},
+    {"id": "DONE-003", "title": "Document Intelligence Service", "agent": "agent_1"}
+  ],
+  "messages": [
+    {
+      "from": "agent_1",
+      "timestamp": "2025-12-11T17:00:00Z", 
+      "message": "Timeline done. Drag/drop working. Ready for next task."
+    }
+  ]
+}
