@@ -367,7 +367,9 @@ body.has-nav .header {
 @media print {
     .semptify-sidebar,
     .nav-hamburger,
-    .semptify-nav-overlay {
+    .semptify-nav-overlay,
+    .user-panel,
+    .user-panel-overlay {
         display: none !important;
     }
 
@@ -377,5 +379,384 @@ body.has-nav .header {
     body.has-nav .main-container,
     body.has-nav .header {
         margin-left: 0 !important;
+    }
+}
+
+/* =================================================================
+   USER BUTTON & PANEL STYLES
+   ================================================================= */
+
+/* User Button in Sidebar Footer */
+.user-button {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: var(--nav-surface);
+    border: 1px solid var(--nav-border);
+    border-radius: var(--nav-radius);
+    color: var(--nav-text);
+    cursor: pointer;
+    transition: var(--nav-transition);
+    text-align: left;
+}
+
+.user-button:hover {
+    background: var(--nav-primary);
+    border-color: var(--nav-primary);
+}
+
+.user-avatar {
+    font-size: 1.5rem;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+}
+
+.user-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.user-role {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.user-storage {
+    font-size: 0.75rem;
+    color: var(--nav-text-muted);
+}
+
+.user-storage.connected {
+    color: #4ade80;
+}
+
+.user-storage.session {
+    color: #fbbf24;
+}
+
+.user-chevron {
+    font-size: 0.7rem;
+    color: var(--nav-text-muted);
+    transition: transform 0.2s;
+}
+
+/* User Panel Overlay */
+.user-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.user-panel-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* User Panel */
+.user-panel {
+    position: fixed;
+    bottom: 80px;
+    left: calc(var(--nav-width) + 1rem);
+    width: 320px;
+    max-width: calc(100vw - 2rem);
+    background: var(--nav-bg);
+    border: 1px solid var(--nav-border);
+    border-radius: 12px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    z-index: 1101;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.3s ease;
+}
+
+.user-panel.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.user-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--nav-border);
+}
+
+.user-panel-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--nav-text);
+}
+
+.user-panel-close {
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    color: var(--nav-text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.user-panel-close:hover {
+    background: var(--nav-surface);
+    color: var(--nav-text);
+}
+
+.user-panel-content {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.user-panel-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.user-panel-section label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--nav-text-muted);
+    font-weight: 600;
+}
+
+/* User ID Display */
+.user-id-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--nav-surface);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--nav-radius);
+    border: 1px solid var(--nav-border);
+}
+
+.user-id-display code {
+    flex: 1;
+    font-family: 'SF Mono', Monaco, monospace;
+    font-size: 0.9rem;
+    color: var(--nav-primary);
+    word-break: break-all;
+}
+
+.copy-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 1rem;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.copy-btn:hover {
+    opacity: 1;
+}
+
+/* Role Badge */
+.role-badge-large {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: var(--nav-primary);
+    color: white;
+    font-weight: 600;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    width: fit-content;
+}
+
+/* Storage Status Box */
+.storage-status-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--nav-surface);
+    border-radius: var(--nav-radius);
+    border: 1px solid var(--nav-border);
+}
+
+.storage-icon {
+    font-size: 1.5rem;
+}
+
+.storage-name {
+    flex: 1;
+    font-weight: 500;
+    color: var(--nav-text);
+}
+
+.storage-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #94a3b8;
+}
+
+.storage-dot.connected {
+    background: #4ade80;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
+}
+
+.storage-dot.disconnected {
+    background: #fbbf24;
+}
+
+.storage-hint {
+    font-size: 0.8rem;
+    color: var(--nav-text-muted);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* User Panel Actions */
+.user-panel-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.btn-reconnect,
+.btn-change-storage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: var(--nav-radius);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-reconnect {
+    background: var(--nav-primary);
+    color: white;
+}
+
+.btn-reconnect:hover {
+    background: var(--nav-primary-hover);
+}
+
+.btn-reconnect:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-change-storage {
+    background: transparent;
+    color: var(--nav-text);
+    border: 1px solid var(--nav-border);
+}
+
+.btn-change-storage:hover {
+    background: var(--nav-surface);
+    border-color: var(--nav-primary);
+}
+
+/* Session Info */
+.session-info {
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--nav-border);
+}
+
+.session-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+}
+
+.session-details div {
+    display: flex;
+    justify-content: space-between;
+}
+
+.session-details span:first-child {
+    color: var(--nav-text-muted);
+}
+
+.status-active {
+    color: #4ade80;
+}
+
+/* User Panel Footer */
+.user-panel-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--nav-border);
+}
+
+.btn-signout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    background: transparent;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    border-radius: var(--nav-radius);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-signout:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* Mobile adjustments for user panel */
+@media (max-width: 768px) {
+    .user-panel {
+        left: 1rem;
+        right: 1rem;
+        bottom: auto;
+        top: 50%;
+        transform: translateY(-50%) scale(0.95);
+        width: auto;
+    }
+    
+    .user-panel.open {
+        transform: translateY(-50%) scale(1);
+    }
+    
+    .user-button {
+        padding: 0.5rem;
+    }
+    
+    .semptify-sidebar:not(.open) .user-info,
+    .semptify-sidebar:not(.open) .user-chevron {
+        display: none;
     }
 }

@@ -116,54 +116,86 @@ class GoogleDriveProvider(StorageProvider):
         filename: str,
         mime_type: Optional[str] = None,
     ) -> StorageFile:
-        """Upload file to Google Drive."""
+        """Upload file to Google Drive. Updates existing file if it already exists."""
         folder_id = await self._get_folder_id(destination_path)
         if not folder_id:
             raise Exception(f"Could not access folder: {destination_path}")
         
         mime_type = mime_type or "application/octet-stream"
         
-        # Multipart upload
-        metadata = {
-            "name": filename,
-            "parents": [folder_id],
-        }
-        
         async with httpx.AsyncClient() as client:
+            # First, check if file already exists in this folder
+            query = f"name='{filename}' and '{folder_id}' in parents and trashed=false"
+            search_response = await client.get(
+                f"{self.BASE_URL}/files",
+                headers=self._headers(),
+                params={"q": query, "fields": "files(id,name)"},
+                timeout=10.0,
+            )
+            
+            existing_file_id = None
+            if search_response.status_code == 200:
+                files = search_response.json().get("files", [])
+                if files:
+                    existing_file_id = files[0]["id"]
+            
             # Simple upload for files < 5MB
             if len(file_content) < 5 * 1024 * 1024:
-                response = await client.post(
-                    f"{self.UPLOAD_URL}/files",
-                    headers={
-                        "Authorization": f"Bearer {self.access_token}",
-                        "Content-Type": mime_type,
-                    },
-                    params={
-                        "uploadType": "media",
-                    },
-                    content=file_content,
-                    timeout=60.0,
-                )
-                
-                if response.status_code in (200, 201):
-                    file_data = response.json()
-                    # Update metadata (name and parent)
-                    await client.patch(
-                        f"{self.BASE_URL}/files/{file_data['id']}",
-                        headers={**self._headers(), "Content-Type": "application/json"},
-                        params={"addParents": folder_id},
-                        json={"name": filename},
-                        timeout=10.0,
+                if existing_file_id:
+                    # UPDATE existing file
+                    response = await client.patch(
+                        f"{self.UPLOAD_URL}/files/{existing_file_id}",
+                        headers={
+                            "Authorization": f"Bearer {self.access_token}",
+                            "Content-Type": mime_type,
+                        },
+                        params={"uploadType": "media"},
+                        content=file_content,
+                        timeout=60.0,
+                    )
+                    if response.status_code in (200, 201):
+                        return StorageFile(
+                            id=existing_file_id,
+                            name=filename,
+                            path=f"{destination_path}/{filename}",
+                            size=len(file_content),
+                            mime_type=mime_type,
+                            modified_at=datetime.now(timezone.utc),
+                        )
+                else:
+                    # CREATE new file
+                    response = await client.post(
+                        f"{self.UPLOAD_URL}/files",
+                        headers={
+                            "Authorization": f"Bearer {self.access_token}",
+                            "Content-Type": mime_type,
+                        },
+                        params={
+                            "uploadType": "media",
+                        },
+                        content=file_content,
+                        timeout=60.0,
                     )
                     
-                    return StorageFile(
-                        id=file_data["id"],
-                        name=filename,
-                        path=f"{destination_path}/{filename}",
-                        size=len(file_content),
-                        mime_type=mime_type,
-                        modified_at=datetime.now(timezone.utc),
-                    )
+                    if response.status_code in (200, 201):
+                        file_data = response.json()
+                        # Update metadata (name and parent)
+                        await client.patch(
+                            f"{self.BASE_URL}/files/{file_data['id']}",
+                            headers={**self._headers(), "Content-Type": "application/json"},
+                            params={"addParents": folder_id},
+                            json={"name": filename},
+                            timeout=10.0,
+                        )
+                        
+                        return StorageFile(
+                            id=file_data["id"],
+                            name=filename,
+                            path=f"{destination_path}/{filename}",
+                            size=len(file_content),
+                            mime_type=mime_type,
+                            modified_at=datetime.now(timezone.utc),
+                        )
 
         raise Exception("Upload failed")
 

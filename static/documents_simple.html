@@ -665,14 +665,6 @@
     </style>
 </head>
 <body>
-    <!-- Auth Strip - Connection Status -->
-    <div id="auth-strip-container"></div>
-    <script>
-        fetch('/static/components/auth-strip.html')
-            .then(r => r.text())
-            .then(html => document.getElementById('auth-strip-container').innerHTML = html);
-    </script>
-
     <!-- Header -->
     <header class="header">
         <h1>📄 My Documents</h1>

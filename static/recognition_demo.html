@@ -1063,14 +1063,6 @@
     </style>
 </head>
 <body>
-    <!-- Auth Strip -->
-    <div id="auth-strip-container"></div>
-    <script>
-        fetch('/static/components/auth-strip.html')
-            .then(r => r.text())
-            .then(html => document.getElementById('auth-strip-container').innerHTML = html);
-    </script>
-
     <header class="header">
         <h1>🔍 Document Recognition Engine</h1>
         <p>World-Class Legal Document Analysis for Minnesota Tenant Law</p>

@@ -1,0 +1,191 @@
+{
+  "timestamp": "2025-12-13T03:31:36.971052",
+  "base_url": "http://localhost:8000",
+  "pages_found": 28,
+  "broken_links": [],
+  "navigation_issues": [],
+  "all_pages": {
+    "http://localhost:8000/static/document_intake.html": {
+      "url": "http://localhost:8000/static/document_intake.html",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/calendar.html": {
+      "url": "http://localhost:8000/static/calendar.html",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/documents": {
+      "url": "http://localhost:8000/documents",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/timeline": {
+      "url": "http://localhost:8000/timeline",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/timeline.html": {
+      "url": "http://localhost:8000/static/timeline.html",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/zoom-court": {
+      "url": "http://localhost:8000/zoom-court",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/law-library": {
+      "url": "http://localhost:8000/law-library",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/eviction-defense": {
+      "url": "http://localhost:8000/eviction-defense",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/documents.html": {
+      "url": "http://localhost:8000/static/documents.html",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/documents_simple.html": {
+      "url": "http://localhost:8000/static/documents_simple.html",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/eviction/zoom": {
+      "url": "http://localhost:8000/eviction/zoom",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/eviction/answer": {
+      "url": "http://localhost:8000/eviction/answer",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/eviction/counterclaim": {
+      "url": "http://localhost:8000/eviction/counterclaim",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/brain.html": {
+      "url": "http://localhost:8000/static/brain.html",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/eviction/motions": {
+      "url": "http://localhost:8000/eviction/motions",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/command_center.html": {
+      "url": "http://localhost:8000/static/command_center.html",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/eviction/": {
+      "url": "http://localhost:8000/eviction/",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/document_intake.html?type=maintenance": {
+      "url": "http://localhost:8000/static/document_intake.html?type=maintenance",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/document_intake.html?type=notice": {
+      "url": "http://localhost:8000/static/document_intake.html?type=notice",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/research_module.html": {
+      "url": "http://localhost:8000/static/research_module.html",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/eviction/forms/library": {
+      "url": "http://localhost:8000/eviction/forms/library",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/document_intake.html?type=payment": {
+      "url": "http://localhost:8000/static/document_intake.html?type=payment",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/storage_setup.html": {
+      "url": "http://localhost:8000/static/storage_setup.html",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/document_intake.html?type=lease": {
+      "url": "http://localhost:8000/static/document_intake.html?type=lease",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/help.html": {
+      "url": "http://localhost:8000/static/help.html",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/privacy.html": {
+      "url": "http://localhost:8000/static/privacy.html",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/welcome.html": {
+      "url": "http://localhost:8000/static/welcome.html",
+      "status": 200,
+      "issues": []
+    },
+    "http://localhost:8000/static/dashboard.html": {
+      "url": "http://localhost:8000/static/dashboard.html",
+      "status": 200,
+      "issues": []
+    }
+  },
+  "api_results": [
+    {
+      "endpoint": "/api/documents/",
+      "status": 401,
+      "ok": false
+    },
+    {
+      "endpoint": "/api/timeline/",
+      "status": 401,
+      "ok": false
+    },
+    {
+      "endpoint": "/api/eviction-defense/defenses",
+      "status": 401,
+      "ok": false
+    },
+    {
+      "endpoint": "/api/eviction-defense/motions",
+      "status": 401,
+      "ok": false
+    },
+    {
+      "endpoint": "/storage/status",
+      "status": 200,
+      "ok": true
+    },
+    {
+      "endpoint": "/api/law-library/categories",
+      "status": 401,
+      "ok": false
+    },
+    {
+      "endpoint": "/api/law-library/statutes",
+      "status": 401,
+      "ok": false
+    },
+    {
+      "endpoint": "/api/emotion/state",
+      "status": 200,
+      "ok": true
+    }
+  ]
+}

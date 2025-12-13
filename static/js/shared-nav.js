@@ -225,10 +225,274 @@ const SemptifyNav = {
                 </div>
                 
                 <div class="sidebar-footer">
+                    <!-- User Button -->
+                    <button class="user-button" onclick="SemptifyNav.toggleUserPanel()" id="navUserButton">
+                        <span class="user-avatar" id="navUserAvatar">👤</span>
+                        <span class="user-info">
+                            <span class="user-role" id="navUserRole">User</span>
+                            <span class="user-storage" id="navUserStorage">Loading...</span>
+                        </span>
+                        <span class="user-chevron">▼</span>
+                    </button>
                     <div class="sidebar-version">v5.0.0</div>
                 </div>
             </nav>
+            
+            <!-- User Panel Popup -->
+            <div class="user-panel-overlay" id="userPanelOverlay" onclick="SemptifyNav.closeUserPanel()"></div>
+            <div class="user-panel" id="userPanel">
+                <div class="user-panel-header">
+                    <h3>👤 Account</h3>
+                    <button class="user-panel-close" onclick="SemptifyNav.closeUserPanel()">✕</button>
+                </div>
+                <div class="user-panel-content">
+                    <!-- User ID Section -->
+                    <div class="user-panel-section">
+                        <label>User ID</label>
+                        <div class="user-id-display">
+                            <code id="panelUserId">Loading...</code>
+                            <button class="copy-btn" onclick="SemptifyNav.copyUserId()" title="Copy ID">📋</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Role Section -->
+                    <div class="user-panel-section">
+                        <label>Role</label>
+                        <div class="role-badge-large" id="panelUserRole">User</div>
+                    </div>
+                    
+                    <!-- Storage Section -->
+                    <div class="user-panel-section">
+                        <label>Cloud Storage</label>
+                        <div class="storage-status-box" id="panelStorageStatus">
+                            <span class="storage-icon" id="panelStorageIcon">🔐</span>
+                            <span class="storage-name" id="panelStorageName">Session Storage</span>
+                            <span class="storage-dot disconnected" id="panelStorageDot"></span>
+                        </div>
+                        <p class="storage-hint" id="panelStorageHint">Connect cloud storage to sync your data across devices</p>
+                    </div>
+                    
+                    <!-- Storage Actions -->
+                    <div class="user-panel-actions">
+                        <button class="btn-reconnect" id="btnReconnect" onclick="SemptifyNav.reconnectStorage()">
+                            🔄 Reconnect Storage
+                        </button>
+                        <button class="btn-change-storage" onclick="SemptifyNav.changeStorage()">
+                            ☁️ Change Storage Provider
+                        </button>
+                    </div>
+                    
+                    <!-- Session Info -->
+                    <div class="user-panel-section session-info">
+                        <label>Session</label>
+                        <div class="session-details">
+                            <div><span>Status:</span> <span id="panelSessionStatus" class="status-active">Active</span></div>
+                            <div><span>Expires:</span> <span id="panelSessionExpires">--</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="user-panel-footer">
+                    <button class="btn-signout" onclick="SemptifyNav.signOut()">
+                        🚪 Sign Out
+                    </button>
+                </div>
+            </div>
         `;
+    },
+
+    // =================================================================
+    // User Panel Functions
+    // =================================================================
+    
+    userInfo: null,
+    
+    toggleUserPanel() {
+        const panel = document.getElementById('userPanel');
+        const overlay = document.getElementById('userPanelOverlay');
+        if (panel && overlay) {
+            const isOpen = panel.classList.contains('open');
+            if (isOpen) {
+                this.closeUserPanel();
+            } else {
+                panel.classList.add('open');
+                overlay.classList.add('open');
+                this.loadUserInfo();
+            }
+        }
+    },
+    
+    closeUserPanel() {
+        const panel = document.getElementById('userPanel');
+        const overlay = document.getElementById('userPanelOverlay');
+        panel?.classList.remove('open');
+        overlay?.classList.remove('open');
+    },
+    
+    getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+    },
+    
+    parseUserId(userId) {
+        if (!userId || userId.length < 3) return null;
+        
+        const PROVIDERS = {
+            'G': { id: 'google_drive', name: 'Google Drive', icon: '🔵' },
+            'D': { id: 'dropbox', name: 'Dropbox', icon: '💧' },
+            'O': { id: 'onedrive', name: 'OneDrive', icon: '☁️' },
+            'S': { id: 'session', name: 'Session Storage', icon: '🔐' }
+        };
+        
+        const ROLES = {
+            'U': { id: 'user', name: 'User' },
+            'M': { id: 'manager', name: 'Manager' },
+            'V': { id: 'advocate', name: 'Advocate' },
+            'L': { id: 'legal', name: 'Legal' },
+            'A': { id: 'admin', name: 'Admin' }
+        };
+        
+        const providerChar = userId[0].toUpperCase();
+        const roleChar = userId[1].toUpperCase();
+        
+        const provider = PROVIDERS[providerChar] || { id: 'unknown', name: 'Unknown', icon: '❓' };
+        const role = ROLES[roleChar] || { id: 'user', name: 'User' };
+        
+        return {
+            userId: userId,
+            provider: provider.id,
+            providerName: provider.name,
+            providerIcon: provider.icon,
+            role: role.id,
+            roleName: role.name,
+            isSession: providerChar === 'S',
+            isConnected: ['G', 'D', 'O'].includes(providerChar)
+        };
+    },
+    
+    async loadUserInfo() {
+        const userId = this.getCookie('semptify_uid');
+        const parsed = this.parseUserId(userId);
+        
+        // Update panel elements
+        document.getElementById('panelUserId').textContent = userId || 'Not set';
+        
+        if (parsed) {
+            document.getElementById('panelUserRole').textContent = parsed.roleName;
+            document.getElementById('panelStorageIcon').textContent = parsed.providerIcon;
+            document.getElementById('panelStorageName').textContent = parsed.providerName;
+            
+            const dot = document.getElementById('panelStorageDot');
+            const hint = document.getElementById('panelStorageHint');
+            const reconnectBtn = document.getElementById('btnReconnect');
+            
+            if (parsed.isConnected) {
+                dot.classList.remove('disconnected');
+                dot.classList.add('connected');
+                hint.textContent = 'Your data is synced to the cloud';
+                reconnectBtn.style.display = 'block';
+            } else {
+                dot.classList.remove('connected');
+                dot.classList.add('disconnected');
+                hint.textContent = 'Connect cloud storage to sync your data across devices';
+                reconnectBtn.style.display = 'none';
+            }
+            
+            this.userInfo = parsed;
+        }
+        
+        // Try to get more info from storage status API
+        try {
+            const response = await fetch('/storage/status');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.connected && data.provider) {
+                    document.getElementById('panelStorageName').textContent = 
+                        data.provider.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    document.getElementById('panelStorageDot').classList.remove('disconnected');
+                    document.getElementById('panelStorageDot').classList.add('connected');
+                    
+                    if (data.expires_at) {
+                        const expires = new Date(data.expires_at);
+                        document.getElementById('panelSessionExpires').textContent = 
+                            expires.toLocaleString();
+                    }
+                }
+            }
+        } catch (e) {
+            console.log('Could not fetch storage status');
+        }
+    },
+    
+    updateNavUserButton() {
+        const userId = this.getCookie('semptify_uid');
+        const parsed = this.parseUserId(userId);
+        
+        if (parsed) {
+            const avatar = document.getElementById('navUserAvatar');
+            const role = document.getElementById('navUserRole');
+            const storage = document.getElementById('navUserStorage');
+            
+            if (avatar) avatar.textContent = parsed.providerIcon;
+            if (role) role.textContent = parsed.roleName;
+            if (storage) {
+                storage.textContent = parsed.isConnected ? parsed.providerName : 'Session';
+                storage.className = 'user-storage ' + (parsed.isConnected ? 'connected' : 'session');
+            }
+        }
+    },
+    
+    copyUserId() {
+        const userId = document.getElementById('panelUserId').textContent;
+        navigator.clipboard.writeText(userId).then(() => {
+            const btn = document.querySelector('.copy-btn');
+            const original = btn.textContent;
+            btn.textContent = '✓';
+            setTimeout(() => btn.textContent = original, 1500);
+        });
+    },
+    
+    async reconnectStorage() {
+        const parsed = this.userInfo;
+        if (!parsed || !parsed.isConnected) return;
+        
+        const btn = document.getElementById('btnReconnect');
+        btn.textContent = '🔄 Reconnecting...';
+        btn.disabled = true;
+        
+        try {
+            // Redirect to OAuth flow for current provider
+            const providerMap = {
+                'google_drive': '/storage/auth/google',
+                'dropbox': '/storage/auth/dropbox',
+                'onedrive': '/storage/auth/onedrive'
+            };
+            
+            const authUrl = providerMap[parsed.provider];
+            if (authUrl) {
+                window.location.href = authUrl + '?redirect=' + encodeURIComponent(window.location.pathname);
+            }
+        } catch (e) {
+            btn.textContent = '🔄 Reconnect Storage';
+            btn.disabled = false;
+            alert('Failed to reconnect. Please try again.');
+        }
+    },
+    
+    changeStorage() {
+        window.location.href = '/static/storage_setup.html';
+    },
+    
+    signOut() {
+        if (confirm('Sign out and clear your session?')) {
+            // Clear cookies
+            document.cookie = 'semptify_uid=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            document.cookie = 'semptify_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+            
+            // Redirect to welcome
+            window.location.href = '/static/welcome.html';
+        }
     },
 
     // Initialize the navigation
@@ -253,6 +517,9 @@ const SemptifyNav = {
 
         // Restore collapsed state
         this.restoreCollapsedState();
+        
+        // Update user button
+        this.updateNavUserButton();
 
         // Close mobile nav on link click
         container.querySelectorAll('.nav-item').forEach(item => {
@@ -267,6 +534,7 @@ const SemptifyNav = {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 this.closeMobile();
+                this.closeUserPanel();
             }
         });
 

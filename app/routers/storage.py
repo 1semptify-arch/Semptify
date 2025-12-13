@@ -242,6 +242,10 @@ async def get_valid_session(
     if expires_at:
         if isinstance(expires_at, str):
             expires_at = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+        # Ensure expires_at is timezone-aware (assume UTC if naive)
+        if expires_at.tzinfo is None:
+            from datetime import timezone
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
         if utc_now() >= (expires_at - TOKEN_EXPIRY_BUFFER):
             needs_refresh = True
             print(f"Token expired for user {user_id[:4]}*** - attempting refresh")
@@ -1170,6 +1174,10 @@ async def validate_and_refresh_token(
             expires_at_dt = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
         else:
             expires_at_dt = expires_at
+        # Ensure expires_at_dt is timezone-aware (assume UTC if naive)
+        if expires_at_dt.tzinfo is None:
+            from datetime import timezone
+            expires_at_dt = expires_at_dt.replace(tzinfo=timezone.utc)
         token_expired = utc_now() >= expires_at_dt
 
     # Validate with provider

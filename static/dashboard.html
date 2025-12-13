@@ -389,17 +389,9 @@
             background: var(--primary-dark);
         }
 
-        /* Panel Sidebar (internal navigation) */
+        /* Panel Sidebar - HIDDEN (using shared nav instead) */
         .panel-sidebar {
-            width: 220px;
-            background: var(--dark);
-            border-right: 1px solid var(--surface);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            left: 260px; /* After shared nav */
-            height: 100vh;
-            z-index: 90;
+            display: none;
         }
 
         .logo {
@@ -514,7 +506,7 @@
         /* Main Content */
         .main-content {
             flex: 1;
-            margin-left: 480px; /* 260px shared nav + 220px panel sidebar */
+            margin-left: 260px; /* Just shared nav */
             display: flex;
             flex-direction: column;
             min-height: 100vh;
@@ -1227,10 +1219,6 @@
         }
 
         @media (max-width: 768px) {
-            .panel-sidebar {
-                display: none;
-            }
-            
             .main-content {
                 margin-left: 0;
                 padding-top: 60px;
@@ -1242,12 +1230,8 @@
         }
 
         @media (min-width: 769px) and (max-width: 1024px) {
-            .panel-sidebar {
-                left: 60px;
-                width: 180px;
-            }
             .main-content {
-                margin-left: 240px;
+                margin-left: 60px; /* Tablet nav is icon-only */
             }
         }
 
@@ -1269,115 +1253,6 @@
     <!-- Shared Navigation Component -->
     <div id="semptify-nav"></div>
     <script src="/static/js/shared-nav.js"></script>
-
-    <!-- Site-wide header -->
-    <script src="/static/js/header.js"></script>
-
-    <!-- Internal Panel Sidebar -->
-    <nav class="sidebar panel-sidebar">
-        <div class="logo">
-            <h1>📓 Semptify</h1>
-            <span>Tenant Logbook & Document Organizer</span>
-        </div>
-        
-        <div class="nav-section">
-            <div class="nav-label">Main</div>
-            <a class="nav-item active" data-panel="dashboard">
-                <span class="icon">📊</span>
-                <span>Dashboard</span>
-            </a>
-            <a class="nav-item" data-panel="documents">
-                <span class="icon">📄</span>
-                <span>Documents</span>
-                <span class="badge" id="doc-count">0</span>
-            </a>
-            <a class="nav-item" data-panel="timeline">
-                <span class="icon">📅</span>
-                <span>Timeline</span>
-            </a>
-            
-            <div class="nav-label mt-1rem">Defense Tools</div>
-            <a class="nav-item" data-panel="defense">
-                <span class="icon">🛡️</span>
-                <span>Defenses</span>
-            </a>
-            <a class="nav-item" data-panel="motions">
-                <span class="icon">📋</span>
-                <span>Motions</span>
-            </a>
-            <a class="nav-item" data-panel="counterclaims">
-                <span class="icon">⚔️</span>
-                <span>Counterclaims</span>
-            </a>
-            
-            <div class="nav-label mt-1rem">Resources</div>
-            <a class="nav-item" href="/static/law_library.html">
-                <span class="icon">📚</span>
-                <span>Law Library</span>
-            </a>
-            <a class="nav-item" data-panel="zoom">
-                <span class="icon">💻</span>
-                <span>Zoom Court</span>
-            </a>
-            <a class="nav-item" data-panel="procedures">
-                <span class="icon">📖</span>
-                <span>Procedures</span>
-            </a>
-
-            <div class="nav-label mt-1rem">Accountability</div>
-            <a class="nav-item" href="/static/complaints.html">
-                <span class="icon">📢</span>
-                <span>File Complaint</span>
-            </a>
-            <a class="nav-item" href="/static/funding_search.html">
-                <span class="icon">💰</span>
-                <span>Funding Search</span>
-            </a>
-            <a class="nav-item" href="/static/campaign.html">
-                <span class="icon">🎯</span>
-                <span>Campaign Center</span>
-            </a>
-            <a class="nav-item" href="/api/fraud/health">
-                <span class="icon">🔍</span>
-                <span>Fraud Analysis</span>
-            </a>
-            <a class="nav-item" href="/api/exposure/health">
-                <span class="icon">📰</span>
-                <span>Press Release</span>
-            </a>
-            <a class="nav-item" href="/static/research.html">
-                <span class="icon">🔬</span>
-                <span>Research</span>
-            </a>
-            <a class="nav-item" href="/static/research_module.html">
-                <span class="icon">🕵️</span>
-                <span>Dossier</span>
-            </a>
-            <a class="nav-item" href="/static/court_learning.html">
-                <span class="icon">🧠</span>
-                <span>Court Learning</span>
-            </a>
-        </div>
-
-        <div class="case-status">
-            <div class="case-card">
-                <h4>Active Case</h4>
-                <div class="case-number" id="case-number">No Active Case</div>
-                <div class="next-date">
-                    <span class="icon">⏰</span>
-                    <span id="next-deadline">No upcoming deadlines</span>
-                </div>
-            </div>
-        </div>
-        
-        <div class="storage-status">
-            <div class="storage-card disconnected" id="storage-card">
-                <h4>Cloud Storage</h4>
-                <div class="status-text">⚠️ Not connected</div>
-                <button class="connect-btn" onclick="showStorageOptions()">Connect Storage</button>
-            </div>
-        </div>
-    </nav>
 
     <!-- Main Content -->
     <main class="main-content">
