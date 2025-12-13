@@ -68,12 +68,12 @@
         .folder-item {
             padding: 0.5rem 0.75rem;
             margin: 0.25rem 0;
-            border-radius: 8px;
+            border-radius: 4px;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            transition: all 0.2s;
+            transition: all 0.15s ease;
         }
         
         .folder-item:hover {
@@ -151,11 +151,11 @@
         
         .doc-card {
             background: var(--bg-card);
-            border-radius: 12px;
+            border-radius: 4px;
             padding: 1rem;
             cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid transparent;
+            transition: all 0.15s ease;
+            border: 1px solid var(--border-color);
             position: relative;
         }
         
@@ -211,13 +211,14 @@
         /* Folder Cards */
         .folder-card {
             background: var(--bg-card);
-            border-radius: 12px;
+            border-radius: 4px;
             padding: 1rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s ease;
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            border: 1px solid var(--border-color);
         }
         
         .folder-card:hover {
@@ -237,9 +238,10 @@
         
         .panel-section {
             background: var(--bg-card);
-            border-radius: 12px;
+            border-radius: 4px;
             padding: 1rem;
             margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
         }
         
         .panel-title {
@@ -254,9 +256,10 @@
         .extraction-item {
             padding: 0.75rem;
             background: var(--bg-dark);
-            border-radius: 8px;
+            border-radius: 3px;
             margin-bottom: 0.5rem;
             font-size: 0.85rem;
+            border: 1px solid var(--border-color);
         }
         
         .extraction-item .pdf-name {
@@ -272,10 +275,10 @@
         /* Highlights List */
         .highlight-item {
             padding: 0.75rem;
-            border-radius: 8px;
+            border-radius: 2px;
             margin-bottom: 0.5rem;
             font-size: 0.85rem;
-            border-left: 4px solid;
+            border-left: 3px solid;
         }
         
         .highlight-item .note {
@@ -303,8 +306,9 @@
         .stat-item {
             background: var(--bg-dark);
             padding: 0.75rem;
-            border-radius: 8px;
+            border-radius: 3px;
             text-align: center;
+            border: 1px solid var(--border-color);
         }
         
         .stat-value {
@@ -331,12 +335,12 @@
         
         /* Upload Area */
         .upload-zone {
-            border: 2px dashed var(--border-color);
-            border-radius: 12px;
+            border: 1px dashed var(--border-color);
+            border-radius: 4px;
             padding: 2rem;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s ease;
             background: var(--bg-card);
         }
         
@@ -396,20 +400,20 @@
             position: fixed;
             bottom: 30px;
             right: 30px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), #22c55e);
+            width: 48px;
+            height: 48px;
+            border-radius: 4px;
+            background: var(--primary);
             color: #000;
             border: none;
-            box-shadow: 0 4px 15px rgba(74, 222, 128, 0.4);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             cursor: grab;
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
             user-select: none;
         }
         
@@ -428,11 +432,11 @@
             position: fixed;
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 0.5rem 0;
+            border-radius: 3px;
+            padding: 0.25rem 0;
             min-width: 180px;
             z-index: 10000;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
             display: none;
         }
         
@@ -468,7 +472,7 @@
             background: var(--primary);
             color: #000;
             padding: 0.75rem 1rem;
-            border-radius: 8px;
+            border-radius: 3px;
             margin-bottom: 1rem;
             align-items: center;
             justify-content: space-between;
@@ -497,17 +501,17 @@
             position: absolute;
             top: 0.5rem;
             left: 0.5rem;
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border-color);
-            border-radius: 4px;
+            width: 18px;
+            height: 18px;
+            border: 1px solid var(--border-color);
+            border-radius: 2px;
             background: var(--bg-dark);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             opacity: 0;
-            transition: opacity 0.2s;
+            transition: opacity 0.15s ease;
         }
         
         .doc-card:hover .doc-checkbox,
@@ -539,8 +543,8 @@
             align-items: center;
             gap: 0.75rem;
             cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.2s;
+            border-radius: 3px;
+            transition: all 0.15s ease;
         }
         
         .folder-select-item:hover {

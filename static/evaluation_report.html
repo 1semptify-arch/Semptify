@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify v5.0 - Usability & Functionality Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --border: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --critical: #ef4444;
+            --critical-bg: rgba(239, 68, 68, 0.1);
+            --high: #f97316;
+            --high-bg: rgba(249, 115, 22, 0.1);
+            --medium: #eab308;
+            --medium-bg: rgba(234, 179, 8, 0.1);
+            --low: #22c55e;
+            --low-bg: rgba(34, 197, 94, 0.1);
+            --radius: 4px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--surface) 0%, #0f172a 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .header .version {
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .header .date {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
+        .stat-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .stat-dot.critical { background: var(--critical); }
+        .stat-dot.high { background: var(--high); }
+        .stat-dot.medium { background: var(--medium); }
+        .stat-dot.low { background: var(--low); }
+
+        .stat-count {
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        /* Main Content */
+        .main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Progress Section */
+        .progress-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .progress-title {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .progress-percent {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--bg);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), #8b5cf6);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-tab {
+            padding: 0.5rem 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .filter-tab:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+
+        .filter-tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* Issue Cards */
+        .issue-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: var(--radius);
+            transition: background 0.2s;
+        }
+
+        .section-header:hover {
+            background: var(--surface);
+        }
+
+        .section-icon {
+            font-size: 1.25rem;
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .section-count {
+            background: var(--surface);
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .section-chevron {
+            transition: transform 0.2s;
+        }
+
+        .section-header.collapsed .section-chevron {
+            transform: rotate(-90deg);
+        }
+
+        .issue-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .issue-list.hidden {
+            display: none;
+        }
+
+        .issue-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem 1.25rem;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 1rem;
+            align-items: start;
+            transition: all 0.2s;
+        }
+
+        .issue-card:hover {
+            border-color: var(--primary);
+            transform: translateX(4px);
+        }
+
+        .issue-card.completed {
+            opacity: 0.5;
+            background: var(--bg);
+        }
+
+        .issue-card.completed .issue-title {
+            text-decoration: line-through;
+        }
+
+        .issue-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .issue-checkbox:hover {
+            border-color: var(--primary);
+        }
+
+        .issue-checkbox.checked {
+            background: var(--low);
+            border-color: var(--low);
+        }
+
+        .issue-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .issue-content {
+            min-width: 0;
+        }
+
+        .issue-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .issue-description {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .issue-meta {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .issue-location {
+            font-size: 0.75rem;
+            color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+            padding: 0.125rem 0.5rem;
+            border-radius: var(--radius);
+            font-family: monospace;
+        }
+
+        .issue-location:hover {
+            background: rgba(59, 130, 246, 0.2);
+            cursor: pointer;
+        }
+
+        .issue-priority {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--radius);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        .issue-priority.critical {
+            background: var(--critical-bg);
+            color: var(--critical);
+            border: 1px solid var(--critical);
+        }
+
+        .issue-priority.high {
+            background: var(--high-bg);
+            color: var(--high);
+            border: 1px solid var(--high);
+        }
+
+        .issue-priority.medium {
+            background: var(--medium-bg);
+            color: var(--medium);
+            border: 1px solid var(--medium);
+        }
+
+        .issue-priority.low {
+            background: var(--low-bg);
+            color: var(--low);
+            border: 1px solid var(--low);
+        }
+
+        /* Recommendations */
+        .recommendations {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid var(--primary);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .recommendations h3 {
+            font-size: 1.125rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recommendation-list {
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .recommendation {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+
+        .recommendation-number {
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .recommendation-text {
+            font-size: 0.9375rem;
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-size: 0.875rem;
+        }
+
+        .action-btn.primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .action-btn.secondary {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .action-btn.secondary:hover {
+            background: var(--surface-hover);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--surface);
+            border: 1px solid var(--low);
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .stats-bar {
+                width: 100%;
+            }
+
+            .issue-card {
+                grid-template-columns: auto 1fr;
+            }
+
+            .issue-priority {
+                grid-column: 2;
+                justify-self: start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div>
+                <h1>
+                    📊 Semptify Evaluation Report
+                    <span class="version">v5.0</span>
+                </h1>
+                <div class="date">Generated: December 12, 2025</div>
+            </div>
+            <div class="stats-bar">
+                <div class="stat">
+                    <div class="stat-dot critical"></div>
+                    <div>
+                        <div class="stat-count" id="criticalCount">3</div>
+                        <div class="stat-label">Critical</div>
+                    </div>
+                </div>
+                <div class="stat">
+                    <div class="stat-dot high"></div>
+                    <div>
+                        <div class="stat-count" id="highCount">7</div>
+                        <div class="stat-label">High</div>
+                    </div>
+                </div>
+                <div class="stat">
+                    <div class="stat-dot medium"></div>
+                    <div>
+                        <div class="stat-count" id="mediumCount">8</div>
+                        <div class="stat-label">Medium</div>
+                    </div>
+                </div>
+                <div class="stat">
+                    <div class="stat-dot low"></div>
+                    <div>
+                        <div class="stat-count" id="lowCount">2</div>
+                        <div class="stat-label">Low</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <!-- Progress -->
+        <section class="progress-section">
+            <div class="progress-header">
+                <div class="progress-title">🎯 Resolution Progress</div>
+                <div class="progress-percent" id="progressPercent">0%</div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <div class="progress-stats">
+                <span><span id="completedCount">0</span> completed</span>
+                <span><span id="remainingCount">20</span> remaining</span>
+            </div>
+        </section>
+
+        <!-- Filters -->
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all">All Issues</button>
+            <button class="filter-tab" data-filter="critical">🔴 Critical</button>
+            <button class="filter-tab" data-filter="high">🟠 High</button>
+            <button class="filter-tab" data-filter="medium">🟡 Medium</button>
+            <button class="filter-tab" data-filter="low">🟢 Low</button>
+            <button class="filter-tab" data-filter="usability">🎨 Usability</button>
+            <button class="filter-tab" data-filter="functionality">⚙️ Functionality</button>
+        </div>
+
+        <!-- Critical Issues -->
+        <section class="issue-section" data-priority="critical">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-icon">🚨</span>
+                <span class="section-title">Critical Issues</span>
+                <span class="section-count">3 issues</span>
+                <span class="section-chevron">▼</span>
+            </div>
+            <div class="issue-list">
+                <div class="issue-card" data-priority="critical" data-type="usability">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">Stray &lt;/a&gt; Tag Breaking HTML Structure</div>
+                        <div class="issue-description">Line 811 has an orphaned closing tag between "AI Assistant" and "Court Forms" nav items. This breaks DOM parsing and accessibility.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('command_center.html#L811')">command_center.html:811</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority critical">Critical</span>
+                </div>
+                <div class="issue-card" data-priority="critical" data-type="functionality">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">Global Search Not Implemented</div>
+                        <div class="issue-description">Search bar shows "Global search feature coming soon!" alert instead of actual functionality. Core discovery feature missing.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('dashboard.html#L2333')">dashboard.html:2333</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority critical">Critical</span>
+                </div>
+                <div class="issue-card" data-priority="critical" data-type="functionality">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">Motion Generation Placeholder Only</div>
+                        <div class="issue-description">Motion generation shows "Full motion generation coming soon!" alert. Legal feature advertised but not functional.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('dashboard.html#L2280')">dashboard.html:2280</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority critical">Critical</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- High Priority -->
+        <section class="issue-section" data-priority="high">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-icon">🔴</span>
+                <span class="section-title">High Priority Issues</span>
+                <span class="section-count">7 issues</span>
+                <span class="section-chevron">▼</span>
+            </div>
+            <div class="issue-list">
+                <div class="issue-card" data-priority="high" data-type="usability">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">Same Page with 3 Different Names</div>
+                        <div class="issue-description">"AI Assistant", "Brain Visualizer", and "Positronic Brain" all link to brain.html. User confusion from inconsistent naming.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('command_center.html#L806')">command_center.html:806, 864, 904</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority high">High</span>
+                </div>
+                <div class="issue-card" data-priority="high" data-type="usability">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">60+ Sidebar Navigation Items</div>
+                        <div class="issue-description">command_center.html sidebar is overwhelming with 60+ items. Needs collapsible sections or reorganization.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('command_center.html')">command_center.html</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority high">High</span>
+                </div>
+                <div class="issue-card" data-priority="high" data-type="usability">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">Inconsistent Navigation Between Views</div>
+                        <div class="issue-description">dashboard.html has ~25 different items with different organization than command_center.html. Users get confused navigating between views.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('dashboard.html')">dashboard.html vs command_center.html</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority high">High</span>
+                </div>
+                <div class="issue-card" data-priority="high" data-type="usability">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">No Breadcrumb Navigation</div>
+                        <div class="issue-description">No breadcrumb navigation across the application. Users get lost in deep pages with no way to understand their location.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('all pages')">All HTML pages</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority high">High</span>
+                </div>
+                <div class="issue-card" data-priority="high" data-type="functionality">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">Document Filter Tabs Non-Functional</div>
+                        <div class="issue-description">Filter tabs (Lease, Notices, Court, Evidence) only log to console. Users cannot filter documents by type.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('dashboard.html')">dashboard.html</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority high">High</span>
+                </div>
+                <div class="issue-card" data-priority="high" data-type="functionality">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">API Routes in Navigation Links</div>
+                        <div class="issue-description">Links like /eviction/answer, /law-library point to API routes that may return JSON instead of HTML pages.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('command_center.html')">command_center.html</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority high">High</span>
+                </div>
+                <div class="issue-card" data-priority="high" data-type="functionality">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">Browse Category Function Incomplete</div>
+                        <div class="issue-description">browseCategory() redirects to /law-library API route which may not render a proper page.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('dashboard.html')">dashboard.html</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority high">High</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Medium Priority -->
+        <section class="issue-section" data-priority="medium">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-icon">🟡</span>
+                <span class="section-title">Medium Priority Issues</span>
+                <span class="section-count">8 issues</span>
+                <span class="section-chevron">▼</span>
+            </div>
+            <div class="issue-list">
+                <div class="issue-card" data-priority="medium" data-type="usability">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">Placeholder Alert Dialogs</div>
+                        <div class="issue-description">Motion details, search, and emergency contacts use browser alert() instead of proper modals. Poor UX and breaks flow.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('dashboard.html')">dashboard.html, command_center.html</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority medium">Medium</span>
+                </div>
+                <div class="issue-card" data-priority="medium" data-type="usability">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">Mobile Sidebar Completely Hidden</div>
+                        <div class="issue-description">On screens below 768px, sidebar is display:none with no hamburger menu alternative. Mobile users lose all navigation.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('command_center.html')">command_center.html CSS</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority medium">Medium</span>
+                </div>
+                <div class="issue-card" data-priority="medium" data-type="usability">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">AI Panel Hidden Below 1200px</div>
+                        <div class="issue-description">AI assistant panel disappears on screens below 1200px with no toggle button alternative.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('command_center.html')">command_center.html CSS</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority medium">Medium</span>
+                </div>
+                <div class="issue-card" data-priority="medium" data-type="usability">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">"Loading..." Shows Forever on API Failure</div>
+                        <div class="issue-description">If session API fails, "Loading..." text shows indefinitely with no timeout or error state indication.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('command_center.html')">command_center.html, dashboard.html</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority medium">Medium</span>
+                </div>
+                <div class="issue-card" data-priority="medium" data-type="usability">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">Brand Inconsistency: "Semptify" vs "Elbow"</div>
+                        <div class="issue-description">welcome.html says "Semptify" but some pages reference "Elbow" branding. Confusing product identity.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('welcome.html')">welcome.html, various</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority medium">Medium</span>
+                </div>
+                <div class="issue-card" data-priority="medium" data-type="functionality">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">WebSocket Reconnection No Fallback</div>
+                        <div class="issue-description">WebSocket reconnects forever on failure with no exponential backoff, max retries, or offline indication.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('dashboard.html')">dashboard.html</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority medium">Medium</span>
+                </div>
+                <div class="issue-card" data-priority="medium" data-type="functionality">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">Notes Saved to localStorage Only</div>
+                        <div class="issue-description">Sticky notes use localStorage only - no cloud sync. Notes lost when switching browsers or devices.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('dashboard.html')">dashboard.html</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority medium">Medium</span>
+                </div>
+                <div class="issue-card" data-priority="medium" data-type="functionality">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">OAuth Flow May Fail Silently</div>
+                        <div class="issue-description">checkStorageStatus() catches errors but doesn't inform users of OAuth failures. Users may be stuck.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('dashboard.html')">dashboard.html</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority medium">Medium</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Low Priority -->
+        <section class="issue-section" data-priority="low">
+            <div class="section-header" onclick="toggleSection(this)">
+                <span class="section-icon">🟢</span>
+                <span class="section-title">Low Priority Issues</span>
+                <span class="section-count">2 issues</span>
+                <span class="section-chevron">▼</span>
+            </div>
+            <div class="issue-list">
+                <div class="issue-card" data-priority="low" data-type="usability">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">Hardcoded Date in Deadline Alert</div>
+                        <div class="issue-description">Hearing date hardcoded to 2025-12-15 instead of being user-configurable. Shows incorrect deadline for all users.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('dashboard.html')">dashboard.html</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority low">Low</span>
+                </div>
+                <div class="issue-card" data-priority="low" data-type="functionality">
+                    <div class="issue-checkbox" onclick="toggleIssue(this)"></div>
+                    <div class="issue-content">
+                        <div class="issue-title">Crisis Intake Missing Clear Next Steps</div>
+                        <div class="issue-description">After completing intake, no clear call-to-action for emergency resources. Users in crisis may not find immediate help.</div>
+                        <div class="issue-meta">
+                            <span class="issue-location" onclick="copyLocation('crisis_intake.html')">crisis_intake.html</span>
+                        </div>
+                    </div>
+                    <span class="issue-priority low">Low</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recommendations -->
+        <div class="recommendations">
+            <h3>💡 Recommended Fix Order</h3>
+            <div class="recommendation-list">
+                <div class="recommendation">
+                    <span class="recommendation-number">1</span>
+                    <span class="recommendation-text"><strong>Fix stray HTML tag</strong> - 2 second fix, prevents DOM issues</span>
+                </div>
+                <div class="recommendation">
+                    <span class="recommendation-number">2</span>
+                    <span class="recommendation-text"><strong>Add hamburger menu for mobile</strong> - Essential for mobile users to navigate</span>
+                </div>
+                <div class="recommendation">
+                    <span class="recommendation-number">3</span>
+                    <span class="recommendation-text"><strong>Implement global search</strong> - Connect to existing /api/search endpoint</span>
+                </div>
+                <div class="recommendation">
+                    <span class="recommendation-number">4</span>
+                    <span class="recommendation-text"><strong>Unify sidebar navigation</strong> - Same structure across all pages</span>
+                </div>
+                <div class="recommendation">
+                    <span class="recommendation-number">5</span>
+                    <span class="recommendation-text"><strong>Replace alert() with modals</strong> - Better UX for motions, search, emergency</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+            <button class="action-btn primary" onclick="exportReport()">📥 Export Report</button>
+            <button class="action-btn secondary" onclick="resetProgress()">🔄 Reset Progress</button>
+            <button class="action-btn secondary" onclick="window.location.href='/static/command_center.html'">← Back to App</button>
+        </div>
+    </main>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <span>✓</span>
+        <span id="toastMessage">Copied to clipboard!</span>
+    </div>
+
+    <script>
+        // State
+        let completedIssues = new Set(JSON.parse(localStorage.getItem('semptify_completed_issues') || '[]'));
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Restore completed state
+            document.querySelectorAll('.issue-card').forEach((card, index) => {
+                if (completedIssues.has(index)) {
+                    card.classList.add('completed');
+                    card.querySelector('.issue-checkbox').classList.add('checked');
+                }
+            });
+            updateProgress();
+
+            // Filter tabs
+            document.querySelectorAll('.filter-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    filterIssues(tab.dataset.filter);
+                });
+            });
+        });
+
+        // Toggle section collapse
+        function toggleSection(header) {
+            header.classList.toggle('collapsed');
+            const list = header.nextElementSibling;
+            list.classList.toggle('hidden');
+        }
+
+        // Toggle issue completion
+        function toggleIssue(checkbox) {
+            const card = checkbox.closest('.issue-card');
+            const index = Array.from(document.querySelectorAll('.issue-card')).indexOf(card);
+
+            checkbox.classList.toggle('checked');
+            card.classList.toggle('completed');
+
+            if (completedIssues.has(index)) {
+                completedIssues.delete(index);
+            } else {
+                completedIssues.add(index);
+            }
+
+            localStorage.setItem('semptify_completed_issues', JSON.stringify([...completedIssues]));
+            updateProgress();
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const total = document.querySelectorAll('.issue-card').length;
+            const completed = completedIssues.size;
+            const percent = Math.round((completed / total) * 100);
+
+            document.getElementById('progressPercent').textContent = percent + '%';
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('remainingCount').textContent = total - completed;
+
+            // Update stat counts
+            ['critical', 'high', 'medium', 'low'].forEach(priority => {
+                const cards = document.querySelectorAll(`.issue-card[data-priority="${priority}"]`);
+                const remaining = Array.from(cards).filter(c => !c.classList.contains('completed')).length;
+                document.getElementById(`${priority}Count`).textContent = remaining;
+            });
+        }
+
+        // Filter issues
+        function filterIssues(filter) {
+            document.querySelectorAll('.issue-section').forEach(section => {
+                section.style.display = 'block';
+            });
+
+            document.querySelectorAll('.issue-card').forEach(card => {
+                const priority = card.dataset.priority;
+                const type = card.dataset.type;
+
+                if (filter === 'all') {
+                    card.style.display = 'grid';
+                } else if (filter === 'usability' || filter === 'functionality') {
+                    card.style.display = type === filter ? 'grid' : 'none';
+                } else {
+                    card.style.display = priority === filter ? 'grid' : 'none';
+                }
+            });
+
+            // Hide empty sections
+            document.querySelectorAll('.issue-section').forEach(section => {
+                const visibleCards = section.querySelectorAll('.issue-card[style="display: grid"], .issue-card:not([style])');
+                const hasVisible = Array.from(section.querySelectorAll('.issue-card')).some(c => c.style.display !== 'none');
+                section.style.display = hasVisible ? 'block' : 'none';
+            });
+        }
+
+        // Copy location
+        function copyLocation(location) {
+            navigator.clipboard.writeText(location);
+            showToast('Copied: ' + location);
+        }
+
+        // Show toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Export report
+        function exportReport() {
+            const completed = completedIssues.size;
+            const total = document.querySelectorAll('.issue-card').length;
+
+            let report = `# Semptify v5.0 Evaluation Report\n`;
+            report += `Generated: ${new Date().toLocaleDateString()}\n`;
+            report += `Progress: ${completed}/${total} issues resolved (${Math.round((completed/total)*100)}%)\n\n`;
+
+            document.querySelectorAll('.issue-section').forEach(section => {
+                const title = section.querySelector('.section-title').textContent;
+                report += `## ${title}\n\n`;
+
+                section.querySelectorAll('.issue-card').forEach(card => {
+                    const isCompleted = card.classList.contains('completed');
+                    const status = isCompleted ? '✅' : '⬜';
+                    const issueTitle = card.querySelector('.issue-title').textContent;
+                    const description = card.querySelector('.issue-description').textContent;
+                    const priority = card.querySelector('.issue-priority').textContent;
+
+                    report += `${status} **${issueTitle}** [${priority}]\n`;
+                    report += `   ${description}\n\n`;
+                });
+            });
+
+            const blob = new Blob([report], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'semptify-evaluation-report.md';
+            a.click();
+            showToast('Report exported!');
+        }
+
+        // Reset progress
+        function resetProgress() {
+            if (confirm('Reset all progress? This cannot be undone.')) {
+                completedIssues.clear();
+                localStorage.removeItem('semptify_completed_issues');
+                document.querySelectorAll('.issue-card').forEach(card => {
+                    card.classList.remove('completed');
+                    card.querySelector('.issue-checkbox').classList.remove('checked');
+                });
+                updateProgress();
+                showToast('Progress reset');
+            }
+        }
+    </script>
+</body>
+</html>

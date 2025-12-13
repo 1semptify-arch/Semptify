@@ -8,8 +8,9 @@ Each AI reads this file FIRST before doing any work.
 
 ## 📋 CURRENT PROJECT STATUS
 
-**Last Updated:** 2025-12-11 17:00
+**Last Updated:** 2025-12-11 19:50
 **Active Agents:** 3
+**Tests:** 540+ passing
 
 ---
 
@@ -17,7 +18,7 @@ Each AI reads this file FIRST before doing any work.
 
 | Agent | Role | Current Task | Status |
 |-------|------|--------------|--------|
-| **Agent 1** | Frontend/UI | Timeline improvements | ✅ Done |
+| **Agent 1** | Frontend/UI | Accessibility cleanup | ✅ Done |
 | **Agent 2** | Backend/API | (Available) | 🟢 Ready |
 | **Agent 3** | Testing/Docs | (Available) | 🟢 Ready |
 
@@ -38,9 +39,13 @@ Each AI reads this file FIRST before doing any work.
 - [x] Interactive zoomable timeline (Agent 1)
 - [x] Drag & drop file upload for events (Agent 1)
 - [x] Document Intelligence Service
-- [x] 509 tests passing
+- [x] 509 tests passing → now 540+ tests passing
 - [x] Briefcase comprehensive tests - 31 new tests (Agent 3)
 - [x] Voice input for accessibility (Agent 1)
+- [x] Full accessibility cleanup - all v2 pages fixed (Agent 1)
+- [x] Buttons with icons now have title/aria-label attributes
+- [x] Form inputs have proper labels for screen readers
+- [x] Modal close buttons accessible
 
 ---
 
@@ -86,10 +91,16 @@ Each AI reads this file FIRST before doing any work.
 
 ## 💬 AGENT NOTES (Leave messages here)
 
-**Agent 1 (2025-12-11):**
+**Agent 1 (2025-12-11 19:50):**
 - Timeline is done with drag/drop
-- Frontend files: `static/interactive-timeline.html`
-- Ready for next task
+- Voice input created: `static/js/voice-input.js`
+- Full accessibility cleanup completed on v2 pages:
+  - Fixed all icon-only buttons (added title + aria-label)
+  - Fixed form inputs (added labels)
+  - Fixed modal close buttons
+- All 540+ tests passing
+- Server health: OK
+- Files updated: dashboard-v2, documents-v2, timeline-v2, calendar-v2
 
 **Agent 2:**
 - (Write your notes here)

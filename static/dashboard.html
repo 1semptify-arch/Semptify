@@ -54,7 +54,7 @@
 
         .onboarding-card {
             background: var(--dark);
-            border-radius: 20px;
+            border-radius: 6px;
             padding: 3rem;
             max-width: 600px;
             text-align: center;
@@ -95,18 +95,19 @@
             gap: 1rem;
             padding: 1rem;
             background: var(--surface);
-            border-radius: 12px;
+            border-radius: 4px;
         }
 
         .onboarding-step .number {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             background: var(--primary);
-            border-radius: 50%;
+            border-radius: 3px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            font-size: 0.85rem;
             flex-shrink: 0;
         }
 
@@ -115,20 +116,20 @@
         }
 
         .start-btn {
-            background: linear-gradient(135deg, var(--primary), var(--success));
+            background: var(--primary);
             border: none;
-            padding: 1rem 3rem;
-            border-radius: 12px;
-            font-size: 1.1rem;
+            padding: 0.875rem 2.5rem;
+            border-radius: 4px;
+            font-size: 1rem;
             color: white;
             cursor: pointer;
             font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: background 0.15s ease, transform 0.15s ease;
         }
 
         .start-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+            background: var(--primary-dark);
+            transform: translateY(-1px);
         }
 
         /* Upload Modal */
@@ -151,7 +152,7 @@
 
         .upload-modal-content {
             background: var(--dark);
-            border-radius: 16px;
+            border-radius: 4px;
             padding: 2rem;
             width: 90%;
             max-width: 500px;
@@ -178,17 +179,17 @@
         }
 
         .upload-zone {
-            border: 2px dashed var(--surface);
-            border-radius: 12px;
-            padding: 3rem;
+            border: 1px dashed var(--surface);
+            border-radius: 4px;
+            padding: 2.5rem;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s ease;
         }
 
         .upload-zone:hover, .upload-zone.dragover {
             border-color: var(--primary);
-            background: rgba(99, 102, 241, 0.1);
+            background: rgba(99, 102, 241, 0.05);
         }
 
         .upload-zone .icon {
@@ -211,16 +212,16 @@
         }
 
         .progress-bar {
-            height: 8px;
+            height: 6px;
             background: var(--surface);
-            border-radius: 4px;
+            border-radius: 2px;
             overflow: hidden;
         }
 
         .progress-bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--success));
-            border-radius: 4px;
+            background: var(--primary);
+            border-radius: 2px;
             transition: width 0.3s;
             width: 0%;
         }
@@ -244,8 +245,8 @@
 
         .toast {
             background: var(--surface);
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
+            padding: 0.875rem 1.25rem;
+            border-radius: 3px;
             display: flex;
             align-items: center;
             gap: 0.75rem;
@@ -253,9 +254,9 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
-        .toast.success { border-left: 4px solid var(--success); }
-        .toast.error { border-left: 4px solid var(--danger); }
-        .toast.info { border-left: 4px solid var(--info); }
+        .toast.success { border-left: 3px solid var(--success); }
+        .toast.error { border-left: 3px solid var(--danger); }
+        .toast.info { border-left: 3px solid var(--info); }
 
         @keyframes slideIn {
             from { opacity: 0; transform: translateX(100px); }
@@ -278,19 +279,19 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.75rem 1.25rem;
-            border-radius: 10px;
-            font-size: 0.95rem;
+            padding: 0.625rem 1rem;
+            border-radius: 3px;
+            font-size: 0.9rem;
             cursor: pointer;
-            border: 2px solid var(--surface);
+            border: 1px solid var(--surface);
             background: var(--surface);
             color: var(--light);
-            transition: all 0.2s;
+            transition: all 0.15s ease;
         }
 
         .provider-btn:hover {
             border-color: var(--primary);
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
 
         .provider-btn.google:hover { border-color: #4285f4; }
@@ -347,16 +348,16 @@
 
         .storage-card {
             background: var(--surface);
-            border-radius: 10px;
+            border-radius: 4px;
             padding: 1rem;
         }
 
         .storage-card.connected {
-            border-left: 3px solid var(--success);
+            border-left: 2px solid var(--success);
         }
 
         .storage-card.disconnected {
-            border-left: 3px solid var(--warning);
+            border-left: 2px solid var(--warning);
         }
 
         .storage-card h4 {
@@ -378,7 +379,7 @@
             padding: 0.5rem;
             background: var(--primary);
             border: none;
-            border-radius: 6px;
+            border-radius: 3px;
             color: white;
             cursor: pointer;
             font-size: 0.85rem;
@@ -437,10 +438,10 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
+            padding: 0.625rem 0.875rem;
+            border-radius: 3px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s ease;
             margin-bottom: 0.25rem;
             color: var(--light);
             text-decoration: none;
@@ -466,8 +467,8 @@
             background: var(--danger);
             color: white;
             font-size: 0.7rem;
-            padding: 0.15rem 0.5rem;
-            border-radius: 10px;
+            padding: 0.125rem 0.4rem;
+            border-radius: 2px;
         }
 
         /* Case Status Card */
@@ -477,9 +478,10 @@
         }
 
         .case-card {
-            background: linear-gradient(135deg, var(--surface), var(--overlay));
-            border-radius: 12px;
+            background: var(--surface);
+            border-radius: 4px;
             padding: 1rem;
+            border-left: 2px solid var(--warning);
         }
 
         .case-card h4 {
@@ -536,7 +538,8 @@
             gap: 0.5rem;
             background: var(--surface);
             padding: 0.5rem 1rem;
-            border-radius: 8px;
+            border-radius: 3px;
+            border: 1px solid var(--surface);
             width: 400px;
         }
 
@@ -563,11 +566,11 @@
             align-items: center;
             gap: 0.5rem;
             padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
+            border-radius: 3px;
+            font-size: 0.875rem;
             cursor: pointer;
             border: none;
-            transition: all 0.2s;
+            transition: all 0.15s ease;
             text-decoration: none;
         }
 
@@ -637,10 +640,11 @@
 
         .stat-card {
             background: var(--surface);
-            border-radius: 12px;
-            padding: 1.5rem;
+            border-radius: 4px;
+            padding: 1.25rem;
             position: relative;
             overflow: hidden;
+            border: 1px solid var(--surface);
         }
 
         .stat-card::before {
@@ -685,8 +689,9 @@
 
         .widget {
             background: var(--surface);
-            border-radius: 12px;
-            padding: 1.5rem;
+            border-radius: 4px;
+            padding: 1.25rem;
+            border: 1px solid var(--surface);
         }
 
         .widget-header {
@@ -752,8 +757,8 @@
 
         .timeline-content .tag {
             display: inline-block;
-            padding: 0.15rem 0.5rem;
-            border-radius: 4px;
+            padding: 0.125rem 0.4rem;
+            border-radius: 2px;
             font-size: 0.7rem;
             margin-top: 0.5rem;
         }
@@ -773,11 +778,11 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 1rem;
+            padding: 0.875rem;
             background: var(--overlay);
-            border-radius: 8px;
+            border-radius: 3px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s ease;
         }
 
         .quick-action:hover {
@@ -806,10 +811,10 @@
         }
 
         .filter-tab {
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
+            padding: 0.4rem 0.875rem;
+            border-radius: 3px;
             cursor: pointer;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             background: var(--surface);
             color: var(--light);
             border: none;
@@ -827,16 +832,16 @@
 
         .doc-card {
             background: var(--surface);
-            border-radius: 12px;
-            padding: 1.25rem;
+            border-radius: 4px;
+            padding: 1rem;
             cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid transparent;
+            transition: all 0.15s ease;
+            border: 1px solid var(--surface);
         }
 
         .doc-card:hover {
             border-color: var(--primary);
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
 
         .doc-card .doc-icon {

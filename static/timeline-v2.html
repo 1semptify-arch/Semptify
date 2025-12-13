@@ -98,7 +98,7 @@
             <h1 class="page-title">Timeline</h1>
           </div>
           <div class="header-actions">
-            <button class="btn btn-ghost btn-icon" id="theme-toggle">
+            <button class="btn btn-ghost btn-icon" id="theme-toggle" title="Toggle theme" aria-label="Toggle theme">
               <i class="fas fa-moon" id="theme-icon"></i>
             </button>
           </div>
@@ -196,7 +196,7 @@
     <div class="modal">
       <div class="modal-header">
         <h2 class="modal-title" id="modal-title">Add Timeline Event</h2>
-        <button class="modal-close" onclick="closeEventModal()"><i class="fas fa-times"></i></button>
+        <button class="modal-close" onclick="closeEventModal()" title="Close" aria-label="Close"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body">
         <form id="event-form">
@@ -251,7 +251,7 @@
     <div class="modal modal-sm">
       <div class="modal-header">
         <h2 class="modal-title">Filter Timeline</h2>
-        <button class="modal-close" onclick="closeFilterModal()"><i class="fas fa-times"></i></button>
+        <button class="modal-close" onclick="closeFilterModal()" title="Close" aria-label="Close"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body">
         <div class="form-group">
