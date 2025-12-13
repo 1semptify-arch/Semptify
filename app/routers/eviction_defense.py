@@ -151,11 +151,11 @@ COURT_FORMS = {
         ],
         "instructions": [
             "File with your Answer or within 10 days after Answer",
-            "Pay jury fee (currently $75)",
+            "Pay jury fee (verify current amount with court clerk - approximately $75 as of 2024)",
             "Jury trial typically scheduled 2-4 weeks later than bench trial",
             "Jury must reach unanimous verdict"
         ],
-        "filing_fee": 75,
+        "filing_fee": 75,  # Verify with court - fees may change
         "deadline_days": 10
     },
     "motion_to_dismiss": {
@@ -387,7 +387,7 @@ PROCEDURES = {
             {"step": "1", "action": "Complete the Answer form", "details": "Fill out all required fields, check applicable defenses and counterclaims"},
             {"step": "2", "action": "Make copies", "details": "Original for court, one copy for yourself, one for landlord"},
             {"step": "3", "action": "File with court", "details": "Dakota County District Court, 1560 Highway 55, Hastings, MN 55033"},
-            {"step": "4", "action": "Pay filing fee (if any)", "details": "Answer is free; jury demand is $75"},
+            {"step": "4", "action": "Pay filing fee (if any)", "details": "Answer is typically free; jury demand fee varies - verify with court clerk"},
             {"step": "5", "action": "Serve the landlord", "details": "Mail a copy to landlord or their attorney"},
             {"step": "6", "action": "File proof of service", "details": "Complete and file Certificate of Service with court"}
         ],
@@ -767,47 +767,49 @@ async def get_statistics(user: StorageUser = Depends(require_user)):
 async def list_defenses(user: StorageUser = Depends(require_user)):
     """List all available eviction defenses with explanations."""
     return {
+        "disclaimer": LEGAL_DISCLAIMER,
+        "note": "Strength ratings are general estimates based on legal analysis, not guarantees. Outcomes depend on specific facts, evidence quality, and judicial discretion.",
         "defenses": [
             {
                 "type": DefenseType.IMPROPER_NOTICE,
                 "name": "Improper Notice",
                 "description": "The landlord's notice was defective in form, timing, or service.",
-                "success_rate": "78%",
+                "strength": "Strong when notice clearly fails to meet statutory requirements (Minn. Stat. § 504B.321)",
                 "evidence_needed": ["Original notice", "Proof of service date", "Lease terms"]
             },
             {
                 "type": DefenseType.RETALIATION,
                 "name": "Retaliatory Eviction",
                 "description": "Landlord is evicting you for exercising your legal rights.",
-                "success_rate": "52%",
+                "strength": "Presumed retaliatory if within 90 days of protected activity (Minn. Stat. § 504B.285)",
                 "evidence_needed": ["Complaint records", "Timeline of events", "Landlord communications"]
             },
             {
                 "type": DefenseType.HABITABILITY,
                 "name": "Uninhabitable Conditions",
                 "description": "Landlord failed to maintain safe, habitable premises.",
-                "success_rate": "45%",
+                "strength": "Depends on severity of conditions and documentation (Minn. Stat. § 504B.161)",
                 "evidence_needed": ["Photos/videos", "Repair requests", "Inspection reports"]
             },
             {
                 "type": DefenseType.DISCRIMINATION,
                 "name": "Discriminatory Eviction",
                 "description": "Eviction is based on protected class status.",
-                "success_rate": "61%",
+                "strength": "Strong with comparative evidence showing disparate treatment (Fair Housing Act)",
                 "evidence_needed": ["Comparative evidence", "Statements by landlord", "Pattern of conduct"]
             },
             {
                 "type": DefenseType.WAIVER,
                 "name": "Waiver by Landlord",
                 "description": "Landlord accepted rent after alleged violation, waiving right to evict.",
-                "success_rate": "65%",
+                "strength": "Strong when landlord knowingly accepted rent after learning of violation",
                 "evidence_needed": ["Payment records", "Receipt showing acceptance after notice"]
             },
             {
                 "type": DefenseType.PAYMENT,
                 "name": "Payment Was Made",
                 "description": "Rent was actually paid as alleged or cure occurred.",
-                "success_rate": "72%",
+                "strength": "Strong with clear payment documentation (Minn. Stat. § 504B.291)",
                 "evidence_needed": ["Bank records", "Receipts", "Money order stubs"]
             }
         ]

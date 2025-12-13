@@ -16,6 +16,19 @@ router = APIRouter(prefix="/api/law-library", tags=["Law Library"])
 
 
 # =============================================================================
+# LEGAL DISCLAIMER - Included with all responses
+# =============================================================================
+LEGAL_DISCLAIMER = (
+    "This information is for educational purposes only and does not constitute "
+    "legal advice. Laws change frequently - always verify current statutes at "
+    "revisor.mn.gov. For advice about your specific situation, consult with a "
+    "licensed attorney or contact Legal Aid (www.LawHelpMN.org)."
+)
+
+LAST_VERIFIED_DATE = "2025-01-01"  # Date when legal content was last verified
+
+
+# =============================================================================
 # Data Models
 # =============================================================================
 
@@ -1480,7 +1493,7 @@ CASE_LAW_DATABASE = [
 # Endpoints
 # =============================================================================
 
-@router.get("/statutes", response_model=List[LawReference])
+@router.get("/statutes")
 async def list_statutes(
     category: Optional[str] = Query(None, description="Filter by category"),
     search: Optional[str] = Query(None, description="Search in title and summary"),
@@ -1498,10 +1511,14 @@ async def list_statutes(
                 search_lower in l.get("title", "").lower() or 
                 search_lower in l.get("summary", "").lower()]
     
-    return [LawReference(**law) for law in laws]
+    return {
+        "disclaimer": LEGAL_DISCLAIMER,
+        "last_verified": LAST_VERIFIED_DATE,
+        "statutes": [LawReference(**law) for law in laws]
+    }
 
 
-@router.get("/statutes/{statute_id}", response_model=LawReference)
+@router.get("/statutes/{statute_id}")
 async def get_statute(
     statute_id: str,
     user: StorageUser = Depends(require_user)
@@ -1510,8 +1527,13 @@ async def get_statute(
     if statute_id not in ALL_LAWS:
         raise HTTPException(status_code=404, detail="Statute not found")
 
-    return LawReference(**ALL_LAWS[statute_id])
-@router.get("/court-rules", response_model=List[CourtRule])
+    return {
+        "disclaimer": LEGAL_DISCLAIMER,
+        "last_verified": LAST_VERIFIED_DATE,
+        "statute": LawReference(**ALL_LAWS[statute_id])
+    }
+    
+@router.get("/court-rules")
 async def list_court_rules(
     category: Optional[str] = Query(None, description="Filter by category"),
     user: StorageUser = Depends(require_user)
@@ -1522,7 +1544,11 @@ async def list_court_rules(
     if category:
         rules = [r for r in rules if r.get("category") == category]
     
-    return [CourtRule(**rule) for rule in rules]
+    return {
+        "disclaimer": LEGAL_DISCLAIMER,
+        "note": "These are practical guidelines based on court rules. Always verify current procedures with the court clerk.",
+        "rules": [CourtRule(**rule) for rule in rules]
+    }
 
 
 @router.get("/court-rules/{rule_id}", response_model=CourtRule)
@@ -1534,10 +1560,14 @@ async def get_court_rule(
     if rule_id not in DAKOTA_COUNTY_RULES:
         raise HTTPException(status_code=404, detail="Court rule not found")
     
-    return CourtRule(**DAKOTA_COUNTY_RULES[rule_id])
+    return {
+        "disclaimer": LEGAL_DISCLAIMER,
+        "note": "Practical guideline - verify current procedures with court clerk.",
+        "rule": CourtRule(**DAKOTA_COUNTY_RULES[rule_id])
+    }
 
 
-@router.get("/case-law", response_model=List[CaseReference])
+@router.get("/case-law")
 async def list_case_law(
     search: Optional[str] = Query(None, description="Search in case name and summary"),
     user: StorageUser = Depends(require_user)
@@ -1551,10 +1581,13 @@ async def list_case_law(
                  search_lower in c.get("case_name", "").lower() or 
                  search_lower in c.get("summary", "").lower()]
     
-    return [CaseReference(**case) for case in cases]
+    return {
+        "disclaimer": LEGAL_DISCLAIMER,
+        "cases": [CaseReference(**case) for case in cases]
+    }
 
 
-@router.get("/case-law/{case_id}", response_model=CaseReference)
+@router.get("/case-law/{case_id}")
 async def get_case(
     case_id: str,
     user: StorageUser = Depends(require_user)
@@ -1562,7 +1595,10 @@ async def get_case(
     """Get a specific case by ID."""
     for case in CASE_LAW_DATABASE:
         if case["id"] == case_id:
-            return CaseReference(**case)
+            return {
+                "disclaimer": LEGAL_DISCLAIMER,
+                "case": CaseReference(**case)
+            }
     
     raise HTTPException(status_code=404, detail="Case not found")
 
