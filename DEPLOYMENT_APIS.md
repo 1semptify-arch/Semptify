@@ -145,6 +145,35 @@ https://yourdomain.com/storage/callback/onedrive
 
 ---
 
+## ☁️ Cloudflare R2 (System Storage - Optional)
+**Purpose:** System-level storage for admin operations, shared assets, backups
+**Note:** Users store their data in their OWN cloud storage (Google Drive/Dropbox/OneDrive). R2 is for system use only.
+
+| Setting | Environment Variable | Value |
+|---------|---------------------|-------|
+| Account ID | `R2_ACCOUNT_ID` | From Cloudflare Dashboard |
+| Access Key ID | `R2_ACCESS_KEY_ID` | R2 API Token |
+| Secret Access Key | `R2_SECRET_ACCESS_KEY` | R2 API Token Secret |
+| Bucket Name | `R2_BUCKET_NAME` | `semptify-system` (default) |
+| Endpoint | `R2_ENDPOINT` | `https://<account_id>.r2.cloudflarestorage.com` |
+| API Token | `R2_API_TOKEN` | For R2 management operations |
+
+**Setup:**
+1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/) → R2
+2. Create a bucket (e.g., `semptify-system`)
+3. Go to R2 → Manage R2 API Tokens
+4. Create API token with Object Read & Write permissions
+5. Copy Account ID, Access Key ID, and Secret Access Key
+
+**Use Cases:**
+- System configuration storage
+- Shared template documents
+- Law library caching
+- Admin-level backups
+- Static assets that don't belong to users
+
+---
+
 ## 📄 Azure AI Document Intelligence (Optional)
 **Purpose:** Advanced document OCR & extraction
 
@@ -209,6 +238,15 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 # OR Gemini (FREE)
 # GEMINI_API_KEY=...
+
+# ===========================================
+# CLOUDFLARE R2 (Optional - System Storage)
+# ===========================================
+R2_ACCOUNT_ID=your-account-id
+R2_ACCESS_KEY_ID=your-access-key
+R2_SECRET_ACCESS_KEY=your-secret-key
+R2_BUCKET_NAME=semptify-system
+R2_ENDPOINT=https://your-account-id.r2.cloudflarestorage.com
 
 # ===========================================
 # AZURE AI (Optional - Document Intelligence)
