@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zoom Court Helper - Semptify</title>
     <link rel="stylesheet" href="/static/css/shared-nav.css">
+    <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -470,6 +471,17 @@
         // Restore saved link
         const savedLink = localStorage.getItem('semptify_zoom_link');
         if (savedLink) document.getElementById('zoomLink').value = savedLink;
+    </script>
+    
+    <!-- Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/semptify-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof SemptifyHelp !== 'undefined') {
+                SemptifyHelp.init('zoom_court');
+            }
+        });
     </script>
 </body>
 </html>

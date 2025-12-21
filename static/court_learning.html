@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Court Learning System - Semptify</title>
+    <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -940,6 +941,17 @@
                 btn.textContent = '🌱 Seed Historical Data';
             }
         }
+    </script>
+    
+    <!-- Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/semptify-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof SemptifyHelp !== 'undefined') {
+                SemptifyHelp.init('court_learning');
+            }
+        });
     </script>
 </body>
 </html>

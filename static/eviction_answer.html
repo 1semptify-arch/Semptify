@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Your Answer to Eviction - Semptify</title>
     <link rel="stylesheet" href="/static/css/shared-nav.css">
+    <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -668,6 +669,16 @@ I believe this eviction is retaliation because I reported the heating issue to t
     </div>
     
     <script src="/static/js/shared-nav.js"></script>
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/semptify-auth.js"></script>
+    <script>
+        // Initialize help system for this page
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof SemptifyHelp !== 'undefined') {
+                SemptifyHelp.init('eviction_answer');
+            }
+        });
+    </script>
     <script>
         let currentStep = 1;
         const totalSteps = 5;

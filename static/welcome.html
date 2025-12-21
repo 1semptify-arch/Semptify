@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semptify - The Tenant's Journal</title>
+    <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
         * {
             margin: 0;
@@ -563,8 +564,11 @@
 
         <!-- CTA -->
         <div class="cta">
-            <a href="/static/onboarding/welcome.html" class="cta-button">Start Your Tenant Journal</a>
+            <a href="/static/storage_setup.html" class="cta-button">Start Your Tenant Journal</a>
             <p>Free to use. Your documents stay in your control.</p>
+            <p style="margin-top: 0.5rem; font-size: 0.85rem;">
+                <a href="/static/home.html" style="color: var(--accent);">Already have an account? Go to Dashboard →</a>
+            </p>
         </div>
 
     </article>
@@ -576,5 +580,15 @@
         </p>
     </footer>
 
+    <!-- Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/semptify-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof SemptifyHelp !== 'undefined') {
+                SemptifyHelp.init('welcome');
+            }
+        });
+    </script>
 </body>
 </html>

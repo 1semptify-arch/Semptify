@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Legal Trails - Semptify</title>
+    <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
         :root {
             --bg-primary: #0a0a0f;
@@ -1467,6 +1468,17 @@
         // Initialize
         loadStats();
         loadAttorneys();
+    </script>
+    
+    <!-- Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/semptify-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof SemptifyHelp !== 'undefined') {
+                SemptifyHelp.init('legal_trails');
+            }
+        });
     </script>
 </body>
 </html>

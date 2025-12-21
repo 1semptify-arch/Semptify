@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Complaint Intake - Start Your Case</title>
+    <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -361,6 +362,17 @@
         
         // Set today's date as default for filing
         document.getElementById('filing_date').value = new Date().toISOString().split('T')[0];
+    </script>
+    
+    <!-- Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/semptify-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof SemptifyHelp !== 'undefined') {
+                SemptifyHelp.init('intake');
+            }
+        });
     </script>
 </body>
 </html>
