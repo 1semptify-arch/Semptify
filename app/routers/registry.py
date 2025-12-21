@@ -246,19 +246,21 @@ async def get_document(doc_id: str, request: Request, user: UserContext = Depend
 
 @router.get("/documents", response_model=list[RegisteredDocumentResponse])
 async def list_documents(
-    user_id: Optional[str] = Depends(get_optional_user_id),
+    user: UserContext = Depends(require_user),
     case_number: Optional[str] = Query(None, description="Filter by case number"),
     status: Optional[str] = Query(None, description="Filter by status"),
 ):
-    """List registered documents with optional filters."""
+    """List registered documents for the authenticated user with optional filters."""
     registry = get_document_registry()
     
+    # SECURITY: Always filter by user_id - never return all documents
     if case_number:
+        # Get case documents, then filter to only user's docs
         docs = registry.get_documents_by_case(case_number)
-    elif user_id:
-        docs = registry.get_documents_by_user(user_id)
+        docs = [d for d in docs if d.user_id == user.user_id]
     else:
-        docs = list(registry._documents.values())
+        # Get only user's documents
+        docs = registry.get_documents_by_user(user.user_id)
     
     if status:
         try:
@@ -297,49 +299,75 @@ async def delete_document(doc_id: str, user: UserContext = Depends(require_user)
 
 
 @router.delete("/documents")
-async def clear_all_documents(confirm: bool = Query(False, description="Set to true to confirm deletion")):
-    """Clear ALL registered documents. Requires confirm=true."""
+async def clear_all_documents(
+    user: UserContext = Depends(require_user),
+    confirm: bool = Query(False, description="Set to true to confirm deletion")
+):
+    """Clear all registered documents FOR THE CURRENT USER. Requires confirm=true."""
     if not confirm:
         raise HTTPException(
             status_code=400, 
-            detail="Set confirm=true to delete all documents. This action cannot be undone."
+            detail="Set confirm=true to delete all your documents. This action cannot be undone."
         )
     
     registry = get_document_registry()
-    count = len(registry._documents)
     
-    # Clear all documents
-    registry._documents.clear()
-    registry._hash_index.clear()
+    # SECURITY: Only delete user's own documents
+    user_docs = registry.get_documents_by_user(user.user_id)
+    count = len(user_docs)
+    
+    # Remove only user's documents
+    for doc in user_docs:
+        if doc.document_id in registry._documents:
+            del registry._documents[doc.document_id]
+        if doc.content_hash in registry._hash_index:
+            registry._hash_index[doc.content_hash].discard(doc.document_id)
+            if not registry._hash_index[doc.content_hash]:
+                del registry._hash_index[doc.content_hash]
     
     return {
         "status": "cleared",
         "deleted_count": count,
-        "message": f"Successfully deleted {count} documents"
+        "message": f"Successfully deleted {count} of your documents"
     }
 
 
 @router.get("/documents/{doc_id}/duplicates", response_model=list[RegisteredDocumentResponse])
-async def get_duplicates(doc_id: str):
-    """Get all duplicates of a document."""
+async def get_duplicates(doc_id: str, user: UserContext = Depends(require_user)):
+    """Get all duplicates of a document. User must own the document."""
     registry = get_document_registry()
     
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
     
+    # SECURITY: Verify user owns this document
+    if doc.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied - you do not own this document")
+    
     duplicates = registry.get_duplicates(doc_id)
+    # Also filter duplicates to only show user's own duplicates
+    duplicates = [d for d in duplicates if d.user_id == user.user_id]
     return [_doc_to_response(d) for d in duplicates]
 
 
 @router.get("/documents/{doc_id}/custody", response_model=list[CustodyRecordResponse])
-async def get_custody_chain(doc_id: str):
-    """Get the full chain of custody for a document."""
+async def get_custody_chain(doc_id: str, user: UserContext = Depends(require_user)):
+    """Get the full chain of custody for a document. User must own the document."""
     registry = get_document_registry()
+    
+    # First check document exists and user owns it
+    doc = registry.get_document(doc_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
+    
+    # SECURITY: Verify user owns this document
+    if doc.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied - you do not own this document")
     
     chain = registry.get_custody_chain(doc_id)
     if not chain:
-        raise HTTPException(status_code=404, detail=f"Document {doc_id} not found or no custody records")
+        raise HTTPException(status_code=404, detail=f"No custody records for document {doc_id}")
     
     return [
         CustodyRecordResponse(
