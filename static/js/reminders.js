@@ -8,6 +8,11 @@
  * - General documentation prompts after 30 days of inactivity
  * - Dismissable reminders that don't repeat same month
  * 
+ * Architecture:
+ * - Last document date fetched from user's CLOUD STORAGE via vault API
+ * - NO localStorage for user data (Semptify zero-knowledge architecture)
+ * - Session-only state for UI preferences (dismissals reset each session)
+ * 
  * Usage: Include this script on any page:
  *   <script src="/static/js/reminders.js"></script>
  */
@@ -15,35 +20,107 @@
 (function() {
     'use strict';
     
-    // LocalStorage keys
-    const REMINDER_DISMISSED_KEY = 'semptify_reminder_dismissed';
-    const LAST_DOC_KEY = 'semptify_last_document';
-    const REMINDER_SHOWN_TODAY_KEY = 'semptify_reminder_shown_today';
+    // Session-only state (NOT localStorage - respects Semptify's zero-knowledge architecture)
+    // These reset each browser session, which is appropriate for reminder UI state
+    let reminderDismissedThisSession = false;
+    let reminderShownThisSession = false;
+    let cachedLastDocDate = null;
+    
+    /**
+     * Get auth tokens from existing Semptify auth system
+     */
+    function getAuthHeaders() {
+        // Uses window.semptify for auth state (set by auth system)
+        const accessToken = window.semptify?.accessToken || window.semptify?.auth?.accessToken;
+        const idToken = window.semptify?.idToken || window.semptify?.auth?.idToken;
+        
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        if (accessToken) {
+            headers['Authorization'] = `Bearer ${accessToken}`;
+        }
+        
+        return { headers, accessToken };
+    }
+    
+    /**
+     * Fetch last document date from vault API (user's cloud storage)
+     * Returns the upload date of the most recent document
+     */
+    async function fetchLastDocumentDate() {
+        // Return cached value if already fetched this session
+        if (cachedLastDocDate !== null) {
+            return cachedLastDocDate;
+        }
+        
+        const { accessToken } = getAuthHeaders();
+        
+        // Can't check without auth
+        if (!accessToken) {
+            return null;
+        }
+        
+        try {
+            const response = await fetch(`/api/vault/?access_token=${encodeURIComponent(accessToken)}`, {
+                method: 'GET',
+                credentials: 'include'
+            });
+            
+            if (!response.ok) {
+                console.debug('Reminders: Could not fetch vault documents');
+                return null;
+            }
+            
+            const data = await response.json();
+            
+            // Documents are sorted newest first by vault API
+            if (data.documents && data.documents.length > 0) {
+                cachedLastDocDate = data.documents[0].uploaded_at;
+                return cachedLastDocDate;
+            }
+            
+            // No documents yet
+            cachedLastDocDate = 'none';
+            return null;
+        } catch (error) {
+            console.debug('Reminders: Error fetching vault documents', error);
+            return null;
+        }
+    }
     
     /**
      * Check if reminder should be shown
+     * Async because it may need to fetch from vault API
      */
-    function shouldShowReminder() {
-        const lastDoc = localStorage.getItem(LAST_DOC_KEY);
-        const dismissed = localStorage.getItem(REMINDER_DISMISSED_KEY);
-        const shownToday = localStorage.getItem(REMINDER_SHOWN_TODAY_KEY);
-        const now = new Date();
-        const today = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
-        const thisMonth = `${now.getFullYear()}-${now.getMonth()}`;
+    async function shouldShowReminder() {
+        // Don't show if already shown this session
+        if (reminderShownThisSession) return false;
         
-        // Don't show if already shown today
-        if (shownToday === today) return false;
-        
-        // Don't show if dismissed this month
-        if (dismissed === thisMonth) return false;
+        // Don't show if dismissed this session
+        if (reminderDismissedThisSession) return false;
         
         // Don't show on document intake page (they're already documenting!)
         if (window.location.pathname.includes('document_intake.html')) return false;
+        
+        // Don't show on welcome/onboarding pages
+        if (window.location.pathname.includes('welcome') || 
+            window.location.pathname.includes('onboarding') ||
+            window.location.pathname.includes('storage_setup')) return false;
+        
+        // Need to be authenticated to check vault
+        const { accessToken } = getAuthHeaders();
+        if (!accessToken) return false;
+        
+        // Fetch last document date from user's cloud storage
+        const lastDoc = await fetchLastDocumentDate();
         
         // Show if never documented
         if (!lastDoc) return true;
         
         // Show if >30 days since last document
+        const now = new Date();
         const daysSince = (now - new Date(lastDoc)) / (1000 * 60 * 60 * 24);
         return daysSince > 30;
     }
@@ -81,15 +158,14 @@
     /**
      * Create and show reminder toast
      */
-    function showReminder() {
-        if (!shouldShowReminder()) return;
+    async function showReminder() {
+        const shouldShow = await shouldShowReminder();
+        if (!shouldShow) return;
         
         const reminder = getReminderMessage();
-        const now = new Date();
-        const today = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
         
-        // Mark as shown today
-        localStorage.setItem(REMINDER_SHOWN_TODAY_KEY, today);
+        // Mark as shown this session
+        reminderShownThisSession = true;
         
         // Use existing toast system if available
         if (window.showToast && typeof window.showToast === 'function') {
@@ -253,12 +329,11 @@
     }
     
     /**
-     * Dismiss reminder for this month
+     * Dismiss reminder for this session
+     * No localStorage - just session memory (resets on page refresh/new session)
      */
     function dismissReminder() {
-        const now = new Date();
-        const thisMonth = `${now.getFullYear()}-${now.getMonth()}`;
-        localStorage.setItem(REMINDER_DISMISSED_KEY, thisMonth);
+        reminderDismissedThisSession = true;
         
         // Remove toast if present
         const toast = document.querySelector('.reminder-toast');
@@ -269,22 +344,24 @@
     }
     
     /**
-     * Mark document as uploaded - resets reminder timer
+     * Mark document as uploaded - invalidates cache so next check uses fresh data
      * Call this from document_intake.html on successful upload
+     * The actual last document date is stored in user's CLOUD STORAGE
      */
     function markDocumentUploaded() {
-        localStorage.setItem(LAST_DOC_KEY, new Date().toISOString());
-        // Clear any shown flags so reminder is reset
-        localStorage.removeItem(REMINDER_SHOWN_TODAY_KEY);
-        localStorage.removeItem(REMINDER_DISMISSED_KEY);
+        // Clear cache so next reminder check fetches fresh data from vault
+        cachedLastDocDate = null;
+        reminderDismissedThisSession = true;
+        reminderShownThisSession = false;
     }
     
     /**
      * Get days since last document
-     * Useful for UI displays
+     * Async - fetches from user's cloud storage
+     * Returns null if not authenticated or no documents
      */
-    function getDaysSinceLastDocument() {
-        const lastDoc = localStorage.getItem(LAST_DOC_KEY);
+    async function getDaysSinceLastDocument() {
+        const lastDoc = await fetchLastDocumentDate();
         if (!lastDoc) return null;
         
         const now = new Date();
@@ -298,8 +375,11 @@
     window.getDaysSinceLastDocument = getDaysSinceLastDocument;
     
     // Show reminder after page loads (with slight delay to avoid overwhelming user)
-    function init() {
-        setTimeout(showReminder, 3000);
+    // Also wait for auth to be ready
+    async function init() {
+        // Wait for potential auth initialization
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        await showReminder();
     }
     
     if (document.readyState === 'loading') {

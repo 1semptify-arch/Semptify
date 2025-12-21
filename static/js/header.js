@@ -230,12 +230,10 @@
         }
         document.body.appendChild(fab);
         
-        // Add pulse animation for first-time users
-        const hasSeenFab = localStorage.getItem('semptify_seen_fab');
-        if (!hasSeenFab) {
-            fab.classList.add('pulse');
-            localStorage.setItem('semptify_seen_fab', 'true');
-        }
+        // Add pulse animation on first page load of session
+        // No localStorage - Semptify uses zero-knowledge architecture
+        // The pulse draws attention to the FAB initially, then stops after 3 cycles
+        fab.classList.add('pulse');
     }
 
     if (document.readyState === 'loading') {
