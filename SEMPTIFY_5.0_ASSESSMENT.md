@@ -282,7 +282,7 @@ Semptify users are likely:
 
 ### Short-term (Next 2 Weeks)
 - [x] Add help-system.js to 30+ missing pages ✅ DONE 12/21
-- [ ] Create unified entry point
+- [x] Create unified entry point ✅ DONE 12/21 (welcome, home, index-simple redirect to /)
 - [ ] Update shared-nav.js with simplified menu
 
 ### Medium-term (Next Month)
