@@ -811,3 +811,506 @@ async def get_highlights_grouped_by_color():
         color_groups[color].append(highlight)
     
     return {"groups": color_groups}
+
+
+# ============ Document Annotation API (Footnote Indexing) ============
+
+# In-memory annotation storage (in production, use database)
+annotation_data = {
+    "annotations": {},
+    "global_counter": 0,
+    "category_counters": {}
+}
+
+
+class AnnotationCreate(BaseModel):
+    document_id: str
+    extraction_code: str
+    highlight_text: str
+    page_number: int
+    annotation_note: Optional[str] = None
+    position_x: Optional[float] = 0.0
+    position_y: Optional[float] = 0.0
+    position_width: Optional[float] = 0.0
+    position_height: Optional[float] = 0.0
+    detection_method: Optional[str] = "MANUAL"
+    confidence: Optional[float] = 1.0
+    linked_event_id: Optional[str] = None
+
+
+class AnnotationUpdate(BaseModel):
+    annotation_note: Optional[str] = None
+    linked_event_id: Optional[str] = None
+
+
+@router.post("/annotation")
+async def create_annotation(annotation: AnnotationCreate):
+    """
+    Create a new document annotation with auto-numbered footnotes.
+    Returns both global footnote number and category-specific number.
+    """
+    annotation_id = str(uuid.uuid4())
+    
+    # Increment global counter
+    annotation_data["global_counter"] += 1
+    global_num = annotation_data["global_counter"]
+    
+    # Increment category counter
+    code = annotation.extraction_code
+    if code not in annotation_data["category_counters"]:
+        annotation_data["category_counters"][code] = 0
+    annotation_data["category_counters"][code] += 1
+    category_num = annotation_data["category_counters"][code]
+    
+    new_annotation = {
+        "id": annotation_id,
+        "document_id": annotation.document_id,
+        "footnote_number": global_num,
+        "category_number": category_num,
+        "extraction_code": code,
+        "marker_id": f"{code}-{category_num}",
+        "highlight_text": annotation.highlight_text,
+        "annotation_note": annotation.annotation_note,
+        "page_number": annotation.page_number,
+        "position_x": annotation.position_x,
+        "position_y": annotation.position_y,
+        "position_width": annotation.position_width,
+        "position_height": annotation.position_height,
+        "detection_method": annotation.detection_method,
+        "confidence": annotation.confidence,
+        "linked_event_id": annotation.linked_event_id,
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
+    
+    annotation_data["annotations"][annotation_id] = new_annotation
+    
+    return {"success": True, "annotation": new_annotation}
+
+
+@router.get("/annotations")
+async def list_annotations(
+    document_id: Optional[str] = None,
+    extraction_code: Optional[str] = None,
+    page_number: Optional[int] = None
+):
+    """List annotations with optional filters."""
+    annotations = list(annotation_data["annotations"].values())
+    
+    if document_id:
+        annotations = [a for a in annotations if a["document_id"] == document_id]
+    if extraction_code:
+        annotations = [a for a in annotations if a["extraction_code"] == extraction_code]
+    if page_number is not None:
+        annotations = [a for a in annotations if a["page_number"] == page_number]
+    
+    # Sort by footnote number
+    annotations.sort(key=lambda x: x["footnote_number"])
+    
+    return {
+        "annotations": annotations,
+        "count": len(annotations),
+        "global_counter": annotation_data["global_counter"],
+        "category_counters": annotation_data["category_counters"]
+    }
+
+
+@router.get("/annotation/{annotation_id}")
+async def get_annotation(annotation_id: str):
+    """Get a specific annotation."""
+    if annotation_id not in annotation_data["annotations"]:
+        raise HTTPException(status_code=404, detail="Annotation not found")
+    return annotation_data["annotations"][annotation_id]
+
+
+@router.put("/annotation/{annotation_id}")
+async def update_annotation(annotation_id: str, update: AnnotationUpdate):
+    """Update an annotation's note or linked event."""
+    if annotation_id not in annotation_data["annotations"]:
+        raise HTTPException(status_code=404, detail="Annotation not found")
+    
+    annotation = annotation_data["annotations"][annotation_id]
+    
+    if update.annotation_note is not None:
+        annotation["annotation_note"] = update.annotation_note
+    if update.linked_event_id is not None:
+        annotation["linked_event_id"] = update.linked_event_id
+    
+    annotation["updated_at"] = datetime.now().isoformat()
+    
+    return {"success": True, "annotation": annotation}
+
+
+@router.delete("/annotation/{annotation_id}")
+async def delete_annotation(annotation_id: str):
+    """Delete an annotation."""
+    if annotation_id not in annotation_data["annotations"]:
+        raise HTTPException(status_code=404, detail="Annotation not found")
+    
+    del annotation_data["annotations"][annotation_id]
+    return {"success": True}
+
+
+@router.post("/annotation/{annotation_id}/link-event")
+async def link_annotation_to_event(
+    annotation_id: str,
+    event_id: str = Form(...)
+):
+    """Link an annotation to a timeline event."""
+    if annotation_id not in annotation_data["annotations"]:
+        raise HTTPException(status_code=404, detail="Annotation not found")
+    
+    annotation = annotation_data["annotations"][annotation_id]
+    annotation["linked_event_id"] = event_id
+    annotation["updated_at"] = datetime.now().isoformat()
+    
+    return {"success": True, "annotation": annotation}
+
+
+@router.get("/annotations/by-document/{document_id}")
+async def get_annotations_by_document(document_id: str):
+    """Get all annotations for a document, grouped by extraction code."""
+    annotations = [
+        a for a in annotation_data["annotations"].values()
+        if a["document_id"] == document_id
+    ]
+    
+    # Group by extraction code
+    grouped = {}
+    for ann in annotations:
+        code = ann["extraction_code"]
+        if code not in grouped:
+            grouped[code] = []
+        grouped[code].append(ann)
+    
+    # Sort within each group
+    for code in grouped:
+        grouped[code].sort(key=lambda x: x["category_number"])
+    
+    return {
+        "document_id": document_id,
+        "groups": grouped,
+        "total_count": len(annotations)
+    }
+
+
+@router.post("/annotations/reset-counters")
+async def reset_annotation_counters(document_id: Optional[str] = Form(None)):
+    """
+    Reset annotation counters. 
+    If document_id is provided, only reset for that document.
+    Otherwise reset all counters (use carefully).
+    """
+    if document_id:
+        # Recalculate counters for document
+        doc_annotations = [
+            a for a in annotation_data["annotations"].values()
+            if a["document_id"] == document_id
+        ]
+        # Return current state without full reset
+        return {
+            "success": True,
+            "document_id": document_id,
+            "annotation_count": len(doc_annotations)
+        }
+    else:
+        # Full reset (admin operation)
+        annotation_data["global_counter"] = 0
+        annotation_data["category_counters"] = {}
+        return {"success": True, "message": "All counters reset"}
+
+
+# ============ Timeline Event Linking API ============
+
+# In-memory timeline events for linking (in production, use database)
+timeline_events_data = {}
+
+
+class TimelineEventCreate(BaseModel):
+    title: str
+    event_type: str
+    event_date: str  # ISO format datetime
+    description: Optional[str] = None
+    event_date_end: Optional[str] = None
+    event_status: Optional[str] = "start"
+    parent_event_id: Optional[str] = None
+    source_extraction_id: Optional[str] = None
+    highlight_color: Optional[str] = None
+    urgency: Optional[str] = "normal"
+    is_deadline: Optional[bool] = False
+    is_evidence: Optional[bool] = False
+
+
+class TimelineEventUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    event_status: Optional[str] = None
+    event_date_end: Optional[str] = None
+    urgency: Optional[str] = None
+    is_deadline: Optional[bool] = None
+
+
+@router.post("/timeline-event")
+async def create_timeline_event(event: TimelineEventCreate):
+    """Create a timeline event that can be linked to annotations."""
+    event_id = str(uuid.uuid4())
+    
+    # Determine sequence number if part of event chain
+    sequence = 0
+    if event.parent_event_id:
+        # Count existing children of parent
+        children = [e for e in timeline_events_data.values() 
+                   if e.get("parent_event_id") == event.parent_event_id]
+        sequence = len(children) + 1
+    
+    new_event = {
+        "id": event_id,
+        "title": event.title,
+        "event_type": event.event_type,
+        "event_date": event.event_date,
+        "event_date_end": event.event_date_end,
+        "description": event.description,
+        "event_status": event.event_status,
+        "parent_event_id": event.parent_event_id,
+        "sequence_number": sequence,
+        "source_extraction_id": event.source_extraction_id,
+        "highlight_color": event.highlight_color,
+        "urgency": event.urgency,
+        "is_deadline": event.is_deadline,
+        "is_evidence": event.is_evidence,
+        "linked_annotations": [],
+        "created_at": datetime.now().isoformat()
+    }
+    
+    timeline_events_data[event_id] = new_event
+    
+    return {"success": True, "event": new_event}
+
+
+@router.get("/timeline-events")
+async def list_timeline_events(
+    event_type: Optional[str] = None,
+    event_status: Optional[str] = None,
+    is_deadline: Optional[bool] = None,
+    parent_event_id: Optional[str] = None
+):
+    """List timeline events with optional filters."""
+    events = list(timeline_events_data.values())
+    
+    if event_type:
+        events = [e for e in events if e["event_type"] == event_type]
+    if event_status:
+        events = [e for e in events if e.get("event_status") == event_status]
+    if is_deadline is not None:
+        events = [e for e in events if e.get("is_deadline") == is_deadline]
+    if parent_event_id:
+        events = [e for e in events if e.get("parent_event_id") == parent_event_id]
+    
+    # Sort by date
+    events.sort(key=lambda x: x.get("event_date", ""))
+    
+    return {"events": events, "count": len(events)}
+
+
+@router.get("/timeline-event/{event_id}")
+async def get_timeline_event(event_id: str):
+    """Get a timeline event with its linked annotations."""
+    if event_id not in timeline_events_data:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    event = timeline_events_data[event_id]
+    
+    # Get linked annotations
+    linked_annotations = [
+        a for a in annotation_data["annotations"].values()
+        if a.get("linked_event_id") == event_id
+    ]
+    
+    return {
+        "event": event,
+        "linked_annotations": linked_annotations
+    }
+
+
+@router.put("/timeline-event/{event_id}")
+async def update_timeline_event(event_id: str, update: TimelineEventUpdate):
+    """Update a timeline event."""
+    if event_id not in timeline_events_data:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    event = timeline_events_data[event_id]
+    
+    if update.title is not None:
+        event["title"] = update.title
+    if update.description is not None:
+        event["description"] = update.description
+    if update.event_status is not None:
+        event["event_status"] = update.event_status
+    if update.event_date_end is not None:
+        event["event_date_end"] = update.event_date_end
+    if update.urgency is not None:
+        event["urgency"] = update.urgency
+    if update.is_deadline is not None:
+        event["is_deadline"] = update.is_deadline
+    
+    event["updated_at"] = datetime.now().isoformat()
+    
+    return {"success": True, "event": event}
+
+
+@router.delete("/timeline-event/{event_id}")
+async def delete_timeline_event(event_id: str):
+    """Delete a timeline event and unlink associated annotations."""
+    if event_id not in timeline_events_data:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Unlink annotations
+    for ann in annotation_data["annotations"].values():
+        if ann.get("linked_event_id") == event_id:
+            ann["linked_event_id"] = None
+    
+    del timeline_events_data[event_id]
+    return {"success": True}
+
+
+@router.get("/timeline-event/{event_id}/chain")
+async def get_event_chain(event_id: str):
+    """
+    Get an event chain (linked events: start→continued→finish).
+    Returns the full chain from root to all descendants.
+    """
+    if event_id not in timeline_events_data:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    event = timeline_events_data[event_id]
+    
+    # Find root of chain
+    root_id = event_id
+    while timeline_events_data.get(root_id, {}).get("parent_event_id"):
+        root_id = timeline_events_data[root_id]["parent_event_id"]
+    
+    # Build chain from root
+    def get_descendants(parent_id):
+        children = [
+            e for e in timeline_events_data.values()
+            if e.get("parent_event_id") == parent_id
+        ]
+        children.sort(key=lambda x: x.get("sequence_number", 0))
+        
+        result = []
+        for child in children:
+            result.append({
+                "event": child,
+                "children": get_descendants(child["id"])
+            })
+        return result
+    
+    root_event = timeline_events_data.get(root_id)
+    
+    return {
+        "root": root_event,
+        "chain": get_descendants(root_id),
+        "total_in_chain": sum(1 for e in timeline_events_data.values() 
+                             if e.get("parent_event_id") == root_id or e["id"] == root_id)
+    }
+
+
+@router.post("/timeline-event/from-annotation/{annotation_id}")
+async def create_event_from_annotation(annotation_id: str):
+    """
+    Create a timeline event from an annotation's highlight.
+    Auto-suggests event details based on extraction code.
+    """
+    if annotation_id not in annotation_data["annotations"]:
+        raise HTTPException(status_code=404, detail="Annotation not found")
+    
+    annotation = annotation_data["annotations"][annotation_id]
+    
+    # Map extraction codes to event types
+    code_to_type = {
+        "DT": "date",
+        "DL": "deadline",
+        "TL": "timeline",
+        "EV": "event",
+        "PT": "party",
+        "LG": "legal",
+        "WS": "witness",
+        "VL": "violation"
+    }
+    
+    event_type = code_to_type.get(annotation["extraction_code"], "note")
+    is_deadline = annotation["extraction_code"] in ["DL", "DT"]
+    urgency = "high" if annotation["extraction_code"] == "DL" else "normal"
+    
+    event_id = str(uuid.uuid4())
+    
+    new_event = {
+        "id": event_id,
+        "title": annotation["highlight_text"][:100],
+        "event_type": event_type,
+        "event_date": datetime.now().isoformat(),
+        "description": annotation.get("annotation_note"),
+        "event_status": "start",
+        "source_extraction_id": annotation["marker_id"],
+        "highlight_color": annotation["extraction_code"].lower(),
+        "urgency": urgency,
+        "is_deadline": is_deadline,
+        "is_evidence": False,
+        "linked_annotations": [annotation_id],
+        "created_at": datetime.now().isoformat()
+    }
+    
+    timeline_events_data[event_id] = new_event
+    
+    # Link annotation back to event
+    annotation["linked_event_id"] = event_id
+    annotation["updated_at"] = datetime.now().isoformat()
+    
+    return {"success": True, "event": new_event, "annotation_linked": True}
+
+
+# ============ Extraction Code Reference ============
+
+@router.get("/extraction-codes")
+async def get_extraction_codes():
+    """Get the complete list of extraction codes with colors and icons."""
+    codes = {
+        "DT": {"name": "Dates & Deadlines", "color": "#fbbf24", "icon": "📅", "category": "date"},
+        "PT": {"name": "Parties & Names", "color": "#3b82f6", "icon": "👤", "category": "party"},
+        "$": {"name": "Money & Amounts", "color": "#10b981", "icon": "💰", "category": "amount"},
+        "AD": {"name": "Addresses & Locations", "color": "#8b5cf6", "icon": "📍", "category": "address"},
+        "LG": {"name": "Legal Terms & Citations", "color": "#ef4444", "icon": "⚖️", "category": "legal"},
+        "NT": {"name": "Notes & Footnotes", "color": "#f97316", "icon": "📝", "category": "note"},
+        "FM": {"name": "Form Field Data", "color": "#ec4899", "icon": "📋", "category": "form"},
+        "EV": {"name": "Events & Actions", "color": "#06b6d4", "icon": "📆", "category": "event"},
+        "DL": {"name": "Critical Deadline", "color": "#dc2626", "icon": "🚨", "category": "deadline"},
+        "WS": {"name": "Witness/Testimony", "color": "#84cc16", "icon": "👁️", "category": "witness"},
+        "VL": {"name": "Violation/Issue", "color": "#f43f5e", "icon": "⚠️", "category": "violation"},
+        "ED": {"name": "Evidence Markers", "color": "#14b8a6", "icon": "🔍", "category": "evidence"},
+        "QT": {"name": "Quoted Text", "color": "#a855f7", "icon": "💬", "category": "quote"},
+        "TL": {"name": "Timeline Key Dates", "color": "#0ea5e9", "icon": "🕐", "category": "timeline"}
+    }
+    return {"codes": codes}
+
+
+@router.get("/event-statuses")
+async def get_event_statuses():
+    """Get the complete list of event statuses with descriptions."""
+    statuses = {
+        "start": {"description": "Event initiates a process", "examples": "Lease signing, notice served"},
+        "continued": {"description": "Event continues/extends process", "examples": "Lease renewal, payment plan"},
+        "finish": {"description": "Event concludes process", "examples": "Case closed, eviction complete"},
+        "reported": {"description": "Issue/violation reported", "examples": "Maintenance request, complaint"},
+        "invited": {"description": "Meeting/hearing scheduled", "examples": "Court date, mediation"},
+        "attended": {"description": "Event was attended", "examples": "Hearing appearance"},
+        "missed": {"description": "Event was missed/no-show", "examples": "Missed court date"},
+        "served": {"description": "Document delivered", "examples": "Notice served"},
+        "received": {"description": "Document received", "examples": "Response received"},
+        "filed": {"description": "Document filed", "examples": "Court filing"},
+        "responded": {"description": "Response submitted", "examples": "Answer filed"},
+        "pending": {"description": "Awaiting action/decision", "examples": "Pending ruling"},
+        "resolved": {"description": "Issue resolved", "examples": "Complaint resolved"},
+        "escalated": {"description": "Issue escalated", "examples": "Appeal filed"},
+        "used": {"description": "Evidence used in proceeding", "examples": "Document entered as exhibit"}
+    }
+    return {"statuses": statuses}
