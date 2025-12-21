@@ -276,12 +276,12 @@ Semptify users are likely:
 ## 🔧 Action Items Summary
 
 ### Immediate (This Week)
-- [ ] Delete browser cookies and storage for fresh testing
-- [ ] Fix registry endpoint authorization (1 file change)
-- [ ] Remove "Elbow" branding from index.html
+- [x] Delete browser cookies and storage for fresh testing
+- [x] Fix registry endpoint authorization (1 file change) ✅ DONE 12/21
+- [x] Remove "Elbow" branding from index.html ✅ DONE 12/21
 
 ### Short-term (Next 2 Weeks)
-- [ ] Add help-system.js to 30+ missing pages
+- [x] Add help-system.js to 30+ missing pages ✅ DONE 12/21
 - [ ] Create unified entry point
 - [ ] Update shared-nav.js with simplified menu
 
@@ -305,7 +305,7 @@ Semptify users are likely:
 | Pages to complete task | 5-7 | 2-3 |
 | Entry points | 6 | 1 |
 | Time to upload first doc | Unknown | < 2 min |
-| Help coverage | 13% | 90% |
+| Help coverage | **~90%** ✅ | 90% |
 | Mobile-optimized pages | ~50% | 100% |
 
 ---
