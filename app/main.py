@@ -1626,9 +1626,29 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
 
     @app.get("/", response_class=HTMLResponse)
-    async def root():
-        """Serve the dashboard directly - no welcome screens, no setup, just the app."""
-        # Go straight to dashboard - no welcome, no roles, no storage setup
+    async def root(request: Request):
+        """
+        Main entry point - routes based on storage connection status.
+        
+        Flow:
+        1. No storage cookie → Welcome page (first-time visitor)
+        2. Has storage cookie → Dashboard (returning user)
+        """
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import COOKIE_USER_ID
+        
+        # Check if user has valid storage connected
+        user_id = request.cookies.get(COOKIE_USER_ID)
+        
+        if not is_valid_storage_user(user_id):
+            # First-time visitor or invalid session → Welcome page
+            welcome_path = Path("static/onboarding/welcome.html")
+            if welcome_path.exists():
+                return HTMLResponse(content=welcome_path.read_text(encoding="utf-8"))
+            # Fallback to storage providers if no welcome page
+            return RedirectResponse(url="/storage/providers", status_code=302)
+        
+        # Valid user with storage → Dashboard
         dashboard_path = Path("static/dashboard.html")
         if dashboard_path.exists():
             return HTMLResponse(content=dashboard_path.read_text(encoding="utf-8"))
