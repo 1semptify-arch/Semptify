@@ -1,24 +1,22 @@
 /**
  * Semptify Session Router
- * Smart routing based on user session state
+ * PRODUCTION-ENFORCED security routing
  * 
- * Routes users to appropriate pages based on:
- * - Whether they have a session (user_id cookie)
- * - Whether they have an active case
- * - Current page context
+ * Uses SemptifyAuth as the ONLY source of truth for authentication.
+ * NO localStorage fallbacks - cookie-based auth ONLY.
  * 
- * Usage: Include on pages that need routing logic:
+ * Usage: Include AFTER semptify-auth.js on pages:
+ *   <script src="/static/js/semptify-auth.js"></script>
  *   <script src="/static/js/session-router.js"></script>
  */
 
 const SemptifyRouter = {
     // Configuration
     config: {
-        welcomePage: '/static/welcome.html',
-        homePage: '/static/home.html',
+        authPage: '/auth',
+        homePage: '/',
         intakePage: '/static/document_intake.html',
-        dashboardPage: '/static/dashboard.html',
-        // Pages that should redirect if not authenticated
+        // Pages that REQUIRE authentication - NO EXCEPTIONS
         protectedPages: [
             '/static/briefcase.html',
             '/static/vault.html',
@@ -26,28 +24,47 @@ const SemptifyRouter = {
             '/static/calendar.html',
             '/static/eviction_answer.html',
             '/static/court_packet.html',
+            '/static/document_intake.html',
+            '/static/dashboard.html',
+            '/static/letter_builder.html',
+            '/static/counterclaim.html',
+            '/static/home.html',
         ],
-        // Pages where we don't auto-redirect
+        // Pages that allow unauthenticated access
         publicPages: [
+            '/auth',
             '/static/welcome.html',
             '/static/crisis_intake.html',
             '/static/help.html',
             '/static/privacy.html',
-            '/',
-            '/static/index.html',
         ]
     },
 
     /**
-     * Get user ID from cookie
+     * Get user ID from SemptifyAuth - THE ONLY SOURCE OF TRUTH
+     * @returns {string|null}
      */
     getUserId() {
-        const value = `; ${document.cookie}`;
-        const parts = value.split('; semptify_user_id=');
-        if (parts.length === 2) return parts.pop().split(';').shift();
-        
-        // Also check localStorage as fallback
-        return localStorage.getItem('semptify_user_id');
+        if (typeof SemptifyAuth !== 'undefined') {
+            return SemptifyAuth.getUserId();
+        }
+        // Fallback cookie check if SemptifyAuth not loaded yet
+        const cookies = document.cookie.split(';');
+        for (const cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'semptify_uid' && value) {
+                return decodeURIComponent(value);
+            }
+        }
+        return null;
+    },
+
+    /**
+     * Check if user is authenticated
+     * @returns {boolean}
+     */
+    isAuthenticated() {
+        return this.getUserId() !== null;
     },
 
     /**
@@ -55,13 +72,6 @@ const SemptifyRouter = {
      */
     hasActiveCase() {
         return localStorage.getItem('semptify_active_case') !== null;
-    },
-
-    /**
-     * Check if user has completed onboarding
-     */
-    hasCompletedOnboarding() {
-        return localStorage.getItem('semptify_onboarding_complete') === 'true';
     },
 
     /**
@@ -76,7 +86,9 @@ const SemptifyRouter = {
      */
     isProtectedPage() {
         const current = this.getCurrentPage();
-        return this.config.protectedPages.some(page => current.includes(page));
+        return this.config.protectedPages.some(page => 
+            current === page || current.endsWith(page.split('/').pop())
+        );
     },
 
     /**
@@ -84,63 +96,49 @@ const SemptifyRouter = {
      */
     isPublicPage() {
         const current = this.getCurrentPage();
-        return this.config.publicPages.some(page => current === page || current.includes(page));
+        if (current === '/' || current === '/auth') return true;
+        return this.config.publicPages.some(page => 
+            current === page || current.includes(page)
+        );
     },
 
     /**
-     * Determine the best page for the user
+     * ENFORCE authentication - redirect to /auth if not authenticated
+     * This is the main security gate
      */
-    getBestPage() {
-        const userId = this.getUserId();
-        const hasCase = this.hasActiveCase();
-        
-        if (!userId) {
-            // No session → Welcome
-            return this.config.welcomePage;
-        }
-        
-        if (!hasCase) {
-            // Has session but no case → Intake
-            return this.config.intakePage;
-        }
-        
-        // Has session and case → Home/Dashboard
-        return this.config.homePage;
-    },
-
-    /**
-     * Smart route based on current state
-     * Only redirects if necessary
-     */
-    route(options = {}) {
-        const { force = false, showToast = true } = options;
+    enforceAuth() {
         const current = this.getCurrentPage();
-        const userId = this.getUserId();
-        const bestPage = this.getBestPage();
+        const isAuthenticated = this.isAuthenticated();
 
-        // Don't redirect on public pages unless forced
-        if (this.isPublicPage() && !force) {
-            return;
+        console.log(`[Router] Page: ${current}, Authenticated: ${isAuthenticated}`);
+
+        // Skip for public pages
+        if (this.isPublicPage()) {
+            console.log('[Router] Public page - no auth required');
+            return true;
         }
 
-        // Redirect from protected pages if not authenticated
-        if (this.isProtectedPage() && !userId) {
-            console.log('[Router] Protected page without auth, redirecting to welcome');
-            window.location.href = this.config.welcomePage;
-            return;
+        // ENFORCE: Protected pages REQUIRE authentication
+        if (this.isProtectedPage() && !isAuthenticated) {
+            console.warn('[Router] 🚨 UNAUTHORIZED ACCESS BLOCKED - Redirecting to /auth');
+            
+            // Save return URL for redirect after auth
+            const returnUrl = window.location.pathname + window.location.search;
+            sessionStorage.setItem('auth_return_url', returnUrl);
+            
+            // Hard redirect to auth - NO EXCEPTIONS
+            window.location.replace('/auth');
+            return false;
         }
 
-        // On welcome page with active session → redirect to home
-        if (current.includes('welcome.html') && userId && this.hasActiveCase()) {
-            console.log('[Router] Returning user on welcome, redirecting to home');
-            window.location.href = this.config.homePage;
-            return;
+        // Default behavior for other pages
+        if (!isAuthenticated && !this.isPublicPage()) {
+            console.warn('[Router] Unauthenticated on non-public page - enforcing auth');
+            window.location.replace('/auth');
+            return false;
         }
 
-        // Show helpful toast if user is on wrong page
-        if (showToast && userId && !this.hasActiveCase() && !current.includes('document_intake')) {
-            this.showGuidanceToast();
-        }
+        return true;
     },
 
     /**
@@ -178,13 +176,6 @@ const SemptifyRouter = {
     },
 
     /**
-     * Mark onboarding as complete
-     */
-    completeOnboarding() {
-        localStorage.setItem('semptify_onboarding_complete', 'true');
-    },
-
-    /**
      * Get case progress (for progress indicators)
      */
     getCaseProgress() {
@@ -196,23 +187,15 @@ const SemptifyRouter = {
             hasCourtPacket: localStorage.getItem('semptify_has_court_packet') === 'true',
         };
 
-        // Calculate overall progress percentage
         let steps = 0;
         let completed = 0;
 
-        // Step 1: Documents (need at least 1)
         steps++;
         if (progress.documents > 0) completed++;
-
-        // Step 2: Timeline (need at least 3 events)
         steps++;
         if (progress.timelineEvents >= 3) completed++;
-
-        // Step 3: Answer filed
         steps++;
         if (progress.hasAnswer) completed++;
-
-        // Step 4: Court packet
         steps++;
         if (progress.hasCourtPacket) completed++;
 
@@ -231,21 +214,18 @@ const SemptifyRouter = {
     },
 
     /**
-     * Initialize - run on page load
+     * Initialize - AUTOMATICALLY ENFORCE AUTH on page load
      */
-    init(options = {}) {
-        // Don't auto-route by default, let pages opt-in
-        if (options.autoRoute) {
-            this.route(options);
-        }
+    init() {
+        // ALWAYS enforce auth on initialization
+        this.enforceAuth();
     }
 };
 
 // Expose globally
 window.SemptifyRouter = SemptifyRouter;
 
-// Auto-initialize when DOM is ready
+// CRITICAL: Auto-enforce auth when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Pages can call SemptifyRouter.route() explicitly if needed
-    console.log('[Router] Ready. User:', SemptifyRouter.getUserId() ? 'authenticated' : 'guest');
+    SemptifyRouter.init();
 });
