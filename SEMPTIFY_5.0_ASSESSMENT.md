@@ -286,10 +286,10 @@ Semptify users are likely:
 - [x] Update shared-nav.js with simplified menu ✅ DONE 12/21 (8→5 sections, 24→16 items)
 
 ### Medium-term (Next Month)
-- [ ] Consolidate document pages → briefcase
-- [ ] Consolidate timeline pages
-- [ ] Consolidate dashboard pages
-- [ ] Archive deprecated pages
+- [x] Consolidate document pages → briefcase ✅ DONE 12/21 (4 pages archived)
+- [x] Consolidate timeline pages ✅ DONE 12/21 (7 pages archived)
+- [x] Consolidate dashboard pages ✅ DONE 12/21 (2 pages archived)
+- [x] Archive deprecated pages ✅ DONE 12/21 (13 total → _archive folder)
 
 ### Long-term (Next Quarter)
 - [ ] User testing with real tenants
