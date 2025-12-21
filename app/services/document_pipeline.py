@@ -103,6 +103,7 @@ class TenancyDocument:
     # Timestamps
     uploaded_at: Optional[datetime] = None
     analyzed_at: Optional[datetime] = None
+    title_updated_at: Optional[datetime] = None  # Timestamp when title was last edited
     
     def to_dict(self) -> dict:
         """Convert to dictionary for storage/API."""
@@ -116,6 +117,8 @@ class TenancyDocument:
             data["uploaded_at"] = self.uploaded_at.isoformat()
         if self.analyzed_at:
             data["analyzed_at"] = self.analyzed_at.isoformat()
+        if self.title_updated_at:
+            data["title_updated_at"] = self.title_updated_at.isoformat()
         return data
 
     @classmethod
@@ -129,6 +132,8 @@ class TenancyDocument:
             data["uploaded_at"] = datetime.fromisoformat(data["uploaded_at"])
         if data.get("analyzed_at") and isinstance(data["analyzed_at"], str):
             data["analyzed_at"] = datetime.fromisoformat(data["analyzed_at"])
+        if data.get("title_updated_at") and isinstance(data["title_updated_at"], str):
+            data["title_updated_at"] = datetime.fromisoformat(data["title_updated_at"])
         return cls(**data)
 
 

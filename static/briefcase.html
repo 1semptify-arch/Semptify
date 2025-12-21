@@ -6,6 +6,9 @@
     <title>Briefcase - Semptify</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/help-system.css">
+    <!-- Authentication module - must be first -->
+    <script src="/static/js/semptify-auth.js"></script>
     <style>
         :root {
             --primary: #4ade80;
@@ -1052,6 +1055,11 @@
         
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            // Ensure user is authenticated before loading
+            if (!SemptifyAuth.ensureAuth()) {
+                return; // Will redirect to /auth
+            }
+            
             loadBriefcase();
             setupEventListeners();
             setupDraggableHelp();
@@ -1160,10 +1168,10 @@
             }
         }
         
-        // API Functions
+        // API Functions - All use SemptifyAuth for authenticated requests
         async function loadBriefcase() {
             try {
-                const response = await fetch('/api/briefcase/');
+                const response = await SemptifyAuth.fetch('/api/briefcase/');
                 const data = await response.json();
                 
                 // Convert folders array to object
@@ -1187,7 +1195,7 @@
             currentFolderId = folderId;
             
             try {
-                const response = await fetch(`/api/briefcase/folder/${folderId}`);
+                const response = await SemptifyAuth.fetch(`/api/briefcase/folder/${folderId}`);
                 const data = await response.json();
                 
                 renderBreadcrumb(data.breadcrumb);
@@ -1204,7 +1212,7 @@
         
         async function loadStats() {
             try {
-                const response = await fetch('/api/briefcase/stats');
+                const response = await SemptifyAuth.fetch('/api/briefcase/stats');
                 const stats = await response.json();
                 
                 document.getElementById('statDocs').textContent = stats.total_documents;
@@ -1218,7 +1226,7 @@
         
         async function loadExtractions() {
             try {
-                const response = await fetch('/api/briefcase/extractions');
+                const response = await SemptifyAuth.fetch('/api/briefcase/extractions');
                 const data = await response.json();
                 
                 const container = document.getElementById('extractionsList');
@@ -1249,7 +1257,7 @@
         
         async function loadHighlights() {
             try {
-                const response = await fetch('/api/briefcase/highlights');
+                const response = await SemptifyAuth.fetch('/api/briefcase/highlights');
                 const data = await response.json();
                 
                 const container = document.getElementById('highlightsList');
@@ -1273,7 +1281,7 @@
         
         async function loadStarred() {
             try {
-                const response = await fetch('/api/briefcase/starred');
+                const response = await SemptifyAuth.fetch('/api/briefcase/starred');
                 const data = await response.json();
                 
                 const container = document.getElementById('starredList');
@@ -1488,7 +1496,7 @@
             if (!selectedDocument) return;
             
             try {
-                const response = await fetch(`/api/briefcase/document/${selectedDocument}/preview`);
+                const response = await SemptifyAuth.fetch(`/api/briefcase/document/${selectedDocument}/preview`);
                 const data = await response.json();
                 
                 document.getElementById('previewTitle').textContent = data.name;
@@ -1526,7 +1534,7 @@
             if (!doc) return;
             
             try {
-                await fetch(`/api/briefcase/document/${selectedDocument}`, {
+                await SemptifyAuth.fetch(`/api/briefcase/document/${selectedDocument}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ starred: !doc.starred })
@@ -1544,7 +1552,7 @@
             if (!confirm('Delete this document?')) return;
             
             try {
-                await fetch(`/api/briefcase/document/${selectedDocument}`, { method: 'DELETE' });
+                await SemptifyAuth.fetch(`/api/briefcase/document/${selectedDocument}`, { method: 'DELETE' });
                 loadBriefcase();
             } catch (error) {
                 console.error('Failed to delete:', error);
@@ -1555,7 +1563,7 @@
             if (!confirm('Delete this extraction?')) return;
             
             try {
-                await fetch(`/api/briefcase/extraction/${extractionId}`, { method: 'DELETE' });
+                await SemptifyAuth.fetch(`/api/briefcase/extraction/${extractionId}`, { method: 'DELETE' });
                 loadExtractions();
                 loadStats();
             } catch (error) {
@@ -1604,7 +1612,7 @@
                 formData.append('notes', notes);
                 
                 try {
-                    await fetch('/api/briefcase/document', {
+                    await SemptifyAuth.fetch('/api/briefcase/document', {
                         method: 'POST',
                         body: formData
                     });
@@ -1634,7 +1642,7 @@
             }
             
             try {
-                await fetch('/api/briefcase/folder', {
+                await SemptifyAuth.fetch('/api/briefcase/folder', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1656,7 +1664,7 @@
             formData.append('folder_id', currentFolderId);
             
             try {
-                const response = await fetch('/api/briefcase/export', {
+                const response = await SemptifyAuth.fetch('/api/briefcase/export', {
                     method: 'POST',
                     body: formData
                 });
@@ -1708,7 +1716,7 @@
             
             for (const docId of selectedDocuments) {
                 try {
-                    await fetch(`/api/briefcase/document/${docId}`, {
+                    await SemptifyAuth.fetch(`/api/briefcase/document/${docId}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ starred: true })
@@ -1729,7 +1737,7 @@
             
             for (const docId of selectedDocuments) {
                 try {
-                    await fetch(`/api/briefcase/document/${docId}`, { method: 'DELETE' });
+                    await SemptifyAuth.fetch(`/api/briefcase/document/${docId}`, { method: 'DELETE' });
                 } catch (error) {
                     console.error('Failed to delete:', docId, error);
                 }
@@ -1802,7 +1810,7 @@
                     const formData = new FormData();
                     formData.append('folder_id', moveCopyTarget);
                     
-                    await fetch(`/api/briefcase/document/${docId}/${endpoint}`, {
+                    await SemptifyAuth.fetch(`/api/briefcase/document/${docId}/${endpoint}`, {
                         method: 'POST',
                         body: formData
                     });
@@ -1815,6 +1823,16 @@
             clearSelection();
             loadBriefcase();
         }
+    </script>
+    
+    <!-- Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof SemptifyHelp !== 'undefined') {
+                SemptifyHelp.init('briefcase');
+            }
+        });
     </script>
 </body>
 </html>

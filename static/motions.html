@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File a Motion - Semptify</title>
     <link rel="stylesheet" href="/static/css/shared-nav.css">
+    <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -534,6 +535,17 @@
                 setTimeout(() => w.print(), 500);
             }
         }
+    </script>
+    
+    <!-- Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/semptify-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof SemptifyHelp !== 'undefined') {
+                SemptifyHelp.init('motions');
+            }
+        });
     </script>
 </body>
 </html>

@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/static/css/design-system.css">
   <link rel="stylesheet" href="/static/css/layouts.css">
+  <link rel="stylesheet" href="/static/css/help-system.css">
 
   <style>
     /* ================================================================
@@ -2438,5 +2439,16 @@
   
   <!-- Voice Input for Accessibility -->
   <script src="/static/js/voice-input.js"></script>
+  
+  <!-- Help System -->
+  <script src="/static/js/help-system.js"></script>
+  <script src="/static/js/semptify-auth.js"></script>
+  <script>
+      document.addEventListener('DOMContentLoaded', () => {
+          if (typeof SemptifyHelp !== 'undefined') {
+              SemptifyHelp.init('interactive_timeline');
+          }
+      });
+  </script>
 </body>
 </html>

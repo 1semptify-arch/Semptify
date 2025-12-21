@@ -8,112 +8,84 @@
  */
 
 const SemptifyNav = {
-    // Navigation structure - edit here to update ALL pages
+    // =========================================================================
+    // SIMPLIFIED 7-SECTION NAVIGATION
+    // Logical workflow: Home → Intake → Timeline → Defense → Court → Tools → Vault
+    // =========================================================================
     sections: [
         {
-            id: 'mission',
-            title: '🎯 Mission Control',
+            id: 'home',
+            title: '🏠 Home',
             items: [
-                { icon: '🎯', label: 'Dashboard', href: '/static/dashboard.html' },
-                { icon: '�️', label: 'Command Center', href: '/static/command_center.html' },
+                { icon: '🏠', label: 'Dashboard', href: '/static/home.html' },
+                { icon: '📊', label: 'My Case', href: '/static/cases.html' },
                 { icon: '🆘', label: 'Crisis Assessment', href: '/static/crisis_intake.html' },
             ]
         },
         {
-            id: 'journey',
-            title: '🏠 Tenant Journey',
+            id: 'intake',
+            title: '📥 Step 1: Intake',
             items: [
-                { icon: '📋', label: 'My Tenancy', href: '/static/my_tenancy.html' },
-                { icon: '�📝', label: '1. Lease & Move-In', href: '/static/journey.html' },
-                { icon: '💰', label: '2. Rent Payments', href: '/static/document_intake.html?type=payment' },
-                { icon: '🔧', label: '3. Maintenance', href: '/static/document_intake.html?type=maintenance' },
-                { icon: '⚠️', label: '4. Notices', href: '/static/document_intake.html?type=notice' },
-                { icon: '📅', label: '5. Timeline', href: '/static/timeline.html', badge: 'timelineCount' },
-                { icon: '⚡', label: 'Auto-Build Timeline', href: '/static/timeline_auto_build.html' },
-                { icon: '🔨', label: 'Timeline Builder', href: '/static/timeline-builder.html' },
+                { icon: '📋', label: 'Upload Documents', href: '/static/document_intake.html' },
+                { icon: '🔍', label: 'AI Recognition', href: '/static/recognition.html' },
+                { icon: '💼', label: 'Briefcase', href: '/static/briefcase.html' },
+            ]
+        },
+        {
+            id: 'timeline',
+            title: '📅 Step 2: Timeline',
+            items: [
+                { icon: '⚡', label: 'Auto-Build', href: '/static/timeline_auto_build.html' },
+                { icon: '📅', label: 'View Timeline', href: '/static/timeline.html', badge: 'timelineCount' },
+                { icon: '📆', label: 'Calendar', href: '/static/calendar.html' },
             ]
         },
         {
             id: 'defense',
-            title: '⚖️ Legal Defense',
+            title: '⚖️ Step 3: Defense',
             items: [
-                { icon: '📖', label: '6. Know Rights', href: '/static/law_library.html' },
-                { icon: '📝', label: '7. Answer Summons', href: '/static/legal_analysis.html' },
-                { icon: '⚔️', label: '8. Fight Back', href: '/static/legal_trails.html' },
-                { icon: '💻', label: '9. Court Prep', href: '/static/court_learning.html' },
-            ]
-        },
-        {
-            id: 'dakota',
-            title: '🏛️ Dakota County Eviction',
-            items: [
-                { icon: '�', label: 'Case Management', href: '/static/cases.html' },
-                { icon: '�🛡️', label: 'Defense Center', href: '/static/dakota_defense.html' },
+                { icon: '📖', label: 'Law Library', href: '/static/law_library.html' },
                 { icon: '📝', label: 'File Answer', href: '/static/eviction_answer.html' },
                 { icon: '⚔️', label: 'Counterclaim', href: '/static/counterclaim.html' },
                 { icon: '📋', label: 'File Motion', href: '/static/motions.html' },
-                { icon: '🎯', label: 'Hearing Prep', href: '/static/hearing_prep.html' },
-                { icon: '💻', label: 'Zoom Court', href: '/static/zoom_court.html' },
             ]
         },
         {
-            id: 'documents',
-            title: '📁 Documents',
+            id: 'court',
+            title: '🏛️ Step 4: Court',
             items: [
-                { icon: '📁', label: 'Document Vault', href: '/static/documents.html' },
-                { icon: '💼', label: 'Briefcase', href: '/static/briefcase.html' },
                 { icon: '📦', label: 'Court Packet', href: '/static/court_packet.html' },
-                { icon: '📑', label: 'PDF Tools', href: '/static/pdf_tools.html' },
-                { icon: '🔍', label: 'Doc Recognition', href: '/static/recognition.html' },
+                { icon: '🎯', label: 'Hearing Prep', href: '/static/hearing_prep.html' },
+                { icon: '💻', label: 'Zoom Court', href: '/static/zoom_court.html' },
             ]
         },
         {
             id: 'tools',
             title: '🔧 Tools',
             items: [
-                { icon: '🧠', label: 'AI Assistant', href: '/static/brain.html' },
-                { icon: '📝', label: 'Complaint Builder', href: '/static/complaints.html' },
-                { icon: '✉️', label: 'Letter Builder', href: '/static/letter_builder.html' },
-                { icon: '📅', label: 'Calendar', href: '/static/calendar.html' },
+                { icon: '✉️', label: 'Letters', href: '/static/letter_builder.html' },
+                { icon: '📝', label: 'Complaints', href: '/static/complaints.html' },
                 { icon: '📇', label: 'Contacts', href: '/static/contacts.html' },
-                { icon: '🔬', label: 'Research', href: '/static/research.html' },
-                { icon: '🔍', label: 'Public Data Crawler', href: '/static/crawler.html' },
-                { icon: '⚖️', label: 'Legal Analysis', href: '/static/legal_analysis.html' },
-                { icon: '💰', label: 'Funding Search', href: '/static/funding_search.html' },
-                { icon: '🏠', label: 'HUD Funding Guide', href: '/static/hud_funding.html' },
-                { icon: '📢', label: 'Campaign', href: '/static/campaign.html' },
+                { icon: '📬', label: 'Correspondence', href: '/static/correspondence.html' },
                 { icon: '🔎', label: 'Fraud Analysis', href: '/static/fraud.html' },
-                { icon: '📰', label: 'Press Release', href: '/static/exposure.html' },
             ]
         },
         {
-            id: 'court',
-            title: '💻 Court Prep',
+            id: 'vault',
+            title: '📁 Vault',
             items: [
-                { icon: '🎯', label: 'Hearing Prep', href: '/static/court_learning.html' },
-                { icon: '📦', label: 'Court Packet', href: '/static/court_packet.html' },
-                { icon: '❓', label: 'Help & Resources', href: '/static/help.html' },
+                { icon: '🔐', label: 'Document Vault', href: '/static/vault.html' },
+                { icon: '📑', label: 'PDF Tools', href: '/static/pdf_tools.html' },
             ]
         },
         {
             id: 'system',
-            title: '⚙️ System',
+            title: '⚙️ Settings',
             collapsed: true,
             items: [
-                { icon: '⚙️', label: 'Settings', href: '/static/settings-v2.html' },
-                { icon: '🌐', label: 'Mesh Network', href: '/static/mesh_network.html' },
                 { icon: '☁️', label: 'Cloud Storage', href: '/static/storage_setup.html' },
-                { icon: '🔌', label: 'API Docs', href: '/api/docs', external: true },
-            ]
-        },
-        {
-            id: 'help',
-            title: '❓ Help',
-            items: [
-                { icon: '📚', label: 'Help & Resources', href: '/static/help.html' },
-                { icon: '🆘', label: 'Emergency Help', href: '/static/help.html#emergency' },
-                { icon: '🔒', label: 'Privacy Policy', href: '/static/privacy.html' },
-                { icon: '📊', label: 'Evaluation Report', href: '/static/evaluation_report.html' },
+                { icon: '❓', label: 'Help', href: '/static/help.html' },
+                { icon: '🔒', label: 'Privacy', href: '/static/privacy.html' },
             ]
         },
     ],
@@ -263,7 +235,7 @@ const SemptifyNav = {
                     <span id="pinIcon">📌</span>
                 </button>
                 <div class="sidebar-header">
-                    <a href="/static/dashboard.html" class="sidebar-logo">
+                    <a href="/static/home.html" class="sidebar-logo">
                         <span class="logo-icon">⚖️</span>
                         <span class="logo-text">Semptify</span>
                     </a>

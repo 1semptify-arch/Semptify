@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Manager - Semptify</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
         :root {
             --bg-dark: #0f172a;
@@ -1290,6 +1291,17 @@
 
         // Initialize
         fetchContacts();
+    </script>
+    
+    <!-- Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/semptify-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof SemptifyHelp !== 'undefined') {
+                SemptifyHelp.init('contacts');
+            }
+        });
     </script>
 </body>
 </html>

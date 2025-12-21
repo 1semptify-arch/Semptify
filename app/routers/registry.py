@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
-from app.core.security import get_optional_user_id
+from app.core.security import get_optional_user_id, require_user, UserContext
 from app.services.document_registry import (
     get_document_registry,
     DocumentStatus,
@@ -219,19 +219,23 @@ async def register_document(
 # =============================================================================
 
 @router.get("/documents/{doc_id}", response_model=RegisteredDocumentResponse)
-async def get_document(doc_id: str, request: Request):
-    """Get a registered document by its ID."""
+async def get_document(doc_id: str, request: Request, user: UserContext = Depends(require_user)):
+    """Get a registered document by its ID. User must own the document."""
     registry = get_document_registry()
     
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
     
+    # SECURITY: Verify user owns this document
+    if doc.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied - you do not own this document")
+    
     # Record access
     ip_address = request.client.host if request.client else None
     registry.record_access(
         doc_id=doc_id,
-        actor="api_user",
+        actor=user.user_id,
         action=CustodyAction.ACCESSED,
         details="Document retrieved via API",
         ip_address=ip_address,
@@ -267,13 +271,17 @@ async def list_documents(
 
 
 @router.delete("/documents/{doc_id}")
-async def delete_document(doc_id: str):
-    """Delete a single registered document."""
+async def delete_document(doc_id: str, user: UserContext = Depends(require_user)):
+    """Delete a single registered document. User must own the document."""
     registry = get_document_registry()
     
     doc = registry.get_document(doc_id)
     if not doc:
         raise HTTPException(status_code=404, detail=f"Document {doc_id} not found")
+    
+    # SECURITY: Verify user owns this document
+    if doc.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied - you do not own this document")
     
     # Remove from registry
     if doc_id in registry._documents:

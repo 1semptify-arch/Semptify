@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File a Counterclaim - Semptify</title>
     <link rel="stylesheet" href="/static/css/shared-nav.css">
+    <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -552,6 +553,17 @@ The furnace stopped working on November 15, 2024. I notified the landlord in wri
                     if (d.case_number) document.getElementById('caseNumber').value = d.case_number;
                     if (d.address) document.getElementById('propertyAddress').value = d.address;
                 } catch (e) {}
+            }
+        });
+    </script>
+    
+    <!-- Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/semptify-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof SemptifyHelp !== 'undefined') {
+                SemptifyHelp.init('counterclaim');
             }
         });
     </script>

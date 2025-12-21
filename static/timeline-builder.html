@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/shared-nav.css">
+    <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
         :root {
             --bg-dark: #0f172a;
@@ -1369,6 +1370,17 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') deselectEvent();
             if (e.key === 'Delete' && selectedEventId) deleteEvent(selectedEventId);
+        });
+    </script>
+    
+    <!-- Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/semptify-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof SemptifyHelp !== 'undefined') {
+                SemptifyHelp.init('timeline_builder');
+            }
         });
     </script>
 </body>

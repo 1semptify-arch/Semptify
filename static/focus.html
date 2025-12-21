@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semptify - Focus Mode</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
         :root {
             --bg: #fafafa;
@@ -555,5 +556,16 @@
 
     <!-- Site-wide footer -->
     <script src="/static/js/footer.js"></script>
+    
+    <!-- Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/semptify-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof SemptifyHelp !== 'undefined') {
+                SemptifyHelp.init('focus');
+            }
+        });
+    </script>
 </body>
 </html>

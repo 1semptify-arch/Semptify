@@ -7,6 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/static/css/shared-nav.css">
+    <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
         :root {
             --bg-primary: #0f0f1a;
@@ -407,6 +408,17 @@
             document.querySelectorAll('.letter-card').forEach(c => {
                 c.classList.toggle('active', c.dataset.type === type);
             });
+        });
+    </script>
+    
+    <!-- Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/semptify-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof SemptifyHelp !== 'undefined') {
+                SemptifyHelp.init('letter_builder');
+            }
         });
     </script>
 </body>

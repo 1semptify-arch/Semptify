@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semptify - Complete Legal Journey</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
         * {
             margin: 0;
@@ -839,6 +840,17 @@
             // Track journey progress
             localStorage.setItem('semptify_journey_step', '1');
         }
+    </script>
+    
+    <!-- Help System -->
+    <script src="/static/js/help-system.js"></script>
+    <script src="/static/js/semptify-auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof SemptifyHelp !== 'undefined') {
+                SemptifyHelp.init('complete_journey');
+            }
+        });
     </script>
 </body>
 </html>
