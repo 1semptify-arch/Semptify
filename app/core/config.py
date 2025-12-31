@@ -60,9 +60,9 @@ Your data lives in YOUR cloud storage - we never store your files.
     port: int = 8000
     
     # ==========================================================================
-    # Security Mode: "enforced" for production, "open" for testing/development
+    # Security Mode: Always enforced - production only
     # ==========================================================================
-    security_mode: Literal["enforced", "open"] = "enforced"
+    security_mode: Literal["enforced"] = "enforced"
     secret_key: str = ""  # Will be auto-generated if not set
     
     @field_validator("secret_key", mode="before")
