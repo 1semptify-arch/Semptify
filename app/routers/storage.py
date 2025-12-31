@@ -41,7 +41,10 @@ from app.models.models import User, Session as SessionModel, StorageConfig
 
 
 router = APIRouter(prefix="/storage", tags=["storage"])
-settings = get_settings()
+
+def _get_settings():
+    """Lazy settings getter to avoid import-time validation issues."""
+    return get_settings()
 
 
 # ============================================================================
@@ -169,8 +172,8 @@ async def refresh_access_token(
         async with httpx.AsyncClient(timeout=30.0) as client:
             if provider == "google_drive":
                 response = await client.post(config["token_url"], data={
-                    "client_id": settings.GOOGLE_DRIVE_CLIENT_ID,
-                    "client_secret": settings.GOOGLE_DRIVE_CLIENT_SECRET,
+                    "client_id": _get_settings().GOOGLE_DRIVE_CLIENT_ID,
+                    "client_secret": _get_settings().GOOGLE_DRIVE_CLIENT_SECRET,
                     "refresh_token": refresh_token,
                     "grant_type": "refresh_token",
                 })
@@ -178,16 +181,16 @@ async def refresh_access_token(
             elif provider == "dropbox":
                 # Dropbox uses long-lived tokens, but let's handle refresh anyway
                 response = await client.post(config["token_url"], data={
-                    "client_id": settings.DROPBOX_CLIENT_ID,
-                    "client_secret": settings.DROPBOX_CLIENT_SECRET,
+                    "client_id": _get_settings().DROPBOX_CLIENT_ID,
+                    "client_secret": _get_settings().DROPBOX_CLIENT_SECRET,
                     "refresh_token": refresh_token,
                     "grant_type": "refresh_token",
                 })
             
             elif provider == "onedrive":
                 response = await client.post(config["token_url"], data={
-                    "client_id": settings.ONEDRIVE_CLIENT_ID,
-                    "client_secret": settings.ONEDRIVE_CLIENT_SECRET,
+                    "client_id": _get_settings().ONEDRIVE_CLIENT_ID,
+                    "client_secret": _get_settings().ONEDRIVE_CLIENT_SECRET,
                     "refresh_token": refresh_token,
                     "grant_type": "refresh_token",
                     "scope": " ".join(config["scopes"]),
@@ -549,7 +552,7 @@ ADMIN_PIN = _os.getenv("ADMIN_PIN", "CHANGE-ME")
 # ============================================================================
 
 def _derive_key(user_id: str) -> bytes:
-    combined = f"{settings.SECRET_KEY}:{user_id}".encode()
+    combined = f"{_get_settings().SECRET_KEY}:{user_id}".encode()
     return hashlib.sha256(combined).digest()
 
 
@@ -631,7 +634,7 @@ async def _providers_json(semptify_uid: Optional[str] = None):
         current_provider = get_provider_from_user_id(semptify_uid)
         current_role = get_role_from_user_id(semptify_uid)
 
-    if settings.GOOGLE_DRIVE_CLIENT_ID:
+    if _get_settings().GOOGLE_DRIVE_CLIENT_ID:
         providers.append({
             "id": "google_drive",
             "name": "Google Drive",
@@ -640,7 +643,7 @@ async def _providers_json(semptify_uid: Optional[str] = None):
             "connected": current_provider == "google_drive",
         })
 
-    if settings.DROPBOX_APP_KEY:
+    if _get_settings().DROPBOX_APP_KEY:
         providers.append({
             "id": "dropbox",
             "name": "Dropbox",
@@ -649,7 +652,7 @@ async def _providers_json(semptify_uid: Optional[str] = None):
             "connected": current_provider == "dropbox",
         })
 
-    if settings.ONEDRIVE_CLIENT_ID:
+    if _get_settings().ONEDRIVE_CLIENT_ID:
         providers.append({
             "id": "onedrive",
             "name": "OneDrive",
@@ -675,7 +678,7 @@ def _generate_providers_html(semptify_uid: Optional[str] = None) -> str:
     # Build provider cards
     provider_cards = ""
     
-    if settings.GOOGLE_DRIVE_CLIENT_ID:
+    if _get_settings().GOOGLE_DRIVE_CLIENT_ID:
         connected = "connected" if current_provider == "google_drive" else ""
         provider_cards += f'''
         <a href="/storage/auth/google_drive" class="provider-card {connected}">
@@ -692,7 +695,7 @@ def _generate_providers_html(semptify_uid: Optional[str] = None) -> str:
         </a>
         '''
     
-    if settings.DROPBOX_APP_KEY:
+    if _get_settings().DROPBOX_APP_KEY:
         connected = "connected" if current_provider == "dropbox" else ""
         provider_cards += f'''
         <a href="/storage/auth/dropbox" class="provider-card {connected}">
@@ -706,7 +709,7 @@ def _generate_providers_html(semptify_uid: Optional[str] = None) -> str:
         </a>
         '''
     
-    if settings.ONEDRIVE_CLIENT_ID:
+    if _get_settings().ONEDRIVE_CLIENT_ID:
         connected = "connected" if current_provider == "onedrive" else ""
         provider_cards += f'''
         <a href="/storage/auth/onedrive" class="provider-card {connected}">
@@ -905,7 +908,7 @@ async def list_providers_json(
         current_provider = get_provider_from_user_id(semptify_uid)
         current_role = get_role_from_user_id(semptify_uid)
 
-    if settings.GOOGLE_DRIVE_CLIENT_ID:
+    if _get_settings().GOOGLE_DRIVE_CLIENT_ID:
         providers.append({
             "id": "google_drive",
             "name": "Google Drive",
@@ -914,7 +917,7 @@ async def list_providers_json(
             "connected": current_provider == "google_drive",
         })
 
-    if settings.DROPBOX_APP_KEY:
+    if _get_settings().DROPBOX_APP_KEY:
         providers.append({
             "id": "dropbox",
             "name": "Dropbox",
@@ -923,7 +926,7 @@ async def list_providers_json(
             "connected": current_provider == "dropbox",
         })
 
-    if settings.ONEDRIVE_CLIENT_ID:
+    if _get_settings().ONEDRIVE_CLIENT_ID:
         providers.append({
             "id": "onedrive",
             "name": "OneDrive",
@@ -981,7 +984,7 @@ async def initiate_oauth(
     # Build OAuth URL based on provider
     if provider == "google_drive":
         params = {
-            "client_id": settings.GOOGLE_DRIVE_CLIENT_ID,
+            "client_id": _get_settings().GOOGLE_DRIVE_CLIENT_ID,
             "redirect_uri": callback_uri,
             "response_type": "code",
             "scope": " ".join(config["scopes"]),
@@ -991,7 +994,7 @@ async def initiate_oauth(
         }
     elif provider == "dropbox":
         params = {
-            "client_id": settings.DROPBOX_APP_KEY,
+            "client_id": _get_settings().DROPBOX_APP_KEY,
             "redirect_uri": callback_uri,
             "response_type": "code",
             "state": state,
@@ -999,7 +1002,7 @@ async def initiate_oauth(
         }
     elif provider == "onedrive":
         params = {
-            "client_id": settings.ONEDRIVE_CLIENT_ID,
+            "client_id": _get_settings().ONEDRIVE_CLIENT_ID,
             "redirect_uri": callback_uri,
             "response_type": "code",
             "scope": " ".join(config["scopes"]),
@@ -1159,8 +1162,8 @@ async def _exchange_code(provider: str, code: str, redirect_uri: str) -> dict:
         if provider == "google_drive":
             response = await client.post(config["token_url"], data={
                 "code": code,
-                "client_id": settings.GOOGLE_DRIVE_CLIENT_ID,
-                "client_secret": settings.GOOGLE_DRIVE_CLIENT_SECRET,
+                "client_id": _get_settings().GOOGLE_DRIVE_CLIENT_ID,
+                "client_secret": _get_settings().GOOGLE_DRIVE_CLIENT_SECRET,
                 "redirect_uri": redirect_uri,
                 "grant_type": "authorization_code",
             })
@@ -1169,12 +1172,12 @@ async def _exchange_code(provider: str, code: str, redirect_uri: str) -> dict:
                 "code": code,
                 "grant_type": "authorization_code",
                 "redirect_uri": redirect_uri,
-            }, auth=(settings.DROPBOX_APP_KEY, settings.DROPBOX_APP_SECRET))
+            }, auth=(_get_settings().DROPBOX_APP_KEY, _get_settings().DROPBOX_APP_SECRET))
         elif provider == "onedrive":
             response = await client.post(config["token_url"], data={
                 "code": code,
-                "client_id": settings.ONEDRIVE_CLIENT_ID,
-                "client_secret": settings.ONEDRIVE_CLIENT_SECRET,
+                "client_id": _get_settings().ONEDRIVE_CLIENT_ID,
+                "client_secret": _get_settings().ONEDRIVE_CLIENT_SECRET,
                 "redirect_uri": redirect_uri,
                 "grant_type": "authorization_code",
             })
