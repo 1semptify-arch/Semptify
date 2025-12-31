@@ -306,20 +306,21 @@
             color: var(--text-muted);
         }
         
-        /* Grid View */
+        /* Grid View - Compact Cards */
         .documents-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
         }
         
         .doc-card {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 16px;
+            border-radius: 10px;
+            padding: 12px;
             cursor: pointer;
             transition: all 0.2s;
+            position: relative;
         }
         
         .doc-card:hover {
@@ -328,33 +329,138 @@
             transform: translateY(-2px);
         }
         
+        .doc-card .preview-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .doc-card:hover .preview-btn {
+            opacity: 1;
+        }
+        
         .doc-icon {
-            font-size: 48px;
-            margin-bottom: 12px;
+            font-size: 32px;
+            margin-bottom: 8px;
             text-align: center;
         }
         
         .doc-name {
             font-weight: 600;
-            font-size: 14px;
+            font-size: 12px;
             margin-bottom: 4px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            text-align: center;
         }
         
         .doc-meta {
-            font-size: 12px;
+            font-size: 10px;
             color: var(--text-muted);
+            text-align: center;
         }
         
         .doc-type-badge {
             display: inline-block;
-            padding: 2px 8px;
+            padding: 2px 6px;
             background: var(--bg);
             border-radius: 4px;
-            font-size: 11px;
-            margin-top: 8px;
+            font-size: 10px;
+            margin-top: 6px;
+        }
+        
+        /* Preview Modal */
+        .preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1001;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .preview-modal.open {
+            display: flex;
+        }
+        
+        .preview-content {
+            background: white;
+            border-radius: 12px;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .preview-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .preview-header h3 {
+            margin: 0;
+            font-size: 16px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 400px;
+        }
+        
+        .preview-body {
+            flex: 1;
+            overflow: auto;
+            padding: 20px;
+            min-height: 300px;
+            max-height: 70vh;
+            background: #f5f5f5;
+        }
+        
+        .preview-body iframe {
+            width: 100%;
+            height: 100%;
+            min-height: 500px;
+            border: none;
+        }
+        
+        .preview-body pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 13px;
+            line-height: 1.5;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+        }
+        
+        .preview-body img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .preview-actions {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
         }
         
         /* List View */
@@ -839,6 +945,26 @@
         </div>
     </main>
     
+    <!-- Preview Modal -->
+    <div class="preview-modal" id="previewModal">
+        <div class="preview-content" style="width: 80vw; max-width: 900px;">
+            <div class="preview-header">
+                <h3 id="previewTitle">Document Preview</h3>
+                <button class="modal-close" onclick="closePreview()">×</button>
+            </div>
+            <div class="preview-body" id="previewBody">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading preview...</p>
+                </div>
+            </div>
+            <div class="preview-actions">
+                <button class="btn btn-secondary" onclick="closePreview()">Close</button>
+                <button class="btn btn-primary" id="previewDownload">⬇️ Download</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Upload Modal -->
     <div class="modal-overlay" id="uploadModal">
         <div class="modal">
@@ -897,6 +1023,7 @@
         let currentSort = 'date-desc';
         let currentFilter = 'all';
         let selectedFile = null;
+        let lastLoadTime = 0;
         
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -904,17 +1031,48 @@
             setupEventListeners();
         });
         
-        // Load documents from all available APIs
+        // REAL-TIME: Refresh when page becomes visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                console.log('🔄 Page visible - refreshing vault inventory...');
+                loadDocuments();
+            }
+        });
+        
+        // REAL-TIME: Refresh on focus
+        window.addEventListener('focus', () => {
+            const now = Date.now();
+            if (now - lastLoadTime > 2000) { // Debounce 2 seconds
+                console.log('🔄 Window focused - refreshing vault inventory...');
+                loadDocuments();
+            }
+        });
+        
+        // Load documents from all available APIs - ALWAYS FRESH DATA
         async function loadDocuments() {
+            console.log('📥 Loading fresh vault inventory...');
+            lastLoadTime = Date.now();
+            
+            // CLEAR OLD DATA FIRST - ensure fresh inventory
+            documents = [];
+            renderDocuments(); // Show loading state
+            
             try {
                 // Get user ID from localStorage or use default
                 const userId = localStorage.getItem('semptify_user_id') || 'default';
                 let allDocs = [];
                 
+                // Cache-busting timestamp
+                const cacheBuster = `_t=${Date.now()}`;
+                
                 // 1. Try main documents API first (this is where most docs are stored)
                 try {
-                    const docsResponse = await fetch('/api/documents/', {
-                        headers: { 'X-User-ID': userId }
+                    const docsResponse = await fetch(`/api/documents/?${cacheBuster}`, {
+                        headers: { 
+                            'X-User-ID': userId,
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache'
+                        }
                     });
                     if (docsResponse.ok) {
                         const docsData = await docsResponse.json();
@@ -943,8 +1101,12 @@
                 
                 // 2. Also check vault API for additional documents
                 try {
-                    const vaultResponse = await fetch('/api/vault/all', {
-                        headers: { 'X-User-ID': userId }
+                    const vaultResponse = await fetch(`/api/vault/all?${cacheBuster}`, {
+                        headers: { 
+                            'X-User-ID': userId,
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache'
+                        }
                     });
                     if (vaultResponse.ok) {
                         const vaultData = await vaultResponse.json();
@@ -1096,44 +1258,52 @@
             return sorted;
         }
         
-        // Grid View
+        // Grid View - Compact with Preview
         function renderGridView(docs) {
             document.getElementById('gridView').style.display = 'grid';
             document.getElementById('listView').style.display = 'none';
             document.getElementById('folderView').style.display = 'none';
             
             const container = document.getElementById('gridView');
-            container.innerHTML = docs.map(doc => `
-                <div class="doc-card" onclick="openDocument('${doc.vault_id || doc.id}')">
+            container.innerHTML = docs.map(doc => {
+                const docId = doc.vault_id || doc.id;
+                const filename = doc.filename || doc.name || 'Unknown';
+                const shortName = filename.length > 18 ? filename.substring(0, 15) + '...' : filename;
+                return `
+                <div class="doc-card" onclick="previewDocument('${docId}', '${encodeURIComponent(filename)}', '${doc.mime_type || ''}')">
+                    <button class="preview-btn" onclick="event.stopPropagation(); downloadDocument('${docId}')">⬇️</button>
                     <div class="doc-icon">${getDocIcon(doc.mime_type || doc.type)}</div>
-                    <div class="doc-name">${doc.filename || doc.name}</div>
+                    <div class="doc-name" title="${filename}">${shortName}</div>
                     <div class="doc-meta">${formatFileSize(doc.file_size)}</div>
-                    <div class="doc-type-badge">${doc.document_type || doc.type || 'Document'}</div>
+                    <div class="doc-type-badge">${(doc.document_type || doc.type || 'Doc').substring(0, 10)}</div>
                 </div>
-            `).join('');
+            `}).join('');
         }
         
-        // List View
+        // List View - Compact
         function renderListView(docs) {
             document.getElementById('gridView').style.display = 'none';
             document.getElementById('listView').style.display = 'block';
             document.getElementById('folderView').style.display = 'none';
             
             const container = document.getElementById('listView');
-            container.innerHTML = docs.map(doc => `
-                <div class="list-item" onclick="openDocument('${doc.vault_id || doc.id}')">
+            container.innerHTML = docs.map(doc => {
+                const docId = doc.vault_id || doc.id;
+                const filename = doc.filename || doc.name || 'Unknown';
+                return `
+                <div class="list-item" onclick="previewDocument('${docId}', '${encodeURIComponent(filename)}', '${doc.mime_type || ''}')">
                     <div class="list-icon">${getDocIcon(doc.mime_type || doc.type)}</div>
                     <div class="list-info">
-                        <div class="list-name">${doc.filename || doc.name}</div>
+                        <div class="list-name">${filename}</div>
                         <div class="list-meta">${doc.document_type || doc.type || 'Document'} • ${formatFileSize(doc.file_size)}</div>
                     </div>
                     <div class="list-date">${formatDate(doc.uploaded_at || doc.created_at)}</div>
                     <div class="list-actions">
-                        <button class="action-btn" onclick="event.stopPropagation(); downloadDocument('${doc.vault_id || doc.id}')">⬇️</button>
-                        <button class="action-btn primary" onclick="event.stopPropagation(); openDocument('${doc.vault_id || doc.id}')">View</button>
+                        <button class="action-btn" onclick="event.stopPropagation(); downloadDocument('${docId}')">⬇️</button>
+                        <button class="action-btn primary" onclick="event.stopPropagation(); previewDocument('${docId}', '${encodeURIComponent(filename)}', '${doc.mime_type || ''}')">Preview</button>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
         
         // Folder View
@@ -1175,13 +1345,17 @@
                 document.getElementById(`${folder}-count`).textContent = count;
                 
                 const container = document.getElementById(`${folder}-docs`);
-                container.innerHTML = folders[folder].map(doc => `
-                    <div class="doc-card" onclick="openDocument('${doc.vault_id || doc.id}')">
+                container.innerHTML = folders[folder].map(doc => {
+                    const docId = doc.vault_id || doc.id;
+                    const filename = doc.filename || doc.name || 'Unknown';
+                    const shortName = filename.length > 15 ? filename.substring(0, 12) + '...' : filename;
+                    return `
+                    <div class="doc-card" onclick="previewDocument('${docId}', '${encodeURIComponent(filename)}', '${doc.mime_type || ''}')">
                         <div class="doc-icon">${getDocIcon(doc.mime_type || doc.type)}</div>
-                        <div class="doc-name">${doc.filename || doc.name}</div>
+                        <div class="doc-name" title="${filename}">${shortName}</div>
                         <div class="doc-meta">${formatFileSize(doc.file_size)}</div>
                     </div>
-                `).join('') || '<p style="color: var(--text-muted); padding: 20px;">No documents in this folder</p>';
+                `}).join('') || '<p style="color: var(--text-muted); padding: 20px;">No documents in this folder</p>';
             });
         }
         
@@ -1402,15 +1576,106 @@
             }
         }
         
-        // Open document
-        function openDocument(docId) {
-            // Try to view the document
-            window.location.href = `/api/vault/document/${docId}/content`;
+        // Preview document in modal
+        async function previewDocument(docId, filename, mimeType) {
+            filename = decodeURIComponent(filename);
+            const modal = document.getElementById('previewModal');
+            const previewTitle = document.getElementById('previewTitle');
+            const previewBody = document.getElementById('previewBody');
+            const previewDownload = document.getElementById('previewDownload');
+            
+            previewTitle.textContent = filename;
+            previewDownload.onclick = () => downloadDocument(docId);
+            previewBody.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading preview...</p></div>';
+            modal.classList.add('open');
+            
+            try {
+                // Try multiple API endpoints
+                let response;
+                const endpoints = [
+                    `/api/documents/${docId}/download`,
+                    `/api/vault/${docId}/download`,
+                    `/api/briefcase/document/${docId}/content`
+                ];
+                
+                for (const endpoint of endpoints) {
+                    try {
+                        response = await fetch(endpoint);
+                        if (response.ok) break;
+                    } catch (e) {
+                        continue;
+                    }
+                }
+                
+                if (!response || !response.ok) {
+                    throw new Error('Document not accessible');
+                }
+                
+                const contentType = response.headers.get('content-type') || mimeType || '';
+                
+                if (contentType.includes('pdf')) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    previewBody.innerHTML = `<iframe src="${url}#toolbar=1" style="width:100%;height:600px;"></iframe>`;
+                } else if (contentType.includes('image')) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    previewBody.innerHTML = `<img src="${url}" style="max-width:100%;">`;
+                } else if (contentType.includes('text') || filename.match(/\.(txt|md|json|csv|log)$/i)) {
+                    const text = await response.text();
+                    previewBody.innerHTML = `<pre>${escapeHtml(text)}</pre>`;
+                } else {
+                    previewBody.innerHTML = `
+                        <div style="text-align:center;padding:40px;">
+                            <div style="font-size:64px;margin-bottom:16px;">${getDocIcon(mimeType)}</div>
+                            <h3>${filename}</h3>
+                            <p style="color:var(--text-muted);margin:16px 0;">Preview not available for this file type</p>
+                            <button class="btn btn-primary" onclick="downloadDocument('${docId}')">⬇️ Download File</button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Preview error:', error);
+                previewBody.innerHTML = `
+                    <div style="text-align:center;padding:40px;">
+                        <div style="font-size:64px;margin-bottom:16px;">⚠️</div>
+                        <h3>Preview Unavailable</h3>
+                        <p style="color:var(--text-muted);margin:16px 0;">${error.message}</p>
+                        <button class="btn btn-primary" onclick="downloadDocument('${docId}')">⬇️ Try Download</button>
+                    </div>
+                `;
+            }
         }
         
-        // Download document
+        function closePreview() {
+            document.getElementById('previewModal').classList.remove('open');
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Open document - now uses preview
+        function openDocument(docId) {
+            const doc = documents.find(d => (d.vault_id || d.id) === docId);
+            if (doc) {
+                previewDocument(docId, doc.filename || doc.name || 'Document', doc.mime_type || '');
+            } else {
+                downloadDocument(docId);
+            }
+        }
+        
+        // Download document - try multiple endpoints
         function downloadDocument(docId) {
-            window.location.href = `/api/vault/document/${docId}/content`;
+            // Create a hidden link and click it
+            const link = document.createElement('a');
+            link.href = `/api/documents/${docId}/download`;
+            link.download = '';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>

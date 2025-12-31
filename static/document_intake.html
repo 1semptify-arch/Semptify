@@ -1862,6 +1862,24 @@
         let currentUser = null;
         let accessToken = null;
         let isAuthenticated = false;
+        let lastLoadTime = 0;
+        
+        // REAL-TIME: Refresh when page becomes visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                console.log('🔄 Page visible - refreshing registered documents...');
+                loadRegisteredDocuments();
+            }
+        });
+        
+        // REAL-TIME: Refresh on focus
+        window.addEventListener('focus', () => {
+            const now = Date.now();
+            if (now - lastLoadTime > 2000) {
+                console.log('🔄 Window focused - refreshing registered documents...');
+                loadRegisteredDocuments();
+            }
+        });
         
         // =====================================================================
         // DOM Elements
@@ -2554,11 +2572,17 @@
         }
 
         // =====================================================================
-        // Registered Documents List
+        // Registered Documents List - ALWAYS FRESH DATA
         // =====================================================================
         let registeredDocs = [];
 
         async function loadRegisteredDocuments() {
+            console.log('📥 Loading fresh registered documents...');
+            lastLoadTime = Date.now();
+            
+            // CLEAR OLD DATA FIRST
+            registeredDocs = [];
+            
             const listContainer = document.getElementById('registeredDocsList');
             listContainer.innerHTML = `
                 <div class="empty-state">
@@ -2568,8 +2592,13 @@
             `;
 
             try {
-                const response = await fetch(`${API_BASE}/api/registry/documents`, {
-                    credentials: 'include'
+                const cacheBuster = `_t=${Date.now()}`;
+                const response = await fetch(`${API_BASE}/api/registry/documents?${cacheBuster}`, {
+                    credentials: 'include',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    }
                 });
                 
                 if (!response.ok) throw new Error('Failed to load documents');

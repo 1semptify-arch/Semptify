@@ -846,18 +846,48 @@
             other: { name: 'Other', icon: '📁' }
         };
         
+        let lastLoadTime = 0;
+        
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadDocuments();
         });
         
-        // Load documents
+        // REAL-TIME: Refresh when page becomes visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                console.log('🔄 Page visible - refreshing calendar documents...');
+                loadDocuments();
+            }
+        });
+        
+        // REAL-TIME: Refresh on focus
+        window.addEventListener('focus', () => {
+            const now = Date.now();
+            if (now - lastLoadTime > 2000) {
+                console.log('🔄 Window focused - refreshing calendar documents...');
+                loadDocuments();
+            }
+        });
+        
+        // Load documents - ALWAYS FRESH DATA
         async function loadDocuments() {
+            console.log('📥 Loading fresh document calendar...');
+            lastLoadTime = Date.now();
+            
+            // CLEAR OLD DATA FIRST
+            documents = [];
+            
             try {
                 const userId = localStorage.getItem('semptify_user_id') || 'default';
+                const cacheBuster = `_t=${Date.now()}`;
                 
-                let response = await fetch('/api/vault/all', {
-                    headers: { 'X-User-ID': userId }
+                let response = await fetch(`/api/vault/all?${cacheBuster}`, {
+                    headers: { 
+                        'X-User-ID': userId,
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    }
                 });
                 
                 if (response.ok) {

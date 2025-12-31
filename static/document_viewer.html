@@ -887,6 +887,7 @@
         let activeColor = 'yellow';
         let showEdits = true;
         let documents = [];
+        let lastLoadTime = 0;
         
         // =====================================================================
         // Initialization
@@ -905,13 +906,42 @@
             }
         });
         
+        // REAL-TIME: Refresh when page becomes visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                console.log('🔄 Page visible - refreshing document list...');
+                loadDocuments();
+            }
+        });
+        
+        // REAL-TIME: Refresh on focus
+        window.addEventListener('focus', () => {
+            const now = Date.now();
+            if (now - lastLoadTime > 2000) {
+                console.log('🔄 Window focused - refreshing document list...');
+                loadDocuments();
+            }
+        });
+        
         // =====================================================================
-        // Load Documents from Vault
+        // Load Documents from Vault - ALWAYS FRESH DATA
         // =====================================================================
         async function loadDocuments() {
+            console.log('📥 Loading fresh vault inventory...');
+            lastLoadTime = Date.now();
+            
+            // CLEAR OLD DATA FIRST
+            documents = [];
+            document.getElementById('documentList').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
             try {
-                const response = await fetch(`${API_BASE}/api/sync/vault/index`, {
-                    credentials: 'include'
+                const cacheBuster = `_t=${Date.now()}`;
+                const response = await fetch(`${API_BASE}/api/sync/vault/index?${cacheBuster}`, {
+                    credentials: 'include',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    }
                 });
                 
                 if (response.ok) {

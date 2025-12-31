@@ -1284,6 +1284,8 @@
         }
         
         // Initialize
+        let lastLoadTime = 0;
+        
         document.addEventListener('DOMContentLoaded', () => {
             // Ensure user is authenticated before loading
             if (!SemptifyAuth.ensureAuth()) {
@@ -1294,6 +1296,23 @@
             setupEventListeners();
             setupDraggableHelp();
             renderColorKeyLegend();
+        });
+        
+        // REAL-TIME: Refresh when page becomes visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                console.log('🔄 Page visible - refreshing briefcase...');
+                loadBriefcase();
+            }
+        });
+        
+        // REAL-TIME: Refresh on focus
+        window.addEventListener('focus', () => {
+            const now = Date.now();
+            if (now - lastLoadTime > 2000) {
+                console.log('🔄 Window focused - refreshing briefcase...');
+                loadBriefcase();
+            }
         });
         
         // Color Key Legend Functions
@@ -1434,10 +1453,18 @@
             }
         }
         
-        // API Functions - All use SemptifyAuth for authenticated requests
+        // API Functions - All use SemptifyAuth for authenticated requests - ALWAYS FRESH DATA
         async function loadBriefcase() {
+            console.log('📥 Loading fresh briefcase data...');
+            lastLoadTime = Date.now();
+            
+            // CLEAR OLD DATA FIRST
+            folders = {};
+            documents = [];
+            
             try {
-                const response = await SemptifyAuth.fetch('/api/briefcase/');
+                const cacheBuster = `_t=${Date.now()}`;
+                const response = await SemptifyAuth.fetch(`/api/briefcase/?${cacheBuster}`);
                 const data = await response.json();
                 
                 // Convert folders array to object

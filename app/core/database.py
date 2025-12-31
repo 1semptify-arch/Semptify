@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.pool import NullPool, QueuePool
+from sqlalchemy.pool import NullPool, AsyncAdaptedQueuePool
 
 from app.core.config import get_settings
 
@@ -48,9 +48,9 @@ def get_engine():
                 "connect_args": {"check_same_thread": False},
             }
         else:
-            # PostgreSQL: use connection pooling
+            # PostgreSQL: use async-compatible connection pooling
             pool_config = {
-                "poolclass": QueuePool,
+                "poolclass": AsyncAdaptedQueuePool,
                 "pool_size": 5,  # Base connections
                 "max_overflow": 10,  # Extra connections under load
                 "pool_timeout": 30,  # Seconds to wait for connection
