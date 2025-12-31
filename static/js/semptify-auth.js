@@ -43,33 +43,42 @@ const SemptifyAuth = {
     },
     
     /**
-     * Check if user is authenticated
+     * Check if user is authenticated with REAL cloud storage
+     * User must have G (Google), D (Dropbox), or O (OneDrive) prefix
      * @returns {boolean}
      */
     isAuthenticated() {
-        return this.getUserId() !== null;
+        const userId = this.getUserId();
+        if (!userId) return false;
+        const validPrefixes = ['G', 'D', 'O'];
+        return validPrefixes.includes(userId.charAt(0));
     },
     
     /**
-     * Ensure user is authenticated - redirect to /auth if not
+     * Ensure user is authenticated - redirect to storage providers if not
      * Call at the start of any protected page
-     * @param {boolean} redirect - Whether to redirect to auth page (default: true)
+     * @param {boolean} redirect - Whether to redirect to storage page (default: true)
      * @returns {boolean} True if authenticated
      */
     ensureAuth(redirect = true) {
         const userId = this.getUserId();
         
-        if (!userId && redirect) {
+        // User must have a REAL storage cookie (G, D, O prefix = Google, Dropbox, OneDrive)
+        // Session-only users (S prefix) must reconnect
+        const validPrefixes = ['G', 'D', 'O'];
+        const hasValidStorage = userId && validPrefixes.includes(userId.charAt(0));
+        
+        if (!hasValidStorage && redirect) {
             // Save current URL for redirect back after auth
             const returnUrl = window.location.pathname + window.location.search;
-            if (returnUrl !== '/auth' && returnUrl !== '/') {
+            if (returnUrl !== '/storage/providers' && returnUrl !== '/') {
                 sessionStorage.setItem('auth_return_url', returnUrl);
             }
-            window.location.href = '/auth';
+            window.location.href = '/storage/providers';
             return false;
         }
         
-        return !!userId;
+        return hasValidStorage;
     },
     
     /**

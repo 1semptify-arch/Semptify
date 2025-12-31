@@ -23,7 +23,7 @@ services:
       - DATABASE_URL=postgresql+asyncpg://semptify:semptify@postgres:5432/semptify
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY:-dev-secret-key-change-in-production}
-      - SECURITY_MODE=${SECURITY_MODE:-open}
+      - SECURITY_MODE=enforced
       - AI_PROVIDER=${AI_PROVIDER:-anthropic}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}

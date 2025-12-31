@@ -1207,3 +1207,7 @@ def get_intake_engine() -> DocumentIntakeEngine:
     if _intake_engine is None:
         _intake_engine = DocumentIntakeEngine()
     return _intake_engine
+
+
+# Alias for unified import pattern
+get_document_intake = get_intake_engine

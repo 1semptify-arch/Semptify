@@ -1,8 +1,8 @@
 # ============================================================
-# 🚀 SEMPTIFY PRODUCTION START
+# SEMPTIFY PRODUCTION START
 # ============================================================
 # One-click production launch with full GUI access
-# Usage: Right-click → Run with PowerShell
+# Usage: Right-click - Run with PowerShell
 #    or: .\START.ps1
 # ============================================================
 
@@ -12,22 +12,22 @@ param(
 )
 
 # Set window title
-$Host.UI.RawUI.WindowTitle = "⚖️ Semptify v5.0 - Production"
+$Host.UI.RawUI.WindowTitle = "Semptify v5.0 - Production"
 
 # Colors
 function Write-Banner { param($msg) Write-Host $msg -ForegroundColor Cyan }
-function Write-Success { param($msg) Write-Host "✅ $msg" -ForegroundColor Green }
-function Write-Warn { param($msg) Write-Host "⚠️  $msg" -ForegroundColor Yellow }
-function Write-Err { param($msg) Write-Host "❌ $msg" -ForegroundColor Red }
+function Write-Success { param($msg) Write-Host "[OK] $msg" -ForegroundColor Green }
+function Write-Warn { param($msg) Write-Host "[WARN] $msg" -ForegroundColor Yellow }
+function Write-Err { param($msg) Write-Host "[ERROR] $msg" -ForegroundColor Red }
 function Write-Info { param($msg) Write-Host "   $msg" -ForegroundColor White }
 
 Clear-Host
 
 Write-Host ""
-Write-Banner "╔══════════════════════════════════════════════════════════════╗"
-Write-Banner "║         ⚖️  SEMPTIFY - Tenant Rights Platform               ║"
-Write-Banner "║              Production Server Launch                        ║"
-Write-Banner "╚══════════════════════════════════════════════════════════════╝"
+Write-Banner "============================================================"
+Write-Banner "       SEMPTIFY - Tenant Rights Platform"
+Write-Banner "           Production Server Launch"
+Write-Banner "============================================================"
 Write-Host ""
 
 # Change to script directory
@@ -39,10 +39,10 @@ Write-Success "Working directory: $ScriptDir"
 # STEP 1: Check Python
 # ============================================================
 Write-Host ""
-Write-Host "🔍 Checking Prerequisites..." -ForegroundColor Yellow
+Write-Host "Checking Prerequisites..." -ForegroundColor Yellow
 Write-Host ""
 
-$pythonPath = "$ScriptDir\.venv\Scripts\python.exe"
+$pythonPath = Join-Path $ScriptDir ".venv\Scripts\python.exe"
 if (-not (Test-Path $pythonPath)) {
     Write-Err "Virtual environment not found at .venv\"
     Write-Info "Creating virtual environment..."
@@ -56,7 +56,8 @@ if (-not (Test-Path $pythonPath)) {
     Write-Success "Virtual environment created"
     
     Write-Info "Installing dependencies..."
-    & "$ScriptDir\.venv\Scripts\pip.exe" install -r requirements.txt
+    $pipPath = Join-Path $ScriptDir ".venv\Scripts\pip.exe"
+    & $pipPath install -r requirements.txt
 }
 Write-Success "Python environment: .venv"
 
@@ -68,11 +69,12 @@ Write-Success "Python version: $pyVersion"
 # STEP 2: Check .env Configuration
 # ============================================================
 Write-Host ""
-if (Test-Path ".\.env") {
+$envPath = Join-Path $ScriptDir ".env"
+if (Test-Path $envPath) {
     Write-Success "Configuration: .env loaded"
     
     # Read security mode from .env
-    $envContent = Get-Content ".\.env" -Raw
+    $envContent = Get-Content $envPath -Raw
     if ($envContent -match "SECURITY_MODE=(\w+)") {
         $securityMode = $Matches[1]
         Write-Success "Security Mode: $($securityMode.ToUpper())"
@@ -82,13 +84,14 @@ if (Test-Path ".\.env") {
     $securityMode = "enforced"
 }
 
-# Override for development mode
+# Security is always enforced
+$env:SECURITY_MODE = "enforced"
+$env:ENFORCE_SECURITY = "true"
+$env:ENVIRONMENT = "production"
 if ($Development) {
-    $env:SECURITY_MODE = "open"
     $env:DEBUG = "true"
-    Write-Warn "Development mode enabled (security=open)"
+    Write-Warn "Development mode enabled (debug=true)"
 } else {
-    $env:SECURITY_MODE = "enforced"
     $env:DEBUG = "false"
 }
 
@@ -96,7 +99,7 @@ if ($Development) {
 # STEP 3: Kill any existing Semptify processes
 # ============================================================
 Write-Host ""
-Write-Host "🔄 Checking for existing processes..." -ForegroundColor Yellow
+Write-Host "Checking for existing processes..." -ForegroundColor Yellow
 
 $existingProcesses = Get-Process -Name python -ErrorAction SilentlyContinue | 
     Where-Object { $_.CommandLine -match "uvicorn|semptify|8000" }
@@ -114,13 +117,14 @@ if ($existingProcesses) {
 # STEP 4: Check Database
 # ============================================================
 Write-Host ""
-Write-Host "🗄️  Checking Database..." -ForegroundColor Yellow
+Write-Host "Checking Database..." -ForegroundColor Yellow
 
 # Try PostgreSQL first, fall back to SQLite
-$dbFile = "$ScriptDir\semptify.db"
+$dbFile = Join-Path $ScriptDir "semptify.db"
 if (Test-Path $dbFile) {
-    $dbSize = [math]::Round((Get-Item $dbFile).Length / 1KB, 2)
-    Write-Success "SQLite database: semptify.db ($dbSize KB)"
+    $dbSizeBytes = (Get-Item $dbFile).Length
+    $dbSizeKB = [math]::Round($dbSizeBytes / 1024, 2)
+    Write-Success "SQLite database: semptify.db ($dbSizeKB KB)"
 } else {
     Write-Info "No local database - will be created on first run"
 }
@@ -129,33 +133,33 @@ if (Test-Path $dbFile) {
 # STEP 5: Display Access URLs
 # ============================================================
 Write-Host ""
-Write-Host "╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Green
-Write-Host "║                    🌐 ACCESS POINTS                          ║" -ForegroundColor Green
-Write-Host "╠══════════════════════════════════════════════════════════════╣" -ForegroundColor Green
-Write-Host "║                                                              ║" -ForegroundColor Green
-Write-Host "║  🎛️  COMMAND CENTER (Main GUI)                               ║" -ForegroundColor Green
-Write-Host "║      http://localhost:8000/static/command_center.html        ║" -ForegroundColor White
-Write-Host "║                                                              ║" -ForegroundColor Green
-Write-Host "║  📊 Dashboard      → /static/dashboard.html                  ║" -ForegroundColor White
-Write-Host "║  📄 Document Intake → /static/document_intake.html           ║" -ForegroundColor White
-Write-Host "║  📅 Timeline       → /static/timeline.html                   ║" -ForegroundColor White
-Write-Host "║  🗓️  Calendar       → /static/calendar.html                   ║" -ForegroundColor White
-Write-Host "║  🧠 AI Brain       → /static/brain.html                      ║" -ForegroundColor White
-Write-Host "║  ⚖️  Eviction       → /eviction/                              ║" -ForegroundColor White
-Write-Host "║  🔬 Legal Analysis → /static/legal_analysis.html             ║" -ForegroundColor White
-Write-Host "║  🕸️  Mesh Network   → /static/mesh_network.html               ║" -ForegroundColor White
-Write-Host "║                                                              ║" -ForegroundColor Green
-Write-Host "║  📚 API Docs       → /docs                                   ║" -ForegroundColor White
-Write-Host "║  🔌 API Schema     → /openapi.json                           ║" -ForegroundColor White
-Write-Host "║                                                              ║" -ForegroundColor Green
-Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Green
+Write-Host "============================================================" -ForegroundColor Green
+Write-Host "                    ACCESS POINTS                           " -ForegroundColor Green
+Write-Host "============================================================" -ForegroundColor Green
+Write-Host ""
+Write-Host "  COMMAND CENTER (Main GUI)" -ForegroundColor Green
+Write-Host "      http://localhost:8000/static/command_center.html" -ForegroundColor White
+Write-Host ""
+Write-Host "  Dashboard       -> /static/dashboard.html" -ForegroundColor White
+Write-Host "  Document Intake -> /static/document_intake.html" -ForegroundColor White
+Write-Host "  Timeline        -> /static/timeline.html" -ForegroundColor White
+Write-Host "  Calendar        -> /static/calendar.html" -ForegroundColor White
+Write-Host "  AI Brain        -> /static/brain.html" -ForegroundColor White
+Write-Host "  Eviction        -> /eviction/" -ForegroundColor White
+Write-Host "  Legal Analysis  -> /static/legal_analysis.html" -ForegroundColor White
+Write-Host "  Mesh Network    -> /static/mesh_network.html" -ForegroundColor White
+Write-Host ""
+Write-Host "  API Docs        -> /docs" -ForegroundColor White
+Write-Host "  API Schema      -> /openapi.json" -ForegroundColor White
+Write-Host ""
+Write-Host "============================================================" -ForegroundColor Green
 Write-Host ""
 
 # ============================================================
 # STEP 6: Open Browser (unless disabled)
 # ============================================================
 if (-not $NoBrowser) {
-    Write-Host "🌐 Opening Command Center in browser..." -ForegroundColor Cyan
+    Write-Host "Opening Command Center in browser..." -ForegroundColor Cyan
     Start-Job -ScriptBlock {
         Start-Sleep -Seconds 3
         Start-Process "http://localhost:8000/static/command_center.html"
@@ -166,21 +170,23 @@ if (-not $NoBrowser) {
 # STEP 7: Start the Server
 # ============================================================
 Write-Host ""
-Write-Host "🚀 Starting Semptify Server..." -ForegroundColor Green
+Write-Host "Starting Semptify Server..." -ForegroundColor Green
 Write-Host "   Press Ctrl+C to stop" -ForegroundColor DarkGray
 Write-Host ""
-Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor DarkGray
+Write-Host "============================================================" -ForegroundColor DarkGray
 
 # Activate venv and run
-& "$ScriptDir\.venv\Scripts\Activate.ps1"
+$activatePath = Join-Path $ScriptDir ".venv\Scripts\Activate.ps1"
+& $activatePath
 
 # Start uvicorn directly for better control
 & $pythonPath -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level info
 
 # If server exits, show message
 Write-Host ""
-Write-Host "═══════════════════════════════════════════════════════════════" -ForegroundColor DarkGray
+Write-Host "============================================================" -ForegroundColor DarkGray
 Write-Host ""
 Write-Err "Server stopped"
 Write-Host ""
 Read-Host "Press Enter to exit"
+

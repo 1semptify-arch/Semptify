@@ -60,9 +60,9 @@ Your data lives in YOUR cloud storage - we never store your files.
     port: int = 8000
     
     # ==========================================================================
-    # Security Mode: open (dev/testing) or enforced (production)
+    # Security Mode: Always enforced - no open mode
     # ==========================================================================
-    security_mode: Literal["open", "enforced"] = "enforced"
+    security_mode: Literal["enforced"] = "enforced"
     secret_key: str = ""  # Will be auto-generated if not set
     
     @field_validator("secret_key", mode="before")
@@ -230,26 +230,20 @@ Your data lives in YOUR cloud storage - we never store your files.
         """
         Parse CORS origins into a list with secure defaults.
         - If explicit origins set: use those
-        - If empty and security_mode=enforced: restrict to localhost only
-        - If empty and security_mode=open: allow all (for development)
+        - If empty: restrict to localhost only
         """
         if self.cors_origins:
             if self.cors_origins == "*":
                 return ["*"]
             return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
         
-        # Secure defaults based on security mode
-        if self.security_mode == "enforced":
-            # Production: only localhost by default (user must configure explicit origins)
-            return [
-                "http://localhost:8000",
-                "http://127.0.0.1:8000",
-                "http://localhost:3000",  # Common frontend dev port
-                "http://127.0.0.1:3000",
-            ]
-        else:
-            # Development: allow all origins
-            return ["*"]
+        # Secure defaults - localhost only (user must configure explicit origins)
+        return [
+            "http://localhost:8000",
+            "http://127.0.0.1:8000",
+            "http://localhost:3000",  # Common frontend dev port
+            "http://127.0.0.1:3000",
+        ]
 
     @property
     def allowed_extensions_set(self) -> set[str]:

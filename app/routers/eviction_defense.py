@@ -2,6 +2,8 @@
 Semptify Dakota County Eviction Defense Module
 Complete eviction defense toolkit with all motions, forms, procedures,
 counterclaims, trial preparation, and court etiquette.
+
+Now integrated with DocumentHub for document-informed defense recommendations.
 """
 
 from typing import Optional, List, Dict, Any
@@ -13,6 +15,7 @@ from enum import Enum
 from app.core.security import require_user, StorageUser
 from app.services.law_engine import get_law_engine
 from app.services.form_data import get_form_data_service
+from app.core.document_hub import get_document_hub
 
 
 router = APIRouter(prefix="/api/eviction-defense", tags=["Eviction Defense"])
@@ -1074,4 +1077,269 @@ async def get_quick_status(user: StorageUser = Depends(require_user)):
         "defenses_count": summary["defenses_count"],
         "documents_count": summary["documents_count"],
         "ready_for_court": summary["defenses_count"] > 0 and summary["documents_count"] > 0,
+    }
+
+
+# =============================================================================
+# Document Hub Integration - Document-informed defense recommendations
+# =============================================================================
+
+@router.get("/from-documents/defenses")
+async def get_document_based_defenses(user: StorageUser = Depends(require_user)):
+    """
+    Get defense recommendations based on uploaded documents.
+    
+    Analyzes your uploaded documents and recommends applicable defenses
+    based on document types, extracted content, and matched statutes.
+    """
+    hub = get_document_hub()
+    case_data = hub.get_case_data(user.user_id)
+    
+    recommendations = []
+    doc_types = case_data.documents_by_type
+    
+    # Check for improper notice defense
+    if case_data.notice_date:
+        recommendations.append({
+            "defense": DefenseType.IMPROPER_NOTICE,
+            "confidence": "medium",
+            "reason": "Notice date found - verify proper service and timing requirements",
+            "evidence_needed": ["Copy of notice", "Proof of service date", "Calendar showing days count"],
+            "statute": "Minn. Stat. § 504B.135",
+        })
+    
+    # Check for habitability defense
+    if doc_types.get("repair_request") or doc_types.get("inspection_report"):
+        recommendations.append({
+            "defense": DefenseType.HABITABILITY,
+            "confidence": "high",
+            "reason": "Repair-related documents found in your uploads",
+            "evidence_needed": doc_types.get("repair_request", []) + doc_types.get("inspection_report", []),
+            "statute": "Minn. Stat. § 504B.161",
+        })
+    
+    # Check for retaliation defense
+    if doc_types.get("letter") or doc_types.get("email_communication") or doc_types.get("complaint"):
+        recommendations.append({
+            "defense": DefenseType.RETALIATION,
+            "confidence": "medium",
+            "reason": "Communications found that may show protected activity before eviction",
+            "evidence_needed": ["Complaint to landlord", "Complaint to city/inspector", "Timeline showing eviction within 90 days of complaint"],
+            "statute": "Minn. Stat. § 504B.441",
+        })
+    
+    # Check for payment defense
+    if doc_types.get("receipt") or doc_types.get("payment_record") or doc_types.get("bank_statement"):
+        recommendations.append({
+            "defense": DefenseType.PAYMENT,
+            "confidence": "high",
+            "reason": "Payment records found - verify all rent was paid",
+            "evidence_needed": ["Receipts", "Bank statements showing payments", "Payment history"],
+            "statute": "Common law defense",
+        })
+    
+    # Check for waiver defense
+    if case_data.rent_amount and doc_types.get("receipt"):
+        recommendations.append({
+            "defense": DefenseType.WAIVER,
+            "confidence": "medium",
+            "reason": "Rent payment records may show landlord accepted rent after alleged breach",
+            "evidence_needed": ["Rent receipts dated after alleged violation", "Any written acceptance of rent"],
+            "statute": "Common law defense",
+        })
+    
+    return {
+        "recommended_defenses": recommendations,
+        "documents_analyzed": case_data.document_count,
+        "documents_by_type": doc_types,
+        "matched_statutes": case_data.matched_statutes,
+        "urgency_level": case_data.urgency_level,
+        "disclaimer": LEGAL_DISCLAIMER,
+    }
+
+
+@router.get("/from-documents/counterclaims")
+async def get_document_based_counterclaims(user: StorageUser = Depends(require_user)):
+    """
+    Get counterclaim recommendations based on uploaded documents.
+    
+    Analyzes your uploaded documents and recommends potential counterclaims
+    you may be able to file against your landlord.
+    """
+    hub = get_document_hub()
+    case_data = hub.get_case_data(user.user_id)
+    
+    recommendations = []
+    doc_types = case_data.documents_by_type
+    
+    # Security deposit counterclaim
+    if case_data.deposit_amount:
+        recommendations.append({
+            "counterclaim": "security_deposit",
+            "title": "Security Deposit Violations",
+            "confidence": "high",
+            "reason": f"Security deposit of ${case_data.deposit_amount} found in documents",
+            "potential_recovery": case_data.deposit_amount * 2,  # Bad faith can double
+            "statute": "Minn. Stat. § 504B.178",
+            "evidence_needed": ["Lease showing deposit amount", "Move-out condition photos", "Written demand for return"],
+        })
+    
+    # Habitability counterclaim
+    if doc_types.get("repair_request") or doc_types.get("inspection_report") or doc_types.get("photo_evidence"):
+        recommendations.append({
+            "counterclaim": "breach_of_habitability",
+            "title": "Breach of Warranty of Habitability",
+            "confidence": "high",
+            "reason": "Repair/condition documentation found",
+            "potential_recovery": "Rent reduction + repair costs + damages",
+            "statute": "Minn. Stat. § 504B.161",
+            "evidence_needed": ["Photos of conditions", "Repair requests sent to landlord", "Inspector reports"],
+        })
+    
+    # Harassment/self-help eviction
+    if doc_types.get("letter") and case_data.urgency_level == "critical":
+        recommendations.append({
+            "counterclaim": "tenant_harassment",
+            "title": "Tenant Harassment",
+            "confidence": "medium",
+            "reason": "Communications may show harassment patterns",
+            "potential_recovery": "Statutory damages + actual damages",
+            "statute": "Minn. Stat. § 504B.395",
+            "evidence_needed": ["Harassing communications", "Timeline of harassment", "Witness statements"],
+        })
+    
+    return {
+        "recommended_counterclaims": recommendations,
+        "documents_analyzed": case_data.document_count,
+        "total_potential_claims": len(recommendations),
+        "disclaimer": LEGAL_DISCLAIMER,
+    }
+
+
+@router.get("/from-documents/deadlines")
+async def get_document_based_deadlines(user: StorageUser = Depends(require_user)):
+    """
+    Get deadlines calculated from your documents.
+    
+    Analyzes dates in your documents and calculates important deadlines
+    based on Minnesota eviction law.
+    """
+    hub = get_document_hub()
+    case_data = hub.get_case_data(user.user_id)
+    
+    deadlines = []
+    today = date.today()
+    
+    # Answer deadline
+    if case_data.answer_deadline:
+        try:
+            deadline = datetime.fromisoformat(case_data.answer_deadline.replace("Z", "+00:00")).date()
+            days_until = (deadline - today).days
+            deadlines.append({
+                "type": "answer_deadline",
+                "title": "File Answer to Eviction Complaint",
+                "date": case_data.answer_deadline,
+                "days_until": days_until,
+                "urgency": "critical" if days_until <= 3 else "high" if days_until <= 7 else "medium",
+                "action": "File your Answer form with the court before this date",
+                "consequence": "Default judgment may be entered against you",
+            })
+        except (ValueError, TypeError):
+            pass
+    
+    # Hearing date
+    if case_data.hearing_date:
+        try:
+            hearing = datetime.fromisoformat(case_data.hearing_date.replace("Z", "+00:00")).date()
+            days_until = (hearing - today).days
+            deadlines.append({
+                "type": "hearing",
+                "title": "Court Hearing",
+                "date": case_data.hearing_date,
+                "time": case_data.hearing_time,
+                "days_until": days_until,
+                "urgency": "critical" if days_until <= 7 else "high" if days_until <= 14 else "medium",
+                "action": "Prepare your case and bring all evidence to court",
+                "consequence": "Missing the hearing results in default judgment",
+            })
+        except (ValueError, TypeError):
+            pass
+    
+    # Add action items from documents
+    for action in case_data.action_items:
+        if action.get("deadline"):
+            try:
+                action_deadline = datetime.fromisoformat(action["deadline"].replace("Z", "+00:00")).date()
+                days_until = (action_deadline - today).days
+                deadlines.append({
+                    "type": "action_item",
+                    "title": action.get("title", "Action Required"),
+                    "date": action["deadline"],
+                    "days_until": days_until,
+                    "urgency": "high" if action.get("priority", 5) <= 2 else "medium",
+                    "action": action.get("description", "Complete this action"),
+                    "source": "document_extraction",
+                })
+            except (ValueError, TypeError):
+                pass
+    
+    # Sort by date
+    deadlines.sort(key=lambda x: x.get("days_until", 999))
+    
+    return {
+        "deadlines": deadlines,
+        "total_deadlines": len(deadlines),
+        "critical_count": len([d for d in deadlines if d.get("urgency") == "critical"]),
+        "documents_analyzed": case_data.document_count,
+        "disclaimer": LEGAL_DISCLAIMER,
+    }
+
+
+@router.get("/from-documents/analysis")
+async def get_full_document_analysis(user: StorageUser = Depends(require_user)):
+    """
+    Get comprehensive eviction defense analysis based on uploaded documents.
+    
+    This combines all document-extracted information into a full defense analysis.
+    """
+    hub = get_document_hub()
+    case_data = hub.get_case_data(user.user_id)
+    law_engine = get_law_engine()
+    
+    # Get violations and strategies from law engine
+    case_info = {
+        "case_number": case_data.primary_case_number,
+        "hearing_date": case_data.hearing_date,
+        "defendant_name": case_data.tenant_name,
+        "plaintiff_name": case_data.landlord_name,
+        "property_address": case_data.property_address,
+        "rent_amount": case_data.rent_amount,
+    }
+    
+    violations = await law_engine.find_violations(case_info, case_data.timeline_events)
+    strategies = law_engine.get_defense_strategies(violations)
+    
+    return {
+        "case_summary": {
+            "case_number": case_data.primary_case_number,
+            "tenant": case_data.tenant_name,
+            "landlord": case_data.landlord_name,
+            "property": case_data.property_address,
+            "hearing_date": case_data.hearing_date,
+        },
+        "documents_analyzed": case_data.document_count,
+        "documents_by_type": case_data.documents_by_type,
+        "urgency_level": case_data.urgency_level,
+        "financial_claims": {
+            "rent_claimed": case_data.rent_claimed,
+            "total_claimed": case_data.total_claimed,
+            "deposit_at_risk": case_data.deposit_amount,
+        },
+        "violations_found": violations,
+        "defense_strategies": strategies,
+        "matched_statutes": case_data.matched_statutes,
+        "timeline_events": len(case_data.timeline_events),
+        "action_items": case_data.action_items,
+        "urgent_actions": case_data.urgent_actions,
+        "disclaimer": LEGAL_DISCLAIMER,
     }

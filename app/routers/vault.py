@@ -240,6 +240,154 @@ async def upload_document(
     )
 
 
+@router.post(
+    "/copy-from-sync",
+    response_model=DocumentResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(rate_limit_dependency("vault-copy", window=60, max_requests=20))],
+)
+async def copy_from_sync_to_vault(
+    file_id: str = Form(..., description="File ID from cloud sync storage"),
+    filename: str = Form(..., description="Original filename"),
+    document_type: Optional[str] = Form(None),
+    description: Optional[str] = Form(None),
+    tags: Optional[str] = Form(None),
+    access_token: str = Form(..., description="Storage provider access token"),
+    user: StorageUser = Depends(require_user),
+    settings: Settings = Depends(get_settings),
+):
+    """
+    Copy a document from sync storage (.semptify/documents/) to vault (.semptify/vault/).
+    
+    This is used when the original File object is no longer available (e.g., after page refresh)
+    but the document was already uploaded to cloud storage via the sync endpoint.
+    """
+    # Get storage provider for user
+    try:
+        storage = get_provider(user.provider, access_token=access_token)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    # Try to download from sync documents folder
+    sync_path = f".semptify/documents/{filename}"
+    
+    try:
+        content = await storage.download_file(sync_path)
+    except Exception as e:
+        # Try alternative paths
+        try:
+            content = await storage.download_file(f".semptify/documents/{file_id}")
+        except Exception:
+            raise HTTPException(
+                status_code=404, 
+                detail=f"Could not find document in cloud storage. Path tried: {sync_path}"
+            )
+    
+    if not content:
+        raise HTTPException(status_code=404, detail="Document content is empty")
+    
+    file_size = len(content)
+    
+    # Check size limit
+    max_size = settings.max_upload_size_mb * 1024 * 1024
+    if file_size > max_size:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File too large. Maximum: {settings.max_upload_size_mb}MB",
+        )
+
+    # Generate IDs and hash
+    document_id = str(uuid.uuid4())
+    sha256_hash = compute_sha256(content)
+
+    # Determine safe filename
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "bin"
+    safe_filename = f"{document_id}.{ext}"
+    
+    # Detect mime type from extension
+    mime_types = {
+        "pdf": "application/pdf",
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "png": "image/png",
+        "gif": "image/gif",
+        "doc": "application/msword",
+        "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "txt": "text/plain",
+    }
+    mime_type = mime_types.get(ext, "application/octet-stream")
+
+    # Ensure vault folders exist and upload file
+    try:
+        await ensure_vault_folders(storage, user.provider)
+
+        # Upload file to user's vault
+        storage_path = f"{VAULT_FOLDER}/{safe_filename}"
+        await storage.upload_file(
+            file_content=content,
+            destination_path=VAULT_FOLDER,
+            filename=safe_filename,
+            mime_type=mime_type,
+        )
+    except Exception as e:
+        error_msg = str(e)
+        if "401" in error_msg or "Unauthorized" in error_msg or "access" in error_msg.lower():
+            raise HTTPException(status_code=401, detail=f"Storage authentication failed: {error_msg}")
+        elif "403" in error_msg or "Forbidden" in error_msg:
+            raise HTTPException(status_code=403, detail=f"Storage access denied: {error_msg}")
+        else:
+            raise HTTPException(status_code=500, detail=f"Storage error: {error_msg}")
+
+    # Create certificate
+    certificate_id = f"cert_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{document_id[:8]}"
+    certificate = {
+        "certificate_id": certificate_id,
+        "document_id": document_id,
+        "sha256": sha256_hash,
+        "original_filename": filename,
+        "file_size": file_size,
+        "mime_type": mime_type,
+        "document_type": document_type,
+        "description": description,
+        "tags": tags.split(",") if tags else [],
+        "certified_at": datetime.now(timezone.utc).isoformat(),
+        "request_id": str(uuid.uuid4()),
+        "storage_path": storage_path,
+        "storage_provider": user.provider,
+        "user_id": user.user_id,
+        "version": "5.0",
+        "platform": "Semptify FastAPI Cloud Storage",
+        "source": "copy-from-sync",
+        "source_path": sync_path,
+    }
+
+    # Upload certificate to user's storage
+    cert_content = json.dumps(certificate, indent=2).encode("utf-8")
+    try:
+        await storage.upload_file(
+            file_content=cert_content,
+            destination_path=CERTS_FOLDER,
+            filename=f"{certificate_id}.json",
+            mime_type="application/json",
+        )
+    except Exception:
+        pass  # Certificate upload failed but file was uploaded
+
+    return DocumentResponse(
+        id=document_id,
+        filename=safe_filename,
+        original_filename=filename,
+        file_size=file_size,
+        mime_type=mime_type,
+        sha256_hash=sha256_hash,
+        certificate_id=certificate_id,
+        uploaded_at=datetime.now(timezone.utc).isoformat(),
+        document_type=document_type,
+        storage_provider=user.provider,
+        storage_path=storage_path,
+    )
+
+
 @router.get("/", response_model=DocumentListResponse)
 async def list_documents(
     document_type: Optional[str] = None,

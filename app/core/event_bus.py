@@ -22,6 +22,13 @@ class EventType(str, Enum):
     DOCUMENT_DELETED = "document_deleted"
     DOCUMENT_PROCESSED = "document_processed"
     DOCUMENT_CLASSIFIED = "document_classified"
+    
+    # Document Integration events (unified upload)
+    DOCUMENT_REGISTERED = "document_registered"
+    DOCUMENT_READY_FOR_BRIEFCASE = "document_ready_for_briefcase"
+    DOCUMENT_READY_FOR_FORMS = "document_ready_for_forms"
+    DOCUMENT_READY_FOR_COURT_PACKET = "document_ready_for_court_packet"
+    DOCUMENT_FULLY_PROCESSED = "document_fully_processed"
 
     # Data extraction events
     EVENTS_EXTRACTED = "events_extracted"

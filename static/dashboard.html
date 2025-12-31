@@ -1747,25 +1747,32 @@
             document.getElementById('onboarding-overlay').classList.remove('hidden');
         }
 
-        // Onboarding - Storage is OPTIONAL (user can connect later)
+        // Onboarding - Storage is REQUIRED (enforced mode - no bypass)
         async function checkOnboarding() {
             console.log('🔍 checkOnboarding called');
             const storageStatus = await checkStorageStatus();
             console.log('📊 Storage status:', storageStatus);
             
-            // Storage is now optional - don't block the user
+            // Storage is REQUIRED - user must connect before using the app
             if (storageStatus.authenticated) {
                 console.log('✅ Authenticated');
                 isNewUser = false;
+                document.getElementById('onboarding-overlay').classList.add('hidden');
                 showToast(`Connected to ${storageProvider}`, 'success');
             } else {
-                console.log('ℹ️ No storage connected - user can connect later');
+                console.log('⚠️ No storage connected - REQUIRED');
                 isNewUser = true;
-                // Don't show overlay - let user use the app
+                // Show storage connection overlay - user cannot proceed without storage
+                document.getElementById('onboarding-overlay').classList.remove('hidden');
             }
         }
 
         function startOnboarding() {
+            // Storage is REQUIRED - don't allow bypass
+            if (!storageConnected) {
+                showToast('Please connect your cloud storage first', 'warning');
+                return;
+            }
             document.getElementById('onboarding-overlay').classList.add('hidden');
             openUploadModal();
         }

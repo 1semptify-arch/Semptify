@@ -1925,7 +1925,7 @@
         
         async function checkAuthStatus(retryCount = 0) {
             try {
-                // Check cookie for user ID
+                // Check cookie for user ID - MUST be set by OAuth callback (real storage)
                 let semptifyUid = getCookie('semptify_uid');
 
                 // If coming from welcome page and no cookie yet, wait and retry
@@ -1936,28 +1936,32 @@
                     return checkAuthStatus(retryCount + 1);
                 }
 
-                // If no cookie, auto-create a session user (allow immediate use)
+                // NO AUTO-CREATE! User must connect real storage (Google Drive, Dropbox, or OneDrive)
                 if (!semptifyUid) {
-                    const uniquePart = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-                    semptifyUid = 'SU' + uniquePart; // S = Session, U = User
-                    const maxAge = 24 * 60 * 60; // 24 hours for session user
-                    document.cookie = `semptify_uid=${semptifyUid}; path=/; max-age=${maxAge}; SameSite=Lax`;
-                    console.log('Session user created:', semptifyUid);
+                    console.log('No storage connected - redirecting to storage providers');
+                    updateAuthUI(false);
+                    showToast('Please connect your cloud storage to continue', 'warning');
+                    // Don't redirect immediately - let user see the message
+                    setTimeout(() => {
+                        window.location.href = `${API_BASE}/storage/providers`;
+                    }, 2000);
+                    return;
                 }
 
-                // Parse user ID to get provider
+                // Parse user ID to get provider - must be from real OAuth (G, D, O prefix)
                 let parsed = parseUserId(semptifyUid);
 
-                // If parsing fails, create a session user context
-                if (!parsed) {
-                    parsed = {
-                        provider: 'S',
-                        providerName: 'Session',
-                        providerIcon: '🔐',
-                        role: 'U',
-                        roleName: 'User',
-                        uniquePart: semptifyUid.substring(2)
-                    };
+                // If parsing fails or user has fake "S" session prefix, redirect to storage
+                if (!parsed || semptifyUid.startsWith('S')) {
+                    console.log('Invalid or session-only user - redirecting to storage');
+                    // Clear the fake cookie
+                    document.cookie = 'semptify_uid=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                    updateAuthUI(false);
+                    showToast('Please connect your cloud storage', 'warning');
+                    setTimeout(() => {
+                        window.location.href = `${API_BASE}/storage/providers`;
+                    }, 2000);
+                    return;
                 }
                 
                 // Clear URL parameters after reading them (clean URL)
@@ -2218,14 +2222,18 @@
         
         async function uploadFile(file, userId) {
             showProgress(true);
-            updateProgress(10, 'Uploading...');
+            updateProgress(10, 'Uploading to vault...');
             
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('user_id', userId);
+            formData.append('folder', 'root');
+            formData.append('tags', '');
+            formData.append('notes', '');
+            formData.append('document_type', '');
             
             try {
-                const response = await fetch(`${API_BASE}/api/intake/upload`, {
+                // Upload directly to vault via sync endpoint
+                const response = await fetch(`${API_BASE}/api/sync/documents/upload`, {
                     method: 'POST',
                     body: formData,
                     credentials: 'include'
@@ -2237,22 +2245,31 @@
                 }
                 
                 const data = await response.json();
-                updateProgress(100, 'Upload complete!');
+                updateProgress(100, 'Saved to vault!');
                 
+                // Document now stored in vault with document_id and user_id
                 documents.push({
-                    id: data.id,
-                    filename: data.filename,
-                    status: data.status,
+                    id: data.document_id || data.file_id,
+                    documentId: data.document_id,
+                    filename: data.original_filename || data.filename,
+                    vaultFilename: data.filename,
+                    storagePath: data.storage_path,
+                    sha256: data.sha256,
+                    certificateId: data.certificate_id,
+                    status: 'in_vault',
                     file: file,
                     processed: false,
                     registered: false,
+                    savedToVault: true,  // Already in vault!
                     extraction: null,
                     registration: null,
-                    userId: userId
+                    userId: data.user_id || userId,
+                    storage: 'vault',
+                    vaultInfo: data
                 });
                 
                 renderQueue();
-                showToast(`${file.name} uploaded successfully`, 'success');
+                showToast(`${file.name} saved to vault`, 'success');
                 
                 // Mark document uploaded for reminder system
                 if (typeof markDocumentUploaded === 'function') {
@@ -2282,44 +2299,37 @@
             showProgress(true);
             
             try {
+                // Use vault processing endpoint for documents stored in vault
+                const endpoint = doc.storage === 'vault' || doc.savedToVault
+                    ? `${API_BASE}/api/intake/process/vault/${doc.documentId || doc.id}`
+                    : `${API_BASE}/api/intake/process/${doc.id}`;
+                
+                console.log(`[Process] Using endpoint: ${endpoint}`);
+                
                 // Start processing
-                const processResponse = await fetch(`${API_BASE}/api/intake/process/${doc.id}`, {
+                const processResponse = await fetch(endpoint, {
                     method: 'POST',
                     credentials: 'include'
                 });
                 
                 if (!processResponse.ok) {
-                    throw new Error('Processing failed');
+                    const err = await processResponse.json().catch(() => ({}));
+                    throw new Error(err.detail || 'Processing failed');
                 }
                 
-                updateProgress(60, 'Analyzing document...');
-                
-                // Poll for status
-                let status = 'PROCESSING';
-                let attempts = 0;
-                
-                while (status === 'PROCESSING' && attempts < 30) {
-                    await new Promise(r => setTimeout(r, 1000));
-                    
-                    const statusResponse = await fetch(`${API_BASE}/api/intake/status/${doc.id}`, {
-                        credentials: 'include'
-                    });
-                    const statusData = await statusResponse.json();
-                    status = statusData.status;
-                    
-                    updateProgress(60 + (attempts * 2), statusData.status_message);
-                    attempts++;
-                }
-                
-                // Get full document data
-                const docResponse = await fetch(`${API_BASE}/api/intake/documents/${doc.id}`, {
-                    credentials: 'include'
-                });
-                const docData = await docResponse.json();
+                const processData = await processResponse.json();
+                updateProgress(80, 'Analyzing results...');
                 
                 doc.processed = true;
-                doc.status = docData.status;
-                doc.extraction = docData.extraction;
+                doc.status = processData.status || 'complete';
+                doc.extraction = processData.extracted_data ? {
+                    doc_type: processData.doc_type,
+                    summary: processData.extracted_data.summary || '',
+                    dates: Array(processData.extracted_data.dates || 0).fill({}),
+                    parties: Array(processData.extracted_data.parties || 0).fill({}),
+                    amounts: Array(processData.extracted_data.amounts || 0).fill({}),
+                    issues: Array(processData.issues_found || 0).fill({}),
+                } : processData.extraction;
                 
                 updateProgress(100, 'Processing complete!');
                 renderQueue();
@@ -2419,7 +2429,6 @@
             showProgress(true);
             
             const formData = new FormData();
-            formData.append('file', doc.file);
             formData.append('access_token', accessToken);
             
             // Add document type if extracted
@@ -2442,8 +2451,23 @@
             if (doc.registration?.status) tags.push(doc.registration.status.toLowerCase());
             formData.append('tags', tags.join(','));
             
+            // Determine which endpoint to use based on whether we have the File object
+            let endpoint = `${API_BASE}/api/vault/upload`;
+            
+            if (doc.file && doc.file instanceof File) {
+                // We have the original File object, use direct upload
+                formData.append('file', doc.file);
+                console.log('[Vault] Using direct upload with File object');
+            } else {
+                // File object not available, copy from sync storage
+                endpoint = `${API_BASE}/api/vault/copy-from-sync`;
+                formData.append('file_id', doc.id);
+                formData.append('filename', doc.filename);
+                console.log('[Vault] Using copy-from-sync for file:', doc.filename);
+            }
+            
             try {
-                const response = await fetch(`${API_BASE}/api/vault/upload`, {
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     body: formData,
                     credentials: 'include'

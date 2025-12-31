@@ -79,6 +79,7 @@ from app.routers.role_ui import router as role_ui_router
 from app.routers.role_upgrade import router as role_upgrade_router
 from app.routers.guided_intake import router as guided_intake_router
 from app.routers.case_builder import router as case_builder_router
+from app.routers.overlays import router as overlays_router
 from app.core.mesh_integration import start_mesh_network, stop_mesh_network
 
 # Tenant Defense Module
@@ -1605,6 +1606,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     app.include_router(cloud_sync_router, tags=["Cloud Sync"])
     logging.getLogger(__name__).info("☁️ Cloud Sync router connected - User-controlled data persistence active")
 
+    # Document Overlays - Non-destructive annotations and processing
+    app.include_router(overlays_router, tags=["Document Overlays"])
+    logging.getLogger(__name__).info("📝 Document Overlays router connected - Non-destructive annotation system active")
+
     # Complaint Filing Wizard - Regulatory Accountability
     app.include_router(complaints_router, tags=["Complaint Wizard"])
     logging.getLogger(__name__).info("⚖️ Complaint Filing Wizard loaded - Regulatory accountability tools active")
@@ -1625,15 +1630,25 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Root endpoint - Serve SPA
     # =========================================================================
 
+    # Welcome page rotation - cycle through all available welcome pages
+    WELCOME_PAGES = [
+        "static/onboarding/welcome.html",       # Main: The Tenant's Journal
+        "static/_archive/welcome_new.html",     # Backup: Tenant's Journal
+        "static/_archive/welcome_old2.html",    # Semper Fi / Always Faithful theme
+        "static/_archive/welcome_backup.html",  # Interactive wizard
+    ]
+    _welcome_page_index = 0
+
     @app.get("/", response_class=HTMLResponse)
     async def root(request: Request):
         """
         Main entry point - routes based on storage connection status.
         
         Flow:
-        1. No storage cookie → Welcome page (first-time visitor)
+        1. No storage cookie → Welcome page (first-time visitor, rotates through themes)
         2. Has storage cookie → Dashboard (returning user)
         """
+        nonlocal _welcome_page_index
         from app.core.storage_middleware import is_valid_storage_user
         from app.core.user_id import COOKIE_USER_ID
         
@@ -1641,15 +1656,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         user_id = request.cookies.get(COOKIE_USER_ID)
         
         if not is_valid_storage_user(user_id):
-            # First-time visitor or invalid session → Welcome page
-            welcome_path = Path("static/onboarding/welcome.html")
-            if welcome_path.exists():
-                return HTMLResponse(content=welcome_path.read_text(encoding="utf-8"))
-            # Fallback to storage providers if no welcome page
+            # First-time visitor or invalid session → Rotate through welcome pages
+            for _ in range(len(WELCOME_PAGES)):
+                welcome_path = BASE_PATH / WELCOME_PAGES[_welcome_page_index]
+                _welcome_page_index = (_welcome_page_index + 1) % len(WELCOME_PAGES)
+                if welcome_path.exists():
+                    return HTMLResponse(content=welcome_path.read_text(encoding="utf-8"))
+            # Fallback to storage providers if no welcome pages exist
             return RedirectResponse(url="/storage/providers", status_code=302)
         
         # Valid user with storage → Dashboard
-        dashboard_path = Path("static/dashboard.html")
+        dashboard_path = BASE_PATH / "static" / "dashboard.html"
         if dashboard_path.exists():
             return HTMLResponse(content=dashboard_path.read_text(encoding="utf-8"))
         # Fallback JSON response if no frontend
@@ -2044,6 +2061,41 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             content="<h1>My Tenancy page not found</h1>",
             status_code=404
         )
+
+    # =========================================================================
+    # Tenant Pages (My Case)
+    # =========================================================================
+
+    @app.get("/tenant", response_class=HTMLResponse)
+    @app.get("/tenant/", response_class=HTMLResponse)
+    async def tenant_page():
+        """Serve the tenant My Case page."""
+        tenant_path = BASE_PATH / "static" / "tenant" / "index.html"
+        if tenant_path.exists():
+            return HTMLResponse(content=tenant_path.read_text(encoding="utf-8"))
+        return HTMLResponse(
+            content="<h1>Tenant page not found</h1>",
+            status_code=404
+        )
+
+    @app.get("/tenant/{subpage}", response_class=HTMLResponse)
+    async def tenant_subpage(subpage: str):
+        """Serve tenant sub-pages (documents, timeline, help, copilot)."""
+        # Security: prevent directory traversal
+        if ".." in subpage or "/" in subpage or "\\" in subpage:
+            return HTMLResponse(content="<h1>400 - Invalid Request</h1>", status_code=400)
+        
+        # Try subpage.html first, then subpage/index.html
+        subpage_path = BASE_PATH / "static" / "tenant" / f"{subpage}.html"
+        if subpage_path.exists():
+            return HTMLResponse(content=subpage_path.read_text(encoding="utf-8"))
+        
+        subpage_index = BASE_PATH / "static" / "tenant" / subpage / "index.html"
+        if subpage_index.exists():
+            return HTMLResponse(content=subpage_index.read_text(encoding="utf-8"))
+        
+        # Fallback: redirect to main tenant page
+        return RedirectResponse(url="/tenant", status_code=302)
 
     # =========================================================================
     # Catch-All HTML Page Router

@@ -18,7 +18,7 @@ const SemptifyNav = {
             title: '🏠 Home',
             items: [
                 { icon: '🏠', label: 'Dashboard', href: '/static/home.html' },
-                { icon: '📊', label: 'My Case', href: '/static/case.html' },
+                { icon: '📊', label: 'My Case', href: '/tenant' },
                 { icon: '🆘', label: 'Crisis Help', href: '/static/crisis_intake.html' },
             ]
         },
@@ -26,9 +26,9 @@ const SemptifyNav = {
             id: 'intake',
             title: '📥 Step 1: Intake',
             items: [
-                { icon: '📋', label: 'Upload Documents', href: '/static/document_intake.html' },
-                { icon: '🔍', label: 'AI Recognition', href: '/static/recognition.html' },
                 { icon: '💼', label: 'Briefcase', href: '/static/briefcase.html' },
+                { icon: '📋', label: 'Upload Documents', href: '/tenant/documents' },
+                { icon: '🔍', label: 'AI Recognition', href: '/static/recognition.html' },
             ]
         },
         {
@@ -36,7 +36,7 @@ const SemptifyNav = {
             title: '📅 Step 2: Timeline',
             items: [
                 { icon: '⚡', label: 'Auto-Build', href: '/static/timeline_auto_build.html' },
-                { icon: '📅', label: 'View Timeline', href: '/static/timeline.html', badge: 'timelineCount' },
+                { icon: '📅', label: 'View Timeline', href: '/tenant/timeline', badge: 'timelineCount' },
                 { icon: '📆', label: 'Calendar', href: '/static/calendar.html' },
             ]
         },
@@ -83,7 +83,8 @@ const SemptifyNav = {
             collapsed: true,
             items: [
                 { icon: '☁️', label: 'Cloud Storage', href: '/static/storage_setup.html' },
-                { icon: '❓', label: 'Help', href: '/static/help.html' },
+                { icon: '🆘', label: 'Get Help', href: '/tenant/help' },
+                { icon: '❓', label: 'FAQ', href: '/static/help.html' },
                 { icon: '🔒', label: 'Privacy', href: '/static/privacy.html' },
             ]
         },

@@ -58,18 +58,16 @@ PUBLIC_PATHS: Set[str] = {
 # Path prefixes that are always public
 PUBLIC_PREFIXES = (
     "/storage/",
-    "/static/",  # All static files are public
+    "/static/",  # All static files are public (HTML, CSS, JS)
+    "/tenant",   # Tenant pages (My Case) - serve page, auth handled by page JS
+    "/law-library",  # Law Library page
+    "/eviction-defense",  # Eviction Defense page
+    "/zoom-court",  # Zoom Court page
     "/api/health",
     "/api/version",
     "/api/roles",  # Role validation API - public for upgrade requests
-    "/api/guided-intake",  # Guided intake - conversational onboarding
-    "/api/timeline",  # Timeline needs to work for case management
-    "/api/calendar",  # Calendar/events
-    "/api/documents",  # Documents list
-    "/api/eviction",   # Eviction defense
-    "/api/brain",      # AI/Brain features
-    "/api/copilot",    # Copilot assistance
-    "/api/case-builder",  # Case management - intake and building
+    # NOTE: ALL other /api/ endpoints REQUIRE storage authentication
+    # The frontend pages (/static/*.html) will check auth and redirect
 )
 
 

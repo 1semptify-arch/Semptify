@@ -7,13 +7,17 @@ Provides endpoints for:
 - Extraction results retrieval
 - Issue detection results
 - Batch processing
+- Vault-based processing (documents from cloud storage)
 """
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Query
 from pydantic import BaseModel, Field
 from typing import Optional
 
-from app.core.security import get_user_id
+from app.core.security import get_user_id, require_user, StorageUser
+from app.core.config import get_settings, Settings
+from app.core.database import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.document_intake import (
     get_intake_engine,
     DocumentType,
@@ -351,6 +355,130 @@ async def upload_documents_batch(
 # =============================================================================
 # PROCESSING ENDPOINTS
 # =============================================================================
+
+@router.post("/process/vault/{doc_id}", response_model=AutoProcessResponse)
+async def process_document_from_vault(
+    doc_id: str,
+    user: StorageUser = Depends(require_user),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """
+    Process a document stored in vault.
+    
+    This endpoint:
+    1. Downloads document content from vault
+    2. Runs the full processing pipeline
+    3. Updates vault index with processed status
+    
+    Use this for documents uploaded directly to vault.
+    """
+    import json
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    from app.routers.cloud_sync import get_sync_service
+    
+    sync = await get_sync_service(user, db, settings)
+    vault_folder = ".semptify/vault"
+    
+    # Get document info from vault index
+    try:
+        index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
+        vault_index = json.loads(index_content.decode("utf-8"))
+        
+        doc_info = None
+        for doc in vault_index.get("documents", []):
+            if doc.get("document_id") == doc_id:
+                doc_info = doc
+                break
+        
+        if not doc_info:
+            raise HTTPException(status_code=404, detail="Document not found in vault")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read vault index: {str(e)}")
+    
+    # Download document content
+    try:
+        storage_path = doc_info.get("storage_path", f"{vault_folder}/{doc_id}")
+        content = await sync.storage.download_file(storage_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to download document: {str(e)}")
+    
+    # Process with intake engine
+    engine = get_intake_engine()
+    
+    try:
+        # Intake the document with vault content
+        intake_doc = await engine.intake_document(
+            user_id=user.user_id,
+            file_content=content,
+            filename=doc_info.get("original_filename", "document"),
+            mime_type=doc_info.get("mime_type", "application/octet-stream"),
+        )
+        
+        # Process
+        intake_doc = await engine.process_document(intake_doc.id)
+        
+        # Run flow orchestration if available
+        if FLOW_AVAILABLE:
+            try:
+                orchestrator = DocumentFlowOrchestrator()
+                await orchestrator.process_document_complete(
+                    doc_id=intake_doc.id,
+                    user_id=user.user_id,
+                )
+            except Exception as flow_err:
+                logger.warning(f"Flow orchestration warning: {flow_err}")
+        
+        # Update vault index with processed status
+        try:
+            from datetime import datetime, timezone
+            for doc in vault_index.get("documents", []):
+                if doc.get("document_id") == doc_id:
+                    doc["processed"] = True
+                    doc["processed_at"] = datetime.now(timezone.utc).isoformat()
+                    doc["intake_id"] = intake_doc.id
+                    if intake_doc.doc_type:
+                        doc["document_type"] = intake_doc.doc_type.value
+                    break
+            
+            vault_index["last_updated"] = datetime.now(timezone.utc).isoformat()
+            await sync.storage.upload_file(
+                f"{vault_folder}/index.json",
+                json.dumps(vault_index, indent=2).encode("utf-8")
+            )
+        except Exception as idx_err:
+            logger.warning(f"Failed to update vault index: {idx_err}")
+        
+        # Build response
+        extracted_data = {}
+        if intake_doc.extraction:
+            extracted_data = {
+                "dates": len(intake_doc.extraction.dates) if intake_doc.extraction.dates else 0,
+                "parties": len(intake_doc.extraction.parties) if intake_doc.extraction.parties else 0,
+                "amounts": len(intake_doc.extraction.amounts) if intake_doc.extraction.amounts else 0,
+                "summary": intake_doc.extraction.summary[:200] if intake_doc.extraction.summary else "",
+            }
+        
+        return AutoProcessResponse(
+            id=doc_id,  # Return vault document ID
+            filename=doc_info.get("original_filename", "document"),
+            status=intake_doc.status.value if intake_doc.status else "complete",
+            doc_type=intake_doc.doc_type.value if intake_doc.doc_type else "unknown",
+            message="Document processed successfully from vault",
+            extracted_data=extracted_data,
+            timeline_events=0,
+            issues_found=len(intake_doc.extraction.issues) if intake_doc.extraction and intake_doc.extraction.issues else 0,
+        )
+        
+    except Exception as e:
+        logger.error(f"Vault document processing failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
+
 
 @router.post("/process/{doc_id}", response_model=IntakeDocumentResponse)
 async def process_document(doc_id: str, user_id: str = Depends(get_user_id)):

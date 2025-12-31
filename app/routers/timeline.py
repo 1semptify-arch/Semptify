@@ -1,6 +1,8 @@
 """
 Timeline Router (Database-backed)
 Event tracking and history for tenant journey.
+
+Now integrated with DocumentHub for auto-syncing timeline events from documents.
 """
 
 import uuid
@@ -15,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db_session
 from app.core.security import require_user, StorageUser
 from app.core.utc import utc_now
+from app.core.document_hub import get_document_hub
 from app.models.models import TimelineEvent as TimelineEventModel
 from app.services.timeline_builder import TimelineBuilder, extract_timeline_from_text
 
@@ -603,3 +606,280 @@ async def auto_build_from_document(
             "events_saved": events_saved,
             "warnings": build_result.warnings,
         }
+
+
+# =============================================================================
+# Document Hub Integration - Auto-sync timeline from all documents
+# =============================================================================
+
+@router.get("/from-documents")
+async def get_timeline_from_documents(
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Get timeline events extracted from all uploaded documents.
+    
+    Returns events found in your documents, sorted chronologically.
+    These events are NOT yet saved to your timeline.
+    Use POST /sync-documents to add them.
+    """
+    hub = get_document_hub()
+    events = hub.get_timeline_events(user.user_id)
+    case_data = hub.get_case_data(user.user_id)
+    
+    # Enhance events with additional extracted data
+    enhanced_events = []
+    for event in events:
+        enhanced_events.append({
+            **event,
+            "source": "document_extraction",
+            "is_evidence": True,
+        })
+    
+    # Add key dates as events
+    if case_data.notice_date:
+        enhanced_events.append({
+            "id": "doc_notice",
+            "date": case_data.notice_date,
+            "title": "Eviction Notice Received",
+            "description": "Notice date extracted from documents",
+            "category": "notice",
+            "source": "document_extraction",
+            "is_evidence": True,
+        })
+    
+    if case_data.hearing_date:
+        enhanced_events.append({
+            "id": "doc_hearing",
+            "date": case_data.hearing_date,
+            "title": "Court Hearing",
+            "description": f"Hearing scheduled{' at ' + case_data.hearing_time if case_data.hearing_time else ''}",
+            "category": "court",
+            "source": "document_extraction",
+            "is_evidence": False,
+        })
+    
+    # Sort by date
+    enhanced_events.sort(key=lambda x: x.get("date", "9999"))
+    
+    return {
+        "events": enhanced_events,
+        "total_events": len(enhanced_events),
+        "documents_analyzed": case_data.document_count,
+        "sync_available": len(enhanced_events) > 0,
+    }
+
+
+class TimelineSyncResult(BaseModel):
+    """Result of syncing timeline from documents."""
+    synced: int
+    skipped: int
+    total_timeline_events: int
+    synced_event_ids: List[str]
+
+
+@router.post("/sync-documents", response_model=TimelineSyncResult)
+async def sync_timeline_from_documents(
+    overwrite: bool = Query(False, description="Overwrite existing events with same title"),
+    include_deadlines: bool = Query(True, description="Include deadline events"),
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Sync timeline events from uploaded documents to your timeline.
+    
+    This creates timeline events from:
+    - Dates mentioned in documents
+    - Key dates (notice date, hearing date)
+    - Action items with deadlines
+    
+    Events with duplicate titles are skipped unless overwrite=true.
+    All synced events are marked with source='document_extraction'.
+    """
+    hub = get_document_hub()
+    doc_events = hub.get_timeline_events(user.user_id)
+    case_data = hub.get_case_data(user.user_id)
+    
+    synced = 0
+    skipped = 0
+    synced_ids = []
+    
+    async with get_db_session() as session:
+        # Get existing event titles
+        query = select(TimelineEventModel.title).where(
+            TimelineEventModel.user_id == user.user_id
+        )
+        result = await session.execute(query)
+        existing_titles = {row[0] for row in result.fetchall()}
+        
+        all_events = list(doc_events)
+        
+        # Add key dates as events
+        if case_data.notice_date:
+            all_events.append({
+                "date": case_data.notice_date,
+                "title": "Eviction Notice Received",
+                "description": "Notice date extracted from documents",
+                "category": "notice",
+            })
+        
+        if case_data.hearing_date:
+            all_events.append({
+                "date": case_data.hearing_date,
+                "title": "Court Hearing",
+                "description": f"Hearing scheduled{' at ' + case_data.hearing_time if case_data.hearing_time else ''}",
+                "category": "court",
+            })
+        
+        # Add action item deadlines
+        if include_deadlines:
+            for action in case_data.action_items:
+                if action.get("deadline"):
+                    all_events.append({
+                        "date": action["deadline"],
+                        "title": action.get("title", "Deadline"),
+                        "description": action.get("description", ""),
+                        "category": "deadline",
+                    })
+        
+        for event in all_events:
+            title = event.get("title", "")
+            
+            # Skip if exists and not overwriting
+            if title in existing_titles and not overwrite:
+                skipped += 1
+                continue
+            
+            # Delete existing if overwriting
+            if title in existing_titles and overwrite:
+                delete_query = select(TimelineEventModel).where(
+                    and_(
+                        TimelineEventModel.user_id == user.user_id,
+                        TimelineEventModel.title == title
+                    )
+                )
+                del_result = await session.execute(delete_query)
+                existing_event = del_result.scalar_one_or_none()
+                if existing_event:
+                    await session.delete(existing_event)
+            
+            # Parse date
+            date_str = event.get("date", "")
+            try:
+                event_dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            except (ValueError, TypeError):
+                try:
+                    event_dt = datetime.strptime(date_str, "%Y-%m-%d")
+                except (ValueError, TypeError):
+                    skipped += 1
+                    continue
+            
+            # Determine event type
+            category = event.get("category", "other")
+            event_type_map = {
+                "notice": "notice",
+                "court": "court",
+                "hearing": "court",
+                "deadline": "court",
+                "payment": "payment",
+                "maintenance": "maintenance",
+                "communication": "communication",
+            }
+            event_type = event_type_map.get(category, "other")
+            
+            # Create event
+            event_id = str(uuid.uuid4())
+            db_event = TimelineEventModel(
+                id=event_id,
+                user_id=user.user_id,
+                event_type=event_type,
+                title=title,
+                description=f"[Auto-synced] {event.get('description', '')}",
+                event_date=event_dt,
+                document_id=event.get("document_id"),
+                is_evidence=True,
+                created_at=utc_now(),
+            )
+            session.add(db_event)
+            synced += 1
+            synced_ids.append(event_id)
+        
+        await session.commit()
+        
+        # Get total count
+        count_query = select(func.count()).select_from(TimelineEventModel).where(
+            TimelineEventModel.user_id == user.user_id
+        )
+        total_result = await session.execute(count_query)
+        total = total_result.scalar() or 0
+    
+    return TimelineSyncResult(
+        synced=synced,
+        skipped=skipped,
+        total_timeline_events=total,
+        synced_event_ids=synced_ids,
+    )
+
+
+@router.get("/combined")
+async def get_combined_timeline(
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Get combined timeline from database and documents.
+    
+    Merges saved timeline events with document-extracted events,
+    showing a complete picture of your case history.
+    """
+    hub = get_document_hub()
+    doc_events = hub.get_timeline_events(user.user_id)
+    case_data = hub.get_case_data(user.user_id)
+    
+    combined = []
+    
+    # Get database events
+    async with get_db_session() as session:
+        query = select(TimelineEventModel).where(
+            TimelineEventModel.user_id == user.user_id
+        ).order_by(TimelineEventModel.event_date.asc())
+        
+        result = await session.execute(query)
+        db_events = result.scalars().all()
+        
+        for event in db_events:
+            combined.append({
+                "id": event.id,
+                "date": event.event_date.isoformat() if event.event_date else "",
+                "title": event.title,
+                "description": event.description,
+                "category": event.event_type,
+                "source": "database",
+                "is_evidence": event.is_evidence,
+                "document_id": event.document_id,
+            })
+    
+    # Add document events not yet synced
+    db_titles = {e["title"] for e in combined}
+    for event in doc_events:
+        if event.get("title") not in db_titles:
+            combined.append({
+                "id": event.get("id", f"doc_{uuid.uuid4().hex[:8]}"),
+                "date": event.get("date", ""),
+                "title": event.get("title", "Event"),
+                "description": event.get("description", ""),
+                "category": event.get("category", "other"),
+                "source": "document_extraction",
+                "is_evidence": True,
+                "document_id": event.get("document_id"),
+                "not_synced": True,
+            })
+    
+    # Sort by date
+    combined.sort(key=lambda x: x.get("date", "9999"))
+    
+    return {
+        "timeline": combined,
+        "total_events": len(combined),
+        "synced_events": len([e for e in combined if e.get("source") == "database"]),
+        "unsynced_events": len([e for e in combined if e.get("not_synced")]),
+        "documents_analyzed": case_data.document_count,
+    }
