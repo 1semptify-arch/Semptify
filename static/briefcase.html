@@ -1444,7 +1444,36 @@
                 folders = {};
                 data.folders.forEach(f => folders[f.id] = f);
                 
-                documents = data.documents;
+                documents = data.documents || [];
+                
+                // Also load documents from main documents API if briefcase is empty
+                if (documents.length === 0) {
+                    try {
+                        const docsResponse = await SemptifyAuth.fetch('/api/documents/');
+                        const docsData = await docsResponse.json();
+                        const mainDocs = Array.isArray(docsData) ? docsData : (docsData.documents || []);
+                        
+                        // Convert to briefcase format and add to root folder
+                        mainDocs.forEach(doc => {
+                            documents.push({
+                                id: doc.id,
+                                name: doc.filename || doc.name,
+                                type: doc.doc_type || doc.document_type || 'document',
+                                mime_type: doc.mime_type || 'application/octet-stream',
+                                size: doc.file_size || 0,
+                                folder_id: 'root',
+                                tags: [],
+                                starred: false,
+                                created_at: doc.uploaded_at || new Date().toISOString(),
+                                title: doc.title,
+                                summary: doc.summary
+                            });
+                        });
+                        console.log('📄 Loaded documents from main API:', mainDocs.length);
+                    } catch (e) {
+                        console.warn('Could not load from documents API:', e);
+                    }
+                }
                 
                 renderFolderTree();
                 loadFolderContents(currentFolderId);
