@@ -6,9 +6,10 @@ All datetime columns use DateTime(timezone=True) for proper UTC handling.
 Use utc_now() from app.core.utc for all timestamp defaults.
 """
 
+import enum
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, Boolean
+from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, Boolean, Float, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -17,6 +18,45 @@ from app.core.utc import utc_now
 
 # Type alias for timezone-aware DateTime columns
 DateTimeTZ = DateTime(timezone=True)
+
+
+# =============================================================================
+# EventStatus Enum - Timeline Event Statuses
+# =============================================================================
+
+class EventStatus(enum.Enum):
+    """
+    Status values for timeline events tracking document/case lifecycle.
+    """
+    start = "start"           # Event initiates a process (lease signing, notice served)
+    continued = "continued"   # Event continues/extends process (lease renewal, payment plan)
+    finish = "finish"         # Event concludes process (case closed, eviction complete)
+    reported = "reported"     # Issue/violation reported (maintenance request, complaint)
+    invited = "invited"       # Meeting/hearing scheduled (court date, mediation)
+    attended = "attended"     # Event was attended (hearing appearance)
+    missed = "missed"         # Event was missed/no-show (missed court date)
+    served = "served"         # Document delivered (notice served)
+    received = "received"     # Document received (response received)
+    filed = "filed"           # Document filed (court filing)
+    responded = "responded"   # Response submitted (answer filed)
+    pending = "pending"       # Awaiting action/decision (pending ruling)
+    resolved = "resolved"     # Issue resolved (complaint resolved)
+    escalated = "escalated"   # Issue escalated (appeal filed)
+    used = "used"             # Evidence used in proceeding (document entered as exhibit)
+
+
+# =============================================================================
+# Urgency Enum - Event/Deadline Urgency Levels
+# =============================================================================
+
+class UrgencyLevel(enum.Enum):
+    """
+    Urgency levels for timeline events and deadlines.
+    """
+    critical = "critical"   # Immediate action required
+    high = "high"           # Action needed soon
+    normal = "normal"       # Standard priority
+    low = "low"             # Can wait
 
 
 # =============================================================================
@@ -166,6 +206,7 @@ class Document(Base):
 class TimelineEvent(Base):
     """
     Events in the tenant's timeline.
+    Enhanced with event status, date ranges, event chaining, and annotation links.
     """
     __tablename__ = "timeline_events"
     
@@ -177,8 +218,25 @@ class TimelineEvent(Base):
     title: Mapped[str] = mapped_column(String(255))
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     
-    # When it happened
+    # When it happened (supports date ranges)
     event_date: Mapped[datetime] = mapped_column(DateTimeTZ, index=True)
+    event_date_end: Mapped[Optional[datetime]] = mapped_column(DateTimeTZ, nullable=True)  # For date ranges
+    
+    # Event status (lifecycle tracking)
+    event_status: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)  # EventStatus enum value
+    
+    # Event chaining (for linked events: start→continued→finish)
+    parent_event_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)  # Links to parent event
+    sequence_number: Mapped[int] = mapped_column(Integer, default=0)  # Order in chain
+    
+    # Annotation/Extraction links
+    source_extraction_id: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)  # e.g., "DT-3"
+    footnote_number: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # Link to annotation
+    highlight_color: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)  # "date", "deadline", etc.
+    
+    # Urgency and deadline tracking
+    urgency: Mapped[str] = mapped_column(String(20), default="normal")  # critical, high, normal, low
+    is_deadline: Mapped[bool] = mapped_column(Boolean, default=False)  # Deadline flag
     
     # Linked document (optional) - stores doc ID from file-based pipeline, not FK
     document_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
@@ -684,3 +742,49 @@ class ContactInteraction(Base):
 
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+
+
+# =============================================================================
+# Document Annotations (Footnotes & Highlights Indexing)
+# =============================================================================
+
+class DocumentAnnotation(Base):
+    """
+    Tracks document annotations for footnote indexing system.
+    Links highlights to timeline events and provides numbered markers.
+    
+    Supports both global sequential numbering (1, 2, 3...) and
+    per-category numbering (DT-1, DT-2, PT-1...).
+    """
+    __tablename__ = "document_annotations"
+    
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    document_id: Mapped[str] = mapped_column(String(36), index=True)  # Briefcase document ID
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    
+    # Footnote numbering (dual system)
+    footnote_number: Mapped[int] = mapped_column(Integer)           # Global: 1, 2, 3...
+    category_number: Mapped[int] = mapped_column(Integer)           # Per-category: DT-1, DT-2...
+    extraction_code: Mapped[str] = mapped_column(String(10))        # "DT", "PT", "$", etc.
+    
+    # Content
+    highlight_text: Mapped[str] = mapped_column(Text)               # Selected text
+    annotation_note: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # User's note
+    
+    # Position (for overlay rendering)
+    page_number: Mapped[int] = mapped_column(Integer)
+    position_x: Mapped[float] = mapped_column(Float, default=0.0)
+    position_y: Mapped[float] = mapped_column(Float, default=0.0)
+    position_width: Mapped[float] = mapped_column(Float, default=0.0)
+    position_height: Mapped[float] = mapped_column(Float, default=0.0)
+    
+    # Timeline link
+    linked_event_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)  # FK to timeline_events
+    
+    # Detection metadata
+    detection_method: Mapped[str] = mapped_column(String(20), default="MANUAL")  # PATTERN, AI, MANUAL
+    confidence: Mapped[float] = mapped_column(Float, default=1.0)  # 0.0 to 1.0
+    
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)

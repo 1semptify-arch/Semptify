@@ -1,105 +1,70 @@
 """
 Briefcase Router - Document & Folder Organization System
 A digital briefcase for organizing legal documents, evidence, and case files
-
-SECURITY: All endpoints require authenticated user with connected storage.
-All documents are stored in user's cloud (Google Drive/Dropbox/OneDrive).
 """
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Request, Depends
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Request
+from fastapi.responses import StreamingResponse, JSONResponse, FileResponse
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
-from datetime import datetime, timezone
-from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime
+from pathlib import Path
 import os
 import io
 import json
+import shutil
 import hashlib
 import base64
 import zipfile
 import uuid
-import logging
-
-from app.core.security import require_user, StorageUser
-from app.core.database import get_db
-from app.core.config import get_settings, Settings
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/briefcase", tags=["Briefcase"])
 
-
-# =============================================================================
-# Cloud Sync Integration
-# =============================================================================
-
-async def get_cloud_sync(user: StorageUser, db: AsyncSession, settings: Settings):
-    """Get UserCloudSync service for the user's cloud storage."""
-    from app.routers.cloud_sync import get_sync_service
-    return await get_sync_service(user, db, settings)
-
-
-# =============================================================================
-# Default Folder Structure
-# =============================================================================
-
-DEFAULT_FOLDERS = {
-    "root": {
-        "id": "root",
-        "name": "My Briefcase",
-        "parent_id": None,
-        "color": "#4ade80",
-        "icon": "briefcase"
+# In-memory storage (in production, use database)
+briefcase_data = {
+    "folders": {
+        "root": {
+            "id": "root",
+            "name": "My Briefcase",
+            "parent_id": None,
+            "created_at": datetime.now().isoformat(),
+            "color": "#4ade80",
+            "icon": "briefcase"
+        },
+        "extracted": {
+            "id": "extracted",
+            "name": "📄 Extracted Pages",
+            "parent_id": "root",
+            "created_at": datetime.now().isoformat(),
+            "color": "#f59e0b",
+            "icon": "file-export",
+            "system": True
+        },
+        "highlights": {
+            "id": "highlights",
+            "name": "🖍️ Highlights & Notes",
+            "parent_id": "root",
+            "created_at": datetime.now().isoformat(),
+            "color": "#ec4899",
+            "icon": "highlighter",
+            "system": True
+        },
+        "evidence": {
+            "id": "evidence",
+            "name": "📸 Evidence",
+            "parent_id": "root",
+            "created_at": datetime.now().isoformat(),
+            "color": "#ef4444",
+            "icon": "gavel",
+            "system": True
+        }
     },
-    "extracted": {
-        "id": "extracted",
-        "name": "📄 Extracted Pages",
-        "parent_id": "root",
-        "color": "#f59e0b",
-        "icon": "file-export",
-        "system": True
-    },
-    "highlights": {
-        "id": "highlights",
-        "name": "🖍️ Highlights & Notes",
-        "parent_id": "root",
-        "color": "#ec4899",
-        "icon": "highlighter",
-        "system": True
-    },
-    "evidence": {
-        "id": "evidence",
-        "name": "📸 Evidence",
-        "parent_id": "root",
-        "color": "#ef4444",
-        "icon": "gavel",
-        "system": True
-    },
-    "court": {
-        "id": "court",
-        "name": "⚖️ Court Documents",
-        "parent_id": "root",
-        "color": "#8b5cf6",
-        "icon": "scale",
-        "system": True
-    },
-    "correspondence": {
-        "id": "correspondence",
-        "name": "📧 Correspondence",
-        "parent_id": "root",
-        "color": "#06b6d4",
-        "icon": "envelope",
-        "system": True
-    }
+    "documents": {},
+    "extractions": {},  # Store extracted PDF pages
+    "highlights": {},   # Store highlights and notes
+    "tags": ["Important", "Evidence", "Lease", "Notice", "Court", "Correspondence", "Financial", "Photos"]
 }
 
-DEFAULT_TAGS = ["Important", "Evidence", "Lease", "Notice", "Court", "Correspondence", "Financial", "Photos", "Urgent"]
-
-
-# =============================================================================
-# Pydantic Models
-# =============================================================================
-
+# Pydantic models
 class FolderCreate(BaseModel):
     name: str
     parent_id: str = "root"
@@ -120,9 +85,225 @@ class DocumentUpdate(BaseModel):
     starred: Optional[bool] = None
 
 
-# =============================================================================
-# Helper Functions
-# =============================================================================
+@router.get("/")
+async def get_briefcase():
+    """Get entire briefcase structure"""
+    return {
+        "folders": list(briefcase_data["folders"].values()),
+        "documents": list(briefcase_data["documents"].values()),
+        "tags": briefcase_data["tags"],
+        "stats": {
+            "total_folders": len(briefcase_data["folders"]),
+            "total_documents": len(briefcase_data["documents"]),
+            "total_size": sum(d.get("size", 0) for d in briefcase_data["documents"].values())
+        }
+    }
+
+
+@router.get("/folder/{folder_id}")
+async def get_folder_contents(folder_id: str):
+    """Get contents of a specific folder"""
+    if folder_id not in briefcase_data["folders"]:
+        raise HTTPException(status_code=404, detail="Folder not found")
+    
+    folder = briefcase_data["folders"][folder_id]
+    
+    # Get subfolders
+    subfolders = [f for f in briefcase_data["folders"].values() if f.get("parent_id") == folder_id]
+    
+    # Get documents in this folder
+    documents = [d for d in briefcase_data["documents"].values() if d.get("folder_id") == folder_id]
+    
+    # Get breadcrumb path
+    breadcrumb = get_breadcrumb(folder_id)
+    
+    return {
+        "folder": folder,
+        "subfolders": subfolders,
+        "documents": documents,
+        "breadcrumb": breadcrumb
+    }
+
+
+def get_breadcrumb(folder_id: str) -> List[Dict]:
+    """Build breadcrumb path from root to folder"""
+    breadcrumb = []
+    current_id = folder_id
+    
+    while current_id:
+        if current_id in briefcase_data["folders"]:
+            folder = briefcase_data["folders"][current_id]
+            breadcrumb.insert(0, {"id": folder["id"], "name": folder["name"]})
+            current_id = folder.get("parent_id")
+        else:
+            break
+    
+    return breadcrumb
+
+
+@router.post("/folder")
+async def create_folder(folder: FolderCreate):
+    """Create a new folder"""
+    if folder.parent_id != "root" and folder.parent_id not in briefcase_data["folders"]:
+        raise HTTPException(status_code=404, detail="Parent folder not found")
+    
+    folder_id = f"folder_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(folder.name) & 0xFFFF:04x}"
+    
+    new_folder = {
+        "id": folder_id,
+        "name": folder.name,
+        "parent_id": folder.parent_id,
+        "color": folder.color,
+        "icon": folder.icon,
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
+    
+    briefcase_data["folders"][folder_id] = new_folder
+    
+    return {"success": True, "folder": new_folder}
+
+
+@router.put("/folder/{folder_id}")
+async def update_folder(folder_id: str, update: FolderUpdate):
+    """Update folder properties"""
+    if folder_id not in briefcase_data["folders"]:
+        raise HTTPException(status_code=404, detail="Folder not found")
+    
+    if folder_id == "root":
+        raise HTTPException(status_code=400, detail="Cannot modify root folder")
+    
+    folder = briefcase_data["folders"][folder_id]
+    
+    if update.name is not None:
+        folder["name"] = update.name
+    if update.color is not None:
+        folder["color"] = update.color
+    if update.icon is not None:
+        folder["icon"] = update.icon
+    if update.parent_id is not None:
+        # Prevent moving to own child
+        if not is_valid_move(folder_id, update.parent_id):
+            raise HTTPException(status_code=400, detail="Cannot move folder to its own subfolder")
+        folder["parent_id"] = update.parent_id
+    
+    folder["updated_at"] = datetime.now().isoformat()
+    
+    return {"success": True, "folder": folder}
+
+
+def is_valid_move(folder_id: str, new_parent_id: str) -> bool:
+    """Check if moving folder to new parent is valid (not circular)"""
+    if new_parent_id == folder_id:
+        return False
+    
+    current_id = new_parent_id
+    while current_id:
+        if current_id == folder_id:
+            return False
+        if current_id in briefcase_data["folders"]:
+            current_id = briefcase_data["folders"][current_id].get("parent_id")
+        else:
+            break
+    
+    return True
+
+
+@router.delete("/folder/{folder_id}")
+async def delete_folder(folder_id: str, recursive: bool = False):
+    """Delete a folder"""
+    if folder_id not in briefcase_data["folders"]:
+        raise HTTPException(status_code=404, detail="Folder not found")
+    
+    if folder_id == "root":
+        raise HTTPException(status_code=400, detail="Cannot delete root folder")
+    
+    # Check for contents
+    subfolders = [f for f in briefcase_data["folders"].values() if f.get("parent_id") == folder_id]
+    documents = [d for d in briefcase_data["documents"].values() if d.get("folder_id") == folder_id]
+    
+    if (subfolders or documents) and not recursive:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Folder contains {len(subfolders)} folders and {len(documents)} documents. Use recursive=true to delete all."
+        )
+    
+    # Recursive delete
+    if recursive:
+        delete_folder_recursive(folder_id)
+    else:
+        del briefcase_data["folders"][folder_id]
+    
+    return {"success": True, "message": "Folder deleted"}
+
+
+def delete_folder_recursive(folder_id: str):
+    """Recursively delete folder and contents"""
+    # Delete subfolders
+    subfolders = [f["id"] for f in briefcase_data["folders"].values() if f.get("parent_id") == folder_id]
+    for subfolder_id in subfolders:
+        delete_folder_recursive(subfolder_id)
+    
+    # Delete documents
+    doc_ids = [d["id"] for d in briefcase_data["documents"].values() if d.get("folder_id") == folder_id]
+    for doc_id in doc_ids:
+        del briefcase_data["documents"][doc_id]
+    
+    # Delete folder
+    if folder_id in briefcase_data["folders"]:
+        del briefcase_data["folders"][folder_id]
+
+
+@router.post("/document")
+async def upload_document(
+    file: UploadFile = File(...),
+    folder_id: str = Form(default="root"),
+    tags: str = Form(default=""),
+    notes: str = Form(default="")
+):
+    """Upload a document to the briefcase"""
+    if folder_id not in briefcase_data["folders"]:
+        raise HTTPException(status_code=404, detail="Folder not found")
+    
+    content = await file.read()
+    
+    # Generate document ID and hash
+    doc_id = f"doc_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(content) & 0xFFFFFF:06x}"
+    file_hash = hashlib.sha256(content).hexdigest()[:16]
+    
+    # Determine file type
+    filename = file.filename or "unknown"
+    ext = os.path.splitext(filename)[1].lower()
+    file_type = get_file_type(ext)
+    
+    # Parse tags
+    tag_list = [t.strip() for t in tags.split(",") if t.strip()]
+    
+    # Store document
+    document = {
+        "id": doc_id,
+        "name": filename,
+        "folder_id": folder_id,
+        "size": len(content),
+        "type": file_type,
+        "extension": ext,
+        "mime_type": file.content_type,
+        "hash": file_hash,
+        "tags": tag_list,
+        "notes": notes,
+        "starred": False,
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat(),
+        "content": base64.b64encode(content).decode('utf-8')
+    }
+    
+    briefcase_data["documents"][doc_id] = document
+    
+    # Return without content
+    doc_response = {k: v for k, v in document.items() if k != "content"}
+    
+    return {"success": True, "document": doc_response}
+
 
 def get_file_type(ext: str) -> str:
     """Determine file type category from extension"""
@@ -139,354 +320,65 @@ def get_file_type(ext: str) -> str:
         ".html": "web", ".htm": "web",
         ".json": "data", ".xml": "data", ".csv": "data"
     }
-    return types.get(ext.lower(), "other")
-
-
-def get_breadcrumb(folder_id: str) -> List[Dict]:
-    """Build breadcrumb path from root to folder."""
-    breadcrumb = []
-    current_id = folder_id
-    
-    while current_id and current_id in DEFAULT_FOLDERS:
-        folder = DEFAULT_FOLDERS[current_id]
-        breadcrumb.insert(0, {"id": folder["id"], "name": folder["name"]})
-        current_id = folder.get("parent_id")
-    
-    return breadcrumb
-
-
-# =============================================================================
-# Main Briefcase Endpoints
-# =============================================================================
-
-@router.get("/")
-async def get_briefcase(
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """
-    Get entire briefcase structure - loads from USER'S CLOUD STORAGE.
-    
-    Returns folders and documents from user's connected cloud storage.
-    """
-    try:
-        sync = await get_cloud_sync(user, db, settings)
-        documents = await sync.load_document_index()
-    except HTTPException:
-        # No storage connected yet
-        documents = []
-    except Exception as e:
-        logger.warning(f"Error loading documents: {e}")
-        documents = []
-    
-    return {
-        "user_id": user.user_id,
-        "folders": list(DEFAULT_FOLDERS.values()),
-        "documents": documents,
-        "tags": DEFAULT_TAGS,
-        "stats": {
-            "total_folders": len(DEFAULT_FOLDERS),
-            "total_documents": len(documents),
-            "total_size": sum(d.get("size", 0) for d in documents),
-            "starred_count": sum(1 for d in documents if d.get("starred"))
-        },
-        "storage": "cloud"
-    }
-
-
-@router.get("/processed")
-async def get_processed_documents(
-    user: StorageUser = Depends(require_user),
-):
-    """
-    Get all processed documents from the unified upload pipeline.
-    
-    These are documents that have been:
-    - Uploaded via /api/documents/upload
-    - Fully processed (OCR, classification, analysis)
-    - Automatically organized into folders
-    
-    Returns documents formatted for briefcase display.
-    """
-    try:
-        from app.services.document_distributor import get_document_distributor
-        distributor = get_document_distributor()
-        documents = distributor.get_briefcase_documents(user.user_id)
-        
-        return {
-            "success": True,
-            "documents": documents,
-            "count": len(documents),
-            "source": "unified_upload_pipeline"
-        }
-    except ImportError:
-        return {
-            "success": False,
-            "documents": [],
-            "count": 0,
-            "message": "Document distributor not available"
-        }
-    except Exception as e:
-        logger.warning(f"Error getting processed documents: {e}")
-        return {
-            "success": False,
-            "documents": [],
-            "count": 0,
-            "message": str(e)
-        }
-
-
-@router.get("/folder/{folder_id}")
-async def get_folder_contents(
-    folder_id: str, 
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """Get contents of a specific folder - loads from cloud storage."""
-    if folder_id not in DEFAULT_FOLDERS:
-        raise HTTPException(status_code=404, detail="Folder not found")
-    
-    folder = DEFAULT_FOLDERS[folder_id]
-    
-    try:
-        sync = await get_cloud_sync(user, db, settings)
-        all_documents = await sync.load_document_index()
-    except HTTPException:
-        all_documents = []
-    except Exception as e:
-        logger.warning(f"Error loading documents: {e}")
-        all_documents = []
-    
-    # Also include processed documents from unified upload
-    try:
-        from app.services.document_distributor import get_document_distributor
-        distributor = get_document_distributor()
-        processed_docs = distributor.get_briefcase_documents(user.user_id)
-        # Filter to this folder
-        processed_in_folder = [d for d in processed_docs if d.get("folder_id", "root") == folder_id]
-        all_documents.extend(processed_in_folder)
-    except Exception:
-        pass  # Distributor not available
-    
-    # Get subfolders
-    subfolders = [f for f in DEFAULT_FOLDERS.values() if f.get("parent_id") == folder_id]
-    
-    # Get documents in this folder
-    documents = [d for d in all_documents if d.get("folder_id", "root") == folder_id]
-    
-    # Get breadcrumb path
-    breadcrumb = get_breadcrumb(folder_id)
-    
-    return {
-        "folder": folder,
-        "subfolders": subfolders,
-        "documents": documents,
-        "breadcrumb": breadcrumb,
-        "stats": {
-            "document_count": len(documents),
-            "subfolder_count": len(subfolders),
-            "total_size": sum(d.get("size", 0) for d in documents)
-        }
-    }
-
-
-# =============================================================================
-# Document Upload & Management
-# =============================================================================
-
-@router.post("/document")
-async def upload_document(
-    file: UploadFile = File(...),
-    folder_id: str = Form(default="root"),
-    tags: str = Form(default=""),
-    notes: str = Form(default=""),
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """
-    Upload a document to the briefcase - saves to USER'S CLOUD STORAGE.
-    
-    Documents are stored in user's Google Drive/Dropbox/OneDrive under:
-    .semptify/documents/[filename]
-    """
-    sync = await get_cloud_sync(user, db, settings)
-    
-    # Read file content
-    content = await file.read()
-    filename = file.filename or "unknown"
-    
-    # Generate document ID and hash
-    doc_id = f"doc_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(content) & 0xFFFFFF:06x}"
-    file_hash = hashlib.sha256(content).hexdigest()[:16]
-    
-    # Determine file type
-    ext = os.path.splitext(filename)[1].lower()
-    file_type = get_file_type(ext)
-    
-    # Parse tags
-    tag_list = [t.strip() for t in tags.split(",") if t.strip()]
-    
-    # Build metadata
-    metadata = {
-        "doc_id": doc_id,
-        "folder_id": folder_id,
-        "type": file_type,
-        "extension": ext,
-        "mime_type": file.content_type,
-        "hash": file_hash,
-        "tags": tag_list,
-        "notes": notes,
-        "starred": False,
-        "user_id": user.user_id,
-    }
-    
-    # Upload to cloud storage
-    cloud_file_id = await sync.upload_document(filename, content, metadata)
-    
-    if not cloud_file_id:
-        raise HTTPException(
-            status_code=500, 
-            detail="Failed to upload document to cloud storage"
-        )
-    
-    logger.info(f"📤 Document uploaded to cloud: {filename} -> {cloud_file_id}")
-    
-    # Build response
-    doc_response = {
-        "id": doc_id,
-        "cloud_id": cloud_file_id,
-        "name": filename,
-        "folder_id": folder_id,
-        "size": len(content),
-        "type": file_type,
-        "extension": ext,
-        "mime_type": file.content_type,
-        "hash": file_hash,
-        "tags": tag_list,
-        "notes": notes,
-        "starred": False,
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "updated_at": datetime.now(timezone.utc).isoformat(),
-        "user_id": user.user_id,
-    }
-    
-    return {"success": True, "document": doc_response, "storage": "cloud"}
+    return types.get(ext, "other")
 
 
 @router.get("/document/{doc_id}")
-async def get_document(
-    doc_id: str,
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """Get document metadata from cloud storage."""
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
-    
-    doc = next((d for d in documents if d.get("doc_id") == doc_id or d.get("id") == doc_id), None)
-    if not doc:
+async def get_document(doc_id: str):
+    """Get document metadata"""
+    if doc_id not in briefcase_data["documents"]:
         raise HTTPException(status_code=404, detail="Document not found")
     
-    return doc
+    doc = briefcase_data["documents"][doc_id]
+    # Return without content
+    return {k: v for k, v in doc.items() if k != "content"}
 
 
 @router.get("/document/{doc_id}/download")
-async def download_document(
-    doc_id: str,
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """Download a document from cloud storage."""
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
-    
-    doc = next((d for d in documents if d.get("doc_id") == doc_id or d.get("id") == doc_id), None)
-    if not doc:
+async def download_document(doc_id: str):
+    """Download a document"""
+    if doc_id not in briefcase_data["documents"]:
         raise HTTPException(status_code=404, detail="Document not found")
     
-    # Get the cloud file ID
-    cloud_id = doc.get("cloud_id") or doc.get("file_id")
-    if not cloud_id:
-        raise HTTPException(status_code=404, detail="Document has no cloud reference")
-    
-    # Download from cloud
-    content = await sync.download_document(cloud_id)
-    if not content:
-        raise HTTPException(status_code=404, detail="Could not download document from cloud")
+    doc = briefcase_data["documents"][doc_id]
+    content = base64.b64decode(doc["content"])
     
     return StreamingResponse(
         io.BytesIO(content),
         media_type=doc.get("mime_type", "application/octet-stream"),
-        headers={"Content-Disposition": f"attachment; filename={doc.get('name', 'document')}"}
+        headers={"Content-Disposition": f"attachment; filename={doc['name']}"}
     )
 
 
 @router.get("/document/{doc_id}/preview")
-async def preview_document(
-    doc_id: str,
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """Get document content for preview (base64 encoded)."""
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
-    
-    doc = next((d for d in documents if d.get("doc_id") == doc_id or d.get("id") == doc_id), None)
-    if not doc:
+async def preview_document(doc_id: str):
+    """Get document content for preview (base64)"""
+    if doc_id not in briefcase_data["documents"]:
         raise HTTPException(status_code=404, detail="Document not found")
     
-    # Get the cloud file ID
-    cloud_id = doc.get("cloud_id") or doc.get("file_id")
-    if not cloud_id:
-        raise HTTPException(status_code=404, detail="Document has no cloud reference")
-    
-    # Download from cloud
-    content = await sync.download_document(cloud_id)
-    if not content:
-        raise HTTPException(status_code=404, detail="Could not download document from cloud")
-    
-    # Encode as base64
-    b64_content = base64.b64encode(content).decode('utf-8')
-    mime_type = doc.get("mime_type", "application/octet-stream")
+    doc = briefcase_data["documents"][doc_id]
     
     return {
         "id": doc_id,
-        "name": doc.get("name", "document"),
-        "type": doc.get("type", "other"),
-        "mime_type": mime_type,
-        "content": f"data:{mime_type};base64,{b64_content}"
+        "name": doc["name"],
+        "type": doc["type"],
+        "mime_type": doc.get("mime_type"),
+        "content": f"data:{doc.get('mime_type', 'application/octet-stream')};base64,{doc['content']}"
     }
 
 
 @router.put("/document/{doc_id}")
-async def update_document(
-    doc_id: str,
-    update: DocumentUpdate,
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """Update document metadata in cloud storage."""
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
-    
-    doc_index = next((i for i, d in enumerate(documents) if d.get("doc_id") == doc_id or d.get("id") == doc_id), None)
-    if doc_index is None:
+async def update_document(doc_id: str, update: DocumentUpdate):
+    """Update document properties"""
+    if doc_id not in briefcase_data["documents"]:
         raise HTTPException(status_code=404, detail="Document not found")
     
-    doc = documents[doc_index]
+    doc = briefcase_data["documents"][doc_id]
     
-    # Apply updates
     if update.name is not None:
         doc["name"] = update.name
     if update.folder_id is not None:
-        if update.folder_id not in DEFAULT_FOLDERS:
+        if update.folder_id not in briefcase_data["folders"]:
             raise HTTPException(status_code=404, detail="Target folder not found")
         doc["folder_id"] = update.folder_id
     if update.tags is not None:
@@ -496,75 +388,60 @@ async def update_document(
     if update.starred is not None:
         doc["starred"] = update.starred
     
-    doc["updated_at"] = datetime.now(timezone.utc).isoformat()
+    doc["updated_at"] = datetime.now().isoformat()
     
-    # Save updated index back to cloud
-    documents[doc_index] = doc
-    await sync.save_document_index(documents)
-    
-    return {"success": True, "document": doc}
+    return {"success": True, "document": {k: v for k, v in doc.items() if k != "content"}}
 
 
 @router.delete("/document/{doc_id}")
-async def delete_document(
-    doc_id: str,
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """Delete a document from cloud storage."""
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
-    
-    doc = next((d for d in documents if d.get("doc_id") == doc_id or d.get("id") == doc_id), None)
-    if not doc:
+async def delete_document(doc_id: str):
+    """Delete a document"""
+    if doc_id not in briefcase_data["documents"]:
         raise HTTPException(status_code=404, detail="Document not found")
     
-    # Delete from cloud
-    cloud_id = doc.get("cloud_id") or doc.get("file_id")
-    if cloud_id:
-        try:
-            await sync.delete_document(cloud_id)
-        except Exception as e:
-            logger.warning(f"Could not delete cloud file: {e}")
-    
-    # Remove from index
-    documents = [d for d in documents if d.get("doc_id") != doc_id and d.get("id") != doc_id]
-    await sync.save_document_index(documents)
+    del briefcase_data["documents"][doc_id]
     
     return {"success": True, "message": "Document deleted"}
 
 
 @router.post("/document/{doc_id}/move")
-async def move_document(
-    doc_id: str,
-    folder_id: str = Form(...),
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """Move document to another folder."""
-    if folder_id not in DEFAULT_FOLDERS:
-        raise HTTPException(status_code=404, detail="Target folder not found")
-    
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
-    
-    doc_index = next((i for i, d in enumerate(documents) if d.get("doc_id") == doc_id or d.get("id") == doc_id), None)
-    if doc_index is None:
+async def move_document(doc_id: str, folder_id: str = Form(...)):
+    """Move document to another folder"""
+    if doc_id not in briefcase_data["documents"]:
         raise HTTPException(status_code=404, detail="Document not found")
     
-    documents[doc_index]["folder_id"] = folder_id
-    documents[doc_index]["updated_at"] = datetime.now(timezone.utc).isoformat()
+    if folder_id not in briefcase_data["folders"]:
+        raise HTTPException(status_code=404, detail="Target folder not found")
     
-    await sync.save_document_index(documents)
+    briefcase_data["documents"][doc_id]["folder_id"] = folder_id
+    briefcase_data["documents"][doc_id]["updated_at"] = datetime.now().isoformat()
     
-    return {"success": True, "message": "Document moved", "document": documents[doc_index]}
+    return {"success": True, "message": "Document moved"}
 
 
-# =============================================================================
-# Search & Filter
-# =============================================================================
+@router.post("/document/{doc_id}/copy")
+async def copy_document(doc_id: str, folder_id: str = Form(...)):
+    """Copy document to another folder"""
+    if doc_id not in briefcase_data["documents"]:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    if folder_id not in briefcase_data["folders"]:
+        raise HTTPException(status_code=404, detail="Target folder not found")
+    
+    original = briefcase_data["documents"][doc_id]
+    new_id = f"doc_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(original['name']) & 0xFFFF:04x}"
+    
+    copy = original.copy()
+    copy["id"] = new_id
+    copy["folder_id"] = folder_id
+    copy["name"] = f"Copy of {original['name']}"
+    copy["created_at"] = datetime.now().isoformat()
+    copy["updated_at"] = datetime.now().isoformat()
+    
+    briefcase_data["documents"][new_id] = copy
+    
+    return {"success": True, "document": {k: v for k, v in copy.items() if k != "content"}}
+
 
 @router.get("/search")
 async def search_documents(
@@ -572,30 +449,24 @@ async def search_documents(
     folder_id: Optional[str] = None,
     tags: Optional[str] = None,
     file_type: Optional[str] = None,
-    starred: Optional[bool] = None,
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
+    starred: Optional[bool] = None
 ):
-    """Search documents in cloud storage."""
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
-    
+    """Search documents"""
     results = []
     query = q.lower()
     tag_filter = [t.strip() for t in tags.split(",")] if tags else []
     
-    for doc in documents:
+    for doc in briefcase_data["documents"].values():
         # Text search
         if query:
-            name_match = query in doc.get("name", "").lower()
+            name_match = query in doc["name"].lower()
             notes_match = query in doc.get("notes", "").lower()
             tag_match = any(query in t.lower() for t in doc.get("tags", []))
             if not (name_match or notes_match or tag_match):
                 continue
         
         # Folder filter
-        if folder_id and doc.get("folder_id", "root") != folder_id:
+        if folder_id and doc["folder_id"] != folder_id:
             continue
         
         # Tag filter
@@ -604,155 +475,75 @@ async def search_documents(
                 continue
         
         # File type filter
-        if file_type and doc.get("type") != file_type:
+        if file_type and doc["type"] != file_type:
             continue
         
         # Starred filter
         if starred is not None and doc.get("starred") != starred:
             continue
         
-        results.append(doc)
+        results.append({k: v for k, v in doc.items() if k != "content"})
     
-    return {"results": results, "count": len(results), "query": q}
+    return {"results": results, "count": len(results)}
 
 
 @router.get("/starred")
-async def get_starred_documents(
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """Get all starred documents from cloud storage."""
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
-    
-    starred = [d for d in documents if d.get("starred")]
+async def get_starred_documents():
+    """Get all starred documents"""
+    starred = [
+        {k: v for k, v in doc.items() if k != "content"}
+        for doc in briefcase_data["documents"].values()
+        if doc.get("starred")
+    ]
     return {"documents": starred, "count": len(starred)}
 
 
 @router.get("/recent")
-async def get_recent_documents(
-    limit: int = 10,
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """Get recently added/updated documents from cloud storage."""
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
+async def get_recent_documents(limit: int = 10):
+    """Get recently added/updated documents"""
+    docs = list(briefcase_data["documents"].values())
+    docs.sort(key=lambda x: x.get("updated_at", ""), reverse=True)
     
-    # Sort by updated_at or created_at
-    docs = sorted(documents, key=lambda x: x.get("updated_at", x.get("created_at", "")), reverse=True)
-    
-    return {"documents": docs[:limit], "count": len(docs[:limit])}
+    recent = [
+        {k: v for k, v in doc.items() if k != "content"}
+        for doc in docs[:limit]
+    ]
+    return {"documents": recent, "count": len(recent)}
 
-
-# =============================================================================
-# Tags
-# =============================================================================
 
 @router.get("/tags")
-async def get_all_tags(
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """Get all available tags (default + used)."""
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
-    
-    # Collect all tags from documents
-    all_tags = set(DEFAULT_TAGS)
-    for doc in documents:
+async def get_all_tags():
+    """Get all available tags"""
+    # Get predefined tags plus any custom tags used
+    all_tags = set(briefcase_data["tags"])
+    for doc in briefcase_data["documents"].values():
         all_tags.update(doc.get("tags", []))
     
     return {"tags": sorted(list(all_tags))}
 
 
-# =============================================================================
-# Statistics
-# =============================================================================
+@router.post("/tags")
+async def add_tag(tag: str = Form(...)):
+    """Add a new tag"""
+    if tag not in briefcase_data["tags"]:
+        briefcase_data["tags"].append(tag)
+    return {"success": True, "tags": briefcase_data["tags"]}
 
-@router.get("/stats")
-async def get_briefcase_stats(
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """Get detailed briefcase statistics."""
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
-
-    # Type distribution
-    type_counts = {}
-    for doc in documents:
-        t = doc.get("type", "other")
-        type_counts[t] = type_counts.get(t, 0) + 1
-
-    # Tag distribution
-    tag_counts = {}
-    for doc in documents:
-        for tag in doc.get("tags", []):
-            tag_counts[tag] = tag_counts.get(tag, 0) + 1
-    
-    # Folder sizes
-    folder_sizes = {}
-    folder_counts = {}
-    for doc in documents:
-        fid = doc.get("folder_id", "root")
-        folder_sizes[fid] = folder_sizes.get(fid, 0) + doc.get("size", 0)
-        folder_counts[fid] = folder_counts.get(fid, 0) + 1
-
-    return {
-        "total_folders": len(DEFAULT_FOLDERS),
-        "total_documents": len(documents),
-        "total_size": sum(d.get("size", 0) for d in documents),
-        "starred_count": sum(1 for d in documents if d.get("starred")),
-        "type_distribution": type_counts,
-        "tag_distribution": tag_counts,
-        "folder_sizes": folder_sizes,
-        "folder_counts": folder_counts,
-        "storage": "cloud"
-    }
-
-
-# =============================================================================
-# Export
-# =============================================================================
 
 @router.post("/export")
-async def export_folder(
-    folder_id: str = Form(default="root"),
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
-):
-    """Export folder as ZIP file (downloads all documents from cloud)."""
-    if folder_id not in DEFAULT_FOLDERS:
+async def export_folder(folder_id: str = Form(default="root")):
+    """Export folder as ZIP file"""
+    if folder_id not in briefcase_data["folders"]:
         raise HTTPException(status_code=404, detail="Folder not found")
-    
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
-    
-    # Filter documents in this folder
-    folder_docs = [d for d in documents if d.get("folder_id", "root") == folder_id]
     
     # Create ZIP in memory
     zip_buffer = io.BytesIO()
     
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-        for doc in folder_docs:
-            cloud_id = doc.get("cloud_id") or doc.get("file_id")
-            if cloud_id:
-                try:
-                    content = await sync.download_document(cloud_id)
-                    if content:
-                        zip_file.writestr(doc.get("name", "unknown"), content)
-                except Exception as e:
-                    logger.warning(f"Could not download {doc.get('name')}: {e}")
+        export_folder_to_zip(zip_file, folder_id, "")
     
     zip_buffer.seek(0)
-    folder_name = DEFAULT_FOLDERS[folder_id]["name"]
+    folder_name = briefcase_data["folders"][folder_id]["name"]
     
     return StreamingResponse(
         zip_buffer,
@@ -761,126 +552,765 @@ async def export_folder(
     )
 
 
-# =============================================================================
-# Bulk Operations
-# =============================================================================
+def export_folder_to_zip(zip_file: zipfile.ZipFile, folder_id: str, path: str):
+    """Recursively add folder contents to ZIP"""
+    folder = briefcase_data["folders"][folder_id]
+    folder_path = os.path.join(path, folder["name"]) if path else folder["name"]
+    
+    # Add documents
+    for doc in briefcase_data["documents"].values():
+        if doc["folder_id"] == folder_id:
+            content = base64.b64decode(doc["content"])
+            zip_file.writestr(os.path.join(folder_path, doc["name"]), content)
+    
+    # Add subfolders
+    for subfolder in briefcase_data["folders"].values():
+        if subfolder.get("parent_id") == folder_id:
+            export_folder_to_zip(zip_file, subfolder["id"], folder_path)
 
-@router.post("/bulk/move")
-async def bulk_move_documents(
-    request: Request,
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
+
+@router.get("/stats")
+async def get_briefcase_stats():
+    """Get detailed briefcase statistics"""
+    docs = list(briefcase_data["documents"].values())
+
+    # Type distribution
+    type_counts = {}
+    for doc in docs:
+        t = doc["type"]
+        type_counts[t] = type_counts.get(t, 0) + 1
+
+    # Tag distribution
+    tag_counts = {}
+    for doc in docs:
+        for tag in doc.get("tags", []):
+            tag_counts[tag] = tag_counts.get(tag, 0) + 1
+    
+    # Folder sizes
+    folder_sizes = {}
+    for doc in docs:
+        fid = doc["folder_id"]
+        folder_sizes[fid] = folder_sizes.get(fid, 0) + doc.get("size", 0)
+
+    return {
+        "total_folders": len(briefcase_data["folders"]),
+        "total_documents": len(docs),
+        "total_size": sum(d.get("size", 0) for d in docs),
+        "starred_count": sum(1 for d in docs if d.get("starred")),
+        "type_distribution": type_counts,
+        "tag_distribution": tag_counts,
+        "folder_sizes": folder_sizes,
+        "extractions_count": len(briefcase_data.get("extractions", {})),
+        "highlights_count": len(briefcase_data.get("highlights", {}))
+    }
+
+
+# ============ Extracted Pages Storage ============
+
+@router.post("/extraction")
+async def save_extraction(
+    pdf_name: str = Form(...),
+    pages: str = Form(...),  # JSON array of page numbers
+    extracted_data: UploadFile = File(None),  # Optional: the actual extracted PDF
+    notes: str = Form("")
 ):
-    """Move multiple documents to a folder."""
-    data = await request.json()
-    doc_ids = data.get("doc_ids", [])
-    target_folder = data.get("folder_id", "root")
+    """Save extracted pages from PDF tools."""
+    import json
     
-    if target_folder not in DEFAULT_FOLDERS:
-        raise HTTPException(status_code=404, detail="Target folder not found")
+    extraction_id = str(uuid.uuid4())
+    page_list = json.loads(pages)
     
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
+    extraction = {
+        "id": extraction_id,
+        "pdf_name": pdf_name,
+        "pages": page_list,
+        "page_count": len(page_list),
+        "notes": notes,
+        "created_at": datetime.now().isoformat(),
+        "folder_id": "extracted"
+    }
     
-    moved = 0
-    for doc in documents:
-        if doc.get("doc_id") in doc_ids or doc.get("id") in doc_ids:
-            doc["folder_id"] = target_folder
-            doc["updated_at"] = datetime.now(timezone.utc).isoformat()
-            moved += 1
+    # Save extracted PDF file if provided
+    if extracted_data:
+        upload_dir = Path("uploads/briefcase/extractions")
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        file_path = upload_dir / f"{extraction_id}.pdf"
+        content = await extracted_data.read()
+        
+        with open(file_path, "wb") as f:
+            f.write(content)
+        
+        extraction["file_path"] = str(file_path)
+        extraction["file_size"] = len(content)
     
-    await sync.save_document_index(documents)
+    briefcase_data["extractions"][extraction_id] = extraction
     
-    return {"success": True, "moved": moved}
+    return {"success": True, "extraction_id": extraction_id, "extraction": extraction}
 
 
-@router.post("/bulk/tag")
-async def bulk_tag_documents(
-    request: Request,
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
+@router.get("/extractions")
+async def list_extractions():
+    """List all saved extractions."""
+    extractions = list(briefcase_data.get("extractions", {}).values())
+    extractions.sort(key=lambda x: x["created_at"], reverse=True)
+    return {"extractions": extractions}
+
+
+@router.get("/extraction/{extraction_id}")
+async def get_extraction(extraction_id: str):
+    """Get a specific extraction."""
+    if extraction_id not in briefcase_data.get("extractions", {}):
+        raise HTTPException(status_code=404, detail="Extraction not found")
+    return briefcase_data["extractions"][extraction_id]
+
+
+@router.delete("/extraction/{extraction_id}")
+async def delete_extraction(extraction_id: str):
+    """Delete an extraction."""
+    if extraction_id not in briefcase_data.get("extractions", {}):
+        raise HTTPException(status_code=404, detail="Extraction not found")
+    
+    extraction = briefcase_data["extractions"][extraction_id]
+    
+    # Delete file if exists
+    if "file_path" in extraction:
+        file_path = Path(extraction["file_path"])
+        if file_path.exists():
+            file_path.unlink()
+    
+    del briefcase_data["extractions"][extraction_id]
+    return {"success": True}
+
+
+@router.get("/extraction/{extraction_id}/download")
+async def download_extraction(extraction_id: str):
+    """Download extracted PDF file."""
+    if extraction_id not in briefcase_data.get("extractions", {}):
+        raise HTTPException(status_code=404, detail="Extraction not found")
+    
+    extraction = briefcase_data["extractions"][extraction_id]
+    if "file_path" not in extraction:
+        raise HTTPException(status_code=404, detail="No file associated with this extraction")
+    
+    file_path = Path(extraction["file_path"])
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found on disk")
+    
+    return FileResponse(
+        file_path,
+        media_type="application/pdf",
+        filename=f"extracted_{extraction['pdf_name']}_pages.pdf"
+    )
+
+
+# ============ Highlights & Notes Storage ============
+
+@router.post("/highlight")
+async def save_highlight(
+    pdf_name: str = Form(...),
+    page_number: int = Form(...),
+    color: str = Form(...),
+    color_name: str = Form(""),
+    text: str = Form(""),
+    note: str = Form(""),
+    coords: str = Form(None)  # JSON with x, y, width, height
 ):
-    """Add tags to multiple documents."""
+    """Save a highlight/annotation from PDF tools."""
+    import json
+    
+    highlight_id = str(uuid.uuid4())
+    
+    highlight = {
+        "id": highlight_id,
+        "pdf_name": pdf_name,
+        "page_number": page_number,
+        "color": color,
+        "color_name": color_name,
+        "text": text,
+        "note": note,
+        "coords": json.loads(coords) if coords else None,
+        "created_at": datetime.now().isoformat(),
+        "folder_id": "highlights"
+    }
+    
+    briefcase_data["highlights"][highlight_id] = highlight
+    
+    return {"success": True, "highlight_id": highlight_id, "highlight": highlight}
+
+
+@router.post("/highlights/batch")
+async def save_highlights_batch(request: Request):
+    """Save multiple highlights at once."""
     data = await request.json()
-    doc_ids = data.get("doc_ids", [])
-    tags_to_add = data.get("tags", [])
+    highlights = data.get("highlights", [])
+    pdf_name = data.get("pdf_name", "Unknown PDF")
     
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
+    saved = []
+    for h in highlights:
+        highlight_id = str(uuid.uuid4())
+        highlight = {
+            "id": highlight_id,
+            "pdf_name": pdf_name,
+            "page_number": h.get("page", 1),
+            "color": h.get("color", "#ffff00"),
+            "color_name": h.get("colorName", ""),
+            "text": h.get("text", ""),
+            "note": h.get("note", ""),
+            "coords": h.get("coords"),
+            "created_at": datetime.now().isoformat(),
+            "folder_id": "highlights"
+        }
+        briefcase_data["highlights"][highlight_id] = highlight
+        saved.append(highlight)
     
-    tagged = 0
-    for doc in documents:
-        if doc.get("doc_id") in doc_ids or doc.get("id") in doc_ids:
-            existing_tags = set(doc.get("tags", []))
-            existing_tags.update(tags_to_add)
-            doc["tags"] = list(existing_tags)
-            doc["updated_at"] = datetime.now(timezone.utc).isoformat()
-            tagged += 1
-    
-    await sync.save_document_index(documents)
-    
-    return {"success": True, "tagged": tagged}
+    return {"success": True, "count": len(saved), "highlights": saved}
 
 
-@router.post("/bulk/delete")
-async def bulk_delete_documents(
-    request: Request,
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
+@router.get("/highlights")
+async def list_highlights(pdf_name: Optional[str] = None, color: Optional[str] = None):
+    """List all saved highlights, optionally filtered."""
+    highlights = list(briefcase_data.get("highlights", {}).values())
+    
+    if pdf_name:
+        highlights = [h for h in highlights if h["pdf_name"] == pdf_name]
+    if color:
+        highlights = [h for h in highlights if h["color"] == color]
+    
+    highlights.sort(key=lambda x: x["created_at"], reverse=True)
+    return {"highlights": highlights}
+
+
+@router.get("/highlight/{highlight_id}")
+async def get_highlight(highlight_id: str):
+    """Get a specific highlight."""
+    if highlight_id not in briefcase_data.get("highlights", {}):
+        raise HTTPException(status_code=404, detail="Highlight not found")
+    return briefcase_data["highlights"][highlight_id]
+
+
+@router.delete("/highlight/{highlight_id}")
+async def delete_highlight(highlight_id: str):
+    """Delete a highlight."""
+    if highlight_id not in briefcase_data.get("highlights", {}):
+        raise HTTPException(status_code=404, detail="Highlight not found")
+    
+    del briefcase_data["highlights"][highlight_id]
+    return {"success": True}
+
+
+@router.get("/highlights/by-color")
+async def get_highlights_grouped_by_color():
+    """Get highlights grouped by color category."""
+    color_groups = {}
+    
+    for highlight in briefcase_data.get("highlights", {}).values():
+        color = highlight.get("color_name") or highlight.get("color", "Unknown")
+        if color not in color_groups:
+            color_groups[color] = []
+        color_groups[color].append(highlight)
+    
+    return {"groups": color_groups}
+
+
+# ============ Document Annotation API (Footnote Indexing) ============
+
+# In-memory annotation storage (in production, use database)
+annotation_data = {
+    "annotations": {},
+    "global_counter": 0,
+    "category_counters": {}
+}
+
+
+class AnnotationCreate(BaseModel):
+    document_id: str
+    extraction_code: str
+    highlight_text: str
+    page_number: int
+    annotation_note: Optional[str] = None
+    position_x: Optional[float] = 0.0
+    position_y: Optional[float] = 0.0
+    position_width: Optional[float] = 0.0
+    position_height: Optional[float] = 0.0
+    detection_method: Optional[str] = "MANUAL"
+    confidence: Optional[float] = 1.0
+    linked_event_id: Optional[str] = None
+
+
+class AnnotationUpdate(BaseModel):
+    annotation_note: Optional[str] = None
+    linked_event_id: Optional[str] = None
+
+
+@router.post("/annotation")
+async def create_annotation(annotation: AnnotationCreate):
+    """
+    Create a new document annotation with auto-numbered footnotes.
+    Returns both global footnote number and category-specific number.
+    """
+    annotation_id = str(uuid.uuid4())
+    
+    # Increment global counter
+    annotation_data["global_counter"] += 1
+    global_num = annotation_data["global_counter"]
+    
+    # Increment category counter
+    code = annotation.extraction_code
+    if code not in annotation_data["category_counters"]:
+        annotation_data["category_counters"][code] = 0
+    annotation_data["category_counters"][code] += 1
+    category_num = annotation_data["category_counters"][code]
+    
+    new_annotation = {
+        "id": annotation_id,
+        "document_id": annotation.document_id,
+        "footnote_number": global_num,
+        "category_number": category_num,
+        "extraction_code": code,
+        "marker_id": f"{code}-{category_num}",
+        "highlight_text": annotation.highlight_text,
+        "annotation_note": annotation.annotation_note,
+        "page_number": annotation.page_number,
+        "position_x": annotation.position_x,
+        "position_y": annotation.position_y,
+        "position_width": annotation.position_width,
+        "position_height": annotation.position_height,
+        "detection_method": annotation.detection_method,
+        "confidence": annotation.confidence,
+        "linked_event_id": annotation.linked_event_id,
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat()
+    }
+    
+    annotation_data["annotations"][annotation_id] = new_annotation
+    
+    return {"success": True, "annotation": new_annotation}
+
+
+@router.get("/annotations")
+async def list_annotations(
+    document_id: Optional[str] = None,
+    extraction_code: Optional[str] = None,
+    page_number: Optional[int] = None
 ):
-    """Delete multiple documents."""
-    data = await request.json()
-    doc_ids = data.get("doc_ids", [])
+    """List annotations with optional filters."""
+    annotations = list(annotation_data["annotations"].values())
     
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
+    if document_id:
+        annotations = [a for a in annotations if a["document_id"] == document_id]
+    if extraction_code:
+        annotations = [a for a in annotations if a["extraction_code"] == extraction_code]
+    if page_number is not None:
+        annotations = [a for a in annotations if a["page_number"] == page_number]
     
-    deleted = 0
-    remaining = []
+    # Sort by footnote number
+    annotations.sort(key=lambda x: x["footnote_number"])
     
-    for doc in documents:
-        if doc.get("doc_id") in doc_ids or doc.get("id") in doc_ids:
-            # Delete from cloud
-            cloud_id = doc.get("cloud_id") or doc.get("file_id")
-            if cloud_id:
-                try:
-                    await sync.delete_document(cloud_id)
-                except Exception as e:
-                    logger.warning(f"Could not delete cloud file: {e}")
-            deleted += 1
-        else:
-            remaining.append(doc)
-    
-    await sync.save_document_index(remaining)
-    
-    return {"success": True, "deleted": deleted}
+    return {
+        "annotations": annotations,
+        "count": len(annotations),
+        "global_counter": annotation_data["global_counter"],
+        "category_counters": annotation_data["category_counters"]
+    }
 
 
-@router.post("/bulk/star")
-async def bulk_star_documents(
-    request: Request,
-    user: StorageUser = Depends(require_user),
-    db: AsyncSession = Depends(get_db),
-    settings: Settings = Depends(get_settings),
+@router.get("/annotation/{annotation_id}")
+async def get_annotation(annotation_id: str):
+    """Get a specific annotation."""
+    if annotation_id not in annotation_data["annotations"]:
+        raise HTTPException(status_code=404, detail="Annotation not found")
+    return annotation_data["annotations"][annotation_id]
+
+
+@router.put("/annotation/{annotation_id}")
+async def update_annotation(annotation_id: str, update: AnnotationUpdate):
+    """Update an annotation's note or linked event."""
+    if annotation_id not in annotation_data["annotations"]:
+        raise HTTPException(status_code=404, detail="Annotation not found")
+    
+    annotation = annotation_data["annotations"][annotation_id]
+    
+    if update.annotation_note is not None:
+        annotation["annotation_note"] = update.annotation_note
+    if update.linked_event_id is not None:
+        annotation["linked_event_id"] = update.linked_event_id
+    
+    annotation["updated_at"] = datetime.now().isoformat()
+    
+    return {"success": True, "annotation": annotation}
+
+
+@router.delete("/annotation/{annotation_id}")
+async def delete_annotation(annotation_id: str):
+    """Delete an annotation."""
+    if annotation_id not in annotation_data["annotations"]:
+        raise HTTPException(status_code=404, detail="Annotation not found")
+    
+    del annotation_data["annotations"][annotation_id]
+    return {"success": True}
+
+
+@router.post("/annotation/{annotation_id}/link-event")
+async def link_annotation_to_event(
+    annotation_id: str,
+    event_id: str = Form(...)
 ):
-    """Star/unstar multiple documents."""
-    data = await request.json()
-    doc_ids = data.get("doc_ids", [])
-    starred = data.get("starred", True)
+    """Link an annotation to a timeline event."""
+    if annotation_id not in annotation_data["annotations"]:
+        raise HTTPException(status_code=404, detail="Annotation not found")
     
-    sync = await get_cloud_sync(user, db, settings)
-    documents = await sync.load_document_index()
+    annotation = annotation_data["annotations"][annotation_id]
+    annotation["linked_event_id"] = event_id
+    annotation["updated_at"] = datetime.now().isoformat()
     
-    updated = 0
-    for doc in documents:
-        if doc.get("doc_id") in doc_ids or doc.get("id") in doc_ids:
-            doc["starred"] = starred
-            doc["updated_at"] = datetime.now(timezone.utc).isoformat()
-            updated += 1
+    return {"success": True, "annotation": annotation}
+
+
+@router.get("/annotations/by-document/{document_id}")
+async def get_annotations_by_document(document_id: str):
+    """Get all annotations for a document, grouped by extraction code."""
+    annotations = [
+        a for a in annotation_data["annotations"].values()
+        if a["document_id"] == document_id
+    ]
     
-    await sync.save_document_index(documents)
+    # Group by extraction code
+    grouped = {}
+    for ann in annotations:
+        code = ann["extraction_code"]
+        if code not in grouped:
+            grouped[code] = []
+        grouped[code].append(ann)
     
-    return {"success": True, "updated": updated, "starred": starred}
+    # Sort within each group
+    for code in grouped:
+        grouped[code].sort(key=lambda x: x["category_number"])
+    
+    return {
+        "document_id": document_id,
+        "groups": grouped,
+        "total_count": len(annotations)
+    }
+
+
+@router.post("/annotations/reset-counters")
+async def reset_annotation_counters(document_id: Optional[str] = Form(None)):
+    """
+    Reset annotation counters. 
+    If document_id is provided, only reset for that document.
+    Otherwise reset all counters (use carefully).
+    """
+    if document_id:
+        # Recalculate counters for document
+        doc_annotations = [
+            a for a in annotation_data["annotations"].values()
+            if a["document_id"] == document_id
+        ]
+        # Return current state without full reset
+        return {
+            "success": True,
+            "document_id": document_id,
+            "annotation_count": len(doc_annotations)
+        }
+    else:
+        # Full reset (admin operation)
+        annotation_data["global_counter"] = 0
+        annotation_data["category_counters"] = {}
+        return {"success": True, "message": "All counters reset"}
+
+
+# ============ Timeline Event Linking API ============
+
+# In-memory timeline events for linking (in production, use database)
+timeline_events_data = {}
+
+
+class TimelineEventCreate(BaseModel):
+    title: str
+    event_type: str
+    event_date: str  # ISO format datetime
+    description: Optional[str] = None
+    event_date_end: Optional[str] = None
+    event_status: Optional[str] = "start"
+    parent_event_id: Optional[str] = None
+    source_extraction_id: Optional[str] = None
+    highlight_color: Optional[str] = None
+    urgency: Optional[str] = "normal"
+    is_deadline: Optional[bool] = False
+    is_evidence: Optional[bool] = False
+
+
+class TimelineEventUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    event_status: Optional[str] = None
+    event_date_end: Optional[str] = None
+    urgency: Optional[str] = None
+    is_deadline: Optional[bool] = None
+
+
+@router.post("/timeline-event")
+async def create_timeline_event(event: TimelineEventCreate):
+    """Create a timeline event that can be linked to annotations."""
+    event_id = str(uuid.uuid4())
+    
+    # Determine sequence number if part of event chain
+    sequence = 0
+    if event.parent_event_id:
+        # Count existing children of parent
+        children = [e for e in timeline_events_data.values() 
+                   if e.get("parent_event_id") == event.parent_event_id]
+        sequence = len(children) + 1
+    
+    new_event = {
+        "id": event_id,
+        "title": event.title,
+        "event_type": event.event_type,
+        "event_date": event.event_date,
+        "event_date_end": event.event_date_end,
+        "description": event.description,
+        "event_status": event.event_status,
+        "parent_event_id": event.parent_event_id,
+        "sequence_number": sequence,
+        "source_extraction_id": event.source_extraction_id,
+        "highlight_color": event.highlight_color,
+        "urgency": event.urgency,
+        "is_deadline": event.is_deadline,
+        "is_evidence": event.is_evidence,
+        "linked_annotations": [],
+        "created_at": datetime.now().isoformat()
+    }
+    
+    timeline_events_data[event_id] = new_event
+    
+    return {"success": True, "event": new_event}
+
+
+@router.get("/timeline-events")
+async def list_timeline_events(
+    event_type: Optional[str] = None,
+    event_status: Optional[str] = None,
+    is_deadline: Optional[bool] = None,
+    parent_event_id: Optional[str] = None
+):
+    """List timeline events with optional filters."""
+    events = list(timeline_events_data.values())
+    
+    if event_type:
+        events = [e for e in events if e["event_type"] == event_type]
+    if event_status:
+        events = [e for e in events if e.get("event_status") == event_status]
+    if is_deadline is not None:
+        events = [e for e in events if e.get("is_deadline") == is_deadline]
+    if parent_event_id:
+        events = [e for e in events if e.get("parent_event_id") == parent_event_id]
+    
+    # Sort by date
+    events.sort(key=lambda x: x.get("event_date", ""))
+    
+    return {"events": events, "count": len(events)}
+
+
+@router.get("/timeline-event/{event_id}")
+async def get_timeline_event(event_id: str):
+    """Get a timeline event with its linked annotations."""
+    if event_id not in timeline_events_data:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    event = timeline_events_data[event_id]
+    
+    # Get linked annotations
+    linked_annotations = [
+        a for a in annotation_data["annotations"].values()
+        if a.get("linked_event_id") == event_id
+    ]
+    
+    return {
+        "event": event,
+        "linked_annotations": linked_annotations
+    }
+
+
+@router.put("/timeline-event/{event_id}")
+async def update_timeline_event(event_id: str, update: TimelineEventUpdate):
+    """Update a timeline event."""
+    if event_id not in timeline_events_data:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    event = timeline_events_data[event_id]
+    
+    if update.title is not None:
+        event["title"] = update.title
+    if update.description is not None:
+        event["description"] = update.description
+    if update.event_status is not None:
+        event["event_status"] = update.event_status
+    if update.event_date_end is not None:
+        event["event_date_end"] = update.event_date_end
+    if update.urgency is not None:
+        event["urgency"] = update.urgency
+    if update.is_deadline is not None:
+        event["is_deadline"] = update.is_deadline
+    
+    event["updated_at"] = datetime.now().isoformat()
+    
+    return {"success": True, "event": event}
+
+
+@router.delete("/timeline-event/{event_id}")
+async def delete_timeline_event(event_id: str):
+    """Delete a timeline event and unlink associated annotations."""
+    if event_id not in timeline_events_data:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Unlink annotations
+    for ann in annotation_data["annotations"].values():
+        if ann.get("linked_event_id") == event_id:
+            ann["linked_event_id"] = None
+    
+    del timeline_events_data[event_id]
+    return {"success": True}
+
+
+@router.get("/timeline-event/{event_id}/chain")
+async def get_event_chain(event_id: str):
+    """
+    Get an event chain (linked events: start→continued→finish).
+    Returns the full chain from root to all descendants.
+    """
+    if event_id not in timeline_events_data:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    event = timeline_events_data[event_id]
+    
+    # Find root of chain
+    root_id = event_id
+    while timeline_events_data.get(root_id, {}).get("parent_event_id"):
+        root_id = timeline_events_data[root_id]["parent_event_id"]
+    
+    # Build chain from root
+    def get_descendants(parent_id):
+        children = [
+            e for e in timeline_events_data.values()
+            if e.get("parent_event_id") == parent_id
+        ]
+        children.sort(key=lambda x: x.get("sequence_number", 0))
+        
+        result = []
+        for child in children:
+            result.append({
+                "event": child,
+                "children": get_descendants(child["id"])
+            })
+        return result
+    
+    root_event = timeline_events_data.get(root_id)
+    
+    return {
+        "root": root_event,
+        "chain": get_descendants(root_id),
+        "total_in_chain": sum(1 for e in timeline_events_data.values() 
+                             if e.get("parent_event_id") == root_id or e["id"] == root_id)
+    }
+
+
+@router.post("/timeline-event/from-annotation/{annotation_id}")
+async def create_event_from_annotation(annotation_id: str):
+    """
+    Create a timeline event from an annotation's highlight.
+    Auto-suggests event details based on extraction code.
+    """
+    if annotation_id not in annotation_data["annotations"]:
+        raise HTTPException(status_code=404, detail="Annotation not found")
+    
+    annotation = annotation_data["annotations"][annotation_id]
+    
+    # Map extraction codes to event types
+    code_to_type = {
+        "DT": "date",
+        "DL": "deadline",
+        "TL": "timeline",
+        "EV": "event",
+        "PT": "party",
+        "LG": "legal",
+        "WS": "witness",
+        "VL": "violation"
+    }
+    
+    event_type = code_to_type.get(annotation["extraction_code"], "note")
+    is_deadline = annotation["extraction_code"] in ["DL", "DT"]
+    urgency = "high" if annotation["extraction_code"] == "DL" else "normal"
+    
+    event_id = str(uuid.uuid4())
+    
+    new_event = {
+        "id": event_id,
+        "title": annotation["highlight_text"][:100],
+        "event_type": event_type,
+        "event_date": datetime.now().isoformat(),
+        "description": annotation.get("annotation_note"),
+        "event_status": "start",
+        "source_extraction_id": annotation["marker_id"],
+        "highlight_color": annotation["extraction_code"].lower(),
+        "urgency": urgency,
+        "is_deadline": is_deadline,
+        "is_evidence": False,
+        "linked_annotations": [annotation_id],
+        "created_at": datetime.now().isoformat()
+    }
+    
+    timeline_events_data[event_id] = new_event
+    
+    # Link annotation back to event
+    annotation["linked_event_id"] = event_id
+    annotation["updated_at"] = datetime.now().isoformat()
+    
+    return {"success": True, "event": new_event, "annotation_linked": True}
+
+
+# ============ Extraction Code Reference ============
+
+@router.get("/extraction-codes")
+async def get_extraction_codes():
+    """Get the complete list of extraction codes with colors and icons."""
+    codes = {
+        "DT": {"name": "Dates & Deadlines", "color": "#fbbf24", "icon": "📅", "category": "date"},
+        "PT": {"name": "Parties & Names", "color": "#3b82f6", "icon": "👤", "category": "party"},
+        "$": {"name": "Money & Amounts", "color": "#10b981", "icon": "💰", "category": "amount"},
+        "AD": {"name": "Addresses & Locations", "color": "#8b5cf6", "icon": "📍", "category": "address"},
+        "LG": {"name": "Legal Terms & Citations", "color": "#ef4444", "icon": "⚖️", "category": "legal"},
+        "NT": {"name": "Notes & Footnotes", "color": "#f97316", "icon": "📝", "category": "note"},
+        "FM": {"name": "Form Field Data", "color": "#ec4899", "icon": "📋", "category": "form"},
+        "EV": {"name": "Events & Actions", "color": "#06b6d4", "icon": "📆", "category": "event"},
+        "DL": {"name": "Critical Deadline", "color": "#dc2626", "icon": "🚨", "category": "deadline"},
+        "WS": {"name": "Witness/Testimony", "color": "#84cc16", "icon": "👁️", "category": "witness"},
+        "VL": {"name": "Violation/Issue", "color": "#f43f5e", "icon": "⚠️", "category": "violation"},
+        "ED": {"name": "Evidence Markers", "color": "#14b8a6", "icon": "🔍", "category": "evidence"},
+        "QT": {"name": "Quoted Text", "color": "#a855f7", "icon": "💬", "category": "quote"},
+        "TL": {"name": "Timeline Key Dates", "color": "#0ea5e9", "icon": "🕐", "category": "timeline"}
+    }
+    return {"codes": codes}
+
+
+@router.get("/event-statuses")
+async def get_event_statuses():
+    """Get the complete list of event statuses with descriptions."""
+    statuses = {
+        "start": {"description": "Event initiates a process", "examples": "Lease signing, notice served"},
+        "continued": {"description": "Event continues/extends process", "examples": "Lease renewal, payment plan"},
+        "finish": {"description": "Event concludes process", "examples": "Case closed, eviction complete"},
+        "reported": {"description": "Issue/violation reported", "examples": "Maintenance request, complaint"},
+        "invited": {"description": "Meeting/hearing scheduled", "examples": "Court date, mediation"},
+        "attended": {"description": "Event was attended", "examples": "Hearing appearance"},
+        "missed": {"description": "Event was missed/no-show", "examples": "Missed court date"},
+        "served": {"description": "Document delivered", "examples": "Notice served"},
+        "received": {"description": "Document received", "examples": "Response received"},
+        "filed": {"description": "Document filed", "examples": "Court filing"},
+        "responded": {"description": "Response submitted", "examples": "Answer filed"},
+        "pending": {"description": "Awaiting action/decision", "examples": "Pending ruling"},
+        "resolved": {"description": "Issue resolved", "examples": "Complaint resolved"},
+        "escalated": {"description": "Issue escalated", "examples": "Appeal filed"},
+        "used": {"description": "Evidence used in proceeding", "examples": "Document entered as exhibit"}
+    }
+    return {"statuses": statuses}
