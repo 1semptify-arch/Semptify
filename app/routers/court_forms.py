@@ -8,19 +8,20 @@ API endpoints for generating court forms:
 - Counterclaim
 - Request for Hearing
 
-Integrates with FormDataHub for auto-filling.
+Integrates with FormDataHub and DocumentHub for auto-filling.
 """
 
 import logging
 from datetime import datetime
 from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, Query
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
 from app.core.security import require_user, StorageUser
 from app.services.court_form_generator import form_generator
 from app.core.event_bus import event_bus, EventType as BusEventType
+from app.core.document_hub import get_document_hub
 
 logger = logging.getLogger(__name__)
 
@@ -158,6 +159,17 @@ async def generate_form(
         import base64
         content = base64.b64encode(content).decode('utf-8')
     
+    # Publish event to brain/event bus (non-blocking)
+    try:
+        await event_bus.publish(BusEventType.COURT_FORM_GENERATED, {
+            "user_id": user.user_id,
+            "form_type": result["form_type"],
+            "title": result["title"],
+            "generated_at": result["generated_at"],
+        })
+    except Exception:
+        pass  # Event publishing is optional
+    
     return FormResponse(
         form_type=result["form_type"],
         title=result["title"],
@@ -167,16 +179,6 @@ async def generate_form(
         fields_used=result["fields_used"],
         generated_at=result["generated_at"],
     )
-
-    # Publish event to brain/event bus
-    await event_bus.publish(BusEventType.COURT_FORM_GENERATED, {
-        "user_id": user.user_id,
-        "form_type": result["form_type"],
-        "title": result["title"],
-        "generated_at": result["generated_at"],
-    })
-
-    return response
 
 
 @router.get("/generate/{form_type}", response_class=HTMLResponse)
@@ -395,3 +397,186 @@ async def quick_generate_answer(
     )
     
     return HTMLResponse(result["content"])
+
+
+# =============================================================================
+# Document Hub Integration - Auto-fill forms from uploaded documents
+# =============================================================================
+
+@router.get("/autofill/{form_type}")
+async def get_autofill_data(
+    form_type: str,
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Get auto-fill data for a form type from uploaded documents.
+    
+    Returns field values extracted from documents that can be used
+    to pre-populate the specified form type.
+    
+    Supported form_types:
+    - HOU301: Answer to Eviction Complaint
+    - HOU302: Motion to Dismiss
+    - HOU303: Motion for Continuance
+    - HOU304: Counterclaim
+    - GENERAL: Generic form fields
+    """
+    hub = get_document_hub()
+    autofill = hub.get_form_autofill(user.user_id, form_type)
+    case_data = hub.get_case_data(user.user_id)
+    
+    return {
+        "form_type": form_type,
+        "autofill_data": autofill,
+        "documents_analyzed": case_data.document_count,
+        "confidence_score": case_data.confidence_score,
+        "source": "document_extraction",
+    }
+
+
+@router.post("/generate-from-documents")
+async def generate_form_from_documents(
+    form_type: str = Query(..., description="Form type: answer_to_complaint, motion_to_dismiss, etc."),
+    defenses: Optional[str] = Query(None, description="Comma-separated defense types"),
+    output_format: str = Query("html", description="Output format: html, pdf, text"),
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Generate a court form using data extracted from uploaded documents.
+    
+    This combines data from:
+    1. DocumentHub (extracted from uploaded documents)
+    2. FormDataHub (user-entered form data)
+    
+    Document-extracted data takes priority for critical fields like
+    case number, hearing date, and party names.
+    """
+    # Get document-extracted data first
+    hub = get_document_hub()
+    doc_autofill = hub.get_form_autofill(user.user_id, "GENERAL")
+    case_data = hub.get_case_data(user.user_id)
+    
+    # Start with document data
+    form_data = {}
+    form_data.update(doc_autofill)
+    
+    # Add additional extracted data
+    form_data["case_number"] = case_data.primary_case_number or form_data.get("case_number")
+    form_data["hearing_date"] = case_data.hearing_date or form_data.get("hearing_date")
+    form_data["hearing_time"] = case_data.hearing_time or form_data.get("hearing_time")
+    form_data["plaintiff_name"] = case_data.landlord_name or form_data.get("plaintiff_name")
+    form_data["defendant_name"] = case_data.tenant_name or form_data.get("defendant_name")
+    form_data["property_address"] = case_data.property_address or form_data.get("property_address")
+    form_data["rent_amount"] = case_data.rent_amount or form_data.get("rent_amount")
+    form_data["rent_claimed"] = case_data.rent_claimed or form_data.get("rent_claimed")
+    form_data["deposit_amount"] = case_data.deposit_amount or form_data.get("deposit_amount")
+    form_data["total_claimed"] = case_data.total_claimed or form_data.get("total_claimed")
+    form_data["answer_deadline"] = case_data.answer_deadline or form_data.get("answer_deadline")
+    
+    # Add matched statutes for legal references
+    form_data["applicable_statutes"] = case_data.matched_statutes
+    
+    # Merge with FormDataHub data
+    try:
+        from app.services.form_data import get_form_data_service
+        form_service = get_form_data_service(user.user_id)
+        if form_service:
+            hub_data = await form_service.get_full_data()
+            # Only fill in missing fields from FormDataHub
+            for key, value in hub_data.items():
+                if key not in form_data or not form_data[key]:
+                    form_data[key] = value
+    except Exception as e:
+        logger.warning(f"Could not load FormDataHub: {e}")
+    
+    # Set defendant name from user if still empty
+    form_data.setdefault("defendant_name", user.user_id)
+    
+    # Parse defenses
+    defense_list = defenses.split(",") if defenses else None
+    
+    # Auto-suggest defenses based on documents if not specified
+    if not defense_list and doc_autofill.get("suggested_defenses"):
+        defense_list = doc_autofill["suggested_defenses"]
+    
+    # Generate the form
+    result = await form_generator.generate_form(
+        form_type=form_type,
+        case_data=form_data,
+        defenses=defense_list,
+        output_format=output_format,
+    )
+    
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    # Convert bytes to base64 for PDF
+    content = result["content"]
+    if isinstance(content, bytes):
+        import base64
+        content = base64.b64encode(content).decode('utf-8')
+    
+    return FormResponse(
+        form_type=result["form_type"],
+        title=result["title"],
+        description=result["description"],
+        format=result["format"],
+        content=content,
+        fields_used=result["fields_used"],
+        generated_at=result["generated_at"],
+    )
+
+
+@router.get("/document-data-preview")
+async def preview_document_data(
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Preview all data extracted from documents that can be used for forms.
+    
+    This shows:
+    - All extracted fields with their values
+    - Which forms each field applies to
+    - Confidence level for each extraction
+    - Suggested defenses and counterclaims based on document types
+    """
+    hub = get_document_hub()
+    case_data = hub.get_case_data(user.user_id)
+    
+    # Get autofill for each form type
+    form_autofills = {
+        "HOU301_answer": hub.get_form_autofill(user.user_id, "HOU301"),
+        "HOU302_dismiss": hub.get_form_autofill(user.user_id, "HOU302"),
+        "HOU303_continuance": hub.get_form_autofill(user.user_id, "HOU303"),
+        "HOU304_counterclaim": hub.get_form_autofill(user.user_id, "HOU304"),
+        "GENERAL": hub.get_form_autofill(user.user_id, "GENERAL"),
+    }
+    
+    return {
+        "documents_analyzed": case_data.document_count,
+        "documents_by_type": case_data.documents_by_type,
+        "urgency_level": case_data.urgency_level,
+        "confidence_score": case_data.confidence_score,
+        "core_data": {
+            "case_number": case_data.primary_case_number,
+            "plaintiff_name": case_data.landlord_name,
+            "defendant_name": case_data.tenant_name,
+            "property_address": case_data.property_address,
+            "hearing_date": case_data.hearing_date,
+            "answer_deadline": case_data.answer_deadline,
+        },
+        "financial_data": {
+            "rent_amount": case_data.rent_amount,
+            "rent_claimed": case_data.rent_claimed,
+            "deposit_amount": case_data.deposit_amount,
+            "late_fees": case_data.late_fees,
+            "total_claimed": case_data.total_claimed,
+        },
+        "legal_data": {
+            "matched_statutes": case_data.matched_statutes,
+            "law_references_count": len(case_data.law_references),
+        },
+        "form_autofills": form_autofills,
+        "action_items_count": len(case_data.action_items),
+        "urgent_actions_count": len(case_data.urgent_actions),
+    }

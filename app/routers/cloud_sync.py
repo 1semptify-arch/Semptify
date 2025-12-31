@@ -9,7 +9,7 @@ Semptify stores NOTHING - we just orchestrate the sync.
 
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, UploadFile, File, Form
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -140,15 +140,16 @@ async def get_storage_client(user: StorageUser, db: AsyncSession, settings: Sett
     """
     Get the appropriate storage client for the user's provider.
     This creates a client based on their OAuth tokens.
-    In open mode, returns a mock client.
-    """
-    # In open mode, use mock storage
-    if settings.security_mode == "open":
-        return MockStorageClient(user.user_id)
     
+    NOTE: Even in open mode, we use REAL storage if user has connected.
+    Mock storage is only used as fallback when no real connection exists.
+    """
     from app.routers.storage import get_valid_session
 
+    # Get a valid session with real storage provider
     session = await get_valid_session(db, user.user_id)
+    
+    # Require real storage connection - no mock fallback
     if not session:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -159,8 +160,8 @@ async def get_storage_client(user: StorageUser, db: AsyncSession, settings: Sett
     access_token = session.get("access_token")
 
     if provider == "google_drive":
-        from app.services.storage.google_drive import GoogleDriveClient
-        return GoogleDriveClient(access_token)
+        from app.services.storage.google_drive import GoogleDriveProvider
+        return GoogleDriveProvider(access_token)
     elif provider == "dropbox":
         from app.services.storage.dropbox import DropboxProvider
         return DropboxProvider(access_token)
@@ -494,11 +495,375 @@ async def get_documents(
     settings: Settings = Depends(get_settings),
 ):
     """
-    📄 Get document index from cloud storage.
+    📄 Get document index from VAULT in cloud storage.
+    All documents are now stored in .semptify/vault/
     """
+    import json
+    
     sync = await get_sync_service(user, db, settings)
+    
+    # Try to load from vault index first (new architecture)
+    vault_folder = ".semptify/vault"
+    try:
+        index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
+        vault_index = json.loads(index_content.decode("utf-8"))
+        docs = vault_index.get("documents", [])
+        return {
+            "documents": docs,
+            "count": len(docs),
+            "source": "vault",
+            "user_id": user.user_id
+        }
+    except Exception:
+        pass
+    
+    # Fallback to legacy document index
     docs = await sync.load_document_index()
-    return {"documents": docs, "count": len(docs)}
+    return {"documents": docs, "count": len(docs), "source": "legacy"}
+
+
+@router.get("/vault/index")
+async def get_vault_index(
+    user: StorageUser = Depends(require_user),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """
+    📋 Get the complete vault document index.
+    Returns all documents stored in .semptify/vault/ with their metadata.
+    """
+    import json
+    
+    sync = await get_sync_service(user, db, settings)
+    vault_folder = ".semptify/vault"
+    
+    try:
+        index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
+        vault_index = json.loads(index_content.decode("utf-8"))
+        return {
+            "success": True,
+            "index": vault_index,
+            "document_count": len(vault_index.get("documents", [])),
+            "user_id": user.user_id,
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "index": {"documents": [], "version": "1.0"},
+            "document_count": 0,
+            "user_id": user.user_id,
+            "message": "No vault index found - upload documents to create one"
+        }
+
+
+@router.get("/vault/document/{document_id}")
+async def get_vault_document(
+    document_id: str,
+    user: StorageUser = Depends(require_user),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """
+    📄 Get a specific document from vault by document ID.
+    Returns the document metadata from the vault index.
+    """
+    import json
+    
+    sync = await get_sync_service(user, db, settings)
+    vault_folder = ".semptify/vault"
+    
+    try:
+        index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
+        vault_index = json.loads(index_content.decode("utf-8"))
+        
+        for doc in vault_index.get("documents", []):
+            if doc.get("document_id") == document_id:
+                return {
+                    "success": True,
+                    "document": doc,
+                    "user_id": user.user_id,
+                }
+        
+        raise HTTPException(status_code=404, detail="Document not found in vault")
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read vault: {str(e)}")
+
+
+@router.get("/vault/document/{document_id}/content")
+async def get_vault_document_content(
+    document_id: str,
+    user: StorageUser = Depends(require_user),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """
+    📥 Download document content from vault.
+    Returns the raw file content for processing.
+    """
+    import json
+    from fastapi.responses import Response
+    
+    sync = await get_sync_service(user, db, settings)
+    vault_folder = ".semptify/vault"
+    
+    # Find document in index
+    try:
+        index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
+        vault_index = json.loads(index_content.decode("utf-8"))
+        
+        doc_info = None
+        for doc in vault_index.get("documents", []):
+            if doc.get("document_id") == document_id:
+                doc_info = doc
+                break
+        
+        if not doc_info:
+            raise HTTPException(status_code=404, detail="Document not found in vault")
+        
+        # Download content
+        storage_path = doc_info.get("storage_path", f"{vault_folder}/{document_id}")
+        content = await sync.storage.download_file(storage_path)
+        
+        return Response(
+            content=content,
+            media_type=doc_info.get("mime_type", "application/octet-stream"),
+            headers={
+                "Content-Disposition": f'attachment; filename="{doc_info.get("original_filename", "document")}"',
+                "X-Document-ID": document_id,
+                "X-SHA256": doc_info.get("sha256", ""),
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to download: {str(e)}")
+
+
+@router.patch("/vault/document/{document_id}")
+async def update_vault_document(
+    document_id: str,
+    processed: Optional[bool] = None,
+    registered: Optional[bool] = None,
+    document_type: Optional[str] = None,
+    tags: Optional[str] = None,
+    user: StorageUser = Depends(require_user),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """
+    📝 Update document metadata in vault index.
+    Used by processing modules to update document status.
+    """
+    import json
+    from datetime import datetime, timezone
+    
+    sync = await get_sync_service(user, db, settings)
+    vault_folder = ".semptify/vault"
+    
+    try:
+        index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
+        vault_index = json.loads(index_content.decode("utf-8"))
+        
+        updated = False
+        for doc in vault_index.get("documents", []):
+            if doc.get("document_id") == document_id:
+                if processed is not None:
+                    doc["processed"] = processed
+                if registered is not None:
+                    doc["registered"] = registered
+                if document_type is not None:
+                    doc["document_type"] = document_type
+                if tags is not None:
+                    doc["tags"] = [t.strip() for t in tags.split(",") if t.strip()]
+                doc["updated_at"] = datetime.now(timezone.utc).isoformat()
+                updated = True
+                break
+        
+        if not updated:
+            raise HTTPException(status_code=404, detail="Document not found in vault")
+        
+        vault_index["last_updated"] = datetime.now(timezone.utc).isoformat()
+        
+        await sync.storage.upload_file(
+            f"{vault_folder}/index.json",
+            json.dumps(vault_index, indent=2).encode("utf-8")
+        )
+        
+        return {"success": True, "document_id": document_id, "message": "Document updated"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update: {str(e)}")
+
+
+@router.post("/documents/upload")
+async def upload_document_to_cloud(
+    file: UploadFile = File(...),
+    folder: str = Form(default="root"),
+    tags: str = Form(default=""),
+    notes: str = Form(default=""),
+    document_type: str = Form(default=""),
+    user: StorageUser = Depends(require_user),
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+):
+    """
+    📤 Upload document directly to user's VAULT in cloud storage.
+    
+    All uploads go to .semptify/vault/ with document ID and user ID.
+    This is the single source of truth for all documents.
+    """
+    import uuid
+    import hashlib
+    import json
+    from datetime import datetime, timezone
+    
+    sync = await get_sync_service(user, db, settings)
+    
+    # Read file content
+    content = await file.read()
+    filename = file.filename or "unknown"
+    file_size = len(content)
+    
+    # Check size limit
+    max_size = settings.max_upload_size_mb * 1024 * 1024
+    if file_size > max_size:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"File too large. Maximum: {settings.max_upload_size_mb}MB"
+        )
+    
+    # Generate document ID and compute hash
+    document_id = str(uuid.uuid4())
+    sha256_hash = hashlib.sha256(content).hexdigest()
+    
+    # Determine extension and safe filename
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "bin"
+    safe_filename = f"{document_id}.{ext}"
+    
+    # Detect mime type
+    mime_types = {
+        "pdf": "application/pdf",
+        "jpg": "image/jpeg", "jpeg": "image/jpeg",
+        "png": "image/png", "gif": "image/gif",
+        "doc": "application/msword",
+        "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "txt": "text/plain",
+    }
+    mime_type = file.content_type or mime_types.get(ext, "application/octet-stream")
+    
+    # Parse tags
+    tag_list = [t.strip() for t in tags.split(",") if t.strip()] if tags else []
+    
+    # Ensure vault folders exist
+    vault_folder = ".semptify/vault"
+    certs_folder = ".semptify/vault/certificates"
+    index_folder = ".semptify/vault"
+    
+    try:
+        await sync.storage.create_folder(".semptify")
+        await sync.storage.create_folder(vault_folder)
+        await sync.storage.create_folder(certs_folder)
+    except Exception:
+        pass  # Folders may already exist
+    
+    # Upload file to vault
+    storage_path = f"{vault_folder}/{safe_filename}"
+    try:
+        await sync.storage.upload_file(storage_path, content)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to upload to vault: {str(e)}"
+        )
+    
+    # Create certificate
+    certificate_id = f"cert_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{document_id[:8]}"
+    certificate = {
+        "certificate_id": certificate_id,
+        "document_id": document_id,
+        "user_id": user.user_id,
+        "sha256": sha256_hash,
+        "original_filename": filename,
+        "file_size": file_size,
+        "mime_type": mime_type,
+        "document_type": document_type or "other",
+        "description": notes,
+        "tags": tag_list,
+        "folder": folder,
+        "certified_at": datetime.now(timezone.utc).isoformat(),
+        "request_id": str(uuid.uuid4()),
+        "storage_path": storage_path,
+        "storage_provider": user.provider,
+        "version": "5.0",
+        "platform": "Semptify Vault",
+    }
+    
+    # Upload certificate
+    cert_content = json.dumps(certificate, indent=2).encode("utf-8")
+    try:
+        await sync.storage.upload_file(f"{certs_folder}/{certificate_id}.json", cert_content)
+    except Exception:
+        pass  # Certificate failed but file uploaded
+    
+    # Update vault index
+    try:
+        # Load existing index
+        try:
+            index_content = await sync.storage.download_file(f"{index_folder}/index.json")
+            vault_index = json.loads(index_content.decode("utf-8"))
+        except Exception:
+            vault_index = {"documents": [], "version": "1.0"}
+        
+        # Add document to index
+        vault_index["documents"].append({
+            "document_id": document_id,
+            "user_id": user.user_id,
+            "filename": safe_filename,
+            "original_filename": filename,
+            "file_size": file_size,
+            "mime_type": mime_type,
+            "sha256": sha256_hash,
+            "document_type": document_type or "other",
+            "tags": tag_list,
+            "folder": folder,
+            "storage_path": storage_path,
+            "certificate_id": certificate_id,
+            "uploaded_at": datetime.now(timezone.utc).isoformat(),
+            "processed": False,
+            "registered": False,
+        })
+        vault_index["last_updated"] = datetime.now(timezone.utc).isoformat()
+        
+        # Save updated index
+        await sync.storage.upload_file(
+            f"{index_folder}/index.json",
+            json.dumps(vault_index, indent=2).encode("utf-8")
+        )
+    except Exception as e:
+        logger.warning(f"Failed to update vault index: {e}")
+    
+    logger.info(f"📤 Document uploaded to vault: {filename} -> {document_id}")
+    
+    return {
+        "success": True,
+        "document_id": document_id,
+        "file_id": document_id,  # For backward compatibility
+        "filename": safe_filename,
+        "original_filename": filename,
+        "size": file_size,
+        "sha256": sha256_hash,
+        "certificate_id": certificate_id,
+        "storage_path": storage_path,
+        "folder": folder,
+        "user_id": user.user_id,
+        "message": f"Document uploaded to vault"
+    }
 
 
 # =============================================================================

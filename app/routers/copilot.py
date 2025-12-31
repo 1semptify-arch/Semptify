@@ -2,15 +2,18 @@
 AI Copilot Router
 AI assistance for tenant legal questions.
 Supports multiple providers: OpenAI, Azure OpenAI, Ollama.
+
+Now integrates with DocumentHub for case-aware responses.
 """
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from pydantic import BaseModel, Field
 
 from app.core.config import Settings, get_settings
 from app.core.security import require_user, rate_limit_dependency
+from app.core.document_hub import get_document_hub
 
 
 router = APIRouter()
@@ -980,3 +983,287 @@ Note: AI assistance is not configured. Please complete this template manually.
         template_type=request.template_type,
         provider=provider,
     )
+
+
+# =============================================================================
+# Document Hub Integration - Case-aware AI responses
+# =============================================================================
+
+class DocumentContextRequest(BaseModel):
+    """Request with document context auto-injection."""
+    message: str = Field(..., min_length=1, max_length=4000, description="Your question")
+    include_documents: bool = Field(True, description="Include document context in AI query")
+    include_deadlines: bool = Field(True, description="Include deadline info in context")
+    focus_area: Optional[str] = Field(None, description="Focus on specific area: defenses, deadlines, amounts, timeline")
+
+
+class DocumentContextResponse(BaseModel):
+    """Response with document awareness info."""
+    response: str
+    conversation_id: str
+    provider: str
+    document_context_used: bool
+    documents_analyzed: int
+    case_number: Optional[str] = None
+    urgency_level: Optional[str] = None
+    disclaimer: str = (
+        "This is general information based on your uploaded documents, not legal advice. "
+        "For specific legal situations, consult with a licensed attorney."
+    )
+
+
+@router.post("/ask-with-context", response_model=DocumentContextResponse)
+async def ask_with_document_context(
+    request: DocumentContextRequest,
+    user: dict = Depends(require_user),
+    settings: Settings = Depends(get_settings),
+):
+    """
+    Ask a question with automatic document context injection.
+    
+    This endpoint automatically includes relevant information from your
+    uploaded documents in the AI query, making responses more specific
+    to your actual case.
+    
+    Context automatically includes:
+    - Case number and parties
+    - Key dates and deadlines
+    - Amounts claimed
+    - Relevant statutes
+    - Urgency level
+    """
+    import uuid
+    
+    hub = get_document_hub()
+    user_id = getattr(user, 'user_id', 'open-mode-user')
+    
+    # Build document context
+    context_parts = []
+    case_data = None
+    
+    if request.include_documents:
+        case_data = hub.get_case_data(user_id)
+        
+        # Add AI-formatted context
+        ai_context = hub.get_ai_context(user_id)
+        if ai_context:
+            context_parts.append("=== YOUR CASE INFORMATION ===")
+            context_parts.append(ai_context)
+    
+    if request.include_deadlines:
+        deadline_info = hub.get_deadline_info(user_id)
+        if deadline_info.get("answer_deadline"):
+            days = deadline_info.get("days_until", "unknown")
+            context_parts.append(f"\n=== DEADLINE ALERT ===")
+            context_parts.append(f"Answer Deadline: {deadline_info['answer_deadline']} ({days} days)")
+            if deadline_info.get("is_urgent"):
+                context_parts.append("⚠️ URGENT: This deadline is approaching!")
+    
+    if request.focus_area:
+        focus_data = None
+        if request.focus_area == "defenses":
+            focus_data = hub.get_matched_statutes(user_id)
+            if focus_data:
+                context_parts.append(f"\n=== RELEVANT STATUTES ===")
+                context_parts.append(", ".join(focus_data[:10]))
+        elif request.focus_area == "deadlines":
+            calendar = hub.get_calendar_events(user_id)
+            if calendar:
+                context_parts.append(f"\n=== UPCOMING EVENTS ===")
+                for event in calendar[:5]:
+                    context_parts.append(f"- {event.get('title')}: {event.get('date')}")
+        elif request.focus_area == "amounts":
+            amounts = hub.get_amounts(user_id)
+            if any(amounts.values()):
+                context_parts.append(f"\n=== FINANCIAL CLAIMS ===")
+                for k, v in amounts.items():
+                    if v and k != "all_amounts":
+                        context_parts.append(f"- {k}: ${v:,.2f}" if isinstance(v, (int, float)) else f"- {k}: {v}")
+        elif request.focus_area == "timeline":
+            timeline = hub.get_timeline_events(user_id)
+            if timeline:
+                context_parts.append(f"\n=== CASE TIMELINE ===")
+                for event in timeline[:10]:
+                    context_parts.append(f"- {event.get('date', 'N/A')}: {event.get('title', 'Event')}")
+    
+    # Combine context
+    full_context = "\n".join(context_parts) if context_parts else None
+    
+    # Call AI with context
+    provider = settings.ai_provider
+    conversation_id = str(uuid.uuid4())
+    
+    try:
+        if provider == "openai":
+            response_text = await call_openai(request.message, full_context, settings)
+        elif provider == "azure":
+            response_text = await call_azure_openai(request.message, full_context, settings)
+        elif provider == "ollama":
+            response_text = await call_ollama(request.message, full_context, settings)
+        elif provider == "groq":
+            response_text = await call_groq(request.message, full_context, settings)
+        elif provider == "anthropic":
+            response_text = await call_anthropic(request.message, full_context, settings)
+        else:
+            # Fallback to local response
+            response_text = f"""Based on your question: "{request.message}"
+
+I don't have access to an AI provider to give a detailed response. However, based on your documents:
+
+{full_context if full_context else "No document context available."}
+
+Please consult with a legal professional for specific advice about your situation."""
+    except Exception as e:
+        response_text = f"Error getting AI response: {str(e)}. Your context has {len(context_parts)} pieces of document information."
+    
+    return DocumentContextResponse(
+        response=response_text,
+        conversation_id=conversation_id,
+        provider=provider,
+        document_context_used=bool(context_parts),
+        documents_analyzed=case_data.document_count if case_data else 0,
+        case_number=case_data.primary_case_number if case_data else None,
+        urgency_level=case_data.urgency_level if case_data else None,
+    )
+
+
+@router.get("/case-summary")
+async def get_ai_case_summary(
+    user: dict = Depends(require_user),
+):
+    """
+    Get a summary of your case based on uploaded documents.
+    
+    Returns structured case information extracted from documents,
+    without calling the AI. Useful for understanding what the AI
+    will know about your case.
+    """
+    hub = get_document_hub()
+    user_id = getattr(user, 'user_id', 'open-mode-user')
+    
+    case_data = hub.get_case_data(user_id)
+    
+    return {
+        "has_documents": case_data.document_count > 0,
+        "documents_analyzed": case_data.document_count,
+        "documents_by_type": case_data.documents_by_type,
+        "case_identification": {
+            "case_number": case_data.primary_case_number,
+            "all_case_numbers": case_data.case_numbers,
+        },
+        "parties": {
+            "tenant": case_data.tenant_name,
+            "landlord": case_data.landlord_name,
+            "property_address": case_data.property_address,
+        },
+        "key_dates": {
+            "hearing_date": case_data.hearing_date,
+            "hearing_time": case_data.hearing_time,
+            "answer_deadline": case_data.answer_deadline,
+            "notice_date": case_data.notice_date,
+        },
+        "financial": {
+            "rent_amount": case_data.rent_amount,
+            "rent_claimed": case_data.rent_claimed,
+            "deposit": case_data.deposit_amount,
+            "total_claimed": case_data.total_claimed,
+        },
+        "legal": {
+            "matched_statutes": case_data.matched_statutes[:10],
+            "law_references": len(case_data.law_references),
+        },
+        "timeline_events": len(case_data.timeline_events),
+        "action_items": len(case_data.action_items),
+        "urgent_actions": len(case_data.urgent_actions),
+        "urgency_level": case_data.urgency_level,
+        "ai_context_preview": hub.get_ai_context(user_id),
+    }
+
+
+@router.post("/quick-advice")
+async def get_quick_advice(
+    topic: str = Query(..., description="Topic: notice, deadline, habitability, defense, hearing"),
+    user: dict = Depends(require_user),
+    settings: Settings = Depends(get_settings),
+):
+    """
+    Get quick AI advice on a specific topic, using your document context.
+    
+    Topics:
+    - notice: Advice about the eviction notice
+    - deadline: Information about your answer deadline
+    - habitability: Information about habitability defenses
+    - defense: General defense strategy advice
+    - hearing: Preparing for your court hearing
+    """
+    hub = get_document_hub()
+    user_id = getattr(user, 'user_id', 'open-mode-user')
+    
+    case_data = hub.get_case_data(user_id)
+    ai_context = hub.get_ai_context(user_id)
+    
+    topic_prompts = {
+        "notice": f"""Given this case information:
+{ai_context}
+
+What should the tenant know about their eviction notice? Are there any obvious defects 
+in the notice based on Minnesota law (proper service, timing, content)?""",
+        
+        "deadline": f"""Given this case information:
+{ai_context}
+
+What are the critical deadlines this tenant needs to know about? What happens if they 
+miss the answer deadline? What should they prioritize?""",
+        
+        "habitability": f"""Given this case information:
+{ai_context}
+
+Could the tenant have a habitability defense under Minnesota law (Minn. Stat. § 504B.161)?
+What evidence would they need? What repairs or conditions would qualify?""",
+        
+        "defense": f"""Given this case information:
+{ai_context}
+
+What are the strongest potential defenses for this tenant based on Minnesota eviction law?
+Consider: notice defects, habitability, retaliation, discrimination, waiver.""",
+        
+        "hearing": f"""Given this case information:
+{ai_context}
+
+How should this tenant prepare for their eviction hearing? What documents should they bring?
+What should they say to the judge? What are common mistakes to avoid?""",
+    }
+    
+    prompt = topic_prompts.get(topic)
+    if not prompt:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown topic. Valid topics: {list(topic_prompts.keys())}"
+        )
+    
+    provider = settings.ai_provider
+    
+    try:
+        if provider == "openai":
+            response = await call_openai(prompt, None, settings)
+        elif provider == "azure":
+            response = await call_azure_openai(prompt, None, settings)
+        elif provider == "anthropic":
+            response = await call_anthropic(prompt, None, settings)
+        elif provider == "groq":
+            response = await call_groq(prompt, None, settings)
+        elif provider == "ollama":
+            response = await call_ollama(prompt, None, settings)
+        else:
+            response = f"AI provider not configured. Please ask a legal professional about: {topic}"
+    except Exception as e:
+        response = f"Could not get AI advice: {str(e)}"
+    
+    return {
+        "topic": topic,
+        "advice": response,
+        "case_number": case_data.primary_case_number,
+        "documents_used": case_data.document_count,
+        "provider": provider,
+        "disclaimer": "This is general information, not legal advice. Consult an attorney."
+    }

@@ -1,11 +1,13 @@
 """
 Calendar Router (Database-backed)
 Scheduling, deadlines, and reminders.
+
+Now integrated with DocumentHub for auto-syncing dates from uploaded documents.
 """
 
 import uuid
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
@@ -15,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db_session
 from app.core.security import require_user, StorageUser
 from app.core.utc import utc_now
+from app.core.document_hub import get_document_hub
 from app.models.models import CalendarEvent as CalendarEventModel
 
 
@@ -343,3 +346,236 @@ async def delete_event(
 
         await session.delete(event)
         await session.commit()
+
+
+# =============================================================================
+# Document Hub Integration - Auto-sync dates from uploaded documents
+# =============================================================================
+
+class DocumentEventsResponse(BaseModel):
+    """Events extracted from documents."""
+    events: List[CalendarEventResponse]
+    source: str = "document_extraction"
+    sync_available: bool
+    documents_analyzed: int
+
+
+@router.get("/from-documents", response_model=DocumentEventsResponse)
+async def get_events_from_documents(
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Get calendar events derived from uploaded documents.
+    
+    Returns events like:
+    - Hearing dates
+    - Answer deadlines
+    - Action items with deadlines
+    - Timeline events with future dates
+    
+    These events are NOT yet synced to your calendar.
+    Use POST /sync-documents to add them.
+    """
+    hub = get_document_hub()
+    doc_events = hub.get_calendar_events(user.user_id)
+    case_data = hub.get_case_data(user.user_id)
+    
+    # Convert to CalendarEventResponse format
+    events = []
+    for event in doc_events:
+        events.append(CalendarEventResponse(
+            id=event.get("id", ""),
+            title=event.get("title", ""),
+            description=event.get("description"),
+            start_datetime=event.get("date", ""),
+            end_datetime=None,
+            all_day=True,
+            event_type=event.get("type", "reminder"),
+            is_critical=event.get("critical", False),
+            reminder_days=7 if event.get("critical") else 3,
+            created_at=datetime.now(timezone.utc).isoformat(),
+        ))
+    
+    return DocumentEventsResponse(
+        events=events,
+        source="document_extraction",
+        sync_available=len(events) > 0,
+        documents_analyzed=case_data.document_count,
+    )
+
+
+class SyncResult(BaseModel):
+    """Result of syncing document events to calendar."""
+    synced: int
+    skipped: int
+    total_calendar_events: int
+    synced_event_ids: List[str]
+
+
+@router.post("/sync-documents", response_model=SyncResult)
+async def sync_document_events(
+    overwrite: bool = Query(False, description="Overwrite existing events with same title"),
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Sync calendar events from uploaded documents to your calendar.
+    
+    This creates calendar events for:
+    - Court hearings
+    - Answer deadlines
+    - Action items from documents
+    
+    Events with duplicate titles are skipped unless overwrite=true.
+    All synced events are marked with source='document_extraction'.
+    """
+    hub = get_document_hub()
+    doc_events = hub.get_calendar_events(user.user_id)
+    
+    synced = 0
+    skipped = 0
+    synced_ids = []
+    
+    async with get_db_session() as session:
+        # Get existing event titles
+        query = select(CalendarEventModel.title).where(
+            CalendarEventModel.user_id == user.user_id
+        )
+        result = await session.execute(query)
+        existing_titles = {row[0] for row in result.fetchall()}
+        
+        for event in doc_events:
+            title = event.get("title", "")
+            
+            # Skip if exists and not overwriting
+            if title in existing_titles and not overwrite:
+                skipped += 1
+                continue
+            
+            # Delete existing if overwriting
+            if title in existing_titles and overwrite:
+                delete_query = select(CalendarEventModel).where(
+                    and_(
+                        CalendarEventModel.user_id == user.user_id,
+                        CalendarEventModel.title == title
+                    )
+                )
+                del_result = await session.execute(delete_query)
+                existing_event = del_result.scalar_one_or_none()
+                if existing_event:
+                    await session.delete(existing_event)
+            
+            # Parse date
+            date_str = event.get("date", "")
+            try:
+                start_dt = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            except (ValueError, TypeError):
+                # Try parsing as date only
+                try:
+                    start_dt = datetime.strptime(date_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                except (ValueError, TypeError):
+                    skipped += 1
+                    continue
+            
+            # Create event
+            event_id = str(uuid.uuid4())
+            db_event = CalendarEventModel(
+                id=event_id,
+                user_id=user.user_id,
+                title=title,
+                description=f"Auto-synced from documents. {event.get('description', '')}",
+                start_datetime=start_dt,
+                end_datetime=None,
+                all_day=True,
+                event_type=event.get("type", "deadline"),
+                is_critical=event.get("critical", False),
+                reminder_days=7 if event.get("critical") else 3,
+                created_at=datetime.now(timezone.utc),
+            )
+            session.add(db_event)
+            synced += 1
+            synced_ids.append(event_id)
+        
+        await session.commit()
+        
+        # Get total count
+        count_query = select(func.count()).select_from(CalendarEventModel).where(
+            CalendarEventModel.user_id == user.user_id
+        )
+        total_result = await session.execute(count_query)
+        total = total_result.scalar() or 0
+    
+    return SyncResult(
+        synced=synced,
+        skipped=skipped,
+        total_calendar_events=total,
+        synced_event_ids=synced_ids,
+    )
+
+
+@router.get("/deadline-summary")
+async def get_deadline_summary(
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Get a summary of deadlines from both calendar and documents.
+    
+    Shows combined view of:
+    - Deadlines in your calendar
+    - Deadlines extracted from documents
+    - Days until each deadline
+    - Urgency classification
+    """
+    hub = get_document_hub()
+    deadline_info = hub.get_deadline_info(user.user_id)
+    hearing_info = hub.get_hearing_info(user.user_id)
+    action_items = hub.get_action_items(user.user_id, urgent_only=True)
+    
+    # Get calendar deadlines
+    now = utc_now()
+    cutoff = now + timedelta(days=30)
+    
+    calendar_deadlines = []
+    async with get_db_session() as session:
+        query = select(CalendarEventModel).where(
+            and_(
+                CalendarEventModel.user_id == user.user_id,
+                CalendarEventModel.start_datetime >= now,
+                CalendarEventModel.start_datetime <= cutoff,
+                CalendarEventModel.event_type.in_(["deadline", "hearing"])
+            )
+        ).order_by(CalendarEventModel.start_datetime.asc())
+        
+        result = await session.execute(query)
+        events = result.scalars().all()
+        
+        for e in events:
+            days_until = (e.start_datetime.replace(tzinfo=None) - now.replace(tzinfo=None)).days
+            calendar_deadlines.append({
+                "id": e.id,
+                "title": e.title,
+                "date": e.start_datetime.isoformat(),
+                "days_until": days_until,
+                "is_critical": e.is_critical,
+                "type": e.event_type,
+                "urgency": "critical" if days_until <= 3 else "high" if days_until <= 7 else "medium",
+                "source": "calendar",
+            })
+    
+    return {
+        "answer_deadline": {
+            "date": deadline_info.get("answer_deadline"),
+            "days_until": deadline_info.get("days_until"),
+            "is_past": deadline_info.get("is_past"),
+            "is_urgent": deadline_info.get("is_urgent"),
+            "source": "document_extraction",
+        },
+        "hearing": {
+            "date": hearing_info.get("date"),
+            "time": hearing_info.get("time"),
+            "has_hearing": hearing_info.get("has_hearing"),
+            "source": "document_extraction",
+        },
+        "calendar_deadlines": calendar_deadlines,
+        "urgent_actions": action_items,
+        "total_upcoming": len(calendar_deadlines),
+    }

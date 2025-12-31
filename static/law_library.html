@@ -973,7 +973,8 @@
                 const res = await fetch('/api/law-library/ask', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question: query })
+                    body: JSON.stringify({ question: query }),
+                    credentials: 'include'
                 });
 
                 if (res.ok) {
@@ -1085,7 +1086,7 @@
             const container = document.getElementById('statuteCards');
             
             try {
-                const res = await fetch('/api/law-library/statutes');
+                const res = await fetch('/api/law-library/statutes', { credentials: 'include' });
                 const data = await res.json();
                 
                 // Handle new response format with disclaimer
@@ -1194,7 +1195,7 @@
             const container = document.getElementById('caseCards');
             
             try {
-                const res = await fetch('/api/law-library/case-law');
+                const res = await fetch('/api/law-library/case-law', { credentials: 'include' });
                 const data = await res.json();
                 
                 // Handle new response format with disclaimer
@@ -1262,7 +1263,7 @@
             body.innerHTML = '<div class="loading"><div class="spinner"></div> Loading...</div>';
 
             try {
-                const res = await fetch(`/api/law-library/statutes/${id}`);
+                const res = await fetch(`/api/law-library/statutes/${id}`, { credentials: 'include' });
                 if (res.ok) {
                     const data = await res.json();
                     const statute = data.statute || data;

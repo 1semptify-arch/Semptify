@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#1e40af">
     <title>Semptify - My Documents</title>
+    <link rel="stylesheet" href="/static/css/shared-nav.css">
     <style>
         :root {
             --primary: #1e40af;
@@ -351,11 +352,15 @@
         // Load documents
         async function loadDocuments() {
             try {
-                const resp = await fetch('/api/documents/list');
+                const resp = await fetch('/api/documents/', {
+                    credentials: 'include'
+                });
                 if (resp.ok) {
                     const data = await resp.json();
-                    documents = data.documents || [];
+                    documents = Array.isArray(data) ? data : (data.documents || []);
                     renderDocuments();
+                } else {
+                    console.error('Failed to load documents:', resp.status);
                 }
             } catch (e) {
                 console.error('Failed to load documents:', e);
@@ -499,10 +504,15 @@
                 try {
                     const resp = await fetch('/api/documents/upload', {
                         method: 'POST',
-                        body: formData
+                        body: formData,
+                        credentials: 'include'
                     });
                     
-                    if (!resp.ok) throw new Error('Upload failed');
+                    if (!resp.ok) {
+                        const err = await resp.json().catch(() => ({}));
+                        console.error('Upload failed:', err);
+                        throw new Error(err.message || 'Upload failed');
+                    }
                 } catch (e) {
                     console.error('Upload error:', e);
                 }
@@ -546,5 +556,9 @@
             document.getElementById('progressFill').style.width = percent + '%';
         }
     </script>
+    
+    <!-- Shared Site Navigation -->
+    <div id="semptify-nav"></div>
+    <script src="/static/js/shared-nav.js"></script>
 </body>
 </html>

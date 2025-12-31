@@ -5,6 +5,8 @@ Case Builder API Router
 REST API endpoints for the Case Builder module.
 Provides endpoints for creating cases, managing timelines, evidence,
 counterclaims, motions, and generating court documents.
+
+Now integrated with DocumentHub for auto-population from uploaded documents.
 """
 
 import os
@@ -18,6 +20,7 @@ from enum import Enum
 
 from app.core.security import require_user, StorageUser
 from app.core.database import get_db
+from app.core.document_hub import get_document_hub, CaseData
 
 logger = logging.getLogger(__name__)
 
@@ -1511,4 +1514,427 @@ async def get_case_summary(case_id: str, user: StorageUser = Depends(require_use
         "reminders": reminders,
         "urgent_deadlines": urgent_deadlines,
         "next_steps": next_steps
+    }
+
+
+# =============================================================================
+# DOCUMENT HUB INTEGRATION - Auto-populate from uploaded documents
+# =============================================================================
+
+@router.get("/from-documents")
+async def get_case_from_documents(user: StorageUser = Depends(require_user)):
+    """
+    Get case data extracted from uploaded documents.
+    
+    Returns all case-relevant information extracted from documents:
+    - Case numbers
+    - Parties (tenant, landlord)
+    - Key dates (hearing, deadlines)
+    - Amounts (rent, claims)
+    - Timeline events
+    - Action items
+    - Law references
+    
+    Use this to auto-populate a new case or verify existing case data.
+    """
+    hub = get_document_hub()
+    case_data = hub.get_case_data(user.user_id)
+    
+    return {
+        "source": "document_extraction",
+        "document_count": case_data.document_count,
+        "case_data": case_data.to_dict(),
+        "has_data": case_data.document_count > 0,
+        "confidence_score": case_data.confidence_score,
+    }
+
+
+@router.post("/auto-create")
+async def auto_create_case_from_documents(
+    court: str = Query(default="Dakota County District Court", description="Court name"),
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Auto-create a case using data extracted from uploaded documents.
+    
+    This endpoint creates a new case pre-populated with all information
+    extracted from your uploaded documents:
+    - Case number (from complaint/summons)
+    - Parties (plaintiff/defendant names)
+    - Key dates (hearing date, answer deadline)
+    - Rent amount and claims
+    - Property address
+    - Timeline from document dates
+    
+    The case is created with "auto-populated" flag set.
+    """
+    hub = get_document_hub()
+    case_data = hub.get_case_data(user.user_id)
+    
+    if case_data.document_count == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="No documents found. Upload documents first before auto-creating a case."
+        )
+    
+    if not case_data.primary_case_number:
+        raise HTTPException(
+            status_code=400,
+            detail="Could not extract case number from documents. Please create case manually."
+        )
+    
+    user_id = user.user_id
+    
+    # Build case from extracted data
+    new_case = {
+        "user_id": user_id,
+        "case_number": case_data.primary_case_number,
+        "case_type": "eviction_defense",
+        "court": court,
+        "property_address": case_data.property_address or "",
+        "rent_amount": case_data.rent_amount or 0,
+        "security_deposit": case_data.deposit_amount or 0,
+        "plaintiff": {
+            "name": case_data.landlord_name or "Unknown Landlord",
+            "address": case_data.landlord_address,
+            "role": "plaintiff"
+        },
+        "defendant": {
+            "name": case_data.tenant_name or user_id,
+            "address": case_data.tenant_address,
+            "role": "defendant",
+            "is_pro_se": True
+        },
+        "hearing_date": case_data.hearing_date,
+        "answer_deadline": case_data.answer_deadline,
+        "lease_start": case_data.lease_start,
+        "lease_end": case_data.lease_end,
+        "amounts_claimed": {
+            "rent": case_data.rent_claimed,
+            "damages": case_data.damages_claimed,
+            "late_fees": case_data.late_fees,
+            "total": case_data.total_claimed,
+        },
+        "timeline": [],
+        "evidence": [],
+        "counterclaims": [],
+        "motions": [],
+        "deadlines": [],
+        "defenses": [],
+        "notes": ["Case auto-created from uploaded documents"],
+        "created_at": datetime.now().isoformat(),
+        "updated_at": datetime.now().isoformat(),
+        "auto_populated": True,
+        "source_documents": case_data.document_count,
+        "matched_statutes": case_data.matched_statutes,
+    }
+    
+    # Add deadline from document extraction
+    if case_data.answer_deadline:
+        new_case["deadlines"].append({
+            "id": "auto_deadline_1",
+            "title": "Answer Deadline",
+            "deadline": case_data.answer_deadline,
+            "description": "Deadline to file Answer to Eviction Complaint",
+            "priority": "critical",
+            "reminder_days": [7, 3, 1],
+            "completed": False,
+            "source": "document_extraction"
+        })
+    
+    # Add hearing as deadline
+    if case_data.hearing_date:
+        new_case["deadlines"].append({
+            "id": "auto_deadline_2",
+            "title": "Court Hearing",
+            "deadline": case_data.hearing_date,
+            "description": "Eviction Hearing",
+            "priority": "critical",
+            "reminder_days": [14, 7, 3, 1],
+            "completed": False,
+            "source": "document_extraction"
+        })
+    
+    # Add timeline events from document extraction
+    for i, event in enumerate(case_data.timeline_events[:20]):  # Limit to 20
+        new_case["timeline"].append({
+            "id": f"auto_timeline_{i}",
+            "date": event.get("date", ""),
+            "title": event.get("title", "Event"),
+            "description": event.get("description", ""),
+            "category": event.get("category", "court"),
+            "importance": "high" if event.get("is_critical") else "medium",
+            "evidence_ids": [],
+            "source": "document_extraction"
+        })
+    
+    # Add action items as notes
+    for action in case_data.action_items:
+        new_case["notes"].append(f"ACTION: {action.get('title', 'Unknown')} - {action.get('description', '')}")
+    
+    save_case(case_data.primary_case_number, new_case, user_id)
+    
+    return {
+        "success": True,
+        "case_number": case_data.primary_case_number,
+        "case": new_case,
+        "extracted_from": f"{case_data.document_count} documents",
+        "fields_populated": [
+            k for k, v in new_case.items() 
+            if v and k not in ["user_id", "created_at", "updated_at", "auto_populated"]
+        ]
+    }
+
+
+@router.post("/cases/{case_id}/populate-from-documents")
+async def populate_case_from_documents(
+    case_id: str,
+    overwrite: bool = Query(default=False, description="Overwrite existing values"),
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Populate an existing case with data extracted from documents.
+    
+    This updates an existing case with information from uploaded documents.
+    By default, only empty fields are populated. Set overwrite=true to
+    replace existing values with document-extracted values.
+    
+    Fields that can be populated:
+    - case_number, property_address
+    - plaintiff/defendant names
+    - hearing_date, answer_deadline
+    - rent_amount, amounts_claimed
+    - timeline events
+    - deadlines
+    """
+    user_id = user.user_id
+    case = load_case(case_id, user_id)
+    
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    
+    hub = get_document_hub()
+    doc_data = hub.get_case_data(user_id)
+    
+    if doc_data.document_count == 0:
+        raise HTTPException(
+            status_code=400,
+            detail="No documents found to extract data from."
+        )
+    
+    fields_updated = []
+    
+    # Update fields
+    def update_field(case_key: str, doc_value, nested_key: str = None):
+        if doc_value is None:
+            return
+        
+        if nested_key:
+            if case_key not in case:
+                case[case_key] = {}
+            current = case[case_key].get(nested_key)
+            if overwrite or not current:
+                case[case_key][nested_key] = doc_value
+                fields_updated.append(f"{case_key}.{nested_key}")
+        else:
+            current = case.get(case_key)
+            if overwrite or not current:
+                case[case_key] = doc_value
+                fields_updated.append(case_key)
+    
+    # Core fields
+    update_field("case_number", doc_data.primary_case_number)
+    update_field("property_address", doc_data.property_address)
+    update_field("hearing_date", doc_data.hearing_date)
+    update_field("answer_deadline", doc_data.answer_deadline)
+    update_field("lease_start", doc_data.lease_start)
+    update_field("lease_end", doc_data.lease_end)
+    update_field("rent_amount", doc_data.rent_amount)
+    update_field("security_deposit", doc_data.deposit_amount)
+    
+    # Plaintiff (landlord)
+    update_field("plaintiff", doc_data.landlord_name, "name")
+    update_field("plaintiff", doc_data.landlord_address, "address")
+    
+    # Defendant (tenant)
+    update_field("defendant", doc_data.tenant_name, "name")
+    update_field("defendant", doc_data.tenant_address, "address")
+    
+    # Add amounts claimed
+    if doc_data.rent_claimed or doc_data.total_claimed:
+        if "amounts_claimed" not in case or overwrite:
+            case["amounts_claimed"] = {
+                "rent": doc_data.rent_claimed,
+                "damages": doc_data.damages_claimed,
+                "late_fees": doc_data.late_fees,
+                "total": doc_data.total_claimed,
+            }
+            fields_updated.append("amounts_claimed")
+    
+    # Add matched statutes
+    if doc_data.matched_statutes:
+        case["matched_statutes"] = doc_data.matched_statutes
+        fields_updated.append("matched_statutes")
+    
+    # Add timeline events if empty or overwrite
+    if overwrite or not case.get("timeline"):
+        existing_ids = {e.get("id") for e in case.get("timeline", [])}
+        for i, event in enumerate(doc_data.timeline_events[:20]):
+            event_id = f"doc_timeline_{i}"
+            if event_id not in existing_ids:
+                case.setdefault("timeline", []).append({
+                    "id": event_id,
+                    "date": event.get("date", ""),
+                    "title": event.get("title", "Event"),
+                    "description": event.get("description", ""),
+                    "category": event.get("category", "court"),
+                    "importance": "high" if event.get("is_critical") else "medium",
+                    "evidence_ids": [],
+                    "source": "document_extraction"
+                })
+        if doc_data.timeline_events:
+            fields_updated.append("timeline")
+    
+    # Add deadlines
+    if doc_data.answer_deadline or doc_data.hearing_date:
+        existing_deadlines = {d.get("title") for d in case.get("deadlines", [])}
+        
+        if doc_data.answer_deadline and "Answer Deadline" not in existing_deadlines:
+            case.setdefault("deadlines", []).append({
+                "id": "doc_deadline_answer",
+                "title": "Answer Deadline",
+                "deadline": doc_data.answer_deadline,
+                "description": "Deadline to file Answer to Eviction Complaint",
+                "priority": "critical",
+                "reminder_days": [7, 3, 1],
+                "completed": False,
+                "source": "document_extraction"
+            })
+            fields_updated.append("deadlines.answer")
+        
+        if doc_data.hearing_date and "Court Hearing" not in existing_deadlines:
+            case.setdefault("deadlines", []).append({
+                "id": "doc_deadline_hearing",
+                "title": "Court Hearing",
+                "deadline": doc_data.hearing_date,
+                "description": "Eviction Hearing",
+                "priority": "critical",
+                "reminder_days": [14, 7, 3, 1],
+                "completed": False,
+                "source": "document_extraction"
+            })
+            fields_updated.append("deadlines.hearing")
+    
+    case["updated_at"] = datetime.now().isoformat()
+    case["document_populated"] = True
+    case["document_count"] = doc_data.document_count
+    
+    save_case(case_id, case, user_id)
+    
+    return {
+        "success": True,
+        "case_number": case_id,
+        "fields_updated": fields_updated,
+        "documents_analyzed": doc_data.document_count,
+        "case": case
+    }
+
+
+@router.get("/suggested-defenses")
+async def get_suggested_defenses(user: StorageUser = Depends(require_user)):
+    """
+    Get defense suggestions based on uploaded documents.
+    
+    Analyzes uploaded documents and suggests relevant defenses
+    based on document types and extracted content.
+    """
+    hub = get_document_hub()
+    case_data = hub.get_case_data(user.user_id)
+    
+    suggested = []
+    
+    # Check document types for defense suggestions
+    doc_types = case_data.documents_by_type
+    
+    if doc_types.get("repair_request") or doc_types.get("inspection_report"):
+        suggested.append({
+            "defense_type": "habitability",
+            "reason": "Repair-related documents found",
+            "template": MN_DEFENSES.get("habitability", {}),
+            "confidence": "high"
+        })
+    
+    if doc_types.get("letter") or doc_types.get("email_communication"):
+        suggested.append({
+            "defense_type": "retaliation",
+            "reason": "Communication records found that may show protected activity",
+            "template": MN_DEFENSES.get("retaliation", {}),
+            "confidence": "medium"
+        })
+    
+    if doc_types.get("receipt") or doc_types.get("payment_record"):
+        suggested.append({
+            "defense_type": "waiver",
+            "reason": "Payment records found",
+            "template": MN_DEFENSES.get("waiver", {}),
+            "confidence": "medium"
+        })
+    
+    # Check for notice issues
+    if case_data.notice_date and case_data.hearing_date:
+        suggested.append({
+            "defense_type": "improper_notice",
+            "reason": "Notice date found - verify proper notice period",
+            "template": MN_DEFENSES.get("improper_notice", {}),
+            "confidence": "medium"
+        })
+    
+    return {
+        "suggested_defenses": suggested,
+        "documents_analyzed": case_data.document_count,
+        "all_available_defenses": list(MN_DEFENSES.keys()),
+    }
+
+
+@router.get("/suggested-counterclaims")
+async def get_suggested_counterclaims(user: StorageUser = Depends(require_user)):
+    """
+    Get counterclaim suggestions based on uploaded documents.
+    
+    Analyzes uploaded documents and suggests relevant counterclaims.
+    """
+    hub = get_document_hub()
+    case_data = hub.get_case_data(user.user_id)
+    
+    suggested = []
+    doc_types = case_data.documents_by_type
+    
+    if case_data.deposit_amount:
+        suggested.append({
+            "claim_type": "security_deposit",
+            "reason": f"Security deposit of ${case_data.deposit_amount} mentioned",
+            "template": MN_COUNTERCLAIMS.get("security_deposit", {}),
+            "confidence": "high"
+        })
+    
+    if doc_types.get("repair_request") or doc_types.get("inspection_report"):
+        suggested.append({
+            "claim_type": "breach_of_habitability",
+            "reason": "Repair/habitability issues documented",
+            "template": MN_COUNTERCLAIMS.get("breach_of_habitability", {}),
+            "confidence": "high"
+        })
+    
+    if doc_types.get("photo_evidence"):
+        suggested.append({
+            "claim_type": "negligent_maintenance",
+            "reason": "Photo evidence of property conditions found",
+            "template": MN_COUNTERCLAIMS.get("negligent_maintenance", {}),
+            "confidence": "medium"
+        })
+    
+    return {
+        "suggested_counterclaims": suggested,
+        "documents_analyzed": case_data.document_count,
+        "all_available_counterclaims": list(MN_COUNTERCLAIMS.keys()),
     }

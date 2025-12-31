@@ -866,19 +866,9 @@ async def require_user(
     
     SECURITY POLICY:
     - Every user MUST have their own cloud storage connected
-    - System users and demo users are NEVER allowed in production
-    - Open mode only allowed in development (debug=true)
+    - System users and demo users are NEVER allowed
+    - Real authentication always required
     """
-    # SECURITY: Only allow open mode in actual development environment
-    if settings.security_mode == "open" and settings.debug:
-        return UserContext(
-            user_id="open-mode-user",
-            provider=StorageProvider.GOOGLE_DRIVE,
-            storage_user_id="test",
-            access_token="open-mode-token",
-            role=UserRole.USER,
-        )
-
     # If we have a user from cookie/session, validate it
     if user:
         # SECURITY: Verify this is a real user with storage, not a system user
@@ -917,9 +907,6 @@ def require_role(*roles: UserRole):
         user: UserContext = Depends(require_user),
         settings: Settings = Depends(get_settings),
     ) -> UserContext:
-        if settings.security_mode == "open":
-            return user
-        
         if user.role not in roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -943,9 +930,6 @@ def require_permission(*permissions: str):
         user: UserContext = Depends(require_user),
         settings: Settings = Depends(get_settings),
     ) -> UserContext:
-        if settings.security_mode == "open":
-            return user
-        
         if not user.can(*permissions):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -962,64 +946,9 @@ async def require_admin(
     settings: Settings = Depends(get_settings),
 ) -> dict:
     """Require admin authentication (separate from user auth)."""
-    # SECURITY: Open mode only in debug
-    if settings.security_mode == "open" and settings.debug:
-        return {"id": "open-mode-admin", "mode": "open"}
-
     # Rate limiting for admin routes
     limiter = get_rate_limiter()
     client_ip = request.client.host if request.client else "unknown"
-
-
-async def get_user_id(
-    user: Optional[UserContext] = Depends(get_current_user),
-    settings: Settings = Depends(get_settings),
-) -> str:
-    """
-    Get user_id from authenticated session.
-    
-    This is the SECURE way to get user_id - it comes from the session,
-    not from query parameters that can be spoofed.
-    
-    SECURITY: Open mode only allowed in debug environment.
-    """
-    if settings.security_mode == "open" and settings.debug:
-        return "open-mode-user"
-    
-    if user:
-        return user.user_id
-    
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail={
-            "error": "storage_required",
-            "message": "Please connect your cloud storage to continue",
-            "action": "redirect",
-            "redirect_url": "/storage/providers"
-        },
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-
-async def get_optional_user_id(
-    user: Optional[UserContext] = Depends(get_current_user),
-    settings: Settings = Depends(get_settings),
-) -> Optional[str]:
-    """
-    Get user_id from session if available, otherwise None.
-    
-    This is for endpoints where auth is optional but we still want
-    to avoid user_id query parameter spoofing.
-    
-    SECURITY: Open mode only allowed in debug environment.
-    """
-    if settings.security_mode == "open" and settings.debug:
-        return "open-mode-user"
-    
-    if user:
-        return user.user_id
-    
-    return None
     key = f"admin:{client_ip}:{request.url.path}"
     
     allowed, retry_after = limiter.check(
@@ -1058,6 +987,45 @@ async def get_optional_user_id(
         )
 
     return admin
+
+
+async def get_user_id(
+    user: Optional[UserContext] = Depends(get_current_user),
+) -> str:
+    """
+    Get user_id from authenticated session.
+    
+    This is the SECURE way to get user_id - it comes from the session,
+    not from query parameters that can be spoofed.
+    """
+    if user:
+        return user.user_id
+    
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail={
+            "error": "storage_required",
+            "message": "Please connect your cloud storage to continue",
+            "action": "redirect",
+            "redirect_url": "/storage/providers"
+        },
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+async def get_optional_user_id(
+    user: Optional[UserContext] = Depends(get_current_user),
+) -> Optional[str]:
+    """
+    Get user_id from session if available, otherwise None.
+    
+    This is for endpoints where auth is optional but we still want
+    to avoid user_id query parameter spoofing.
+    """
+    if user:
+        return user.user_id
+    
+    return None
 
 
 def rate_limit_dependency(
@@ -1103,9 +1071,6 @@ async def validate_csrf(
     settings: Settings = Depends(get_settings),
 ) -> None:
     """Validate CSRF token for state-changing requests."""
-    if settings.security_mode == "open":
-        return
-
     if request.method in ("POST", "PUT", "DELETE", "PATCH"):
         content_type = request.headers.get("content-type", "")
         if content_type.startswith("application/x-www-form-urlencoded"):
@@ -1136,10 +1101,6 @@ async def require_anonymous_user(
     Used for vault access with 12-digit tokens.
     Returns user_id if valid.
     """
-    # SECURITY: Open mode only in debug
-    if settings.security_mode == "open" and settings.debug:
-        return "open-mode-user"
-    
     # Extract token from request
     token = get_token_from_request(request)
     

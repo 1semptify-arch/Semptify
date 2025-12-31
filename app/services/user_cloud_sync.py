@@ -407,6 +407,53 @@ class UserCloudSync:
             logger.error(f"Failed to upload document: {e}")
             return None
     
+    async def download_document(self, file_id_or_path: str) -> Optional[bytes]:
+        """Download document from user's cloud storage."""
+        try:
+            # Try as path first
+            if file_id_or_path.startswith(self.SEMPTIFY_FOLDER):
+                path = file_id_or_path
+            else:
+                # Look up in index by id
+                docs = await self.load_document_index()
+                doc = next((d for d in docs if d.get("id") == file_id_or_path or d.get("cloud_id") == file_id_or_path), None)
+                if doc and doc.get("path"):
+                    path = doc["path"]
+                else:
+                    # Assume it's a filename
+                    path = f"{self.SEMPTIFY_FOLDER}/documents/{file_id_or_path}"
+            
+            content = await self.storage.download_file(path)
+            logger.info(f"📥 Document downloaded: {path}")
+            return content
+            
+        except Exception as e:
+            logger.error(f"Failed to download document: {e}")
+            return None
+    
+    async def delete_document(self, file_id_or_path: str) -> bool:
+        """Delete document from user's cloud storage."""
+        try:
+            # Try as path first
+            if file_id_or_path.startswith(self.SEMPTIFY_FOLDER):
+                path = file_id_or_path
+            else:
+                # Look up in index by id
+                docs = await self.load_document_index()
+                doc = next((d for d in docs if d.get("id") == file_id_or_path or d.get("cloud_id") == file_id_or_path), None)
+                if doc and doc.get("path"):
+                    path = doc["path"]
+                else:
+                    path = f"{self.SEMPTIFY_FOLDER}/documents/{file_id_or_path}"
+            
+            await self.storage.delete_file(path)
+            logger.info(f"🗑️ Document deleted: {path}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to delete document: {e}")
+            return False
+    
     # =========================================================================
     # Full Sync
     # =========================================================================

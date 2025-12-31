@@ -1133,14 +1133,16 @@ async def oauth_callback(
     print(f"🍪 Setting cookie: {COOKIE_USER_ID}={user_id}, redirecting to {landing}")
 
     # Set the ONE cookie - user ID that encodes everything
-    # Use secure cookies in production (when not in open/test mode)
-    is_secure = settings.security_mode != "open"
+    # For localhost development, don't use secure flag (http doesn't support secure cookies)
+    # In production with HTTPS, set secure=True
+    import os
+    is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
     response.set_cookie(
         key=COOKIE_USER_ID,
         value=user_id,
         max_age=COOKIE_MAX_AGE,  # 1 year
-        httponly=True,
-        secure=is_secure,
+        httponly=False,  # Must be False so JavaScript can read for auth checks
+        secure=False if is_localhost else True,  # Must be False for http://localhost
         samesite="lax",
     )
 
@@ -1274,7 +1276,9 @@ async def rehome_device(
             pass
     
     # Set the cookie and show success
-    is_secure = settings.security_mode != "open"
+    import os
+    is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
+    is_secure = False if is_localhost else True
     response = HTMLResponse(content=f'''<!DOCTYPE html>
 <html>
 <head>
@@ -1359,7 +1363,7 @@ async def rehome_device(
         key=COOKIE_USER_ID,
         value=user_id,
         max_age=COOKIE_MAX_AGE,
-        httponly=True,
+        httponly=False,  # Must be False so JavaScript can read for auth checks
         secure=is_secure,
         samesite="lax",
     )
@@ -1620,12 +1624,14 @@ async def switch_role(
         # Clear old session from cache
         SESSIONS.pop(semptify_uid, None)
 
-    # Update cookie
-    is_secure = settings.security_mode != "open"
+    # Update cookie - use secure=False for localhost
+    import os
+    is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
+    is_secure = False if is_localhost else True
     response.set_cookie(
         key=COOKIE_USER_ID,
         value=new_uid,
-        httponly=True,
+        httponly=False,  # Must be False so JavaScript can read for auth checks
         secure=is_secure,
         samesite="lax",
         max_age=COOKIE_MAX_AGE,

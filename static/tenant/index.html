@@ -9,6 +9,7 @@
     <title>Semptify - My Case</title>
     <link rel="manifest" href="/static/manifest.json">
     <link rel="icon" href="/static/favicon.ico">
+    <link rel="stylesheet" href="/static/css/shared-nav.css">
     <style>
         :root {
             --primary: #1e40af;
@@ -516,7 +517,7 @@
         // Load user info
         async function loadUserData() {
             try {
-                const resp = await fetch('/ui/role-info');
+                const resp = await fetch('/ui/role-info', { credentials: 'include' });
                 userData = await resp.json();
                 
                 if (userData.authenticated) {
@@ -535,7 +536,7 @@
         async function loadCaseData() {
             try {
                 // Try to load from eviction defense module
-                const resp = await fetch('/api/eviction/case/current');
+                const resp = await fetch('/api/eviction/case/current', { credentials: 'include' });
                 if (resp.ok) {
                     caseData = await resp.json();
                 }
@@ -642,7 +643,7 @@
             const container = document.getElementById('deadlinesList');
             
             try {
-                const resp = await fetch('/api/calendar/upcoming?limit=3');
+                const resp = await fetch('/api/calendar/upcoming?limit=3', { credentials: 'include' });
                 if (resp.ok) {
                     const data = await resp.json();
                     
@@ -723,5 +724,9 @@
             window.location.href = '/static/tenant/help.html';
         }
     </script>
+    
+    <!-- Shared Site Navigation -->
+    <div id="semptify-nav"></div>
+    <script src="/static/js/shared-nav.js"></script>
 </body>
 </html>

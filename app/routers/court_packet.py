@@ -28,17 +28,43 @@ except ImportError:
     }
 
 
+# Import security for authentication
+try:
+    from app.core.security import require_user, StorageUser
+    from fastapi import Depends
+    HAS_AUTH = True
+except ImportError:
+    HAS_AUTH = False
+
+
+def _get_processed_documents(user_id: str) -> List[Dict[str, Any]]:
+    """Get processed documents from the unified upload pipeline."""
+    try:
+        from app.services.document_distributor import get_document_distributor
+        distributor = get_document_distributor()
+        return distributor.get_court_packet_documents(user_id)
+    except Exception:
+        return []
+
+
 @router.get("/")
 async def get_packet_status(request: Request) -> Dict[str, Any]:
     """
     Get current court packet status and contents summary.
+    
+    Includes documents from:
+    - Briefcase manual uploads
+    - Unified upload pipeline (automatically categorized)
     """
     user_id = request.cookies.get("semptify_uid", "anonymous")
     
-    # Count items
+    # Count items from briefcase
     doc_count = len(briefcase_data.get("documents", {}))
     extraction_count = len(briefcase_data.get("extractions", {}))
     highlight_count = len(briefcase_data.get("highlights", {}))
+    
+    # Get processed documents from unified upload
+    processed_docs = _get_processed_documents(user_id)
     
     # Categorize documents
     categories = {
@@ -50,7 +76,10 @@ async def get_packet_status(request: Request) -> Dict[str, Any]:
     }
     
     starred_docs = []
+    all_timeline_events = []
+    all_action_items = []
     
+    # Process briefcase documents
     for doc_id, doc in briefcase_data.get("documents", {}).items():
         cat = doc.get("category", "other")
         if cat in categories:
@@ -65,16 +94,133 @@ async def get_packet_status(request: Request) -> Dict[str, Any]:
                 "type": doc.get("type")
             })
     
+    # Process unified upload documents
+    for doc in processed_docs:
+        cat = doc.get("category", "other")
+        if cat in categories:
+            categories[cat] += 1
+        else:
+            categories["other"] += 1
+        
+        if doc.get("starred"):
+            starred_docs.append({
+                "id": doc.get("id"),
+                "name": doc.get("name"),
+                "type": doc.get("type"),
+                "doc_type": doc.get("doc_type"),
+                "registry_id": doc.get("registry_id"),
+            })
+        
+        # Collect timeline events and action items
+        all_timeline_events.extend(doc.get("timeline_events", []))
+    
+    total_doc_count = doc_count + len(processed_docs)
+    
     return {
         "success": True,
         "packet_summary": {
-            "total_documents": doc_count,
+            "total_documents": total_doc_count,
+            "briefcase_documents": doc_count,
+            "processed_documents": len(processed_docs),
             "total_extractions": extraction_count,
             "total_highlights": highlight_count,
             "categories": categories,
             "starred_documents": starred_docs,
-            "ready_for_export": doc_count > 0 or extraction_count > 0
+            "timeline_events_count": len(all_timeline_events),
+            "ready_for_export": total_doc_count > 0 or extraction_count > 0
         }
+    }
+
+
+@router.get("/documents")
+async def get_packet_documents(request: Request) -> Dict[str, Any]:
+    """
+    Get all documents available for court packet.
+    
+    Returns documents from both:
+    - Briefcase (manual uploads)
+    - Unified upload pipeline (auto-processed)
+    """
+    user_id = request.cookies.get("semptify_uid", "anonymous")
+    
+    # Get briefcase documents
+    briefcase_docs = list(briefcase_data.get("documents", {}).values())
+    
+    # Get processed documents
+    processed_docs = _get_processed_documents(user_id)
+    
+    return {
+        "success": True,
+        "documents": {
+            "briefcase": briefcase_docs,
+            "processed": processed_docs,
+        },
+        "total_count": len(briefcase_docs) + len(processed_docs),
+    }
+
+
+@router.get("/evidence")
+async def get_packet_evidence(request: Request) -> Dict[str, Any]:
+    """
+    Get all evidence documents for court packet.
+    
+    Filters to documents categorized as evidence from unified upload.
+    """
+    user_id = request.cookies.get("semptify_uid", "anonymous")
+    
+    processed_docs = _get_processed_documents(user_id)
+    evidence_docs = [d for d in processed_docs if d.get("is_evidence") or d.get("category") == "evidence_photos"]
+    
+    return {
+        "success": True,
+        "evidence": evidence_docs,
+        "count": len(evidence_docs),
+    }
+
+
+@router.get("/legal-documents")
+async def get_packet_legal_docs(request: Request) -> Dict[str, Any]:
+    """
+    Get all legal documents for court packet (notices, filings, etc.).
+    """
+    user_id = request.cookies.get("semptify_uid", "anonymous")
+    
+    processed_docs = _get_processed_documents(user_id)
+    legal_docs = [d for d in processed_docs if d.get("category") == "legal_documents"]
+    
+    return {
+        "success": True,
+        "legal_documents": legal_docs,
+        "count": len(legal_docs),
+    }
+
+
+@router.get("/timeline")
+async def get_packet_timeline(request: Request) -> Dict[str, Any]:
+    """
+    Get aggregated timeline events from all processed documents.
+    
+    Useful for creating a chronological summary for court.
+    """
+    user_id = request.cookies.get("semptify_uid", "anonymous")
+    
+    processed_docs = _get_processed_documents(user_id)
+    
+    all_events = []
+    for doc in processed_docs:
+        events = doc.get("timeline_events", [])
+        for event in events:
+            event["source_document"] = doc.get("name")
+            event["source_doc_id"] = doc.get("id")
+            all_events.append(event)
+    
+    # Sort by date if available
+    all_events.sort(key=lambda x: x.get("date", ""), reverse=False)
+    
+    return {
+        "success": True,
+        "timeline_events": all_events,
+        "count": len(all_events),
     }
 
 
@@ -83,41 +229,46 @@ async def get_packet_checklist(request: Request) -> Dict[str, Any]:
     """
     Get checklist of recommended items for court packet.
     """
+    user_id = request.cookies.get("semptify_uid", "anonymous")
+    
     checklist = [
         {
             "category": "Essential Documents",
             "items": [
-                {"name": "Eviction Notice/Complaint", "required": True, "help": "The document that started this case"},
-                {"name": "Your Answer/Response", "required": True, "help": "Your written response to the complaint"},
-                {"name": "Lease Agreement", "required": True, "help": "Your rental contract"},
-                {"name": "Proof of Service", "required": False, "help": "If you served any documents"}
+                {"name": "Eviction Notice/Complaint", "required": True, "help": "The document that started this case", "doc_types": ["eviction_notice", "notice_to_quit", "court_complaint"]},
+                {"name": "Your Answer/Response", "required": True, "help": "Your written response to the complaint", "doc_types": ["court_filing", "motion"]},
+                {"name": "Lease Agreement", "required": True, "help": "Your rental contract", "doc_types": ["lease", "lease_amendment"]},
+                {"name": "Proof of Service", "required": False, "help": "If you served any documents", "doc_types": ["court_filing"]}
             ]
         },
         {
             "category": "Evidence",
             "items": [
-                {"name": "Photos of Property Conditions", "required": False, "help": "Mold, damage, repairs needed"},
-                {"name": "Communication Records", "required": False, "help": "Texts, emails, letters with landlord"},
-                {"name": "Payment Records", "required": False, "help": "Receipts, bank statements, money orders"},
-                {"name": "Witness Statements", "required": False, "help": "Written statements from witnesses"}
+                {"name": "Photos of Property Conditions", "required": False, "help": "Mold, damage, repairs needed", "doc_types": ["photo_evidence", "video_evidence"]},
+                {"name": "Communication Records", "required": False, "help": "Texts, emails, letters with landlord", "doc_types": ["email_communication", "text_message", "letter"]},
+                {"name": "Payment Records", "required": False, "help": "Receipts, bank statements, money orders", "doc_types": ["receipt", "payment_record", "bank_statement"]},
+                {"name": "Witness Statements", "required": False, "help": "Written statements from witnesses", "doc_types": ["affidavit"]}
             ]
         },
         {
             "category": "Supporting Documents",
             "items": [
-                {"name": "Timeline of Events", "required": False, "help": "Chronological summary of what happened"},
-                {"name": "Relevant Laws/Statutes", "required": False, "help": "Laws that support your case"},
-                {"name": "Inspection Reports", "required": False, "help": "City/county inspection reports"},
-                {"name": "Medical Records", "required": False, "help": "If health was affected by conditions"}
+                {"name": "Timeline of Events", "required": False, "help": "Chronological summary of what happened", "doc_types": []},
+                {"name": "Relevant Laws/Statutes", "required": False, "help": "Laws that support your case", "doc_types": []},
+                {"name": "Inspection Reports", "required": False, "help": "City/county inspection reports", "doc_types": ["inspection_report"]},
+                {"name": "Medical Records", "required": False, "help": "If health was affected by conditions", "doc_types": []}
             ]
         }
     ]
     
-    # Check what user has
-    docs = briefcase_data.get("documents", {})
+    # Get processed documents
+    processed_docs = _get_processed_documents(user_id)
+    processed_doc_types = set(d.get("doc_type") for d in processed_docs if d.get("doc_type"))
     
-    # Simple matching (in real app, would use AI classification)
+    # Check what user has from briefcase
+    docs = briefcase_data.get("documents", {})
     has_items = set()
+    
     for doc in docs.values():
         name_lower = doc.get("name", "").lower()
         if "eviction" in name_lower or "notice" in name_lower or "complaint" in name_lower:
@@ -133,10 +284,17 @@ async def get_packet_checklist(request: Request) -> Dict[str, Any]:
         if "receipt" in name_lower or "payment" in name_lower:
             has_items.add("Payment Records")
     
-    # Add status to checklist
+    # Add status to checklist based on processed doc types
     for category in checklist:
         for item in category["items"]:
-            item["has"] = item["name"] in has_items
+            # Check briefcase
+            has_from_briefcase = item["name"] in has_items
+            
+            # Check processed documents by doc_type
+            has_from_processed = bool(set(item.get("doc_types", [])) & processed_doc_types)
+            
+            item["has"] = has_from_briefcase or has_from_processed
+            item["source"] = "processed" if has_from_processed else ("briefcase" if has_from_briefcase else None)
     
     # Calculate completion
     total_required = sum(1 for cat in checklist for item in cat["items"] if item["required"])

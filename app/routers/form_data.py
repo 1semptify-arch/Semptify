@@ -74,13 +74,68 @@ async def get_form_data(
     
     This is the central data hub - returns:
     - Case information (parties, property, dates)
-    - All documents and their extracted data
+    - All documents and their extracted data (including unified upload)
     - Timeline events
     - Pre-filled form data for all court forms
     """
     service = get_form_data_service(user.user_id)
     await service.load()
-    return service.to_dict()
+    
+    result = service.to_dict()
+    
+    # Enhance with processed documents from unified upload
+    try:
+        from app.services.document_distributor import get_document_distributor
+        distributor = get_document_distributor()
+        processed_docs = distributor.get_form_data_documents(user.user_id)
+        extracted_info = distributor.get_extracted_case_info(user.user_id)
+        
+        # Merge processed documents
+        result["processed_documents"] = processed_docs
+        result["extracted_case_info"] = extracted_info
+        
+        # Enhance with unified upload data
+        if extracted_info.get("case_numbers"):
+            if not result.get("case", {}).get("case_number"):
+                result["case"]["case_number"] = extracted_info["case_numbers"][0]
+        
+    except Exception:
+        pass  # Distributor not available
+    
+    return result
+
+
+@router.get("/extracted")
+async def get_extracted_data(
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Get all extracted data from processed documents.
+    
+    Aggregates extracted information from unified upload pipeline:
+    - Dates (deadlines, hearing dates, notice dates)
+    - Parties (landlord, tenant, attorneys)
+    - Amounts (rent claimed, fees, deposits)
+    - Case numbers
+    - Action items
+    - Timeline events
+    """
+    try:
+        from app.services.document_distributor import get_document_distributor
+        distributor = get_document_distributor()
+        
+        return {
+            "success": True,
+            "extracted_info": distributor.get_extracted_case_info(user.user_id),
+            "documents": distributor.get_form_data_documents(user.user_id),
+        }
+    except ImportError:
+        return {
+            "success": False,
+            "message": "Document distributor not available",
+            "extracted_info": {},
+            "documents": [],
+        }
 
 
 @router.get("/summary")
@@ -94,11 +149,32 @@ async def get_case_summary(
     - Case number and stage
     - Days until hearing
     - Defense and counterclaim counts
-    - Document counts
+    - Document counts (including processed)
+    - Urgent action items
     """
     service = get_form_data_service(user.user_id)
     await service.load()
-    return service.get_case_summary()
+    
+    summary = service.get_case_summary()
+    
+    # Enhance with processed documents info
+    try:
+        from app.services.document_distributor import get_document_distributor
+        distributor = get_document_distributor()
+        
+        extracted_info = distributor.get_extracted_case_info(user.user_id)
+        urgent_docs = distributor.get_urgent_documents(user.user_id)
+        action_docs = distributor.get_documents_with_action_items(user.user_id)
+        
+        summary["processed_documents_count"] = extracted_info.get("documents_count", 0)
+        summary["urgent_documents_count"] = len(urgent_docs)
+        summary["pending_action_items"] = len(extracted_info.get("action_items", []))
+        summary["timeline_events_count"] = len(extracted_info.get("timeline_events", []))
+        
+    except Exception:
+        pass
+    
+    return summary
 
 
 @router.put("/case")
@@ -136,15 +212,37 @@ async def get_answer_form_data(
     
     Returns all fields needed for HOU301 form, populated from:
     - Case information entered by user
-    - Data extracted from uploaded documents
+    - Data extracted from uploaded documents (unified upload)
     - Timeline events
     """
     service = get_form_data_service(user.user_id)
     await service.load()
+    
+    form_data = service.get_answer_form_data()
+    
+    # Enhance with processed document data
+    try:
+        from app.services.document_distributor import get_document_distributor
+        distributor = get_document_distributor()
+        extracted_info = distributor.get_extracted_case_info(user.user_id)
+        
+        # Auto-fill case number if available
+        if not form_data.get("case_number") and extracted_info.get("case_numbers"):
+            form_data["case_number"] = extracted_info["case_numbers"][0]
+        
+        # Add extracted parties
+        form_data["extracted_parties"] = extracted_info.get("parties", [])
+        form_data["extracted_dates"] = extracted_info.get("dates", [])
+        form_data["extracted_amounts"] = extracted_info.get("amounts", [])
+        form_data["action_items"] = extracted_info.get("action_items", [])
+        
+    except Exception:
+        pass
+    
     return {
         "form_id": "HOU301",
         "form_name": "Answer to Eviction Complaint",
-        "data": service.get_answer_form_data(),
+        "data": form_data,
         "instructions": [
             "Review all pre-filled information for accuracy",
             "Select your defenses from the list",

@@ -22,8 +22,8 @@ def open_browser(port):
     webbrowser.open(f'http://localhost:{port}/static/welcome.html')
 
 def main():
-    # Set up environment
-    os.environ.setdefault('SECURITY_MODE', 'open')
+    # Set up environment - security always enforced
+    os.environ.setdefault('SECURITY_MODE', 'enforced')
     os.environ.setdefault('DATABASE_URL', 'sqlite+aiosqlite:///./semptify.db')
     
     # Find available port
