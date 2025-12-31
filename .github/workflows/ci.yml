@@ -71,8 +71,9 @@ jobs:
         run: |
           pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
         env:
-          SECURITY_MODE: open
+          SECURITY_MODE: enforced
           DATABASE_URL: sqlite+aiosqlite:///./test.db
+          SECRET_KEY: test-secret-key-for-ci-only
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
