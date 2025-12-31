@@ -19,6 +19,22 @@
             --text-primary: #f1f5f9;
             --text-secondary: #94a3b8;
             --border-color: #334155;
+            
+            /* 14-Color Highlighter System */
+            --hl-date: #fbbf24;        /* DT - Dates & Deadlines (Amber) */
+            --hl-party: #3b82f6;       /* PT - Parties & Names (Blue) */
+            --hl-amount: #10b981;      /* $ - Money & Amounts (Emerald) */
+            --hl-address: #8b5cf6;     /* AD - Addresses & Locations (Violet) */
+            --hl-legal: #ef4444;       /* LG - Legal Terms & Citations (Red) */
+            --hl-note: #f97316;        /* NT - Notes & Footnotes (Orange) */
+            --hl-form: #ec4899;        /* FM - Form Field Data (Pink) */
+            --hl-event: #06b6d4;       /* EV - Events & Actions (Cyan) */
+            --hl-deadline: #dc2626;    /* DL - Critical Deadline (Deep Red) */
+            --hl-witness: #84cc16;     /* WS - Witness/Testimony (Lime) */
+            --hl-violation: #f43f5e;   /* VL - Violation/Issue (Rose) */
+            --hl-evidence: #14b8a6;    /* ED - Evidence Markers (Teal) */
+            --hl-quote: #a855f7;       /* QT - Quoted Text (Purple) */
+            --hl-timeline: #0ea5e9;    /* TL - Timeline Key Dates (Sky Blue) */
         }
         
         body {
@@ -289,6 +305,160 @@
             font-style: italic;
             color: var(--text-secondary);
             margin-top: 0.25rem;
+        }
+        
+        /* Color Key Legend - Floating Bar */
+        .color-key-legend {
+            position: fixed;
+            bottom: 90px;
+            right: 30px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            z-index: 9998;
+            max-width: 320px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            display: none;
+        }
+        
+        .color-key-legend.show {
+            display: block;
+        }
+        
+        .color-key-legend .legend-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .color-key-legend .legend-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .color-key-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.35rem;
+        }
+        
+        .color-key-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.25rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        
+        .color-key-item:hover {
+            background: var(--bg-hover);
+        }
+        
+        .color-key-item .color-swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        
+        .color-key-item .code {
+            font-weight: 600;
+            font-family: monospace;
+            min-width: 22px;
+        }
+        
+        .color-key-item .icon {
+            font-size: 0.85rem;
+        }
+        
+        /* Highlighter Toolbar Dropdown */
+        .highlighter-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .highlighter-dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            min-width: 200px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .highlighter-dropdown:hover .highlighter-dropdown-content,
+        .highlighter-dropdown-content.show {
+            display: block;
+        }
+        
+        .highlighter-option {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 0.85rem;
+        }
+        
+        .highlighter-option:hover {
+            background: var(--bg-hover);
+        }
+        
+        .highlighter-option .swatch {
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+        }
+        
+        .highlighter-option .code {
+            font-weight: 600;
+            font-family: monospace;
+            min-width: 24px;
+        }
+        
+        /* Annotation Marker Badges */
+        .annotation-marker {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+            height: 20px;
+            padding: 0 4px;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            font-family: monospace;
+            color: #000;
+        }
+        
+        .footnote-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--primary);
+            color: #000;
+            font-size: 0.65rem;
+            font-weight: 700;
+            min-width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         /* Color indicators */
@@ -875,6 +1045,24 @@
         </div>
     </div>
 
+    <!-- Color Key Legend (Floating) -->
+    <div class="color-key-legend" id="colorKeyLegend">
+        <div class="legend-header">
+            <span class="legend-title"><i class="bi bi-palette me-1"></i>Highlighter Colors</span>
+            <button class="btn btn-sm btn-outline-secondary" onclick="toggleColorLegend()" title="Close">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="color-key-grid" id="colorKeyGrid">
+            <!-- Populated by JavaScript -->
+        </div>
+    </div>
+    
+    <!-- Color Legend Toggle Button -->
+    <button class="help-btn" id="colorLegendBtn" style="bottom: 90px; right: 30px;" title="Show highlighter colors" onclick="toggleColorLegend()">
+        <i class="bi bi-palette"></i>
+    </button>
+    
     <!-- Draggable Help Button -->
     <button class="help-btn" id="helpBtn" title="Need help? Drag me anywhere!">
         <i class="bi bi-question-lg"></i>
@@ -1055,6 +1243,46 @@
         let moveCopyMode = null; // 'move' or 'copy'
         let moveCopyTarget = null;
         
+        // 14-Color Extraction Code System with Numbered Markers
+        const EXTRACTION_CODES = {
+            'DT': { name: 'Dates & Deadlines', color: '#fbbf24', icon: '📅', category: 'date', counter: 0 },
+            'PT': { name: 'Parties & Names', color: '#3b82f6', icon: '👤', category: 'party', counter: 0 },
+            '$':  { name: 'Money & Amounts', color: '#10b981', icon: '💰', category: 'amount', counter: 0 },
+            'AD': { name: 'Addresses & Locations', color: '#8b5cf6', icon: '📍', category: 'address', counter: 0 },
+            'LG': { name: 'Legal Terms & Citations', color: '#ef4444', icon: '⚖️', category: 'legal', counter: 0 },
+            'NT': { name: 'Notes & Footnotes', color: '#f97316', icon: '📝', category: 'note', counter: 0 },
+            'FM': { name: 'Form Field Data', color: '#ec4899', icon: '📋', category: 'form', counter: 0 },
+            'EV': { name: 'Events & Actions', color: '#06b6d4', icon: '📆', category: 'event', counter: 0 },
+            'DL': { name: 'Critical Deadline', color: '#dc2626', icon: '🚨', category: 'deadline', counter: 0 },
+            'WS': { name: 'Witness/Testimony', color: '#84cc16', icon: '👁️', category: 'witness', counter: 0 },
+            'VL': { name: 'Violation/Issue', color: '#f43f5e', icon: '⚠️', category: 'violation', counter: 0 },
+            'ED': { name: 'Evidence Markers', color: '#14b8a6', icon: '🔍', category: 'evidence', counter: 0 },
+            'QT': { name: 'Quoted Text', color: '#a855f7', icon: '💬', category: 'quote', counter: 0 },
+            'TL': { name: 'Timeline Key Dates', color: '#0ea5e9', icon: '🕐', category: 'timeline', counter: 0 }
+        };
+        
+        // Generate next marker ID for extraction code (e.g., DT-1, DT-2)
+        function getNextMarker(code) {
+            if (EXTRACTION_CODES[code]) {
+                EXTRACTION_CODES[code].counter++;
+                return `${code}-${EXTRACTION_CODES[code].counter}`;
+            }
+            return code;
+        }
+        
+        // Reset all counters (useful when loading a new document)
+        function resetMarkerCounters() {
+            Object.keys(EXTRACTION_CODES).forEach(code => {
+                EXTRACTION_CODES[code].counter = 0;
+            });
+        }
+        
+        // Get color info by code
+        function getExtractionCodeInfo(code) {
+            const baseCode = code.split('-')[0];
+            return EXTRACTION_CODES[baseCode] || null;
+        }
+        
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             // Ensure user is authenticated before loading
@@ -1065,7 +1293,43 @@
             loadBriefcase();
             setupEventListeners();
             setupDraggableHelp();
+            renderColorKeyLegend();
         });
+        
+        // Color Key Legend Functions
+        function renderColorKeyLegend() {
+            const grid = document.getElementById('colorKeyGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = Object.entries(EXTRACTION_CODES).map(([code, info]) => `
+                <div class="color-key-item" onclick="selectHighlighterColor('${code}')" title="${info.name}">
+                    <div class="color-swatch" style="background: ${info.color};"></div>
+                    <span class="code">${code}</span>
+                    <span class="icon">${info.icon}</span>
+                    <span class="name" style="font-size: 0.7rem; color: var(--text-secondary);">${info.name.split(' ')[0]}</span>
+                </div>
+            `).join('');
+        }
+        
+        function toggleColorLegend() {
+            const legend = document.getElementById('colorKeyLegend');
+            const btn = document.getElementById('colorLegendBtn');
+            if (legend) {
+                legend.classList.toggle('show');
+                if (btn) {
+                    btn.style.display = legend.classList.contains('show') ? 'none' : 'flex';
+                }
+            }
+        }
+        
+        function selectHighlighterColor(code) {
+            const info = EXTRACTION_CODES[code];
+            if (info) {
+                // Store selected highlighter for use in PDF tools integration
+                localStorage.setItem('selectedHighlighter', JSON.stringify({ code, ...info }));
+                console.log(`Selected highlighter: ${code} - ${info.name}`);
+            }
+        }
         
         function setupEventListeners() {
             // Upload zone
