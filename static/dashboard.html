@@ -1911,10 +1911,21 @@
             }
         }
 
-        // Load Documents
+        // Load Documents - ALWAYS FRESH DATA
         async function loadDocuments() {
+            console.log('📥 Loading fresh documents for dashboard...');
+            
+            // CLEAR OLD DATA FIRST
+            documents = [];
+            
             try {
-                const response = await fetch('/api/documents/');
+                const cacheBuster = `_t=${Date.now()}`;
+                const response = await fetch(`/api/documents/?${cacheBuster}`, {
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache'
+                    }
+                });
                 if (response.ok) {
                     const data = await response.json();
                     // Handle array or object with documents property
