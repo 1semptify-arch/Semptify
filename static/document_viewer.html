@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify - Document Viewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            
+            /* Highlight colors */
+            --highlight-yellow: rgba(254, 240, 138, 0.7);
+            --highlight-green: rgba(187, 247, 208, 0.7);
+            --highlight-blue: rgba(191, 219, 254, 0.7);
+            --highlight-pink: rgba(251, 207, 232, 0.7);
+            --highlight-red: rgba(254, 202, 202, 0.7);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--gray-100);
+            min-height: 100vh;
+        }
+        
+        /* Layout */
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        /* Left Sidebar - Document List */
+        .sidebar {
+            width: 280px;
+            background: var(--gray-800);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--gray-700);
+        }
+        
+        .sidebar-header {
+            padding: 16px;
+            background: var(--gray-900);
+            border-bottom: 1px solid var(--gray-700);
+        }
+        
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .sidebar-header h1 i {
+            color: var(--primary);
+        }
+        
+        .document-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+        
+        .doc-item {
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+            background: var(--gray-700);
+        }
+        
+        .doc-item:hover {
+            background: var(--gray-600);
+        }
+        
+        .doc-item.active {
+            background: var(--primary);
+        }
+        
+        .doc-item .doc-name {
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .doc-item .doc-meta {
+            font-size: 12px;
+            color: var(--gray-400);
+            display: flex;
+            gap: 8px;
+        }
+        
+        .doc-item.active .doc-meta {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* Toolbar */
+        .toolbar {
+            background: white;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .toolbar-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--gray-300);
+        }
+        
+        .toolbar-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        
+        .toolbar-btn:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
+        }
+        
+        .toolbar-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .toolbar-btn.highlight-yellow { border-left: 4px solid #fef08a; }
+        .toolbar-btn.highlight-green { border-left: 4px solid #bbf7d0; }
+        .toolbar-btn.highlight-blue { border-left: 4px solid #bfdbfe; }
+        .toolbar-btn.highlight-pink { border-left: 4px solid #fbcfe8; }
+        .toolbar-btn.highlight-red { border-left: 4px solid #fecaca; }
+        
+        /* Document Viewer */
+        .viewer-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .document-viewer {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            background: var(--gray-50);
+        }
+        
+        .document-paper {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 60px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            line-height: 1.8;
+            font-size: 16px;
+            color: var(--gray-800);
+        }
+        
+        .document-paper h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: var(--gray-900);
+        }
+        
+        .document-paper h2 {
+            font-size: 20px;
+            margin: 24px 0 16px;
+            color: var(--gray-800);
+        }
+        
+        .document-paper p {
+            margin-bottom: 16px;
+        }
+        
+        .document-paper table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .document-paper th, .document-paper td {
+            border: 1px solid var(--gray-200);
+            padding: 10px;
+            text-align: left;
+        }
+        
+        .document-paper th {
+            background: var(--gray-50);
+            font-weight: 600;
+        }
+        
+        /* Highlights */
+        .highlight {
+            padding: 2px 0;
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .highlight-yellow { background: var(--highlight-yellow); }
+        .highlight-green { background: var(--highlight-green); }
+        .highlight-blue { background: var(--highlight-blue); }
+        .highlight-pink { background: var(--highlight-pink); }
+        .highlight-red { background: var(--highlight-red); }
+        
+        .highlight:hover {
+            outline: 2px solid var(--primary);
+        }
+        
+        .highlight-note {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: var(--gray-800);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            white-space: nowrap;
+            z-index: 100;
+            max-width: 300px;
+            white-space: normal;
+        }
+        
+        .highlight:hover .highlight-note {
+            display: block;
+        }
+        
+        /* Footnote markers */
+        .footnote-marker {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 600;
+            vertical-align: super;
+            cursor: pointer;
+            margin-left: 2px;
+        }
+        
+        .footnote-marker:hover {
+            background: var(--primary-dark);
+        }
+        
+        /* Tracked edits */
+        .edit-deleted {
+            background: #fee2e2;
+            color: #991b1b;
+            text-decoration: line-through;
+        }
+        
+        .edit-inserted {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .edit-pending {
+            border-bottom: 2px dashed var(--warning);
+        }
+        
+        /* Right Sidebar - Annotations Panel */
+        .annotations-panel {
+            width: 320px;
+            background: white;
+            border-left: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .panel-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .panel-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 13px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .panel-tab:hover {
+            background: var(--gray-50);
+        }
+        
+        .panel-tab.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        
+        .annotation-card {
+            background: var(--gray-50);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid var(--gray-200);
+        }
+        
+        .annotation-card:hover {
+            border-color: var(--primary);
+        }
+        
+        .annotation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        
+        .annotation-type {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .type-note { background: #dbeafe; color: #1e40af; }
+        .type-highlight { background: #fef3c7; color: #92400e; }
+        .type-footnote { background: #d1fae5; color: #065f46; }
+        .type-edit { background: #fce7f3; color: #9d174d; }
+        
+        .annotation-actions {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .annotation-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: var(--gray-400);
+            border-radius: 4px;
+        }
+        
+        .annotation-actions button:hover {
+            background: var(--gray-200);
+            color: var(--gray-600);
+        }
+        
+        .annotation-text {
+            font-size: 14px;
+            color: var(--gray-700);
+            line-height: 1.5;
+        }
+        
+        .annotation-meta {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+        
+        /* Footnotes panel at bottom */
+        .footnotes-section {
+            border-top: 2px solid var(--gray-200);
+            margin-top: 40px;
+            padding-top: 20px;
+        }
+        
+        .footnotes-section h3 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: var(--gray-700);
+        }
+        
+        .footnote-item {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .footnote-number {
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        
+        .footnote-content {
+            flex: 1;
+        }
+        
+        .footnote-citation {
+            color: var(--gray-500);
+            font-style: italic;
+            margin-top: 4px;
+        }
+        
+        /* Selection popup */
+        .selection-popup {
+            position: fixed;
+            background: var(--gray-800);
+            border-radius: 8px;
+            padding: 8px;
+            display: none;
+            gap: 4px;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .selection-popup.visible {
+            display: flex;
+        }
+        
+        .selection-popup button {
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .selection-popup button:hover {
+            background: var(--gray-700);
+        }
+        
+        /* Color picker */
+        .color-picker {
+            display: flex;
+            gap: 4px;
+            padding: 4px;
+        }
+        
+        .color-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .color-dot:hover, .color-dot.active {
+            border-color: var(--gray-800);
+        }
+        
+        .color-dot.yellow { background: #fef08a; }
+        .color-dot.green { background: #bbf7d0; }
+        .color-dot.blue { background: #bfdbfe; }
+        .color-dot.pink { background: #fbcfe8; }
+        .color-dot.red { background: #fecaca; }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--gray-500);
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: var(--gray-300);
+        }
+        
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        
+        .toast {
+            background: var(--gray-800);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-top: 8px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.error { border-left: 4px solid var(--danger); }
+        .toast.warning { border-left: 4px solid var(--warning); }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        /* Loading spinner */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--gray-200);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9000;
+        }
+        
+        .modal-overlay.visible {
+            display: flex;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal h3 {
+            margin-bottom: 16px;
+        }
+        
+        .modal .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .modal label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        
+        .modal input, .modal textarea, .modal select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .modal textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 14px;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background: var(--gray-200);
+            color: var(--gray-700);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--gray-300);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Left Sidebar - Document List -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fas fa-folder-open"></i> Vault Documents</h1>
+            </div>
+            <div class="document-list" id="documentList">
+                <div class="loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="toolbar-group">
+                    <span style="font-weight: 500; color: var(--gray-600);">Highlight:</span>
+                    <button class="toolbar-btn highlight-yellow" data-tool="highlight" data-color="yellow" title="Yellow Highlight">
+                        <i class="fas fa-highlighter"></i>
+                    </button>
+                    <button class="toolbar-btn highlight-green" data-tool="highlight" data-color="green" title="Green Highlight">
+                        <i class="fas fa-highlighter"></i>
+                    </button>
+                    <button class="toolbar-btn highlight-blue" data-tool="highlight" data-color="blue" title="Blue Highlight">
+                        <i class="fas fa-highlighter"></i>
+                    </button>
+                    <button class="toolbar-btn highlight-pink" data-tool="highlight" data-color="pink" title="Pink Highlight">
+                        <i class="fas fa-highlighter"></i>
+                    </button>
+                </div>
+                
+                <div class="toolbar-divider"></div>
+                
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" data-tool="note" title="Add Note">
+                        <i class="fas fa-sticky-note"></i> Note
+                    </button>
+                    <button class="toolbar-btn" data-tool="footnote" title="Add Footnote">
+                        <i class="fas fa-asterisk"></i> Footnote
+                    </button>
+                    <button class="toolbar-btn" data-tool="edit" title="Suggest Edit">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                </div>
+                
+                <div class="toolbar-divider"></div>
+                
+                <div class="toolbar-group">
+                    <button class="toolbar-btn" onclick="toggleShowEdits()" id="toggleEditsBtn" title="Show/Hide Tracked Edits">
+                        <i class="fas fa-eye"></i> Edits
+                    </button>
+                    <button class="toolbar-btn" onclick="exportOverlay()" title="Export Annotations">
+                        <i class="fas fa-download"></i> Export
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Document Viewer -->
+            <div class="viewer-container">
+                <div class="document-viewer" id="documentViewer">
+                    <div class="empty-state">
+                        <i class="fas fa-file-alt"></i>
+                        <p>Select a document from the sidebar to view</p>
+                    </div>
+                </div>
+                
+                <!-- Annotations Panel -->
+                <div class="annotations-panel">
+                    <div class="panel-header">
+                        <h2>Annotations</h2>
+                        <span id="annotationCount">0</span>
+                    </div>
+                    
+                    <div class="panel-tabs">
+                        <div class="panel-tab active" data-tab="all">All</div>
+                        <div class="panel-tab" data-tab="highlights">Highlights</div>
+                        <div class="panel-tab" data-tab="notes">Notes</div>
+                        <div class="panel-tab" data-tab="footnotes">Footnotes</div>
+                    </div>
+                    
+                    <div class="panel-content" id="annotationsPanel">
+                        <div class="empty-state">
+                            <i class="fas fa-comment-alt"></i>
+                            <p>No annotations yet</p>
+                            <p style="font-size: 12px; margin-top: 8px;">Select text to add highlights or notes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Selection Popup -->
+    <div class="selection-popup" id="selectionPopup">
+        <button onclick="quickHighlight('yellow')" title="Yellow Highlight"><i class="fas fa-highlighter" style="color: #fef08a;"></i></button>
+        <button onclick="quickHighlight('green')" title="Green Highlight"><i class="fas fa-highlighter" style="color: #bbf7d0;"></i></button>
+        <button onclick="quickHighlight('blue')" title="Blue Highlight"><i class="fas fa-highlighter" style="color: #bfdbfe;"></i></button>
+        <button onclick="openNoteModal()" title="Add Note"><i class="fas fa-sticky-note"></i></button>
+        <button onclick="openFootnoteModal()" title="Add Footnote"><i class="fas fa-asterisk"></i></button>
+        <button onclick="openEditModal()" title="Suggest Edit"><i class="fas fa-edit"></i></button>
+    </div>
+    
+    <!-- Note Modal -->
+    <div class="modal-overlay" id="noteModal">
+        <div class="modal">
+            <h3><i class="fas fa-sticky-note"></i> Add Note</h3>
+            <div class="form-group">
+                <label>Selected Text</label>
+                <div id="noteSelectedText" style="background: var(--gray-100); padding: 12px; border-radius: 6px; font-style: italic;"></div>
+            </div>
+            <div class="form-group">
+                <label>Note</label>
+                <textarea id="noteContent" placeholder="Enter your note..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Type</label>
+                <select id="noteType">
+                    <option value="user">User Note</option>
+                    <option value="legal">Legal Note</option>
+                    <option value="ai">AI Suggestion</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Priority</label>
+                <select id="notePriority">
+                    <option value="low">Low</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="high">High</option>
+                    <option value="critical">Critical</option>
+                </select>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('noteModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveNote()">Save Note</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footnote Modal -->
+    <div class="modal-overlay" id="footnoteModal">
+        <div class="modal">
+            <h3><i class="fas fa-asterisk"></i> Add Footnote</h3>
+            <div class="form-group">
+                <label>Reference Text</label>
+                <div id="footnoteSelectedText" style="background: var(--gray-100); padding: 12px; border-radius: 6px; font-style: italic;"></div>
+            </div>
+            <div class="form-group">
+                <label>Footnote Content</label>
+                <textarea id="footnoteContent" placeholder="Enter footnote content..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Legal Citation (optional)</label>
+                <input type="text" id="footnoteCitation" placeholder="e.g., Minn. Stat. § 504B.211">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('footnoteModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveFootnote()">Save Footnote</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <h3><i class="fas fa-edit"></i> Suggest Edit</h3>
+            <div class="form-group">
+                <label>Original Text</label>
+                <textarea id="editOriginalText" style="background: #fee2e2;"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Suggested Replacement</label>
+                <textarea id="editNewText" placeholder="Enter replacement text..." style="background: #d1fae5;"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Reason for Edit</label>
+                <input type="text" id="editReason" placeholder="e.g., Clarification, correction, legal requirement">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveEdit()">Save Edit</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <script>
+        // =====================================================================
+        // State
+        // =====================================================================
+        const API_BASE = window.location.origin;
+        let currentDocId = null;
+        let currentOverlay = null;
+        let selectedText = '';
+        let selectedRange = null;
+        let activeTool = null;
+        let activeColor = 'yellow';
+        let showEdits = true;
+        let documents = [];
+        
+        // =====================================================================
+        // Initialization
+        // =====================================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDocuments();
+            setupToolbar();
+            setupTextSelection();
+            setupPanelTabs();
+            
+            // Check URL for document ID
+            const urlParams = new URLSearchParams(window.location.search);
+            const docId = urlParams.get('doc');
+            if (docId) {
+                setTimeout(() => loadDocument(docId), 500);
+            }
+        });
+        
+        // =====================================================================
+        // Load Documents from Vault
+        // =====================================================================
+        async function loadDocuments() {
+            try {
+                const response = await fetch(`${API_BASE}/api/sync/vault/index`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    documents = data.index?.documents || [];
+                    renderDocumentList();
+                } else {
+                    document.getElementById('documentList').innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-cloud-download-alt"></i>
+                            <p>Connect cloud storage to view vault documents</p>
+                            <a href="/static/document_intake.html" style="color: var(--primary); margin-top: 8px; display: block;">Go to Document Intake</a>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Failed to load documents:', error);
+            }
+        }
+        
+        function renderDocumentList() {
+            const container = document.getElementById('documentList');
+            
+            if (documents.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <p>No documents in vault</p>
+                        <a href="/static/document_intake.html" style="color: var(--primary); margin-top: 8px; display: block;">Upload documents</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = documents.map(doc => `
+                <div class="doc-item ${doc.document_id === currentDocId ? 'active' : ''}" 
+                     onclick="loadDocument('${doc.document_id}')"
+                     data-id="${doc.document_id}">
+                    <div class="doc-name">${doc.original_filename || doc.filename}</div>
+                    <div class="doc-meta">
+                        <span><i class="fas fa-file"></i> ${doc.document_type || 'Document'}</span>
+                        <span><i class="fas fa-clock"></i> ${formatDate(doc.uploaded_at)}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // =====================================================================
+        // Load Document Content
+        // =====================================================================
+        async function loadDocument(docId) {
+            currentDocId = docId;
+            renderDocumentList();
+            
+            const viewer = document.getElementById('documentViewer');
+            viewer.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                // Load document content
+                const contentResponse = await fetch(`${API_BASE}/api/sync/vault/document/${docId}/content`, {
+                    credentials: 'include'
+                });
+                
+                if (!contentResponse.ok) throw new Error('Failed to load document');
+                
+                // Get document metadata
+                const doc = documents.find(d => d.document_id === docId);
+                const filename = doc?.original_filename || 'Document';
+                const contentType = contentResponse.headers.get('content-type');
+                
+                // Load overlay
+                await loadOverlay(docId);
+                
+                // Handle different content types
+                if (contentType?.includes('text') || filename.endsWith('.txt') || filename.endsWith('.md')) {
+                    const text = await contentResponse.text();
+                    renderTextDocument(text, filename);
+                } else if (contentType?.includes('pdf') || filename.endsWith('.pdf')) {
+                    viewer.innerHTML = `
+                        <div class="document-paper">
+                            <h1>${filename}</h1>
+                            <div class="empty-state">
+                                <i class="fas fa-file-pdf"></i>
+                                <p>PDF preview not available in overlay viewer</p>
+                                <p style="font-size: 12px;">Use <a href="/static/pdf_tools.html" target="_blank">PDF Tools</a> for PDF annotation</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Try to render as text
+                    const text = await contentResponse.text();
+                    renderTextDocument(text, filename);
+                }
+                
+            } catch (error) {
+                viewer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Failed to load document: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function renderTextDocument(text, filename) {
+            const viewer = document.getElementById('documentViewer');
+            
+            // Convert markdown-ish content to HTML
+            let html = text
+                .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+                .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+                .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/\n\n/g, '</p><p>')
+                .replace(/^\| .+$/gm, match => {
+                    // Simple table row handling
+                    return match;
+                });
+            
+            // Wrap paragraphs
+            html = '<p>' + html + '</p>';
+            
+            viewer.innerHTML = `
+                <div class="document-paper" id="documentContent">
+                    <h1>${filename}</h1>
+                    <div id="documentText">${html}</div>
+                    ${renderFootnotesSection()}
+                </div>
+            `;
+            
+            // Apply existing overlays
+            applyOverlays();
+        }
+        
+        // =====================================================================
+        // Overlay Management
+        // =====================================================================
+        async function loadOverlay(docId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/overlays/${docId}`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentOverlay = data.overlay;
+                } else {
+                    currentOverlay = { highlights: [], notes: [], footnotes: [], edits: [], processing: [] };
+                }
+                
+                updateAnnotationsPanel();
+                
+            } catch (error) {
+                currentOverlay = { highlights: [], notes: [], footnotes: [], edits: [], processing: [] };
+            }
+        }
+        
+        function applyOverlays() {
+            if (!currentOverlay) return;
+            
+            // Apply highlights, footnotes, and edits to document
+            // This is a simplified version - full implementation would use text offsets
+            updateAnnotationsPanel();
+        }
+        
+        function updateAnnotationsPanel() {
+            const panel = document.getElementById('annotationsPanel');
+            const count = document.getElementById('annotationCount');
+            
+            if (!currentOverlay) {
+                panel.innerHTML = '<div class="empty-state"><i class="fas fa-comment-alt"></i><p>No annotations</p></div>';
+                count.textContent = '0';
+                return;
+            }
+            
+            const total = (currentOverlay.highlights?.length || 0) + 
+                         (currentOverlay.notes?.length || 0) + 
+                         (currentOverlay.footnotes?.length || 0) +
+                         (currentOverlay.edits?.length || 0);
+            
+            count.textContent = total;
+            
+            if (total === 0) {
+                panel.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-comment-alt"></i>
+                        <p>No annotations yet</p>
+                        <p style="font-size: 12px; margin-top: 8px;">Select text to add highlights or notes</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '';
+            
+            // Highlights
+            if (currentOverlay.highlights?.length) {
+                currentOverlay.highlights.forEach(h => {
+                    html += `
+                        <div class="annotation-card" style="border-left: 4px solid ${getHighlightColor(h.color)};">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-highlight">Highlight</span>
+                                <div class="annotation-actions">
+                                    <button onclick="deleteAnnotation('highlights', '${h.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                            <div class="annotation-text">"${h.range?.text || 'Selected text'}"</div>
+                            ${h.note ? `<div class="annotation-text" style="margin-top: 8px; color: var(--gray-600);">${h.note}</div>` : ''}
+                            <div class="annotation-meta">${formatDate(h.created_at)}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Notes
+            if (currentOverlay.notes?.length) {
+                currentOverlay.notes.forEach(n => {
+                    html += `
+                        <div class="annotation-card">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-note">${n.note_type} Note</span>
+                                <div class="annotation-actions">
+                                    <button onclick="deleteAnnotation('notes', '${n.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                            ${n.range?.text ? `<div class="annotation-text" style="font-style: italic; color: var(--gray-500);">"${n.range.text}"</div>` : ''}
+                            <div class="annotation-text">${n.content}</div>
+                            <div class="annotation-meta">
+                                ${n.priority !== 'normal' ? `<span style="color: ${n.priority === 'critical' ? 'var(--danger)' : 'var(--warning)'};">${n.priority.toUpperCase()}</span> • ` : ''}
+                                ${formatDate(n.created_at)}
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Footnotes
+            if (currentOverlay.footnotes?.length) {
+                currentOverlay.footnotes.forEach(f => {
+                    html += `
+                        <div class="annotation-card">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-footnote">Footnote ${f.number}</span>
+                                <div class="annotation-actions">
+                                    <button onclick="deleteAnnotation('footnotes', '${f.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                            <div class="annotation-text">${f.content}</div>
+                            ${f.citation ? `<div class="annotation-meta" style="font-style: italic;">Citation: ${f.citation}</div>` : ''}
+                            <div class="annotation-meta">${formatDate(f.created_at)}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Edits
+            if (currentOverlay.edits?.length) {
+                currentOverlay.edits.forEach(e => {
+                    html += `
+                        <div class="annotation-card">
+                            <div class="annotation-header">
+                                <span class="annotation-type type-edit">${e.status} Edit</span>
+                                <div class="annotation-actions">
+                                    ${e.status === 'pending' ? `
+                                        <button onclick="updateEditStatus('${e.id}', 'accepted')" title="Accept"><i class="fas fa-check" style="color: var(--success);"></i></button>
+                                        <button onclick="updateEditStatus('${e.id}', 'rejected')" title="Reject"><i class="fas fa-times" style="color: var(--danger);"></i></button>
+                                    ` : ''}
+                                    <button onclick="deleteAnnotation('edits', '${e.id}')" title="Delete"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                            <div style="background: #fee2e2; padding: 8px; border-radius: 4px; margin: 8px 0; text-decoration: line-through;">
+                                ${e.original_text}
+                            </div>
+                            <div style="background: #d1fae5; padding: 8px; border-radius: 4px;">
+                                ${e.new_text}
+                            </div>
+                            ${e.reason ? `<div class="annotation-meta">Reason: ${e.reason}</div>` : ''}
+                            <div class="annotation-meta">${formatDate(e.created_at)}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            panel.innerHTML = html;
+        }
+        
+        function renderFootnotesSection() {
+            if (!currentOverlay?.footnotes?.length) return '';
+            
+            return `
+                <div class="footnotes-section">
+                    <h3>Footnotes</h3>
+                    ${currentOverlay.footnotes.map(f => `
+                        <div class="footnote-item">
+                            <div class="footnote-number">${f.number}</div>
+                            <div class="footnote-content">
+                                ${f.content}
+                                ${f.citation ? `<div class="footnote-citation">${f.citation}</div>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // =====================================================================
+        // Text Selection & Toolbar
+        // =====================================================================
+        function setupToolbar() {
+            document.querySelectorAll('.toolbar-btn[data-tool]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tool = btn.dataset.tool;
+                    const color = btn.dataset.color;
+                    
+                    if (tool === 'highlight') {
+                        activeColor = color;
+                        activeTool = 'highlight';
+                        document.querySelectorAll('.toolbar-btn[data-tool="highlight"]').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    } else {
+                        activeTool = tool;
+                    }
+                });
+            });
+        }
+        
+        function setupTextSelection() {
+            document.addEventListener('mouseup', (e) => {
+                const selection = window.getSelection();
+                const popup = document.getElementById('selectionPopup');
+                
+                if (selection.isCollapsed || !selection.toString().trim()) {
+                    popup.classList.remove('visible');
+                    return;
+                }
+                
+                // Check if selection is within document viewer
+                const viewer = document.getElementById('documentContent');
+                if (!viewer || !viewer.contains(selection.anchorNode)) {
+                    popup.classList.remove('visible');
+                    return;
+                }
+                
+                selectedText = selection.toString().trim();
+                selectedRange = selection.getRangeAt(0);
+                
+                // Position popup near selection
+                const rect = selectedRange.getBoundingClientRect();
+                popup.style.left = `${rect.left + (rect.width / 2) - 100}px`;
+                popup.style.top = `${rect.top - 50}px`;
+                popup.classList.add('visible');
+            });
+            
+            document.addEventListener('mousedown', (e) => {
+                const popup = document.getElementById('selectionPopup');
+                if (!popup.contains(e.target)) {
+                    popup.classList.remove('visible');
+                }
+            });
+        }
+        
+        function setupPanelTabs() {
+            document.querySelectorAll('.panel-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    // Filter annotations based on tab
+                    // TODO: Implement filtering
+                });
+            });
+        }
+        
+        // =====================================================================
+        // Quick Actions
+        // =====================================================================
+        async function quickHighlight(color) {
+            if (!currentDocId || !selectedText) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/overlays/${currentDocId}/highlights`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        range: {
+                            start_offset: 0,
+                            end_offset: selectedText.length,
+                            text: selectedText
+                        },
+                        color: color
+                    })
+                });
+                
+                if (response.ok) {
+                    await loadOverlay(currentDocId);
+                    showToast('Highlight added', 'success');
+                    document.getElementById('selectionPopup').classList.remove('visible');
+                }
+            } catch (error) {
+                showToast('Failed to add highlight', 'error');
+            }
+        }
+        
+        // =====================================================================
+        // Modal Functions
+        // =====================================================================
+        function openNoteModal() {
+            document.getElementById('noteSelectedText').textContent = selectedText || 'No text selected';
+            document.getElementById('noteContent').value = '';
+            document.getElementById('noteModal').classList.add('visible');
+            document.getElementById('selectionPopup').classList.remove('visible');
+        }
+        
+        function openFootnoteModal() {
+            document.getElementById('footnoteSelectedText').textContent = selectedText || 'No text selected';
+            document.getElementById('footnoteContent').value = '';
+            document.getElementById('footnoteCitation').value = '';
+            document.getElementById('footnoteModal').classList.add('visible');
+            document.getElementById('selectionPopup').classList.remove('visible');
+        }
+        
+        function openEditModal() {
+            document.getElementById('editOriginalText').value = selectedText || '';
+            document.getElementById('editNewText').value = '';
+            document.getElementById('editReason').value = '';
+            document.getElementById('editModal').classList.add('visible');
+            document.getElementById('selectionPopup').classList.remove('visible');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('visible');
+        }
+        
+        async function saveNote() {
+            if (!currentDocId) return;
+            
+            const content = document.getElementById('noteContent').value;
+            if (!content.trim()) {
+                showToast('Please enter note content', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/overlays/${currentDocId}/notes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        range: selectedText ? {
+                            start_offset: 0,
+                            end_offset: selectedText.length,
+                            text: selectedText
+                        } : null,
+                        content: content,
+                        note_type: document.getElementById('noteType').value,
+                        priority: document.getElementById('notePriority').value
+                    })
+                });
+                
+                if (response.ok) {
+                    await loadOverlay(currentDocId);
+                    closeModal('noteModal');
+                    showToast('Note saved', 'success');
+                }
+            } catch (error) {
+                showToast('Failed to save note', 'error');
+            }
+        }
+        
+        async function saveFootnote() {
+            if (!currentDocId || !selectedText) {
+                showToast('Please select text for footnote reference', 'warning');
+                return;
+            }
+            
+            const content = document.getElementById('footnoteContent').value;
+            if (!content.trim()) {
+                showToast('Please enter footnote content', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/overlays/${currentDocId}/footnotes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        range: {
+                            start_offset: 0,
+                            end_offset: selectedText.length,
+                            text: selectedText
+                        },
+                        content: content,
+                        citation: document.getElementById('footnoteCitation').value || null
+                    })
+                });
+                
+                if (response.ok) {
+                    await loadOverlay(currentDocId);
+                    closeModal('footnoteModal');
+                    showToast('Footnote added', 'success');
+                    // Re-render document to show footnote
+                    if (currentDocId) {
+                        loadDocument(currentDocId);
+                    }
+                }
+            } catch (error) {
+                showToast('Failed to add footnote', 'error');
+            }
+        }
+        
+        async function saveEdit() {
+            if (!currentDocId) return;
+            
+            const original = document.getElementById('editOriginalText').value;
+            const newText = document.getElementById('editNewText').value;
+            
+            if (!original.trim() || !newText.trim()) {
+                showToast('Please enter both original and replacement text', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/overlays/${currentDocId}/edits`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        range: {
+                            start_offset: 0,
+                            end_offset: original.length,
+                            text: original
+                        },
+                        original_text: original,
+                        new_text: newText,
+                        edit_type: 'replace',
+                        reason: document.getElementById('editReason').value || null
+                    })
+                });
+                
+                if (response.ok) {
+                    await loadOverlay(currentDocId);
+                    closeModal('editModal');
+                    showToast('Edit suggestion saved', 'success');
+                }
+            } catch (error) {
+                showToast('Failed to save edit', 'error');
+            }
+        }
+        
+        // =====================================================================
+        // Annotation Actions
+        // =====================================================================
+        async function deleteAnnotation(type, id) {
+            if (!currentDocId || !confirm('Delete this annotation?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/overlays/${currentDocId}/${type}/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    await loadOverlay(currentDocId);
+                    showToast('Annotation deleted', 'success');
+                }
+            } catch (error) {
+                showToast('Failed to delete', 'error');
+            }
+        }
+        
+        async function updateEditStatus(editId, status) {
+            if (!currentDocId) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/overlays/${currentDocId}/edits/${editId}?status=${status}`, {
+                    method: 'PATCH',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    await loadOverlay(currentDocId);
+                    showToast(`Edit ${status}`, 'success');
+                }
+            } catch (error) {
+                showToast('Failed to update edit', 'error');
+            }
+        }
+        
+        function toggleShowEdits() {
+            showEdits = !showEdits;
+            const btn = document.getElementById('toggleEditsBtn');
+            btn.classList.toggle('active', showEdits);
+            // TODO: Toggle edit display in document
+        }
+        
+        async function exportOverlay() {
+            if (!currentDocId) {
+                showToast('Select a document first', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/overlays/${currentDocId}/export`, {
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const blob = new Blob([JSON.stringify(data.export, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `overlay_${currentDocId}.json`;
+                    a.click();
+                    showToast('Overlay exported', 'success');
+                }
+            } catch (error) {
+                showToast('Export failed', 'error');
+            }
+        }
+        
+        // =====================================================================
+        // Utilities
+        // =====================================================================
+        function getHighlightColor(color) {
+            const colors = {
+                yellow: '#fef08a',
+                green: '#bbf7d0',
+                blue: '#bfdbfe',
+                pink: '#fbcfe8',
+                red: '#fecaca'
+            };
+            return colors[color] || colors.yellow;
+        }
+        
+        function formatDate(isoString) {
+            if (!isoString) return '';
+            try {
+                return new Date(isoString).toLocaleDateString();
+            } catch {
+                return isoString;
+            }
+        }
+        
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+{
+  "document_id": "9e2806f4",
+  "created_at": "2025-12-31T11:01:10.120514",
+  "updated_at": "2025-12-31T11:01:10.120565",
+  "version": 1,
+  "highlights": [
+    {
+      "id": "d19e6515-19f3-4f00-b6f4-135e910ca1fe",
+      "range": {
+        "start_offset": 150,
+        "end_offset": 165,
+        "text": "14-Day Notice"
+      },
+      "color": "yellow",
+      "note": "Critical deadline requirement",
+      "created_at": "2025-12-31T11:01:10.120639",
+      "created_by": "test_user"
+    },
+    {
+      "id": "7b832092-6d6c-4a9d-90d5-3fda2f778820",
+      "range": {
+        "start_offset": 500,
+        "end_offset": 520,
+        "text": "21 days"
+      },
+      "color": "green",
+      "note": "Security deposit return deadline",
+      "created_at": "2025-12-31T11:01:10.120657",
+      "created_by": "test_user"
+    }
+  ],
+  "notes": [
+    {
+      "id": "0facf9b4-e6e0-461d-8ee5-50508062b092",
+      "range": {
+        "start_offset": 300,
+        "end_offset": 400,
+        "text": "Notice Requirements"
+      },
+      "content": "Remember: The notice must be in WRITING and delivered properly. Verbal notices are NOT valid under Minnesota law.",
+      "note_type": "legal",
+      "priority": "high",
+      "tags": [
+        "notice",
+        "deadline",
+        "eviction"
+      ],
+      "created_at": "2025-12-31T11:01:10.120678",
+      "created_by": "test_user",
+      "resolved": false
+    },
+    {
+      "id": "4a5a2aa6-89ae-4cf6-b83c-b251daaa2f0a",
+      "range": null,
+      "content": "This document is a reference guide. Consult an attorney for specific legal advice.",
+      "note_type": "user",
+      "priority": "normal",
+      "tags": [
+        "general"
+      ],
+      "created_at": "2025-12-31T11:01:10.120689",
+      "created_by": "test_user",
+      "resolved": false
+    }
+  ],
+  "footnotes": [
+    {
+      "id": "c74b2384-d22e-4151-a7f6-b7e5245ae890",
+      "number": 1,
+      "range": {
+        "start_offset": 200,
+        "end_offset": 220,
+        "text": "Minn. Stat. \u00a7 504B"
+      },
+      "content": "Minnesota Statutes Chapter 504B is the primary statutory framework governing residential landlord-tenant relationships in Minnesota.",
+      "citation": "Minn. Stat. \u00a7 504B.001 et seq.",
+      "created_at": "2025-12-31T11:01:10.120699",
+      "created_by": "test_user"
+    },
+    {
+      "id": "85e9b00b-82f5-4df5-b1b3-b8cd8a03ea06",
+      "number": 2,
+      "range": {
+        "start_offset": 600,
+        "end_offset": 630,
+        "text": "Retaliation Protection"
+      },
+      "content": "Under Minn. Stat. \u00a7 504B.285, tenants are protected from retaliatory actions by landlords.",
+      "citation": "Minn. Stat. \u00a7 504B.285",
+      "created_at": "2025-12-31T11:01:10.120707",
+      "created_by": "test_user"
+    }
+  ],
+  "edits": [
+    {
+      "id": "f4919bec-6a42-4e8e-95d0-8c6c098bf3e9",
+      "range": {
+        "start_offset": 450,
+        "end_offset": 460,
+        "text": "21 days"
+      },
+      "original_text": "21 days",
+      "new_text": "twenty-one (21) days",
+      "edit_type": "replace",
+      "reason": "Legal documents should spell out numbers for clarity",
+      "status": "pending",
+      "created_at": "2025-12-31T11:01:10.120715",
+      "created_by": "test_user",
+      "reviewed_at": null,
+      "reviewed_by": null
+    },
+    {
+      "id": "18bd30cf-588f-47c1-87de-4f27cce76c4d",
+      "range": {
+        "start_offset": 800,
+        "end_offset": 830,
+        "text": "contact"
+      },
+      "original_text": "contact",
+      "new_text": "contact your legal aid organization or",
+      "edit_type": "insert",
+      "reason": "Add helpful direction for tenants",
+      "status": "accepted",
+      "created_at": "2025-12-31T11:01:10.120723",
+      "created_by": "test_user",
+      "reviewed_at": "2025-12-31T11:01:10.120726",
+      "reviewed_by": "reviewer"
+    }
+  ],
+  "processing": [
+    {
+      "id": "0df30e26-cb6a-43df-8a21-c36049d4a1c9",
+      "processor": "ai_analysis",
+      "result_type": "entity_extraction",
+      "data": {
+        "entities": [
+          {
+            "type": "statute",
+            "text": "Minn. Stat. \u00a7 504B",
+            "confidence": 0.95
+          },
+          {
+            "type": "deadline",
+            "text": "14-day",
+            "confidence": 0.92
+          },
+          {
+            "type": "deadline",
+            "text": "21 days",
+            "confidence": 0.93
+          },
+          {
+            "type": "organization",
+            "text": "HOME Line",
+            "confidence": 0.98
+          }
+        ],
+        "summary": "Legal reference document covering Minnesota tenant rights including notice requirements, security deposits, habitability standards, and retaliation protections."
+      },
+      "created_at": "2025-12-31T11:01:10.120744"
+    }
+  ]
+}

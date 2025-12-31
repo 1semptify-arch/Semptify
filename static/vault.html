@@ -904,32 +904,102 @@
             setupEventListeners();
         });
         
-        // Load documents from vault API
+        // Load documents from all available APIs
         async function loadDocuments() {
             try {
                 // Get user ID from localStorage or use default
                 const userId = localStorage.getItem('semptify_user_id') || 'default';
+                let allDocs = [];
                 
-                // Try to fetch from vault API
-                const response = await fetch('/api/vault/all', {
-                    headers: {
-                        'X-User-ID': userId
+                // 1. Try main documents API first (this is where most docs are stored)
+                try {
+                    const docsResponse = await fetch('/api/documents/', {
+                        headers: { 'X-User-ID': userId }
+                    });
+                    if (docsResponse.ok) {
+                        const docsData = await docsResponse.json();
+                        const docs = Array.isArray(docsData) ? docsData : (docsData.documents || []);
+                        // Normalize document format
+                        docs.forEach(doc => {
+                            allDocs.push({
+                                id: doc.id,
+                                vault_id: doc.id,
+                                filename: doc.filename || doc.name,
+                                document_type: doc.doc_type || doc.document_type || 'document',
+                                file_size: doc.file_size || 0,
+                                mime_type: doc.mime_type || 'application/octet-stream',
+                                uploaded_at: doc.uploaded_at || doc.upload_date,
+                                status: doc.status || 'stored',
+                                title: doc.title,
+                                summary: doc.summary,
+                                source: 'documents'
+                            });
+                        });
+                        console.log('📄 Loaded from /api/documents/:', docs.length);
                     }
-                });
+                } catch (e) {
+                    console.warn('Documents API error:', e);
+                }
                 
-                if (response.ok) {
-                    const data = await response.json();
-                    documents = data.documents || [];
-                } else {
-                    // Fallback: try briefcase API
-                    const briefcaseResponse = await fetch('/api/briefcase/');
-                    if (briefcaseResponse.ok) {
-                        const briefcaseData = await briefcaseResponse.json();
-                        documents = briefcaseData.documents || [];
-                    } else {
-                        documents = [];
+                // 2. Also check vault API for additional documents
+                try {
+                    const vaultResponse = await fetch('/api/vault/all', {
+                        headers: { 'X-User-ID': userId }
+                    });
+                    if (vaultResponse.ok) {
+                        const vaultData = await vaultResponse.json();
+                        const vaultDocs = vaultData.documents || [];
+                        // Add vault docs that aren't already in the list
+                        const existingIds = new Set(allDocs.map(d => d.id));
+                        vaultDocs.forEach(doc => {
+                            if (!existingIds.has(doc.vault_id)) {
+                                allDocs.push({
+                                    id: doc.vault_id,
+                                    vault_id: doc.vault_id,
+                                    filename: doc.filename,
+                                    document_type: doc.document_type || 'document',
+                                    file_size: doc.file_size || 0,
+                                    mime_type: doc.mime_type,
+                                    uploaded_at: doc.uploaded_at,
+                                    status: 'stored',
+                                    source: 'vault'
+                                });
+                            }
+                        });
+                        console.log('🔐 Loaded from /api/vault/all:', vaultDocs.length);
+                    }
+                } catch (e) {
+                    console.warn('Vault API error:', e);
+                }
+                
+                // 3. Fallback: try briefcase API
+                if (allDocs.length === 0) {
+                    try {
+                        const briefcaseResponse = await fetch('/api/briefcase/');
+                        if (briefcaseResponse.ok) {
+                            const briefcaseData = await briefcaseResponse.json();
+                            const bcDocs = briefcaseData.documents || [];
+                            bcDocs.forEach(doc => {
+                                allDocs.push({
+                                    id: doc.id,
+                                    vault_id: doc.id,
+                                    filename: doc.name || doc.filename,
+                                    document_type: doc.type || 'document',
+                                    file_size: doc.size || 0,
+                                    mime_type: doc.mime_type,
+                                    uploaded_at: doc.created_at,
+                                    source: 'briefcase'
+                                });
+                            });
+                            console.log('💼 Loaded from /api/briefcase/:', bcDocs.length);
+                        }
+                    } catch (e) {
+                        console.warn('Briefcase API error:', e);
                     }
                 }
+                
+                documents = allDocs;
+                console.log('📦 Total documents loaded:', documents.length);
                 
                 updateStats();
                 renderDocuments();
