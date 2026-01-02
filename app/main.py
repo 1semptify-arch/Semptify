@@ -80,6 +80,8 @@ from app.routers.role_upgrade import router as role_upgrade_router
 from app.routers.guided_intake import router as guided_intake_router
 from app.routers.case_builder import router as case_builder_router
 from app.routers.overlays import router as overlays_router
+from app.routers.document_converter import router as document_converter_router
+from app.routers.page_index import router as page_index_router
 from app.core.mesh_integration import start_mesh_network, stop_mesh_network
 
 # Tenant Defense Module
@@ -1568,6 +1570,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     app.include_router(actions_router, tags=["Smart Actions"])  # Personalized action recommendations
     app.include_router(progress_router, tags=["Progress Tracker"])  # User journey progress tracking
     app.include_router(case_builder_router, tags=["Case Builder"])  # Case management & intake
+    app.include_router(document_converter_router, tags=["Document Converter"])  # Markdown to DOCX/HTML conversion
+    app.include_router(page_index_router, tags=["Page Index"])  # HTML page index database
 
     app.include_router(dashboard_router, tags=["Unified Dashboard"])  # Combined dashboard data
     app.include_router(enterprise_dashboard_router, tags=["Enterprise Dashboard"])  # Premium enterprise UI & API

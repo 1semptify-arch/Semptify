@@ -68,6 +68,24 @@ briefcase_data = {
             "color": "#ef4444",
             "icon": "gavel",
             "system": True
+        },
+        "converted": {
+            "id": "converted",
+            "name": "📄 Converted Documents",
+            "parent_id": "root",
+            "created_at": datetime.now().isoformat(),
+            "color": "#22c55e",
+            "icon": "file-earmark-arrow-up",
+            "system": True
+        },
+        "court_packets": {
+            "id": "court_packets",
+            "name": "⚖️ Court Packets",
+            "parent_id": "root",
+            "created_at": datetime.now().isoformat(),
+            "color": "#3b82f6",
+            "icon": "folder-check",
+            "system": True
         }
     },
     "documents": {},
@@ -638,6 +656,95 @@ def export_folder_to_zip(zip_file: zipfile.ZipFile, folder_id: str, path: str):
     for subfolder in briefcase_data["folders"].values():
         if subfolder.get("parent_id") == folder_id:
             export_folder_to_zip(zip_file, subfolder["id"], folder_path)
+
+
+# ============ Converted Document Storage ============
+
+class ConvertedDocumentSave(BaseModel):
+    """Model for saving converted documents to briefcase"""
+    file_url: str
+    filename: str
+    folder_id: str = "converted"
+    original_name: Optional[str] = None
+    doc_type: str = "docx"  # docx or html
+
+
+@router.post("/save-converted")
+async def save_converted_document(data: ConvertedDocumentSave):
+    """
+    Save a converted document to the briefcase.
+    Reads from the conversion output directory and stores in the specified folder.
+    """
+    try:
+        # Ensure target folder exists
+        if data.folder_id not in briefcase_data["folders"]:
+            data.folder_id = "converted"  # Fallback to converted folder
+        
+        # Try to read the file from the conversion output path
+        file_content = None
+        
+        # Check various possible paths where the converted file might be
+        clean_path = data.file_url.lstrip('/')
+        possible_paths = [
+            Path(clean_path),
+            Path(f"data/documents/{data.filename}"),
+            Path(f"data/{data.filename}"),
+            # Also check the convert output directory
+            Path(f"data/documents/converted/{data.filename}"),
+        ]
+        
+        for path in possible_paths:
+            if path.exists():
+                with open(path, 'rb') as f:
+                    file_content = f.read()
+                logger.info("Found converted file at: %s", path)
+                break
+        
+        if not file_content:
+            raise HTTPException(status_code=404, detail=f"Could not find converted file: {data.filename}")
+        
+        # Create document entry
+        doc_id = str(uuid.uuid4())
+        
+        # Determine MIME type
+        mime_types = {
+            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'html': 'text/html',
+            'pdf': 'application/pdf'
+        }
+        
+        doc_entry = {
+            "id": doc_id,
+            "name": data.filename,
+            "original_name": data.original_name or data.filename,
+            "folder_id": data.folder_id,
+            "type": mime_types.get(data.doc_type, 'application/octet-stream'),
+            "size": len(file_content),
+            "content": base64.b64encode(file_content).decode('utf-8'),
+            "created_at": datetime.now().isoformat(),
+            "tags": ["Converted"],
+            "starred": False,
+            "notes": f"Converted from {data.original_name or 'markdown'} on {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+            "source": "document_converter"
+        }
+        
+        briefcase_data["documents"][doc_id] = doc_entry
+        
+        logger.info("Saved converted document %s to folder %s", data.filename, data.folder_id)
+        
+        return {
+            "success": True,
+            "document_id": doc_id,
+            "folder_id": data.folder_id,
+            "filename": data.filename,
+            "message": f"Document saved to {briefcase_data['folders'][data.folder_id]['name']}"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Error saving converted document: %s", e)
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/stats")
