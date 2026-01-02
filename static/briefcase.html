@@ -952,6 +952,9 @@
             <div class="content-header">
                 <div class="breadcrumb-nav" id="breadcrumb"></div>
                 <div class="toolbar">
+                    <button class="btn btn-outline-warning btn-sm" onclick="showConverterModal()" title="Convert Markdown to DOCX/HTML">
+                        <i class="bi bi-file-earmark-arrow-up me-1"></i>Converter
+                    </button>
                     <a href="/static/letter_builder.html" class="btn btn-outline-primary btn-sm" title="Generate formal letters">
                         <i class="bi bi-envelope me-1"></i>Letter
                     </a>
@@ -1080,6 +1083,9 @@
             <i class="bi bi-star"></i> <span id="starLabel">Star</span>
         </div>
         <div class="context-menu-divider"></div>
+        <div class="context-menu-item" onclick="convertDocument()">
+            <i class="bi bi-file-earmark-arrow-up"></i> Convert to DOCX/HTML
+        </div>
         <div class="context-menu-item" onclick="moveDocument()">
             <i class="bi bi-folder-symlink"></i> Move to...
         </div>
@@ -1224,6 +1230,144 @@
                         <li>Use tags to organize and search</li>
                         <li>Export folders as ZIP for backup</li>
                     </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Converter Modal -->
+    <div class="modal fade" id="converterModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header" style="background: var(--bg-card);">
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up me-2"></i>Document Converter</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0" style="background: var(--bg-dark);">
+                    <div class="row g-0">
+                        <!-- Left: Source Files Browser -->
+                        <div class="col-md-4 border-end" style="border-color: var(--border-color) !important;">
+                            <div class="p-3">
+                                <h6 class="text-light mb-3"><i class="bi bi-folder2-open me-2"></i>Select Source File</h6>
+                                
+                                <!-- File Source Tabs -->
+                                <ul class="nav nav-pills nav-fill mb-3" role="tablist">
+                                    <li class="nav-item">
+                                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#briefcaseFiles">
+                                            <i class="bi bi-briefcase me-1"></i>Briefcase
+                                        </button>
+                                    </li>
+                                    <li class="nav-item">
+                                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#uploadFile">
+                                            <i class="bi bi-upload me-1"></i>Upload
+                                        </button>
+                                    </li>
+                                </ul>
+                                
+                                <div class="tab-content">
+                                    <!-- Briefcase Files -->
+                                    <div class="tab-pane fade show active" id="briefcaseFiles">
+                                        <div class="converter-file-list" id="converterFileList" style="max-height: 300px; overflow-y: auto;">
+                                            <!-- Files populated by JS -->
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Upload New -->
+                                    <div class="tab-pane fade" id="uploadFile">
+                                        <div class="upload-zone p-4 text-center" id="converterUploadZone" style="border: 2px dashed var(--border-color); border-radius: 8px; cursor: pointer;">
+                                            <i class="bi bi-cloud-upload display-4 text-secondary"></i>
+                                            <p class="text-secondary mt-2 mb-0">Drop Markdown file or click to browse</p>
+                                            <input type="file" id="converterFileInput" accept=".md,.markdown,.txt" hidden>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Selected File Info -->
+                                <div class="mt-3 p-2 rounded" id="selectedFileInfo" style="background: var(--bg-card); display: none;">
+                                    <small class="text-secondary">Selected:</small>
+                                    <div class="text-light fw-semibold" id="selectedFileName">-</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Middle: Content Editor -->
+                        <div class="col-md-5 border-end" style="border-color: var(--border-color) !important;">
+                            <div class="p-3">
+                                <h6 class="text-light mb-3"><i class="bi bi-pencil-square me-2"></i>Markdown Content</h6>
+                                
+                                <!-- Metadata -->
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <input type="text" class="form-control form-control-sm" id="convTitle" placeholder="Document Title" style="background: var(--bg-card); border-color: var(--border-color); color: var(--text-primary);">
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="text" class="form-control form-control-sm" id="convCaseNumber" placeholder="Case Number" style="background: var(--bg-card); border-color: var(--border-color); color: var(--text-primary);">
+                                    </div>
+                                    <div class="col-6">
+                                        <input type="text" class="form-control form-control-sm" id="convCourt" placeholder="Court" style="background: var(--bg-card); border-color: var(--border-color); color: var(--text-primary);">
+                                    </div>
+                                    <div class="col-6">
+                                        <select class="form-select form-select-sm" id="convStyle" style="background: var(--bg-card); border-color: var(--border-color); color: var(--text-primary);">
+                                            <option value="legal_brief">Legal Brief</option>
+                                            <option value="court_filing">Court Filing</option>
+                                            <option value="standard">Standard</option>
+                                            <option value="memo">Memo</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <!-- Editor -->
+                                <textarea class="form-control" id="convMarkdownInput" rows="12" placeholder="# Your Markdown Content&#10;&#10;Write or paste your markdown here...&#10;&#10;## Supports&#10;- **Bold** and *italic*&#10;- Lists and tables&#10;- [^1] Footnotes&#10;&#10;[^1]: Footnote text here" style="background: var(--bg-card); border-color: var(--border-color); color: var(--text-primary); font-family: monospace; font-size: 13px;"></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Right: Output Settings -->
+                        <div class="col-md-3">
+                            <div class="p-3">
+                                <h6 class="text-light mb-3"><i class="bi bi-gear me-2"></i>Output Settings</h6>
+                                
+                                <!-- Output Folder -->
+                                <div class="mb-3">
+                                    <label class="form-label text-secondary small">Output Folder</label>
+                                    <select class="form-select form-select-sm" id="convOutputFolder" style="background: var(--bg-card); border-color: var(--border-color); color: var(--text-primary);">
+                                        <option value="root">📁 Root</option>
+                                        <!-- Populated by JS -->
+                                    </select>
+                                </div>
+                                
+                                <!-- Output Format -->
+                                <div class="mb-3">
+                                    <label class="form-label text-secondary small">Output Format</label>
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-outline-primary btn-sm text-start" onclick="convertInBriefcase('docx')">
+                                            <i class="bi bi-file-earmark-word me-2"></i>Word (.docx)
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm text-start" onclick="convertInBriefcase('html')">
+                                            <i class="bi bi-filetype-html me-2"></i>HTML (Interactive)
+                                        </button>
+                                        <button class="btn btn-success btn-sm text-start" onclick="convertInBriefcase('both')">
+                                            <i class="bi bi-files me-2"></i>Both Formats
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Status -->
+                                <div id="convStatus" class="mt-3" style="display: none;">
+                                    <div class="alert alert-info py-2 small" id="convStatusMessage">
+                                        <i class="bi bi-hourglass-split me-1"></i>Processing...
+                                    </div>
+                                </div>
+                                
+                                <!-- Results -->
+                                <div id="convResults" class="mt-3" style="display: none;">
+                                    <label class="form-label text-secondary small">Converted Files</label>
+                                    <div id="convResultsList" style="max-height: 200px; overflow-y: auto;">
+                                        <!-- Results populated by JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2144,6 +2288,322 @@
             bootstrap.Modal.getInstance(document.getElementById('moveCopyModal')).hide();
             clearSelection();
             loadBriefcase();
+        }
+        
+        // =========================================================================
+        // DOCUMENT CONVERTER INTEGRATION
+        // =========================================================================
+        
+        let converterSelectedFile = null;
+        
+        function showConverterModal() {
+            populateConverterFolders();
+            populateConverterFileList();
+            setupConverterUpload();
+            const modal = new bootstrap.Modal(document.getElementById('converterModal'));
+            modal.show();
+        }
+        
+        function convertDocument() {
+            // Called from context menu - preload selected document
+            if (selectedDocument) {
+                const doc = documents.find(d => d.id === selectedDocument);
+                if (doc) {
+                    converterSelectedFile = doc;
+                    document.getElementById('selectedFileName').textContent = doc.name;
+                    document.getElementById('selectedFileInfo').style.display = 'block';
+                    
+                    // If it's a text/markdown file, try to load content
+                    if (doc.name.match(/\.(md|markdown|txt)$/i)) {
+                        loadDocumentContent(doc);
+                    }
+                }
+            }
+            showConverterModal();
+        }
+        
+        async function loadDocumentContent(doc) {
+            try {
+                const response = await SemptifyAuth.fetch(`/api/briefcase/document/${doc.id}/content`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('convMarkdownInput').value = data.content || '';
+                    document.getElementById('convTitle').value = doc.name.replace(/\.(md|markdown|txt)$/i, '');
+                }
+            } catch (error) {
+                console.log('Could not load document content:', error);
+            }
+        }
+        
+        function populateConverterFolders() {
+            const select = document.getElementById('convOutputFolder');
+            select.innerHTML = '<option value="root">📁 Root</option>';
+            
+            // Add system folders first
+            const systemFolders = [
+                { id: 'converted', name: '📄 Converted Documents' },
+                { id: 'court_packets', name: '⚖️ Court Packets' },
+                { id: 'evidence', name: '📸 Evidence' }
+            ];
+            
+            systemFolders.forEach(folder => {
+                select.innerHTML += `<option value="${folder.id}">${folder.name}</option>`;
+            });
+            
+            // Add user folders
+            Object.values(folders).forEach(folder => {
+                if (folder.id !== 'root') {
+                    select.innerHTML += `<option value="${folder.id}">📁 ${folder.name}</option>`;
+                }
+            });
+        }
+        
+        function populateConverterFileList() {
+            const container = document.getElementById('converterFileList');
+            
+            // Filter to markdown/text files
+            const convertibleDocs = documents.filter(d => 
+                d.name.match(/\.(md|markdown|txt)$/i)
+            );
+            
+            if (convertibleDocs.length === 0) {
+                container.innerHTML = `
+                    <div class="text-secondary text-center p-3">
+                        <i class="bi bi-file-earmark-text display-4"></i>
+                        <p class="mt-2 small">No markdown files found.<br>Upload a .md or .txt file.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = convertibleDocs.map(doc => `
+                <div class="converter-file-item p-2 mb-1 rounded ${converterSelectedFile?.id === doc.id ? 'bg-primary' : ''}" 
+                     style="cursor: pointer; background: ${converterSelectedFile?.id === doc.id ? '' : 'var(--bg-card)'};"
+                     onclick="selectConverterFile('${doc.id}')">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-file-earmark-text me-2 text-info"></i>
+                        <div class="flex-grow-1">
+                            <div class="text-light small">${doc.name}</div>
+                            <div class="text-secondary" style="font-size: 10px;">${formatFileSize(doc.size || 0)}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function selectConverterFile(docId) {
+            const doc = documents.find(d => d.id === docId);
+            if (!doc) return;
+            
+            converterSelectedFile = doc;
+            document.getElementById('selectedFileName').textContent = doc.name;
+            document.getElementById('selectedFileInfo').style.display = 'block';
+            
+            populateConverterFileList(); // Re-render to show selection
+            await loadDocumentContent(doc);
+        }
+        
+        function setupConverterUpload() {
+            const uploadZone = document.getElementById('converterUploadZone');
+            const fileInput = document.getElementById('converterFileInput');
+            
+            uploadZone.onclick = () => fileInput.click();
+            
+            uploadZone.ondragover = (e) => {
+                e.preventDefault();
+                uploadZone.style.borderColor = 'var(--primary)';
+            };
+            
+            uploadZone.ondragleave = () => {
+                uploadZone.style.borderColor = 'var(--border-color)';
+            };
+            
+            uploadZone.ondrop = (e) => {
+                e.preventDefault();
+                uploadZone.style.borderColor = 'var(--border-color)';
+                if (e.dataTransfer.files.length) {
+                    handleConverterFile(e.dataTransfer.files[0]);
+                }
+            };
+            
+            fileInput.onchange = () => {
+                if (fileInput.files.length) {
+                    handleConverterFile(fileInput.files[0]);
+                }
+            };
+        }
+        
+        function handleConverterFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('convMarkdownInput').value = e.target.result;
+                document.getElementById('convTitle').value = file.name.replace(/\.(md|markdown|txt)$/i, '');
+                document.getElementById('selectedFileName').textContent = file.name;
+                document.getElementById('selectedFileInfo').style.display = 'block';
+                converterSelectedFile = { name: file.name, type: 'uploaded' };
+            };
+            reader.readAsText(file);
+        }
+        
+        async function convertInBriefcase(format) {
+            const markdown = document.getElementById('convMarkdownInput').value.trim();
+            if (!markdown) {
+                showConvStatus('Please enter or select markdown content', 'warning');
+                return;
+            }
+            
+            const data = {
+                markdown_text: markdown,
+                title: document.getElementById('convTitle').value || null,
+                case_number: document.getElementById('convCaseNumber').value || null,
+                court: document.getElementById('convCourt').value || null,
+                style: document.getElementById('convStyle').value
+            };
+            
+            const outputFolder = document.getElementById('convOutputFolder').value;
+            
+            showConvStatus('Converting document...', 'info');
+            
+            try {
+                let endpoint = '/api/convert/';
+                if (format === 'docx') endpoint += 'docx';
+                else if (format === 'html') endpoint += 'html';
+                else endpoint += 'both';
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showConvStatus('Conversion successful!', 'success');
+                    displayConvResults(result, format);
+                    
+                    // Add to briefcase if output folder specified
+                    if (outputFolder !== 'root') {
+                        await addConvertedToBriefcase(result, outputFolder);
+                    }
+                } else {
+                    showConvStatus(result.detail || 'Conversion failed', 'danger');
+                }
+            } catch (error) {
+                showConvStatus('Error: ' + error.message, 'danger');
+            }
+        }
+        
+        function showConvStatus(message, type) {
+            const statusDiv = document.getElementById('convStatus');
+            const messageDiv = document.getElementById('convStatusMessage');
+            
+            statusDiv.style.display = 'block';
+            messageDiv.className = `alert alert-${type} py-2 small`;
+            
+            const icons = {
+                info: 'hourglass-split',
+                success: 'check-circle',
+                warning: 'exclamation-triangle',
+                danger: 'x-circle'
+            };
+            
+            messageDiv.innerHTML = `<i class="bi bi-${icons[type] || 'info'} me-1"></i>${message}`;
+        }
+        
+        function displayConvResults(result, format) {
+            const resultsDiv = document.getElementById('convResults');
+            const listDiv = document.getElementById('convResultsList');
+            
+            resultsDiv.style.display = 'block';
+            
+            let html = '';
+            
+            if (result.docx_path) {
+                const filename = result.docx_path.split('/').pop().split('\\').pop();
+                html += `
+                    <div class="d-flex align-items-center p-2 mb-1 rounded" style="background: var(--bg-card);">
+                        <i class="bi bi-file-earmark-word text-primary me-2"></i>
+                        <div class="flex-grow-1 small text-light">${filename}</div>
+                        <a href="${result.download_url || result.docx_path}" class="btn btn-sm btn-outline-primary" download>
+                            <i class="bi bi-download"></i>
+                        </a>
+                    </div>
+                `;
+            }
+            
+            if (result.html_path) {
+                const filename = result.html_path.split('/').pop().split('\\').pop();
+                const htmlUrl = result.download_url ? result.download_url : result.html_path;
+                html += `
+                    <div class="d-flex align-items-center p-2 mb-1 rounded" style="background: var(--bg-card);">
+                        <i class="bi bi-filetype-html text-danger me-2"></i>
+                        <div class="flex-grow-1 small text-light">${filename}</div>
+                        <a href="${htmlUrl}" target="_blank" class="btn btn-sm btn-outline-info me-1" title="Preview">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="${htmlUrl}" class="btn btn-sm btn-outline-danger" download>
+                            <i class="bi bi-download"></i>
+                        </a>
+                    </div>
+                `;
+            }
+            
+            listDiv.innerHTML = html;
+        }
+        
+        async function addConvertedToBriefcase(result, folderId) {
+            // Save converted files to the briefcase folder
+            const originalName = converterSelectedFile?.name || document.getElementById('convTitle').value || 'document';
+            
+            try {
+                // Save DOCX if present
+                if (result.docx_path) {
+                    const docxFilename = result.docx_path.split('/').pop().split('\\').pop();
+                    await SemptifyAuth.fetch('/api/briefcase/save-converted', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            file_url: result.docx_path,
+                            filename: docxFilename,
+                            folder_id: folderId,
+                            original_name: originalName,
+                            doc_type: 'docx'
+                        })
+                    });
+                }
+                
+                // Save HTML if present
+                if (result.html_path) {
+                    const htmlFilename = result.html_path.split('/').pop().split('\\').pop();
+                    await SemptifyAuth.fetch('/api/briefcase/save-converted', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            file_url: result.html_path,
+                            filename: htmlFilename,
+                            folder_id: folderId,
+                            original_name: originalName,
+                            doc_type: 'html'
+                        })
+                    });
+                }
+                
+                showConvStatus(`Saved to ${folderId === 'converted' ? 'Converted Documents' : 'selected folder'}!`, 'success');
+                
+                // Refresh briefcase to show new files
+                setTimeout(() => loadBriefcase(), 500);
+                
+            } catch (error) {
+                console.error('Error saving to briefcase:', error);
+                showConvStatus('Converted but could not save to briefcase: ' + error.message, 'warning');
+            }
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
         }
     </script>
     

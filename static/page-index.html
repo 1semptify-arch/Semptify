@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify HTML Page Index - Database</title>
+    <style>
+        :root {
+            --primary: #1a365d;
+            --secondary: #2c5282;
+            --accent: #3182ce;
+            --success: #38a169;
+            --warning: #d69e2e;
+            --error: #e53e3e;
+            --bg: #f7fafc;
+            --border: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px 32px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 24px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            opacity: 0.8;
+            text-transform: uppercase;
+        }
+
+        .controls {
+            background: white;
+            padding: 16px 32px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        select, .btn {
+            padding: 10px 16px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            background: white;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--secondary);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+
+        .btn-outline:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        .main-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 24px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+
+        .sidebar h3 {
+            font-size: 14px;
+            color: var(--primary);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .folder-tree {
+            font-size: 13px;
+        }
+
+        .folder-item {
+            padding: 6px 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.15s;
+        }
+
+        .folder-item:hover {
+            background: var(--bg);
+        }
+
+        .folder-item.active {
+            background: #ebf8ff;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .folder-item .count {
+            margin-left: auto;
+            background: var(--border);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+        }
+
+        .folder-children {
+            margin-left: 20px;
+            display: none;
+        }
+
+        .folder-children.expanded {
+            display: block;
+        }
+
+        /* Main Content */
+        .content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .content-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 4px;
+        }
+
+        .view-btn {
+            padding: 8px 12px;
+            background: none;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .view-btn:first-child { border-radius: 6px 0 0 6px; }
+        .view-btn:last-child { border-radius: 0 6px 6px 0; }
+
+        .view-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Table View */
+        .page-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .page-table th {
+            background: var(--bg);
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #666;
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .page-table th:hover {
+            background: #edf2f7;
+        }
+
+        .page-table th .sort-icon {
+            margin-left: 4px;
+            opacity: 0.3;
+        }
+
+        .page-table th.sorted .sort-icon {
+            opacity: 1;
+        }
+
+        .page-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .page-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .page-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-icon {
+            font-size: 18px;
+        }
+
+        .page-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .page-link:hover {
+            text-decoration: underline;
+        }
+
+        .page-path {
+            color: #888;
+            font-size: 11px;
+            font-family: monospace;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tag-static { background: #c6f6d5; color: #22543d; }
+        .tag-template { background: #bee3f8; color: #2a4365; }
+        .tag-archive { background: #feebc8; color: #744210; }
+        .tag-admin { background: #fed7d7; color: #742a2a; }
+        .tag-legal { background: #e9d8fd; color: #44337a; }
+        .tag-tenant { background: #b2f5ea; color: #234e52; }
+        .tag-dakota { background: #fbd38d; color: #744210; }
+
+        /* Grid View */
+        .page-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            padding: 20px;
+            display: none;
+        }
+
+        .page-grid.active {
+            display: grid;
+        }
+
+        .page-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.2s;
+        }
+
+        .page-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+
+        .page-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .page-card-icon {
+            font-size: 24px;
+        }
+
+        .page-card-title {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .page-card-path {
+            font-size: 11px;
+            color: #888;
+            font-family: monospace;
+            margin-bottom: 12px;
+            word-break: break-all;
+        }
+
+        .page-card-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .page-card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .page-card-actions a {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .action-open {
+            background: var(--accent);
+            color: white;
+        }
+
+        .action-edit {
+            background: var(--bg);
+            color: var(--primary);
+        }
+
+        /* No results */
+        .no-results {
+            padding: 60px 20px;
+            text-align: center;
+            color: #888;
+        }
+
+        .no-results-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .quick-action {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .quick-action:hover {
+            background: var(--bg);
+            color: var(--primary);
+        }
+
+        /* Export Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal h2 {
+            margin-bottom: 16px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .stats {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>📑 Semptify HTML Page Index</h1>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="total-pages">0</div>
+                    <div class="stat-label">Total Pages</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="total-repos">0</div>
+                    <div class="stat-label">Repositories</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="total-size">0</div>
+                    <div class="stat-label">Total Size</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="controls">
+        <div class="search-box">
+            <input type="text" id="search" placeholder="Search pages by name, path, or tag...">
+        </div>
+        <div class="filter-group">
+            <label>Repository:</label>
+            <select id="filter-repo">
+                <option value="">All Repositories</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Type:</label>
+            <select id="filter-type">
+                <option value="">All Types</option>
+                <option value="static">Static</option>
+                <option value="template">Template</option>
+                <option value="archive">Archive</option>
+                <option value="admin">Admin</option>
+                <option value="legal">Legal</option>
+                <option value="tenant">Tenant</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Sort:</label>
+            <select id="sort-by">
+                <option value="name">Name</option>
+                <option value="path">Path</option>
+                <option value="size">Size</option>
+                <option value="date">Date Modified</option>
+            </select>
+        </div>
+        <button class="btn" onclick="exportData()">📥 Export</button>
+        <button class="btn btn-outline" onclick="refreshIndex()">🔄 Refresh</button>
+        <button class="btn" onclick="scanAllRepos()">🔍 Scan All Repos</button>
+    </div>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <h3>📁 Folders</h3>
+            <div class="folder-tree" id="folder-tree"></div>
+
+            <div class="quick-actions">
+                <h3>⚡ Quick Actions</h3>
+                <div class="quick-action" onclick="filterByTag('static')">
+                    <span>📄</span> Static Pages
+                </div>
+                <div class="quick-action" onclick="filterByTag('template')">
+                    <span>📝</span> Templates
+                </div>
+                <div class="quick-action" onclick="filterByTag('admin')">
+                    <span>🔧</span> Admin Pages
+                </div>
+                <div class="quick-action" onclick="filterByTag('legal')">
+                    <span>⚖️</span> Legal Pages
+                </div>
+                <div class="quick-action" onclick="showRecent()">
+                    <span>🕐</span> Recently Modified
+                </div>
+                <div class="quick-action" onclick="showLargest()">
+                    <span>📊</span> Largest Files
+                </div>
+            </div>
+        </aside>
+
+        <main class="content">
+            <div class="content-header">
+                <span id="result-count">Loading...</span>
+                <div class="view-toggle">
+                    <button class="view-btn active" onclick="setView('table')" title="Table View">📋</button>
+                    <button class="view-btn" onclick="setView('grid')" title="Grid View">⊞</button>
+                </div>
+            </div>
+
+            <table class="page-table" id="page-table">
+                <thead>
+                    <tr>
+                        <th onclick="sortBy('name')">Name <span class="sort-icon">↕</span></th>
+                        <th onclick="sortBy('path')">Path <span class="sort-icon">↕</span></th>
+                        <th onclick="sortBy('repo')">Repository <span class="sort-icon">↕</span></th>
+                        <th onclick="sortBy('type')">Type <span class="sort-icon">↕</span></th>
+                        <th onclick="sortBy('size')">Size <span class="sort-icon">↕</span></th>
+                        <th onclick="sortBy('date')">Modified <span class="sort-icon">↕</span></th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="page-tbody"></tbody>
+            </table>
+
+            <div class="page-grid" id="page-grid"></div>
+        </main>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal-overlay" id="export-modal">
+        <div class="modal">
+            <h2>📥 Export Page Index</h2>
+            <p>Choose export format:</p>
+            <div class="modal-actions">
+                <button class="btn" onclick="exportAs('json')">JSON</button>
+                <button class="btn" onclick="exportAs('csv')">CSV</button>
+                <button class="btn" onclick="exportAs('html')">HTML Report</button>
+                <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Page Database
+        let pageDatabase = [];
+        let filteredPages = [];
+        let currentSort = { field: 'name', direction: 'asc' };
+        let currentView = 'table';
+
+        // Initialize the page index from embedded data or API
+        async function initPageIndex() {
+            // Try to load from API first
+            try {
+                const response = await fetch('/api/pages/fastapi');
+                if (response.ok) {
+                    const data = await response.json();
+                    pageDatabase = data.pages;
+                } else {
+                    // Fall back to embedded data
+                    pageDatabase = getEmbeddedPageData();
+                }
+            } catch (e) {
+                // Fall back to embedded data if API unavailable
+                pageDatabase = getEmbeddedPageData();
+            }
+            
+            // Populate filters
+            populateFilters();
+            
+            // Build folder tree
+            buildFolderTree();
+            
+            // Update stats
+            updateStats();
+            
+            // Display all pages
+            filterAndDisplay();
+        }
+
+        function getEmbeddedPageData() {
+            // This data is embedded from the scan
+            return [
+                // Semptify-FastAPI Static Pages
+                { name: "about.html", path: "static/about.html", repo: "Semptify-FastAPI", type: "static", size: 30952, date: "2025-12-13" },
+                { name: "brain.html", path: "static/brain.html", repo: "Semptify-FastAPI", type: "static", size: 28893, date: "2025-12-21" },
+                { name: "briefcase.html", path: "static/briefcase.html", repo: "Semptify-FastAPI", type: "static", size: 82478, date: "2025-12-31" },
+                { name: "calendar.html", path: "static/calendar.html", repo: "Semptify-FastAPI", type: "static", size: 34247, date: "2025-12-21" },
+                { name: "calendar-v2.html", path: "static/calendar-v2.html", repo: "Semptify-FastAPI", type: "static", size: 31746, date: "2025-12-14" },
+                { name: "campaign.html", path: "static/campaign.html", repo: "Semptify-FastAPI", type: "static", size: 51083, date: "2025-12-09" },
+                { name: "cases.html", path: "static/cases.html", repo: "Semptify-FastAPI", type: "static", size: 69138, date: "2025-12-21" },
+                { name: "command_center.html", path: "static/command_center.html", repo: "Semptify-FastAPI", type: "admin", size: 79564, date: "2025-12-21" },
+                { name: "complaints.html", path: "static/complaints.html", repo: "Semptify-FastAPI", type: "static", size: 87137, date: "2025-12-21" },
+                { name: "contacts.html", path: "static/contacts.html", repo: "Semptify-FastAPI", type: "static", size: 51112, date: "2025-12-21" },
+                { name: "correspondence.html", path: "static/correspondence.html", repo: "Semptify-FastAPI", type: "static", size: 40718, date: "2025-12-24" },
+                { name: "counterclaim.html", path: "static/counterclaim.html", repo: "Semptify-FastAPI", type: "legal", size: 30653, date: "2025-12-21" },
+                { name: "court_learning.html", path: "static/court_learning.html", repo: "Semptify-FastAPI", type: "legal", size: 33457, date: "2025-12-21" },
+                { name: "court_packet.html", path: "static/court_packet.html", repo: "Semptify-FastAPI", type: "legal", size: 25758, date: "2025-12-21" },
+                { name: "crawler.html", path: "static/crawler.html", repo: "Semptify-FastAPI", type: "admin", size: 24568, date: "2025-12-31" },
+                { name: "crawler_control.html", path: "static/crawler_control.html", repo: "Semptify-FastAPI", type: "admin", size: 50675, date: "2025-12-31" },
+                { name: "crisis_intake.html", path: "static/crisis_intake.html", repo: "Semptify-FastAPI", type: "tenant", size: 31604, date: "2025-12-21" },
+                { name: "dakota_defense.html", path: "static/dakota_defense.html", repo: "Semptify-FastAPI", type: "dakota", size: 34041, date: "2025-12-21" },
+                { name: "dashboard.html", path: "static/dashboard.html", repo: "Semptify-FastAPI", type: "static", size: 94053, date: "2025-12-31" },
+                { name: "document_calendar.html", path: "static/document_calendar.html", repo: "Semptify-FastAPI", type: "static", size: 45213, date: "2025-12-31" },
+                { name: "document_intake.html", path: "static/document_intake.html", repo: "Semptify-FastAPI", type: "static", size: 193391, date: "2025-12-31" },
+                { name: "document_viewer.html", path: "static/document_viewer.html", repo: "Semptify-FastAPI", type: "static", size: 61211, date: "2025-12-31" },
+                { name: "document-converter.html", path: "static/document-converter.html", repo: "Semptify-FastAPI", type: "static", size: 28704, date: "2026-01-01" },
+                { name: "evaluation_report.html", path: "static/evaluation_report.html", repo: "Semptify-FastAPI", type: "static", size: 44166, date: "2025-12-12" },
+                { name: "eviction_answer.html", path: "static/eviction_answer.html", repo: "Semptify-FastAPI", type: "legal", size: 38978, date: "2025-12-21" },
+                { name: "exposure.html", path: "static/exposure.html", repo: "Semptify-FastAPI", type: "static", size: 22997, date: "2025-12-15" },
+                { name: "focus.html", path: "static/focus.html", repo: "Semptify-FastAPI", type: "static", size: 17585, date: "2025-12-31" },
+                { name: "fraud.html", path: "static/fraud.html", repo: "Semptify-FastAPI", type: "static", size: 18537, date: "2025-12-15" },
+                { name: "funding_search.html", path: "static/funding_search.html", repo: "Semptify-FastAPI", type: "static", size: 43803, date: "2025-12-21" },
+                { name: "hearing_prep.html", path: "static/hearing_prep.html", repo: "Semptify-FastAPI", type: "legal", size: 20986, date: "2025-12-21" },
+                { name: "help.html", path: "static/help.html", repo: "Semptify-FastAPI", type: "static", size: 32704, date: "2025-12-21" },
+                { name: "home.html", path: "static/home.html", repo: "Semptify-FastAPI", type: "static", size: 890, date: "2025-12-31" },
+                { name: "hud_funding.html", path: "static/hud_funding.html", repo: "Semptify-FastAPI", type: "static", size: 27252, date: "2025-12-09" },
+                { name: "index.html", path: "static/index.html", repo: "Semptify-FastAPI", type: "static", size: 9766, date: "2025-12-21" },
+                { name: "index-simple.html", path: "static/index-simple.html", repo: "Semptify-FastAPI", type: "static", size: 21578, date: "2025-12-31" },
+                { name: "intake.html", path: "static/intake.html", repo: "Semptify-FastAPI", type: "static", size: 735, date: "2025-12-21" },
+                { name: "law_library.html", path: "static/law_library.html", repo: "Semptify-FastAPI", type: "legal", size: 54047, date: "2025-12-23" },
+                { name: "layout_builder.html", path: "static/layout_builder.html", repo: "Semptify-FastAPI", type: "admin", size: 54935, date: "2025-12-09" },
+                { name: "legal_analysis.html", path: "static/legal_analysis.html", repo: "Semptify-FastAPI", type: "legal", size: 63970, date: "2025-12-16" },
+                { name: "legal_trails.html", path: "static/legal_trails.html", repo: "Semptify-FastAPI", type: "legal", size: 61261, date: "2025-12-21" },
+                { name: "letter_builder.html", path: "static/letter_builder.html", repo: "Semptify-FastAPI", type: "static", size: 16915, date: "2025-12-21" },
+                { name: "mesh_network.html", path: "static/mesh_network.html", repo: "Semptify-FastAPI", type: "static", size: 23346, date: "2025-12-09" },
+                { name: "module-converter.html", path: "static/module-converter.html", repo: "Semptify-FastAPI", type: "admin", size: 44072, date: "2025-12-04" },
+                { name: "motions.html", path: "static/motions.html", repo: "Semptify-FastAPI", type: "legal", size: 30368, date: "2025-12-21" },
+                { name: "page_editor.html", path: "static/page_editor.html", repo: "Semptify-FastAPI", type: "admin", size: 31306, date: "2025-12-11" },
+                { name: "pdf_tools.html", path: "static/pdf_tools.html", repo: "Semptify-FastAPI", type: "static", size: 65463, date: "2025-12-21" },
+                { name: "privacy.html", path: "static/privacy.html", repo: "Semptify-FastAPI", type: "static", size: 18785, date: "2025-12-21" },
+                { name: "recognition.html", path: "static/recognition.html", repo: "Semptify-FastAPI", type: "static", size: 60137, date: "2025-12-21" },
+                { name: "research.html", path: "static/research.html", repo: "Semptify-FastAPI", type: "static", size: 22434, date: "2025-12-09" },
+                { name: "research_module.html", path: "static/research_module.html", repo: "Semptify-FastAPI", type: "static", size: 50880, date: "2025-12-21" },
+                { name: "roles.html", path: "static/roles.html", repo: "Semptify-FastAPI", type: "admin", size: 54270, date: "2025-12-09" },
+                { name: "sample_certificate.html", path: "static/sample_certificate.html", repo: "Semptify-FastAPI", type: "static", size: 13451, date: "2025-12-02" },
+                { name: "settings-v2.html", path: "static/settings-v2.html", repo: "Semptify-FastAPI", type: "static", size: 35033, date: "2025-12-13" },
+                { name: "setup_wizard.html", path: "static/setup_wizard.html", repo: "Semptify-FastAPI", type: "static", size: 65412, date: "2025-12-31" },
+                { name: "storage_setup.html", path: "static/storage_setup.html", repo: "Semptify-FastAPI", type: "static", size: 45563, date: "2025-12-24" },
+                { name: "style_editor.html", path: "static/style_editor.html", repo: "Semptify-FastAPI", type: "admin", size: 27995, date: "2025-12-09" },
+                { name: "timeline.html", path: "static/timeline.html", repo: "Semptify-FastAPI", type: "static", size: 34816, date: "2025-12-21" },
+                { name: "vault.html", path: "static/vault.html", repo: "Semptify-FastAPI", type: "static", size: 64191, date: "2025-12-31" },
+                { name: "welcome.html", path: "static/welcome.html", repo: "Semptify-FastAPI", type: "static", size: 21572, date: "2025-12-31" },
+                { name: "zoom_court.html", path: "static/zoom_court.html", repo: "Semptify-FastAPI", type: "legal", size: 23823, date: "2025-12-21" },
+                
+                // Admin subfolder
+                { name: "document_intake.html", path: "static/admin/document_intake.html", repo: "Semptify-FastAPI", type: "admin", size: 316, date: "2025-12-10" },
+                { name: "mission_control.html", path: "static/admin/mission_control.html", repo: "Semptify-FastAPI", type: "admin", size: 73192, date: "2025-12-09" },
+                
+                // Advocate subfolder
+                { name: "clients.html", path: "static/advocate/clients.html", repo: "Semptify-FastAPI", type: "static", size: 19838, date: "2025-12-16" },
+                { name: "index.html", path: "static/advocate/index.html", repo: "Semptify-FastAPI", type: "static", size: 20689, date: "2025-12-16" },
+                { name: "intake.html", path: "static/advocate/intake.html", repo: "Semptify-FastAPI", type: "static", size: 26915, date: "2025-12-16" },
+                { name: "queue.html", path: "static/advocate/queue.html", repo: "Semptify-FastAPI", type: "static", size: 16435, date: "2025-12-16" },
+                
+                // Legal subfolder
+                { name: "cases.html", path: "static/legal/cases.html", repo: "Semptify-FastAPI", type: "legal", size: 17584, date: "2025-12-16" },
+                { name: "conflicts.html", path: "static/legal/conflicts.html", repo: "Semptify-FastAPI", type: "legal", size: 17417, date: "2025-12-16" },
+                { name: "filings.html", path: "static/legal/filings.html", repo: "Semptify-FastAPI", type: "legal", size: 17803, date: "2025-12-16" },
+                { name: "index.html", path: "static/legal/index.html", repo: "Semptify-FastAPI", type: "legal", size: 24655, date: "2025-12-16" },
+                { name: "privileged.html", path: "static/legal/privileged.html", repo: "Semptify-FastAPI", type: "legal", size: 18746, date: "2025-12-16" },
+                
+                // Tenant subfolder
+                { name: "documents.html", path: "static/tenant/documents.html", repo: "Semptify-FastAPI", type: "tenant", size: 20285, date: "2025-12-30" },
+                { name: "help.html", path: "static/tenant/help.html", repo: "Semptify-FastAPI", type: "tenant", size: 13115, date: "2025-12-30" },
+                { name: "index.html", path: "static/tenant/index.html", repo: "Semptify-FastAPI", type: "tenant", size: 24271, date: "2025-12-30" },
+                { name: "timeline.html", path: "static/tenant/timeline.html", repo: "Semptify-FastAPI", type: "tenant", size: 21314, date: "2025-12-30" },
+                
+                // Onboarding subfolder
+                { name: "select-role.html", path: "static/onboarding/select-role.html", repo: "Semptify-FastAPI", type: "static", size: 15107, date: "2025-12-16" },
+                { name: "validate-advocate.html", path: "static/onboarding/validate-advocate.html", repo: "Semptify-FastAPI", type: "static", size: 13986, date: "2025-12-16" },
+                { name: "validate-legal.html", path: "static/onboarding/validate-legal.html", repo: "Semptify-FastAPI", type: "static", size: 24192, date: "2025-12-16" },
+                { name: "welcome.html", path: "static/onboarding/welcome.html", repo: "Semptify-FastAPI", type: "static", size: 17458, date: "2025-12-13" },
+                
+                // Intake subfolder
+                { name: "guide.html", path: "static/intake/guide.html", repo: "Semptify-FastAPI", type: "static", size: 63777, date: "2025-12-17" },
+                
+                // Components
+                { name: "auth-strip.html", path: "static/components/auth-strip.html", repo: "Semptify-FastAPI", type: "template", size: 5669, date: "2025-12-11" },
+                { name: "footer.html", path: "static/components/footer.html", repo: "Semptify-FastAPI", type: "template", size: 2095, date: "2025-12-13" },
+                { name: "header.html", path: "static/components/header.html", repo: "Semptify-FastAPI", type: "template", size: 15403, date: "2025-12-13" },
+                { name: "navbar.html", path: "static/components/navbar.html", repo: "Semptify-FastAPI", type: "template", size: 1511, date: "2025-12-21" },
+                { name: "sidebar.html", path: "static/components/sidebar.html", repo: "Semptify-FastAPI", type: "template", size: 11371, date: "2025-12-13" },
+                
+                // Archive
+                { name: "complete-journey.html", path: "static/_archive/complete-journey.html", repo: "Semptify-FastAPI", type: "archive", size: 31585, date: "2025-12-21" },
+                { name: "dashboard-v2.html", path: "static/_archive/dashboard-v2.html", repo: "Semptify-FastAPI", type: "archive", size: 32552, date: "2025-12-16" },
+                { name: "document_intake_backup.html", path: "static/_archive/document_intake_backup.html", repo: "Semptify-FastAPI", type: "archive", size: 104348, date: "2025-12-13" },
+                { name: "documents.html", path: "static/_archive/documents.html", repo: "Semptify-FastAPI", type: "archive", size: 47553, date: "2025-12-21" },
+                { name: "enterprise-dashboard.html", path: "static/_archive/enterprise-dashboard.html", repo: "Semptify-FastAPI", type: "archive", size: 37878, date: "2025-12-13" },
+                { name: "interactive-timeline.html", path: "static/_archive/interactive-timeline.html", repo: "Semptify-FastAPI", type: "archive", size: 77631, date: "2025-12-21" },
+                { name: "journey.html", path: "static/_archive/journey.html", repo: "Semptify-FastAPI", type: "archive", size: 49112, date: "2025-12-21" },
+                { name: "law_library_old.html", path: "static/_archive/law_library_old.html", repo: "Semptify-FastAPI", type: "archive", size: 78080, date: "2025-12-09" },
+                { name: "my_tenancy.html", path: "static/_archive/my_tenancy.html", repo: "Semptify-FastAPI", type: "archive", size: 62344, date: "2025-12-21" },
+                { name: "recognition_demo.html", path: "static/_archive/recognition_demo.html", repo: "Semptify-FastAPI", type: "archive", size: 80991, date: "2025-12-13" },
+                { name: "timeline-builder.html", path: "static/_archive/timeline-builder.html", repo: "Semptify-FastAPI", type: "archive", size: 48856, date: "2025-12-21" },
+                
+                // App Templates
+                { name: "base.html", path: "app/templates/base.html", repo: "Semptify-FastAPI", type: "template", size: 4808, date: "2025-12-13" },
+                { name: "document_card.html", path: "app/templates/components/document_card.html", repo: "Semptify-FastAPI", type: "template", size: 1200, date: "2025-12-10" },
+                { name: "upload_zone.html", path: "app/templates/components/upload_zone.html", repo: "Semptify-FastAPI", type: "template", size: 1500, date: "2025-12-10" },
+                { name: "error.html", path: "app/templates/pages/error.html", repo: "Semptify-FastAPI", type: "template", size: 2000, date: "2025-12-10" },
+                { name: "register.html", path: "app/templates/pages/register.html", repo: "Semptify-FastAPI", type: "template", size: 3000, date: "2025-12-10" },
+                { name: "register_success.html", path: "app/templates/pages/register_success.html", repo: "Semptify-FastAPI", type: "template", size: 2500, date: "2025-12-10" },
+                
+                // Semptify (Flask) Templates - Main Selection
+                { name: "index.html", path: "templates/index.html", repo: "Semptify", type: "template", size: 15000, date: "2025-11-15" },
+                { name: "dashboard_home.html", path: "templates/dashboard_home.html", repo: "Semptify", type: "template", size: 25000, date: "2025-11-15" },
+                { name: "tenant_dashboard.html", path: "templates/tenant_dashboard.html", repo: "Semptify", type: "template", size: 20000, date: "2025-11-15" },
+                { name: "calendar_master.html", path: "templates/calendar_master.html", repo: "Semptify", type: "template", size: 18000, date: "2025-11-15" },
+                { name: "vault.html", path: "templates/vault.html", repo: "Semptify", type: "template", size: 22000, date: "2025-11-15" },
+                { name: "evidence_panel.html", path: "templates/evidence_panel.html", repo: "Semptify", type: "template", size: 16000, date: "2025-11-15" },
+                { name: "copilot.html", path: "templates/copilot.html", repo: "Semptify", type: "template", size: 14000, date: "2025-11-15" },
+                { name: "court_clerk.html", path: "templates/court_clerk.html", repo: "Semptify", type: "legal", size: 12000, date: "2025-11-15" },
+                { name: "file_complaint.html", path: "templates/file_complaint.html", repo: "Semptify", type: "legal", size: 18000, date: "2025-11-15" },
+                { name: "motion_wizard.html", path: "templates/motion_wizard.html", repo: "Semptify", type: "legal", size: 20000, date: "2025-11-15" },
+                { name: "counterclaim_wizard.html", path: "templates/counterclaim_wizard.html", repo: "Semptify", type: "legal", size: 22000, date: "2025-11-15" },
+                { name: "admin.html", path: "templates/admin.html", repo: "Semptify", type: "admin", size: 15000, date: "2025-11-15" },
+                { name: "master_admin.html", path: "templates/master_admin.html", repo: "Semptify", type: "admin", size: 25000, date: "2025-11-15" },
+                { name: "storage_dashboard.html", path: "templates/storage_dashboard.html", repo: "Semptify", type: "admin", size: 18000, date: "2025-11-15" },
+                { name: "login.html", path: "templates/login.html", repo: "Semptify", type: "template", size: 8000, date: "2025-11-15" },
+                { name: "register.html", path: "templates/register.html", repo: "Semptify", type: "template", size: 10000, date: "2025-11-15" },
+                
+                // SemptifyGUI Templates - Key Selection
+                { name: "index.html", path: "templates/index.html", repo: "SemptifyGUI", type: "template", size: 15000, date: "2025-10-20" },
+                { name: "base.html", path: "templates/base.html", repo: "SemptifyGUI", type: "template", size: 8000, date: "2025-10-20" },
+                { name: "dashboard_home.html", path: "templates/dashboard_home.html", repo: "SemptifyGUI", type: "template", size: 22000, date: "2025-10-20" },
+                { name: "gui_dashboard.html", path: "templates/gui_dashboard.html", repo: "SemptifyGUI", type: "template", size: 25000, date: "2025-10-20" },
+                { name: "calendar_hub.html", path: "templates/calendar_hub.html", repo: "SemptifyGUI", type: "template", size: 18000, date: "2025-10-20" },
+                { name: "evidence_panel.html", path: "templates/evidence_panel.html", repo: "SemptifyGUI", type: "template", size: 15000, date: "2025-10-20" },
+                
+                // Dakota County Eviction Module
+                { name: "index.html", path: "semptify_dakota_eviction/app/templates/index.html", repo: "Semptify-FastAPI", type: "dakota", size: 10000, date: "2025-12-01" },
+                { name: "answer_step1.html", path: "semptify_dakota_eviction/app/templates/flows/answer_step1.html", repo: "Semptify-FastAPI", type: "dakota", size: 8000, date: "2025-12-01" },
+                { name: "answer_step2.html", path: "semptify_dakota_eviction/app/templates/flows/answer_step2.html", repo: "Semptify-FastAPI", type: "dakota", size: 8000, date: "2025-12-01" },
+                { name: "answer_step3.html", path: "semptify_dakota_eviction/app/templates/flows/answer_step3.html", repo: "Semptify-FastAPI", type: "dakota", size: 8000, date: "2025-12-01" },
+                { name: "counterclaim_step1.html", path: "semptify_dakota_eviction/app/templates/flows/counterclaim_step1.html", repo: "Semptify-FastAPI", type: "dakota", size: 9000, date: "2025-12-01" },
+                { name: "hearing_step1.html", path: "semptify_dakota_eviction/app/templates/flows/hearing_step1.html", repo: "Semptify-FastAPI", type: "dakota", size: 7000, date: "2025-12-01" },
+                { name: "zoom_helper.html", path: "semptify_dakota_eviction/app/templates/flows/zoom_helper.html", repo: "Semptify-FastAPI", type: "dakota", size: 6000, date: "2025-12-01" },
+            ];
+        }
+
+        function populateFilters() {
+            const repoSelect = document.getElementById('filter-repo');
+            const repos = [...new Set(pageDatabase.map(p => p.repo))];
+            
+            repos.forEach(repo => {
+                const option = document.createElement('option');
+                option.value = repo;
+                option.textContent = repo;
+                repoSelect.appendChild(option);
+            });
+        }
+
+        function buildFolderTree() {
+            const tree = document.getElementById('folder-tree');
+            const folders = {};
+            
+            pageDatabase.forEach(page => {
+                const parts = page.path.split('/');
+                let current = folders;
+                
+                parts.slice(0, -1).forEach(part => {
+                    if (!current[part]) {
+                        current[part] = { _count: 0, _children: {} };
+                    }
+                    current[part]._count++;
+                    current = current[part]._children;
+                });
+            });
+            
+            function renderFolder(name, data, path = '') {
+                const fullPath = path ? `${path}/${name}` : name;
+                const hasChildren = Object.keys(data._children).length > 0;
+                
+                let html = `
+                    <div class="folder-item" onclick="filterByFolder('${fullPath}')">
+                        <span>${hasChildren ? '📁' : '📂'}</span>
+                        ${name}
+                        <span class="count">${data._count}</span>
+                    </div>
+                `;
+                
+                if (hasChildren) {
+                    html += `<div class="folder-children">`;
+                    Object.entries(data._children).forEach(([childName, childData]) => {
+                        html += renderFolder(childName, childData, fullPath);
+                    });
+                    html += `</div>`;
+                }
+                
+                return html;
+            }
+            
+            let treeHtml = `
+                <div class="folder-item active" onclick="filterByFolder('')">
+                    <span>🏠</span>
+                    All Pages
+                    <span class="count">${pageDatabase.length}</span>
+                </div>
+            `;
+            
+            Object.entries(folders).forEach(([name, data]) => {
+                treeHtml += renderFolder(name, data);
+            });
+            
+            tree.innerHTML = treeHtml;
+        }
+
+        function updateStats() {
+            document.getElementById('total-pages').textContent = pageDatabase.length;
+            document.getElementById('total-repos').textContent = [...new Set(pageDatabase.map(p => p.repo))].length;
+            
+            const totalSize = pageDatabase.reduce((sum, p) => sum + p.size, 0);
+            document.getElementById('total-size').textContent = formatSize(totalSize);
+        }
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function filterAndDisplay() {
+            const search = document.getElementById('search').value.toLowerCase();
+            const repoFilter = document.getElementById('filter-repo').value;
+            const typeFilter = document.getElementById('filter-type').value;
+            
+            filteredPages = pageDatabase.filter(page => {
+                const matchesSearch = !search || 
+                    page.name.toLowerCase().includes(search) ||
+                    page.path.toLowerCase().includes(search) ||
+                    page.type.toLowerCase().includes(search);
+                    
+                const matchesRepo = !repoFilter || page.repo === repoFilter;
+                const matchesType = !typeFilter || page.type === typeFilter;
+                
+                return matchesSearch && matchesRepo && matchesType;
+            });
+            
+            // Sort
+            filteredPages.sort((a, b) => {
+                let aVal = a[currentSort.field];
+                let bVal = b[currentSort.field];
+                
+                if (currentSort.field === 'size') {
+                    aVal = parseInt(aVal);
+                    bVal = parseInt(bVal);
+                }
+                
+                if (aVal < bVal) return currentSort.direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return currentSort.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            displayPages();
+        }
+
+        function getPageUrl(page) {
+            // Build the correct URL based on the path
+            let url = page.path;
+            
+            // If it's a full path from scanning all repos, extract the relevant part
+            if (url.includes('Semptify-FastAPI/')) {
+                url = url.split('Semptify-FastAPI/')[1];
+            } else if (url.includes('Semptify/')) {
+                // For other Semptify repos, we can't serve them directly
+                // Return file:// URL for local access
+                return 'file:///' + page.full_path.replace(/\\/g, '/');
+            }
+            
+            // Ensure it starts with /
+            if (!url.startsWith('/')) {
+                url = '/' + url;
+            }
+            
+            return url;
+        }
+
+        function displayPages() {
+            document.getElementById('result-count').textContent = `${filteredPages.length} pages`;
+            
+            // Table View
+            const tbody = document.getElementById('page-tbody');
+            tbody.innerHTML = filteredPages.map(page => {
+                const pageUrl = getPageUrl(page);
+                return `
+                <tr>
+                    <td>
+                        <div class="page-name">
+                            <span class="page-icon">${getPageIcon(page.type)}</span>
+                            <a href="${pageUrl}" class="page-link" target="_blank">${page.name}</a>
+                        </div>
+                    </td>
+                    <td><span class="page-path">${page.path}</span></td>
+                    <td>${page.repo}</td>
+                    <td><span class="tag tag-${page.type}">${page.type}</span></td>
+                    <td>${formatSize(page.size)}</td>
+                    <td>${page.date}</td>
+                    <td>
+                        <a href="${pageUrl}" target="_blank" class="btn" style="padding:4px 8px;font-size:11px;">Open</a>
+                    </td>
+                </tr>
+            `}).join('');
+            
+            // Grid View
+            const grid = document.getElementById('page-grid');
+            grid.innerHTML = filteredPages.map(page => {
+                const pageUrl = getPageUrl(page);
+                return `
+                <div class="page-card">
+                    <div class="page-card-header">
+                        <span class="page-card-icon">${getPageIcon(page.type)}</span>
+                        <span class="page-card-title">${page.name}</span>
+                    </div>
+                    <div class="page-card-path">${page.path}</div>
+                    <div class="page-card-meta">
+                        <span class="tag tag-${page.type}">${page.type}</span>
+                        <span>${formatSize(page.size)}</span>
+                    </div>
+                    <div class="page-card-actions">
+                        <a href="${pageUrl}" target="_blank" class="action-open">Open</a>
+                        <a href="/static/page_editor.html?file=${encodeURIComponent(page.path)}" class="action-edit">Edit</a>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        function getPageIcon(type) {
+            const icons = {
+                static: '📄',
+                template: '📝',
+                archive: '📦',
+                admin: '⚙️',
+                legal: '⚖️',
+                tenant: '🏠',
+                dakota: '🏛️'
+            };
+            return icons[type] || '📄';
+        }
+
+        function sortBy(field) {
+            if (currentSort.field === field) {
+                currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.field = field;
+                currentSort.direction = 'asc';
+            }
+            filterAndDisplay();
+        }
+
+        function setView(view) {
+            currentView = view;
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.getElementById('page-table').style.display = view === 'table' ? 'table' : 'none';
+            document.getElementById('page-grid').classList.toggle('active', view === 'grid');
+        }
+
+        function filterByFolder(path) {
+            document.getElementById('search').value = path;
+            filterAndDisplay();
+            
+            document.querySelectorAll('.folder-item').forEach(item => item.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function filterByTag(tag) {
+            document.getElementById('filter-type').value = tag;
+            filterAndDisplay();
+        }
+
+        function showRecent() {
+            currentSort = { field: 'date', direction: 'desc' };
+            document.getElementById('filter-type').value = '';
+            document.getElementById('filter-repo').value = '';
+            document.getElementById('search').value = '';
+            filterAndDisplay();
+        }
+
+        function showLargest() {
+            currentSort = { field: 'size', direction: 'desc' };
+            document.getElementById('filter-type').value = '';
+            document.getElementById('filter-repo').value = '';
+            document.getElementById('search').value = '';
+            filterAndDisplay();
+        }
+
+        function exportData() {
+            document.getElementById('export-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('export-modal').classList.remove('active');
+        }
+
+        function exportAs(format) {
+            const data = filteredPages;
+            let content, filename, type;
+            
+            if (format === 'json') {
+                content = JSON.stringify(data, null, 2);
+                filename = 'semptify-pages.json';
+                type = 'application/json';
+            } else if (format === 'csv') {
+                const headers = ['Name', 'Path', 'Repository', 'Type', 'Size', 'Date'];
+                const rows = data.map(p => [p.name, p.path, p.repo, p.type, p.size, p.date]);
+                content = [headers, ...rows].map(r => r.join(',')).join('\n');
+                filename = 'semptify-pages.csv';
+                type = 'text/csv';
+            } else {
+                content = generateHtmlReport(data);
+                filename = 'semptify-pages-report.html';
+                type = 'text/html';
+            }
+            
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            
+            closeModal();
+        }
+
+        function generateHtmlReport(data) {
+            return `<!DOCTYPE html>
+<html><head><title>Semptify Page Report</title>
+<style>body{font-family:sans-serif;padding:20px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ddd;padding:8px;text-align:left;}th{background:#f5f5f5;}</style>
+</head><body>
+<h1>Semptify HTML Page Report</h1>
+<p>Generated: ${new Date().toLocaleString()}</p>
+<p>Total Pages: ${data.length}</p>
+<table>
+<tr><th>Name</th><th>Path</th><th>Repository</th><th>Type</th><th>Size</th><th>Date</th></tr>
+${data.map(p => `<tr><td>${p.name}</td><td>${p.path}</td><td>${p.repo}</td><td>${p.type}</td><td>${formatSize(p.size)}</td><td>${p.date}</td></tr>`).join('')}
+</table>
+</body></html>`;
+        }
+
+        function refreshIndex() {
+            // Clear the page database and reload from API
+            pageDatabase = [];
+            initPageIndex();
+        }
+
+        async function scanAllRepos() {
+            // Scan all Semptify repositories
+            try {
+                document.getElementById('result-count').textContent = 'Scanning all repositories...';
+                const response = await fetch('/api/pages/scan?base_path=C:\\Semptify');
+                if (response.ok) {
+                    const data = await response.json();
+                    pageDatabase = data.pages;
+                    populateFilters();
+                    buildFolderTree();
+                    updateStats();
+                    filterAndDisplay();
+                }
+            } catch (e) {
+                console.error('Failed to scan all repos:', e);
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('search').addEventListener('input', filterAndDisplay);
+        document.getElementById('filter-repo').addEventListener('change', filterAndDisplay);
+        document.getElementById('filter-type').addEventListener('change', filterAndDisplay);
+        document.getElementById('sort-by').addEventListener('change', (e) => {
+            currentSort = { field: e.target.value, direction: 'asc' };
+            filterAndDisplay();
+        });
+
+        // Initialize
+        initPageIndex();
+    </script>
+</body>
+</html>

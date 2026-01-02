@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Converter - Semptify</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2c5282;
+            --accent-color: #3182ce;
+            --success-color: #38a169;
+            --warning-color: #d69e2e;
+            --error-color: #e53e3e;
+            --bg-light: #f7fafc;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .converter-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--primary-color);
+            color: white;
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-icon {
+            font-size: 32px;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .input-section {
+            padding: 24px;
+            border-right: 1px solid var(--border-color);
+        }
+
+        .output-section {
+            padding: 24px;
+            background: var(--bg-light);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Metadata Form */
+        .metadata-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: var(--bg-light);
+            border-radius: 8px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+        }
+
+        /* Markdown Editor */
+        .markdown-editor {
+            width: 100%;
+            min-height: 350px;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        .markdown-editor:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-docx {
+            background: #2b579a;
+            color: white;
+        }
+
+        .btn-docx:hover {
+            background: #1e3f70;
+            transform: translateY(-2px);
+        }
+
+        .btn-html {
+            background: #e44d26;
+            color: white;
+        }
+
+        .btn-html:hover {
+            background: #c13d1b;
+            transform: translateY(-2px);
+        }
+
+        .btn-both {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-both:hover {
+            background: #2f855a;
+            transform: translateY(-2px);
+        }
+
+        /* File Upload */
+        .file-upload {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-upload:hover {
+            border-color: var(--accent-color);
+            background: rgba(49, 130, 206, 0.05);
+        }
+
+        .file-upload.dragover {
+            border-color: var(--accent-color);
+            background: rgba(49, 130, 206, 0.1);
+        }
+
+        .file-upload-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        /* Output Results */
+        .results-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .result-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .result-item:hover {
+            background: var(--bg-light);
+        }
+
+        .result-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .result-icon {
+            font-size: 32px;
+        }
+
+        .result-name {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .result-meta {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .download-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .download-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        /* Preview Panel */
+        .preview-frame {
+            width: 100%;
+            height: 400px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: white;
+        }
+
+        /* Status Messages */
+        .status-message {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status-loading {
+            background: #bee3f8;
+            color: #2a4365;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-left-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Tabs */
+        .tab-buttons {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 16px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-color);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-color);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Recent Documents */
+        .recent-docs {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .input-section {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .metadata-form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="converter-container">
+        <header class="header">
+            <h1>
+                <span class="header-icon">📄</span>
+                Document Converter
+            </h1>
+            <a href="/" class="back-btn">← Back to Semptify</a>
+        </header>
+
+        <div class="main-content">
+            <div class="input-section">
+                <h2 class="section-title">📝 Input</h2>
+
+                <!-- Tab Navigation -->
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="text-input">Write/Paste</button>
+                    <button class="tab-btn" data-tab="file-input">Upload File</button>
+                    <button class="tab-btn" data-tab="case-docs">Case Documents</button>
+                </div>
+
+                <!-- Text Input Tab -->
+                <div id="text-input" class="tab-content active">
+                    <!-- Metadata Form -->
+                    <div class="metadata-form">
+                        <div class="form-group">
+                            <label>Document Title</label>
+                            <input type="text" id="doc-title" placeholder="Motion to Compel Discovery">
+                        </div>
+                        <div class="form-group">
+                            <label>Case Number</label>
+                            <input type="text" id="case-number" placeholder="19AV-CV-25-0000">
+                        </div>
+                        <div class="form-group">
+                            <label>Court</label>
+                            <input type="text" id="court" placeholder="Dakota County District Court">
+                        </div>
+                        <div class="form-group">
+                            <label>Style</label>
+                            <select id="doc-style">
+                                <option value="legal_brief">Legal Brief</option>
+                                <option value="court_filing">Court Filing</option>
+                                <option value="memo">Memorandum</option>
+                                <option value="standard">Standard Document</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Parties</label>
+                            <input type="text" id="parties" placeholder="Redacted v. Example LLC">
+                        </div>
+                    </div>
+
+                    <!-- Markdown Editor -->
+                    <textarea class="markdown-editor" id="markdown-input" placeholder="# Your Document Title
+
+## Introduction
+
+Write your document content here in **Markdown** format.
+
+### Features Supported:
+- Headers (H1-H6)
+- **Bold** and *italic* text
+- Bullet and numbered lists
+- Tables
+- Blockquotes
+- Code blocks
+- Footnotes [^1]
+
+[^1]: This is a footnote that will appear at the bottom of the document.
+
+## Legal Arguments
+
+The facts of this case clearly demonstrate...
+
+| Date | Event | Evidence |
+|------|-------|----------|
+| 2024-01-15 | Initial complaint | Exhibit A |
+| 2024-02-01 | Response filed | Exhibit B |
+"></textarea>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button class="btn btn-docx" onclick="convertToDocx()">
+                            📘 Convert to Word
+                        </button>
+                        <button class="btn btn-html" onclick="convertToHtml()">
+                            🌐 Convert to HTML
+                        </button>
+                        <button class="btn btn-both" onclick="convertToBoth()">
+                            ✨ Convert Both
+                        </button>
+                    </div>
+                </div>
+
+                <!-- File Upload Tab -->
+                <div id="file-input" class="tab-content">
+                    <div class="file-upload" id="dropzone">
+                        <div class="file-upload-icon">📁</div>
+                        <p><strong>Drag & drop</strong> a Markdown file here</p>
+                        <p>or <span style="color: var(--accent-color);">click to browse</span></p>
+                        <input type="file" id="file-input-field" accept=".md,.markdown,.txt">
+                    </div>
+                    <div id="file-info" style="display: none;">
+                        <p><strong>Selected:</strong> <span id="selected-file-name"></span></p>
+                    </div>
+                </div>
+
+                <!-- Case Documents Tab -->
+                <div id="case-docs" class="tab-content">
+                    <p>Select a case document to convert:</p>
+                    <div id="case-doc-list">
+                        <div class="result-item" onclick="loadCaseDocument('data/case_outputs/CROWE_v_VELAIR_Counter_Rebuttal.md')">
+                            <div class="result-info">
+                                <span class="result-icon">📋</span>
+                                <div>
+                                    <div class="result-name">CROWE v. VELAIR Counter Rebuttal</div>
+                                    <div class="result-meta">Case document</div>
+                                </div>
+                            </div>
+                            <button class="download-btn">Load</button>
+                        </div>
+                        <div class="result-item" onclick="loadCaseDocument('data/case_outputs/MN_COMMERCE_COMPLAINT_DRAFT_Tenant_v_Landlord.md')">
+                            <div class="result-info">
+                                <span class="result-icon">📋</span>
+                                <div>
+                                    <div class="result-name">MN Commerce Complaint Draft</div>
+                                    <div class="result-meta">Case document</div>
+                                </div>
+                            </div>
+                            <button class="download-btn">Load</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <h2 class="section-title">📤 Output</h2>
+
+                <div id="status-area"></div>
+
+                <div id="results-area">
+                    <div class="results-panel">
+                        <h3>Converted Documents</h3>
+                        <div id="converted-docs" class="recent-docs">
+                            <p style="color: #666; text-align: center; padding: 40px;">
+                                Your converted documents will appear here
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="results-panel" style="margin-top: 20px;">
+                        <h3>HTML Preview</h3>
+                        <iframe id="preview-frame" class="preview-frame" srcdoc="<p style='padding:20px;color:#666;text-align:center;'>HTML preview will appear here</p>"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab handling
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // File upload handling
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('file-input-field');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length) handleFile(files[0]);
+        });
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) handleFile(fileInput.files[0]);
+        });
+
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('markdown-input').value = e.target.result;
+                document.getElementById('selected-file-name').textContent = file.name;
+                document.getElementById('file-info').style.display = 'block';
+                // Switch to text input tab
+                document.querySelector('[data-tab="text-input"]').click();
+            };
+            reader.readAsText(file);
+        }
+
+        // Get form data
+        function getFormData() {
+            return {
+                markdown_text: document.getElementById('markdown-input').value,
+                title: document.getElementById('doc-title').value || null,
+                case_number: document.getElementById('case-number').value || null,
+                court: document.getElementById('court').value || null,
+                parties: document.getElementById('parties').value || null,
+                style: document.getElementById('doc-style').value
+            };
+        }
+
+        // Show status
+        function showStatus(message, type) {
+            const statusArea = document.getElementById('status-area');
+            let icon = '✓';
+            if (type === 'error') icon = '✗';
+            if (type === 'loading') icon = '<div class="spinner"></div>';
+            
+            statusArea.innerHTML = `
+                <div class="status-message status-${type}">
+                    ${icon}
+                    <span>${message}</span>
+                </div>
+            `;
+        }
+
+        // Add result to list
+        function addResult(filename, type, downloadUrl) {
+            const container = document.getElementById('converted-docs');
+            const icon = type === 'docx' ? '📘' : '🌐';
+            const typeName = type === 'docx' ? 'Word Document' : 'HTML Document';
+            
+            // Remove placeholder if exists
+            const placeholder = container.querySelector('p');
+            if (placeholder) placeholder.remove();
+            
+            const html = `
+                <div class="result-item">
+                    <div class="result-info">
+                        <span class="result-icon">${icon}</span>
+                        <div>
+                            <div class="result-name">${filename}</div>
+                            <div class="result-meta">${typeName} • ${new Date().toLocaleString()}</div>
+                        </div>
+                    </div>
+                    <a href="${downloadUrl}" class="download-btn" download>Download</a>
+                </div>
+            `;
+            container.insertAdjacentHTML('afterbegin', html);
+        }
+
+        // Convert to DOCX
+        async function convertToDocx() {
+            const data = getFormData();
+            if (!data.markdown_text.trim()) {
+                showStatus('Please enter some markdown content', 'error');
+                return;
+            }
+
+            showStatus('Converting to Word document...', 'loading');
+
+            try {
+                const response = await fetch('/api/convert/docx', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('Word document created successfully!', 'success');
+                    const filename = result.docx_path.split('/').pop().split('\\').pop();
+                    addResult(filename, 'docx', result.download_url);
+                } else {
+                    showStatus(result.detail || 'Conversion failed', 'error');
+                }
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+            }
+        }
+
+        // Convert to HTML
+        async function convertToHtml() {
+            const data = getFormData();
+            if (!data.markdown_text.trim()) {
+                showStatus('Please enter some markdown content', 'error');
+                return;
+            }
+
+            showStatus('Converting to interactive HTML...', 'loading');
+
+            try {
+                const response = await fetch('/api/convert/html', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('HTML document created successfully!', 'success');
+                    const filename = result.html_path.split('/').pop().split('\\').pop();
+                    addResult(filename, 'html', result.download_url);
+                    
+                    // Show preview
+                    document.getElementById('preview-frame').src = result.download_url;
+                } else {
+                    showStatus(result.detail || 'Conversion failed', 'error');
+                }
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+            }
+        }
+
+        // Convert to both
+        async function convertToBoth() {
+            const data = getFormData();
+            if (!data.markdown_text.trim()) {
+                showStatus('Please enter some markdown content', 'error');
+                return;
+            }
+
+            showStatus('Converting to Word and HTML...', 'loading');
+
+            try {
+                const response = await fetch('/api/convert/both', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('Both documents created successfully!', 'success');
+                    
+                    const docxFilename = result.docx_path.split('/').pop().split('\\').pop();
+                    const htmlFilename = result.html_path.split('/').pop().split('\\').pop();
+                    
+                    addResult(docxFilename, 'docx', result.download_url + '.docx');
+                    addResult(htmlFilename, 'html', result.download_url + '.html');
+                    
+                    // Show preview
+                    document.getElementById('preview-frame').src = result.download_url + '.html';
+                } else {
+                    showStatus(result.detail || 'Conversion failed', 'error');
+                }
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+            }
+        }
+
+        // Load case document
+        async function loadCaseDocument(path) {
+            showStatus('Loading case document...', 'loading');
+            
+            try {
+                const response = await fetch(`/api/documents/read?path=${encodeURIComponent(path)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('markdown-input').value = data.content || '';
+                    document.querySelector('[data-tab="text-input"]').click();
+                    showStatus('Document loaded!', 'success');
+                } else {
+                    // Try direct file read
+                    const resp2 = await fetch(`/${path}`);
+                    if (resp2.ok) {
+                        const text = await resp2.text();
+                        document.getElementById('markdown-input').value = text;
+                        document.querySelector('[data-tab="text-input"]').click();
+                        showStatus('Document loaded!', 'success');
+                    } else {
+                        showStatus('Could not load document', 'error');
+                    }
+                }
+            } catch (error) {
+                showStatus('Error loading document: ' + error.message, 'error');
+            }
+        }
+
+        // Load recent documents on page load
+        async function loadRecentDocuments() {
+            try {
+                const response = await fetch('/api/convert/list');
+                const data = await response.json();
+                
+                if (data.documents && data.documents.length > 0) {
+                    const container = document.getElementById('converted-docs');
+                    container.innerHTML = '';
+                    
+                    data.documents.forEach(doc => {
+                        const type = doc.filename.endsWith('.docx') ? 'docx' : 'html';
+                        addResult(doc.filename, type, doc.download_url);
+                    });
+                }
+            } catch (error) {
+                console.log('Could not load recent documents');
+            }
+        }
+
+        // Initialize
+        loadRecentDocuments();
+    </script>
+</body>
+</html>
