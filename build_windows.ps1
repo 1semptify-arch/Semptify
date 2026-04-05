@@ -5,6 +5,9 @@
 
 $ErrorActionPreference = "Stop"
 
+# Fix Unicode encoding for emoji and special characters
+$env:PYTHONIOENCODING = 'utf-8'
+
 Write-Host @"
 
 ╔═══════════════════════════════════════════════════════════╗

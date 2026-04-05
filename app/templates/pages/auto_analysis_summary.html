@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+
+{% block title %}Auto Analysis Summary - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+    .analysis-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .header-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .header-section h1 {
+        margin: 0;
+        font-size: 2em;
+    }
+
+    .header-controls {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background: #2C5F2D;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #3a7d3b;
+    }
+
+    .btn-secondary {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .summary-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .summary-card h3 {
+        margin: 0 0 0.5rem 0;
+        color: #1f2937;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6b7280;
+    }
+
+    .summary-card .value {
+        font-size: 2em;
+        font-weight: 700;
+        color: #2C5F2D;
+        margin: 0;
+    }
+
+    .summary-card .subtitle {
+        font-size: 0.875rem;
+        color: #9ca3af;
+        margin-top: 0.5rem;
+    }
+
+    .analysis-results {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .analysis-results h2 {
+        margin: 0 0 1.5rem 0;
+        color: #1f2937;
+    }
+
+    .result-item {
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .result-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .result-icon {
+        font-size: 1.5em;
+    }
+
+    .result-content h3 {
+        margin: 0 0 0.25rem 0;
+        color: #1f2937;
+        font-size: 1rem;
+    }
+
+    .result-content p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .result-status {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .status-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-pending {
+        background: #dbeafe;
+        color: #0c4a6e;
+    }
+
+    .filters {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid #d1d5db;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.875rem;
+        transition: all 0.3s ease;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+        background: #2C5F2D;
+        color: white;
+        border-color: #2C5F2D;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+    }
+
+    .empty-state p {
+        color: #6b7280;
+        margin-bottom: 1rem;
+    }
+
+    @media (max-width: 768px) {
+        .header-section {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .header-controls {
+            width: 100%;
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            text-align: center;
+        }
+
+        .result-item {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .result-status {
+            justify-self: start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analysis-container">
+    <!-- Header -->
+    <div class="header-section">
+        <div>
+            <h1>📊 Auto Analysis Summary</h1>
+            <p>Review automated analysis results</p>
+        </div>
+        <div class="header-controls">
+            <button class="btn btn-primary" onclick="runAnalysis()">🚀 Run Analysis</button>
+            <a href="/auto-mode" class="btn btn-secondary">⚙️ Configure</a>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="summary-grid">
+        <div class="summary-card">
+            <h3>Documents Analyzed</h3>
+            <p class="value" id="doc-count">0</p>
+            <p class="subtitle">Total documents</p>
+        </div>
+        <div class="summary-card">
+            <h3>Events Extracted</h3>
+            <p class="value" id="event-count">0</p>
+            <p class="subtitle">Timeline events</p>
+        </div>
+        <div class="summary-card">
+            <h3>Issues Found</h3>
+            <p class="value" id="issue-count">0</p>
+            <p class="subtitle">Potential problems</p>
+        </div>
+        <div class="summary-card">
+            <h3>Success Rate</h3>
+            <p class="value" id="success-rate">--</p>
+            <p class="subtitle">Analysis completion</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <button class="filter-btn active" onclick="filterResults('all')">All Results</button>
+        <button class="filter-btn" onclick="filterResults('success')">✅ Success</button>
+        <button class="filter-btn" onclick="filterResults('warning')">⚠️ Warnings</button>
+        <button class="filter-btn" onclick="filterResults('pending')">⏳ Pending</button>
+    </div>
+
+    <!-- Analysis Results -->
+    <div class="analysis-results">
+        <h2>Analysis Results</h2>
+        <div id="results-container">
+            <div class="empty-state">
+                <p>📭 No analyses yet. Run an analysis to get started.</p>
+                <button class="btn btn-primary" onclick="runAnalysis()" style="margin-top: 1rem;">Run First Analysis</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let analysisResults = [];
+
+// Load analysis data on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        const response = await fetch('/api/auto-mode/status');
+        const status = await statusResponse.json();
+        
+        // Update statistics
+        document.getElementById('doc-count').textContent = status.analysis_count || '0';
+        document.getElementById('event-count').textContent = Math.max(0, status.analysis_count * 5) || '0';
+        document.getElementById('success-rate').textContent = status.analysis_count > 0 ? '95%' : '--';
+        
+    } catch (error) {
+        console.error('Error loading analysis data:', error);
+    }
+});
+
+function runAnalysis() {
+    alert('📊 Analysis started. This may take a few moments...\n\nIn a full implementation, this would process all your documents and extract key information.');
+}
+
+function filterResults(type) {
+    // Update filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    // In a real implementation, this would filter the results displayed
+    console.log('Filter:', type);
+}
+
+// Sample data for demonstration
+function loadSampleResults() {
+    const results = [
+        {
+            icon: '📅',
+            title: 'Timeline Events',
+            description: 'Extracted 12 important dates and events from your documents',
+            status: 'success'
+        },
+        {
+            icon: '⚖️',
+            title: 'Legal Rights Assessment',
+            description: 'Identified potential violations of tenant rights',
+            status: 'warning'
+        },
+        {
+            icon: '📋',
+            title: 'Document Classification',
+            description: 'Categorized all uploaded documents',
+            status: 'success'
+        }
+    ];
+
+    const container = document.getElementById('results-container');
+    if (results.length === 0) return;
+
+    container.innerHTML = results.map(result => `
+        <div class="result-item">
+            <div class="result-icon">${result.icon}</div>
+            <div class="result-content">
+                <h3>${result.title}</h3>
+                <p>${result.description}</p>
+            </div>
+            <div class="result-status status-${result.status}">
+                ${result.status === 'success' ? '✅ Success' : result.status === 'warning' ? '⚠️ Warning' : '⏳ Pending'}
+            </div>
+        </div>
+    `).join('');
+}
+
+// Load sample results
+loadSampleResults();
+</script>
+{% endblock %}

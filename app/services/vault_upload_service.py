@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 # Import storage provider
 try:
-    from app.services.storage import get_provider, StorageFile
+    from app.services.storage import get_provider
     HAS_STORAGE = True
 except ImportError:
     HAS_STORAGE = False
@@ -92,7 +92,7 @@ class VaultDocumentIndex:
         index_file = self.data_dir / "vault_index.json"
         if index_file.exists():
             try:
-                with open(index_file) as f:
+                with open(index_file, encoding="utf-8") as f:
                     data = json.load(f)
                 for vault_id, doc_data in data.get("documents", {}).items():
                     doc = VaultDocument.from_dict(doc_data)
@@ -104,7 +104,7 @@ class VaultDocumentIndex:
                     # Build hash index
                     self._hash_index[doc.sha256_hash] = vault_id
             except Exception as e:
-                logger.error(f"Failed to load vault index: {e}")
+                logger.error("Failed to load vault index: %s", e)
     
     def _save(self):
         """Save index to disk."""
@@ -113,7 +113,7 @@ class VaultDocumentIndex:
             "documents": {vid: doc.to_dict() for vid, doc in self._documents.items()},
             "updated_at": datetime.now(timezone.utc).isoformat(),
         }
-        with open(index_file, "w") as f:
+        with open(index_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
     
     def add(self, doc: VaultDocument) -> None:
@@ -202,7 +202,7 @@ class VaultUploadService:
             await storage.create_folder(self.VAULT_FOLDER)
             await storage.create_folder(self.CERTS_FOLDER)
         except Exception as e:
-            logger.warning(f"Could not create folders: {e}")
+            logger.warning("Could not create folders: %s", e)
     
     async def upload(
         self,
@@ -243,7 +243,7 @@ class VaultUploadService:
         # Check for duplicate
         existing = self.index.get_by_hash(sha256_hash)
         if existing and existing.user_id == user_id:
-            logger.info(f"Document already in vault: {existing.vault_id}")
+            logger.info("Document already in vault: %s", existing.vault_id)
             return existing
         
         # Generate IDs
@@ -254,7 +254,6 @@ class VaultUploadService:
         
         # Store document
         storage_path = await self._store_document(
-            vault_id=vault_id,
             user_id=user_id,
             safe_filename=safe_filename,
             content=content,
@@ -299,7 +298,7 @@ class VaultUploadService:
         # Add to index
         self.index.add(doc)
         
-        logger.info(f"📁 Document uploaded to vault: {vault_id} ({filename}) via {source_module}")
+        logger.info("📁 Document uploaded to vault: %s (%s) via %s", vault_id, filename, source_module)
         
         # Emit event for other modules
         await self._emit_upload_event(doc)
@@ -308,7 +307,6 @@ class VaultUploadService:
     
     async def _store_document(
         self,
-        vault_id: str,
         user_id: str,
         safe_filename: str,
         content: bytes,
@@ -332,7 +330,7 @@ class VaultUploadService:
                 )
                 return f"{self.VAULT_FOLDER}/{safe_filename}"
             except Exception as e:
-                logger.warning(f"Cloud storage failed, using local fallback: {e}")
+                logger.warning("Cloud storage failed, using local fallback: %s", e)
         
         # Local fallback
         user_dir = self._local_dir / user_id
@@ -387,7 +385,7 @@ class VaultUploadService:
                 )
                 return certificate_id
             except Exception as e:
-                logger.warning(f"Cloud cert storage failed: {e}")
+                logger.warning("Cloud cert storage failed: %s", e)
         
         # Local fallback
         user_dir = self._local_dir / user_id / "certificates"
@@ -413,7 +411,7 @@ class VaultUploadService:
                 user_id=doc.user_id,
             )
         except Exception as e:
-            logger.debug(f"Event emission failed: {e}")
+            logger.debug("Event emission failed: %s", e)
     
     # =========================================================================
     # Document Access Methods (for modules to use)
@@ -452,7 +450,7 @@ class VaultUploadService:
                 if result:
                     return result
             except Exception as e:
-                logger.warning(f"Cloud download failed: {e}")
+                logger.warning("Cloud download failed: %s", e)
         
         # Local fallback
         local_path = Path(doc.storage_path)
@@ -489,9 +487,13 @@ class VaultUploadService:
 _vault_service: Optional[VaultUploadService] = None
 
 
+# Global service instance
+_vault_service: Optional[VaultUploadService] = None
+
+
 def get_vault_service() -> VaultUploadService:
     """Get or create the vault upload service singleton."""
-    global _vault_service
     if _vault_service is None:
-        _vault_service = VaultUploadService()
+        # Use global assignment instead of global statement
+        globals()['_vault_service'] = VaultUploadService()
     return _vault_service

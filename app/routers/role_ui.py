@@ -5,12 +5,13 @@ Routes users to appropriate interface based on their role and device.
 Role → UI Mapping:
 - USER (Tenant):    Mobile-first, simplified wizard-driven interface
 - ADVOCATE:         Responsive, multi-case management view
-- LEGAL (Attorney): Desktop, full features + privilege separation
+- MANAGER (Case Manager): Multi-client professional workspace
+- LEGAL:            Desktop, full features + privilege separation
 - ADMIN:            Desktop, system configuration + analytics
 """
 
-from fastapi import APIRouter, Request, Depends, HTTPException
-from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi import APIRouter, Request, Depends
+from fastapi.responses import RedirectResponse
 from typing import Optional
 import logging
 
@@ -18,6 +19,7 @@ from app.core.user_context import (
     UserRole, 
     UserContext, 
     get_role_metadata,
+    get_role_definition,
     ROLE_METADATA
 )
 from app.core.security import get_current_user
@@ -52,22 +54,19 @@ def detect_device_type(request: Request) -> str:
 # Role-Based Landing Pages
 # =============================================================================
 
-# Map roles to their landing pages
+# Canonical landing page for each role (derived from user_context single source)
 ROLE_LANDING_PAGES = {
-    UserRole.USER: "/static/tenant/index.html",       # Mobile-first tenant UI
-    UserRole.ADVOCATE: "/static/advocate/index.html", # Multi-case advocate UI  
-    UserRole.LEGAL: "/static/legal/index.html",       # Attorney UI with privilege
-    UserRole.MANAGER: "/static/manager/index.html",   # Property manager UI
-    UserRole.ADMIN: "/static/admin/index.html",       # Admin dashboard
+    role: meta["landing_page"]
+    for role, meta in ROLE_METADATA.items()
 }
 
-# Fallback pages if role-specific UI doesn't exist yet
+# Static fallback pages if canonical role route is unavailable
 ROLE_FALLBACK_PAGES = {
-    UserRole.USER: "/static/tenant/index.html",          # Mobile-first tenant UI
-    UserRole.ADVOCATE: "/static/advocate/index.html",    # Advocate multi-case UI
-    UserRole.LEGAL: "/static/legal/index.html",          # Attorney with privilege
-    UserRole.MANAGER: "/static/dashboard.html",
-    UserRole.ADMIN: "/static/enterprise-dashboard.html",
+    UserRole.USER: "/static/tenant/index.html",
+    UserRole.ADVOCATE: "/static/advocate/index.html",
+    UserRole.LEGAL: "/static/legal/index.html",
+    UserRole.MANAGER: "/static/admin/mission_control.html",
+    UserRole.ADMIN: "/static/admin/mission_control.html",
 }
 
 
@@ -84,15 +83,13 @@ async def ui_router(
         return RedirectResponse(url="/static/welcome.html", status_code=302)
     
     device = detect_device_type(request)
-    role_meta = get_role_metadata(user.role)
+    logger.info("UI routing: user=%s, role=%s, device=%s", user.user_id, user.role.value, device)
     
-    logger.info(f"UI routing: user={user.user_id}, role={user.role.value}, device={device}")
-    
-    # Get the appropriate landing page
-    landing_page = ROLE_FALLBACK_PAGES.get(user.role, "/static/welcome.html")
+    # Use canonical role landing page first, static fallback handled by route layer
+    landing_page = ROLE_LANDING_PAGES.get(user.role) or ROLE_FALLBACK_PAGES.get(user.role, "/static/welcome.html")
     
     # Log for debugging
-    logger.info(f"Redirecting to: {landing_page}")
+    logger.info("Redirecting to: %s", landing_page)
     
     return RedirectResponse(url=landing_page, status_code=302)
 
@@ -139,10 +136,14 @@ async def get_available_roles() -> dict:
     roles = []
     for role in UserRole:
         meta = ROLE_METADATA.get(role, {})
+        role_def = get_role_definition(role)
         roles.append({
             "role": role.value,
             "display_name": meta.get("display_name", role.value),
             "description": meta.get("description", ""),
+            "purpose": role_def.get("purpose", meta.get("description", "")),
+            "default_landing_process": role_def.get("default_landing_process", ""),
+            "landing_page": meta.get("landing_page", "/static/welcome.html"),
             "icon": meta.get("icon", "👤"),
             "ui_mode": meta.get("ui_mode", "desktop"),
         })
@@ -272,36 +273,35 @@ async def get_navigation_menu(
             {"label": "My Clients", "path": "/advocate/clients", "icon": "👥"},
             {"label": "Case Queue", "path": "/advocate/queue", "icon": "📋"},
             {"label": "New Intake", "path": "/advocate/intake", "icon": "➕"},
-            {"label": "Calendar", "path": "/advocate/calendar", "icon": "📅"},
-            {"label": "Resources", "path": "/advocate/resources", "icon": "📚"},
+            {"label": "Documents", "path": "/documents", "icon": "📄"},
+            {"label": "Timeline", "path": "/timeline", "icon": "📅"},
         ]
     
     # Legal (Attorney) - full legal tools
     elif user.role == UserRole.LEGAL:
         menu = [
             {"label": "Dashboard", "path": "/legal", "icon": "⚖️"},
-            {"label": "Clients", "path": "/legal/clients", "icon": "👥"},
-            {"label": "Case Queue", "path": "/legal/queue", "icon": "📋"},
-            {"label": "Calendar", "path": "/legal/calendar", "icon": "📅"},
-            {"divider": True},
-            {"label": "Privileged Notes", "path": "/legal/privileged", "icon": "🔒", "badge": "PRIV"},
-            {"label": "Work Product", "path": "/legal/work-product", "icon": "📝", "badge": "WP"},
+            {"label": "Case Files", "path": "/legal/cases", "icon": "📁"},
             {"label": "Court Filings", "path": "/legal/filings", "icon": "🏛️"},
             {"divider": True},
-            {"label": "Legal Research", "path": "/legal/research", "icon": "🔍"},
-            {"label": "Law Library", "path": "/legal/library", "icon": "📚"},
+            {"label": "Privileged Notes", "path": "/legal/privileged", "icon": "🔒", "badge": "PRIV"},
+            {"label": "Conflict Check", "path": "/legal/conflicts", "icon": "🧭"},
+            {"divider": True},
+            {"label": "Legal Research", "path": "/law-library", "icon": "🔍"},
+            {"label": "Law Library", "path": "/law-library", "icon": "📚"},
         ]
     
     # Admin - system management
     elif user.role == UserRole.ADMIN:
         menu = [
             {"label": "Dashboard", "path": "/admin", "icon": "📊"},
-            {"label": "Users", "path": "/admin/users", "icon": "👥"},
-            {"label": "System", "path": "/admin/system", "icon": "⚙️"},
-            {"label": "Analytics", "path": "/admin/analytics", "icon": "📈"},
-            {"label": "Logs", "path": "/admin/logs", "icon": "📋"},
+            {"label": "Mission Control", "path": "/admin/mission-control", "icon": "🎯"},
+            {"label": "GUI Hub", "path": "/admin/gui", "icon": "🗺️"},
+            {"label": "Mode Selector", "path": "/admin/mode-selector", "icon": "⚙️"},
+            {"label": "Easy Settings", "path": "/admin/easy-mode", "icon": "👶"},
             {"divider": True},
-            {"label": "All Features", "path": "/static/dashboard.html", "icon": "🔧"},
+            {"label": "Docs Hub", "path": "/admin/docs", "icon": "📚"},
+            {"label": "All Features", "path": "/dashboard", "icon": "🔧"},
         ]
     
     return {

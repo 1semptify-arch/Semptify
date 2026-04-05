@@ -16,9 +16,7 @@ from typing import Optional, Dict, Any, List
 from pathlib import Path
 
 from app.core.event_bus import event_bus, BusEventType
-from app.services.document_intake import IntakeEngine, IntakeDocument
-from app.services.event_extractor import EventExtractor, ExtractedEvent
-from app.services.form_field_extractor import FormFieldExtractor
+from app.services.auto_mode_orchestrator import AutoModeOrchestrator
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +39,7 @@ class DocumentFlowOrchestrator:
         self.intake_engine = IntakeEngine()
         self.event_extractor = EventExtractor()
         self.form_extractor = FormFieldExtractor()
+        self.auto_orchestrator = AutoModeOrchestrator()
         
     async def process_document_complete(
         self,
@@ -131,7 +130,19 @@ class DocumentFlowOrchestrator:
                     "created": timeline_created,
                 }
             
-            # Stage 8: Publish events for UI refresh
+            # Stage 9: Run auto mode analysis if enabled
+            auto_mode_enabled = await self.auto_orchestrator.get_auto_mode_status(user_id)
+            if auto_mode_enabled:
+                logger.info(f"[FLOW] Running auto mode analysis for {doc_id}")
+                auto_results = await self.auto_orchestrator.run_full_auto_analysis(
+                    doc_id, user_id, doc.content, doc.metadata, db_session
+                )
+                result["stages"]["auto_analysis"] = {
+                    "status": "success",
+                    "results": auto_results
+                }
+            
+            # Stage 10: Publish events for UI refresh
             await self._publish_completion_events(user_id, doc_id, result)
             result["stages"]["notify"] = {"status": "success"}
             

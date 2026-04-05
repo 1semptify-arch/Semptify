@@ -17,6 +17,14 @@ from uuid import uuid4
 
 from app.services.azure_ai import get_azure_ai, DocumentType, ExtractedDocument
 
+try:
+    from sqlalchemy import select
+    from app.core.database import get_db_session
+    from app.models.models import DocumentPipelineIndex
+    HAS_DB_INDEX = True
+except Exception:
+    HAS_DB_INDEX = False
+
 logger = logging.getLogger(__name__)
 
 # Import document intelligence service
@@ -147,29 +155,93 @@ class DocumentPipeline:
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.azure_ai = get_azure_ai()
-        
-        # In-memory document index (would be database in production)
-        self._documents: dict[str, TenancyDocument] = {}
-        self._load_index()
+        self._db_index_loaded = False
 
-    def _load_index(self):
-        """Load document index from disk."""
+        # In-memory document index — persisted to PostgreSQL and mirrored to disk fallback.
+        self._documents: dict[str, TenancyDocument] = {}
+        self._load_index_from_disk()
+
+        # If this is constructed outside an active event loop (common at startup),
+        # eagerly load the authoritative index from PostgreSQL.
+        try:
+            import asyncio
+            try:
+                asyncio.get_running_loop()
+            except RuntimeError:
+                asyncio.run(self._ensure_db_index_loaded())
+        except Exception as exc:
+            logger.debug("Startup DB index preload skipped: %s", exc)
+
+    def _load_index_from_disk(self):
+        """Load local fallback index from disk (best-effort)."""
         index_file = self.data_dir / "index.json"
         if index_file.exists():
             try:
-                with open(index_file) as f:
+                with open(index_file, encoding="utf-8") as f:
                     data = json.load(f)
                     for doc_id, doc_data in data.items():
                         self._documents[doc_id] = TenancyDocument.from_dict(doc_data)
-            except Exception:
-                pass
+                logger.info("Document index fallback loaded from local disk (%d docs)", len(self._documents))
+            except Exception as exc:
+                logger.warning("Local index load failed: %s", exc)
 
-    def _save_index(self):
-        """Save document index to disk."""
-        index_file = self.data_dir / "index.json"
+    async def _ensure_db_index_loaded(self):
+        """Load persisted document metadata from PostgreSQL exactly once."""
+        if self._db_index_loaded:
+            return
+        if not HAS_DB_INDEX:
+            self._db_index_loaded = True
+            return
+        try:
+            async with get_db_session() as db:
+                result = await db.execute(select(DocumentPipelineIndex))
+                rows = result.scalars().all()
+                for row in rows:
+                    payload = json.loads(row.payload_json)
+                    self._documents[row.doc_id] = TenancyDocument.from_dict(payload)
+                logger.info("Document index loaded from PostgreSQL (%d docs)", len(self._documents))
+        except Exception as exc:
+            logger.warning("PostgreSQL index load failed, using fallback state: %s", exc)
+        self._db_index_loaded = True
+
+    async def _save_index(self, changed_doc: Optional[TenancyDocument] = None):
+        """
+        Persist document index.
+        Writes local fallback index, then upserts metadata into PostgreSQL.
+        """
         data = {doc_id: doc.to_dict() for doc_id, doc in self._documents.items()}
-        with open(index_file, "w") as f:
-            json.dump(data, f, indent=2, default=str)
+
+        # Local fallback copy for dev/offline recovery.
+        index_file = self.data_dir / "index.json"
+        try:
+            with open(index_file, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, default=str)
+        except Exception as exc:
+            logger.warning("Local index save failed: %s", exc)
+
+        if not HAS_DB_INDEX:
+            return
+
+        try:
+            async with get_db_session() as db:
+                docs_to_write = [changed_doc] if changed_doc else list(self._documents.values())
+                for doc in docs_to_write:
+                    payload_json = json.dumps(doc.to_dict(), default=str)
+                    result = await db.execute(
+                        select(DocumentPipelineIndex).where(DocumentPipelineIndex.doc_id == doc.id)
+                    )
+                    row = result.scalar_one_or_none()
+                    if row:
+                        row.user_id = doc.user_id
+                        row.payload_json = payload_json
+                    else:
+                        db.add(DocumentPipelineIndex(
+                            doc_id=doc.id,
+                            user_id=doc.user_id,
+                            payload_json=payload_json,
+                        ))
+        except Exception as exc:
+            logger.warning("PostgreSQL index save failed (local copy kept): %s", exc)
 
     async def ingest(
         self,
@@ -183,6 +255,8 @@ class DocumentPipeline:
         Returns immediately with pending status, processing happens async.
         Deduplicates by file hash - returns existing doc if already uploaded.
         """
+        await self._ensure_db_index_loaded()
+
         # Generate hash first to check for duplicates
         file_hash = hashlib.sha256(content).hexdigest()
         
@@ -215,7 +289,7 @@ class DocumentPipeline:
         )
 
         self._documents[doc_id] = doc
-        self._save_index()
+        await self._save_index(changed_doc=doc)
 
         return doc
 
@@ -233,12 +307,14 @@ class DocumentPipeline:
         2. AI Classification
         3. Key information extraction
         """
+        await self._ensure_db_index_loaded()
+
         doc = self._documents.get(doc_id)
         if not doc:
             raise ValueError(f"Document not found: {doc_id}")
         
         doc.status = ProcessingStatus.ANALYZING
-        self._save_index()
+        await self._save_index(changed_doc=doc)
         
         try:
             # Read file content
@@ -268,7 +344,7 @@ class DocumentPipeline:
             doc.status = ProcessingStatus.FAILED
             doc.summary = f"Processing failed: {str(e)}"
 
-        self._save_index()
+        await self._save_index(changed_doc=doc)
         
         # Emit event to context loop
         if HAS_CONTEXT_LOOP and doc.status == ProcessingStatus.CLASSIFIED:
@@ -543,6 +619,8 @@ class DocumentPipeline:
         - Action items with deadlines
         - Urgency assessment
         """
+        await self._ensure_db_index_loaded()
+
         doc = self._documents.get(doc_id)
         if not doc:
             return None
@@ -566,7 +644,7 @@ class DocumentPipeline:
             doc.intelligence_result = result.to_dict()
             doc.urgency_level = result.urgency.value
             doc.action_items = [a.to_dict() for a in result.action_items]
-            self._save_index()
+            await self._save_index(changed_doc=doc)
             
             return result.to_dict()
             
@@ -580,6 +658,8 @@ class DocumentPipeline:
         
         Returns documents sorted by urgency level.
         """
+        await self._ensure_db_index_loaded()
+
         urgent_docs = []
         
         for doc in self.get_user_documents(user_id):

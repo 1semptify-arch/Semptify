@@ -6,6 +6,8 @@ Tests for OAuth flow, session management, and storage providers.
 import pytest
 from httpx import AsyncClient
 from unittest.mock import patch, AsyncMock, MagicMock
+from app.core.utc import utc_now
+from app.routers import storage as storage_router
 
 
 # =============================================================================
@@ -311,3 +313,189 @@ async def test_sync_device_shows_provider_and_role(client: AsyncClient):
     assert response.status_code == 200
     assert "Google Drive" in response.text
     assert "user" in response.text.lower()
+
+
+@pytest.mark.anyio
+async def test_prepare_reconnect_clears_stale_session(client: AsyncClient, monkeypatch):
+    test_uid = "GUtest1234"
+    storage_router.SESSIONS[test_uid] = {
+        "user_id": test_uid,
+        "provider": "google_drive",
+        "access_token": "expired-token",
+        "refresh_token": None,
+        "authenticated_at": "2026-01-01T00:00:00",
+        "expires_at": "2026-01-01T00:00:00",
+    }
+
+    async def fake_validate_token_with_provider(_provider: str, _access_token: str) -> bool:
+        return False
+
+    monkeypatch.setattr(storage_router, "validate_token_with_provider", fake_validate_token_with_provider)
+
+    response = await client.post("/storage/prepare-reconnect", cookies={"semptify_uid": test_uid})
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["ready_for_reconnect"] is True
+    assert data["state"] == "disconnected_stale"
+    assert test_uid not in storage_router.SESSIONS
+
+
+@pytest.mark.anyio
+async def test_session_info_marks_needs_reauth_when_session_present_but_invalid(client: AsyncClient, monkeypatch):
+    test_uid = "GUtest1234"
+
+    async def fake_get_session_from_db(_db, _user_id: str):
+        return {
+            "user_id": test_uid,
+            "provider": "google_drive",
+            "access_token": "expired-token",
+            "refresh_token": None,
+            "expires_at": "2026-01-01T00:00:00",
+        }
+
+    async def fake_get_valid_session(_db, _user_id: str, auto_refresh: bool = True):
+        return None
+
+    monkeypatch.setattr(storage_router, "get_session_from_db", fake_get_session_from_db)
+    monkeypatch.setattr(storage_router, "get_valid_session", fake_get_valid_session)
+
+    response = await client.get("/storage/session", cookies={"semptify_uid": test_uid})
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["authenticated"] is False
+    assert data["session_present"] is True
+    assert data["needs_reauth"] is True
+
+
+@pytest.mark.anyio
+async def test_oauth_callback_commits_before_vault_enable(client: AsyncClient, monkeypatch):
+    state = "test-sequence-state"
+    storage_router.OAUTH_STATES[state] = {
+        "provider": "google_drive",
+        "created_at": utc_now(),
+        "role": "user",
+    }
+
+    call_order: list[str] = []
+
+    async def fake_exchange_code(provider: str, code: str, redirect_uri: str) -> dict:
+        return {"access_token": "access-token", "refresh_token": "refresh-token", "expires_in": 3600}
+
+    async def fake_save_session_to_db(**kwargs):
+        call_order.append("save_session")
+
+    async def fake_create_or_update_user(db, user_id: str, provider: str):
+        call_order.append("create_or_update_user")
+        return MagicMock()
+
+    async def fake_get_or_create_storage_config(db, user_id: str, provider: str):
+        call_order.append("get_or_create_storage_config")
+        return MagicMock()
+
+    async def fake_store_auth_marker(**kwargs):
+        call_order.append("store_auth_marker")
+
+    monkeypatch.setattr(storage_router, "_exchange_code", fake_exchange_code)
+    monkeypatch.setattr(storage_router, "save_session_to_db", fake_save_session_to_db)
+    monkeypatch.setattr(storage_router, "create_or_update_user", fake_create_or_update_user)
+    monkeypatch.setattr(storage_router, "get_or_create_storage_config", fake_get_or_create_storage_config)
+    monkeypatch.setattr(storage_router, "_store_auth_marker", fake_store_auth_marker)
+
+    response = await client.get(
+        f"/storage/callback/google_drive?code=dummy-code&state={state}",
+        follow_redirects=False,
+    )
+
+    assert response.status_code in [302, 307]
+    assert call_order == [
+        "save_session",
+        "create_or_update_user",
+        "get_or_create_storage_config",
+        "store_auth_marker",
+    ]
+
+
+@pytest.mark.anyio
+async def test_function_token_issue_requires_cookie(client: AsyncClient):
+    response = await client.post("/storage/function-token/issue")
+    assert response.status_code == 401
+
+
+@pytest.mark.anyio
+async def test_function_token_issue_includes_scopes_and_wildcard_doc(client: AsyncClient, monkeypatch):
+    captured = {}
+
+    async def fake_get_valid_session(_db, _uid: str, auto_refresh: bool = True):
+        return {"provider": "google_drive", "access_token": "tok"}
+
+    async def fake_vault_access_ready(**_kwargs):
+        return True, "ok"
+
+    def fake_issue_function_access_token(user_id: str, ttl_seconds: int = 300, context: dict | None = None):
+        captured["user_id"] = user_id
+        captured["context"] = context
+        return {
+            "token": "fn-token",
+            "expires_at": "2030-01-01T00:00:00+00:00",
+            "reverify_in_seconds": 120,
+        }
+
+    monkeypatch.setattr(storage_router, "get_valid_session", fake_get_valid_session)
+    monkeypatch.setattr(storage_router, "_vault_access_ready", fake_vault_access_ready)
+    monkeypatch.setattr(storage_router, "issue_function_access_token", fake_issue_function_access_token)
+
+    response = await client.post(
+        "/storage/function-token/issue",
+        cookies={"semptify_uid": "GUtest1234"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert data["token"] == "fn-token"
+    assert captured["user_id"] == "GUtest1234"
+    assert captured["context"]["scopes"] == ["overlay:read", "overlay:write"]
+    assert captured["context"]["document_ids"] == ["*"]
+
+
+@pytest.mark.anyio
+async def test_function_token_verify_requires_header_token_even_if_query_present(client: AsyncClient, monkeypatch):
+    async def fake_get_valid_session(_db, _uid: str, auto_refresh: bool = True):
+        return {"provider": "google_drive", "access_token": "tok"}
+
+    monkeypatch.setattr(storage_router, "get_valid_session", fake_get_valid_session)
+
+    response = await client.get(
+        "/storage/function-token/verify?token=query-token&refresh=true",
+        cookies={"semptify_uid": "GUtest1234"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["valid"] is False
+    assert data["reason"] == "token_missing"
+
+
+@pytest.mark.anyio
+async def test_function_token_verify_with_header_uses_verifier_result(client: AsyncClient, monkeypatch):
+    async def fake_get_valid_session(_db, _uid: str, auto_refresh: bool = True):
+        return {"provider": "google_drive", "access_token": "tok"}
+
+    def fake_verify(_uid: str, _token: str, refresh: bool = False):
+        return {"valid": False, "reason": "token_expired"}
+
+    monkeypatch.setattr(storage_router, "get_valid_session", fake_get_valid_session)
+    monkeypatch.setattr(storage_router, "verify_function_access_token", fake_verify)
+
+    response = await client.get(
+        "/storage/function-token/verify?refresh=true",
+        cookies={"semptify_uid": "GUtest1234"},
+        headers={"X-Function-Token": "header-token"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["valid"] is False
+    assert data["reason"] == "token_expired"

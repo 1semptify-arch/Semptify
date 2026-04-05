@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify - Easy Settings</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .big-title {
+            text-align: center;
+            color: white;
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            animation: bounce 1s infinite;
+        }
+
+        .big-subtitle {
+            text-align: center;
+            color: white;
+            font-size: 1.3em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .choice-box {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 5px solid #ddd;
+        }
+
+        .choice-title {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .choice-title .emoji {
+            font-size: 1.5em;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .choice-btn {
+            padding: 20px 30px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Comic Sans MS', cursive;
+            min-width: 120px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+        }
+
+        .choice-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .choice-btn:active {
+            transform: scale(0.95);
+        }
+
+        .choice-btn.active {
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.8), 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 3px solid yellow;
+        }
+
+        /* Color Presets */
+        .btn-blue { background: #3498db; color: white; }
+        .btn-green { background: #27ae60; color: white; }
+        .btn-red { background: #e74c3c; color: white; }
+        .btn-orange { background: #f39c12; color: white; }
+        .btn-purple { background: #9b59b6; color: white; }
+        .btn-cyan { background: #1abc9c; color: white; }
+
+        .description {
+            font-size: 0.95em;
+            color: #666;
+            margin-top: 10px;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .toggle-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .toggle-btn {
+            padding: 15px 25px;
+            border: 3px solid #ddd;
+            border-radius: 12px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Comic Sans MS', cursive;
+            background: white;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .toggle-btn.on {
+            background: #27ae60;
+            color: white;
+            border-color: #27ae60;
+            box-shadow: 0 0 15px rgba(39, 174, 96, 0.5);
+        }
+
+        .toggle-btn.off {
+            background: #ecf0f1;
+            color: #999;
+            border-color: #bdc3c7;
+        }
+
+        .bottom-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .big-btn {
+            padding: 20px 40px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Comic Sans MS', cursive;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+        }
+
+        .big-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .big-btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-save {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-reset {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .message {
+            text-align: center;
+            font-size: 1.3em;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .message.success {
+            background: #d5f4e6;
+            color: #27ae60;
+            border: 3px solid #27ae60;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .preview-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 30px;
+            border: 5px solid #27ae60;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .preview-title {
+            font-size: 1.5em;
+            color: #27ae60;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .preview-item {
+            font-size: 1.2em;
+            padding: 10px;
+            margin: 10px 0;
+            background: #f0f0f0;
+            border-radius: 10px;
+            border-left: 5px solid #27ae60;
+            padding-left: 15px;
+        }
+
+        .preview-label {
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        .preview-value {
+            color: #333;
+            margin-left: 10px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 600px) {
+            .big-title {
+                font-size: 2em;
+            }
+
+            .choice-btn {
+                min-width: 100px;
+                padding: 15px 20px;
+                font-size: 1em;
+            }
+
+            .big-btn {
+                padding: 15px 30px;
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Title -->
+        <div class="big-title">🎉 Semptify Settings 🎉</div>
+        <div class="big-subtitle">Pick what YOU like!</div>
+
+        <!-- Messages -->
+        <div id="messageBox"></div>
+
+        <!-- 1. LIGHT OR DARK -->
+        <div class="choice-box">
+            <div class="choice-title">
+                <span class="emoji">☀️🌙</span>
+                <span>Do you like BRIGHT or DARK?</span>
+            </div>
+            <div class="button-row">
+                <button class="choice-btn btn-orange active" onclick="setTheme('light', this)">☀️ BRIGHT</button>
+                <button class="choice-btn btn-purple" onclick="setTheme('dark', this)">🌙 DARK</button>
+            </div>
+            <div class="description">Bright is like daytime. Dark is like nighttime.</div>
+        </div>
+
+        <!-- 2. EASY OR HARD -->
+        <div class="choice-box">
+            <div class="choice-title">
+                <span class="emoji">👶🧠</span>
+                <span>Show me SIMPLE or EVERYTHING?</span>
+            </div>
+            <div class="button-row">
+                <button class="choice-btn btn-green active" onclick="setMode('guided', this)">👶 SIMPLE</button>
+                <button class="choice-btn btn-blue" onclick="setMode('advanced', this)">🧠 EVERYTHING</button>
+            </div>
+            <div class="description">SIMPLE shows only what you need. EVERYTHING shows all the tools.</div>
+        </div>
+
+        <!-- 3. WHERE ARE YOU? -->
+        <div class="choice-box">
+            <div class="choice-title">
+                <span class="emoji">📍</span>
+                <span>Where are you in your story?</span>
+            </div>
+            <div class="button-row">
+                <button class="choice-btn btn-cyan active" onclick="setPhase('start', this)">🚀 JUST STARTING</button>
+                <button class="choice-btn btn-blue" onclick="setPhase('problem', this)">⚠️ PROBLEM!</button>
+                <button class="choice-btn btn-red" onclick="setPhase('court', this)">⚖️ COURT</button>
+            </div>
+            <div class="description">This helps us show you the right tools for YOUR situation.</div>
+        </div>
+
+        <!-- 4. AUTO HELP -->
+        <div class="choice-box">
+            <div class="choice-title">
+                <span class="emoji">🤖</span>
+                <span>Should Semptify help you AUTOMATICALLY?</span>
+            </div>
+            <div class="toggle-buttons">
+                <button class="toggle-btn on" id="autoHelp" onclick="toggleAuto(this)">✅ YES, HELP ME!</button>
+                <button class="toggle-btn off" onclick="toggleAuto(this)">❌ NO, I'LL DO IT</button>
+            </div>
+            <div class="description">YES = Semptify will do smart things for you. NO = You do everything.</div>
+        </div>
+
+        <!-- 5. UPSET? -->
+        <div class="choice-box">
+            <div class="choice-title">
+                <span class="emoji">😟😊</span>
+                <span>Feeling UPSET or CALM?</span>
+            </div>
+            <div class="button-row">
+                <button class="choice-btn btn-green active" onclick="setMood('calm', this)">😊 CALM</button>
+                <button class="choice-btn btn-red" onclick="setMood('upset', this)">😟 UPSET</button>
+            </div>
+            <div class="description">UPSET = Show only the most important thing. CALM = Show everything.</div>
+        </div>
+
+        <!-- 6. HELP TEXT? -->
+        <div class="choice-box">
+            <div class="choice-title">
+                <span class="emoji">💡</span>
+                <span>Show me HINTS?</span>
+            </div>
+            <div class="toggle-buttons">
+                <button class="toggle-btn on" id="hints" onclick="toggleHints(this)">✅ YES!</button>
+                <button class="toggle-btn off" onclick="toggleHints(this)">❌ NO!</button>
+            </div>
+            <div class="description">Hints are little messages that help explain things.</div>
+        </div>
+
+        <!-- Preview -->
+        <div class="preview-section">
+            <div class="preview-title">📋 Your Choices:</div>
+            <div class="preview-item">
+                <span class="preview-label">Light/Dark:</span>
+                <span class="preview-value" id="preview-theme">BRIGHT ☀️</span>
+            </div>
+            <div class="preview-item">
+                <span class="preview-label">Simple/Everything:</span>
+                <span class="preview-value" id="preview-mode">SIMPLE 👶</span>
+            </div>
+            <div class="preview-item">
+                <span class="preview-label">Where are you:</span>
+                <span class="preview-value" id="preview-phase">JUST STARTING 🚀</span>
+            </div>
+            <div class="preview-item">
+                <span class="preview-label">Auto Help:</span>
+                <span class="preview-value" id="preview-auto">YES ✅</span>
+            </div>
+            <div class="preview-item">
+                <span class="preview-label">Feeling:</span>
+                <span class="preview-value" id="preview-mood">CALM 😊</span>
+            </div>
+            <div class="preview-item">
+                <span class="preview-label">Hints:</span>
+                <span class="preview-value" id="preview-hints">YES ✅</span>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="bottom-buttons">
+            <button class="big-btn btn-save" onclick="saveSettings()">💾 SAVE MY CHOICES</button>
+            <button class="big-btn btn-reset" onclick="resetSettings()">🔄 START OVER</button>
+        </div>
+    </div>
+
+    <script>
+        // Load settings from storage
+        function loadSettings() {
+            const saved = localStorage.getItem('semptify_easy_settings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                // Apply saved settings
+                document.querySelectorAll(`[onclick*="setTheme('${settings.theme}"]`).forEach(btn => btn.classList.add('active'));
+                document.querySelectorAll(`[onclick*="setMode('${settings.mode}"]`).forEach(btn => btn.classList.add('active'));
+                document.querySelectorAll(`[onclick*="setPhase('${settings.phase}"]`).forEach(btn => btn.classList.add('active'));
+                document.querySelectorAll(`[onclick*="setMood('${settings.mood}"]`).forEach(btn => btn.classList.add('active'));
+            }
+            updatePreview();
+        }
+
+        // Set theme
+        function setTheme(theme, btn) {
+            document.querySelectorAll('[onclick*="setTheme"]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updatePreview();
+        }
+
+        // Set mode
+        function setMode(mode, btn) {
+            document.querySelectorAll('[onclick*="setMode"]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updatePreview();
+        }
+
+        // Set phase
+        function setPhase(phase, btn) {
+            document.querySelectorAll('[onclick*="setPhase"]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updatePreview();
+        }
+
+        // Set mood
+        function setMood(mood, btn) {
+            document.querySelectorAll('[onclick*="setMood"]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updatePreview();
+        }
+
+        // Toggle auto help
+        function toggleAuto(btn) {
+            const allBtns = document.querySelectorAll('[onclick*="toggleAuto"]');
+            allBtns.forEach(b => b.classList.remove('on', 'off'));
+            btn.classList.add(btn.textContent.includes('YES') ? 'on' : 'off');
+            if (!btn.classList.contains('on')) {
+                btn.nextElementSibling?.classList.add('on');
+            }
+            updatePreview();
+        }
+
+        // Toggle hints
+        function toggleHints(btn) {
+            const allBtns = document.querySelectorAll('[onclick*="toggleHints"]');
+            allBtns.forEach(b => b.classList.remove('on', 'off'));
+            btn.classList.add(btn.textContent.includes('YES') ? 'on' : 'off');
+            if (!btn.classList.contains('on')) {
+                btn.nextElementSibling?.classList.add('on');
+            }
+            updatePreview();
+        }
+
+        // Get current settings
+        function getSettings() {
+            const theme = document.querySelector('[onclick*="setTheme"][class*="active"]')?.onclick.toString().match(/'([^']+)'/)[1] || 'light';
+            const mode = document.querySelector('[onclick*="setMode"][class*="active"]')?.onclick.toString().match(/'([^']+)'/)[1] || 'guided';
+            const phase = document.querySelector('[onclick*="setPhase"][class*="active"]')?.onclick.toString().match(/'([^']+)'/)[1] || 'start';
+            const mood = document.querySelector('[onclick*="setMood"][class*="active"]')?.onclick.toString().match(/'([^']+)'/)[1] || 'calm';
+            const auto = document.getElementById('autoHelp').textContent.includes('YES');
+            const hints = document.getElementById('hints').textContent.includes('YES');
+
+            return { theme, mode, phase, mood, auto, hints };
+        }
+
+        // Update preview
+        function updatePreview() {
+            const settings = getSettings();
+            const themeText = settings.theme === 'light' ? 'BRIGHT ☀️' : 'DARK 🌙';
+            const modeText = settings.mode === 'guided' ? 'SIMPLE 👶' : 'EVERYTHING 🧠';
+            const phaseText = settings.phase === 'start' ? 'JUST STARTING 🚀' : settings.phase === 'problem' ? 'PROBLEM! ⚠️' : 'COURT ⚖️';
+            const moodText = settings.mood === 'calm' ? 'CALM 😊' : 'UPSET 😟';
+            const autoText = settings.auto ? 'YES ✅' : 'NO ❌';
+            const hintsText = settings.hints ? 'YES ✅' : 'NO ❌';
+
+            document.getElementById('preview-theme').textContent = themeText;
+            document.getElementById('preview-mode').textContent = modeText;
+            document.getElementById('preview-phase').textContent = phaseText;
+            document.getElementById('preview-mood').textContent = moodText;
+            document.getElementById('preview-auto').textContent = autoText;
+            document.getElementById('preview-hints').textContent = hintsText;
+        }
+
+        // Save settings
+        function saveSettings() {
+            const settings = getSettings();
+            localStorage.setItem('semptify_easy_settings', JSON.stringify(settings));
+            localStorage.setItem('semptify_theme', settings.theme);
+            
+            showMessage('✅ YAY! Your choices are saved! 🎉');
+        }
+
+        // Reset settings
+        function resetSettings() {
+            if (confirm('Are you SURE you want to start over? 🤔')) {
+                localStorage.removeItem('semptify_easy_settings');
+                location.reload();
+            }
+        }
+
+        // Show message
+        function showMessage(msg) {
+            const msgBox = document.getElementById('messageBox');
+            msgBox.innerHTML = `<div class="message success">${msg}</div>`;
+            setTimeout(() => msgBox.innerHTML = '', 3000);
+        }
+
+        // Load on page load
+        window.addEventListener('load', loadSettings);
+    </script>
+</body>
+</html>

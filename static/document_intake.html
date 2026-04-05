@@ -3960,6 +3960,102 @@
         // Annotations/Overlay System
         // =====================================================================
         let currentOverlay = null;
+        let functionToken = null;
+        let functionTokenReverifySeconds = 120;
+        let functionTokenIntervalId = null;
+
+        function overlayTokenHeaders(extra = {}) {
+            const headers = { ...extra };
+            if (functionToken) {
+                headers['X-Function-Token'] = functionToken;
+            }
+            return headers;
+        }
+
+        async function issueFunctionToken() {
+            const response = await fetch(`${API_BASE}/storage/function-token/issue`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                throw new Error('Unable to issue function token for overlays');
+            }
+            const data = await response.json();
+            functionToken = data.token || null;
+            functionTokenReverifySeconds = Number(data.reverify_in_seconds || 120);
+            return data;
+        }
+
+        async function verifyFunctionToken(refresh = true) {
+            if (!functionToken) {
+                return false;
+            }
+            const params = new URLSearchParams({
+                refresh: refresh ? 'true' : 'false',
+            });
+            const response = await fetch(`${API_BASE}/storage/function-token/verify?${params.toString()}`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: overlayTokenHeaders(),
+            });
+            const data = await response.json();
+            if (!data.valid) {
+                functionToken = null;
+                return false;
+            }
+            functionTokenReverifySeconds = Number(data.reverify_in_seconds || functionTokenReverifySeconds || 120);
+            return true;
+        }
+
+        async function ensureFunctionToken() {
+            if (functionToken) {
+                const valid = await verifyFunctionToken(true);
+                if (valid) {
+                    return true;
+                }
+            }
+            await issueFunctionToken();
+            return !!functionToken;
+        }
+
+        function startFunctionTokenLoop() {
+            if (functionTokenIntervalId) {
+                clearInterval(functionTokenIntervalId);
+            }
+            functionTokenIntervalId = setInterval(async () => {
+                const valid = await verifyFunctionToken(true);
+                if (!valid) {
+                    try {
+                        await issueFunctionToken();
+                    } catch (error) {
+                        console.warn('Function token refresh failed', error);
+                    }
+                }
+            }, Math.max(30, functionTokenReverifySeconds) * 1000);
+        }
+
+        async function overlayApiFetch(url, options = {}) {
+            await ensureFunctionToken();
+            const headers = overlayTokenHeaders(options.headers || {});
+            const response = await fetch(url, {
+                credentials: 'include',
+                ...options,
+                headers,
+            });
+            if (response.status === 401) {
+                await issueFunctionToken();
+                return fetch(url, {
+                    credentials: 'include',
+                    ...options,
+                    headers: overlayTokenHeaders(options.headers || {}),
+                });
+            }
+            return response;
+        }
+
+        ensureFunctionToken().then(startFunctionTokenLoop).catch((error) => {
+            console.warn('Overlay function token initialization failed', error);
+        });
         
         async function showAnnotations(doc) {
             const container = document.getElementById('annotationsContent');
@@ -3987,9 +4083,7 @@
             `;
             
             try {
-                const response = await fetch(`${API_BASE}/api/overlays/${docId}`, {
-                    credentials: 'include'
-                });
+                const response = await overlayApiFetch(`${API_BASE}/api/overlays/${docId}`);
                 
                 if (response.ok) {
                     const data = await response.json();
@@ -4190,10 +4284,9 @@
             const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
             
             try {
-                const response = await fetch(`${API_BASE}/api/overlays/${docId}/notes`, {
+                const response = await overlayApiFetch(`${API_BASE}/api/overlays/${docId}/notes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify({ content, note_type: noteType, priority, tags })
                 });
                 
@@ -4218,10 +4311,9 @@
             const note = prompt('Add a note to this highlight (optional):');
             
             try {
-                const response = await fetch(`${API_BASE}/api/overlays/${docId}/highlights`, {
+                const response = await overlayApiFetch(`${API_BASE}/api/overlays/${docId}/highlights`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify({
                         range: { start_offset: 0, end_offset: text.length, text },
                         color: colors.includes(color) ? color : 'yellow',
@@ -4251,10 +4343,9 @@
             const citation = prompt('Legal citation (optional):');
             
             try {
-                const response = await fetch(`${API_BASE}/api/overlays/${docId}/footnotes`, {
+                const response = await overlayApiFetch(`${API_BASE}/api/overlays/${docId}/footnotes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify({
                         range: { start_offset: 0, end_offset: text.length, text },
                         content,
@@ -4284,10 +4375,9 @@
             const reason = prompt('Reason for this edit (optional):');
             
             try {
-                const response = await fetch(`${API_BASE}/api/overlays/${docId}/edits`, {
+                const response = await overlayApiFetch(`${API_BASE}/api/overlays/${docId}/edits`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify({
                         range: { start_offset: 0, end_offset: original.length, text: original },
                         original_text: original,
@@ -4311,9 +4401,8 @@
         
         async function updateEditStatus(docId, editId, status) {
             try {
-                const response = await fetch(`${API_BASE}/api/overlays/${docId}/edits/${editId}?status=${status}`, {
+                const response = await overlayApiFetch(`${API_BASE}/api/overlays/${docId}/edits/${editId}?status=${status}`, {
                     method: 'PATCH',
-                    credentials: 'include'
                 });
                 
                 if (response.ok) {
@@ -4332,9 +4421,8 @@
             if (!confirm(`Delete this ${type.slice(0, -1)}?`)) return;
             
             try {
-                const response = await fetch(`${API_BASE}/api/overlays/${docId}/${type}/${itemId}`, {
+                const response = await overlayApiFetch(`${API_BASE}/api/overlays/${docId}/${type}/${itemId}`, {
                     method: 'DELETE',
-                    credentials: 'include'
                 });
                 
                 if (response.ok) {

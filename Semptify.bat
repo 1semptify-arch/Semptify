@@ -32,6 +32,9 @@ echo.
 echo  Press Ctrl+C to stop the server
 echo.
 
+REM Fix Unicode encoding for emoji and special characters in logs
+set PYTHONIOENCODING=utf-8
+
 :: Start browser after delay
 start /b cmd /c "timeout /t 3 >nul && start http://localhost:8000/static/welcome.html"
 

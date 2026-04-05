@@ -81,6 +81,9 @@ class DocumentCategory(str, Enum):
     LEGAL_DOCUMENT = "legal_document"
     FINANCIAL = "financial"
     OTHER = "other"
+    # SDK/backward-compatible aliases
+    PAYMENT_RECORD = "payment_record"
+    PHOTO = "photo"
 
 
 class PackType(str, Enum):
@@ -98,6 +101,11 @@ class PackType(str, Enum):
     HUD_FUNDING_INFO = "hud_funding_info"
     CASE_CONTEXT = "case_context"
     FRAUD_ANALYSIS = "fraud_analysis"
+    # SDK/backward-compatible aliases
+    EVICTION_DATA = "eviction_data"
+    LEASE_DATA = "lease_data"
+    CASE_DATA = "case_data"
+    USER_DATA = "user_data"
 
 
 class RequestType(str, Enum):

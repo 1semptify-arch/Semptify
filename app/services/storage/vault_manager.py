@@ -43,6 +43,7 @@ VAULT_FOLDER = f"{SEMPTIFY_ROOT}/Vault"
 TOKEN_FILE = f"{AUTH_FOLDER}/token.enc"
 TOKEN_BACKUP = f"{AUTH_FOLDER}/token.enc.backup"
 DEVICE_KEYS_FILE = f"{AUTH_FOLDER}/device_keys.json"
+PROVISIONING_FILE = f"{AUTH_FOLDER}/provisioning_state.json"
 REHOME_FILE = f"{SEMPTIFY_ROOT}/Rehome.html"
 README_FILE = f"{SEMPTIFY_ROOT}/README.txt"
 
@@ -129,7 +130,8 @@ class DeviceKey:
 
 def _derive_key(user_id: str) -> bytes:
     """Derive encryption key from user_id + server secret."""
-    combined = f"{settings.SECRET_KEY}:token:{user_id}".encode()
+    secret = getattr(settings, "SECRET_KEY", None) or getattr(settings, "secret_key", "")
+    combined = f"{secret}:token:{user_id}".encode()
     return hashlib.sha256(combined).digest()
 
 
@@ -440,6 +442,28 @@ class VaultManager:
         self.user_id = user_id
         self.base_url = base_url
         self._cached_token: Optional[MasterToken] = None
+
+    async def _write_provisioning_state(
+        self,
+        state: str,
+        vault_created: bool,
+        vault_enabled: bool,
+        error: str = "",
+    ) -> None:
+        payload = {
+            "user_id": self.user_id,
+            "state": state,
+            "vault_created": vault_created,
+            "vault_enabled": vault_enabled,
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "error": error,
+        }
+        await self.storage.upload_file(
+            file_content=json.dumps(payload, indent=2).encode(),
+            destination_path=AUTH_FOLDER,
+            filename="provisioning_state.json",
+            mime_type="application/json",
+        )
     
     async def initialize_vault(
         self, 
@@ -481,70 +505,113 @@ class VaultManager:
                 # Folder might already exist
                 pass
 
-        # Generate and store master token WITH OAuth credentials
-        token = MasterToken(
-            token_id=secrets.token_urlsafe(32),
-            user_id=self.user_id,
-            created_at=datetime.now(timezone.utc).isoformat(),
-            provider=provider_name,
-            access_token=access_token,
-            refresh_token=refresh_token,
-            token_expires_at=token_expires_at,
+        # Vault structure exists, but is not enabled yet.
+        await self._write_provisioning_state(
+            state="creating_structure",
+            vault_created=True,
+            vault_enabled=False,
         )
 
-        encrypted_token = encrypt_token(token, self.user_id)
-        
-        # Store token and backup
-        await self.storage.upload_file(
-            file_content=encrypted_token,
-            destination_path=AUTH_FOLDER,
-            filename="token.enc",
-            mime_type="application/octet-stream",
-        )
-        created.append({"type": "file", "path": TOKEN_FILE})
-        
-        await self.storage.upload_file(
-            file_content=encrypted_token,
-            destination_path=AUTH_FOLDER,
-            filename="token.enc.backup",
-            mime_type="application/octet-stream",
-        )
-        created.append({"type": "file", "path": TOKEN_BACKUP})
-        
-        # Initialize device keys
-        device_keys = {"devices": [], "created_at": datetime.now(timezone.utc).isoformat()}
-        await self.storage.upload_file(
-            file_content=json.dumps(device_keys, indent=2).encode(),
-            destination_path=AUTH_FOLDER,
-            filename="device_keys.json",
-            mime_type="application/json",
-        )
-        created.append({"type": "file", "path": DEVICE_KEYS_FILE})
-        
-        # Create Rehome.html
-        rehome_html = generate_rehome_html(self.user_id, provider_name, self.base_url)
-        await self.storage.upload_file(
-            file_content=rehome_html.encode(),
-            destination_path=SEMPTIFY_ROOT,
-            filename="Rehome.html",
-            mime_type="text/html",
-        )
-        created.append({"type": "file", "path": REHOME_FILE})
-        
-        # Create README
-        readme = generate_readme()
-        await self.storage.upload_file(
-            file_content=readme.encode(),
-            destination_path=SEMPTIFY_ROOT,
-            filename="README.txt",
-            mime_type="text/plain",
-        )
-        created.append({"type": "file", "path": README_FILE})
+        try:
+            # Generate and store master token WITH OAuth credentials
+            token = MasterToken(
+                token_id=secrets.token_urlsafe(32),
+                user_id=self.user_id,
+                created_at=datetime.now(timezone.utc).isoformat(),
+                provider=provider_name,
+                access_token=access_token,
+                refresh_token=refresh_token,
+                token_expires_at=token_expires_at,
+            )
+
+            encrypted_token = encrypt_token(token, self.user_id)
+            
+            # Store token and backup
+            await self._write_provisioning_state(
+                state="writing_tokens",
+                vault_created=True,
+                vault_enabled=False,
+            )
+
+            await self.storage.upload_file(
+                file_content=encrypted_token,
+                destination_path=AUTH_FOLDER,
+                filename="token.enc",
+                mime_type="application/octet-stream",
+            )
+            created.append({"type": "file", "path": TOKEN_FILE})
+            
+            await self.storage.upload_file(
+                file_content=encrypted_token,
+                destination_path=AUTH_FOLDER,
+                filename="token.enc.backup",
+                mime_type="application/octet-stream",
+            )
+            created.append({"type": "file", "path": TOKEN_BACKUP})
+
+            # Verify both token files can be read and decrypted before enabling vault.
+            await self._write_provisioning_state(
+                state="verifying_tokens",
+                vault_created=True,
+                vault_enabled=False,
+            )
+
+            main_bytes = await self.storage.download_file(TOKEN_FILE)
+            backup_bytes = await self.storage.download_file(TOKEN_BACKUP)
+            decrypt_token(main_bytes, self.user_id)
+            decrypt_token(backup_bytes, self.user_id)
+
+            # Initialize device keys
+            device_keys = {"devices": [], "created_at": datetime.now(timezone.utc).isoformat()}
+            await self.storage.upload_file(
+                file_content=json.dumps(device_keys, indent=2).encode(),
+                destination_path=AUTH_FOLDER,
+                filename="device_keys.json",
+                mime_type="application/json",
+            )
+            created.append({"type": "file", "path": DEVICE_KEYS_FILE})
+            
+            # Create Rehome.html
+            rehome_html = generate_rehome_html(self.user_id, provider_name, self.base_url)
+            await self.storage.upload_file(
+                file_content=rehome_html.encode(),
+                destination_path=SEMPTIFY_ROOT,
+                filename="Rehome.html",
+                mime_type="text/html",
+            )
+            created.append({"type": "file", "path": REHOME_FILE})
+            
+            # Create README
+            readme = generate_readme()
+            await self.storage.upload_file(
+                file_content=readme.encode(),
+                destination_path=SEMPTIFY_ROOT,
+                filename="README.txt",
+                mime_type="text/plain",
+            )
+            created.append({"type": "file", "path": README_FILE})
+
+            # Activation point: only after structure creation + token write + decrypt/verify.
+            await self._write_provisioning_state(
+                state="enabled",
+                vault_created=True,
+                vault_enabled=True,
+            )
+        except Exception as exc:
+            await self._write_provisioning_state(
+                state="failed",
+                vault_created=True,
+                vault_enabled=False,
+                error=str(exc),
+            )
+            raise
         
         return {
             "success": True,
             "user_id": self.user_id,
             "vault_path": SEMPTIFY_ROOT,
+            "vault_created": True,
+            "vault_enabled": True,
             "created": created,
         }
     

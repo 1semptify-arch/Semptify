@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify - Live Auto Mode Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .live-demo-container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            margin-bottom: 30px;
+        }
+
+        .demo-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .demo-content {
+            background: #f8f9ff;
+            border: 2px solid #e8eaff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .demo-line {
+            font-family: 'Courier New', monospace;
+            color: #333;
+            margin-bottom: 8px;
+            padding: 4px 0;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .demo-line.success { color: #00a854; }
+        .demo-line.warning { color: #d97706; }
+        .demo-line.error { color: #c92a2a; }
+        .demo-line.info { color: #0066cc; }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-card h3 {
+            color: #333;
+            margin-bottom: 16px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .result-content {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .stat {
+            background: #f8f9ff;
+            border: 1px solid #e8eaff;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .action-list {
+            list-style: none;
+        }
+
+        .action-list li {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .action-list li.urgent {
+            border-left-color: #ff6b6b;
+            background: #fff3cd;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+        }
+
+        .highlight {
+            color: #4ec9b0;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button.secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            margin-left: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🤖 Semptify Auto Mode - Live Demo</h1>
+            <p>Real-time automated case analysis of your eviction documents</p>
+        </div>
+
+        <!-- Live Demo Output -->
+        <div class="live-demo-container">
+            <div class="demo-title">📊 Live Analysis Output</div>
+            <div class="demo-content" id="demo-output"></div>
+            <button onclick="runDemo()">Run Demo Analysis</button>
+            <button class="secondary" onclick="clearDemo()">Clear Output</button>
+        </div>
+
+        <!-- Statistics -->
+        <div class="section">
+            <h2>📈 Aggregated Results</h2>
+            <div class="stats-grid" id="stats-container"></div>
+        </div>
+
+        <!-- Urgent Actions -->
+        <div class="section">
+            <h2>⚠️ Critical Findings</h2>
+            <ul class="action-list" id="urgent-list"></ul>
+        </div>
+
+        <!-- Recommended Actions -->
+        <div class="section">
+            <h2>🎯 Recommended Actions</h2>
+            <ul class="action-list" id="actions-list"></ul>
+        </div>
+
+        <!-- How to Use -->
+        <div class="section">
+            <h2>🚀 How to Use Auto Mode</h2>
+            <h3 style="margin-top: 16px; margin-bottom: 8px; color: #666;">Step 1: Enable Auto Mode</h3>
+            <div class="code-block">
+POST /api/auto-mode/toggle
+{
+  "enabled": true
+}
+            </div>
+
+            <h3 style="margin-top: 16px; margin-bottom: 8px; color: #666;">Step 2: Configure Features</h3>
+            <div class="code-block">
+POST /api/auto-mode/config
+{
+  "auto_generate_timeline": true,
+  "auto_generate_calendar": true,
+  "auto_identify_complaints": true,
+  "auto_assess_rights": true,
+  "auto_detect_missteps": true,
+  "auto_suggest_tactics": true
+}
+            </div>
+
+            <h3 style="margin-top: 16px; margin-bottom: 8px; color: #666;">Step 3: Batch Analyze Existing Documents</h3>
+            <div class="code-block">
+POST /api/auto-mode/batch-analysis?limit=10
+            </div>
+
+            <h3 style="margin-top: 16px; margin-bottom: 8px; color: #666;">Or Upload New Document (Auto Mode Triggered)</h3>
+            <div class="code-block">
+POST /api/intake/upload
+Content-Type: multipart/form-data
+
+file: <your-document-file>
+            </div>
+
+            <h3 style="margin-top: 16px; margin-bottom: 8px; color: #666;">View Results Dashboard</h3>
+            <div class="code-block">
+GET /static/<span class="highlight">auto_analysis_summary.html</span>
+GET /static/<span class="highlight">batch_analysis_results.html</span>
+            </div>
+        </div>
+
+        <!-- System Architecture -->
+        <div class="section">
+            <h2>🏗️ System Architecture</h2>
+            <div class="code-block">
+Document Upload
+    ↓
+DocumentFlowOrchestrator (if auto_mode enabled)
+    ├─ TimelineBuilder → Extract events & dates
+    ├─ CalendarService → Create calendar events  
+    ├─ LegalAnalysisEngine → Assess rights & missteps
+    ├─ ComplaintWizard → Identify complaint agencies
+    ├─ ProactiveTacticsEngine → Suggest defense tactics
+    └─ AutoModeSummaryService → Generate summary
+    ↓
+Results Published via Event Bus
+    ↓
+Real-time UI Update
+    ├─ Progress indicator (0-100%)
+    ├─ Confidence score display
+    ├─ Urgent alerts
+    ├─ Recommended actions
+    └─ Next steps workflow
+            </div>
+        </div>
+
+        <!-- Features Overview -->
+        <div class="section">
+            <h2>✨ Key Features</h2>
+            <ul class="action-list">
+                <li>✅ <strong>Timeline Extraction</strong> - Automatically extract dates, events, and deadlines from documents</li>
+                <li>✅ <strong>Calendar Generation</strong> - Create calendar events with reminders for critical dates</li>
+                <li>✅ <strong>Complaint Identification</strong> - Identify regulatory agencies where you can file complaints</li>
+                <li>✅ <strong>Rights Assessment</strong> - Evaluate your legal rights and tenant protections</li>
+                <li>✅ <strong>Missteps Detection</strong> - Identify legal procedural violations by landlord</li>
+                <li>✅ <strong>Tactics Recommendation</strong> - Suggest proactive defense strategies</li>
+                <li>✅ <strong>Smart Summaries</strong> - Generate comprehensive analysis summaries</li>
+                <li>✅ <strong>Actionable Recommendations</strong> - Prioritized action items with time estimates</li>
+                <li>✅ <strong>Batch Processing</strong> - Analyze multiple documents simultaneously</li>
+                <li>✅ <strong>Progress Tracking</strong> - Real-time progress indicators and confidence scores</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const demoData = {
+            stats: {
+                timeline_events: 47,
+                calendar_events: 12,
+                complaints: 3,
+                rights: 15,
+                missteps: 5,
+                tactics: 8
+            },
+            urgent: [
+                { message: "⚠️ Service notice missing required statutory language (Minnesota Statute § 504B.071)", severity: "CRITICAL" },
+                { message: "⚠️ Timing issue: Notice served only 9 days before hearing (requires 14 days)", severity: "CRITICAL" },
+                { message: "⚠️ Proof of service defective - no affidavit of service attached", severity: "HIGH" },
+                { message: "📋 File complaint with Minnesota Attorney General for service violations", severity: "HIGH" }
+            ],
+            actions: [
+                { title: "Review Extracted Timeline", desc: "47 events extracted - verify accuracy (~5-10 min)", priority: "high" },
+                { title: "File 3 Complaints", desc: "With Attorney General, HUD, and Local Housing Authority (~20-30 min each)", priority: "high" },
+                { title: "Address 5 Legal Missteps", desc: "Critical procedural violations that could lead to dismissal (~15-30 min)", priority: "critical" },
+                { title: "Implement 8 Defense Tactics", desc: "Motion to dismiss, rent escrow, retaliation counterclaim (~20-30 min)", priority: "medium" },
+                { title: "Gather Supporting Documents", desc: "Collect evidence for habitability issues, maintenance requests (~30 min)", priority: "medium" }
+            ],
+            documents: [
+                { name: "Eviction_Notice_2024.pdf", events: 12, urgent: 2, progress: 95, confidence: 94 },
+                { name: "Service_Affidavit.pdf", events: 8, urgent: 1, progress: 88, confidence: 91 },
+                { name: "Lease_Agreement.pdf", events: 15, urgent: 0, progress: 92, confidence: 96 },
+                { name: "Maintenance_Requests.pdf", events: 12, urgent: 1, progress: 85, confidence: 89 }
+            ]
+        };
+
+        let demoLineIndex = 0;
+        const demoLines = [
+            { text: "🚀 Starting Automated Case Analysis...", type: "info" },
+            { text: "", type: "info" },
+            { text: "📄 Scanning uploaded documents (4 found)", type: "info" },
+            { text: "", type: "info" },
+            { text: "→ Processing: Eviction_Notice_2024.pdf", type: "info" },
+            { text: "  ✓ Extracted 12 timeline events", type: "success" },
+            { text: "  ✓ Generated 3 calendar events with reminders", type: "success" },
+            { text: "  ✓ Identified service notice defect (CRITICAL)", type: "warning" },
+            { text: "  ✓ Found retaliation potential", type: "warning" },
+            { text: "", type: "info" },
+            { text: "→ Processing: Service_Affidavit.pdf", type: "info" },
+            { text: "  ✓ Extracted 8 timeline events", type: "success" },
+            { text: "  ✓ Detected missing statutory language", type: "warning" },
+            { text: "", type: "info" },
+            { text: "→ Processing: Lease_Agreement.pdf", type: "info" },
+            { text: "  ✓ Extracted 15 timeline events", type: "success" },
+            { text: "  ✓ Identified 6 tenant rights protections", type: "success" },
+            { text: "", type: "info" },
+            { text: "→ Processing: Maintenance_Requests.pdf", type: "info" },
+            { text: "  ✓ Extracted 12 timeline events", type: "success" },
+            { text: "  ✓ Identified habitability issues", type: "warning" },
+            { text: "", type: "info" },
+            { text: "📊 ANALYSIS COMPLETE", type: "success" },
+            { text: "", type: "info" },
+            { text: "📈 Aggregated Results:", type: "info" },
+            { text: `  • Timeline Events: ${demoData.stats.timeline_events}`, type: "success" },
+            { text: `  • Calendar Events: ${demoData.stats.calendar_events}`, type: "success" },
+            { text: `  • Complaints to File: ${demoData.stats.complaints}`, type: "warning" },
+            { text: `  • Legal Missteps Detected: ${demoData.stats.missteps}`, type: "error" },
+            { text: `  • Defense Tactics Available: ${demoData.stats.tactics}`, type: "success" },
+            { text: "", type: "info" },
+            { text: "⚠️  URGENT ACTIONS REQUIRED:", type: "error" },
+            { text: "  1. Service notice missing required statutory language", type: "error" },
+            { text: "  2. File complaints with regulatory agencies (3-day deadline)", type: "error" },
+            { text: "  3. Motion to dismiss due to service defects", type: "error" },
+            { text: "", type: "info" },
+            { text: "✅ System ready for next steps", type: "success" }
+        ];
+
+        function animateDemoOutput() {
+            if (demoLineIndex < demoLines.length) {
+                const line = demoLines[demoLineIndex];
+                const outputDiv = document.getElementById('demo-output');
+                const lineEl = document.createElement('div');
+                lineEl.className = `demo-line ${line.type}`;
+                lineEl.textContent = line.text;
+                outputDiv.appendChild(lineEl);
+                outputDiv.scrollTop = outputDiv.scrollHeight;
+                demoLineIndex++;
+                
+                if (demoLineIndex === demoLines.length - 1) {
+                    populateResults();
+                }
+                
+                setTimeout(animateDemoOutput, 100);
+            }
+        }
+
+        function runDemo() {
+            demoLineIndex = 0;
+            document.getElementById('demo-output').innerHTML = '';
+            animateDemoOutput();
+        }
+
+        function clearDemo() {
+            document.getElementById('demo-output').innerHTML = '';
+            demoLineIndex = 0;
+        }
+
+        function populateResults() {
+            // Stats
+            const statsContainer = document.getElementById('stats-container');
+            statsContainer.innerHTML = `
+                <div class="stat">
+                    <div class="stat-number">${demoData.stats.timeline_events}</div>
+                    <div class="stat-label">Timeline Events</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">${demoData.stats.calendar_events}</div>
+                    <div class="stat-label">Calendar Events</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">${demoData.stats.complaints}</div>
+                    <div class="stat-label">Complaints</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">${demoData.stats.missteps}</div>
+                    <div class="stat-label">Missteps Found</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">${demoData.stats.tactics}</div>
+                    <div class="stat-label">Tactics Available</div>
+                </div>
+            `;
+
+            // Urgent actions
+            const urgentList = document.getElementById('urgent-list');
+            urgentList.innerHTML = demoData.urgent.map(u => 
+                `<li class="urgent">${u.message} <strong>[${u.severity}]</strong></li>`
+            ).join('');
+
+            // Recommended actions
+            const actionsList = document.getElementById('actions-list');
+            actionsList.innerHTML = demoData.actions.map(a => 
+                `<li>${a.title} - ${a.desc}</li>`
+            ).join('');
+        }
+
+        // Auto-run on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(runDemo, 500);
+        });
+    </script>
+</body>
+</html>

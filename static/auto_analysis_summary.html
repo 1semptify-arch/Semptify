@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto Mode Analysis Summary</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .progress-container {
+            margin-top: 16px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .urgent-section {
+            background: #fff3cd;
+            border-left: 4px solid #ff6b6b;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .urgent-title {
+            color: #c92a2a;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .urgent-list {
+            list-style: none;
+        }
+
+        .urgent-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #ffeaa7;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .urgent-item:last-child {
+            border-bottom: none;
+        }
+
+        .urgent-badge {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-card h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .icon-timeline { background: #e7d4ff; }
+        .icon-calendar { background: #d4f4ff; }
+        .icon-complaints { background: #ffd4d4; }
+        .icon-rights { background: #d4ffd4; }
+        .icon-missteps { background: #ffe7d4; }
+        .icon-tactics { background: #fff4d4; }
+
+        .summary-content {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .actions-section {
+            margin-bottom: 24px;
+        }
+
+        .actions-section h2 {
+            color: white;
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .action-content {
+            flex: 1;
+        }
+
+        .action-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+            font-size: 15px;
+        }
+
+        .action-description {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .action-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .priority-critical {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .priority-high {
+            background: #ffa94d;
+            color: white;
+        }
+
+        .priority-medium {
+            background: #4dabf7;
+            color: white;
+        }
+
+        .action-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+        }
+
+        .action-button:hover {
+            opacity: 0.9;
+        }
+
+        .next-steps {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .next-steps h3 {
+            color: #333;
+            margin-bottom: 16px;
+            font-size: 16px;
+        }
+
+        .steps-list {
+            list-style: none;
+        }
+
+        .steps-list li {
+            padding: 8px 0;
+            padding-left: 24px;
+            position: relative;
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .steps-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            background: #d4f4ff;
+            color: #0066cc;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 12px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .action-button {
+                align-self: flex-start;
+                margin-top: 12px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📊 Auto Analysis Summary</h1>
+            <p id="filename-display">Analyzing document...</p>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">
+                    <span id="progress-percent">0%</span>
+                    <span id="confidence-display">Analyzing...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Urgent Actions -->
+        <div id="urgent-section" style="display: none;" class="urgent-section">
+            <div class="urgent-title">
+                ⚠️ URGENT ACTIONS REQUIRED
+            </div>
+            <ul class="urgent-list" id="urgent-list"></ul>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-grid" id="summary-grid"></div>
+
+        <!-- Recommended Actions -->
+        <div class="actions-section">
+            <h2>🎯 Recommended Actions</h2>
+            <div id="actions-container"></div>
+        </div>
+
+        <!-- Next Steps -->
+        <div class="next-steps">
+            <h3>📋 Next Steps</h3>
+            <ol class="steps-list" id="next-steps-list"></ol>
+        </div>
+    </div>
+
+    <script>
+        // Example data structure (replace with actual API call)
+        const analysisData = {
+            filename: "Eviction_Notice_2024.pdf",
+            progress: 85,
+            confidence: 0.92,
+            timeline_events: 12,
+            calendar_events: 5,
+            complaints: 2,
+            rights: 8,
+            missteps: 3,
+            tactics: 4,
+            summaries: {
+                timeline: "Extracted 12 timeline events:\n  • notice: 3 event(s)\n  • deadline: 5 event(s)\n  • court: 2 event(s)\n  • payment: 2 event(s)\n  • Timeline span: 2024-01-15 to 2024-03-30\n  • Critical deadlines: 5 identified",
+                calendar: "Generated 5 calendar events:\n  • court_hearing: 1 event(s)\n  • notice_deadline: 2 event(s)\n  • payment_due: 2 event(s)\n  • Upcoming events with reminders: 5",
+                complaints: "Identified 2 potential complaints to file:\n  • attorney_general: 1 complaint(s)\n  • hud: 1 complaint(s)",
+                rights: "Your Strengths (3):\n  • Document preservation protocol in place\n  • Proper service documentation\n  • Timeline consistency\n\nAreas to Address (2):\n  • Missing written communication\n  • Limited habitability documentation",
+                missteps: "Detected 3 potential legal missteps:\n  1. Service notice does not comply with state requirements\n  2. Missing proof of proper service delivery\n  3. Timeline discrepancy in hearing notice",
+                tactics: "Recommended 4 proactive defense tactics:\n  1. motion_dismiss: File motion to dismiss due to service defects\n  2. rent_escrow: Consider rent escrow for habitability issues\n  3. retaliation: Document all retaliation claims\n  4. continuance: Request continuance to gather evidence"
+            },
+            urgent_actions: [
+                {
+                    action: "address_missteps",
+                    message: "⚠️ 3 legal procedural violation(s) detected",
+                    severity: "critical",
+                    deadline: "Immediate"
+                },
+                {
+                    action: "file_complaints",
+                    message: "📋 2 complaint(s) ready to file",
+                    severity: "high",
+                    deadline: "Within 3 days"
+                }
+            ],
+            recommended_actions: [
+                {
+                    action_id: "review_timeline",
+                    title: "Review Extracted Timeline",
+                    description: "12 events were extracted. Review to ensure accuracy.",
+                    priority: "high",
+                    estimated_time: "5-10 minutes",
+                    link: "#"
+                },
+                {
+                    action_id: "file_complaints",
+                    title: "File 2 Complaint(s)",
+                    description: "Regulatory agencies identified where you can file complaints.",
+                    priority: "high",
+                    estimated_time: "20-30 minutes per complaint",
+                    link: "#"
+                },
+                {
+                    action_id: "address_missteps",
+                    title: "Address 3 Legal Misstep(s)",
+                    description: "Procedural violations that could impact your case.",
+                    priority: "critical",
+                    estimated_time: "15-30 minutes",
+                    link: "#"
+                },
+                {
+                    action_id: "implement_tactics",
+                    title: "Consider 4 Defense Tactic(s)",
+                    description: "Proactive strategies to strengthen your position.",
+                    priority: "medium",
+                    estimated_time: "15-20 minutes",
+                    link: "#"
+                }
+            ],
+            next_steps: [
+                "1. Review the automatically extracted timeline and calendar for accuracy",
+                "2. ⚠️ ADDRESS MISSTEPS IMMEDIATELY - Review legal procedural violations",
+                "3. Consider filing complaints with identified regulatory agencies",
+                "4. Evaluate and plan implementation of recommended defense tactics",
+                "5. Gather any additional supporting documentation",
+                "6. Upload more documents to build a stronger case",
+                "7. Share analysis with legal counsel or advocate if available"
+            ]
+        };
+
+        function initializeUI() {
+            // Set filename and progress
+            document.getElementById('filename-display').textContent = `Document: ${analysisData.filename}`;
+            document.getElementById('progress-fill').style.width = `${analysisData.progress}%`;
+            document.getElementById('progress-percent').textContent = `${analysisData.progress}%`;
+            document.getElementById('confidence-display').innerHTML = `<span class="confidence-badge">Confidence: ${(analysisData.confidence * 100).toFixed(0)}%</span>`;
+
+            // Display urgent actions if any
+            if (analysisData.urgent_actions.length > 0) {
+                document.getElementById('urgent-section').style.display = 'block';
+                const urgentList = document.getElementById('urgent-list');
+                analysisData.urgent_actions.forEach(action => {
+                    const li = document.createElement('li');
+                    li.className = 'urgent-item';
+                    li.innerHTML = `<span class="urgent-badge">${action.severity.toUpperCase()}</span>${action.message} (${action.deadline})`;
+                    urgentList.appendChild(li);
+                });
+            }
+
+            // Display summary cards
+            const grid = document.getElementById('summary-grid');
+            const summaryItems = [
+                { key: 'timeline', title: '📅 Timeline Events', icon: 'timeline', count: analysisData.timeline_events, color: 'icon-timeline' },
+                { key: 'calendar', title: '🗓️ Calendar Events', icon: 'calendar', count: analysisData.calendar_events, color: 'icon-calendar' },
+                { key: 'complaints', title: '📋 Complaints', icon: 'complaints', count: analysisData.complaints, color: 'icon-complaints' },
+                { key: 'rights', title: '⚖️ Rights Identified', icon: 'rights', count: analysisData.rights, color: 'icon-rights' },
+                { key: 'missteps', title: '⚠️ Missteps Detected', icon: 'missteps', count: analysisData.missteps, color: 'icon-missteps' },
+                { key: 'tactics', title: '🎯 Tactics Recommended', icon: 'tactics', count: analysisData.tactics, color: 'icon-tactics' }
+            ];
+
+            summaryItems.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'summary-card';
+                card.innerHTML = `
+                    <h3>
+                        <span class="card-icon ${item.color}">${item.count}</span>
+                        ${item.title}
+                    </h3>
+                    <div class="summary-content">${analysisData.summaries[item.key]}</div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // Display recommended actions
+            const actionsContainer = document.getElementById('actions-container');
+            analysisData.recommended_actions.forEach(action => {
+                const card = document.createElement('div');
+                card.className = 'action-card';
+                const priorityClass = `priority-${action.priority}`;
+                card.innerHTML = `
+                    <div class="action-content">
+                        <div class="priority-badge ${priorityClass}">${action.priority.toUpperCase()}</div>
+                        <div class="action-title">${action.title}</div>
+                        <div class="action-description">${action.description}</div>
+                        <div class="action-meta">
+                            <span>🕐 ${action.estimated_time}</span>
+                        </div>
+                    </div>
+                    <button class="action-button" onclick="window.location.href='${action.link}'">Take Action →</button>
+                `;
+                actionsContainer.appendChild(card);
+            });
+
+            // Display next steps
+            const nextStepsList = document.getElementById('next-steps-list');
+            analysisData.next_steps.forEach(step => {
+                const li = document.createElement('li');
+                li.textContent = step;
+                nextStepsList.appendChild(li);
+            });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeUI);
+    </script>
+</body>
+</html>

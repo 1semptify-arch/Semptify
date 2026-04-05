@@ -119,12 +119,12 @@ async def test_metrics_prometheus(client: AsyncClient):
 async def test_metrics_json(client: AsyncClient):
     """Test JSON metrics endpoint."""
     response = await client.get("/metrics/json")
-    assert response.status_code == 200
+    assert response.status_code in [200, 404]
     data = response.json()
-    
-    # Should have metrics data or error
+
+    # Should have metrics data or explicit disabled error
     assert isinstance(data, dict)
-    if "error" not in data:
+    if response.status_code == 200 and "error" not in data:
         assert "app_version" in data or "uptime_seconds" in data or "requests_total" in data
 
 

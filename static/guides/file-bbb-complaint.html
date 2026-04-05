@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File BBB Complaint - Semptify</title>
+    <link rel="stylesheet" href="/static/css/shared-nav.css">
+    <script src="/static/js/case-context.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --bbb-blue: #0069b4;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--bbb-blue), #004d84);
+            border-radius: 16px;
+        }
+
+        .page-header h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+        .page-header p { opacity: 0.9; }
+
+        .progress-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .progress-step {
+            flex: 1;
+            min-width: 80px;
+            padding: 0.75rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.85rem;
+            border: 2px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .progress-step.active {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .progress-step.completed {
+            border-color: var(--success);
+            background: rgba(34, 197, 94, 0.2);
+        }
+
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .form-group { margin-bottom: 1.25rem; }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-label .required { color: var(--danger); }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-textarea { min-height: 150px; resize: vertical; font-family: inherit; }
+
+        .form-help {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-bbb { background: var(--bbb-blue); color: white; }
+        .btn-bbb:hover { background: #004d84; }
+        .btn-secondary { background: var(--bg-card-hover); color: var(--text); }
+        .btn-secondary:hover { background: #475569; }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .output-box {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .output-wrapper { position: relative; }
+
+        .info-box {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .info-box.success { background: rgba(34, 197, 94, 0.1); border-color: var(--success); }
+        .info-box.warning { background: rgba(245, 158, 11, 0.1); border-color: var(--warning); }
+
+        .checklist { list-style: none; }
+        .checklist li {
+            padding: 0.75rem 1rem;
+            padding-left: 2.5rem;
+            position: relative;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+        }
+        .checklist li::before {
+            content: "☐";
+            position: absolute;
+            left: 1rem;
+            color: var(--text-muted);
+        }
+        .checklist li.checked::before {
+            content: "✓";
+            color: var(--success);
+        }
+
+        .hidden { display: none !important; }
+
+        .complaint-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+
+        .complaint-type-btn {
+            padding: 1rem;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .complaint-type-btn:hover { border-color: var(--primary); }
+        .complaint-type-btn.selected { border-color: var(--success); background: rgba(34, 197, 94, 0.1); }
+        .complaint-type-btn h4 { margin-bottom: 0.25rem; }
+        .complaint-type-btn p { font-size: 0.8rem; color: var(--text-muted); }
+
+        .tab-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card-hover);
+            border: none;
+            border-radius: 6px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+
+        .tab-btn.active { background: var(--primary); color: white; }
+
+        .amount-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .amount-input-wrapper span {
+            font-size: 1.5rem;
+            color: var(--success);
+        }
+
+        .tip-box {
+            background: rgba(245, 158, 11, 0.1);
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .tip-box strong { color: var(--warning); }
+    </style>
+</head>
+<body>
+    <div id="semptify-nav"></div>
+    <script src="/static/js/shared-nav.js"></script>
+
+    <div class="container">
+        <a href="/static/guides/bbb-complaint.html" class="back-link">← Back to BBB Guide</a>
+
+        <div class="page-header">
+            <h1>📢 BBB Business Complaint</h1>
+            <p>Create public pressure and official business record</p>
+        </div>
+
+        <div class="info-box" style="margin-bottom: 2rem;">
+            <strong>💡 Why BBB?</strong> BBB complaints create a public record that affects the landlord's business reputation. Many businesses respond quickly to avoid negative ratings.
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-step active" data-step="1">1. Type</div>
+            <div class="progress-step" data-step="2">2. Your Info</div>
+            <div class="progress-step" data-step="3">3. Business</div>
+            <div class="progress-step" data-step="4">4. Details</div>
+            <div class="progress-step" data-step="5">5. Generate</div>
+        </div>
+
+        <!-- Step 1: Complaint Type -->
+        <div id="step-1" class="section">
+            <h2 class="section-title">📋 What is your complaint about?</h2>
+            
+            <div class="complaint-type-grid" id="complaint-types">
+                <button class="complaint-type-btn" data-type="security_deposit" onclick="selectComplaintType(this)">
+                    <h4>💰 Security Deposit</h4>
+                    <p>Not returned, wrongful deductions</p>
+                </button>
+                <button class="complaint-type-btn" data-type="habitability" onclick="selectComplaintType(this)">
+                    <h4>🏚️ Habitability Issues</h4>
+                    <p>Repairs not made, unsafe conditions</p>
+                </button>
+                <button class="complaint-type-btn" data-type="service_quality" onclick="selectComplaintType(this)">
+                    <h4>⭐ Poor Service</h4>
+                    <p>Unresponsive management, poor maintenance</p>
+                </button>
+                <button class="complaint-type-btn" data-type="billing" onclick="selectComplaintType(this)">
+                    <h4>🧾 Billing Issues</h4>
+                    <p>Unexpected charges, incorrect bills</p>
+                </button>
+                <button class="complaint-type-btn" data-type="lease_violation" onclick="selectComplaintType(this)">
+                    <h4>📜 Contract/Lease Issues</h4>
+                    <p>Landlord not honoring terms</p>
+                </button>
+                <button class="complaint-type-btn" data-type="communication" onclick="selectComplaintType(this)">
+                    <h4>📞 Communication Problems</h4>
+                    <p>No response, ignoring complaints</p>
+                </button>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="goToStep(2)" id="step1-next" disabled>Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Your Information -->
+        <div id="step-2" class="section hidden">
+            <h2 class="section-title">👤 Your Information</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">First Name <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="your-first-name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last Name <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="your-last-name">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Address <span class="required">*</span></label>
+                <input type="text" class="form-input" id="your-address">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">City <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="your-city">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">State</label>
+                    <input type="text" class="form-input" id="your-state" value="MN">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">ZIP Code <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="your-zip">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" class="form-input" id="your-phone">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email Address <span class="required">*</span></label>
+                <input type="email" class="form-input" id="your-email">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
+                <button class="btn btn-primary" onclick="goToStep(3)">Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Business Information -->
+        <div id="step-3" class="section hidden">
+            <h2 class="section-title">🏢 Business Information</h2>
+            
+            <div class="tip-box">
+                <strong>💡 Tip:</strong> Use the landlord's official business name if different from their personal name. Search BBB.org first to find their profile.
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Business Name <span class="required">*</span></label>
+                <input type="text" class="form-input" id="biz-name" placeholder="Property management company or landlord name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Business Address <span class="required">*</span></label>
+                <input type="text" class="form-input" id="biz-address">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">City <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="biz-city">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">State</label>
+                    <input type="text" class="form-input" id="biz-state" value="MN">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">ZIP Code</label>
+                    <input type="text" class="form-input" id="biz-zip">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Business Phone</label>
+                    <input type="tel" class="form-input" id="biz-phone">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Business Website</label>
+                <input type="text" class="form-input" id="biz-website" placeholder="www.example.com">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="goToStep(2)">← Back</button>
+                <button class="btn btn-primary" onclick="goToStep(4)">Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Complaint Details -->
+        <div id="step-4" class="section hidden">
+            <h2 class="section-title">📝 Complaint Details</h2>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Date Problem Started <span class="required">*</span></label>
+                    <input type="date" class="form-input" id="problem-date">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Purchase/Transaction Date</label>
+                    <input type="date" class="form-input" id="transaction-date">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Amount in Dispute</label>
+                <div class="amount-input-wrapper">
+                    <span>$</span>
+                    <input type="number" class="form-input" id="dispute-amount" placeholder="0.00" style="max-width: 200px;">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Describe the Problem <span class="required">*</span></label>
+                <textarea class="form-textarea" id="problem-description" rows="6"
+                    placeholder="Describe what happened:
+• What was the issue?
+• When did it occur?
+• How did you try to resolve it?
+• What response did you get?"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">What resolution do you want? <span class="required">*</span></label>
+                <textarea class="form-textarea" id="desired-resolution" rows="3"
+                    placeholder="What would you like the business to do? (refund, complete repairs, return deposit, etc.)"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Have you contacted the business about this?</label>
+                <select class="form-select" id="contacted-business">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+
+            <div class="form-group" id="contact-attempts-group">
+                <label class="form-label">Describe your contact attempts</label>
+                <textarea class="form-textarea" id="contact-attempts" rows="3"
+                    placeholder="List dates and methods you used to contact the business and any responses received"></textarea>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="goToStep(3)">← Back</button>
+                <button class="btn btn-primary" onclick="goToStep(5)">Generate Complaint →</button>
+            </div>
+        </div>
+
+        <!-- Step 5: Generated Complaint -->
+        <div id="step-5" class="section hidden">
+            <h2 class="section-title">✅ Your BBB Complaint is Ready!</h2>
+            
+            <div class="info-box success">
+                <strong>🎉 Next Steps:</strong>
+                <ol style="margin: 0.5rem 0 0 1.5rem;">
+                    <li>Copy the text below</li>
+                    <li>Go to BBB.org complaint portal</li>
+                    <li>Search for the business first</li>
+                    <li>File your complaint</li>
+                    <li>Save your complaint ID for tracking</li>
+                </ol>
+            </div>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="showTab('summary')">📋 Summary</button>
+                <button class="tab-btn" onclick="showTab('full')">📄 Full Complaint</button>
+                <button class="tab-btn" onclick="showTab('tips')">💡 Tips</button>
+            </div>
+
+            <div id="tab-summary">
+                <h3 style="margin-bottom: 1rem;">Complaint Summary (for BBB form)</h3>
+                <div class="output-wrapper">
+                    <button class="copy-btn" onclick="copyText('output-summary')">📋 Copy</button>
+                    <div class="output-box" id="output-summary"></div>
+                </div>
+            </div>
+
+            <div id="tab-full" class="hidden">
+                <h3 style="margin-bottom: 1rem;">Complete Complaint</h3>
+                <div class="output-wrapper">
+                    <button class="copy-btn" onclick="copyText('output-full')">📋 Copy</button>
+                    <div class="output-box" id="output-full"></div>
+                </div>
+            </div>
+
+            <div id="tab-tips" class="hidden">
+                <h3 style="margin-bottom: 1rem;">BBB Complaint Tips</h3>
+                <ul class="checklist">
+                    <li onclick="this.classList.toggle('checked')">Be factual and specific - stick to dates, amounts, and events</li>
+                    <li onclick="this.classList.toggle('checked')">Keep emotions out of the complaint text</li>
+                    <li onclick="this.classList.toggle('checked')">Include all contact attempts with the business</li>
+                    <li onclick="this.classList.toggle('checked')">Be clear about what resolution you want</li>
+                    <li onclick="this.classList.toggle('checked')">Attach supporting documents if possible</li>
+                    <li onclick="this.classList.toggle('checked')">Respond promptly if BBB or business contacts you</li>
+                    <li onclick="this.classList.toggle('checked')">Consider also leaving a review on Google, Yelp, etc.</li>
+                </ul>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="goToStep(4)">← Edit</button>
+                <a href="https://www.bbb.org/file-a-complaint" target="_blank" class="btn btn-bbb">
+                    🔗 Open BBB Portal
+                </a>
+                <button class="btn btn-primary" onclick="saveToCase()">💾 Save to Case</button>
+                <button class="btn btn-secondary" onclick="printComplaint()">🖨️ Print</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedComplaintType = null;
+        let currentStep = 1;
+
+        const complaintTypeNames = {
+            security_deposit: 'Security Deposit Dispute',
+            habitability: 'Habitability/Property Condition Issues',
+            service_quality: 'Poor Service Quality',
+            billing: 'Billing/Charge Issues',
+            lease_violation: 'Contract/Lease Violations',
+            communication: 'Communication Problems'
+        };
+
+        const complaintTemplates = {
+            security_deposit: {
+                summary: `I am filing this complaint regarding my security deposit of $[AMOUNT].
+
+I moved out of [PROPERTY_ADDRESS] on [DATE]. The landlord has failed to return my security deposit within the legally required timeframe and/or made improper deductions.
+
+[DETAILS]
+
+I have attempted to resolve this directly with the landlord: [CONTACT_ATTEMPTS]
+
+I am seeking a full refund of my security deposit in the amount of $[AMOUNT].`,
+                tips: ["Include move-in/move-out dates", "Mention 21-day return deadline", "List any deductions and why they're improper"]
+            },
+            habitability: {
+                summary: `I am filing this complaint regarding unsafe/unhabitable living conditions at [PROPERTY_ADDRESS].
+
+[DETAILS]
+
+Despite multiple requests for repairs, the landlord has failed to address these issues, which affect the safety and livability of my rental unit.
+
+[CONTACT_ATTEMPTS]
+
+I am seeking prompt completion of all necessary repairs.`,
+                tips: ["Document issues with photos", "Include repair request dates", "Mention if issues affect health/safety"]
+            },
+            service_quality: {
+                summary: `I am filing this complaint regarding the poor quality of service provided by [BUSINESS_NAME].
+
+[DETAILS]
+
+As a tenant, I expected reasonable property management services as part of my rental agreement. The business has consistently failed to meet this standard.
+
+[CONTACT_ATTEMPTS]
+
+I am seeking improved service and [RESOLUTION].`,
+                tips: ["Be specific about service failures", "Include response times (or lack thereof)", "Document pattern of poor service"]
+            },
+            billing: {
+                summary: `I am filing this complaint regarding incorrect charges/billing from [BUSINESS_NAME].
+
+[DETAILS]
+
+I was charged $[AMOUNT] for [REASON], which I believe is incorrect/unauthorized.
+
+[CONTACT_ATTEMPTS]
+
+I am seeking a refund of $[AMOUNT] for these improper charges.`,
+                tips: ["Include specific charge dates and amounts", "Reference lease terms about fees", "Include payment records"]
+            },
+            lease_violation: {
+                summary: `I am filing this complaint because [BUSINESS_NAME] has violated the terms of our lease agreement.
+
+[DETAILS]
+
+These actions violate Section [X] of our lease agreement, which states [LEASE_TERM].
+
+[CONTACT_ATTEMPTS]
+
+I am seeking [RESOLUTION] and compliance with our lease terms.`,
+                tips: ["Quote specific lease provisions", "Document each violation", "Include dates of violations"]
+            },
+            communication: {
+                summary: `I am filing this complaint because [BUSINESS_NAME] has failed to respond to my communications regarding important matters.
+
+[DETAILS]
+
+I have attempted to contact the business on the following dates and through the following methods:
+[CONTACT_ATTEMPTS]
+
+I have received no meaningful response despite multiple attempts over [TIME PERIOD].
+
+I am seeking a response to my concerns and [RESOLUTION].`,
+                tips: ["Log every contact attempt with dates", "Save voicemails and emails", "Note response times"]
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                try {
+                    const activeCase = window.CaseContext?.getActiveCase();
+                    if (activeCase) {
+                        if (activeCase.plaintiff?.name) {
+                            document.getElementById('biz-name').value = activeCase.plaintiff.name;
+                        }
+                        if (activeCase.property_address) {
+                            document.getElementById('biz-address').value = activeCase.property_address;
+                        }
+                        if (activeCase.defendant?.name) {
+                            const names = activeCase.defendant.name.split(' ');
+                            document.getElementById('your-first-name').value = names[0] || '';
+                            document.getElementById('your-last-name').value = names.slice(1).join(' ') || '';
+                        }
+                    }
+                } catch (e) {
+                    console.log('No case context');
+                }
+            }, 300);
+        });
+
+        function selectComplaintType(btn) {
+            document.querySelectorAll('.complaint-type-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedComplaintType = btn.dataset.type;
+            document.getElementById('step1-next').disabled = false;
+        }
+
+        function goToStep(step) {
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`step-${i}`).classList.add('hidden');
+                const progressEl = document.querySelector(`.progress-step[data-step="${i}"]`);
+                if (progressEl) {
+                    progressEl.classList.remove('active');
+                    if (i < step) progressEl.classList.add('completed');
+                    else progressEl.classList.remove('completed');
+                }
+            }
+            
+            document.getElementById(`step-${step}`).classList.remove('hidden');
+            const activeProgress = document.querySelector(`.progress-step[data-step="${step}"]`);
+            if (activeProgress) activeProgress.classList.add('active');
+            currentStep = step;
+
+            if (step === 5) generateComplaint();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function generateComplaint() {
+            const template = complaintTemplates[selectedComplaintType];
+            if (!template) return;
+
+            const bizName = document.getElementById('biz-name').value || '[BUSINESS_NAME]';
+            const bizAddress = document.getElementById('biz-address').value || '[ADDRESS]';
+            const amount = document.getElementById('dispute-amount').value || '0';
+            const details = document.getElementById('problem-description').value || '[DESCRIBE PROBLEM]';
+            const resolution = document.getElementById('desired-resolution').value || '[DESIRED RESOLUTION]';
+            const contactAttempts = document.getElementById('contact-attempts').value || 'Contact attempts documented.';
+
+            let summary = template.summary
+                .replace(/\[BUSINESS_NAME\]/g, bizName)
+                .replace(/\[PROPERTY_ADDRESS\]/g, bizAddress)
+                .replace(/\[AMOUNT\]/g, amount)
+                .replace(/\[DETAILS\]/g, details)
+                .replace(/\[RESOLUTION\]/g, resolution)
+                .replace(/\[CONTACT_ATTEMPTS\]/g, contactAttempts)
+                .replace(/\[DATE\]/g, document.getElementById('problem-date').value || '[DATE]');
+
+            const fullComplaint = `BBB BUSINESS COMPLAINT
+======================
+
+Complaint Type: ${complaintTypeNames[selectedComplaintType]}
+Date: ${new Date().toLocaleDateString()}
+
+COMPLAINANT INFORMATION:
+${document.getElementById('your-first-name').value} ${document.getElementById('your-last-name').value}
+${document.getElementById('your-address').value}
+${document.getElementById('your-city').value}, ${document.getElementById('your-state').value} ${document.getElementById('your-zip').value}
+Phone: ${document.getElementById('your-phone').value || 'N/A'}
+Email: ${document.getElementById('your-email').value}
+
+BUSINESS INFORMATION:
+${bizName}
+${bizAddress}
+${document.getElementById('biz-city').value}, ${document.getElementById('biz-state').value} ${document.getElementById('biz-zip').value}
+Phone: ${document.getElementById('biz-phone').value || 'N/A'}
+Website: ${document.getElementById('biz-website').value || 'N/A'}
+
+COMPLAINT DETAILS:
+Date Problem Started: ${document.getElementById('problem-date').value || 'N/A'}
+Transaction Date: ${document.getElementById('transaction-date').value || 'N/A'}
+Amount in Dispute: $${amount}
+
+DESCRIPTION:
+${details}
+
+CONTACT ATTEMPTS:
+${contactAttempts}
+
+DESIRED RESOLUTION:
+${resolution}
+
+======================
+Generated via Semptify
+`;
+
+            document.getElementById('output-summary').textContent = summary;
+            document.getElementById('output-full').textContent = fullComplaint;
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-btn[onclick="showTab('${tabName}')"]`).classList.add('active');
+            
+            ['summary', 'full', 'tips'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+            });
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+        }
+
+        async function copyText(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('Copied!');
+            } catch (err) {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('Copied!');
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.style.cssText = `position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--success);color:white;padding:12px 24px;border-radius:8px;z-index:1000;`;
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 2000);
+        }
+
+        function saveToCase() {
+            const data = {
+                type: 'bbb_complaint',
+                complaint_type: selectedComplaintType,
+                business: document.getElementById('biz-name').value,
+                summary: document.getElementById('output-summary').textContent,
+                created_at: new Date().toISOString()
+            };
+            const complaints = JSON.parse(localStorage.getItem('semptify_complaints') || '[]');
+            complaints.push(data);
+            localStorage.setItem('semptify_complaints', JSON.stringify(complaints));
+            showToast('Saved to case!');
+        }
+
+        function printComplaint() {
+            const w = window.open('', '_blank');
+            w.document.write(`<!DOCTYPE html><html><head><title>BBB Complaint</title><style>body{font-family:Courier,monospace;padding:40px;white-space:pre-wrap;}</style></head><body>${document.getElementById('output-full').textContent}</body></html>`);
+            w.document.close();
+            w.print();
+        }
+    </script>
+</body>
+</html>

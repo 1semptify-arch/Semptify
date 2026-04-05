@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BBB Complaint Guide - Semptify</title>
+    <link rel="stylesheet" href="/static/css/shared-nav.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        .guide-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-dark) 100%);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .guide-icon { font-size: 4rem; margin-bottom: 1rem; }
+        .guide-title { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .guide-subtitle { color: var(--text-muted); font-size: 1.1rem; }
+
+        .quick-action {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .quick-action h3 { font-size: 1.25rem; margin-bottom: 0.5rem; color: #1e293b; }
+        .quick-action a { color: #1e293b; font-size: 1.25rem; font-weight: 700; text-decoration: none; }
+        .quick-action a:hover { text-decoration: underline; }
+        .quick-action p { margin-top: 0.5rem; color: #1e293b; opacity: 0.8; font-size: 0.9rem; }
+
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .step-list { list-style: none; counter-reset: steps; }
+
+        .step-list li {
+            counter-increment: steps;
+            padding: 1rem;
+            padding-left: 3.5rem;
+            position: relative;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+        }
+
+        .step-list li::before {
+            content: counter(steps);
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .step-list li strong { color: var(--success); }
+
+        .info-box {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .info-box.warning { background: rgba(245, 158, 11, 0.1); border-color: var(--warning); }
+        .info-box.success { background: rgba(34, 197, 94, 0.1); border-color: var(--success); }
+
+        .checklist { list-style: none; }
+        .checklist li { padding: 0.5rem 0; padding-left: 2rem; position: relative; }
+        .checklist li::before { content: "✓"; position: absolute; left: 0; color: var(--success); font-weight: 700; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-warning { background: var(--warning); color: #1e293b; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
+        .btn-outline:hover { border-color: var(--primary); background: var(--bg-card); }
+
+        .action-buttons { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
+
+        .faq-item { border-bottom: 1px solid var(--border); padding: 1rem 0; }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-question { font-weight: 600; color: var(--primary); margin-bottom: 0.5rem; }
+        .faq-answer { color: var(--text-muted); }
+
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .impact-card {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .impact-card .icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .impact-card h4 {
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .impact-card p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 640px) {
+            .container { padding: 1rem; }
+            .guide-title { font-size: 1.5rem; }
+            .action-buttons { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/static/complaints.html" class="back-link">← Back to Complaints</a>
+
+        <div class="guide-header">
+            <div class="guide-icon">📢</div>
+            <h1 class="guide-title">Better Business Bureau</h1>
+            <p class="guide-subtitle">Create public pressure and damage business reputation</p>
+        </div>
+
+        <div class="quick-action" style="margin-bottom: 1rem;">
+            <h3>✨ Generate Your Complaint</h3>
+            <a href="/static/guides/file-bbb-complaint.html">🚀 Open Complaint Generator</a>
+            <p>Pre-fill your BBB complaint with case details and templates</p>
+        </div>
+
+        <div class="quick-action" style="background: linear-gradient(135deg, #475569, #334155);">
+            <h3>📝 File Directly at BBB</h3>
+            <a href="https://www.bbb.org/file-a-complaint" target="_blank">bbb.org/file-a-complaint</a>
+            <p>BBB complaints become public record and affect business ratings</p>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">📋 Why File with BBB?</h2>
+            <p>The Better Business Bureau creates <strong>public pressure</strong> on businesses. Unlike government agencies, BBB complaints become public record and directly affect how future customers view the business.</p>
+            
+            <div class="info-box warning">
+                <strong>📊 Public Impact:</strong>
+                <p>BBB profiles show complaint history, response rates, and customer reviews. Property management companies that rely on new tenant applications care deeply about their BBB rating.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">💪 Impact of BBB Complaints</h2>
+            <div class="impact-grid">
+                <div class="impact-card">
+                    <div class="icon">🌐</div>
+                    <h4>Public Record</h4>
+                    <p>Anyone searching the company sees your complaint</p>
+                </div>
+                <div class="impact-card">
+                    <div class="icon">⭐</div>
+                    <h4>Rating Impact</h4>
+                    <p>Unresolved complaints lower business ratings</p>
+                </div>
+                <div class="impact-card">
+                    <div class="icon">🔔</div>
+                    <h4>Forces Response</h4>
+                    <p>Businesses must respond within 14 days</p>
+                </div>
+                <div class="impact-card">
+                    <div class="icon">👥</div>
+                    <h4>Warns Others</h4>
+                    <p>Helps future tenants make informed decisions</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">📝 How to File a BBB Complaint</h2>
+            <ol class="step-list">
+                <li><strong>Go to BBB.org:</strong> Visit <a href="https://www.bbb.org/file-a-complaint" target="_blank" style="color: var(--primary);">bbb.org/file-a-complaint</a></li>
+                <li><strong>Search for the business:</strong> Enter landlord or property management company name</li>
+                <li><strong>Create an account:</strong> You'll need to register to file (it's free)</li>
+                <li><strong>Select complaint type:</strong> Choose the category that best fits your issue</li>
+                <li><strong>Describe your complaint:</strong> Be specific, factual, and professional</li>
+                <li><strong>State desired resolution:</strong> What outcome do you want?</li>
+                <li><strong>Attach supporting documents:</strong> Lease, correspondence, photos</li>
+                <li><strong>Submit and track:</strong> You'll receive updates as the business responds</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">✍️ Writing an Effective BBB Complaint</h2>
+            <p>BBB complaints are public, so write them to influence future tenants:</p>
+            
+            <div class="info-box">
+                <strong>📌 Key Elements:</strong>
+                <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                    <li><strong>Be factual:</strong> Stick to provable facts and dates</li>
+                    <li><strong>Be specific:</strong> Include dollar amounts, dates, and names</li>
+                    <li><strong>Be professional:</strong> Avoid emotional language or insults</li>
+                    <li><strong>Focus on patterns:</strong> If this is part of a pattern, say so</li>
+                    <li><strong>State your resolution:</strong> Be clear about what would resolve the issue</li>
+                </ul>
+            </div>
+
+            <div class="info-box success">
+                <strong>💡 Sample Opening:</strong>
+                <p style="font-style: italic; margin-top: 0.5rem;">"I am a tenant at [property name] managed by [company name]. On [date], I moved out after providing proper notice. Despite Minnesota law requiring return of my security deposit within 21 days (MN Stat. 504B.178), I have not received my deposit of $[amount] as of [date]. My attempts to contact [company] on [dates] have been ignored."</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">⏱️ What Happens After Filing</h2>
+            <ol class="step-list">
+                <li><strong>BBB sends to business:</strong> They forward your complaint within 2 business days</li>
+                <li><strong>Business response window:</strong> Company has 14 days to respond</li>
+                <li><strong>You can reply:</strong> If unsatisfied, you can respond to their response</li>
+                <li><strong>Case closes:</strong> BBB marks it resolved, unresolved, or no response</li>
+                <li><strong>Becomes public:</strong> Your complaint appears on their BBB profile</li>
+            </ol>
+
+            <div class="info-box warning">
+                <strong>⚠️ Note:</strong>
+                <p>BBB cannot force a business to respond or take action. However, unanswered complaints significantly damage a business's BBB rating and public reputation.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">📎 What to Include</h2>
+            <ul class="checklist">
+                <li>Your lease agreement</li>
+                <li>Move-in/move-out inspection reports</li>
+                <li>Written communication with the landlord</li>
+                <li>Security deposit receipt</li>
+                <li>Any itemization you received</li>
+                <li>Photos of property condition</li>
+                <li>Timeline of events</li>
+                <li>Evidence of your attempts to resolve</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">🎯 When BBB Works Best</h2>
+            <ul class="checklist">
+                <li>Property management companies that value reputation</li>
+                <li>Large landlords who rely on online presence</li>
+                <li>Businesses that are BBB accredited (they care most)</li>
+                <li>Clear-cut violations with good documentation</li>
+                <li>As part of a multi-agency strategy</li>
+            </ul>
+
+            <div class="info-box">
+                <strong>💡 Pro Tip:</strong>
+                <p>Check if the business is BBB accredited before filing. Accredited businesses pay fees and must maintain standards - they have more to lose from complaints.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">❓ Frequently Asked Questions</h2>
+            <div class="faq-item">
+                <div class="faq-question">Is my complaint really public?</div>
+                <div class="faq-answer">Yes! After the complaint process closes, a summary appears on the business's BBB profile. Your personal contact info is kept private, but the nature of your complaint is visible.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Can the business sue me for filing?</div>
+                <div class="faq-answer">As long as your complaint is truthful, you're protected. Never lie or exaggerate, but don't be afraid to share factual experiences.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">What if they don't respond?</div>
+                <div class="faq-answer">Non-response is recorded and damages their rating. The complaint still becomes public, showing they ignored you.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Can I file anonymously?</div>
+                <div class="faq-answer">BBB requires your contact information, but only shares your name with the business - not publicly. However, the business will know you filed.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Should I file with BBB and government agencies?</div>
+                <div class="faq-answer">Yes! BBB creates public pressure while government agencies have enforcement powers. Use both as part of a multi-agency strategy.</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">🔗 File Your Complaint</h2>
+            <div class="action-buttons">
+                <a href="https://www.bbb.org/file-a-complaint" target="_blank" class="btn btn-warning">📝 File with BBB</a>
+                <a href="https://www.bbb.org/search" target="_blank" class="btn btn-primary">🔍 Search Business Profiles</a>
+                <a href="/static/guides/multi-agency-strategy.html" class="btn btn-outline">🎯 Multi-Agency Strategy</a>
+            </div>
+        </div>
+
+        <div class="info-box success">
+            <strong>💪 Remember:</strong> BBB complaints are most effective as part of a broader strategy. File with BBB to create public pressure, but also file with the MN Attorney General or HUD for enforcement power. The combination is more powerful than either alone!
+        </div>
+    </div>
+</body>
+</html>

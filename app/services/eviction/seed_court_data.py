@@ -13,6 +13,8 @@ from datetime import datetime, timedelta
 from typing import Optional
 import random
 import logging
+import csv
+import os
 
 from app.services.eviction.court_learning import (
     CourtLearningEngine,
@@ -338,12 +340,14 @@ class RealCourtDataImporter:
         
         Note: Requires proper credentials and compliance with data use agreements.
         """
-        # TODO: Implement MNCIS API connection
-        # This would require:
-        # 1. Court data use agreement
-        # 2. API credentials
-        # 3. Parsing MNCIS record format
-        raise NotImplementedError("MNCIS import not yet implemented - requires court data agreement")
+        # Basic stub implementation returns standardized empty payload with status.
+        logger.info("MNCIS import requested - returning stubbed dataset (need real API integration).")
+        return {
+            "source": "MNCIS",
+            "county": "Statewide",
+            "cases_imported": 0,
+            "warnings": ["Real MNCIS integration not yet implemented."],
+        }
         
     @staticmethod
     async def import_from_eviction_lab(county: str = "Dakota") -> dict:
@@ -353,9 +357,14 @@ class RealCourtDataImporter:
         Eviction Lab provides county-level eviction statistics.
         https://evictionlab.org/
         """
-        # TODO: Implement Eviction Lab data import
-        # Their data is available via API for research purposes
-        raise NotImplementedError("Eviction Lab import not yet implemented")
+        # Basic stub implementation returns a placeholder response.
+        logger.info(f"Eviction Lab import requested for county {county} - returning stubbed payload.")
+        return {
+            "source": "EvictionLab",
+            "county": county,
+            "cases_imported": 0,
+            "warnings": ["Eviction Lab API integration not yet implemented."],
+        }
         
     @staticmethod
     async def import_from_csv(file_path: str) -> dict:
@@ -365,8 +374,35 @@ class RealCourtDataImporter:
         Expected columns:
         - case_number, outcome, hearing_date, defenses_used, judge_name, etc.
         """
-        # TODO: Implement CSV import for manual data entry
-        raise NotImplementedError("CSV import not yet implemented")
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"CSV file not found: {file_path}")
+
+        imported = []
+        warnings = []
+
+        with open(file_path, newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                if "case_number" not in row or "outcome" not in row:
+                    warnings.append(f"Skipped row because required columns are missing: {row}")
+                    continue
+
+                imported.append({
+                    "case_number": row.get("case_number"),
+                    "outcome": row.get("outcome"),
+                    "hearing_date": row.get("hearing_date"),
+                    "defenses_used": row.get("defenses_used"),
+                    "judge_name": row.get("judge_name"),
+                    "raw": row,
+                })
+
+        return {
+            "source": "CSV",
+            "file_path": file_path,
+            "cases_imported": len(imported),
+            "imported_cases": imported,
+            "warnings": warnings,
+        }
 
 
 # =============================================================================

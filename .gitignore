@@ -84,6 +84,9 @@ security/
 uploads/
 data/documents/
 data/intake/
+data/vault_storage/
+data/legal_filings/cases/
+data/.setup_complete
 
 # Local config
 .env.local
@@ -102,6 +105,12 @@ exports/
 *.tmp
 *.temp
 .temp/
+pytest_out.txt
+pytest_exit.txt
+pytest_all_out.txt
+pytest_all_exit.txt
+batch_analysis_report.json
+SemptifyBundle.zip
 
 # Large installer dependencies (distribute separately)
 installer/dependencies/*.exe

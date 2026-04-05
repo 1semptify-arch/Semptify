@@ -1,0 +1,734 @@
+{% extends "base.html" %}
+
+{% block title %}GUI Navigation Hub - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .navbar {
+        background: white;
+        padding: 15px 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .navbar-brand {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #2C5F2D;
+    }
+
+    .navbar-links {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .nav-link {
+        padding: 10px 15px;
+        background: #3498db;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .nav-link:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .nav-link.active {
+        background: #2C5F2D;
+        color: white;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .header {
+        background: white;
+        padding: 40px 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .header h1 {
+        font-size: 2.5em;
+        color: #2C5F2D;
+        margin-bottom: 10px;
+    }
+
+    .header p {
+        font-size: 1.1em;
+        color: #666;
+    }
+
+    .gui-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+
+    .gui-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: 3px solid transparent;
+    }
+
+    .gui-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+        border-color: #2C5F2D;
+    }
+
+    .gui-card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 25px;
+        color: white;
+    }
+
+    .gui-card-header h2 {
+        font-size: 1.5em;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .gui-card-header .emoji {
+        font-size: 1.8em;
+    }
+
+    .gui-card-header p {
+        opacity: 0.9;
+        font-size: 0.95em;
+    }
+
+    .gui-card-body {
+        padding: 25px;
+    }
+
+    .gui-card-body ul {
+        list-style: none;
+        margin-bottom: 20px;
+    }
+
+    .gui-card-body li {
+        padding: 8px 0;
+        padding-left: 25px;
+        position: relative;
+        color: #555;
+    }
+
+    .gui-card-body li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #27ae60;
+        font-weight: bold;
+        font-size: 1.2em;
+    }
+
+    .gui-card-footer {
+        padding: 0 25px 25px 25px;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+    }
+
+    .btn-open {
+        display: inline-block;
+        padding: 12px 25px;
+        background: #2C5F2D;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        width: 100%;
+        text-align: center;
+        border: none;
+        cursor: pointer;
+        font-size: 1em;
+    }
+
+    .btn-open:hover {
+        background: #3a7d3b;
+        transform: scale(1.02);
+    }
+
+    .category-section {
+        margin-bottom: 50px;
+    }
+
+    .category-title {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border-left: 5px solid #2C5F2D;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .category-title h3 {
+        font-size: 1.8em;
+        color: #2C5F2D;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .category-title .emoji {
+        font-size: 1.5em;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.8em;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    .badge-ready {
+        background: #d5f4e6;
+        color: #27ae60;
+        border: 1px solid #27ae60;
+    }
+
+    .badge-new {
+        background: #fef5e7;
+        color: #f39c12;
+        border: 1px solid #f39c12;
+    }
+
+    .feature-list {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 6px;
+        margin-top: 10px;
+        font-size: 0.9em;
+        color: #666;
+    }
+
+    .feature-list strong {
+        color: #2C5F2D;
+    }
+
+    .footer {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        text-align: center;
+        margin-top: 50px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .footer p {
+        color: #666;
+        margin-bottom: 10px;
+    }
+
+    .footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .footer-link {
+        color: #3498db;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .footer-link:hover {
+        text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .gui-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .navbar {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .header h1 {
+            font-size: 1.8em;
+        }
+
+        .category-title h3 {
+            font-size: 1.3em;
+        }
+    }
+
+    .quick-links {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .quick-links h2 {
+        color: #2C5F2D;
+        margin-bottom: 20px;
+        font-size: 1.5em;
+    }
+
+    .quick-links-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+    }
+
+    .quick-link-btn {
+        padding: 15px;
+        background: #ecf0f1;
+        border: 2px solid #bdc3c7;
+        border-radius: 8px;
+        text-align: center;
+        text-decoration: none;
+        color: #2C5F2D;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .quick-link-btn:hover {
+        background: #2C5F2D;
+        color: white;
+        border-color: #2C5F2D;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Navigation Bar -->
+<div class="navbar">
+    <div class="navbar-brand">🎨 Semptify GUI Hub</div>
+    <div class="navbar-links">
+        <a href="#" class="nav-link active">Home</a>
+        <a href="#settings" class="nav-link">Settings</a>
+        <a href="#dashboards" class="nav-link">Dashboards</a>
+        <a href="#tools" class="nav-link">Tools</a>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>🎯 Semptify 5.0 - GUI Navigation Center</h1>
+        <p>Access all your interface options and settings in one place</p>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="quick-links">
+        <h2>⚡ Quick Access</h2>
+        <div class="quick-links-grid">
+            <a href="/static/admin/easy_mode_selector.html" class="quick-link-btn">Easy Settings</a>
+            <a href="/static/admin/mode_selector.html" class="quick-link-btn">Advanced Settings</a>
+            <a href="/" class="quick-link-btn">Main Dashboard</a>
+            <a href="/api/docs" class="quick-link-btn">API Docs</a>
+            <a href="/static/welcome.html" class="quick-link-btn">Welcome</a>
+        </div>
+    </div>
+
+    <!-- ===== SETTINGS SECTION ===== -->
+    <div class="category-section" id="settings">
+        <div class="category-title">
+            <h3><span class="emoji">⚙️</span> Settings & Configuration</h3>
+        </div>
+        <div class="gui-grid">
+            <!-- Easy Mode Selector -->
+            <div class="gui-card">
+                <div class="gui-card-header">
+                    <h2><span class="emoji">👶</span> Easy Mode Selector</h2>
+                    <p>For Everyone - No Technical Knowledge Needed</p>
+                </div>
+                <div class="gui-card-body">
+                    <ul>
+                        <li>Simple, colorful interface</li>
+                        <li>6 Easy questions with emojis</li>
+                        <li>Perfect for beginners</li>
+                        <li>One-click selections</li>
+                        <li>Auto-saves to browser</li>
+                    </ul>
+                    <div class="feature-list">
+                        <strong>Controls:</strong> Theme, Workflow, Phase, Auto Help, Mood, Hints
+                    </div>
+                    <span class="status-badge badge-ready">✓ Ready to Use</span>
+                </div>
+                <div class="gui-card-footer">
+                    <a href="/static/admin/easy_mode_selector.html" class="btn-open">Open Easy Settings →</a>
+                </div>
+            </div>
+
+            <!-- Advanced Mode Selector -->
+            <div class="gui-card">
+                <div class="gui-card-header">
+                    <h2><span class="emoji">🧠</span> Advanced Mode Selector</h2>
+                    <p>For Power Users - Complete Control</p>
+                </div>
+                <div class="gui-card-body">
+                    <ul>
+                        <li>Professional interface</li>
+                        <li>28+ configuration options</li>
+                        <li>Toggle switches & radio buttons</li>
+                        <li>Live preview dashboard</li>
+                        <li>Export/Import settings</li>
+                    </ul>
+                    <div class="feature-list">
+                        <strong>Controls:</strong> 7 Major modes, 18 Auto features, Performance settings
+                    </div>
+                    <span class="status-badge badge-ready">✓ Ready to Use</span>
+                </div>
+                <div class="gui-card-footer">
+                    <a href="/static/admin/mode_selector.html" class="btn-open">Open Advanced Settings →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== DASHBOARDS SECTION ===== -->
+    <div class="category-section" id="dashboards">
+        <div class="category-title">
+            <h3><span class="emoji">📊</span> Dashboards & Views</h3>
+        </div>
+        <div class="gui-grid">
+            <!-- Main Dashboard -->
+            <div class="gui-card">
+                <div class="gui-card-header">
+                    <h2><span class="emoji">🎨</span> Main Dashboard</h2>
+                    <p>Your Central Control Center</p>
+                </div>
+                <div class="gui-card-body">
+                    <ul>
+                        <li>Adaptive UI by emotional state</li>
+                        <li>Real-time status updates</li>
+                        <li>Auto-mode orchestration</li>
+                        <li>Task management interface</li>
+                        <li>Multi-device responsive</li>
+                    </ul>
+                    <div class="feature-list">
+                        <strong>Features:</strong> Mission status, Tasks, Timeline, Quick actions, Evidence
+                    </div>
+                    <span class="status-badge badge-ready">✓ Production Ready</span>
+                </div>
+                <div class="gui-card-footer">
+                    <a href="/" class="btn-open">Open Main Dashboard →</a>
+                </div>
+            </div>
+
+            <!-- Mission Control -->
+            <div class="gui-card">
+                <div class="gui-card-header">
+                    <h2><span class="emoji">🎯</span> Mission Control</h2>
+                    <p>Advanced Dashboard for Administrators</p>
+                </div>
+                <div class="gui-card-body">
+                    <ul>
+                        <li>Crisis mode detection</li>
+                        <li>Emotional state indicators</li>
+                        <li>Developer mode toggle</li>
+                        <li>System diagnostics</li>
+                        <li>Admin console access</li>
+                    </ul>
+                    <div class="feature-list">
+                        <strong>Features:</strong> Dev tools, Diagnostics, State monitoring, Analytics
+                    </div>
+                    <span class="status-badge badge-ready">✓ Admin Only</span>
+                </div>
+                <div class="gui-card-footer">
+                    <a href="/static/admin/mission_control.html" class="btn-open">Open Mission Control →</a>
+                </div>
+            </div>
+
+            <!-- API Documentation -->
+            <div class="gui-card">
+                <div class="gui-card-header">
+                    <h2><span class="emoji">📚</span> API Documentation</h2>
+                    <p>Interactive API Reference & Testing</p>
+                </div>
+                <div class="gui-card-body">
+                    <ul>
+                        <li>Swagger/OpenAPI interface</li>
+                        <li>Test endpoints live</li>
+                        <li>View request/response</li>
+                        <li>Browse all routes</li>
+                        <li>Generate API keys</li>
+                    </ul>
+                    <div class="feature-list">
+                        <strong>Features:</strong> 40+ endpoints documented, Real-time testing
+                    </div>
+                    <span class="status-badge badge-ready">✓ Available</span>
+                </div>
+                <div class="gui-card-footer">
+                    <a href="/api/docs" class="btn-open">Open API Docs →</a>
+                </div>
+            </div>
+
+            <!-- Welcome Page -->
+            <div class="gui-card">
+                <div class="gui-card-header">
+                    <h2><span class="emoji">👋</span> Welcome Page</h2>
+                    <p>First-Time User Orientation</p>
+                </div>
+                <div class="gui-card-body">
+                    <ul>
+                        <li>Getting started guide</li>
+                        <li>Feature overview</li>
+                        <li>Quick tutorial</li>
+                        <li>Help resources</li>
+                        <li>Call-to-action buttons</li>
+                    </ul>
+                    <div class="feature-list">
+                        <strong>Features:</strong> Onboarding flow, Interactive intro
+                    </div>
+                    <span class="status-badge badge-ready">✓ Available</span>
+                </div>
+                <div class="gui-card-footer">
+                    <a href="/static/welcome.html" class="btn-open">Open Welcome →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOOLS SECTION ===== -->
+    <div class="category-section" id="tools">
+        <div class="category-title">
+            <h3><span class="emoji">🛠️</span> Tools & Utilities</h3>
+        </div>
+        <div class="gui-grid">
+            <!-- Document Upload -->
+            <div class="gui-card">
+                <div class="gui-card-header">
+                    <h2><span class="emoji">📤</span> Document Upload</h2>
+                    <p>Upload & Process Documents</p>
+                </div>
+                <div class="gui-card-body">
+                    <ul>
+                        <li>Drag & drop interface</li>
+                        <li>Multiple file support</li>
+                        <li>Auto-processing options</li>
+                        <li>Progress tracking</li>
+                        <li>Error handling</li>
+                    </ul>
+                    <div class="feature-list">
+                        <strong>Formats:</strong> PDF, DOCX, TXT, Images
+                    </div>
+                    <span class="status-badge badge-ready">✓ Available</span>
+                </div>
+                <div class="gui-card-footer">
+                    <a href="/api/vault/upload" class="btn-open">Upload Documents →</a>
+                </div>
+            </div>
+
+            <!-- Form Generator -->
+            <div class="gui-card">
+                <div class="gui-card-header">
+                    <h2><span class="emoji">📋</span> Form Generator</h2>
+                    <p>Create & Manage Dynamic Forms</p>
+                </div>
+                <div class="gui-card-body">
+                    <ul>
+                        <li>Adaptive forms based on phase</li>
+                        <li>Auto-population from data</li>
+                        <li>Validation rules</li>
+                        <li>Save draft capability</li>
+                        <li>Export to PDF</li>
+                    </ul>
+                    <div class="feature-list">
+                        <strong>Forms:</strong> Court forms, Intake, Complaints, Petitions
+                    </div>
+                    <span class="status-badge badge-ready">✓ Available</span>
+                </div>
+                <div class="gui-card-footer">
+                    <a href="/api/forms/" class="btn-open">Generate Forms →</a>
+                </div>
+            </div>
+
+            <!-- Timeline Editor -->
+            <div class="gui-card">
+                <div class="gui-card-header">
+                    <h2><span class="emoji">📅</span> Timeline Editor</h2>
+                    <p>Create & Manage Case Timeline</p>
+                </div>
+                <div class="gui-card-body">
+                    <ul>
+                        <li>Visual timeline display</li>
+                        <li>Drag-to-add events</li>
+                        <li>Auto-extract dates</li>
+                        <li>Color-coded priority</li>
+                        <li>Export timeline</li>
+                    </ul>
+                    <div class="feature-list">
+                        <strong>Features:</strong> Event management, Deadline tracking, Visualization
+                    </div>
+                    <span class="status-badge badge-ready">✓ Available</span>
+                </div>
+                <div class="gui-card-footer">
+                    <a href="/api/timeline/" class="btn-open">Open Timeline →</a>
+                </div>
+            </div>
+
+            <!-- Legal Research -->
+            <div class="gui-card">
+                <div class="gui-card-header">
+                    <h2><span class="emoji">⚖️</span> Legal Research Tool</h2>
+                    <p>Search Laws & Legal Resources</p>
+                </div>
+                <div class="gui-card-body">
+                    <ul>
+                        <li>Full-text search</li>
+                        <li>Jurisdiction filters</li>
+                        <li>Case law references</li>
+                        <li>Statute citations</li>
+                        <li>Export results</li>
+                    </ul>
+                    <div class="feature-list">
+                        <strong>Database:</strong> State laws, Case history, Precedents
+                    </div>
+                    <span class="status-badge badge-new">New</span>
+                </div>
+                <div class="gui-card-footer">
+                    <a href="/api/laws/" class="btn-open">Legal Research →</a>
+                </div>
+            </div>
+
+            <!-- AI Copilot -->
+            <div class="gui-card">
+                <div class="gui-card-header">
+                    <h2><span class="emoji">🤖</span> AI Copilot</h2>
+                    <p>Intelligent Assistant & Advisor</p>
+                </div>
+                <div class="gui-card-body">
+                    <ul>
+                        <li>Natural language chat</li>
+                        <li>Case analysis</li>
+                        <li>Strategy recommendations</li>
+                        <li>Document assistance</li>
+                        <li>24/7 availability</li>
+                    </ul>
+                    <div class="feature-list">
+                        <strong>Powered by:</strong> Azure OpenAI, Gemini, Groq, Ollama
+                    </div>
+                    <span class="status-badge badge-ready">✓ Available</span>
+                </div>
+                <div class="gui-card-footer">
+                    <a href="/api/copilot/" class="btn-open">Open Copilot →</a>
+                </div>
+            </div>
+
+            <!-- Health Check -->
+            <div class="gui-card">
+                <div class="gui-card-header">
+                    <h2><span class="emoji">❤️</span> System Health</h2>
+                    <p>Monitor System Status</p>
+                </div>
+                <div class="gui-card-body">
+                    <ul>
+                        <li>Server status check</li>
+                        <li>Database connectivity</li>
+                        <li>Service availability</li>
+                        <li>Performance metrics</li>
+                        <li>Uptime tracking</li>
+                    </ul>
+                    <div class="feature-list">
+                        <strong>Endpoints:</strong> /healthz, /readyz, /metrics
+                    </div>
+                    <span class="status-badge badge-ready">✓ Monitoring</span>
+                </div>
+                <div class="gui-card-footer">
+                    <a href="/healthz" class="btn-open">Check Health →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p><strong>Semptify 5.0</strong> - Complete Tenant Rights Protection Platform</p>
+        <p>Version 5.0.0 | Build 2026.03.23</p>
+        <div class="footer-links">
+            <a href="#settings" class="footer-link">Settings</a>
+            <span>•</span>
+            <a href="#dashboards" class="footer-link">Dashboards</a>
+            <span>•</span>
+            <a href="#tools" class="footer-link">Tools</a>
+            <span>•</span>
+            <a href="/api/docs" class="footer-link">API</a>
+            <span>•</span>
+            <a href="/" class="footer-link">Home</a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Smooth scroll to sections
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        if (href !== '#') {
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    });
+});
+
+// Highlight active nav link
+window.addEventListener('scroll', () => {
+    const settingsSection = document.getElementById('settings');
+    const dashboardsSection = document.getElementById('dashboards');
+    const toolsSection = document.getElementById('tools');
+
+    const navLinks = document.querySelectorAll('.navbar-links .nav-link');
+    navLinks.forEach(link => link.classList.remove('active'));
+
+    if (window.scrollY < settingsSection.offsetTop) {
+        navLinks[0]?.classList.add('active');
+    } else if (window.scrollY < dashboardsSection.offsetTop) {
+        navLinks[1]?.classList.add('active');
+    } else if (window.scrollY < toolsSection.offsetTop) {
+        navLinks[2]?.classList.add('active');
+    } else {
+        navLinks[3]?.classList.add('active');
+    }
+});
+</script>
+{% endblock %}

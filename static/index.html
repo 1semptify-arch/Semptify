@@ -81,8 +81,29 @@
                 <div class="action-area" id="action-area">
                     <div class="welcome-state" id="welcome-state">
                         <h1>What can Semptify help you with?</h1>
-                        <p class="subtitle">I'll guide you through protecting your tenant rights.</p>
-                        
+                        <p class="subtitle">Choose a workflow below, then upload a document or tell us what's happening.</p>
+
+                        <div class="mode-selector" id="mode-selector">
+                            <h2 class="mode-title">Choose your workflow</h2>
+                            <div class="mode-buttons">
+                                <button class="mode-btn" data-mode="guided" id="mode-guided">
+                                    <strong>Guided</strong><br>
+                                    <span class="mode-desc">Step-by-step analysis (recommended)</span>
+                                </button>
+                                <button class="mode-btn" data-mode="pipeline" id="mode-pipeline">
+                                    <strong>Pipeline</strong><br>
+                                    <span class="mode-desc">Build a custom processing flow</span>
+                                </button>
+                                <button class="mode-btn" data-mode="assistant" id="mode-assistant">
+                                    <strong>Assistant</strong><br>
+                                    <span class="mode-desc">Chat with the AI copilot</span>
+                                </button>
+                            </div>
+                            <div class="mode-hint" id="mode-hint">
+                                Choose a workflow to get started; you can switch anytime.
+                            </div>
+                        </div>
+
                         <div class="quick-actions">
                             <button class="action-card" data-action="upload-lease">
                                 <span class="action-icon">📄</span>

@@ -9,10 +9,33 @@ Use utc_now() from app.core.utc for all timestamp defaults.
 import enum
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, Boolean, Float, Enum
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core.database import Base
+try:
+    from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, Boolean, Float, Enum
+    from sqlalchemy.orm import Mapped, mapped_column, relationship
+    from app.core.database import Base
+    SQLALCHEMY_AVAILABLE = True
+except ImportError:
+    # Fallback stubs when SQLAlchemy not installed (test environment shim)
+    class DateTime:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class DummyColumnType:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    String = Text = Integer = ForeignKey = Boolean = Float = Enum = DummyColumnType
+    class Mapped:
+        pass
+    def mapped_column(*args, **kwargs):
+        return None
+    def relationship(*args, **kwargs):
+        return None
+    class Base:
+        metadata = type('m', (), {'create_all': staticmethod(lambda *args, **kwargs: None)})
+    SQLALCHEMY_AVAILABLE = False
+
 from app.core.utc import utc_now
 
 
@@ -191,12 +214,28 @@ class Document(Base):
     
     privilege_waived: Mapped[bool] = mapped_column(Boolean, default=False)
     """If True, client has explicitly waived privilege on this document."""
-    
     # Timestamps
     uploaded_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
-    
+
     # Relationships
     user: Mapped["User"] = relationship(back_populates="documents")
+
+
+class DocumentPipelineIndex(Base):
+    """
+    Persistent metadata index used by DocumentPipeline.
+
+    This stores analyzed document metadata in PostgreSQL so state survives
+    server restarts without relying on local disk files.
+    """
+
+    __tablename__ = "document_pipeline_index"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    doc_id: Mapped[str] = mapped_column(String(36), unique=True, index=True)
+    user_id: Mapped[str] = mapped_column(String(36), index=True)
+    payload_json: Mapped[str] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
 
 
 # =============================================================================

@@ -1,0 +1,390 @@
+{
+  "gui_registry": {
+    "version": "5.0.0",
+    "last_updated": "2026-03-23",
+    "status": "production",
+    "total_interfaces": 12,
+    
+    "navigation_hub": {
+      "name": "GUI Navigation Hub",
+      "url": "/static/admin/gui_navigation_hub.html",
+      "emoji": "🗺️",
+      "description": "Central hub with links to all GUIs",
+      "access_level": "public",
+      "categories": ["Settings", "Dashboards", "Tools"]
+    },
+
+    "settings": {
+      "category": "Settings & Configuration",
+      "emoji": "⚙️",
+      "interfaces": [
+        {
+          "id": "easy_mode_selector",
+          "name": "Easy Mode Selector",
+          "url": "/static/admin/easy_mode_selector.html",
+          "emoji": "👶",
+          "description": "Simple settings for everyone",
+          "for_users": "Beginners, non-technical",
+          "access_level": "public",
+          "features": [
+            "Simple colorful interface",
+            "6 easy questions with emojis",
+            "Auto-saves to browser",
+            "Perfect for anybody"
+          ],
+          "tech_stack": ["HTML", "CSS", "JavaScript", "localStorage"],
+          "responsive": true,
+          "status": "ready"
+        },
+        {
+          "id": "advanced_mode_selector",
+          "name": "Advanced Mode Selector",
+          "url": "/static/admin/mode_selector.html",
+          "emoji": "🧠",
+          "description": "Complete control for power users",
+          "for_users": "Power users, advanced config",
+          "access_level": "authenticated",
+          "features": [
+            "28+ configuration options",
+            "Toggle switches & radio buttons",
+            "Live preview dashboard",
+            "Export/Import settings",
+            "Save to localStorage"
+          ],
+          "controls": {
+            "workflow_mode": ["guided", "pipeline", "assistant"],
+            "dashboard_mode": ["guided", "crisis"],
+            "theme": ["dark", "light"],
+            "auto_features": 7,
+            "display_options": 5,
+            "performance_settings": 4
+          },
+          "tech_stack": ["HTML", "CSS", "JavaScript", "localStorage"],
+          "responsive": true,
+          "status": "ready"
+        }
+      ]
+    },
+
+    "dashboards": {
+      "category": "Dashboards & Views",
+      "emoji": "📊",
+      "interfaces": [
+        {
+          "id": "main_dashboard",
+          "name": "Main Dashboard",
+          "url": "/",
+          "emoji": "🎨",
+          "description": "Central control center for all users",
+          "for_users": "Everyone",
+          "access_level": "public",
+          "features": [
+            "Adaptive UI by emotional state",
+            "Real-time status updates",
+            "Auto-mode orchestration",
+            "Task management interface",
+            "Crisis mode support"
+          ],
+          "sections": [
+            "Mission status",
+            "Today's tasks",
+            "Timeline",
+            "Quick actions",
+            "Evidence summary"
+          ],
+          "responsive": true,
+          "crisis_mode": true,
+          "status": "production_ready"
+        },
+        {
+          "id": "mission_control",
+          "name": "Mission Control",
+          "url": "/static/admin/mission_control.html",
+          "emoji": "🎯",
+          "description": "Advanced dashboard for administrators",
+          "for_users": "Administrators only",
+          "access_level": "admin",
+          "features": [
+            "Crisis mode detection",
+            "Emotional state indicators",
+            "Developer mode toggle",
+            "System diagnostics",
+            "Admin console access"
+          ],
+          "tech_stack": ["HTML", "CSS", "JavaScript", "FastAPI"],
+          "responsive": true,
+          "admin_only": true,
+          "status": "ready"
+        },
+        {
+          "id": "api_docs",
+          "name": "API Documentation",
+          "url": "/api/docs",
+          "emoji": "📚",
+          "description": "Interactive API reference & testing",
+          "for_users": "Developers",
+          "access_level": "public",
+          "features": [
+            "Swagger/OpenAPI interface",
+            "Test endpoints live",
+            "40+ endpoints documented",
+            "Generate API keys",
+            "View request/response examples"
+          ],
+          "tech_stack": ["Swagger UI", "OpenAPI"],
+          "endpoints_count": 40,
+          "status": "available"
+        },
+        {
+          "id": "welcome_page",
+          "name": "Welcome Page",
+          "url": "/static/welcome.html",
+          "emoji": "👋",
+          "description": "First-time user orientation",
+          "for_users": "New users",
+          "access_level": "public",
+          "features": [
+            "Getting started guide",
+            "Feature overview",
+            "Quick tutorial",
+            "Help resources",
+            "Call-to-action buttons"
+          ],
+          "responsive": true,
+          "status": "available"
+        }
+      ]
+    },
+
+    "tools": {
+      "category": "Tools & Utilities",
+      "emoji": "🛠️",
+      "interfaces": [
+        {
+          "id": "document_upload",
+          "name": "Document Upload",
+          "url": "/api/vault/upload",
+          "emoji": "📤",
+          "description": "Upload and process documents",
+          "for_users": "Everyone",
+          "access_level": "authenticated",
+          "features": [
+            "Drag & drop interface",
+            "Multiple file support",
+            "Auto-processing options",
+            "Progress tracking",
+            "Error handling"
+          ],
+          "supported_formats": ["PDF", "DOCX", "TXT", "Images"],
+          "api_endpoint": "/api/vault/upload",
+          "status": "available"
+        },
+        {
+          "id": "form_generator",
+          "name": "Form Generator",
+          "url": "/api/forms/",
+          "emoji": "📋",
+          "description": "Create and manage dynamic forms",
+          "for_users": "Everyone",
+          "access_level": "authenticated",
+          "features": [
+            "Adaptive forms based on phase",
+            "Auto-population from data",
+            "Validation rules",
+            "Save draft capability",
+            "Export to PDF"
+          ],
+          "form_types": [
+            "Court forms",
+            "Intake forms",
+            "Complaint forms",
+            "Petitions"
+          ],
+          "api_endpoint": "/api/forms/",
+          "status": "available"
+        },
+        {
+          "id": "timeline_editor",
+          "name": "Timeline Editor",
+          "url": "/api/timeline/",
+          "emoji": "📅",
+          "description": "Create and manage case timeline",
+          "for_users": "Everyone",
+          "access_level": "authenticated",
+          "features": [
+            "Visual timeline display",
+            "Drag-to-add events",
+            "Auto-extract dates",
+            "Color-coded priority",
+            "Export timeline"
+          ],
+          "api_endpoint": "/api/timeline/",
+          "status": "available"
+        },
+        {
+          "id": "legal_research",
+          "name": "Legal Research Tool",
+          "url": "/api/laws/",
+          "emoji": "⚖️",
+          "description": "Search laws and legal resources",
+          "for_users": "Everyone",
+          "access_level": "public",
+          "features": [
+            "Full-text search",
+            "Jurisdiction filters",
+            "Case law references",
+            "Statute citations",
+            "Export results"
+          ],
+          "database": ["State laws", "Case history", "Precedents"],
+          "api_endpoint": "/api/laws/",
+          "status": "available"
+        },
+        {
+          "id": "ai_copilot",
+          "name": "AI Copilot",
+          "url": "/api/copilot/",
+          "emoji": "🤖",
+          "description": "Intelligent assistant and advisor",
+          "for_users": "Everyone",
+          "access_level": "authenticated",
+          "features": [
+            "Natural language chat",
+            "Case analysis",
+            "Strategy recommendations",
+            "Document assistance",
+            "24/7 availability"
+          ],
+          "powered_by": [
+            "Azure OpenAI",
+            "Google Gemini",
+            "Groq",
+            "Ollama (local)"
+          ],
+          "api_endpoint": "/api/copilot/",
+          "status": "available"
+        },
+        {
+          "id": "system_health",
+          "name": "System Health Monitor",
+          "url": "/healthz",
+          "emoji": "❤️",
+          "description": "Monitor system status",
+          "for_users": "Administrators",
+          "access_level": "admin",
+          "features": [
+            "Server status check",
+            "Database connectivity",
+            "Service availability",
+            "Performance metrics",
+            "Uptime tracking"
+          ],
+          "endpoints": ["/healthz", "/readyz", "/metrics"],
+          "status": "monitoring"
+        }
+      ]
+    },
+
+    "quick_access": {
+      "beginner": {
+        "description": "For users new to Semptify",
+        "links": {
+          "home": "/",
+          "welcome": "/static/welcome.html",
+          "settings": "/static/admin/easy_mode_selector.html",
+          "navigation_hub": "/static/admin/gui_navigation_hub.html"
+        }
+      },
+      "experienced": {
+        "description": "For experienced users",
+        "links": {
+          "home": "/",
+          "dashboard": "/",
+          "advanced_settings": "/static/admin/mode_selector.html",
+          "navigation_hub": "/static/admin/gui_navigation_hub.html",
+          "api_docs": "/api/docs"
+        }
+      },
+      "admin": {
+        "description": "For administrators",
+        "links": {
+          "mission_control": "/static/admin/mission_control.html",
+          "health_check": "/healthz",
+          "api_docs": "/api/docs",
+          "advanced_settings": "/static/admin/mode_selector.html"
+        }
+      }
+    },
+
+    "navigation_structure": {
+      "main_nav": [
+        {
+          "label": "Home",
+          "url": "/",
+          "icon": "🏠"
+        },
+        {
+          "label": "Navigation Hub",
+          "url": "/static/admin/gui_navigation_hub.html",
+          "icon": "🗺️"
+        },
+        {
+          "label": "Settings",
+          "url": "/static/admin/easy_mode_selector.html",
+          "icon": "⚙️",
+          "dropdown": [
+            {
+              "label": "Easy Settings",
+              "url": "/static/admin/easy_mode_selector.html"
+            },
+            {
+              "label": "Advanced Settings",
+              "url": "/static/admin/mode_selector.html"
+            }
+          ]
+        },
+        {
+          "label": "Tools",
+          "icon": "🛠️",
+          "dropdown": [
+            {
+              "label": "Upload Documents",
+              "url": "/api/vault/upload"
+            },
+            {
+              "label": "Generate Forms",
+              "url": "/api/forms/"
+            },
+            {
+              "label": "Timeline",
+              "url": "/api/timeline/"
+            },
+            {
+              "label": "Legal Research",
+              "url": "/api/laws/"
+            },
+            {
+              "label": "AI Copilot",
+              "url": "/api/copilot/"
+            }
+          ]
+        },
+        {
+          "label": "API",
+          "url": "/api/docs",
+          "icon": "📚"
+        }
+      ]
+    },
+
+    "statistics": {
+      "total_interfaces": 12,
+      "configuration_options": 28,
+      "api_endpoints": 40,
+      "auto_toggle_features": 18,
+      "supported_languages": ["HTML", "CSS", "JavaScript"],
+      "mobile_responsive": "100%",
+      "accessibility_level": "WCAG_compliant"
+    }
+  }
+}

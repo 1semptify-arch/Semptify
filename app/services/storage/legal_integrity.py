@@ -47,6 +47,10 @@ from app.core.config import get_settings
 settings = get_settings()
 
 
+def _secret_key() -> str:
+    return getattr(settings, "SECRET_KEY", None) or getattr(settings, "secret_key", "")
+
+
 # =============================================================================
 # Data Structures
 # =============================================================================
@@ -145,7 +149,7 @@ def create_timestamp_proof(timestamp: str) -> str:
     For now, we create a signed timestamp that can be verified.
     """
     # Combine timestamp with server secret for verification
-    combined = f"{timestamp}:{settings.SECRET_KEY}"
+    combined = f"{timestamp}:{_secret_key()}"
     return hashlib.sha256(combined.encode()).hexdigest()
 
 
@@ -170,7 +174,7 @@ def sign_proof(proof: DocumentProof) -> str:
     }, sort_keys=True)
     
     return hmac.new(
-        settings.SECRET_KEY.encode(),
+        _secret_key().encode(),
         content.encode(),
         hashlib.sha256
     ).hexdigest()
@@ -443,7 +447,7 @@ class LegalIntegrity:
             ),
             
             "verification_signature": hmac.new(
-                settings.SECRET_KEY.encode(),
+                _secret_key().encode(),
                 json.dumps(verification, sort_keys=True).encode(),
                 hashlib.sha256
             ).hexdigest(),
@@ -478,9 +482,8 @@ class TokenIntegrity:
             }
         }
         
-        # Sign the wrapper
         wrapped["integrity"]["signature"] = hmac.new(
-            settings.SECRET_KEY.encode(),
+            _secret_key().encode(),
             json.dumps(wrapped["integrity"], sort_keys=True).encode(),
             hashlib.sha256
         ).hexdigest()
@@ -513,7 +516,7 @@ class TokenIntegrity:
                 "data_hash": integrity.get("data_hash"),
             }
             expected_sig = hmac.new(
-                settings.SECRET_KEY.encode(),
+                _secret_key().encode(),
                 json.dumps(sig_data, sort_keys=True).encode(),
                 hashlib.sha256
             ).hexdigest()
