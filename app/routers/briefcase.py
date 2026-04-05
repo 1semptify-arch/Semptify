@@ -356,8 +356,9 @@ async def upload_document(
         "starred": False,
         "created_at": datetime.now().isoformat(),
         "updated_at": datetime.now().isoformat(),
-        # Only store content locally if vault failed
-        "content": base64.b64encode(content).decode('utf-8') if not vault_id else None,
+        # Keep a local fallback copy so briefcase download still works
+        # when vault retrieval requires additional auth context.
+        "content": base64.b64encode(content).decode('utf-8'),
         "in_vault": bool(vault_id),
     }
     

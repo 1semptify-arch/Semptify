@@ -888,11 +888,106 @@
         let showEdits = true;
         let documents = [];
         let lastLoadTime = 0;
+        let functionToken = null;
+        let functionTokenReverifySeconds = 120;
+        let functionTokenIntervalId = null;
+
+        function tokenHeaders(extra = {}) {
+            const headers = { ...extra };
+            if (functionToken) {
+                headers['X-Function-Token'] = functionToken;
+            }
+            return headers;
+        }
+
+        async function issueFunctionToken() {
+            const response = await fetch(`${API_BASE}/storage/function-token/issue`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            if (!response.ok) {
+                throw new Error('Unable to initialize vault function token');
+            }
+            const data = await response.json();
+            functionToken = data.token || null;
+            functionTokenReverifySeconds = Number(data.reverify_in_seconds || 120);
+            return data;
+        }
+
+        async function verifyFunctionToken(refresh = true) {
+            if (!functionToken) {
+                return false;
+            }
+            const params = new URLSearchParams({
+                refresh: refresh ? 'true' : 'false',
+            });
+            const response = await fetch(`${API_BASE}/storage/function-token/verify?${params.toString()}`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: tokenHeaders(),
+            });
+            const data = await response.json();
+            if (!data.valid) {
+                functionToken = null;
+                return false;
+            }
+            functionTokenReverifySeconds = Number(data.reverify_in_seconds || functionTokenReverifySeconds || 120);
+            return true;
+        }
+
+        async function ensureFunctionToken() {
+            if (functionToken) {
+                const valid = await verifyFunctionToken(true);
+                if (valid) {
+                    return true;
+                }
+            }
+            await issueFunctionToken();
+            return !!functionToken;
+        }
+
+        function startFunctionTokenLoop() {
+            if (functionTokenIntervalId) {
+                clearInterval(functionTokenIntervalId);
+            }
+            functionTokenIntervalId = setInterval(async () => {
+                const valid = await verifyFunctionToken(true);
+                if (!valid) {
+                    try {
+                        await issueFunctionToken();
+                    } catch (error) {
+                        console.warn('Function token refresh failed', error);
+                    }
+                }
+            }, Math.max(30, functionTokenReverifySeconds) * 1000);
+        }
+
+        async function overlayApiFetch(url, options = {}) {
+            await ensureFunctionToken();
+            const headers = tokenHeaders(options.headers || {});
+            const response = await fetch(url, {
+                credentials: 'include',
+                ...options,
+                headers,
+            });
+            if (response.status === 401) {
+                await issueFunctionToken();
+                return fetch(url, {
+                    credentials: 'include',
+                    ...options,
+                    headers: tokenHeaders(options.headers || {}),
+                });
+            }
+            return response;
+        }
         
         // =====================================================================
         // Initialization
         // =====================================================================
         document.addEventListener('DOMContentLoaded', () => {
+            ensureFunctionToken().then(startFunctionTokenLoop).catch((error) => {
+                console.warn('Function token initialization failed', error);
+            });
             loadDocuments();
             setupToolbar();
             setupTextSelection();
@@ -1082,9 +1177,7 @@
         // =====================================================================
         async function loadOverlay(docId) {
             try {
-                const response = await fetch(`${API_BASE}/api/overlays/${docId}`, {
-                    credentials: 'include'
-                });
+                const response = await overlayApiFetch(`${API_BASE}/api/overlays/${docId}`);
                 
                 if (response.ok) {
                     const data = await response.json();
@@ -1322,10 +1415,9 @@
             if (!currentDocId || !selectedText) return;
             
             try {
-                const response = await fetch(`${API_BASE}/api/overlays/${currentDocId}/highlights`, {
+                const response = await overlayApiFetch(`${API_BASE}/api/overlays/${currentDocId}/highlights`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify({
                         range: {
                             start_offset: 0,
@@ -1386,10 +1478,9 @@
             }
             
             try {
-                const response = await fetch(`${API_BASE}/api/overlays/${currentDocId}/notes`, {
+                const response = await overlayApiFetch(`${API_BASE}/api/overlays/${currentDocId}/notes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify({
                         range: selectedText ? {
                             start_offset: 0,
@@ -1425,10 +1516,9 @@
             }
             
             try {
-                const response = await fetch(`${API_BASE}/api/overlays/${currentDocId}/footnotes`, {
+                const response = await overlayApiFetch(`${API_BASE}/api/overlays/${currentDocId}/footnotes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify({
                         range: {
                             start_offset: 0,
@@ -1466,10 +1556,9 @@
             }
             
             try {
-                const response = await fetch(`${API_BASE}/api/overlays/${currentDocId}/edits`, {
+                const response = await overlayApiFetch(`${API_BASE}/api/overlays/${currentDocId}/edits`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
                     body: JSON.stringify({
                         range: {
                             start_offset: 0,
@@ -1500,9 +1589,8 @@
             if (!currentDocId || !confirm('Delete this annotation?')) return;
             
             try {
-                const response = await fetch(`${API_BASE}/api/overlays/${currentDocId}/${type}/${id}`, {
+                const response = await overlayApiFetch(`${API_BASE}/api/overlays/${currentDocId}/${type}/${id}`, {
                     method: 'DELETE',
-                    credentials: 'include'
                 });
                 
                 if (response.ok) {
@@ -1518,9 +1606,8 @@
             if (!currentDocId) return;
             
             try {
-                const response = await fetch(`${API_BASE}/api/overlays/${currentDocId}/edits/${editId}?status=${status}`, {
+                const response = await overlayApiFetch(`${API_BASE}/api/overlays/${currentDocId}/edits/${editId}?status=${status}`, {
                     method: 'PATCH',
-                    credentials: 'include'
                 });
                 
                 if (response.ok) {
@@ -1546,9 +1633,7 @@
             }
             
             try {
-                const response = await fetch(`${API_BASE}/api/overlays/${currentDocId}/export`, {
-                    credentials: 'include'
-                });
+                const response = await overlayApiFetch(`${API_BASE}/api/overlays/${currentDocId}/export`);
                 
                 if (response.ok) {
                     const data = await response.json();

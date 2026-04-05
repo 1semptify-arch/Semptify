@@ -21,7 +21,12 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 from pydantic import BaseModel, Field
 
 from app.core.config import Settings, get_settings
-from app.core.security import require_user, rate_limit_dependency, StorageUser
+from app.core.security import (
+    require_user,
+    rate_limit_dependency,
+    StorageUser,
+    issue_function_access_token,
+)
 from app.services.storage import get_provider, StorageFile
 
 # Import vault upload service - central document storage
@@ -61,6 +66,9 @@ class DocumentResponse(BaseModel):
     document_type: Optional[str] = None
     storage_provider: str
     storage_path: str
+    function_token: Optional[str] = None
+    function_token_expires_at: Optional[str] = None
+    function_token_reverify_in_seconds: Optional[int] = None
 
 
 class DocumentListResponse(BaseModel):
@@ -234,6 +242,16 @@ async def upload_document(
         # Log this but don't fail the request
         pass
 
+    function_token = issue_function_access_token(
+        user.user_id,
+        context={
+            "provider": user.provider,
+            "reason": "vault_upload",
+            "scopes": ["overlay:read", "overlay:write"],
+            "document_ids": [document_id],
+        },
+    )
+
     # Build response
     return DocumentResponse(
         id=document_id,
@@ -247,6 +265,9 @@ async def upload_document(
         document_type=document_type,
         storage_provider=user.provider,
         storage_path=storage_path,
+        function_token=function_token["token"],
+        function_token_expires_at=function_token["expires_at"],
+        function_token_reverify_in_seconds=function_token["reverify_in_seconds"],
     )
 
 
@@ -383,6 +404,16 @@ async def copy_from_sync_to_vault(
     except Exception:
         pass  # Certificate upload failed but file was uploaded
 
+    function_token = issue_function_access_token(
+        user.user_id,
+        context={
+            "provider": user.provider,
+            "reason": "vault_copy_from_sync",
+            "scopes": ["overlay:read", "overlay:write"],
+            "document_ids": [document_id],
+        },
+    )
+
     return DocumentResponse(
         id=document_id,
         filename=safe_filename,
@@ -395,6 +426,9 @@ async def copy_from_sync_to_vault(
         document_type=document_type,
         storage_provider=user.provider,
         storage_path=storage_path,
+        function_token=function_token["token"],
+        function_token_expires_at=function_token["expires_at"],
+        function_token_reverify_in_seconds=function_token["reverify_in_seconds"],
     )
 
 

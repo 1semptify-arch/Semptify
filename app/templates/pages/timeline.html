@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Timeline - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+    /* Timeline specific styles will be added here */
+    .timeline-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .timeline-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .timeline-content {
+        /* Placeholder for timeline content */
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        color: #a0aec0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="timeline-container">
+    <div class="timeline-header">
+        <h1>📅 Timeline</h1>
+        <p>Track your case timeline and important dates</p>
+    </div>
+
+    <div class="timeline-content">
+        <p>Timeline functionality is being migrated to use templates.</p>
+        <p>This page will be fully implemented with the new template system.</p>
+        <a href="/documents" class="btn btn-primary">Go to Documents</a>
+    </div>
+</div>
+{% endblock %}

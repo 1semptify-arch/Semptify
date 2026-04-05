@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}My Case - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+.role-home {
+    max-width: 1150px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+.role-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.role-grid a {
+    display: block;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+}
+
+.role-grid a:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-hover);
+}
+
+.quick-input {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-card);
+}
+
+.chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="role-home">
+    <h1>My Case</h1>
+    <p>One place for your eviction defense workflow.</p>
+
+    <div class="role-grid">
+        <a href="/tenant">Case Overview</a>
+        <a href="/tenant/documents">Documents</a>
+        <a href="/tenant/timeline">Timeline</a>
+        <a href="/tenant/help">Get Help</a>
+        <a href="/documents">Document Workspace</a>
+        <a href="/timeline">Master Timeline</a>
+    </div>
+
+    <div class="quick-input">
+        <h3>Quick Capture</h3>
+        <p>Type what just happened and we will route you to the right next action.</p>
+        <textarea class="form-textarea" id="quick-capture" placeholder="Example: Received a 14-day notice today"></textarea>
+        <div class="chip-row">
+            <button class="btn btn--secondary btn--sm" type="button" data-suggest="I got a court date notice.">Court Date</button>
+            <button class="btn btn--secondary btn--sm" type="button" data-suggest="My landlord posted a new notice.">New Notice</button>
+            <button class="btn btn--secondary btn--sm" type="button" data-suggest="I need help organizing my evidence.">Evidence Help</button>
+            <a class="btn btn--primary btn--sm" href="/tenant/help">Ask For Help</a>
+        </div>
+    </div>
+</div>
+<script>
+document.querySelectorAll('[data-suggest]').forEach((chip) => {
+    chip.addEventListener('click', () => {
+        const target = document.getElementById('quick-capture');
+        target.value = chip.getAttribute('data-suggest') || '';
+        target.focus();
+    });
+});
+</script>
+{% endblock %}

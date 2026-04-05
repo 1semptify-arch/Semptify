@@ -13,7 +13,10 @@ class Elbow {
             documents: [],
             widgets: [],
             issues: [],
-            predictions: []
+            predictions: [],
+            mode: 'guided',
+            conversationId: null,
+            lastUploadedDocId: null,
         };
         
         this.pollInterval = null;
@@ -24,6 +27,9 @@ class Elbow {
         // Bind UI elements
         this.bindElements();
         this.bindEvents();
+
+        // Load persisted settings
+        this.loadMode();
         
         // Start real-time updates
         await this.refresh();
@@ -64,12 +70,20 @@ class Elbow {
         
         // Toast
         this.toastContainer = document.getElementById('toast-container');
+
+        // Processing mode selector
+        this.modeButtons = document.querySelectorAll('.mode-btn');
     }
 
     bindEvents() {
         // Quick action cards
         document.querySelectorAll('.action-card').forEach(card => {
             card.addEventListener('click', (e) => this.handleQuickAction(e.currentTarget.dataset.action));
+        });
+
+        // Mode selector (workflow choice)
+        this.modeButtons.forEach(btn => {
+            btn.addEventListener('click', () => this.setMode(btn.dataset.mode));
         });
         
         // Input
@@ -99,6 +113,40 @@ class Elbow {
         
         // Alert action
         document.getElementById('alert-action').addEventListener('click', () => this.handleUrgentAction());
+    }
+
+    loadMode() {
+        const stored = localStorage.getItem('semptify_processing_mode');
+        if (stored && ['guided', 'pipeline', 'assistant'].includes(stored)) {
+            this.state.mode = stored;
+        }
+        this.renderModeSelector();
+    }
+
+    setMode(mode) {
+        if (!['guided', 'pipeline', 'assistant'].includes(mode)) return;
+        this.state.mode = mode;
+        localStorage.setItem('semptify_processing_mode', mode);
+        this.renderModeSelector();
+        this.toast(`Workflow set to "${mode}"`, 'info');
+    }
+
+    renderModeSelector() {
+        if (!this.modeButtons) return;
+        this.modeButtons.forEach(btn => {
+            const isActive = btn.dataset.mode === this.state.mode;
+            btn.classList.toggle('active', isActive);
+        });
+
+        const hint = document.getElementById('mode-hint');
+        if (hint) {
+            const map = {
+                guided: 'Guided mode runs full document processing immediately after upload.',
+                pipeline: 'Pipeline mode stores your document first so you can run processing steps manually.',
+                assistant: 'Assistant mode lets you ask questions and get AI-guided recommendations.',
+            };
+            hint.textContent = map[this.state.mode] || '';
+        }
     }
 
     startPolling() {
@@ -477,7 +525,13 @@ class Elbow {
         if (!text) return;
         
         this.userInput.value = '';
-        
+
+        // Assistant mode: send text to AI copilot
+        if (this.state.mode === 'assistant') {
+            await this.askAssistant(text);
+            return;
+        }
+
         // Quick analysis of input to determine intent
         const lowerText = text.toLowerCase();
         
@@ -505,19 +559,37 @@ class Elbow {
         
         this.toast('Uploading document...', 'info');
         
+        const mode = this.state.mode || 'guided';
+        const endpoint = mode === 'pipeline'
+            ? '/api/documents/upload/simple?process_now=false'
+            : '/api/documents/upload';
+
         try {
-            const res = await fetch('/api/documents/upload', {
+            const res = await fetch(endpoint, {
                 method: 'POST',
                 body: formData
             });
-            
-            if (res.ok) {
-                this.toast('Document uploaded and analyzed!', 'success');
-                await this.refresh();
-            } else {
-                throw new Error('Upload failed');
+
+            if (!res.ok) {
+                throw new Error(`Upload failed: ${res.status}`);
             }
+
+            const data = await res.json();
+            this.state.lastUploadedDocId = data.id;
+
+            if (mode === 'pipeline') {
+                this.toast('Document stored in your vault. Run the pipeline when ready.', 'success');
+                this.showPipelineModal(data.id, data.filename || 'Document');
+            } else if (mode === 'assistant') {
+                this.toast('Document uploaded. Ask the assistant about it.', 'success');
+                this.showAssistantModal(data.id);
+            } else {
+                this.toast('Document uploaded and analyzed!', 'success');
+            }
+
+            await this.refresh();
         } catch (err) {
+            console.error(err);
             this.toast('Upload failed. Please try again.', 'error');
         }
         
@@ -598,6 +670,93 @@ class Elbow {
 
     closeModal() {
         this.modalOverlay.classList.remove('active');
+    }
+
+    showPipelineModal(docId, filename) {
+        this.showModal('Pipeline Mode – Your Briefcase', `
+            <p class="modal-text">Your document <strong>${filename}</strong> is stored in your vault.</p>
+            <p class="modal-text">Choose what you'd like to do next:</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;">
+                <button class="btn btn-primary" onclick="elbow.runPipelineProcess('${docId}')">Run full processing</button>
+                <button class="btn btn-secondary" onclick="elbow.runPipelineAnalysis('${docId}')">Run intelligence analysis</button>
+                <button class="btn btn-ghost" onclick="elbow.closeModal()">Close</button>
+            </div>
+        `);
+    }
+
+    async runPipelineProcess(docId) {
+        this.toast('Running full processing...', 'info');
+        try {
+            const res = await fetch(`/api/documents/${docId}/reprocess`, { method: 'POST' });
+            if (!res.ok) throw new Error('Processing failed');
+            this.toast('Document processing complete.', 'success');
+            await this.refresh();
+            this.closeModal();
+        } catch (err) {
+            console.error(err);
+            this.toast('Processing failed. Try again.', 'error');
+        }
+    }
+
+    async runPipelineAnalysis(docId) {
+        this.toast('Running intelligence analysis...', 'info');
+        try {
+            const res = await fetch(`/api/documents/${docId}/analyze-intelligence`, { method: 'POST' });
+            if (!res.ok) throw new Error('Analysis failed');
+            this.toast('Intelligence analysis complete.', 'success');
+            await this.refresh();
+            this.closeModal();
+        } catch (err) {
+            console.error(err);
+            this.toast('Analysis failed. Try again.', 'error');
+        }
+    }
+
+    showAssistantModal(docId) {
+        this.state.conversationId = null;
+        this.state.lastUploadedDocId = docId;
+        this.showModal('AI Assistant', `
+            <p class="modal-text">Ask the AI copilot any question about your uploaded document.</p>
+            <p class="modal-text" style="font-size:0.9rem; color: var(--color-text-secondary);">Use the input box below and press Enter.</p>
+            <div id="assistant-conversation" style="max-height: 240px; overflow-y: auto; border: 1px solid var(--color-border); padding: 0.75rem; border-radius: var(--radius-md); background: var(--color-surface-hover);"></div>
+            <p class="modal-text" style="font-size:0.85rem; color: var(--color-text-muted); margin-top: 0.75rem;">Tip: Ask something like "What is this notice about?" or "What deadlines should I track?"</p>
+        `);
+    }
+
+    async askAssistant(message) {
+        const body = {
+            message,
+            conversation_id: this.state.conversationId,
+            context: this.state.lastUploadedDocId ? `Document ID: ${this.state.lastUploadedDocId}` : undefined,
+        };
+
+        try {
+            const res = await fetch('/api/copilot/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            if (!res.ok) throw new Error('Copilot request failed');
+            const data = await res.json();
+            this.state.conversationId = data.conversation_id;
+
+            const conv = document.getElementById('assistant-conversation');
+            if (conv) {
+                const userEl = document.createElement('div');
+                userEl.style.marginBottom = '0.5rem';
+                userEl.innerHTML = `<strong>You:</strong> ${message}`;
+                conv.appendChild(userEl);
+
+                const botEl = document.createElement('div');
+                botEl.style.marginBottom = '1rem';
+                botEl.innerHTML = `<strong>Assistant:</strong> ${data.response}`;
+                conv.appendChild(botEl);
+                conv.scrollTop = conv.scrollHeight;
+            }
+        } catch (err) {
+            console.error(err);
+            this.toast('Assistant request failed. Ensure AI is configured.', 'error');
+        }
     }
 
     showIssueModal() {

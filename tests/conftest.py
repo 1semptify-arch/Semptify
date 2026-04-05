@@ -33,19 +33,24 @@ def anyio_backend():
 @pytest.fixture(scope="function", autouse=True)
 async def setup_test_database():
     """Create database tables before each test and clean up after."""
-    from app.core.database import get_engine, Base
-    from app.models import models  # Import all models to register them
-    
+    try:
+        from app.core.database import get_engine, Base
+        from app.models import models  # Import all models to register them
+    except Exception:
+        # Missing SQLAlchemy or database unavailable in this environment
+        yield
+        return
+
     engine = get_engine()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
+
     yield
-    
+
     # Cleanup after test
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
-    
+
     await engine.dispose()
 
 

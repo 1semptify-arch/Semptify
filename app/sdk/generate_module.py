@@ -118,14 +118,29 @@ async def process(
     logger.info(f"{{module_definition.name}}: Processing for user {{user_id[:8]}}...")
     
     data = params.get("data", {{}})
-    
-    # TODO: Implement your processing logic here
-    result = {{
+
+    # Basic processing logic:
+    # - Normalize incoming payload
+    # - Provide summary metadata and ingest-ready content
+    summary = {
+        "type": type(data).__name__,
+        "size": len(data) if hasattr(data, '__len__') else None,
+        "keys": list(data.keys()) if isinstance(data, dict) else None,
+    }
+
+    if isinstance(data, str):
+        summary["word_count"] = len(data.split())
+
+    if isinstance(data, dict) and data:
+        summary["numeric_fields"] = [k for k, v in data.items() if isinstance(v, (int, float))]
+
+    result = {
         "processed": True,
-        "input_data": data,
+        "data": data,
+        "summary": summary,
         "timestamp": datetime.utcnow().isoformat(),
-    }}
-    
+    }
+
     return {{"result": result}}
 
 
@@ -149,10 +164,22 @@ async def get_state(
     }}
 
 
-# TODO: Add more actions as needed
-# @sdk.action("another_action", ...)
-# async def another_action(user_id, params, context):
-#     pass
+@sdk.action(
+    "health_check",
+    description="Simple module health check",
+    produces=["status"],
+)
+async def health_check(
+    user_id: str,
+    params: Dict[str, Any],
+    context: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Return simple health status for this module."""
+    return {
+        "status": "healthy",
+        "module": module_definition.name,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
 
 
 # =============================================================================

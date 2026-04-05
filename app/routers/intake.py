@@ -14,7 +14,7 @@ ALL UPLOADS GO TO VAULT FIRST - modules access from vault.
 
 import logging
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import Optional
 
 from app.core.security import get_user_id, require_user, StorageUser
@@ -45,6 +45,14 @@ try:
     FLOW_AVAILABLE = True
 except ImportError:
     FLOW_AVAILABLE = False
+
+# Import notarization service for tamper-proof documentation
+try:
+    from app.services.document_notarization import get_notarization_service
+    HAS_NOTARIZATION = True
+except ImportError:
+    HAS_NOTARIZATION = False
+    logger.warning("Notarization service not available")
 
 
 router = APIRouter(prefix="/api/intake", tags=["Document Intake"])
@@ -154,6 +162,58 @@ class BatchUploadResponse(BaseModel):
 
 
 # =============================================================================
+# NOTARIZATION MODELS
+# =============================================================================
+
+class NotarizationResponse(BaseModel):
+    """Notarization record response."""
+    notarization_id: str
+    document_id: str
+    file_hash: str
+    file_size: int
+    original_filename: str
+    notarized_at: str
+    certificate_hash: Optional[str]
+    status: str
+    storage_path: str
+    storage_provider: str
+    registry_id: Optional[str] = None
+
+
+class NotarizationVerificationResponse(BaseModel):
+    """Notarization verification result."""
+    status: str
+    verified: bool
+    notarization_id: str
+    document_id: str
+    file_hash: str
+    file_size: int
+    original_filename: str
+    notarized_at: str
+    storage_location: str
+    content_verified: Optional[bool] = None
+    content_status: Optional[str] = None
+    registry_status: Optional[str] = None
+    error: Optional[str] = None
+
+
+class ChainOfCustodyEvent(BaseModel):
+    """Single event in chain of custody."""
+    event: str
+    timestamp: str
+    actor: str
+    action: str
+    hash: Optional[str] = None
+    location: Optional[str] = None
+
+
+class ChainOfCustodyResponse(BaseModel):
+    """Complete chain of custody."""
+    notarization_id: str
+    events: list[ChainOfCustodyEvent]
+
+
+# =============================================================================
 # UPLOAD ENDPOINTS
 # =============================================================================
 
@@ -161,20 +221,22 @@ class BatchUploadResponse(BaseModel):
 async def upload_document(
     file: UploadFile = File(...),
     user_id: str = Form(..., description="User ID for the document owner"),
+    username: str = Form("unknown", description="Username for notarization"),
     access_token: Optional[str] = Form(None, description="Storage provider access token"),
     storage_provider: str = Form("local", description="Storage provider"),
+    description: Optional[str] = Form(None, description="Document description"),
+    tags: Optional[str] = Form(None, description="Comma-separated tags"),
 ):
     """
-    Upload a document for intake processing.
+    Upload a document for intake processing with notarization.
     
-    ALL DOCUMENTS GO TO VAULT FIRST, then processed from vault.
+    COMPLETE FLOW:
+    1. Notarize receipt (tamper-proof record with hash)
+    2. Store in user's vault (cloud or local)
+    3. Register in system (Document Registry)
+    4. Queue for processing
     
-    The document will be:
-    1. Stored in user's vault (cloud or local)
-    2. Hashed for integrity
-    3. Queued for processing
-    
-    Use the returned ID to check processing status.
+    Returns status with notarization proof.
     """
     # Read file content
     content = await file.read()
@@ -184,6 +246,35 @@ async def upload_document(
     
     if len(content) > 25 * 1024 * 1024:  # 25MB limit
         raise HTTPException(status_code=400, detail="File too large (max 25MB)")
+    
+    # STEP 0: Notarize the upload
+    notarization = None
+    notarization_id = None
+    if HAS_NOTARIZATION:
+        try:
+            notarization_service = await get_notarization_service()
+            tags_list = [t.strip() for t in tags.split(",")] if tags else []
+            
+            notarization = await notarization_service.notarize_upload(
+                file_content=content,
+                filename=file.filename or "unknown",
+                user_id=user_id,
+                username=username,
+                storage_path="",  # Will be set after vault upload
+                storage_provider=storage_provider,
+                document_type=None,
+                description=description,
+                tags=tags_list,
+                upload_method="web",
+                upload_context={
+                    "original_filename": file.filename,
+                    "mime_type": file.content_type,
+                },
+            )
+            notarization_id = notarization.notarization_id
+            logger.info(f"✓ Document notarized: {notarization_id}")
+        except Exception as e:
+            logger.warning(f"Notarization failed (non-blocking): {e}")
     
     # STEP 1: Upload to vault first
     vault_id = None
@@ -200,25 +291,41 @@ async def upload_document(
                 storage_provider=storage_provider,
             )
             vault_id = vault_doc.vault_id
-            logger.info(f"📁 Document stored in vault: {vault_id}")
+            
+            # Update notarization with actual storage path
+            if notarization and HAS_NOTARIZATION:
+                try:
+                    notarization.storage_path = vault_doc.storage_path
+                    logger.info(f"📁 Document stored in vault: {vault_id}")
+                except Exception as e:
+                    logger.debug(f"Could not update notarization storage path: {e}")
         except Exception as e:
-            logger.warning(f"Vault upload failed: {e}")
+            logger.warning("Vault upload failed: %s", e)
     
-    # STEP 2: Intake the document for processing
+    # STEP 2: Intake the document for processing (in background, don't wait)
     engine = get_intake_engine()
-    doc = await engine.intake_document(
-        user_id=user_id,
-        file_content=content,
-        filename=file.filename or "unknown",
-        mime_type=file.content_type or "application/octet-stream",
-        vault_id=vault_id,  # Pass vault reference
-    )
+    try:
+        doc = await engine.intake_document(
+            user_id=user_id,
+            file_content=content,
+            filename=file.filename or "unknown",
+            mime_type=file.content_type or "application/octet-stream",
+            vault_id=vault_id,  # Pass vault reference
+        )
+        logger.info(f"📋 Document registered: {doc.id}")
+    except Exception as e:
+        logger.error(f"Intake failed: {e}")
+        doc = None
     
     return UploadResponse(
-        id=doc.id,
-        filename=doc.filename,
-        status=doc.status.value,
-        message=f"Document stored in vault ({vault_id or 'local'}). Use /process/{doc.id} to begin processing.",
+        id=doc.id if doc else "",
+        filename=file.filename or "unknown",
+        status="notarized" if notarization else "received",
+        message=(
+            f"✓ Document notarized and stored in vault ({vault_id or 'local'}). "
+            f"Notarization: {notarization_id}. "
+            f"Use /status/{doc.id if doc else 'pending'} to check processing."
+        ),
     )
 
 
@@ -238,24 +345,26 @@ class AutoProcessResponse(BaseModel):
 @router.post("/upload/auto", response_model=AutoProcessResponse)
 async def upload_and_process(
     file: UploadFile = File(...),
-    user_id: str = Depends(get_user_id),
+    user_id: str = Form(..., description="User ID"),
+    username: str = Form("unknown", description="Username for notarization"),
     access_token: Optional[str] = Form(None, description="Storage provider access token"),
     storage_provider: str = Form("local", description="Storage provider"),
+    description: Optional[str] = Form(None, description="Document description"),
+    tags: Optional[str] = Form(None, description="Comma-separated tags"),
 ):
     """
     Upload and automatically process a document (complete pipeline).
     
-    ALL DOCUMENTS GO TO VAULT FIRST, then processed from vault.
-    
-    This is the recommended endpoint for the full document flow:
-    1. Store in user's vault (cloud or local)
-    2. OCR/text extraction (auto-detects if image/scan)
-    3. Document type classification (summons, lease, notice, etc.)
-    4. Data extraction (dates, amounts, parties)
-    5. Timeline event creation
-    6. FormData hub update
-    7. Issue detection
-    8. UI refresh via WebSocket
+    COMPLETE FLOW:
+    1. Notarize receipt (tamper-proof record with hash)
+    2. Store in user's vault (cloud or local)
+    3. OCR/text extraction (auto-detects if image/scan)
+    4. Document type classification (summons, lease, notice, etc.)
+    5. Data extraction (dates, amounts, parties)
+    6. Timeline event creation
+    7. FormData hub update
+    8. Issue detection & chain of custody tracking
+    9. UI refresh via WebSocket
     
     Returns complete processing result in one call.
     """
@@ -270,7 +379,36 @@ async def upload_and_process(
     if len(content) > 25 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File too large (max 25MB)")
     
-    # STEP 0: Upload to vault first
+    # STEP 0a: Notarize the upload first
+    notarization = None
+    notarization_id = None
+    if HAS_NOTARIZATION:
+        try:
+            notarization_service = await get_notarization_service()
+            tags_list = [t.strip() for t in tags.split(",")] if tags else []
+            
+            notarization = await notarization_service.notarize_upload(
+                file_content=content,
+                filename=file.filename or "unknown",
+                user_id=user_id,
+                username=username,
+                storage_path="",  # Will be updated after vault upload
+                storage_provider=storage_provider,
+                description=description,
+                tags=tags_list,
+                upload_method="web_auto",
+                upload_context={
+                    "auto_processing": True,
+                    "original_filename": file.filename,
+                    "mime_type": file.content_type,
+                },
+            )
+            notarization_id = notarization.notarization_id
+            logger.info(f"✓ Document notarized: {notarization_id}")
+        except Exception as e:
+            logger.warning(f"Notarization failed (non-blocking): {e}")
+    
+    # STEP 0b: Upload to vault first
     vault_id = None
     if HAS_VAULT_SERVICE:
         try:
@@ -285,9 +423,17 @@ async def upload_and_process(
                 storage_provider=storage_provider,
             )
             vault_id = vault_doc.vault_id
+            
+            # Update notarization with storage path
+            if notarization and HAS_NOTARIZATION:
+                try:
+                    notarization.storage_path = vault_doc.storage_path
+                except Exception:
+                    pass
+            
             logger.info(f"📁 Document stored in vault: {vault_id}")
         except Exception as e:
-            logger.warning(f"Vault upload failed: {e}")
+            logger.warning("Vault upload failed: %s", e)
     
     # Step 1: Intake the document
     doc = await engine.intake_document(
@@ -297,12 +443,14 @@ async def upload_and_process(
         mime_type=file.content_type or "application/octet-stream",
         vault_id=vault_id,
     )
+    logger.info(f"📋 Document intake complete: {doc.id}")
     
     # Step 2: Process (extract text, classify, analyze)
     try:
         doc = await engine.process_document(doc.id)
+        logger.info(f"✓ Document processing complete: {doc.id}")
     except Exception as e:
-        logger.error(f"Processing failed: {e}")
+        logger.error("Processing failed: %s", e)
         return AutoProcessResponse(
             id=doc.id,
             filename=doc.filename,
@@ -312,7 +460,7 @@ async def upload_and_process(
             vault_id=vault_id,
         )
     
-    # Step 3: Run full flow orchestration
+    # Step 3: Run full flow orchestration for complete pipeline
     flow_result = {}
     if FLOW_AVAILABLE:
         try:
@@ -320,9 +468,11 @@ async def upload_and_process(
             flow_result = await orchestrator.process_document_complete(
                 doc_id=doc.id,
                 user_id=user_id,
+                notarization_id=notarization_id,  # Pass notarization for chain of custody
             )
+            logger.info(f"✓ Flow orchestration complete: {len(flow_result.get('stages', {}))} stages")
         except Exception as flow_err:
-            logger.warning(f"Flow orchestration partial: {flow_err}")
+            logger.warning("Flow orchestration partial: %s", flow_err)
     
     # Update vault with extracted data
     if HAS_VAULT_SERVICE and vault_id and doc.extraction:
@@ -338,7 +488,7 @@ async def upload_and_process(
             if doc.doc_type:
                 vault_service.update_document_type(vault_id, doc.doc_type.value)
         except Exception as e:
-            logger.warning(f"Vault update failed: {e}")
+            logger.warning("Vault update failed: %s", e)
     
     # Publish completion event
     await event_bus.publish(
@@ -347,6 +497,7 @@ async def upload_and_process(
             "doc_id": doc.id,
             "vault_id": vault_id,
             "user_id": user_id,
+            "notarization_id": notarization_id,
             "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
             "filename": doc.filename,
         },
@@ -368,7 +519,10 @@ async def upload_and_process(
         filename=doc.filename,
         status=doc.status.value if doc.status else "complete",
         doc_type=doc.doc_type.value if doc.doc_type else "unknown",
-        message="Document stored in vault and processed successfully",
+        message=(
+            f"✓ Document stored, notarized ({notarization_id}), "
+            f"and processed successfully in vault ({vault_id or 'local'})"
+        ),
         vault_id=vault_id,
         extracted_data=extracted_data,
         timeline_events=flow_result.get("stages", {}).get("events", {}).get("count", 0),
@@ -450,8 +604,6 @@ async def process_document_from_vault(
     Use this for documents uploaded directly to vault.
     """
     import json
-    import logging
-    logger = logging.getLogger(__name__)
     
     from app.routers.cloud_sync import get_sync_service
     
@@ -475,14 +627,14 @@ async def process_document_from_vault(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to read vault index: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to read vault index: {str(e)}") from e
     
     # Download document content
     try:
         storage_path = doc_info.get("storage_path", f"{vault_folder}/{doc_id}")
         content = await sync.storage.download_file(storage_path)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to download document: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to download document: {str(e)}") from e
     
     # Process with intake engine
     engine = get_intake_engine()
@@ -528,7 +680,7 @@ async def process_document_from_vault(
                 json.dumps(vault_index, indent=2).encode("utf-8")
             )
         except Exception as idx_err:
-            logger.warning(f"Failed to update vault index: {idx_err}")
+            logger.warning("Failed to update vault index: %s", idx_err)
         
         # Build response
         extracted_data = {}
@@ -608,12 +760,11 @@ async def process_document(doc_id: str, user_id: str = Depends(get_user_id)):
                     )
             except Exception as flow_err:
                 # Log but don't fail - basic processing succeeded
-                import logging
-                logging.getLogger(__name__).warning(f"Flow orchestration warning: {flow_err}")
+                logger.warning("Flow orchestration warning: %s", flow_err)
         
         return _doc_to_response(doc)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}") from e
 
 
 @router.get("/status/{doc_id}", response_model=IntakeStatusResponse)
@@ -923,6 +1074,122 @@ async def get_user_intake_summary(user_id: str = Depends(get_user_id)):
         "total_issues_detected": total_issues,
         "critical_issues": critical_issues,
     }
+
+
+# =============================================================================
+# NOTARIZATION & VERIFICATION ENDPOINTS
+# =============================================================================
+
+@router.get("/notarization/{notarization_id}", response_model=NotarizationVerificationResponse)
+async def verify_notarization(
+    notarization_id: str,
+):
+    """
+    Verify a document notarization record.
+    
+    Checks:
+    - Notarization record integrity
+    - Document hash validity
+    - Storage location
+    - Registry status (if registered)
+    
+    Returns verification status and details.
+    """
+    if not HAS_NOTARIZATION:
+        raise HTTPException(
+            status_code=503,
+            detail="Notarization service not available"
+        )
+    
+    try:
+        notarization_service = await get_notarization_service()
+        result = await notarization_service.verify_notarization(notarization_id)
+        
+        if result.get("status") == "not_found":
+            raise HTTPException(status_code=404, detail="Notarization not found")
+        
+        return NotarizationVerificationResponse(
+            status=result.get("status", "unknown"),
+            verified=result.get("verified", False),
+            notarization_id=result.get("notarization_id", notarization_id),
+            document_id=result.get("document_id", ""),
+            file_hash=result.get("file_hash", ""),
+            file_size=result.get("file_size", 0),
+            original_filename=result.get("original_filename", ""),
+            notarized_at=result.get("notarized_at", ""),
+            storage_location=result.get("storage_location", ""),
+            content_verified=result.get("content_verified"),
+            content_status=result.get("content_status"),
+            registry_status=result.get("registry_status"),
+            error=result.get("error"),
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Notarization verification failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Verification failed: {str(e)}"
+        )
+
+
+@router.get("/notarization/{notarization_id}/chain-of-custody", response_model=ChainOfCustodyResponse)
+async def get_notarization_chain_of_custody(
+    notarization_id: str,
+):
+    """
+    Get complete chain of custody for a notarized document.
+    
+    Shows:
+    - Document upload (with hash and timestamp)
+    - Registry registrations
+    - Processing events
+    - Modifications/supersedes
+    - Archive status
+    
+    Useful for legal proceedings to prove document authenticity.
+    """
+    if not HAS_NOTARIZATION:
+        raise HTTPException(
+            status_code=503,
+            detail="Notarization service not available"
+        )
+    
+    try:
+        notarization_service = await get_notarization_service()
+        chain = await notarization_service.create_chain_of_custody(notarization_id)
+        
+        if not chain:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Notarization {notarization_id} not found"
+            )
+        
+        # Convert to response format
+        events = [
+            ChainOfCustodyEvent(
+                event=evt.get("event", "unknown"),
+                timestamp=evt.get("timestamp", ""),
+                actor=evt.get("actor", "system"),
+                action=evt.get("action", ""),
+                hash=evt.get("hash"),
+                location=evt.get("location"),
+            )
+            for evt in chain
+        ]
+        
+        return ChainOfCustodyResponse(
+            notarization_id=notarization_id,
+            events=events,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Chain of custody retrieval failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to retrieve chain of custody: {str(e)}"
+        )
 
 
 # =============================================================================

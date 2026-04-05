@@ -1,0 +1,434 @@
+{% extends "base.html" %}
+
+{% block title %}Auto Mode Control Panel - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+    .auto-mode-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .header-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }
+
+    .header-section h1 {
+        margin: 0;
+        font-size: 2em;
+        margin-bottom: 0.5rem;
+    }
+
+    .header-section p {
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    .control-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .control-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .control-card h3 {
+        margin: 0 0 1rem 0;
+        color: #1f2937;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .toggle-switch {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 24px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+    }
+
+    input:checked + .slider {
+        background-color: #2C5F2D;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+    .feature-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .feature-list li {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .feature-list li:last-child {
+        border-bottom: none;
+    }
+
+    .feature-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex: 1;
+    }
+
+    .feature-checkbox input {
+        cursor: pointer;
+    }
+
+    .status-section {
+        background: #f8f9fa;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .status-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .status-item:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+
+    .status-label {
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .status-value {
+        color: #6b7280;
+    }
+
+    .status-value.active {
+        color: #10b981;
+        font-weight: 600;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: #2C5F2D;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #3a7d3b;
+    }
+
+    .btn-secondary {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .btn-secondary:hover {
+        background: #d1d5db;
+    }
+
+    .info-box {
+        background: #dbeafe;
+        border: 1px solid #93c5fd;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-top: 1rem;
+        color: #1e40af;
+    }
+
+    @media (max-width: 768px) {
+        .control-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .button-group {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auto-mode-container">
+    <!-- Header -->
+    <div class="header-section">
+        <h1>🚀 Auto Mode Control Panel</h1>
+        <p>Configure and manage automated analysis features</p>
+    </div>
+
+    <!-- Status Section -->
+    <div class="status-section">
+        <h2>Status Overview</h2>
+        <div class="status-item">
+            <span class="status-label">Auto Mode Status</span>
+            <span class="status-value active" id="auto-mode-status">Checking...</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">Last Analysis</span>
+            <span class="status-value" id="last-analysis">Never</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">Total Analyses</span>
+            <span class="status-value" id="analysis-count">0</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">Features Enabled</span>
+            <span class="status-value" id="features-count">0/6</span>
+        </div>
+    </div>
+
+    <!-- Control Cards -->
+    <div class="control-grid">
+        <!-- Master Toggle -->
+        <div class="control-card">
+            <h3><span>⚙️</span> Master Control</h3>
+            <div class="toggle-switch">
+                <label class="switch">
+                    <input type="checkbox" id="auto-mode-toggle" checked>
+                    <span class="slider"></span>
+                </label>
+                <span>Auto Mode <span id="toggle-status">Enabled</span></span>
+            </div>
+            <div class="info-box">
+                Enable or disable all automated analysis features with one click
+            </div>
+        </div>
+
+        <!-- Timeline Generation -->
+        <div class="control-card">
+            <h3><span>📅</span> Timeline Generation</h3>
+            <ul class="feature-list">
+                <li>
+                    <label class="feature-checkbox">
+                        <input type="checkbox" class="feature-toggle" data-feature="auto_generate_timeline" checked>
+                        <span>Auto extract dates</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="feature-checkbox">
+                        <input type="checkbox" class="feature-toggle" data-feature="auto_generate_calendar" checked>
+                        <span>Build calendar events</span>
+                    </label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Analysis Features -->
+        <div class="control-card">
+            <h3><span>🔍</span> Analysis Features</h3>
+            <ul class="feature-list">
+                <li>
+                    <label class="feature-checkbox">
+                        <input type="checkbox" class="feature-toggle" data-feature="auto_identify_complaints" checked>
+                        <span>Identify complaints</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="feature-checkbox">
+                        <input type="checkbox" class="feature-toggle" data-feature="auto_assess_rights" checked>
+                        <span>Assess rights</span>
+                    </label>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Suggestions -->
+        <div class="control-card">
+            <h3><span>💡</span> Smart Suggestions</h3>
+            <ul class="feature-list">
+                <li>
+                    <label class="feature-checkbox">
+                        <input type="checkbox" class="feature-toggle" data-feature="auto_detect_missteps" checked>
+                        <span>Detect missteps</span>
+                    </label>
+                </li>
+                <li>
+                    <label class="feature-checkbox">
+                        <input type="checkbox" class="feature-toggle" data-feature="auto_suggest_tactics" checked>
+                        <span>Suggest tactics</span>
+                    </label>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="button-group">
+        <button class="btn btn-primary" onclick="saveConfiguration()">💾 Save Configuration</button>
+        <button class="btn btn-secondary" onclick="resetToDefaults()">🔄 Reset to Defaults</button>
+    </div>
+</div>
+
+<script>
+// Load status on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        // Get auto mode status
+        const statusResponse = await fetch('/api/auto-mode/status');
+        const status = await statusResponse.json();
+        
+        // Update UI with status
+        document.getElementById('auto-mode-status').textContent = status.enabled ? '✅ Enabled' : '⏸️ Disabled';
+        document.getElementById('auto-mode-toggle').checked = status.enabled;
+        document.getElementById('toggle-status').textContent = status.enabled ? 'Enabled' : 'Disabled';
+        document.getElementById('last-analysis').textContent = status.last_analysis || 'Never';
+        document.getElementById('analysis-count').textContent = status.analysis_count;
+
+        // Set feature checkboxes
+        let enabledCount = 0;
+        Object.keys(status.config).forEach(feature => {
+            const checkbox = document.querySelector(`[data-feature="${feature}"]`);
+            if (checkbox) {
+                checkbox.checked = status.config[feature];
+                if (status.config[feature]) enabledCount++;
+            }
+        });
+        document.getElementById('features-count').textContent = `${enabledCount}/6`;
+
+    } catch (error) {
+        console.error('Error loading status:', error);
+    }
+});
+
+// Toggle master switch
+document.getElementById('auto-mode-toggle').addEventListener('change', async function() {
+    try {
+        const enabled = this.checked;
+        await fetch('/api/auto-mode/toggle?enabled=' + enabled, { method: 'POST' });
+        document.getElementById('toggle-status').textContent = enabled ? 'Enabled' : 'Disabled';
+        document.getElementById('auto-mode-status').textContent = enabled ? '✅ Enabled' : '⏸️ Disabled';
+    } catch (error) {
+        console.error('Error toggling auto mode:', error);
+    }
+});
+
+async function saveConfiguration() {
+    try {
+        const config = {};
+        document.querySelectorAll('.feature-toggle').forEach(checkbox => {
+            config[checkbox.dataset.feature] = checkbox.checked;
+        });
+
+        const response = await fetch('/api/auto-mode/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
+        });
+
+        if (response.ok) {
+            alert('✅ Configuration saved successfully!');
+        }
+    } catch (error) {
+        console.error('Error saving configuration:', error);
+        alert('❌ Error saving configuration');
+    }
+}
+
+async function resetToDefaults() {
+    if (confirm('Reset all auto mode settings to defaults?')) {
+        const defaults = {
+            auto_generate_timeline: true,
+            auto_generate_calendar: true,
+            auto_identify_complaints: true,
+            auto_assess_rights: true,
+            auto_detect_missteps: true,
+            auto_suggest_tactics: true
+        };
+        
+        document.querySelectorAll('.feature-toggle').forEach(checkbox => {
+            checkbox.checked = defaults[checkbox.dataset.feature];
+        });
+        
+        await saveConfiguration();
+    }
+}
+
+// Update feature count display
+document.querySelectorAll('.feature-toggle').forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+        const enabledCount = document.querySelectorAll('.feature-toggle:checked').length;
+        document.getElementById('features-count').textContent = `${enabledCount}/6`;
+    });
+});
+</script>
+{% endblock %}

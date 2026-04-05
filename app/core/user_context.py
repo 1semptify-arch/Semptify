@@ -25,10 +25,10 @@ class UserRole(str, Enum):
     A user can have ONE active role per session, but can switch.
     """
     ADMIN = "admin"            # System admin: full access
-    MANAGER = "manager"        # Manager: property/case management
+    MANAGER = "manager"        # Case manager: multi-client coordination
     USER = "user"              # Default: standard user access
     ADVOCATE = "advocate"      # Tenant advocate: help multiple users
-    LEGAL = "legal"            # Legal professional: legal tools
+    LEGAL = "legal"            # Legal role: attorneys, judges, clerks, and court staff
 
 
 # =============================================================================
@@ -76,7 +76,7 @@ ROLE_PERMISSIONS = {
     },
     
     # ==========================================================================
-    # MANAGER - Property/case oversight (future: landlord-side?)
+    # MANAGER - Multi-client housing support coordination
     # ==========================================================================
     UserRole.MANAGER: {
         "vault_read",
@@ -117,8 +117,8 @@ ROLE_PERMISSIONS = {
     },
     
     # ==========================================================================
-    # LEGAL - Licensed attorneys (Legal Aid, pro bono, private)
-    # Focus: Full legal tools + attorney-client privilege separation
+    # LEGAL - Legal and court professionals
+    # Focus: Full legal tools + privilege separation where applicable
     # ==========================================================================
     UserRole.LEGAL: {
         # All advocate permissions
@@ -164,41 +164,46 @@ ROLE_PERMISSIONS = {
 
 
 # =============================================================================
-# Role Metadata (for UI routing and display)
+# Canonical Role Dictionary (single source of truth)
 # =============================================================================
 
-ROLE_METADATA = {
+ROLE_DEFINITIONS = {
     UserRole.USER: {
         "display_name": "Tenant",
-        "description": "Individual facing housing issues",
+        "purpose": "Individual renter or resident organizing their own housing and case documents with guided help.",
+        "default_landing_process": "B2 - Quick Case Triage",
         "ui_mode": "mobile",           # Mobile-first, simplified
         "landing_page": "/tenant",
         "icon": "🏠",
     },
-    UserRole.MANAGER: {
-        "display_name": "Manager",
-        "description": "Property or case manager",
-        "ui_mode": "desktop",
-        "landing_page": "/manager",
-        "icon": "📋",
-    },
     UserRole.ADVOCATE: {
         "display_name": "Advocate",
-        "description": "Housing counselor or paralegal",
+        "purpose": "Frontline support worker helping tenants prepare evidence, organize timelines, and complete non-privileged actions.",
+        "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "responsive",       # Tablet-friendly
         "landing_page": "/advocate",
         "icon": "🤝",
     },
+    UserRole.MANAGER: {
+        "display_name": "Case Manager",
+        "purpose": "Multi-client housing support professional coordinating client cases across nonprofit, charity, and agency programs.",
+        "default_landing_process": "B4 - Professional Review Workspace",
+        "ui_mode": "desktop",
+        "landing_page": "/admin",
+        "icon": "📋",
+    },
     UserRole.LEGAL: {
-        "display_name": "Attorney",
-        "description": "Licensed legal professional",
+        "display_name": "Legal",
+        "purpose": "Court and legal professional role for formal review, legal packet quality, and filing readiness.",
+        "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",          # Full complexity
         "landing_page": "/legal",
         "icon": "⚖️",
     },
     UserRole.ADMIN: {
         "display_name": "Administrator",
-        "description": "System administrator",
+        "purpose": "Platform operations role with system-wide configuration, governance, and support access.",
+        "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",          # Full complexity
         "landing_page": "/admin",
         "icon": "🔧",
@@ -206,9 +211,32 @@ ROLE_METADATA = {
 }
 
 
+# =============================================================================
+# Role Metadata (for UI routing and display)
+# =============================================================================
+
+ROLE_METADATA = {
+    role: {
+        "display_name": role_def["display_name"],
+        "description": role_def["purpose"],
+        "purpose": role_def["purpose"],
+        "default_landing_process": role_def["default_landing_process"],
+        "ui_mode": role_def["ui_mode"],
+        "landing_page": role_def["landing_page"],
+        "icon": role_def["icon"],
+    }
+    for role, role_def in ROLE_DEFINITIONS.items()
+}
+
+
 def get_role_metadata(role: UserRole) -> dict:
     """Get metadata for a role (display name, UI mode, etc.)."""
     return ROLE_METADATA.get(role, ROLE_METADATA[UserRole.USER])
+
+
+def get_role_definition(role: UserRole) -> dict:
+    """Get canonical role definition (display, purpose, and default process)."""
+    return ROLE_DEFINITIONS.get(role, ROLE_DEFINITIONS[UserRole.USER])
 
 
 def get_permissions(role: UserRole) -> set[str]:
@@ -277,7 +305,9 @@ class UserContext:
 
     @property
     def is_manager(self) -> bool:
-        return self.role == UserRole.MANAGER    @property
+        return self.role == UserRole.MANAGER
+
+    @property
     def is_advocate(self) -> bool:
         return self.role == UserRole.ADVOCATE
 

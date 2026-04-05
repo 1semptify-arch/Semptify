@@ -48,6 +48,13 @@ PUBLIC_PATHS: Set[str] = {
     "/redoc",
     "/openapi.json",
     
+    # GUI Navigation Hub
+    "/gui",
+    
+    # Auto Mode Features
+    "/auto-mode",
+    "/auto-analysis",
+    
     # Static assets
     "/static",
     "/css",

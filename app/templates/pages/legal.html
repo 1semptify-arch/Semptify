@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Legal Dashboard - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+.role-container {
+    max-width: 1150px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+.role-links {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+}
+
+.role-links a {
+    display: block;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+}
+
+.role-links a:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-hover);
+}
+
+.quick-input {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-card);
+}
+
+.chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="role-container">
+    <h1>Legal Dashboard</h1>
+    <p>Attorney workflow with direct paths to active tools.</p>
+
+    <div class="role-links">
+        <a href="/legal">Overview</a>
+        <a href="/legal/cases">Case Files</a>
+        <a href="/legal/filings">Court Filings</a>
+        <a href="/legal/privileged">Privileged Notes</a>
+        <a href="/legal/conflicts">Conflict Check</a>
+        <a href="/law-library">Law Library</a>
+        <a href="/timeline">Master Timeline</a>
+    </div>
+
+    <div class="quick-input">
+        <h3>Quick Legal Prompt</h3>
+        <p>Drop in facts and move directly to the right legal workspace.</p>
+        <textarea class="form-textarea" id="legal-prompt" placeholder="Example: Need motion strategy for notice defect and service issue"></textarea>
+        <div class="chip-row">
+            <button class="btn btn--secondary btn--sm" type="button" data-legal-suggest="Draft filing strategy for hearing next week.">Filing Strategy</button>
+            <button class="btn btn--secondary btn--sm" type="button" data-legal-suggest="Run conflict check for new intake.">Conflict Check</button>
+            <a class="btn btn--primary btn--sm" href="/legal/filings">Open Filings</a>
+            <a class="btn btn--secondary btn--sm" href="/law-library">Open Library</a>
+        </div>
+    </div>
+</div>
+<script>
+document.querySelectorAll('[data-legal-suggest]').forEach((chip) => {
+    chip.addEventListener('click', () => {
+        const target = document.getElementById('legal-prompt');
+        target.value = chip.getAttribute('data-legal-suggest') || '';
+        target.focus();
+    });
+});
+</script>
+{% endblock %}

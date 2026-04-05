@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify 5.0 - Mode & Settings Selector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2C5F2D;
+            --primary-light: #3a7d3b;
+            --secondary: #3498DB;
+            --accent: #E67E22;
+            --danger: #E74C3C;
+            --warning: #F39C12;
+            --success: #27AE60;
+            --dark-bg: #1a1a1a;
+            --dark-surface: #2d2d2d;
+            --dark-border: #404040;
+            --dark-text: #e0e0e0;
+            --light-bg: #f5f5f5;
+            --light-surface: #ffffff;
+            --light-border: #ddd;
+            --light-text: #333;
+            --crisis-primary: #5B8C5A;
+            --crisis-bg: #FAF7F2;
+        }
+
+        html[data-theme="light"] {
+            --bg: var(--light-bg);
+            --surface: var(--light-surface);
+            --border: var(--light-border);
+            --text: var(--light-text);
+        }
+
+        html[data-theme="dark"] {
+            --bg: var(--dark-bg);
+            --surface: var(--dark-surface);
+            --border: var(--dark-border);
+            --text: var(--dark-text);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            padding: 40px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .mode-card {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .mode-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 16px rgba(44, 95, 45, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .mode-card.crisis {
+            border-left: 5px solid var(--danger);
+            background: rgba(230, 126, 34, 0.05);
+        }
+
+        .mode-card h2 {
+            color: var(--primary);
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mode-card h2 .icon {
+            font-size: 1.5em;
+        }
+
+        .toggle-group {
+            margin-bottom: 20px;
+        }
+
+        .toggle-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .toggle-item:last-child {
+            border-bottom: none;
+        }
+
+        .toggle-label {
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .toggle-description {
+            font-size: 0.85em;
+            opacity: 0.7;
+            font-weight: normal;
+        }
+
+        /* Toggle Switch Styling */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+        input:disabled + .slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Radio Group Styling */
+        .radio-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .radio-group:last-child {
+            border-bottom: none;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .radio-option input[type="radio"] {
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .radio-option label {
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        /* Preview Section */
+        .preview-section {
+            background: var(--surface);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .preview-section h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .preview-item {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .preview-label {
+            font-size: 0.85em;
+            opacity: 0.7;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .preview-value {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .preview-item.active {
+            background: rgba(44, 95, 45, 0.1);
+            border-color: var(--primary);
+        }
+
+        /* Action Buttons */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(44, 95, 45, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Status Messages */
+        .status-message {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .status-message.success {
+            background: rgba(39, 174, 96, 0.1);
+            border-left: 4px solid var(--success);
+            color: var(--success);
+        }
+
+        .status-message.info {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid var(--secondary);
+            color: var(--secondary);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .mode-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        /* Crisis Mode Theme */
+        pre.crisis-mode {
+            background: var(--crisis-bg);
+            color: var(--crisis-primary);
+            border: 2px solid var(--crisis-primary);
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid var(--secondary);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--border), transparent);
+            margin: 30px 0;
+        }
+
+        .mode-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .stat-number {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🎨 Semptify 5.0 - Mode & Settings Control Panel</h1>
+            <p>Customize your experience with intelligent mode selection</p>
+        </header>
+
+        <!-- Status Messages -->
+        <div id="statusContainer"></div>
+
+        <!-- Main Mode Grid -->
+        <div class="mode-grid">
+            <!-- ===== 1. Processing Workflow Modes ===== -->
+            <div class="mode-card">
+                <h2><span class="icon">⚙️</span> Processing Workflow</h2>
+                <p style="margin-bottom: 15px; opacity: 0.8; font-size: 0.9em;">How you process documents and run analysis</p>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="workflow-guided" name="workflow" value="guided" checked>
+                        <label for="workflow-guided">
+                            <span>Guided</span>
+                            <span class="toggle-description">Auto-process on upload</span>
+                        </label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="workflow-pipeline" name="workflow" value="pipeline">
+                        <label for="workflow-pipeline">
+                            <span>Pipeline</span>
+                            <span class="toggle-description">Manual control</span>
+                        </label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="workflow-assistant" name="workflow" value="assistant">
+                        <label for="workflow-assistant">
+                            <span>Assistant</span>
+                            <span class="toggle-description">AI-guided</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="info-box">
+                    💡 Guided mode is recommended for most users. Switch to Pipeline for more control.
+                </div>
+            </div>
+
+            <!-- ===== 2. Dashboard Adaptation ===== -->
+            <div class="mode-card crisis">
+                <h2><span class="icon">📊</span> Dashboard Mode</h2>
+                <p style="margin-bottom: 15px; opacity: 0.8; font-size: 0.9em;">UI adapts to your emotional state</p>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="dashboard-guided" name="dashboard" value="guided" checked>
+                        <label for="dashboard-guided">
+                            <span>Guided</span>
+                            <span class="toggle-description">Full dashboard</span>
+                        </label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="dashboard-crisis" name="dashboard" value="crisis">
+                        <label for="dashboard-crisis">
+                            <span>Crisis Mode</span>
+                            <span class="toggle-description">Focused on urgent action</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="info-box">
+                    🚨 Crisis mode hides non-critical sections. Automatically activated when under stress.
+                </div>
+            </div>
+
+            <!-- ===== 3. Theme Selection ===== -->
+            <div class="mode-card">
+                <h2><span class="icon">🎨</span> Visual Theme</h2>
+                <p style="margin-bottom: 15px; opacity: 0.8; font-size: 0.9em;">Choose your preferred color scheme</p>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="theme-dark" name="theme" value="dark" checked>
+                        <label for="theme-dark">🌙 Dark Mode</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="theme-light" name="theme" value="light">
+                        <label for="theme-light">☀️ Light Mode</label>
+                    </div>
+                </div>
+                <div class="info-box">
+                    🔄 Theme automatically syncs with your system preference unless manually overridden.
+                </div>
+            </div>
+
+            <!-- ===== 4. Auto Mode Features ===== -->
+            <div class="mode-card">
+                <h2><span class="icon">🤖</span> Auto Mode Features</h2>
+                <p style="margin-bottom: 15px; opacity: 0.8; font-size: 0.9em;">Enable automated analysis & processing</p>
+                <div class="toggle-group">
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            Auto Mode Master
+                            <span class="toggle-description">Enable all auto features</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="auto-master" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            Timeline Generation
+                            <span class="toggle-description">Extract dates automatically</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="auto-timeline" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            Calendar Events
+                            <span class="toggle-description">Create deadlines automatically</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="auto-calendar" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            Complaint Detection
+                            <span class="toggle-description">Identify violations automatically</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="auto-complaints" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            Rights Assessment
+                            <span class="toggle-description">Analyze tenant protections</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="auto-rights" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            Missteps Detection
+                            <span class="toggle-description">Find procedural violations</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="auto-missteps" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            Tactics Suggestion
+                            <span class="toggle-description">Recommend defense strategies</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="auto-tactics" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== 5. Tenancy Phase ===== -->
+            <div class="mode-card">
+                <h2><span class="icon">📈</span> Tenancy Phase</h2>
+                <p style="margin-bottom: 15px; opacity: 0.8; font-size: 0.9em;">Current stage in your tenancy journey</p>
+                <div class="radio-group" style="flex-direction: column;">
+                    <div class="radio-option">
+                        <input type="radio" id="phase-onboarding" name="phase" value="onboarding" checked>
+                        <label for="phase-onboarding">🚀 Onboarding - Getting started</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="phase-active" name="phase" value="active">
+                        <label for="phase-active">✅ Active Tenancy - Normal operations</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="phase-issue" name="phase" value="issue">
+                        <label for="phase-issue">⚠️ Issue Emerging - Repairs or violations</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="phase-legal" name="phase" value="legal">
+                        <label for="phase-legal">⚖️ Legal Action - Eviction or court</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="phase-post" name="phase" value="post">
+                        <label for="phase-post">🔄 Post-Eviction - Appeals & next steps</label>
+                    </div>
+                </div>
+                <div class="info-box">
+                    📋 This determines which tools and information are most relevant to you.
+                </div>
+            </div>
+
+            <!-- ===== 6. Display Options ===== -->
+            <div class="mode-card">
+                <h2><span class="icon">👁️</span> Display Options</h2>
+                <p style="margin-bottom: 15px; opacity: 0.8; font-size: 0.9em;">Control what appears on screen</p>
+                <div class="toggle-group">
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            Dev Mode
+                            <span class="toggle-description">Show diagnostics & state info</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="display-devmode">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            Show Crisis Indicator
+                            <span class="toggle-description">Display emotional state meter</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="display-crisis" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            Show Tooltips
+                            <span class="toggle-description">Help text on hover</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="display-tooltips" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            Enable Animations
+                            <span class="toggle-description">Smooth UI transitions</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="display-animations" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            High Contrast
+                            <span class="toggle-description">Enhanced visibility mode</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="display-contrast">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== 7. Performance & Behavior ===== -->
+            <div class="mode-card">
+                <h2><span class="icon">⚡</span> Performance</h2>
+                <p style="margin-bottom: 15px; opacity: 0.8; font-size: 0.9em;">Optimize for your device & connection</p>
+                <div class="toggle-group">
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            Reduce Motion
+                            <span class="toggle-description">Fewer animations for accessibility</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="perf-reduce-motion">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            Low Bandwidth Mode
+                            <span class="toggle-description">Optimize for slow connections</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="perf-low-bandwidth">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            Background Sync
+                            <span class="toggle-description">Sync data in background</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="perf-bg-sync" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-label">
+                            Offline Mode
+                            <span class="toggle-description">Work without internet</span>
+                        </label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="perf-offline">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <!-- Preview & Statistics Section -->
+        <div class="preview-section">
+            <h2>📊 Current Configuration Preview</h2>
+            
+            <div class="mode-stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="stat-workflow">Guided</div>
+                    <div class="stat-label">Workflow Mode</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="stat-dashboard">Guided</div>
+                    <div class="stat-label">Dashboard Mode</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="stat-theme">Dark</div>
+                    <div class="stat-label">Theme</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="stat-phase">Onboarding</div>
+                    <div class="stat-label">Tenancy Phase</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="stat-auto-enabled">7/7</div>
+                    <div class="stat-label">Auto Features On</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="stat-options-enabled">5/5</div>
+                    <div class="stat-label">Display Options On</div>
+                </div>
+            </div>
+
+            <div class="preview-grid" style="margin-top: 20px;">
+                <div class="preview-item active">
+                    <div class="preview-label">📱 Responsive</div>
+                    <div class="preview-value">Auto-Adapt</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">🔐 Privacy</div>
+                    <div class="preview-value">🛡️ Protected</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">⚙️ API Ready</div>
+                    <div class="preview-value">✓ Enabled</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+            <button class="btn-primary" onclick="saveSettings()">💾 Save All Settings</button>
+            <button class="btn-secondary" onclick="applyLivePreview()">👁️ Apply Live Preview</button>
+            <button class="btn-outline" onclick="resetToDefaults()">🔄 Reset to Defaults</button>
+            <button class="btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+            <button class="btn-secondary" onclick="exportSettings()">📤 Export Settings</button>
+            <button class="btn-secondary" onclick="importSettings()">📥 Import Settings</button>
+        </div>
+    </div>
+
+    <script>
+        // DOM Cache
+        const statusContainer = document.getElementById('statusContainer');
+
+        // Initialize from localStorage
+        function initializeSettings() {
+            const saved = localStorage.getItem('semptify_all_settings');
+            if (saved) {
+                const settings = JSON.parse(saved);
+                applySettingsToUI(settings);
+            }
+            updatePreview();
+        }
+
+        // Gather all settings from UI
+        function gatherSettings() {
+            return {
+                workflow: document.querySelector('input[name="workflow"]:checked').value,
+                dashboard: document.querySelector('input[name="dashboard"]:checked').value,
+                theme: document.querySelector('input[name="theme"]:checked').value,
+                phase: document.querySelector('input[name="phase"]:checked').value,
+                autoMode: {
+                    master: document.getElementById('auto-master').checked,
+                    timeline: document.getElementById('auto-timeline').checked,
+                    calendar: document.getElementById('auto-calendar').checked,
+                    complaints: document.getElementById('auto-complaints').checked,
+                    rights: document.getElementById('auto-rights').checked,
+                    missteps: document.getElementById('auto-missteps').checked,
+                    tactics: document.getElementById('auto-tactics').checked,
+                },
+                display: {
+                    devMode: document.getElementById('display-devmode').checked,
+                    crisisIndicator: document.getElementById('display-crisis').checked,
+                    tooltips: document.getElementById('display-tooltips').checked,
+                    animations: document.getElementById('display-animations').checked,
+                    highContrast: document.getElementById('display-contrast').checked,
+                },
+                performance: {
+                    reduceMotion: document.getElementById('perf-reduce-motion').checked,
+                    lowBandwidth: document.getElementById('perf-low-bandwidth').checked,
+                    backgroundSync: document.getElementById('perf-bg-sync').checked,
+                    offlineMode: document.getElementById('perf-offline').checked,
+                }
+            };
+        }
+
+        // Apply settings to UI
+        function applySettingsToUI(settings) {
+            if (settings.workflow) document.getElementById(`workflow-${settings.workflow}`).checked = true;
+            if (settings.dashboard) document.getElementById(`dashboard-${settings.dashboard}`).checked = true;
+            if (settings.theme) document.getElementById(`theme-${settings.theme}`).checked = true;
+            if (settings.phase) document.getElementById(`phase-${settings.phase}`).checked = true;
+            
+            if (settings.autoMode) {
+                document.getElementById('auto-master').checked = settings.autoMode.master;
+                document.getElementById('auto-timeline').checked = settings.autoMode.timeline;
+                document.getElementById('auto-calendar').checked = settings.autoMode.calendar;
+                document.getElementById('auto-complaints').checked = settings.autoMode.complaints;
+                document.getElementById('auto-rights').checked = settings.autoMode.rights;
+                document.getElementById('auto-missteps').checked = settings.autoMode.missteps;
+                document.getElementById('auto-tactics').checked = settings.autoMode.tactics;
+            }
+
+            if (settings.display) {
+                document.getElementById('display-devmode').checked = settings.display.devMode;
+                document.getElementById('display-crisis').checked = settings.display.crisisIndicator;
+                document.getElementById('display-tooltips').checked = settings.display.tooltips;
+                document.getElementById('display-animations').checked = settings.display.animations;
+                document.getElementById('display-contrast').checked = settings.display.highContrast;
+            }
+
+            if (settings.performance) {
+                document.getElementById('perf-reduce-motion').checked = settings.performance.reduceMotion;
+                document.getElementById('perf-low-bandwidth').checked = settings.performance.lowBandwidth;
+                document.getElementById('perf-bg-sync').checked = settings.performance.backgroundSync;
+                document.getElementById('perf-offline').checked = settings.performance.offlineMode;
+            }
+        }
+
+        // Update live preview
+        function updatePreview() {
+            const settings = gatherSettings();
+            
+            document.getElementById('stat-workflow').textContent = 
+                settings.workflow.charAt(0).toUpperCase() + settings.workflow.slice(1);
+            document.getElementById('stat-dashboard').textContent = 
+                settings.dashboard.charAt(0).toUpperCase() + settings.dashboard.slice(1);
+            document.getElementById('stat-theme').textContent = 
+                settings.theme.charAt(0).toUpperCase() + settings.theme.slice(1);
+            document.getElementById('stat-phase').textContent = 
+                settings.phase.charAt(0).toUpperCase() + settings.phase.slice(1);
+            
+            const autoEnabled = Object.values(settings.autoMode).filter(v => v).length - 1; // Exclude master
+            document.getElementById('stat-auto-enabled').textContent = `${autoEnabled}/7`;
+            
+            const displayEnabled = Object.values(settings.display).filter(v => v).length;
+            document.getElementById('stat-options-enabled').textContent = `${displayEnabled}/5`;
+            
+            // Apply theme
+            document.documentElement.setAttribute('data-theme', settings.theme);
+        }
+
+        // Save settings
+        function saveSettings() {
+            const settings = gatherSettings();
+            localStorage.setItem('semptify_all_settings', JSON.stringify(settings));
+            localStorage.setItem('semptify_processing_mode', settings.workflow);
+            localStorage.setItem('semptify_theme', settings.theme);
+            showStatus('✅ Settings saved successfully!', 'success');
+        }
+
+        // Apply live preview
+        function applyLivePreview() {
+            updatePreview();
+            showStatus('👁️ Live preview applied!', 'info');
+        }
+
+        // Reset to defaults
+        function resetToDefaults() {
+            if (confirm('Are you sure? This will reset all settings to defaults.')) {
+                const defaults = {
+                    workflow: 'guided',
+                    dashboard: 'guided',
+                    theme: 'dark',
+                    phase: 'onboarding',
+                    autoMode: {
+                        master: true,
+                        timeline: true,
+                        calendar: true,
+                        complaints: true,
+                        rights: true,
+                        missteps: true,
+                        tactics: true,
+                    },
+                    display: {
+                        devMode: false,
+                        crisisIndicator: true,
+                        tooltips: true,
+                        animations: true,
+                        highContrast: false,
+                    },
+                    performance: {
+                        reduceMotion: false,
+                        lowBandwidth: false,
+                        backgroundSync: true,
+                        offlineMode: false,
+                    }
+                };
+                applySettingsToUI(defaults);
+                updatePreview();
+                showStatus('🔄 Reset to defaults', 'info');
+            }
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (confirm('⚠️ This will delete ALL saved settings. Continue?')) {
+                localStorage.removeItem('semptify_all_settings');
+                localStorage.removeItem('semptify_processing_mode');
+                localStorage.removeItem('semptify_theme');
+                showStatus('🗑️ All data cleared', 'info');
+                location.reload();
+            }
+        }
+
+        // Export settings
+        function exportSettings() {
+            const settings = gatherSettings();
+            const json = JSON.stringify(settings, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `semptify-settings-${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            showStatus('📤 Settings exported!', 'success');
+        }
+
+        // Import settings
+        function importSettings() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    try {
+                        const settings = JSON.parse(evt.target.result);
+                        applySettingsToUI(settings);
+                        updatePreview();
+                        showStatus('📥 Settings imported successfully!', 'success');
+                    } catch (err) {
+                        showStatus('❌ Invalid settings file', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const msg = document.createElement('div');
+            msg.className = `status-message ${type}`;
+            msg.textContent = message;
+            statusContainer.insertBefore(msg, statusContainer.firstChild);
+            setTimeout(() => msg.remove(), 4000);
+        }
+
+        // Event listeners for real-time updates
+        document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(input => {
+            input.addEventListener('change', updatePreview);
+        });
+
+        // Initialize on load
+        window.addEventListener('load', initializeSettings);
+    </script>
+</body>
+</html>

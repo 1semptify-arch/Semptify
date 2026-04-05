@@ -277,12 +277,143 @@
             color: var(--accent);
         }
 
+        /* Welcome Process (Process A) */
+        .process-shell {
+            max-width: 1040px;
+            margin: -2rem auto 1.5rem;
+            padding: 0 1.25rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .process-card {
+            background: #ffffff;
+            border: 1px solid #dbe5f0;
+            border-radius: 14px;
+            box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12);
+            overflow: hidden;
+        }
+
+        .process-card-head {
+            background: linear-gradient(120deg, #0f766e 0%, #1d4ed8 100%);
+            color: #ffffff;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .process-kicker {
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.78rem;
+            opacity: 0.9;
+            margin-bottom: 0.3rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .process-title {
+            font-size: 1.45rem;
+            font-weight: 600;
+            line-height: 1.25;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .process-body {
+            padding: 1.25rem 1.5rem 1.5rem;
+        }
+
+        .process-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .process-field {
+            display: grid;
+            gap: 0.45rem;
+        }
+
+        .process-field label {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #0f172a;
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+        .process-field select {
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 0.72rem 0.82rem;
+            font-size: 0.96rem;
+            background: #ffffff;
+            color: #1e293b;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .process-preview {
+            background: #f8fafc;
+            border: 1px dashed #94a3b8;
+            border-radius: 10px;
+            padding: 0.8rem 0.9rem;
+            margin-bottom: 1rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #334155;
+            font-size: 0.94rem;
+        }
+
+        .process-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .process-btn {
+            border: none;
+            border-radius: 10px;
+            padding: 0.78rem 1.05rem;
+            font-size: 0.95rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .process-btn.primary {
+            background: #1d4ed8;
+            color: #ffffff;
+        }
+
+        .process-btn.secondary {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .process-map {
+            margin-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 0.9rem;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .process-map h3 {
+            font-size: 0.95rem;
+            color: #0f172a;
+            margin-bottom: 0.55rem;
+        }
+
+        .process-map-list {
+            display: grid;
+            gap: 0.4rem;
+            color: #334155;
+            font-size: 0.89rem;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .header h1 { font-size: 2rem; }
             .header .tagline { font-size: 1.1rem; }
             .article { padding: 1.5rem 1.25rem; }
             .motto { margin-left: -1.25rem; margin-right: -1.25rem; }
+            .process-grid { grid-template-columns: 1fr; }
+            .process-shell { margin-top: -1.2rem; }
             body { font-size: 16px; }
         }
     </style>
@@ -294,6 +425,56 @@
         <p class="tagline">The Tenant's Journal</p>
         <p class="subtitle">Your proactive guide to a peaceful tenancy</p>
     </header>
+
+    <section class="process-shell" id="welcome-process">
+        <div class="process-card">
+            <div class="process-card-head">
+                <p class="process-kicker">Process A</p>
+                <h2 class="process-title">Welcome Process: choose your role + storage path</h2>
+            </div>
+            <div class="process-body">
+                <div class="process-grid">
+                    <div class="process-field">
+                        <label for="roleChoice">Who are you in this case?</label>
+                        <select id="roleChoice" aria-label="Select role">
+                            <option value="tenant">Tenant (default)</option>
+                            <option value="family_support">Family or trusted support person</option>
+                            <option value="advocate">Advocate or organizer</option>
+                            <option value="attorney">Attorney or legal staff</option>
+                        </select>
+                    </div>
+                    <div class="process-field">
+                        <label for="storageChoice">How should Semptify handle your files?</label>
+                        <select id="storageChoice" aria-label="Select storage choice">
+                            <option value="need_connect">I need to connect cloud storage first</option>
+                            <option value="already_connected">Storage is already connected</option>
+                            <option value="review_only">No upload yet, review tools first</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="process-preview" id="routePreview">
+                    Next process group: loading...
+                </div>
+
+                <div class="process-actions">
+                    <button class="process-btn primary" id="startProcessBtn" type="button">Start this process</button>
+                    <button class="process-btn secondary" id="openCommandCenterBtn" type="button">Skip to Command Center</button>
+                </div>
+
+                <div class="process-map">
+                    <h3>Process map (current rollout)</h3>
+                    <div class="process-map-list">
+                        <div><strong>A.</strong> Welcome Process (role + storage choices)</div>
+                        <div><strong>B1.</strong> Connect Storage + Profile Setup</div>
+                        <div><strong>B2.</strong> Quick Case Triage (urgent intake)</div>
+                        <div><strong>B3.</strong> Guided Workspace (documents/timeline calendar)</div>
+                        <div><strong>B4.</strong> Professional Review Workspace (advocates/attorneys)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <article class="article">
 
@@ -575,6 +756,113 @@
             <a href="/static/about.html">About</a> · <a href="/static/privacy.html">Privacy</a> · <a href="#">Terms</a>
         </p>
     </footer>
+
+    <script>
+        // Process A router: role + storage choices determine the next process group.
+        const PROCESS_ROUTER = {
+            tenant: {
+                need_connect: {
+                    group: "B1 - Connect Storage + Profile Setup",
+                    nextUrl: "/storage/providers",
+                    note: "Connect your cloud storage first, then continue setup."
+                },
+                already_connected: {
+                    group: "B2 - Quick Case Triage",
+                    nextUrl: "/static/crisis_intake.html",
+                    note: "Storage is ready, so we can triage your case immediately."
+                },
+                review_only: {
+                    group: "B3 - Guided Workspace",
+                    nextUrl: "/static/dashboard.html",
+                    note: "You can browse the workspace first and upload later."
+                }
+            },
+            family_support: {
+                need_connect: {
+                    group: "B1 - Connect Storage + Profile Setup",
+                    nextUrl: "/storage/providers",
+                    note: "Connect storage to collaborate on records and evidence."
+                },
+                already_connected: {
+                    group: "B3 - Guided Workspace",
+                    nextUrl: "/static/dashboard.html",
+                    note: "Continue to the guided workspace for shared support tasks."
+                },
+                review_only: {
+                    group: "B3 - Guided Workspace",
+                    nextUrl: "/static/dashboard.html",
+                    note: "Start in guided mode and add files when ready."
+                }
+            },
+            advocate: {
+                need_connect: {
+                    group: "B1 - Connect Storage + Profile Setup",
+                    nextUrl: "/storage/providers",
+                    note: "Storage access is required for evidence review workflows."
+                },
+                already_connected: {
+                    group: "B4 - Professional Review Workspace",
+                    nextUrl: "/static/command_center.html",
+                    note: "Go directly to command center tools for active case support."
+                },
+                review_only: {
+                    group: "B4 - Professional Review Workspace",
+                    nextUrl: "/static/command_center.html",
+                    note: "Open command center in review-only mode."
+                }
+            },
+            attorney: {
+                need_connect: {
+                    group: "B1 - Connect Storage + Profile Setup",
+                    nextUrl: "/storage/providers",
+                    note: "Connect storage to receive records and legal packet drafts."
+                },
+                already_connected: {
+                    group: "B4 - Professional Review Workspace",
+                    nextUrl: "/static/command_center.html",
+                    note: "Open professional workflow with immediate legal tools."
+                },
+                review_only: {
+                    group: "B4 - Professional Review Workspace",
+                    nextUrl: "/static/command_center.html",
+                    note: "Review-only route to command center and case modules."
+                }
+            }
+        };
+
+        const roleSelect = document.getElementById("roleChoice");
+        const storageSelect = document.getElementById("storageChoice");
+        const routePreview = document.getElementById("routePreview");
+        const startButton = document.getElementById("startProcessBtn");
+        const quickButton = document.getElementById("openCommandCenterBtn");
+
+        function getRouteDecision() {
+            const role = roleSelect.value;
+            const storage = storageSelect.value;
+            return PROCESS_ROUTER[role][storage];
+        }
+
+        function renderRoutePreview() {
+            const decision = getRouteDecision();
+            routePreview.innerHTML =
+                "<strong>Next process group:</strong> " + decision.group +
+                "<br><strong>Routing note:</strong> " + decision.note;
+        }
+
+        roleSelect.addEventListener("change", renderRoutePreview);
+        storageSelect.addEventListener("change", renderRoutePreview);
+
+        startButton.addEventListener("click", function () {
+            const decision = getRouteDecision();
+            window.location.href = decision.nextUrl;
+        });
+
+        quickButton.addEventListener("click", function () {
+            window.location.href = "/static/command_center.html";
+        });
+
+        renderRoutePreview();
+    </script>
 
 </body>
 </html>

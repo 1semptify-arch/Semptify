@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#1e40af">
     <title>Semptify - Get Help</title>
     <link rel="stylesheet" href="/static/css/shared-nav.css">
@@ -108,6 +108,30 @@
             width: 100%;
             cursor: pointer;
         }
+
+        .emergency-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .emergency-link {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 44px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.16);
+            color: white;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .emergency-link:hover {
+            background: rgba(255, 255, 255, 0.24);
+        }
         
         /* Help Options */
         .help-section {
@@ -206,6 +230,56 @@
             text-decoration: none;
             font-weight: 600;
         }
+
+        .resource-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 12px;
+        }
+
+        .resource-title {
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .resource-desc {
+            color: var(--text-muted);
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 14px;
+        }
+
+        .resource-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .resource-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(30, 64, 175, 0.1);
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .note-card {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 16px;
+            padding: 18px 20px;
+            color: #1e3a8a;
+            font-size: 14px;
+            line-height: 1.6;
+        }
         
         /* Bottom Navigation */
         .bottom-nav {
@@ -253,16 +327,21 @@
         <div class="emergency-card">
             <div class="emergency-title">🚨 Need Immediate Help?</div>
             <div class="emergency-desc">
-                If you've received an eviction notice or have a court date coming up, get help now.
+                If you are in danger, thinking about self-harm, facing domestic violence, or at immediate risk of losing housing tonight, call a live human right away.
             </div>
             <button class="emergency-btn" onclick="startEmergencyWizard()">
                 Start Emergency Wizard
             </button>
+            <div class="emergency-links">
+                <a class="emergency-link" href="tel:911">Call 911</a>
+                <a class="emergency-link" href="tel:988">Call or Text 988</a>
+                <a class="emergency-link" href="tel:211">Dial 211</a>
+            </div>
         </div>
         
         <!-- Self-Help Options -->
         <div class="help-section">
-            <div class="section-title">Self-Help Tools</div>
+            <div class="section-title">Semptify Help</div>
             <div class="help-card">
                 <div class="help-item" onclick="goTo('/static/tenant/copilot.html')">
                     <div class="help-icon chat">🤖</div>
@@ -290,6 +369,15 @@
                     </div>
                     <span class="help-arrow">→</span>
                 </div>
+
+                <div class="help-item" onclick="goTo('/static/help.html')">
+                    <div class="help-icon">🧭</div>
+                    <div class="help-content">
+                        <div class="help-title">Semptify Help Center</div>
+                        <div class="help-desc">See the full walkthrough for uploads, timelines, deadlines, and court prep</div>
+                    </div>
+                    <span class="help-arrow">→</span>
+                </div>
             </div>
         </div>
         
@@ -305,17 +393,42 @@
                     </div>
                     <span class="help-arrow">→</span>
                 </div>
+
+                <div class="help-item" onclick="goExternal('https://www.lawhelpmn.org')">
+                    <div class="help-icon legal">📍</div>
+                    <div class="help-content">
+                        <div class="help-title">Find Local Legal Aid</div>
+                        <div class="help-desc">Search for free or low-cost housing legal help near you</div>
+                    </div>
+                    <span class="help-arrow">→</span>
+                </div>
             </div>
         </div>
         
         <!-- Hotlines -->
         <div class="help-section">
-            <div class="section-title">Emergency Hotlines</div>
+            <div class="section-title">Hotlines & Crisis Support</div>
+
+            <div class="hotline-card">
+                <div class="hotline-name">988 Suicide & Crisis Lifeline</div>
+                <div class="hotline-desc">Mental health crisis support by call or text, 24/7</div>
+                <a href="tel:988" class="hotline-number">
+                    📞 Call or Text 988
+                </a>
+            </div>
+
+            <div class="hotline-card">
+                <div class="hotline-name">National Domestic Violence Hotline</div>
+                <div class="hotline-desc">Safety planning, emergency support, and confidential crisis help</div>
+                <a href="tel:18007997233" class="hotline-number">
+                    📞 1-800-799-7233
+                </a>
+            </div>
             
             <div class="hotline-card">
                 <div class="hotline-name">HOME Line</div>
                 <div class="hotline-desc">Free tenant hotline for Minnesota renters</div>
-                <a href="tel:612-728-5767" class="hotline-number">
+                <a href="tel:612-728-5767" class="hotline-number" data-help-track="hotline_home_line">
                     📞 612-728-5767
                 </a>
             </div>
@@ -323,7 +436,7 @@
             <div class="hotline-card">
                 <div class="hotline-name">Legal Aid MN</div>
                 <div class="hotline-desc">Free legal help for low-income Minnesotans</div>
-                <a href="tel:1-888-543-5110" class="hotline-number">
+                <a href="tel:1-888-543-5110" class="hotline-number" data-help-track="hotline_legal_aid_mn">
                     📞 1-888-543-5110
                 </a>
             </div>
@@ -331,9 +444,70 @@
             <div class="hotline-card">
                 <div class="hotline-name">211 United Way</div>
                 <div class="hotline-desc">Emergency housing assistance & resources</div>
-                <a href="tel:211" class="hotline-number">
+                <a href="tel:211" class="hotline-number" data-help-track="hotline_211">
                     📞 Dial 211
                 </a>
+            </div>
+        </div>
+
+        <div class="help-section">
+            <div class="section-title">Rent & Housing Help</div>
+
+            <div class="resource-card">
+                <div class="resource-title">United Way 211</div>
+                <div class="resource-desc">Start here for rent help, shelter, food support, transportation, and local emergency assistance referrals.</div>
+                <div class="resource-actions">
+                    <a class="resource-chip" href="tel:211" data-help-track="rent_help_call_211">Call 211</a>
+                    <a class="resource-chip" href="https://www.211.org" target="_blank" rel="noopener noreferrer" data-help-track="rent_help_211_site">Open 211.org</a>
+                </div>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-title">HousingLink</div>
+                <div class="resource-desc">Minnesota housing search and rental assistance information, including subsidized and emergency housing options.</div>
+                <div class="resource-actions">
+                    <a class="resource-chip" href="https://www.housinglink.org" target="_blank" rel="noopener noreferrer" data-help-track="rent_help_housinglink">Open HousingLink</a>
+                </div>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-title">HUD Rental Assistance</div>
+                <div class="resource-desc">Federal renter assistance, housing counseling, and emergency housing information if you need support beyond one local provider.</div>
+                <div class="resource-actions">
+                    <a class="resource-chip" href="https://www.hud.gov/topics/rental_assistance" target="_blank" rel="noopener noreferrer" data-help-track="rent_help_hud">Open HUD Help</a>
+                </div>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-title">Minnesota County-by-County Entry Points</div>
+                <div class="resource-desc">If rent help is urgent, call the county where you live first. If lines are busy, call 211 for alternate providers.</div>
+                <div class="resource-actions">
+                    <a class="resource-chip" href="tel:612-348-3000" data-help-track="county_hennepin">Hennepin 612-348-3000</a>
+                    <a class="resource-chip" href="tel:651-266-4444" data-help-track="county_ramsey">Ramsey 651-266-4444</a>
+                    <a class="resource-chip" href="tel:651-554-5611" data-help-track="county_dakota">Dakota 651-554-5611</a>
+                    <a class="resource-chip" href="tel:763-324-1300" data-help-track="county_anoka">Anoka 763-324-1300</a>
+                    <a class="resource-chip" href="tel:651-430-6459" data-help-track="county_washington">Washington 651-430-6459</a>
+                    <a class="resource-chip" href="tel:218-726-2000" data-help-track="county_st_louis">St. Louis 218-726-2000</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="help-section">
+            <div class="section-title">Using Semptify</div>
+
+            <div class="resource-card">
+                <div class="resource-title">What Semptify helps with</div>
+                <div class="resource-desc">Use Semptify to upload evidence, organize your timeline, track deadlines, and prepare court responses. It is a support tool, not a law firm or crisis line.</div>
+                <div class="resource-actions">
+                    <a class="resource-chip" href="/static/document_intake.html" data-help-track="semptify_upload_docs">Upload Docs</a>
+                    <a class="resource-chip" href="/static/timeline.html" data-help-track="semptify_build_timeline">Build Timeline</a>
+                    <a class="resource-chip" href="/static/calendar.html" data-help-track="semptify_check_deadlines">Check Deadlines</a>
+                    <a class="resource-chip" href="/static/storage_setup.html" data-help-track="semptify_storage_setup">Storage Setup</a>
+                </div>
+            </div>
+
+            <div class="note-card">
+                If you need legal advice, emergency shelter, mental health support, or immediate personal safety help, use the live resources above first. Come back to Semptify to organize documents and next steps.
             </div>
         </div>
     </main>
@@ -358,15 +532,47 @@
     </nav>
     
     <script>
+        async function trackHelpInteraction(action, meta = {}) {
+            const payload = {
+                event_type: 'user.action',
+                source_module: 'ui',
+                data: {
+                    page: 'tenant_help',
+                    action,
+                    ts: new Date().toISOString(),
+                    ...meta,
+                },
+            };
+
+            try {
+                await fetch('/brain/events', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    keepalive: true,
+                    body: JSON.stringify(payload),
+                });
+            } catch (_) {
+                // Non-blocking telemetry: ignore network failures.
+            }
+        }
+
         function goTo(url) {
+            trackHelpInteraction('open_internal_help_link', { url });
             window.location.href = url;
+        }
+
+        function goExternal(url) {
+            trackHelpInteraction('open_external_help_link', { url });
+            window.open(url, '_blank', 'noopener,noreferrer');
         }
         
         function startEmergencyWizard() {
+            trackHelpInteraction('start_emergency_wizard');
             window.location.href = '/static/eviction_answer.html';
         }
         
         function requestAdvocate() {
+            trackHelpInteraction('request_advocate_clicked');
             // Show a simple form or modal
             if (confirm('Would you like to request help from a housing advocate? They will review your case and contact you.')) {
                 fetch('/api/mesh/request', {
@@ -377,12 +583,23 @@
                         priority: 'normal'
                     })
                 }).then(() => {
+                    trackHelpInteraction('request_advocate_submitted');
                     alert('✅ Request submitted! An advocate will review your case.');
                 }).catch(() => {
+                    trackHelpInteraction('request_advocate_submit_failed');
                     alert('Request submitted. Please also call HOME Line at 612-728-5767 for faster help.');
                 });
             }
         }
+
+        document.addEventListener('click', (event) => {
+            const target = event.target.closest('[data-help-track]');
+            if (!target) return;
+
+            const action = target.getAttribute('data-help-track');
+            const href = target.getAttribute('href') || '';
+            trackHelpInteraction(action, { href });
+        });
     </script>
     
     <!-- Shared Site Navigation -->

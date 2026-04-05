@@ -30,11 +30,12 @@ passlib[bcrypt]>=1.7.4      # Password hashing (if needed)
 cryptography>=41.0.0        # AES-256-GCM encryption for storage tokens
 slowapi>=0.1.9              # API rate limiting
 redis>=5.0.0                # Redis client for sessions (production)
+aioboto3>=13.0.0            # Async S3/R2 client (Cloudflare R2 system storage)
 
 # =============================================================================
 # File Processing
 # =============================================================================
-python-magic>=0.4.27        # MIME type detection (optional)
+python-magic-bin>=0.4.14    # MIME type detection - Windows bundle (includes libmagic)
 Pillow>=10.0.0              # Image processing (optional)
 
 # =============================================================================
@@ -42,6 +43,7 @@ Pillow>=10.0.0              # Image processing (optional)
 # =============================================================================
 reportlab>=4.0.0
 PyPDF2>=3.0.0
+xhtml2pdf>=0.2.17           # Advanced PDF generation (court documents)
 
 # =============================================================================
 # Document Conversion (Markdown to DOCX/HTML)

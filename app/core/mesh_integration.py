@@ -178,6 +178,21 @@ class ServiceMeshRegistry:
                 "show_alert",
             }
         )
+
+        # Legal Trails Service
+        self._service_nodes["legal_trails"] = create_mesh_node(
+            node_type="legal_trails",
+            capabilities={
+                "log_violation",
+                "log_eviction_threat",
+                "log_late_fee",
+                "track_broker",
+                "create_claim",
+                "calculate_deadlines",
+                "generate_complaint",
+                "find_attorney",
+            }
+        )
         
         logger.info(f"🔷 Created {len(self._service_nodes)} service mesh nodes")
     

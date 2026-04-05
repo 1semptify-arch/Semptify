@@ -1,39 +1,45 @@
 # ============================================================
-# 🖥️ CREATE SEMPTIFY DESKTOP SHORTCUT
-# ============================================================
-# Run this script once to create a desktop shortcut
+#  CREATE SEMPTIFY DESKTOP SHORTCUT
+#  Run this script ONCE to put a start button on your desktop.
+#  After that — just double-click "Start Semptify" on your desktop.
 # ============================================================
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $DesktopPath = [Environment]::GetFolderPath("Desktop")
-$ShortcutPath = Join-Path $DesktopPath "Semptify 5.0.lnk"
-$TargetPath = Join-Path $ScriptDir "START-SEMPTIFY.bat"
-$IconPath = Join-Path $ScriptDir "static\favicon.ico"
+$ShortcutPath = Join-Path $DesktopPath "Start Semptify.lnk"
+$TargetPath   = Join-Path $ScriptDir "START-SEMPTIFY.bat"
+$IconPath     = Join-Path $ScriptDir "static\favicon.ico"
 
-# Create WScript Shell object
 $WshShell = New-Object -ComObject WScript.Shell
-$Shortcut = $WshShell.CreateShortcut($ShortcutPath)
+$Shortcut  = $WshShell.CreateShortcut($ShortcutPath)
 
-# Configure shortcut
-$Shortcut.TargetPath = $TargetPath
+$Shortcut.TargetPath      = $TargetPath
 $Shortcut.WorkingDirectory = $ScriptDir
-$Shortcut.Description = "Start Semptify 5.0 - Tenant Rights Platform"
-$Shortcut.WindowStyle = 1  # Normal window
+$Shortcut.Description     = "Start Semptify 5.0 - Tenant Rights Platform (Production, Secured)"
+$Shortcut.WindowStyle     = 1
 
-# Set icon (use favicon if exists, otherwise use default)
 if (Test-Path $IconPath) {
     $Shortcut.IconLocation = $IconPath
 } else {
-    # Use a system icon as fallback
     $Shortcut.IconLocation = "%SystemRoot%\System32\shell32.dll,13"
 }
 
-# Save the shortcut
 $Shortcut.Save()
 
 Write-Host ""
-Write-Host "✅ Desktop shortcut created!" -ForegroundColor Green
-Write-Host "   Location: $ShortcutPath" -ForegroundColor Cyan
+Write-Host "  ============================================================" -ForegroundColor Green
+Write-Host "   Desktop shortcut created!" -ForegroundColor Green
+Write-Host "  ============================================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "Double-click 'Semptify 5.0' on your desktop to start the app!" -ForegroundColor Yellow
+Write-Host "  Location : $ShortcutPath" -ForegroundColor Cyan
 Write-Host ""
+Write-Host "  WHAT IT DOES WHEN YOU DOUBLE-CLICK IT:" -ForegroundColor Yellow
+Write-Host "    1. Starts Docker Desktop (the database engine)"
+Write-Host "    2. Starts the Semptify database (PostgreSQL)"
+Write-Host "    3. Enforces all security settings"
+Write-Host "    4. Starts the Semptify server"
+Write-Host "    5. Opens your browser to the Semptify dashboard"
+Write-Host ""
+  Write-Host "  You do not need to do anything else - just double-click it." -ForegroundColor White
+Write-Host ""
+Read-Host "Press Enter to close this window"

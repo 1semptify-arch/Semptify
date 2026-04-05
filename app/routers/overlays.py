@@ -19,7 +19,7 @@ Each overlay contains:
 
 from datetime import datetime, timezone
 from typing import Optional, List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header, Cookie, Request
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 import json
@@ -28,10 +28,55 @@ import logging
 
 from app.core.database import get_db
 from app.core.config import get_settings, Settings
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, verify_function_token_for_operation
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/overlays", tags=["Document Overlays"])
+
+
+async def require_overlay_function_access(
+    request: Request,
+    document_id: str,
+    function_token_header: Optional[str] = Header(None, alias="X-Function-Token"),
+    semptify_uid: Optional[str] = Cookie(None),
+):
+    """Require both auth cookie identity and a valid short-lived function token."""
+    if not semptify_uid:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication cookie is required",
+        )
+
+    token = function_token_header
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Function token required",
+        )
+
+    action = "overlay:read" if request.method in {"GET", "HEAD", "OPTIONS"} else "overlay:write"
+    token_result = verify_function_token_for_operation(
+        semptify_uid,
+        token,
+        action=action,
+        document_id=document_id,
+        refresh=False,
+    )
+    if not token_result.get("valid"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "error": "function_token_invalid",
+                "reason": token_result.get("reason", "invalid"),
+                "message": "Vault function token invalid or expired",
+            },
+        )
+
+
+router = APIRouter(
+    prefix="/api/overlays",
+    tags=["Document Overlays"],
+    dependencies=[Depends(require_overlay_function_access)],
+)
 
 
 # =============================================================================
@@ -175,14 +220,57 @@ async def get_storage_client(user: StorageUser, db: AsyncSession, settings: Sett
     return await get_cloud_storage(user, db, settings)
 
 
+async def ensure_document_access(storage, document_id: str) -> None:
+    """Verify the document exists in the current user's vault scope."""
+    try:
+        files = await storage.list_files(".semptify/vault", recursive=True)
+    except Exception as e:
+        logger.warning("Unable to verify document access for %s: %s", document_id, e)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Unable to verify document access",
+        ) from e
+
+    matches = [
+        f
+        for f in files
+        if not getattr(f, "is_folder", False)
+        and (
+            getattr(f, "name", "") == document_id
+            or getattr(f, "name", "").startswith(f"{document_id}.")
+        )
+    ]
+
+    if not matches:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Document access denied or document not found in user vault",
+        )
+
+
 async def load_overlay(storage, document_id: str, user_id: str) -> DocumentOverlay:
     """Load overlay from storage, creating if doesn't exist."""
+    await ensure_document_access(storage, document_id)
     overlay_path = f".semptify/vault/overlays/{document_id}.json"
     
     try:
         content = await storage.download_file(overlay_path)
         data = json.loads(content.decode("utf-8"))
-        return DocumentOverlay(**data)
+        overlay = DocumentOverlay(**data)
+        if overlay.user_id != user_id:
+            logger.warning(
+                "Overlay ownership mismatch for document %s: expected %s got %s",
+                document_id,
+                user_id,
+                overlay.user_id,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Overlay owner mismatch for current user",
+            )
+        return overlay
+    except HTTPException:
+        raise
     except Exception:
         # Create new overlay
         return DocumentOverlay(
@@ -255,6 +343,7 @@ async def delete_overlay(
     Removes all annotations but keeps original document intact.
     """
     storage = await get_storage_client(user, db, settings)
+    await ensure_document_access(storage, document_id)
     overlay_path = f".semptify/vault/overlays/{document_id}.json"
     
     try:
@@ -797,6 +886,14 @@ async def import_overlay(
 ):
     """📥 Import overlay from JSON."""
     storage = await get_storage_client(user, db, settings)
+    await ensure_document_access(storage, document_id)
+
+    incoming_owner = overlay_data.get("user_id")
+    if incoming_owner and incoming_owner != user.user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Imported overlay user_id does not match current user",
+        )
     
     if merge:
         existing = await load_overlay(storage, document_id, user.user_id)

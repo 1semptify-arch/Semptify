@@ -279,6 +279,184 @@ def consume_breakglass() -> None:
 
 ACTIVE_SESSIONS: dict[str, StoredSession] = {}
 
+# Short-lived function access tokens (used for overlay/function vault access checks)
+FUNCTION_ACCESS_TOKENS: dict[str, dict] = {}
+FUNCTION_REVOKED_ACCESS_TOKENS: dict[str, datetime] = {}
+FUNCTION_TOKEN_DEFAULT_TTL_SECONDS = 300
+FUNCTION_TOKEN_REVERIFY_SECONDS = 120
+
+
+def _purge_expired_function_tokens() -> None:
+    now = datetime.now(timezone.utc)
+    expired = [
+        token
+        for token, data in FUNCTION_ACCESS_TOKENS.items()
+        if data.get("expires_at") and data["expires_at"] <= now
+    ]
+    for token in expired:
+        FUNCTION_ACCESS_TOKENS.pop(token, None)
+
+    revoked_expired = [
+        token
+        for token, revoked_until in FUNCTION_REVOKED_ACCESS_TOKENS.items()
+        if revoked_until <= now
+    ]
+    for token in revoked_expired:
+        FUNCTION_REVOKED_ACCESS_TOKENS.pop(token, None)
+
+
+def issue_function_access_token(
+    user_id: str,
+    ttl_seconds: int = FUNCTION_TOKEN_DEFAULT_TTL_SECONDS,
+    context: Optional[dict] = None,
+) -> dict:
+    """Create a short-lived function token tied to a user session context."""
+    _purge_expired_function_tokens()
+    now = datetime.now(timezone.utc)
+    expires_at = now + timedelta(seconds=max(30, ttl_seconds))
+    token = secrets.token_urlsafe(32)
+
+    FUNCTION_ACCESS_TOKENS[token] = {
+        "user_id": user_id,
+        "issued_at": now,
+        "expires_at": expires_at,
+        "last_verified_at": now,
+        "context": context or {},
+    }
+
+    return {
+        "token": token,
+        "expires_at": expires_at.isoformat(),
+        "reverify_in_seconds": FUNCTION_TOKEN_REVERIFY_SECONDS,
+    }
+
+
+def verify_function_access_token(
+    user_id: str,
+    token: str,
+    refresh: bool = False,
+    refresh_ttl_seconds: int = FUNCTION_TOKEN_DEFAULT_TTL_SECONDS,
+) -> dict:
+    """Validate function token ownership/expiry and optionally refresh validity window."""
+    _purge_expired_function_tokens()
+
+    revoked_until = FUNCTION_REVOKED_ACCESS_TOKENS.get(token)
+    if revoked_until and revoked_until > datetime.now(timezone.utc):
+        return {
+            "valid": False,
+            "reason": "token_revoked",
+            "reverify_in_seconds": FUNCTION_TOKEN_REVERIFY_SECONDS,
+        }
+
+    token_data = FUNCTION_ACCESS_TOKENS.get(token)
+    if not token_data:
+        return {
+            "valid": False,
+            "reason": "token_missing_or_expired",
+            "reverify_in_seconds": FUNCTION_TOKEN_REVERIFY_SECONDS,
+        }
+
+    if token_data.get("user_id") != user_id:
+        return {
+            "valid": False,
+            "reason": "token_user_mismatch",
+            "reverify_in_seconds": FUNCTION_TOKEN_REVERIFY_SECONDS,
+        }
+
+    now = datetime.now(timezone.utc)
+    expires_at = token_data["expires_at"]
+    if expires_at <= now:
+        FUNCTION_ACCESS_TOKENS.pop(token, None)
+        return {
+            "valid": False,
+            "reason": "token_expired",
+            "reverify_in_seconds": FUNCTION_TOKEN_REVERIFY_SECONDS,
+        }
+
+    token_data["last_verified_at"] = now
+    if refresh:
+        token_data["expires_at"] = now + timedelta(seconds=max(30, refresh_ttl_seconds))
+
+    return {
+        "valid": True,
+        "user_id": user_id,
+        "expires_at": token_data["expires_at"].isoformat(),
+        "issued_at": token_data["issued_at"].isoformat(),
+        "last_verified_at": token_data["last_verified_at"].isoformat(),
+        "reverify_in_seconds": FUNCTION_TOKEN_REVERIFY_SECONDS,
+        "context": token_data.get("context") or {},
+    }
+
+
+def verify_function_token_for_operation(
+    user_id: str,
+    token: str,
+    action: str,
+    document_id: Optional[str] = None,
+    refresh: bool = False,
+    refresh_ttl_seconds: int = FUNCTION_TOKEN_DEFAULT_TTL_SECONDS,
+) -> dict:
+    """Validate token and enforce optional scope/document constraints from token context."""
+    base = verify_function_access_token(
+        user_id,
+        token,
+        refresh=refresh,
+        refresh_ttl_seconds=refresh_ttl_seconds,
+    )
+    if not base.get("valid"):
+        return base
+
+    context = base.get("context") or {}
+    scopes = context.get("scopes")
+    if not scopes:
+        scopes = ["overlay:read", "overlay:write"]
+    if isinstance(scopes, str):
+        scopes = [scopes]
+
+    if "*" not in scopes and action not in scopes:
+        return {
+            "valid": False,
+            "reason": "token_scope_denied",
+            "required_action": action,
+            "reverify_in_seconds": FUNCTION_TOKEN_REVERIFY_SECONDS,
+        }
+
+    allowed_documents = context.get("document_ids")
+    if allowed_documents is None and context.get("document_id"):
+        allowed_documents = [context.get("document_id")]
+    if isinstance(allowed_documents, str):
+        allowed_documents = [allowed_documents]
+
+    if document_id and allowed_documents:
+        if "*" not in allowed_documents and document_id not in allowed_documents:
+            return {
+                "valid": False,
+                "reason": "token_document_denied",
+                "required_document": document_id,
+                "reverify_in_seconds": FUNCTION_TOKEN_REVERIFY_SECONDS,
+            }
+
+    base["authorized_action"] = action
+    if document_id:
+        base["authorized_document"] = document_id
+    return base
+
+
+def invalidate_function_access_tokens(user_id: str) -> int:
+    """Invalidate all function tokens for a user (used on logout/disconnect/role switch)."""
+    _purge_expired_function_tokens()
+    tokens = [
+        token
+        for token, data in FUNCTION_ACCESS_TOKENS.items()
+        if data.get("user_id") == user_id
+    ]
+    for token in tokens:
+        expires_at = FUNCTION_ACCESS_TOKENS[token].get("expires_at")
+        if expires_at:
+            FUNCTION_REVOKED_ACCESS_TOKENS[token] = expires_at
+        FUNCTION_ACCESS_TOKENS.pop(token, None)
+    return len(tokens)
+
 
 def get_session(session_id: str) -> Optional[StoredSession]:
     """Get session by ID."""

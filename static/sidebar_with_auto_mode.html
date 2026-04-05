@@ -1,0 +1,530 @@
+<!-- SIDEBAR WITH AUTO MODE - Enhanced Sidebar Component -->
+<div id="app-sidebar" class="sidebar-wrapper">
+  <div class="sidebar-inner">
+    <!-- Logo/Brand -->
+    <div class="sidebar-header">
+      <a href="/" class="sidebar-brand" aria-label="Semptify Home">
+        <svg class="sidebar-logo" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="8" fill="currentColor" class="text-primary"/>
+          <path d="M8 12h16M8 16h12M8 20h8" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span class="sidebar-brand-text">Semptify</span>
+      </a>
+      <button class="sidebar-toggle btn btn-ghost btn-icon" id="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="true">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+
+    <!-- Auto Mode Settings Panel (Collapsible) -->
+    <div class="sidebar-auto-mode">
+      <div id="auto-mode-panel-container">
+        <!-- Panel will be injected here by include-component JavaScript -->
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav" aria-label="Main navigation">
+      <ul class="sidebar-menu">
+        <!-- Dashboard -->
+        <li class="sidebar-item">
+          <a href="/dashboard" class="sidebar-link" data-page="dashboard">
+            <i class="fas fa-home sidebar-icon" aria-hidden="true"></i>
+            <span class="sidebar-text">Dashboard</span>
+          </a>
+        </li>
+
+        <!-- Command Center -->
+        <li class="sidebar-item">
+          <a href="/static/command_center.html" class="sidebar-link" data-page="command-center">
+            <i class="fas fa-terminal sidebar-icon" aria-hidden="true"></i>
+            <span class="sidebar-text">Command Center</span>
+          </a>
+        </li>
+
+        <!-- Documents -->
+        <li class="sidebar-item">
+          <a href="/documents" class="sidebar-link" data-page="documents">
+            <i class="fas fa-file-alt sidebar-icon" aria-hidden="true"></i>
+            <span class="sidebar-text">Documents</span>
+          </a>
+        </li>
+
+        <!-- Auto Analysis Dashboard (NEW) -->
+        <li class="sidebar-item highlight">
+          <a href="/static/batch_analysis_results.html" class="sidebar-link" data-page="auto-analysis">
+            <i class="fas fa-robot sidebar-icon" aria-hidden="true"></i>
+            <span class="sidebar-text">Auto Analysis</span>
+            <span class="sidebar-badge">New</span>
+          </a>
+        </li>
+
+        <!-- Timeline -->
+        <li class="sidebar-item">
+          <a href="/timeline" class="sidebar-link" data-page="timeline">
+            <i class="fas fa-stream sidebar-icon" aria-hidden="true"></i>
+            <span class="sidebar-text">Timeline</span>
+          </a>
+        </li>
+
+        <!-- Calendar -->
+        <li class="sidebar-item">
+          <a href="/static/calendar.html" class="sidebar-link" data-page="calendar">
+            <i class="fas fa-calendar sidebar-icon" aria-hidden="true"></i>
+            <span class="sidebar-text">Calendar</span>
+          </a>
+        </li>
+
+        <!-- Vault -->
+        <li class="sidebar-item">
+          <a href="/vault" class="sidebar-link" data-page="vault">
+            <i class="fas fa-lock sidebar-icon" aria-hidden="true"></i>
+            <span class="sidebar-text">Vault</span>
+          </a>
+        </li>
+
+        <!-- Divider -->
+        <li class="sidebar-divider" role="separator"></li>
+
+        <!-- Eviction Section -->
+        <li class="sidebar-section">
+          <span class="sidebar-section-title">Eviction Defense</span>
+        </li>
+
+        <li class="sidebar-item">
+          <a href="/static/journey.html" class="sidebar-link" data-page="eviction-flows">
+            <i class="fas fa-route sidebar-icon" aria-hidden="true"></i>
+            <span class="sidebar-text">Guided Flows</span>
+          </a>
+        </li>
+
+        <li class="sidebar-item">
+          <a href="/static/document_intake.html" class="sidebar-link" data-page="eviction-forms">
+            <i class="fas fa-file-signature sidebar-icon" aria-hidden="true"></i>
+            <span class="sidebar-text">Form Library</span>
+          </a>
+        </li>
+
+        <!-- Divider -->
+        <li class="sidebar-divider" role="separator"></li>
+
+        <!-- Settings Section -->
+        <li class="sidebar-item">
+          <a href="/storage" class="sidebar-link" data-page="storage">
+            <i class="fas fa-cloud sidebar-icon" aria-hidden="true"></i>
+            <span class="sidebar-text">Cloud Storage</span>
+          </a>
+        </li>
+
+        <li class="sidebar-item">
+          <a href="/static/settings-v2.html" class="sidebar-link" data-page="settings">
+            <i class="fas fa-cog sidebar-icon" aria-hidden="true"></i>
+            <span class="sidebar-text">Settings</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <!-- Sync Status Indicator -->
+      <div class="sidebar-status" id="sync-status">
+        <span class="status-indicator status-offline" id="status-dot"></span>
+        <span class="sidebar-text status-text" id="status-text">Offline</span>
+      </div>
+
+      <!-- User Profile -->
+      <div class="sidebar-user" id="user-menu">
+        <div class="user-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+        <div class="user-info sidebar-text">
+          <span class="user-name" id="user-name">Guest</span>
+          <span class="user-role" id="user-role">Not signed in</span>
+        </div>
+        <button class="btn btn-ghost btn-icon" id="user-menu-toggle" aria-label="User menu" aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-chevron-up"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Sidebar Container */
+.sidebar-wrapper {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 280px;
+  height: 100vh;
+  background: linear-gradient(180deg, #0f172a 0%, #1a1a2e 100%);
+  border-right: 1px solid #334155;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Header */
+.sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid #334155;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: #3b82f6;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.sidebar-brand:hover {
+  color: #60a5fa;
+}
+
+.sidebar-brand-text {
+  color: #f8fafc;
+}
+
+.sidebar-logo {
+  width: 32px;
+  height: 32px;
+  color: #2563eb;
+}
+
+.sidebar-toggle {
+  color: #94a3b8;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.sidebar-toggle:hover {
+  background: #334155;
+  color: #f8fafc;
+}
+
+/* Auto Mode Section */
+.sidebar-auto-mode {
+  padding: 0;
+  margin: 0.75rem 0;
+  max-height: 800px;
+  overflow: hidden;
+}
+
+.sidebar-auto-mode .auto-mode-panel {
+  margin: 0.75rem;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Navigation */
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem 0;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-item {
+  margin: 0;
+  position: relative;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: #cbd5e1;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  position: relative;
+  font-size: 0.875rem;
+}
+
+.sidebar-link:hover {
+  background: #334155;
+  color: #f8fafc;
+  padding-left: 1.25rem;
+}
+
+.sidebar-link.active {
+  background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+  color: #f8fafc;
+  font-weight: 500;
+  border-left: 3px solid #60a5fa;
+}
+
+.sidebar-icon {
+  width: 20px;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.sidebar-text {
+  flex: 1;
+}
+
+/* Sidebar Badge */
+.sidebar-badge {
+  display: inline-block;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  color: #f8fafc;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-item.highlight .sidebar-link {
+  border-left: 3px solid #10b981;
+  padding-left: 1rem;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+/* Divider */
+.sidebar-divider {
+  height: 1px;
+  background: #334155;
+  margin: 1rem 0;
+  list-style: none;
+}
+
+/* Section Title */
+.sidebar-section {
+  list-style: none;
+  padding: 0.75rem 1rem;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Footer */
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid #334155;
+  background: #1e293b;
+  margin-top: auto;
+}
+
+.sidebar-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #0f172a;
+  border-radius: 6px;
+}
+
+.status-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  animation: status-pulse 2s infinite;
+}
+
+.status-offline {
+  background: #ef4444;
+}
+
+.status-online {
+  background: #10b981;
+}
+
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.status-text {
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+/* User Profile */
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #334155;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar-user:hover {
+  background: #475569;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f8fafc;
+  font-size: 0.875rem;
+}
+
+.user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.user-name {
+  font-weight: 500;
+  color: #f8fafc;
+  font-size: 0.875rem;
+}
+
+.user-role {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Buttons */
+.btn {
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: inherit;
+}
+
+.btn-ghost {
+  color: #94a3b8;
+}
+
+.btn-ghost:hover {
+  background: #334155;
+  color: #f8fafc;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+/* Scrollbar */
+.sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 3px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .sidebar-wrapper {
+    width: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar-wrapper {
+    width: 100%;
+    max-width: 280px;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    top: 0;
+    z-index: 999;
+  }
+
+  .sidebar-wrapper.open {
+    transform: translateX(0);
+  }
+}
+</style>
+
+<script>
+// Sidebar Auto Mode Panel Loader
+document.addEventListener('DOMContentLoaded', function() {
+  const panelContainer = document.getElementById('auto-mode-panel-container');
+  
+  if (panelContainer) {
+    // Fetch and inject auto mode panel component
+    fetch('/static/components/auto_mode_panel.html')
+      .then(response => response.text())
+      .then(html => {
+        panelContainer.innerHTML = html;
+        // Re-execute any scripts in the injected HTML
+        panelContainer.querySelectorAll('script').forEach(script => {
+          const newScript = document.createElement('script');
+          newScript.textContent = script.textContent;
+          document.body.appendChild(newScript);
+        });
+      })
+      .catch(error => console.warn('Could not load auto mode panel:', error));
+  }
+
+  // Sidebar toggle functionality
+  const toggleBtn = document.getElementById('sidebar-toggle');
+  const sidebar = document.getElementById('app-sidebar');
+  
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      sidebar?.classList.toggle('collapsed');
+    });
+  }
+
+  // Active link highlighting
+  const links = document.querySelectorAll('.sidebar-link');
+  const currentPath = window.location.pathname;
+  
+  links.forEach(link => {
+    if (link.getAttribute('href') === currentPath) {
+      link.classList.add('active');
+    }
+  });
+});
+</script>

@@ -1,0 +1,653 @@
+<!-- Auto Mode Settings Panel - Collapsible Sidebar Component -->
+<div class="auto-mode-panel">
+  <!-- Panel Header -->
+  <div class="auto-mode-header">
+    <div class="auto-mode-title">
+      <i class="fas fa-robot auto-mode-icon"></i>
+      <span>Auto Mode Settings</span>
+    </div>
+    <button class="btn btn-ghost btn-sm auto-mode-toggle" id="auto-mode-toggle" aria-label="Toggle auto mode">
+      <i class="fas fa-chevron-down"></i>
+    </button>
+  </div>
+
+  <!-- Panel Content -->
+  <div class="auto-mode-content" id="auto-mode-content">
+    <!-- Master Enable Toggle -->
+    <div class="auto-mode-option">
+      <div class="option-header">
+        <label class="toggle-label">
+          <input type="checkbox" id="auto-mode-master" class="toggle-input" />
+          <span class="toggle-slider"></span>
+        </label>
+        <span class="option-title">Enable Auto Mode</span>
+      </div>
+      <p class="option-description">Automatically analyze all documents on upload</p>
+    </div>
+
+    <!-- Feature Toggles -->
+    <div class="auto-mode-features">
+      <h4 class="features-title">Analysis Features</h4>
+
+      <!-- Timeline Extraction -->
+      <div class="auto-mode-option compact">
+        <label class="toggle-label">
+          <input type="checkbox" id="auto-timeline" class="toggle-input" checked />
+          <span class="toggle-slider"></span>
+        </label>
+        <div class="option-info">
+          <span class="feature-name">Timeline Extraction</span>
+          <span class="feature-desc">Extract events & dates</span>
+        </div>
+      </div>
+
+      <!-- Calendar Generation -->
+      <div class="auto-mode-option compact">
+        <label class="toggle-label">
+          <input type="checkbox" id="auto-calendar" class="toggle-input" checked />
+          <span class="toggle-slider"></span>
+        </label>
+        <div class="option-info">
+          <span class="feature-name">Calendar Generation</span>
+          <span class="feature-desc">Create event reminders</span>
+        </div>
+      </div>
+
+      <!-- Complaint Identification -->
+      <div class="auto-mode-option compact">
+        <label class="toggle-label">
+          <input type="checkbox" id="auto-complaints" class="toggle-input" checked />
+          <span class="toggle-slider"></span>
+        </label>
+        <div class="option-info">
+          <span class="feature-name">Complaint Identification</span>
+          <span class="feature-desc">Find regulatory agencies</span>
+        </div>
+      </div>
+
+      <!-- Rights Assessment -->
+      <div class="auto-mode-option compact">
+        <label class="toggle-label">
+          <input type="checkbox" id="auto-rights" class="toggle-input" checked />
+          <span class="toggle-slider"></span>
+        </label>
+        <div class="option-info">
+          <span class="feature-name">Rights Assessment</span>
+          <span class="feature-desc">Evaluate legal protections</span>
+        </div>
+      </div>
+
+      <!-- Missteps Detection -->
+      <div class="auto-mode-option compact">
+        <label class="toggle-label">
+          <input type="checkbox" id="auto-missteps" class="toggle-input" checked />
+          <span class="toggle-slider"></span>
+        </label>
+        <div class="option-info">
+          <span class="feature-name">Missteps Detection</span>
+          <span class="feature-desc">Find procedural violations</span>
+        </div>
+      </div>
+
+      <!-- Tactics Recommendation -->
+      <div class="auto-mode-option compact">
+        <label class="toggle-label">
+          <input type="checkbox" id="auto-tactics" class="toggle-input" checked />
+          <span class="toggle-slider"></span>
+        </label>
+        <div class="option-info">
+          <span class="feature-name">Tactics Recommendation</span>
+          <span class="feature-desc">Suggest defense strategies</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Batch Analysis Section -->
+    <div class="auto-mode-batch">
+      <h4 class="batch-title">Batch Processing</h4>
+      <div class="batch-controls">
+        <label class="batch-label">
+          Documents to process:
+          <input type="number" id="batch-limit" class="batch-input" value="10" min="1" max="100" />
+        </label>
+        <button id="run-batch-btn" class="btn btn-primary btn-block btn-sm">
+          <i class="fas fa-play"></i> Run Batch Analysis
+        </button>
+      </div>
+      <div id="batch-status" class="batch-status"></div>
+    </div>
+
+    <!-- Auto Mode Status -->
+    <div class="auto-mode-status">
+      <div class="status-row">
+        <span class="status-label">Status:</span>
+        <span id="auto-mode-status" class="status-value status-disabled">Disabled</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Last Run:</span>
+        <span id="last-run-time" class="status-value">Never</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Processed:</span>
+        <span id="docs-processed" class="status-value">0</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="auto-mode-actions">
+      <button id="save-auto-config" class="btn btn-primary btn-block">
+        <i class="fas fa-save"></i> Save Configuration
+      </button>
+      <button id="reset-auto-config" class="btn btn-secondary btn-block">
+        <i class="fas fa-redo"></i> Reset to Defaults
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Auto Mode Settings Panel Styles */
+.auto-mode-panel {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  margin: 1rem;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+.auto-mode-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+  cursor: pointer;
+  user-select: none;
+}
+
+.auto-mode-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.auto-mode-icon {
+  font-size: 1.25rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.auto-mode-toggle {
+  color: #f8fafc;
+  transition: transform 0.3s ease;
+}
+
+.auto-mode-toggle.collapsed {
+  transform: rotate(-180deg);
+}
+
+.auto-mode-content {
+  padding: 1rem;
+  background: #0f172a;
+  max-height: 600px;
+  overflow-y: auto;
+  transition: max-height 0.3s ease;
+}
+
+.auto-mode-content.collapsed {
+  max-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Toggle Switch */
+.toggle-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  width: 50px;
+}
+
+.toggle-input {
+  display: none;
+}
+
+.toggle-slider {
+  display: inline-block;
+  width: 48px;
+  height: 24px;
+  background: #334155;
+  border-radius: 12px;
+  position: relative;
+  transition: background 0.3s ease;
+  border: 2px solid #475569;
+}
+
+.toggle-slider::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  background: #f8fafc;
+  border-radius: 50%;
+  top: 1px;
+  left: 1px;
+  transition: left 0.3s ease;
+}
+
+.toggle-input:checked + .toggle-slider {
+  background: #10b981;
+  border-color: #059669;
+}
+
+.toggle-input:checked + .toggle-slider::after {
+  left: 25px;
+}
+
+/* Options */
+.auto-mode-option {
+  padding: 1rem;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  margin-bottom: 0.75rem;
+  background: #1e293b;
+  transition: all 0.2s ease;
+}
+
+.auto-mode-option:hover {
+  background: #334155;
+  border-color: #475569;
+}
+
+.auto-mode-option.compact {
+  padding: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.option-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.option-title {
+  color: #f8fafc;
+  font-weight: 500;
+}
+
+.option-description {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  margin-left: 58px;
+}
+
+.option-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.feature-name {
+  color: #f8fafc;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.feature-desc {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+/* Features Section */
+.auto-mode-features {
+  margin-top: 1rem;
+}
+
+.features-title {
+  color: #e2e8f0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Batch Section */
+.auto-mode-batch {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+}
+
+.batch-title {
+  color: #e2e8f0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+}
+
+.batch-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.batch-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #cbd5e1;
+  font-size: 0.875rem;
+}
+
+.batch-input {
+  width: 60px;
+  padding: 0.5rem;
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  border-radius: 4px;
+  font-size: 0.875rem;
+}
+
+.batch-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.batch-status {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  text-align: center;
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.batch-status.running {
+  color: #3b82f6;
+  border-color: #2563eb;
+}
+
+.batch-status.success {
+  color: #10b981;
+  border-color: #059669;
+}
+
+.batch-status.error {
+  color: #ef4444;
+  border-color: #dc2626;
+}
+
+/* Status Display */
+.auto-mode-status {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #334155;
+}
+
+.status-row:last-child {
+  border-bottom: none;
+}
+
+.status-label {
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.status-value {
+  color: #f8fafc;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.status-value.status-disabled {
+  color: #ef4444;
+}
+
+.status-value.status-enabled {
+  color: #10b981;
+}
+
+/* Action Buttons */
+.auto-mode-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.btn {
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+  color: #f8fafc;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-secondary {
+  background: #334155;
+  color: #f8fafc;
+}
+
+.btn-secondary:hover {
+  background: #475569;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-sm {
+  padding: 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* Scrollbar Styling */
+.auto-mode-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.auto-mode-content::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+.auto-mode-content::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 3px;
+}
+
+.auto-mode-content::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .auto-mode-panel {
+    margin: 0.75rem;
+  }
+
+  .batch-controls {
+    flex-direction: column;
+  }
+
+  .batch-label {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+</style>
+
+<script>
+// Auto Mode Panel JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+  const toggleBtn = document.getElementById('auto-mode-toggle');
+  const contentDiv = document.getElementById('auto-mode-content');
+  const masterToggle = document.getElementById('auto-mode-master');
+  const saveBtn = document.getElementById('save-auto-config');
+  const resetBtn = document.getElementById('reset-auto-config');
+  const runBatchBtn = document.getElementById('run-batch-btn');
+  const statusValue = document.getElementById('auto-mode-status');
+  const batchStatus = document.getElementById('batch-status');
+
+  // Toggle content visibility
+  toggleBtn.addEventListener('click', function() {
+    contentDiv.classList.toggle('collapsed');
+    toggleBtn.classList.toggle('collapsed');
+  });
+
+  // Master toggle disable/enable features
+  masterToggle.addEventListener('change', function() {
+    const featureInputs = document.querySelectorAll('.auto-mode-features input[type="checkbox"]');
+    featureInputs.forEach(input => {
+      input.disabled = !this.checked;
+    });
+    updateStatus();
+  });
+
+  // Update status display
+  function updateStatus() {
+    if (masterToggle.checked) {
+      statusValue.textContent = 'Enabled';
+      statusValue.classList.remove('status-disabled');
+      statusValue.classList.add('status-enabled');
+    } else {
+      statusValue.textContent = 'Disabled';
+      statusValue.classList.remove('status-enabled');
+      statusValue.classList.add('status-disabled');
+    }
+  }
+
+  // Save configuration
+  saveBtn.addEventListener('click', function() {
+    const config = {
+      enabled: masterToggle.checked,
+      features: {
+        auto_generate_timeline: document.getElementById('auto-timeline').checked,
+        auto_generate_calendar: document.getElementById('auto-calendar').checked,
+        auto_identify_complaints: document.getElementById('auto-complaints').checked,
+        auto_assess_rights: document.getElementById('auto-rights').checked,
+        auto_detect_missteps: document.getElementById('auto-missteps').checked,
+        auto_suggest_tactics: document.getElementById('auto-tactics').checked
+      }
+    };
+    
+    localStorage.setItem('autoModeConfig', JSON.stringify(config));
+    
+    // Visual feedback
+    saveBtn.textContent = '✓ Saved!';
+    setTimeout(() => {
+      saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Configuration';
+    }, 2000);
+  });
+
+  // Reset to defaults
+  resetBtn.addEventListener('click', function() {
+    masterToggle.checked = true;
+    document.querySelectorAll('.auto-mode-features input[type="checkbox"]').forEach(input => {
+      input.checked = true;
+      input.disabled = false;
+    });
+    updateStatus();
+  });
+
+  // Run batch analysis
+  runBatchBtn.addEventListener('click', async function() {
+    const limit = document.getElementById('batch-limit').value;
+    batchStatus.classList.add('running');
+    batchStatus.textContent = '⏳ Running batch analysis...';
+    runBatchBtn.disabled = true;
+
+    try {
+      const response = await fetch('/api/auto-mode/batch-analysis?limit=' + limit, {
+        method: 'POST'
+      });
+      const data = await response.json();
+      
+      if (response.ok) {
+        batchStatus.classList.remove('running');
+        batchStatus.classList.add('success');
+        batchStatus.innerHTML = `✓ Analyzed ${data.statistics?.documents_analyzed || limit} documents`;
+        document.getElementById('docs-processed').textContent = data.statistics?.documents_analyzed || limit;
+      } else {
+        throw new Error(data.error || 'Analysis failed');
+      }
+    } catch (error) {
+      batchStatus.classList.remove('running');
+      batchStatus.classList.add('error');
+      batchStatus.textContent = '✗ ' + error.message;
+    } finally {
+      runBatchBtn.disabled = false;
+    }
+  });
+
+  // Load saved configuration
+  function loadConfiguration() {
+    const saved = localStorage.getItem('autoModeConfig');
+    if (saved) {
+      const config = JSON.parse(saved);
+      masterToggle.checked = config.enabled;
+      if (config.features) {
+        document.getElementById('auto-timeline').checked = config.features.auto_generate_timeline;
+        document.getElementById('auto-calendar').checked = config.features.auto_generate_calendar;
+        document.getElementById('auto-complaints').checked = config.features.auto_identify_complaints;
+        document.getElementById('auto-rights').checked = config.features.auto_assess_rights;
+        document.getElementById('auto-missteps').checked = config.features.auto_detect_missteps;
+        document.getElementById('auto-tactics').checked = config.features.auto_suggest_tactics;
+      }
+    }
+    updateStatus();
+  }
+
+  loadConfiguration();
+});
+</script>

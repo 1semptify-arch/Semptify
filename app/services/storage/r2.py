@@ -1,119 +1,91 @@
 """
 Semptify 5.0 - Cloudflare R2 Storage Provider
-Async S3-compatible client for system storage (admin-only).
+Async S3-compatible client using aioboto3.
+
+Role: SYSTEM storage only — not for user files.
+User files always stay in the user's own cloud storage (Google Drive / Dropbox / OneDrive).
+R2 stores only system-level data that must survive server restarts:
+  - Document processing index (analysis results, classification metadata)
+  - Folder ID cache (speeds up Google Drive path resolution)
+  - Any other ephemeral-but-expensive-to-rebuild system state
 """
 
-from typing import Optional
+import json
+import logging
 from datetime import datetime, timezone
-import hashlib
-
-import httpx
+from typing import Optional
 
 from app.services.storage.base import StorageProvider, StorageFile
+
+logger = logging.getLogger("semptify.r2")
+
+try:
+    import aioboto3
+    HAS_AIOBOTO3 = True
+except ImportError:
+    HAS_AIOBOTO3 = False
+    logger.warning("aioboto3 not installed — R2 storage unavailable. Run: pip install aioboto3")
 
 
 class R2Provider(StorageProvider):
     """
-    Cloudflare R2 storage provider using S3-compatible API.
-    Used for SYSTEM storage only (admin/internal operations).
-    Users do NOT use R2 for their data - they use their own cloud storage.
+    Cloudflare R2 storage provider (S3-compatible) using aioboto3.
+    System storage only — users never interact with this directly.
     """
-    
+
     def __init__(
         self,
         account_id: str,
         access_key_id: str,
         secret_access_key: str,
         bucket_name: str,
+        endpoint_url: Optional[str] = None,
     ):
         self.account_id = account_id
         self.access_key_id = access_key_id
         self.secret_access_key = secret_access_key
         self.bucket_name = bucket_name
-        self.endpoint = f"https://{account_id}.r2.cloudflarestorage.com"
-    
+        # R2 endpoint: https://<account_id>.r2.cloudflarestorage.com
+        self.endpoint_url = endpoint_url or f"https://{account_id}.r2.cloudflarestorage.com"
+
     @property
     def provider_name(self) -> str:
         return "r2"
-    
-    def _sign_request(
-        self,
-        method: str,
-        path: str,
-        headers: dict,
-        payload_hash: str,
-    ) -> dict:
-        """
-        Sign request using AWS Signature Version 4.
-        Simplified implementation - in production use boto3 or aioboto3.
-        """
-        # For full implementation, use aioboto3 or httpx-auth-aws4
-        # This is a placeholder showing the interface
-        from datetime import datetime as dt
-        import hmac
-        import hashlib
-        
-        amz_date = dt.utcnow().strftime('%Y%m%dT%H%M%SZ')
-        date_stamp = dt.utcnow().strftime('%Y%m%d')
-        
-        region = "auto"
-        service = "s3"
-        
-        # Canonical request components
-        canonical_uri = f"/{self.bucket_name}{path}"
-        canonical_querystring = ""
-        
-        signed_headers = "host;x-amz-content-sha256;x-amz-date"
-        host = f"{self.account_id}.r2.cloudflarestorage.com"
-        
-        canonical_headers = f"host:{host}\nx-amz-content-sha256:{payload_hash}\nx-amz-date:{amz_date}\n"
-        
-        canonical_request = f"{method}\n{canonical_uri}\n{canonical_querystring}\n{canonical_headers}\n{signed_headers}\n{payload_hash}"
-        
-        # String to sign
-        algorithm = "AWS4-HMAC-SHA256"
-        credential_scope = f"{date_stamp}/{region}/{service}/aws4_request"
-        string_to_sign = f"{algorithm}\n{amz_date}\n{credential_scope}\n{hashlib.sha256(canonical_request.encode()).hexdigest()}"
-        
-        # Signing key
-        def sign(key, msg):
-            return hmac.new(key, msg.encode('utf-8'), hashlib.sha256).digest()
-        
-        k_date = sign(('AWS4' + self.secret_access_key).encode('utf-8'), date_stamp)
-        k_region = sign(k_date, region)
-        k_service = sign(k_region, service)
-        k_signing = sign(k_service, 'aws4_request')
-        
-        signature = hmac.new(k_signing, string_to_sign.encode('utf-8'), hashlib.sha256).hexdigest()
-        
-        authorization_header = f"{algorithm} Credential={self.access_key_id}/{credential_scope}, SignedHeaders={signed_headers}, Signature={signature}"
-        
-        return {
-            "Host": host,
-            "x-amz-date": amz_date,
-            "x-amz-content-sha256": payload_hash,
-            "Authorization": authorization_header,
-        }
-    
+
+    def _session(self):
+        """Create a fresh aioboto3 session."""
+        if not HAS_AIOBOTO3:
+            raise RuntimeError("aioboto3 is not installed. Run: pip install aioboto3")
+        session = aioboto3.Session(
+            aws_access_key_id=self.access_key_id,
+            aws_secret_access_key=self.secret_access_key,
+            region_name="auto",
+        )
+        return session
+
+    def _client(self):
+        """Return an async context manager for an S3 client pointed at R2."""
+        return self._session().client(
+            "s3",
+            endpoint_url=self.endpoint_url,
+        )
+
+    # -------------------------------------------------------------------------
+    # StorageProvider interface
+    # -------------------------------------------------------------------------
+
     async def is_connected(self) -> bool:
-        """Check if R2 bucket is accessible."""
-        try:
-            # Use aioboto3 in production for proper S3 operations
-            # This is a simplified check
-            path = "/"
-            payload_hash = hashlib.sha256(b"").hexdigest()
-            headers = self._sign_request("HEAD", path, {}, payload_hash)
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.head(
-                    f"{self.endpoint}/{self.bucket_name}",
-                    headers=headers,
-                    timeout=10.0,
-                )
-                return response.status_code in (200, 403)  # 403 = exists but may need different perms
-        except Exception:
+        """Return True if R2 bucket is reachable and credentials are valid."""
+        if not HAS_AIOBOTO3:
             return False
-    
+        try:
+            async with self._client() as s3:
+                await s3.head_bucket(Bucket=self.bucket_name)
+            return True
+        except Exception as exc:
+            logger.debug("R2 is_connected failed: %s", exc)
+            return False
+
     async def upload_file(
         self,
         file_content: bytes,
@@ -121,150 +93,111 @@ class R2Provider(StorageProvider):
         filename: str,
         mime_type: Optional[str] = None,
     ) -> StorageFile:
-        """Upload file to R2."""
-        path = f"/{destination_path}/{filename}".replace("//", "/")
-        payload_hash = hashlib.sha256(file_content).hexdigest()
-        
-        headers = self._sign_request("PUT", path, {}, payload_hash)
-        headers["Content-Type"] = mime_type or "application/octet-stream"
-        headers["Content-Length"] = str(len(file_content))
-        
-        async with httpx.AsyncClient() as client:
-            response = await client.put(
-                f"{self.endpoint}/{self.bucket_name}{path}",
-                headers=headers,
-                content=file_content,
-                timeout=60.0,
-            )
-            
-            if response.status_code in (200, 201):
-                return StorageFile(
-                    id=path,
-                    name=filename,
-                    path=path,
-                    size=len(file_content),
-                    mime_type=mime_type or "application/octet-stream",
-                    modified_at=datetime.now(timezone.utc),
-                )
+        """Upload bytes to R2. Key = destination_path/filename."""
+        key = f"{destination_path.strip('/')}/{filename}".lstrip("/")
+        content_type = mime_type or "application/octet-stream"
 
-        raise Exception(f"R2 upload failed: {response.status_code}")
+        async with self._client() as s3:
+            await s3.put_object(
+                Bucket=self.bucket_name,
+                Key=key,
+                Body=file_content,
+                ContentType=content_type,
+            )
+
+        return StorageFile(
+            id=key,
+            name=filename,
+            path=key,
+            size=len(file_content),
+            mime_type=content_type,
+            modified_at=datetime.now(timezone.utc),
+        )
 
     async def download_file(self, file_path: str) -> bytes:
-        """Download file from R2."""
-        path = file_path if file_path.startswith("/") else f"/{file_path}"
-        payload_hash = hashlib.sha256(b"").hexdigest()
-        
-        headers = self._sign_request("GET", path, {}, payload_hash)
-        
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.endpoint}/{self.bucket_name}{path}",
-                headers=headers,
-                timeout=60.0,
-            )
-            
-            if response.status_code == 200:
-                return response.content
-        
-        raise Exception(f"R2 download failed: {file_path}")
-    
+        """Download object from R2 and return raw bytes."""
+        key = file_path.lstrip("/")
+        async with self._client() as s3:
+            response = await s3.get_object(Bucket=self.bucket_name, Key=key)
+            return await response["Body"].read()
+
     async def delete_file(self, file_path: str) -> bool:
-        """Delete file from R2."""
-        path = file_path if file_path.startswith("/") else f"/{file_path}"
-        payload_hash = hashlib.sha256(b"").hexdigest()
-        
-        headers = self._sign_request("DELETE", path, {}, payload_hash)
-        
-        async with httpx.AsyncClient() as client:
-            response = await client.delete(
-                f"{self.endpoint}/{self.bucket_name}{path}",
-                headers=headers,
-                timeout=10.0,
-            )
-            
-            return response.status_code in (200, 204)
-    
+        """Delete an object from R2. Returns True on success."""
+        key = file_path.lstrip("/")
+        try:
+            async with self._client() as s3:
+                await s3.delete_object(Bucket=self.bucket_name, Key=key)
+            return True
+        except Exception as exc:
+            logger.warning("R2 delete_file failed for %s: %s", key, exc)
+            return False
+
     async def list_files(
         self,
-        folder_path: str = "/",
+        folder_path: str = "",
         recursive: bool = False,
     ) -> list[StorageFile]:
-        """List files in R2 bucket."""
-        # R2 uses prefix-based listing
+        """List objects in R2 under folder_path prefix."""
         prefix = folder_path.strip("/")
         if prefix:
             prefix += "/"
-        
-        payload_hash = hashlib.sha256(b"").hexdigest()
-        headers = self._sign_request("GET", "/", {}, payload_hash)
-        
-        params = {"prefix": prefix}
+
+        files: list[StorageFile] = []
+        paginator_kwargs: dict = {
+            "Bucket": self.bucket_name,
+            "Prefix": prefix,
+        }
         if not recursive:
-            params["delimiter"] = "/"
-        
-        files = []
-        
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.endpoint}/{self.bucket_name}",
-                headers=headers,
-                params=params,
-                timeout=30.0,
-            )
-            
-            if response.status_code == 200:
-                # Parse XML response (S3 returns XML)
-                # In production, use proper XML parsing or aioboto3
-                # This is simplified
-                pass
-        
+            paginator_kwargs["Delimiter"] = "/"
+
+        async with self._client() as s3:
+            paginator = s3.get_paginator("list_objects_v2")
+            async for page in paginator.paginate(**paginator_kwargs):
+                for obj in page.get("Contents", []):
+                    key: str = obj["Key"]
+                    files.append(StorageFile(
+                        id=key,
+                        name=key.split("/")[-1],
+                        path=key,
+                        size=obj.get("Size", 0),
+                        mime_type="application/octet-stream",
+                        modified_at=obj.get("LastModified", datetime.now(timezone.utc)),
+                    ))
+
         return files
-    
+
     async def file_exists(self, file_path: str) -> bool:
-        """Check if file exists in R2."""
-        path = file_path if file_path.startswith("/") else f"/{file_path}"
-        payload_hash = hashlib.sha256(b"").hexdigest()
-        
-        headers = self._sign_request("HEAD", path, {}, payload_hash)
-        
+        """Return True if the object exists in R2."""
+        key = file_path.lstrip("/")
         try:
-            async with httpx.AsyncClient() as client:
-                response = await client.head(
-                    f"{self.endpoint}/{self.bucket_name}{path}",
-                    headers=headers,
-                    timeout=10.0,
-                )
-                return response.status_code == 200
-        except Exception:
-            return False
-    
-    async def create_folder(self, folder_path: str) -> bool:
-        """Create folder in R2 (S3 doesn't have folders, just prefixes)."""
-        # S3/R2 doesn't have real folders - they're just key prefixes
-        # We can create a placeholder object to represent the folder
-        path = folder_path.strip("/") + "/.folder"
-        
-        try:
-            await self.upload_file(
-                file_content=b"",
-                destination_path="",
-                filename=path,
-                mime_type="application/x-directory",
-            )
+            async with self._client() as s3:
+                await s3.head_object(Bucket=self.bucket_name, Key=key)
             return True
         except Exception:
             return False
 
+    async def create_folder(self, folder_path: str) -> bool:
+        """R2/S3 has no real folders — this is a no-op (prefixes are implicit)."""
+        return True
 
-# Note: For production R2 usage, consider using aioboto3:
-# 
-# import aioboto3
-# 
-# session = aioboto3.Session()
-# async with session.client(
-#     "s3",
-#     endpoint_url=f"https://{account_id}.r2.cloudflarestorage.com",
-#     aws_access_key_id=access_key_id,
-#     aws_secret_access_key=secret_access_key,
-# ) as s3:
-#     await s3.put_object(Bucket=bucket, Key=key, Body=data)
+    # -------------------------------------------------------------------------
+    # Convenience helpers used by the system layer
+    # -------------------------------------------------------------------------
+
+    async def put_json(self, key: str, data: dict) -> None:
+        """Serialize dict to JSON and store it at key."""
+        payload = json.dumps(data, indent=2, default=str).encode("utf-8")
+        await self.upload_file(
+            file_content=payload,
+            destination_path="",
+            filename=key,
+            mime_type="application/json",
+        )
+
+    async def get_json(self, key: str) -> Optional[dict]:
+        """Fetch and deserialize a JSON object. Returns None if not found."""
+        try:
+            raw = await self.download_file(key)
+            return json.loads(raw.decode("utf-8"))
+        except Exception:
+            return None
