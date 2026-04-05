@@ -341,6 +341,44 @@ CONTRACT_LEGAL = PageContract(
 )
 
 
+# --- FunctionX Action Set Workspace ---
+CONTRACT_FUNCTIONX = PageContract(
+    page_id="functionx_workspace",
+    title="FunctionX Workspace",
+    route="/functionx",
+    roles_supported=[UserRole.ADVOCATE, UserRole.MANAGER, UserRole.LEGAL, UserRole.ADMIN],
+    primary_groups=["functions_actions"],
+    secondary_groups=["documentation", "research_knowledge", "output_delivery"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_LINKED,
+        research_knowledge=COVERAGE_LINKED,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_LINKED,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_GUARDED,
+    ),
+    qualification="Advocate, Manager, Legal, or Admin role required.",
+    expectations="User can define, inspect, and execute backend action sets safely.",
+    scope_of_use="Professional workflow for deterministic action-set planning and execution.",
+    entry_criteria=[
+        "Role in (advocate, manager, legal, admin)",
+        "Session is active",
+    ],
+    exit_criteria=[
+        "Action set created, reviewed, or executed",
+        "Or user returns to professional/legal workspace",
+    ],
+    telemetry_events=[
+        "functionx_workspace_load",
+        "functionx_set_created",
+        "functionx_set_viewed",
+        "functionx_set_executed",
+    ],
+)
+
+
 # =============================================================================
 # Registry & Lookup
 # =============================================================================
@@ -354,6 +392,7 @@ PAGE_CONTRACTS: dict[str, PageContract] = {
         CONTRACT_PROFESSIONAL,
         CONTRACT_ADMIN,
         CONTRACT_LEGAL,
+        CONTRACT_FUNCTIONX,
     ]
 }
 
