@@ -59,6 +59,17 @@ async def test_workflow_contract_endpoint_returns_tenant_help_contract(client):
 
 
 @pytest.mark.anyio
+async def test_workflow_contract_endpoint_returns_functionx_contract(client):
+    response = await client.get("/api/workflow/contracts/functionx_workspace")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["page_id"] == "functionx_workspace"
+    assert payload["route"] == "/functionx"
+    assert payload["group_coverage"]["functions_actions"] == "active"
+
+
+@pytest.mark.anyio
 async def test_root_renders_template_welcome_contract_link(client):
     response = await client.get("/", follow_redirects=False)
 
