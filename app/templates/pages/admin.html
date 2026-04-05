@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+.role-container {
+    max-width: 1150px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+.role-links {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+}
+
+.role-links a {
+    display: block;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+}
+
+.role-links a:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-hover);
+}
+
+.quick-input {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-card);
+}
+
+.chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="role-container">
+    <h1>Admin Dashboard</h1>
+    <p>System control center with direct, valid navigation.</p>
+
+    <div class="role-links">
+        <a href="/admin">Overview</a>
+        <a href="/admin/mission-control">Mission Control</a>
+        <a href="/admin/gui">GUI Hub</a>
+        <a href="/admin/mode-selector">Mode Selector</a>
+        <a href="/admin/easy-mode">Easy Settings</a>
+        <a href="/admin/docs">Docs Hub</a>
+        <a href="/dashboard">Legacy Dashboard</a>
+        <a href="/api/docs">API Docs</a>
+    </div>
+
+    <div class="quick-input">
+        <h3>Quick Admin Action</h3>
+        <p>Describe what you need and jump to the correct control page.</p>
+        <textarea class="form-textarea" id="admin-action" placeholder="Example: Review GUI mode settings for tenant onboarding"></textarea>
+        <div class="chip-row">
+            <button class="btn btn--secondary btn--sm" type="button" data-admin-suggest="Audit user journey and GUI links.">Audit GUI</button>
+            <button class="btn btn--secondary btn--sm" type="button" data-admin-suggest="Tune mode selector defaults for new users.">Tune Modes</button>
+            <a class="btn btn--primary btn--sm" href="/admin/gui">Open GUI Hub</a>
+            <a class="btn btn--secondary btn--sm" href="/admin/mode-selector">Open Mode Selector</a>
+        </div>
+    </div>
+</div>
+<script>
+document.querySelectorAll('[data-admin-suggest]').forEach((chip) => {
+    chip.addEventListener('click', () => {
+        const target = document.getElementById('admin-action');
+        target.value = chip.getAttribute('data-admin-suggest') || '';
+        target.focus();
+    });
+});
+</script>
+{% endblock %}

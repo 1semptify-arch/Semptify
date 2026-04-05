@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_195539_7a98899a",
+  "vault_id": "7a98899a-55cb-4872-8806-7e3d4e17c218",
+  "sha256": "ffbd206803f23408d6e45e80e20720c6a066ff57ba37a0cd693d308fc04ac5ac",
+  "original_filename": "MCRO_19AV-CV-25-3477_Notice of Motion and Motion_2025-12-02_20251203180512.pdf",
+  "file_size": 146539,
+  "mime_type": "application/pdf",
+  "document_type": "court",
+  "certified_at": "2026-03-11T19:55:39.661989+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\7a98899a-55cb-4872-8806-7e3d4e17c218.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

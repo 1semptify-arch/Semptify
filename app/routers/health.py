@@ -54,6 +54,12 @@ async def health_alias():
     return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 
+@router.get("/api/health")
+async def api_health_alias():
+    """API-prefixed health alias used by external probes and scripts."""
+    return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
+
+
 @router.get("/readyz")
 async def readiness_check(settings: Settings = Depends(get_settings)):
     """
@@ -164,7 +170,7 @@ async def metrics(settings: Settings = Depends(get_settings)):
     Prometheus-compatible metrics endpoint.
     Returns metrics in Prometheus text format or JSON.
     """
-    if not settings.enable_metrics:
+    if not getattr(settings, "enable_metrics", False):
         return PlainTextResponse("Metrics disabled", status_code=404)
 
     # Get metrics from security module
@@ -226,7 +232,7 @@ async def metrics_json(settings: Settings = Depends(get_settings)):
     """
     JSON metrics endpoint for non-Prometheus consumers.
     """
-    if not settings.enable_metrics:
+    if not getattr(settings, "enable_metrics", False):
         return {"error": "Metrics disabled"}
 
     all_metrics = get_metrics()

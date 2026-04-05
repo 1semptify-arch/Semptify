@@ -18,13 +18,21 @@ from typing import Optional
 import secrets
 import hashlib
 import json
+from urllib.parse import urlencode
 
 from fastapi import APIRouter, HTTPException, Query, Request, Response, Cookie, Depends
 from fastapi.responses import RedirectResponse, HTMLResponse
 from pydantic import BaseModel
 import httpx
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+
+try:
+    from sqlalchemy.ext.asyncio import AsyncSession
+    from sqlalchemy import select
+    SQLALCHEMY_AVAILABLE = True
+except ImportError:
+    AsyncSession = object
+    select = None
+    SQLALCHEMY_AVAILABLE = False
 
 from app.core.config import get_settings
 from app.core.database import get_db
@@ -37,6 +45,20 @@ from app.core.user_id import (
     COOKIE_USER_ID,
     COOKIE_MAX_AGE,
 )
+from app.core.security import (
+    issue_function_access_token,
+    verify_function_access_token,
+    invalidate_function_access_tokens,
+)
+
+try:
+    from sqlalchemy.ext.asyncio import AsyncSession
+    from sqlalchemy import select
+    SQLALCHEMY_AVAILABLE = True
+except ImportError:
+    AsyncSession = object
+    select = None
+    SQLALCHEMY_AVAILABLE = False
 from app.models.models import User, Session as SessionModel, StorageConfig
 
 
@@ -79,6 +101,8 @@ OAUTH_CONFIGS = {
 # States expire after 15 minutes (increased from 5 for slower connections)
 OAUTH_STATES: dict[str, dict] = {}
 OAUTH_STATE_TIMEOUT_MINUTES = 15  # Give users more time to complete OAuth
+
+ALLOWED_ROLES = {"user", "manager", "advocate", "legal", "admin"}
 
 # Clean up expired states periodically
 def _cleanup_expired_states():
@@ -172,8 +196,8 @@ async def refresh_access_token(
         async with httpx.AsyncClient(timeout=30.0) as client:
             if provider == "google_drive":
                 response = await client.post(config["token_url"], data={
-                    "client_id": _get_settings().GOOGLE_DRIVE_CLIENT_ID,
-                    "client_secret": _get_settings().GOOGLE_DRIVE_CLIENT_SECRET,
+                    "client_id": _get_settings().google_drive_client_id,
+                    "client_secret": _get_settings().google_drive_client_secret,
                     "refresh_token": refresh_token,
                     "grant_type": "refresh_token",
                 })
@@ -181,16 +205,16 @@ async def refresh_access_token(
             elif provider == "dropbox":
                 # Dropbox uses long-lived tokens, but let's handle refresh anyway
                 response = await client.post(config["token_url"], data={
-                    "client_id": _get_settings().DROPBOX_CLIENT_ID,
-                    "client_secret": _get_settings().DROPBOX_CLIENT_SECRET,
+                    "client_id": _get_settings().dropbox_app_key,
+                    "client_secret": _get_settings().dropbox_app_secret,
                     "refresh_token": refresh_token,
                     "grant_type": "refresh_token",
                 })
             
             elif provider == "onedrive":
                 response = await client.post(config["token_url"], data={
-                    "client_id": _get_settings().ONEDRIVE_CLIENT_ID,
-                    "client_secret": _get_settings().ONEDRIVE_CLIENT_SECRET,
+                    "client_id": _get_settings().onedrive_client_id,
+                    "client_secret": _get_settings().onedrive_client_secret,
                     "refresh_token": refresh_token,
                     "grant_type": "refresh_token",
                     "scope": " ".join(config["scopes"]),
@@ -289,6 +313,10 @@ async def get_valid_session(
             # Refresh failed - session is invalid
             print(f"Token refresh failed for user {user_id[:4]}*** - session invalidated")
             return None
+
+    if needs_refresh and not auto_refresh:
+        # Caller requested a read-only validity check. Do not treat stale session as valid.
+        return None
     
     if needs_refresh and not refresh_token:
         print(f"Token expired and no refresh token for user {user_id[:4]}***")
@@ -552,7 +580,9 @@ ADMIN_PIN = _os.getenv("ADMIN_PIN", "CHANGE-ME")
 # ============================================================================
 
 def _derive_key(user_id: str) -> bytes:
-    combined = f"{_get_settings().SECRET_KEY}:{user_id}".encode()
+    settings = _get_settings()
+    secret_key = getattr(settings, "secret_key", None) or getattr(settings, "SECRET_KEY", "")
+    combined = f"{secret_key}:{user_id}".encode()
     return hashlib.sha256(combined).digest()
 
 
@@ -634,7 +664,7 @@ async def _providers_json(semptify_uid: Optional[str] = None):
         current_provider = get_provider_from_user_id(semptify_uid)
         current_role = get_role_from_user_id(semptify_uid)
 
-    if _get_settings().GOOGLE_DRIVE_CLIENT_ID:
+    if _get_settings().google_drive_client_id:
         providers.append({
             "id": "google_drive",
             "name": "Google Drive",
@@ -643,7 +673,7 @@ async def _providers_json(semptify_uid: Optional[str] = None):
             "connected": current_provider == "google_drive",
         })
 
-    if _get_settings().DROPBOX_APP_KEY:
+    if _get_settings().dropbox_app_key:
         providers.append({
             "id": "dropbox",
             "name": "Dropbox",
@@ -652,7 +682,7 @@ async def _providers_json(semptify_uid: Optional[str] = None):
             "connected": current_provider == "dropbox",
         })
 
-    if _get_settings().ONEDRIVE_CLIENT_ID:
+    if _get_settings().onedrive_client_id:
         providers.append({
             "id": "onedrive",
             "name": "OneDrive",
@@ -678,7 +708,7 @@ def _generate_providers_html(semptify_uid: Optional[str] = None) -> str:
     # Build provider cards
     provider_cards = ""
     
-    if _get_settings().GOOGLE_DRIVE_CLIENT_ID:
+    if _get_settings().google_drive_client_id:
         connected = "connected" if current_provider == "google_drive" else ""
         provider_cards += f'''
         <a href="/storage/auth/google_drive" class="provider-card {connected}">
@@ -695,7 +725,7 @@ def _generate_providers_html(semptify_uid: Optional[str] = None) -> str:
         </a>
         '''
     
-    if _get_settings().DROPBOX_APP_KEY:
+    if _get_settings().dropbox_app_key:
         connected = "connected" if current_provider == "dropbox" else ""
         provider_cards += f'''
         <a href="/storage/auth/dropbox" class="provider-card {connected}">
@@ -709,7 +739,7 @@ def _generate_providers_html(semptify_uid: Optional[str] = None) -> str:
         </a>
         '''
     
-    if _get_settings().ONEDRIVE_CLIENT_ID:
+    if _get_settings().onedrive_client_id:
         connected = "connected" if current_provider == "onedrive" else ""
         provider_cards += f'''
         <a href="/storage/auth/onedrive" class="provider-card {connected}">
@@ -780,6 +810,18 @@ def _generate_providers_html(semptify_uid: Optional[str] = None) -> str:
             border-radius: 2rem;
             font-size: 0.875rem;
             margin-bottom: 2rem;
+        }}
+        .alert-box {{
+            display: block;
+            background: rgba(239, 68, 68, 0.15);
+            border: 2px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            line-height: 1.6;
         }}
         .providers {{
             display: flex;
@@ -872,6 +914,11 @@ def _generate_providers_html(semptify_uid: Optional[str] = None) -> str:
             🔒 Your data, your storage, your control
         </div>
         
+        <div class="alert-box">
+            <strong>⚠️ IMPORTANT:</strong> Semptify requires a cloud storage provider.<br>
+            <span style="font-size: 0.95rem; color: #cbd5e1;">Local storage is NOT supported. Please select one of the providers below.</span>
+        </div>
+        
         <div class="providers">
             {provider_cards}
         </div>
@@ -890,6 +937,61 @@ def _generate_providers_html(semptify_uid: Optional[str] = None) -> str:
             <p>Semptify &copy; 2025 · <a href="/privacy.html">Privacy</a> · <a href="/help.html">Help</a></p>
         </footer>
     </div>
+
+    <script>
+        function setReconnectMessage(text, isError = false) {{
+            let el = document.getElementById('reconnect-status');
+            if (!el) {{
+                el = document.createElement('div');
+                el.id = 'reconnect-status';
+                el.style.marginTop = '1rem';
+                el.style.padding = '0.85rem 1rem';
+                el.style.borderRadius = '0.75rem';
+                el.style.fontSize = '0.9rem';
+                el.style.fontWeight = '500';
+                document.querySelector('.providers')?.after(el);
+            }}
+            el.textContent = text;
+            el.style.background = isError ? 'rgba(239, 68, 68, 0.2)' : 'rgba(59, 130, 246, 0.2)';
+            el.style.border = isError ? '1px solid rgba(239, 68, 68, 0.45)' : '1px solid rgba(59, 130, 246, 0.45)';
+            el.style.color = isError ? '#fecaca' : '#bfdbfe';
+        }}
+
+        async function prepareReconnectAndRedirect(href) {{
+            try {{
+                const prep = await fetch('/storage/prepare-reconnect', {{
+                    method: 'POST',
+                    credentials: 'include',
+                }});
+                const data = await prep.json();
+
+                if (data.ready_for_reconnect) {{
+                    setReconnectMessage('Reconnect prep complete. Redirecting...');
+                    window.location.href = href;
+                    return;
+                }}
+
+                if (data.state === 'connected' || data.state === 'refreshed') {{
+                    setReconnectMessage('Session is valid. Continuing to provider...');
+                    window.location.href = href;
+                    return;
+                }}
+
+                setReconnectMessage(data.message || 'Unable to prepare reconnect. Please try again.', true);
+            }} catch (e) {{
+                window.location.href = href;
+            }}
+        }}
+
+        document.querySelectorAll('.provider-card[href^="/storage/auth/"]').forEach((card) => {{
+            card.addEventListener('click', (event) => {{
+                event.preventDefault();
+                const href = card.getAttribute('href');
+                if (!href) return;
+                prepareReconnectAndRedirect(href);
+            }});
+        }});
+    </script>
 </body>
 </html>'''
 
@@ -908,7 +1010,7 @@ async def list_providers_json(
         current_provider = get_provider_from_user_id(semptify_uid)
         current_role = get_role_from_user_id(semptify_uid)
 
-    if _get_settings().GOOGLE_DRIVE_CLIENT_ID:
+    if _get_settings().google_drive_client_id:
         providers.append({
             "id": "google_drive",
             "name": "Google Drive",
@@ -917,7 +1019,7 @@ async def list_providers_json(
             "connected": current_provider == "google_drive",
         })
 
-    if _get_settings().DROPBOX_APP_KEY:
+    if _get_settings().dropbox_app_key:
         providers.append({
             "id": "dropbox",
             "name": "Dropbox",
@@ -926,7 +1028,7 @@ async def list_providers_json(
             "connected": current_provider == "dropbox",
         })
 
-    if _get_settings().ONEDRIVE_CLIENT_ID:
+    if _get_settings().onedrive_client_id:
         providers.append({
             "id": "onedrive",
             "name": "OneDrive",
@@ -962,57 +1064,96 @@ async def initiate_oauth(
     - Returning user: existing_uid preserves their user ID
     - return_to: URL to redirect to after OAuth (for setup wizards)
     """
-    if provider not in OAUTH_CONFIGS:
-        raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
+    try:
+        print(f"DEBUG: OAuth init for provider: {provider}")
+        if provider not in OAUTH_CONFIGS:
+            print(f"DEBUG: Unknown provider: {provider}")
+            raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
 
-    config = OAUTH_CONFIGS[provider]
-    
-    # Generate state for CSRF
-    state = secrets.token_urlsafe(32)
-    OAUTH_STATES[state] = {
-        "provider": provider,
-        "role": role,
-        "existing_uid": existing_uid,
-        "return_to": return_to,
-        "created_at": utc_now(),  # In-memory state, use aware for comparison
-    }
+        # Normalize and validate requested role.
+        role = (role or "user").strip().lower()
+        if role not in ALLOWED_ROLES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid role '{role}'. Allowed roles: {sorted(ALLOWED_ROLES)}",
+            )
 
-    # Build callback URL
-    base_url = str(request.base_url).rstrip("/")
-    callback_uri = f"{base_url}/storage/callback/{provider}"
+        # Keep returning-user reauth bound to the current browser cookie.
+        cookie_uid = request.cookies.get(COOKIE_USER_ID)
+        if existing_uid and cookie_uid and existing_uid != cookie_uid:
+            # Ignore mismatched query input to prevent UID swapping attempts.
+            existing_uid = None
 
-    # Build OAuth URL based on provider
-    if provider == "google_drive":
-        params = {
-            "client_id": _get_settings().GOOGLE_DRIVE_CLIENT_ID,
-            "redirect_uri": callback_uri,
-            "response_type": "code",
-            "scope": " ".join(config["scopes"]),
-            "state": state,
-            "access_type": "offline",
-            "prompt": "consent",
+        if not existing_uid and cookie_uid:
+            cookie_provider, _, _ = parse_user_id(cookie_uid)
+            if cookie_provider == provider:
+                existing_uid = cookie_uid
+
+        if existing_uid:
+            existing_provider, _, _ = parse_user_id(existing_uid)
+            if existing_provider != provider:
+                raise HTTPException(
+                    status_code=400,
+                    detail="existing_uid provider mismatch for requested OAuth provider",
+                )
+
+        config = OAUTH_CONFIGS[provider]
+
+        # Housekeeping to avoid unbounded in-memory state growth.
+        _cleanup_expired_states()
+
+        # Generate state for CSRF
+        state = secrets.token_urlsafe(32)
+        OAUTH_STATES[state] = {
+            "provider": provider,
+            "role": role,
+            "existing_uid": existing_uid,
+            "return_to": return_to,
+            "created_at": utc_now(),  # In-memory state, use aware for comparison
         }
-    elif provider == "dropbox":
-        params = {
-            "client_id": _get_settings().DROPBOX_APP_KEY,
-            "redirect_uri": callback_uri,
-            "response_type": "code",
-            "state": state,
-            "token_access_type": "offline",
-        }
-    elif provider == "onedrive":
-        params = {
-            "client_id": _get_settings().ONEDRIVE_CLIENT_ID,
-            "redirect_uri": callback_uri,
-            "response_type": "code",
-            "scope": " ".join(config["scopes"]),
-            "state": state,
-        }
-    else:
-        raise HTTPException(status_code=400, detail="Provider not implemented")
 
-    auth_url = f"{config['auth_url']}?{'&'.join(f'{k}={v}' for k, v in params.items())}"
-    return RedirectResponse(url=auth_url, status_code=302)
+        # Build callback URL
+        base_url = str(request.base_url).rstrip("/")
+        callback_uri = f"{base_url}/storage/callback/{provider}"
+        print(f"DEBUG: Callback URI: {callback_uri}")
+
+        # Build OAuth URL based on provider
+        if provider == "google_drive":
+            params = {
+                "client_id": _get_settings().google_drive_client_id,
+                "redirect_uri": callback_uri,
+                "response_type": "code",
+                "scope": " ".join(config["scopes"]),
+                "state": state,
+                "access_type": "offline",
+                "prompt": "consent",
+            }
+        elif provider == "dropbox":
+            params = {
+                "client_id": _get_settings().dropbox_app_key,
+                "redirect_uri": callback_uri,
+                "response_type": "code",
+                "state": state,
+                "token_access_type": "offline",
+            }
+        elif provider == "onedrive":
+            params = {
+                "client_id": _get_settings().onedrive_client_id,
+                "redirect_uri": callback_uri,
+                "response_type": "code",
+                "scope": " ".join(config["scopes"]),
+                "state": state,
+            }
+        else:
+            raise HTTPException(status_code=400, detail="Provider not implemented")
+
+        auth_url = f"{config['auth_url']}?{urlencode(params)}"
+        return RedirectResponse(url=auth_url, status_code=302)
+    except Exception as e:
+        print(f"DEBUG: Exception in initiate_oauth: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 
 @router.get("/callback/{provider}")
@@ -1069,36 +1210,22 @@ async def oauth_callback(
     existing_uid = state_data.get("existing_uid")
     if existing_uid:
         # Returning user - keep their ID
+        existing_provider, _, _ = parse_user_id(existing_uid)
+        if existing_provider != provider:
+            raise HTTPException(status_code=400, detail="existing_uid/provider mismatch in callback")
         user_id = existing_uid
         print(f"🔄 OAuth callback: Returning user with existing ID: {user_id}")
     else:
         # New user - generate ID encoding provider + role
-        role = state_data.get("role", "user")
+        role = (state_data.get("role") or "user").strip().lower()
+        if role not in ALLOWED_ROLES:
+            role = "user"
         user_id = generate_user_id(provider, role)
         print(f"🆕 OAuth callback: New user - generated ID: {user_id} (provider={provider}, role={role})")
 
-    # Store encrypted auth marker in user's storage
-    auth_marker = {
-        "user_id": user_id,
-        "provider": provider,
-        "created_at": utc_now().isoformat() + "Z",
-        "version": "5.0",
-    }
-    encrypted = _encrypt_token(auth_marker, user_id)
-    base_url = str(request.base_url).rstrip("/")
     refresh_token = token_data.get("refresh_token", "")
     expires_in = token_data.get("expires_in", 3600)
     token_expires_at = (utc_now() + timedelta(seconds=expires_in)).isoformat() + "Z"
-    
-    await _store_auth_marker(
-        provider=provider, 
-        access_token=access_token, 
-        encrypted=encrypted, 
-        user_id=user_id, 
-        base_url=base_url,
-        refresh_token=refresh_token,
-        token_expires_at=token_expires_at,
-    )
 
     # Save session to database (persists across server restarts)
     expires_at = utc_now() + timedelta(seconds=token_data.get("expires_in", 3600))
@@ -1116,6 +1243,26 @@ async def oauth_callback(
     await create_or_update_user(db, user_id, provider)
     await get_or_create_storage_config(db, user_id, provider)
 
+    # Store encrypted auth marker in user's storage only AFTER session/config commits.
+    auth_marker = {
+        "user_id": user_id,
+        "provider": provider,
+        "created_at": utc_now().isoformat() + "Z",
+        "version": "5.0",
+    }
+    encrypted = _encrypt_token(auth_marker, user_id)
+    base_url = str(request.base_url).rstrip("/")
+
+    await _store_auth_marker(
+        provider=provider,
+        access_token=access_token,
+        encrypted=encrypted,
+        user_id=user_id,
+        base_url=base_url,
+        refresh_token=refresh_token,
+        token_expires_at=token_expires_at,
+    )
+
     # Determine landing page
     # If return_to was specified (e.g., from storage setup wizard), use that
     return_to = state_data.get("return_to")
@@ -1125,9 +1272,10 @@ async def oauth_callback(
         # Default: redirect based on role
         _, role, _ = parse_user_id(user_id)
         landing_pages = {
-            "tenant": "/dashboard",
-            "landlord": "/properties",
+            "user": "/dashboard",
+            "manager": "/dashboard",
             "advocate": "/clients",
+            "legal": "/clients",
             "admin": "/admin",
         }
         landing = landing_pages.get(role, "/dashboard")
@@ -1162,8 +1310,8 @@ async def _exchange_code(provider: str, code: str, redirect_uri: str) -> dict:
         if provider == "google_drive":
             response = await client.post(config["token_url"], data={
                 "code": code,
-                "client_id": _get_settings().GOOGLE_DRIVE_CLIENT_ID,
-                "client_secret": _get_settings().GOOGLE_DRIVE_CLIENT_SECRET,
+                "client_id": _get_settings().google_drive_client_id,
+                "client_secret": _get_settings().google_drive_client_secret,
                 "redirect_uri": redirect_uri,
                 "grant_type": "authorization_code",
             })
@@ -1172,12 +1320,12 @@ async def _exchange_code(provider: str, code: str, redirect_uri: str) -> dict:
                 "code": code,
                 "grant_type": "authorization_code",
                 "redirect_uri": redirect_uri,
-            }, auth=(_get_settings().DROPBOX_APP_KEY, _get_settings().DROPBOX_APP_SECRET))
+            }, auth=(_get_settings().dropbox_app_key, _get_settings().dropbox_app_secret))
         elif provider == "onedrive":
             response = await client.post(config["token_url"], data={
                 "code": code,
-                "client_id": _get_settings().ONEDRIVE_CLIENT_ID,
-                "client_secret": _get_settings().ONEDRIVE_CLIENT_SECRET,
+                "client_id": _get_settings().onedrive_client_id,
+                "client_secret": _get_settings().onedrive_client_secret,
                 "redirect_uri": redirect_uri,
                 "grant_type": "authorization_code",
             })
@@ -1222,6 +1370,38 @@ async def _store_auth_marker(
         refresh_token=refresh_token,
         token_expires_at=token_expires_at,
     )
+
+
+async def _vault_access_ready(
+    user_id: str,
+    provider: str,
+    access_token: str,
+    base_url: str,
+) -> tuple[bool, str]:
+    """Check whether vault is ready for function-token access (created + enabled)."""
+    from app.services.storage import get_provider
+    from app.services.storage.vault_manager import get_vault_manager, PROVISIONING_FILE
+
+    try:
+        storage = get_provider(provider, access_token=access_token)
+        vault = get_vault_manager(storage, user_id, base_url)
+
+        has_token = await vault.validate_token()
+        if not has_token:
+            return False, "vault_token_missing"
+
+        try:
+            state_bytes = await storage.download_file(PROVISIONING_FILE)
+            state = json.loads(state_bytes.decode("utf-8"))
+            if state.get("vault_enabled") is True and state.get("state") == "enabled":
+                return True, "enabled"
+            return False, "vault_not_enabled"
+        except Exception:
+            # Backward compatibility: older vaults may not have provisioning_state.json
+            return True, "legacy_vault_token_valid"
+    except Exception:
+        return False, "vault_verification_failed"
+
 # ============================================================================
 # Session & Status Endpoints
 # ============================================================================
@@ -1458,10 +1638,11 @@ async def get_session_info(
         return {"authenticated": False}
 
     provider, role, _ = parse_user_id(semptify_uid)
-    session = await get_session_from_db(db, semptify_uid)
+    raw_session = await get_session_from_db(db, semptify_uid)
+    valid_session = await get_valid_session(db, semptify_uid, auto_refresh=False)
 
     return {
-        "authenticated": session is not None,
+        "authenticated": valid_session is not None,
         "user_id": semptify_uid,
         "provider": provider,
         "role": role,
@@ -1471,8 +1652,155 @@ async def get_session_info(
             "onedrive": "OneDrive",
         }.get(provider, provider),
         "role_name": role.title() if role else None,
-        "expires_at": session.get("expires_at") if session else None,
+        "expires_at": raw_session.get("expires_at") if raw_session else None,
+        "needs_reauth": raw_session is not None and valid_session is None,
+        "session_present": raw_session is not None,
     }
+
+
+@router.post("/prepare-reconnect")
+async def prepare_reconnect(
+    semptify_uid: Optional[str] = Cookie(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Ensure stale persistent sessions are fully disconnected before reconnect.
+    This endpoint clears cache + DB session rows only when token is invalid and cannot refresh.
+    """
+    if not semptify_uid:
+        return {
+            "ready_for_reconnect": True,
+            "state": "disconnected",
+            "message": "No session cookie found.",
+        }
+
+    session = await get_session_from_db(db, semptify_uid)
+    if not session:
+        SESSIONS.pop(semptify_uid, None)
+        return {
+            "ready_for_reconnect": True,
+            "state": "disconnected",
+            "message": "No persistent session found.",
+        }
+
+    provider = session.get("provider")
+    access_token = session.get("access_token")
+    refresh_token = session.get("refresh_token")
+
+    is_valid = await validate_token_with_provider(provider, access_token)
+    if is_valid:
+        return {
+            "ready_for_reconnect": False,
+            "state": "connected",
+            "message": "Session is still valid. Reconnect not required.",
+            "provider": provider,
+        }
+
+    refreshed = None
+    if refresh_token:
+        refreshed = await refresh_access_token(db, semptify_uid, provider, refresh_token)
+
+    if refreshed:
+        return {
+            "ready_for_reconnect": False,
+            "state": "refreshed",
+            "message": "Token was refreshed. Reconnect not required.",
+            "provider": provider,
+        }
+
+    # Fully disconnect stale state so OAuth reconnect can proceed cleanly.
+    SESSIONS.pop(semptify_uid, None)
+    result = await db.execute(select(SessionModel).where(SessionModel.user_id == semptify_uid))
+    session_row = result.scalar_one_or_none()
+    if session_row:
+        await db.delete(session_row)
+        await db.commit()
+
+    invalidate_function_access_tokens(semptify_uid)
+
+    return {
+        "ready_for_reconnect": True,
+        "state": "disconnected_stale",
+        "message": "Stale session cleared. OAuth reconnect can proceed.",
+        "provider": provider,
+        "needs_reauth": True,
+    }
+
+
+@router.post("/function-token/issue")
+async def issue_function_token(
+    request: Request,
+    semptify_uid: Optional[str] = Cookie(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Issue short-lived function access token after verifying cookie + vault readiness."""
+    if not semptify_uid:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    session = await get_valid_session(db, semptify_uid, auto_refresh=True)
+    if not session:
+        raise HTTPException(status_code=401, detail="Session expired or invalid")
+
+    provider = session.get("provider")
+    access_token = session.get("access_token")
+    base_url = str(request.base_url).rstrip("/")
+    ready, reason = await _vault_access_ready(
+        user_id=semptify_uid,
+        provider=provider,
+        access_token=access_token,
+        base_url=base_url,
+    )
+
+    if not ready:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "error": "vault_not_ready",
+                "reason": reason,
+                "message": "Vault is not ready for function access yet",
+            },
+        )
+
+    token_payload = issue_function_access_token(
+        semptify_uid,
+        context={
+            "provider": provider,
+            "reason": "vault_functions",
+            "scopes": ["overlay:read", "overlay:write"],
+            "document_ids": ["*"],
+        },
+    )
+    return {
+        "success": True,
+        "token": token_payload["token"],
+        "expires_at": token_payload["expires_at"],
+        "reverify_in_seconds": token_payload["reverify_in_seconds"],
+    }
+
+
+@router.get("/function-token/verify")
+async def verify_function_token_endpoint(
+    request: Request,
+    refresh: bool = Query(True),
+    semptify_uid: Optional[str] = Cookie(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Verify (and optionally refresh) short-lived function access token validity."""
+    if not semptify_uid:
+        return {"valid": False, "reason": "no_cookie", "needs_reauth": True}
+
+    # Cookie/session must still be valid for token to be trusted.
+    session = await get_valid_session(db, semptify_uid, auto_refresh=True)
+    if not session:
+        return {"valid": False, "reason": "session_invalid", "needs_reauth": True}
+
+    token_value = request.headers.get("X-Function-Token")
+    if not token_value:
+        return {"valid": False, "reason": "token_missing", "needs_reauth": False}
+
+    result = verify_function_access_token(semptify_uid, token_value, refresh=refresh)
+    result["needs_reauth"] = False
+    return result
 
 
 @router.post("/validate")
@@ -1575,9 +1903,11 @@ async def switch_role(
     if not semptify_uid:
         raise HTTPException(status_code=401, detail="Not authenticated")
 
-    valid_roles = ["user", "manager", "advocate", "legal", "admin"]
-    if request.role not in valid_roles:
-        raise HTTPException(status_code=400, detail=f"Invalid role. Valid: {valid_roles}")
+    if request.role not in ALLOWED_ROLES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid role. Valid: {sorted(ALLOWED_ROLES)}",
+        )
 
     # Authorization checks based on role
     if request.role == "admin":
@@ -1627,6 +1957,9 @@ async def switch_role(
         # Clear old session from cache
         SESSIONS.pop(semptify_uid, None)
 
+    # Role transition invalidates prior function tokens bound to the old role context.
+    invalidate_function_access_tokens(semptify_uid)
+
     # Update cookie - use secure=False for localhost
     import os
     is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
@@ -1659,6 +1992,7 @@ async def logout(
 ):
     """Clear session and cookie."""
     if semptify_uid:
+        invalidate_function_access_tokens(semptify_uid)
         # Remove from memory cache
         SESSIONS.pop(semptify_uid, None)
         # Remove from database

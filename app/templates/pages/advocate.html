@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Advocate Dashboard - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+.role-container {
+    max-width: 1150px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+.role-links {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+}
+
+.role-links a {
+    display: block;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+}
+
+.role-links a:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-hover);
+}
+
+.quick-input {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-card);
+}
+
+.chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="role-container">
+    <h1>Advocate Dashboard</h1>
+    <p>Case support workflow without dead ends.</p>
+
+    <div class="role-links">
+        <a href="/advocate">Overview</a>
+        <a href="/advocate/clients">Clients</a>
+        <a href="/advocate/queue">Case Queue</a>
+        <a href="/advocate/intake">New Intake</a>
+        <a href="/documents">Documents</a>
+        <a href="/timeline">Timeline</a>
+        <a href="/law-library">Law Library</a>
+    </div>
+
+    <div class="quick-input">
+        <h3>Quick Intake Prompt</h3>
+        <p>Paste what your client said and jump to intake or queue.</p>
+        <textarea class="form-textarea" id="advocate-intake" placeholder="Example: Tenant received hearing notice and needs filing checklist"></textarea>
+        <div class="chip-row">
+            <button class="btn btn--secondary btn--sm" type="button" data-advocate-suggest="Urgent filing deadline in 48 hours.">Urgent Filing</button>
+            <button class="btn btn--secondary btn--sm" type="button" data-advocate-suggest="New tenant needs full intake.">New Tenant</button>
+            <a class="btn btn--primary btn--sm" href="/advocate/intake">Open Intake</a>
+            <a class="btn btn--secondary btn--sm" href="/advocate/queue">Open Queue</a>
+        </div>
+    </div>
+</div>
+<script>
+document.querySelectorAll('[data-advocate-suggest]').forEach((chip) => {
+    chip.addEventListener('click', () => {
+        const target = document.getElementById('advocate-intake');
+        target.value = chip.getAttribute('data-advocate-suggest') || '';
+        target.focus();
+    });
+});
+</script>
+{% endblock %}

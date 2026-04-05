@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_191822_cd14ac3e",
+  "vault_id": "cd14ac3e-f316-4786-8da5-52aa2c43028b",
+  "sha256": "97f9efd72c2bea38030b454159072d24df9123e59c7cf4914448971efd7447ba",
+  "original_filename": "patty homeline_ocred.pdf",
+  "file_size": 524672,
+  "mime_type": "application/pdf",
+  "document_type": "letter",
+  "certified_at": "2026-03-11T19:18:22.087381+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\cd14ac3e-f316-4786-8da5-52aa2c43028b.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

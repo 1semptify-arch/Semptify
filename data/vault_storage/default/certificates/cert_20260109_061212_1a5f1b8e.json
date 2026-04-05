@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260109_061212_1a5f1b8e",
+  "vault_id": "1a5f1b8e-8ca8-4e26-be69-e76f046a44c3",
+  "sha256": "16caec1b27e2d1a883ecda4d314d223e99f7d8f4f01b676faf1292629e4cbbf5",
+  "original_filename": "Gmail - Formal Cease and Desist Demand \u2013 Harassment and Retaliation at Lexington Flats8.pdf",
+  "file_size": 309738,
+  "mime_type": "application/pdf",
+  "document_type": "pdf",
+  "certified_at": "2026-01-09T06:12:12.757976+00:00",
+  "storage_path": "data\\vault_storage\\default\\1a5f1b8e-8ca8-4e26-be69-e76f046a44c3.pdf",
+  "storage_provider": "local",
+  "user_id": "default",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

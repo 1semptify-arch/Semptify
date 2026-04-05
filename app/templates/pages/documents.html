@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Documents - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+    /* Documents specific styles will be added here */
+    .documents-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .documents-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .documents-content {
+        /* Placeholder for documents content */
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        color: #a0aec0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="documents-container">
+    <div class="documents-header">
+        <h1>📄 Documents</h1>
+        <p>Upload and manage your case documents</p>
+    </div>
+
+    <div class="documents-content">
+        <p>Document management functionality is being migrated to use templates.</p>
+        <p>This page will be fully implemented with the new template system.</p>
+        <a href="/timeline" class="btn btn-primary">Go to Timeline</a>
+    </div>
+</div>
+{% endblock %}

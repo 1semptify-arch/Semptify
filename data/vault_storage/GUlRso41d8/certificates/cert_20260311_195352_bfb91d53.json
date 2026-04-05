@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_195352_bfb91d53",
+  "vault_id": "bfb91d53-28fa-4f1f-a0bd-beaa90cf276e",
+  "sha256": "15324ec1d70fa57d11559df43f8d4181cbd1a91deab77e92a9de19b101aa1eb9",
+  "original_filename": "MCRO_19AV-CV-25-3477_Complaint-Civil_2025-11-17_20251203175921.pdf",
+  "file_size": 3130308,
+  "mime_type": "application/pdf",
+  "document_type": "court",
+  "certified_at": "2026-03-11T19:53:52.406844+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\bfb91d53-28fa-4f1f-a0bd-beaa90cf276e.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

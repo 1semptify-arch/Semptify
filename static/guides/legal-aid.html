@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legal Aid Guide - Semptify</title>
+    <link rel="stylesheet" href="/static/css/shared-nav.css">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .back-link:hover { text-decoration: underline; }
+
+        .guide-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-dark) 100%);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .guide-icon { font-size: 4rem; margin-bottom: 1rem; }
+        .guide-title { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .guide-subtitle { color: var(--text-muted); font-size: 1.1rem; }
+
+        .quick-action {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .quick-action h3 { font-size: 1.25rem; margin-bottom: 0.5rem; }
+        .quick-action a { color: white; font-size: 1.5rem; font-weight: 700; text-decoration: none; }
+        .quick-action a:hover { text-decoration: underline; }
+        .quick-action p { margin-top: 0.5rem; opacity: 0.9; font-size: 0.9rem; }
+
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .step-list {
+            list-style: none;
+            counter-reset: steps;
+        }
+
+        .step-list li {
+            counter-increment: steps;
+            padding: 1rem;
+            padding-left: 3.5rem;
+            position: relative;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+        }
+
+        .step-list li::before {
+            content: counter(steps);
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .step-list li strong { color: var(--success); }
+
+        .info-box {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .info-box.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--warning);
+        }
+
+        .info-box.success {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: var(--success);
+        }
+
+        .checklist { list-style: none; }
+        .checklist li { padding: 0.5rem 0; padding-left: 2rem; position: relative; }
+        .checklist li::before { content: "✓"; position: absolute; left: 0; color: var(--success); font-weight: 700; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
+        .btn-outline:hover { border-color: var(--primary); background: var(--bg-card); }
+
+        .action-buttons { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1.5rem; }
+
+        .faq-item { border-bottom: 1px solid var(--border); padding: 1rem 0; }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-question { font-weight: 600; color: var(--primary); margin-bottom: 0.5rem; }
+        .faq-answer { color: var(--text-muted); }
+
+        .income-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        .income-table th, .income-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border: 1px solid var(--border);
+        }
+
+        .income-table th {
+            background: var(--bg-dark);
+            font-weight: 600;
+        }
+
+        .income-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        @media (max-width: 640px) {
+            .container { padding: 1rem; }
+            .guide-title { font-size: 1.5rem; }
+            .action-buttons { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/static/complaints.html" class="back-link">← Back to Complaints</a>
+
+        <div class="guide-header">
+            <div class="guide-icon">⚖️</div>
+            <h1 class="guide-title">Legal Aid Minnesota</h1>
+            <p class="guide-subtitle">Free legal representation for qualifying tenants</p>
+        </div>
+
+        <div class="quick-action">
+            <h3>📞 Intake Line</h3>
+            <a href="tel:1-888-354-5522">1-888-354-5522</a>
+            <p>Or apply online at LawHelpMN.org</p>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">📋 What is Legal Aid?</h2>
+            <p>Legal Aid provides <strong>free legal services</strong> to low-income Minnesotans. If you qualify, they can represent you in court, help with legal documents, and provide strategic advice for your case.</p>
+            
+            <div class="info-box success">
+                <strong>✅ Why Get Legal Aid?</strong>
+                <p>Having a lawyer can dramatically improve your chances of success. Legal Aid attorneys understand landlord-tenant law and can negotiate from a position of strength.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">💰 Income Guidelines (2024)</h2>
+            <p>Legal Aid generally serves households at or below 200% of federal poverty guidelines:</p>
+            <table class="income-table">
+                <thead>
+                    <tr>
+                        <th>Household Size</th>
+                        <th>Annual Income Limit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1 person</td><td>$29,160</td></tr>
+                    <tr><td>2 people</td><td>$39,440</td></tr>
+                    <tr><td>3 people</td><td>$49,720</td></tr>
+                    <tr><td>4 people</td><td>$60,000</td></tr>
+                    <tr><td>5 people</td><td>$70,280</td></tr>
+                    <tr><td>Each additional</td><td>+$10,280</td></tr>
+                </tbody>
+            </table>
+            <p class="text-muted" style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem;">
+                * These are general guidelines. Special circumstances may be considered. Always apply - you might qualify!
+            </p>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">📞 How to Apply for Legal Aid</h2>
+            <ol class="step-list">
+                <li><strong>Call the intake line:</strong> 1-888-354-5522 (Mon-Fri, 8am-4:30pm)</li>
+                <li><strong>Complete the screening:</strong> Answer questions about your income, household size, and legal issue</li>
+                <li><strong>Provide documentation:</strong> Be ready to share proof of income, your lease, and any court papers</li>
+                <li><strong>Wait for assignment:</strong> If you qualify, your case will be assigned to an attorney</li>
+                <li><strong>Work with your attorney:</strong> Once assigned, they'll contact you to discuss your case</li>
+            </ol>
+
+            <div class="info-box warning">
+                <strong>⚠️ Apply Early!</strong>
+                <p>Legal Aid has limited resources. If you're facing eviction, apply as soon as possible - don't wait until your court date!</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">📝 What to Have Ready</h2>
+            <ul class="checklist">
+                <li>Proof of income (pay stubs, benefits letter, tax returns)</li>
+                <li>Your lease agreement</li>
+                <li>Any court papers you've received</li>
+                <li>Written notices from your landlord</li>
+                <li>Documentation of the problem (photos, repair requests)</li>
+                <li>Your landlord's contact information</li>
+                <li>List of important dates (when problems started, deadlines)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">✅ What Legal Aid Can Help With</h2>
+            <ul class="checklist">
+                <li>Eviction defense and representation in court</li>
+                <li>Negotiating with landlords</li>
+                <li>Security deposit recovery</li>
+                <li>Habitability and repair issues</li>
+                <li>Discrimination complaints</li>
+                <li>Lease violations and terminations</li>
+                <li>Lockouts and illegal evictions</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">🏢 Regional Legal Aid Offices</h2>
+            <div style="display: grid; gap: 1rem; margin-top: 1rem;">
+                <div class="info-box">
+                    <strong>Mid-Minnesota Legal Aid (Twin Cities)</strong><br>
+                    Serves Hennepin, Ramsey, and surrounding counties<br>
+                    <a href="tel:612-334-5970" style="color: var(--primary);">612-334-5970</a>
+                </div>
+                <div class="info-box">
+                    <strong>Southern Minnesota Regional Legal Services</strong><br>
+                    Serves southern Minnesota counties<br>
+                    <a href="tel:651-222-5863" style="color: var(--primary);">651-222-5863</a>
+                </div>
+                <div class="info-box">
+                    <strong>Legal Aid Service of Northeastern Minnesota</strong><br>
+                    Serves Duluth and northeastern Minnesota<br>
+                    <a href="tel:218-726-4800" style="color: var(--primary);">218-726-4800</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">❓ Frequently Asked Questions</h2>
+            <div class="faq-item">
+                <div class="faq-question">What if I don't qualify for Legal Aid?</div>
+                <div class="faq-answer">You can still get help from HOME Line (free tenant advice), represent yourself with Semptify's help, or contact the Volunteer Lawyers Network for limited assistance.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">How long does it take to get an attorney?</div>
+                <div class="faq-answer">It depends on case urgency and available resources. Emergency eviction cases are prioritized. You may get a callback within a few days.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">Can Legal Aid help with complaints to agencies?</div>
+                <div class="faq-answer">Yes! They can help you file complaints with the Attorney General, HUD, and other agencies, and advise on the best strategy for your situation.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question">What if I have an emergency?</div>
+                <div class="faq-answer">Call immediately and explain the urgency. If you're being locked out or facing imminent eviction, mention this right away.</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">🔗 Apply Now</h2>
+            <div class="action-buttons">
+                <a href="https://www.lawhelpmn.org/" target="_blank" class="btn btn-primary">🌐 LawHelpMN.org</a>
+                <a href="tel:1-888-354-5522" class="btn btn-success">📞 Call Intake Line</a>
+                <a href="https://www.mylegalaid.org/" target="_blank" class="btn btn-outline">📋 Online Application</a>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <strong>💡 Pro Tip:</strong> Even if you're not sure you qualify, call and ask! Legal Aid can also refer you to other resources if they can't take your case.
+        </div>
+    </div>
+</body>
+</html>

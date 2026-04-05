@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_193226_716d051b",
+  "vault_id": "716d051b-9139-4ff3-a621-f074ce64a4c0",
+  "sha256": "ef80948a750458310aa901a70618aa3144ed65fb871fc648dc79950f3dd1bc8f",
+  "original_filename": "MCRO_19AV-CV-25-3477_Memorandum_2025-12-02_20251203175842.pdf",
+  "file_size": 302461,
+  "mime_type": "application/pdf",
+  "document_type": "court",
+  "certified_at": "2026-03-11T19:32:26.578312+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\716d051b-9139-4ff3-a621-f074ce64a4c0.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

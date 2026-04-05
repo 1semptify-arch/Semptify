@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_172611_1ba97434",
+  "vault_id": "1ba97434-ec15-4256-b84b-08b5e17de837",
+  "sha256": "e92d19240c71ddbb4651ea7c7cd52bd169ef44c0a9009be0db0468af957e387a",
+  "original_filename": "IMG_1518_ocred.pdf",
+  "file_size": 319793,
+  "mime_type": "application/pdf",
+  "document_type": "notice",
+  "certified_at": "2026-03-11T17:26:11.926743+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\1ba97434-ec15-4256-b84b-08b5e17de837.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

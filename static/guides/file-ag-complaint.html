@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File AG Complaint - Semptify</title>
+    <link rel="stylesheet" href="/static/css/shared-nav.css">
+    <script src="/static/js/case-context.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 2rem; }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--danger), #b91c1c);
+            border-radius: 16px;
+        }
+
+        .page-header h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+        .page-header p { opacity: 0.9; }
+
+        .progress-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .progress-step {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 0.85rem;
+            border: 2px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .progress-step.active {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.2);
+        }
+
+        .progress-step.completed {
+            border-color: var(--success);
+            background: rgba(34, 197, 94, 0.2);
+        }
+
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .form-group { margin-bottom: 1.25rem; }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-label .required { color: var(--danger); }
+
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 1rem;
+        }
+
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-textarea { min-height: 150px; resize: vertical; font-family: inherit; }
+
+        .form-help {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-secondary { background: var(--bg-card-hover); color: var(--text); }
+        .btn-secondary:hover { background: #475569; }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .output-box {
+            background: #0f172a;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .copy-btn:hover { background: var(--primary-dark); }
+
+        .output-wrapper {
+            position: relative;
+        }
+
+        .info-box {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--primary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .info-box.success {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: var(--success);
+        }
+
+        .info-box.warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-color: var(--warning);
+        }
+
+        .checklist { list-style: none; }
+        .checklist li {
+            padding: 0.75rem 1rem;
+            padding-left: 2.5rem;
+            position: relative;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+        }
+        .checklist li::before {
+            content: "☐";
+            position: absolute;
+            left: 1rem;
+            color: var(--text-muted);
+        }
+        .checklist li.checked::before {
+            content: "✓";
+            color: var(--success);
+        }
+        .checklist li.checked {
+            opacity: 0.7;
+        }
+
+        .hidden { display: none !important; }
+
+        .tab-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg-card-hover);
+            border: none;
+            border-radius: 6px;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .complaint-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .complaint-type-btn {
+            padding: 1rem;
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .complaint-type-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .complaint-type-btn.selected {
+            border-color: var(--success);
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .complaint-type-btn h4 {
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .complaint-type-btn p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div id="semptify-nav"></div>
+    <script src="/static/js/shared-nav.js"></script>
+
+    <div class="container">
+        <a href="/static/guides/attorney-general.html" class="back-link">← Back to AG Guide</a>
+
+        <div class="page-header">
+            <h1>🏛️ Minnesota Attorney General Complaint</h1>
+            <p>Generate your complaint text - ready to submit online</p>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-step active" data-step="1">1. Complaint Type</div>
+            <div class="progress-step" data-step="2">2. Your Information</div>
+            <div class="progress-step" data-step="3">3. Respondent</div>
+            <div class="progress-step" data-step="4">4. Details</div>
+            <div class="progress-step" data-step="5">5. Generate</div>
+        </div>
+
+        <!-- Step 1: Complaint Type -->
+        <div id="step-1" class="section">
+            <h2 class="section-title">📋 What type of complaint is this?</h2>
+            <div class="complaint-type-grid" id="complaint-types">
+                <button class="complaint-type-btn" data-type="security_deposit" onclick="selectComplaintType(this)">
+                    <h4>💰 Security Deposit</h4>
+                    <p>Not returned within 21 days, wrongful deductions</p>
+                </button>
+                <button class="complaint-type-btn" data-type="habitability" onclick="selectComplaintType(this)">
+                    <h4>🏚️ Repair/Habitability</h4>
+                    <p>Landlord refuses to make necessary repairs</p>
+                </button>
+                <button class="complaint-type-btn" data-type="illegal_fees" onclick="selectComplaintType(this)">
+                    <h4>💵 Illegal Fees</h4>
+                    <p>Excessive fees, unauthorized charges</p>
+                </button>
+                <button class="complaint-type-btn" data-type="lease_violation" onclick="selectComplaintType(this)">
+                    <h4>📄 Lease Violations</h4>
+                    <p>Landlord violated lease terms</p>
+                </button>
+                <button class="complaint-type-btn" data-type="lockout" onclick="selectComplaintType(this)">
+                    <h4>🔒 Illegal Lockout</h4>
+                    <p>Locked out without court order</p>
+                </button>
+                <button class="complaint-type-btn" data-type="retaliation" onclick="selectComplaintType(this)">
+                    <h4>⚠️ Retaliation</h4>
+                    <p>Punished for exercising tenant rights</p>
+                </button>
+                <button class="complaint-type-btn" data-type="deceptive" onclick="selectComplaintType(this)">
+                    <h4>🎭 Deceptive Practices</h4>
+                    <p>False advertising, misleading terms</p>
+                </button>
+                <button class="complaint-type-btn" data-type="other" onclick="selectComplaintType(this)">
+                    <h4>📝 Other</h4>
+                    <p>Other consumer protection issues</p>
+                </button>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="goToStep(2)" id="step1-next" disabled>Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Your Information -->
+        <div id="step-2" class="section hidden">
+            <h2 class="section-title">👤 Your Information</h2>
+            <div class="info-box">
+                <strong>💡 Tip:</strong> This information will be used to identify you as the complainant. Make sure it's accurate.
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">First Name <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="your-first-name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last Name <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="your-last-name" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Street Address <span class="required">*</span></label>
+                <input type="text" class="form-input" id="your-address" placeholder="Your current mailing address">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">City <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="your-city">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">State</label>
+                    <input type="text" class="form-input" id="your-state" value="MN">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">ZIP Code <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="your-zip">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" class="form-input" id="your-phone" placeholder="(xxx) xxx-xxxx">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email Address <span class="required">*</span></label>
+                <input type="email" class="form-input" id="your-email">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
+                <button class="btn btn-primary" onclick="goToStep(3)">Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Respondent Information -->
+        <div id="step-3" class="section hidden">
+            <h2 class="section-title">🏢 Respondent Information (Landlord/Company)</h2>
+            <div class="info-box warning">
+                <strong>⚠️ Important:</strong> Provide as much information as possible about the landlord or property management company.
+            </div>
+            <div class="form-group">
+                <label class="form-label">Business/Landlord Name <span class="required">*</span></label>
+                <input type="text" class="form-input" id="resp-name" placeholder="Property management company or landlord name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Contact Person (if known)</label>
+                <input type="text" class="form-input" id="resp-contact" placeholder="Name of person you dealt with">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Business Address <span class="required">*</span></label>
+                <input type="text" class="form-input" id="resp-address">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">City <span class="required">*</span></label>
+                    <input type="text" class="form-input" id="resp-city">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">State</label>
+                    <input type="text" class="form-input" id="resp-state" value="MN">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">ZIP Code</label>
+                    <input type="text" class="form-input" id="resp-zip">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" class="form-input" id="resp-phone">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Website (if any)</label>
+                <input type="url" class="form-input" id="resp-website" placeholder="https://...">
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="goToStep(2)">← Back</button>
+                <button class="btn btn-primary" onclick="goToStep(4)">Continue →</button>
+            </div>
+        </div>
+
+        <!-- Step 4: Complaint Details -->
+        <div id="step-4" class="section hidden">
+            <h2 class="section-title">📝 Complaint Details</h2>
+            
+            <div class="form-group">
+                <label class="form-label">Property Address (where issue occurred) <span class="required">*</span></label>
+                <input type="text" class="form-input" id="property-address" placeholder="Address of the rental property">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Date Issue Started <span class="required">*</span></label>
+                    <input type="date" class="form-input" id="incident-date">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Amount in Dispute ($)</label>
+                    <input type="number" class="form-input" id="amount-disputed" placeholder="0.00">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Describe What Happened <span class="required">*</span></label>
+                <textarea class="form-textarea" id="complaint-narrative" rows="8" 
+                    placeholder="Describe your complaint in detail. Include:
+• What happened
+• When it happened (specific dates)
+• Who was involved
+• What you did to try to resolve it
+• What response you received"></textarea>
+                <p class="form-help">Be specific with dates, names, and amounts. The more detail, the better.</p>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">What resolution are you seeking?</label>
+                <textarea class="form-textarea" id="resolution-sought" rows="3"
+                    placeholder="What do you want the AG to help you get? (e.g., return of security deposit, repairs made, refund of illegal fees)"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Have you tried to resolve this directly?</label>
+                <textarea class="form-textarea" id="resolution-attempts" rows="3"
+                    placeholder="Describe any attempts you made to resolve this with the landlord (calls, emails, letters, etc.)"></textarea>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="goToStep(3)">← Back</button>
+                <button class="btn btn-primary" onclick="goToStep(5)">Generate Complaint →</button>
+            </div>
+        </div>
+
+        <!-- Step 5: Generated Complaint -->
+        <div id="step-5" class="section hidden">
+            <h2 class="section-title">✅ Your Complaint is Ready!</h2>
+            
+            <div class="info-box success">
+                <strong>🎉 Next Steps:</strong>
+                <ol style="margin: 0.5rem 0 0 1.5rem;">
+                    <li>Copy the text below</li>
+                    <li>Go to the AG complaint portal</li>
+                    <li>Paste into the appropriate fields</li>
+                    <li>Attach your supporting documents</li>
+                    <li>Submit and save your confirmation number</li>
+                </ol>
+            </div>
+
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="showTab('narrative')">📝 Narrative</button>
+                <button class="tab-btn" onclick="showTab('full')">📄 Full Complaint</button>
+                <button class="tab-btn" onclick="showTab('checklist')">✅ Document Checklist</button>
+            </div>
+
+            <div id="tab-narrative">
+                <h3 style="margin-bottom: 1rem;">Complaint Narrative (for "Describe your complaint" field)</h3>
+                <div class="output-wrapper">
+                    <button class="copy-btn" onclick="copyText('output-narrative')">📋 Copy</button>
+                    <div class="output-box" id="output-narrative"></div>
+                </div>
+            </div>
+
+            <div id="tab-full" class="hidden">
+                <h3 style="margin-bottom: 1rem;">Complete Complaint Summary</h3>
+                <div class="output-wrapper">
+                    <button class="copy-btn" onclick="copyText('output-full')">📋 Copy</button>
+                    <div class="output-box" id="output-full"></div>
+                </div>
+            </div>
+
+            <div id="tab-checklist" class="hidden">
+                <h3 style="margin-bottom: 1rem;">Documents to Attach</h3>
+                <ul class="checklist" id="doc-checklist"></ul>
+            </div>
+
+            <div class="btn-group" style="flex-wrap: wrap;">
+                <button class="btn btn-secondary" onclick="goToStep(4)">← Edit Details</button>
+                <a href="https://www.ag.state.mn.us/Office/Complaint.asp" target="_blank" class="btn btn-danger">
+                    🔗 Open AG Complaint Portal
+                </a>
+                <button class="btn btn-primary" onclick="saveToCase()">💾 Save to My Case</button>
+                <button class="btn btn-secondary" onclick="printComplaint()">🖨️ Print</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedComplaintType = null;
+        let currentStep = 1;
+
+        // Complaint type templates
+        const complaintTemplates = {
+            security_deposit: {
+                title: "Security Deposit Violation",
+                statute: "MN Stat. § 504B.178",
+                narrative: `I am filing this complaint regarding the wrongful withholding of my security deposit by {resp_name}.
+
+FACTS:
+I resided at {property_address} from {move_in_date} to {move_out_date}. Upon moving out, I provided proper notice and left the unit in good condition. My security deposit was ${amount_disputed}.
+
+Under Minnesota Statute 504B.178, landlords must return security deposits within 21 days of lease termination, along with a written statement itemizing any deductions.
+
+VIOLATION:
+{complaint_narrative}
+
+As of today's date, {days_elapsed} days have passed since my tenancy ended. The landlord has failed to comply with Minnesota law by {specific_violation}.
+
+RELIEF SOUGHT:
+{resolution_sought}
+
+I have attempted to resolve this matter directly by {resolution_attempts}.`,
+                docs: ["Lease agreement", "Move-out inspection report", "Security deposit receipt", "Photos of unit condition", "Communication with landlord", "Forwarding address proof"]
+            },
+            habitability: {
+                title: "Habitability/Repair Violation",
+                statute: "MN Stat. § 504B.161",
+                narrative: `I am filing this complaint regarding failure to maintain habitable conditions at {property_address} by {resp_name}.
+
+FACTS:
+I am a tenant at the above address. Under Minnesota Statute 504B.161, landlords have a duty to maintain rental properties in reasonable repair and keep them fit for the use intended.
+
+VIOLATION:
+{complaint_narrative}
+
+I reported these issues to my landlord on the following dates: {incident_dates}. Despite my repeated requests, the landlord has failed to address these problems.
+
+RELIEF SOUGHT:
+{resolution_sought}
+
+My attempts to resolve this matter include: {resolution_attempts}.`,
+                docs: ["Lease agreement", "Written repair requests", "Photos/videos of conditions", "Communication records", "City inspection reports (if any)", "Medical records (if health affected)"]
+            },
+            illegal_fees: {
+                title: "Illegal Fee Practices",
+                statute: "MN Consumer Protection Laws",
+                narrative: `I am filing this complaint regarding illegal or excessive fees charged by {resp_name}.
+
+FACTS:
+I am/was a tenant at {property_address}. The landlord/property management company has charged me fees that are either not authorized by my lease, excessive, or otherwise illegal.
+
+VIOLATION:
+{complaint_narrative}
+
+The total amount of disputed fees is ${amount_disputed}.
+
+RELIEF SOUGHT:
+{resolution_sought}
+
+My attempts to resolve this matter include: {resolution_attempts}.`,
+                docs: ["Lease agreement", "Fee notices/invoices", "Payment records", "Communication with landlord", "Bank statements showing charges"]
+            },
+            lockout: {
+                title: "Illegal Lockout/Self-Help Eviction",
+                statute: "MN Stat. § 504B.225, § 504B.375",
+                narrative: `I am filing this complaint regarding an illegal lockout performed by {resp_name}.
+
+FACTS:
+I am/was a tenant at {property_address}. Under Minnesota law, a landlord cannot remove a tenant, lock them out, or shut off utilities without a court order.
+
+VIOLATION:
+{complaint_narrative}
+
+This action was taken without any court order or legal eviction process.
+
+RELIEF SOUGHT:
+{resolution_sought}
+
+I have attempted to resolve this by: {resolution_attempts}.`,
+                docs: ["Lease agreement", "Proof of tenancy", "Police report (if filed)", "Photos of locks changed/belongings", "Communication records", "Witness statements"]
+            },
+            retaliation: {
+                title: "Landlord Retaliation",
+                statute: "MN Stat. § 504B.285",
+                narrative: `I am filing this complaint regarding retaliatory actions taken by {resp_name}.
+
+FACTS:
+I am a tenant at {property_address}. Under Minnesota Statute 504B.285, landlords cannot retaliate against tenants for exercising their legal rights.
+
+I exercised my rights by: {protected_activity}
+
+Following this, my landlord retaliated by:
+{complaint_narrative}
+
+The timing and nature of these actions clearly demonstrate retaliation for exercising my tenant rights.
+
+RELIEF SOUGHT:
+{resolution_sought}
+
+My attempts to resolve this matter include: {resolution_attempts}.`,
+                docs: ["Lease agreement", "Evidence of protected activity", "Evidence of retaliation", "Timeline of events", "Communication records", "Witness statements"]
+            },
+            deceptive: {
+                title: "Deceptive Trade Practices",
+                statute: "MN Stat. § 325D.44 (Consumer Fraud Act)",
+                narrative: `I am filing this complaint regarding deceptive practices by {resp_name}.
+
+FACTS:
+{complaint_narrative}
+
+These actions constitute deceptive trade practices under Minnesota's Consumer Fraud Act.
+
+RELIEF SOUGHT:
+{resolution_sought}
+
+My attempts to resolve this matter include: {resolution_attempts}.`,
+                docs: ["Lease agreement", "Advertising materials", "Written representations", "Communication records", "Financial records"]
+            },
+            lease_violation: {
+                title: "Lease Agreement Violation",
+                statute: "Contract Law / MN Tenant Rights",
+                narrative: `I am filing this complaint regarding breach of lease agreement by {resp_name}.
+
+FACTS:
+I am a tenant at {property_address} under a lease agreement dated {lease_date}.
+
+The landlord has violated the terms of our lease agreement as follows:
+{complaint_narrative}
+
+RELIEF SOUGHT:
+{resolution_sought}
+
+My attempts to resolve this matter include: {resolution_attempts}.`,
+                docs: ["Lease agreement", "Evidence of violation", "Communication records", "Photos/documentation"]
+            },
+            other: {
+                title: "Consumer Protection Complaint",
+                statute: "Minnesota Consumer Protection Laws",
+                narrative: `I am filing this complaint against {resp_name} regarding the following matter:
+
+{complaint_narrative}
+
+RELIEF SOUGHT:
+{resolution_sought}
+
+My attempts to resolve this matter include: {resolution_attempts}.`,
+                docs: ["Lease agreement", "Relevant documentation", "Communication records", "Financial records"]
+            }
+        };
+
+        // Initialize - try to pre-fill from case context
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                try {
+                    const activeCase = window.CaseContext?.getActiveCase();
+                    if (activeCase) {
+                        console.log('📋 Pre-filling from active case:', activeCase.case_number);
+                        
+                        // Pre-fill respondent info
+                        if (activeCase.plaintiff?.name || activeCase.plaintiff_name) {
+                            document.getElementById('resp-name').value = activeCase.plaintiff?.name || activeCase.plaintiff_name || '';
+                        }
+                        if (activeCase.property_address) {
+                            document.getElementById('resp-address').value = activeCase.property_address;
+                            document.getElementById('property-address').value = activeCase.property_address;
+                        }
+                        if (activeCase.plaintiff?.phone) {
+                            document.getElementById('resp-phone').value = activeCase.plaintiff.phone;
+                        }
+
+                        // Pre-fill your info from defendant
+                        if (activeCase.defendant?.name) {
+                            const names = activeCase.defendant.name.split(' ');
+                            document.getElementById('your-first-name').value = names[0] || '';
+                            document.getElementById('your-last-name').value = names.slice(1).join(' ') || '';
+                        }
+                    }
+
+                    // Also try localStorage user info
+                    const userInfo = JSON.parse(localStorage.getItem('semptify_user_info') || '{}');
+                    if (userInfo.firstName && !document.getElementById('your-first-name').value) {
+                        document.getElementById('your-first-name').value = userInfo.firstName;
+                    }
+                    if (userInfo.lastName && !document.getElementById('your-last-name').value) {
+                        document.getElementById('your-last-name').value = userInfo.lastName;
+                    }
+                    if (userInfo.email && !document.getElementById('your-email').value) {
+                        document.getElementById('your-email').value = userInfo.email;
+                    }
+                } catch (e) {
+                    console.log('No case context available');
+                }
+            }, 300);
+        });
+
+        function selectComplaintType(btn) {
+            // Remove previous selection
+            document.querySelectorAll('.complaint-type-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedComplaintType = btn.dataset.type;
+            document.getElementById('step1-next').disabled = false;
+        }
+
+        function goToStep(step) {
+            // Hide all steps
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`step-${i}`).classList.add('hidden');
+                document.querySelector(`.progress-step[data-step="${i}"]`).classList.remove('active');
+                if (i < step) {
+                    document.querySelector(`.progress-step[data-step="${i}"]`).classList.add('completed');
+                } else {
+                    document.querySelector(`.progress-step[data-step="${i}"]`).classList.remove('completed');
+                }
+            }
+            
+            // Show current step
+            document.getElementById(`step-${step}`).classList.remove('hidden');
+            document.querySelector(`.progress-step[data-step="${step}"]`).classList.add('active');
+            currentStep = step;
+
+            // Generate complaint when reaching step 5
+            if (step === 5) {
+                generateComplaint();
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function generateComplaint() {
+            const template = complaintTemplates[selectedComplaintType];
+            if (!template) return;
+
+            // Gather all form data
+            const data = {
+                resp_name: document.getElementById('resp-name').value || '[LANDLORD NAME]',
+                resp_contact: document.getElementById('resp-contact').value || '',
+                resp_address: document.getElementById('resp-address').value || '[ADDRESS]',
+                resp_city: document.getElementById('resp-city').value || '',
+                resp_state: document.getElementById('resp-state').value || 'MN',
+                resp_zip: document.getElementById('resp-zip').value || '',
+                resp_phone: document.getElementById('resp-phone').value || '',
+                property_address: document.getElementById('property-address').value || '[PROPERTY ADDRESS]',
+                incident_date: document.getElementById('incident-date').value || '[DATE]',
+                amount_disputed: document.getElementById('amount-disputed').value || '0',
+                complaint_narrative: document.getElementById('complaint-narrative').value || '[DESCRIBE YOUR COMPLAINT]',
+                resolution_sought: document.getElementById('resolution-sought').value || 'Full refund and compliance with Minnesota law.',
+                resolution_attempts: document.getElementById('resolution-attempts').value || 'I have contacted the landlord multiple times without resolution.',
+                your_name: `${document.getElementById('your-first-name').value} ${document.getElementById('your-last-name').value}`,
+                your_address: document.getElementById('your-address').value || '',
+                your_city: document.getElementById('your-city').value || '',
+                your_state: document.getElementById('your-state').value || 'MN',
+                your_zip: document.getElementById('your-zip').value || '',
+                your_phone: document.getElementById('your-phone').value || '',
+                your_email: document.getElementById('your-email').value || ''
+            };
+
+            // Calculate days elapsed for security deposit
+            if (data.incident_date) {
+                const moveOut = new Date(data.incident_date);
+                const today = new Date();
+                data.days_elapsed = Math.floor((today - moveOut) / (1000 * 60 * 60 * 24));
+            }
+
+            // Generate narrative
+            let narrative = template.narrative;
+            for (const [key, value] of Object.entries(data)) {
+                narrative = narrative.replace(new RegExp(`{${key}}`, 'g'), value || `[${key.toUpperCase()}]`);
+            }
+
+            // Generate full complaint
+            const fullComplaint = `MINNESOTA ATTORNEY GENERAL CONSUMER COMPLAINT
+============================================
+
+COMPLAINT TYPE: ${template.title}
+APPLICABLE LAW: ${template.statute}
+DATE: ${new Date().toLocaleDateString()}
+
+COMPLAINANT INFORMATION:
+------------------------
+Name: ${data.your_name}
+Address: ${data.your_address}
+City, State ZIP: ${data.your_city}, ${data.your_state} ${data.your_zip}
+Phone: ${data.your_phone}
+Email: ${data.your_email}
+
+RESPONDENT INFORMATION:
+-----------------------
+Business Name: ${data.resp_name}
+Contact Person: ${data.resp_contact || 'N/A'}
+Address: ${data.resp_address}
+City, State ZIP: ${data.resp_city}, ${data.resp_state} ${data.resp_zip}
+Phone: ${data.resp_phone || 'N/A'}
+
+PROPERTY ADDRESS: ${data.property_address}
+AMOUNT IN DISPUTE: $${data.amount_disputed}
+INCIDENT DATE: ${data.incident_date}
+
+COMPLAINT NARRATIVE:
+--------------------
+${narrative}
+
+============================================
+Submitted via Semptify Complaint Builder
+`;
+
+            // Update outputs
+            document.getElementById('output-narrative').textContent = narrative;
+            document.getElementById('output-full').textContent = fullComplaint;
+
+            // Generate document checklist
+            const checklistEl = document.getElementById('doc-checklist');
+            checklistEl.innerHTML = template.docs.map(doc => 
+                `<li onclick="this.classList.toggle('checked')">${doc}</li>`
+            ).join('');
+        }
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-btn[onclick="showTab('${tabName}')"]`).classList.add('active');
+            
+            document.getElementById('tab-narrative').classList.add('hidden');
+            document.getElementById('tab-full').classList.add('hidden');
+            document.getElementById('tab-checklist').classList.add('hidden');
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+        }
+
+        async function copyText(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('Copied to clipboard!');
+            } catch (err) {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('Copied!');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+                background: var(--success); color: white; padding: 12px 24px;
+                border-radius: 8px; font-size: 0.9rem; z-index: 1000;
+                animation: fadeIn 0.3s ease;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        }
+
+        function saveToCase() {
+            const complaintData = {
+                type: 'ag_complaint',
+                complaint_type: selectedComplaintType,
+                respondent: document.getElementById('resp-name').value,
+                amount: document.getElementById('amount-disputed').value,
+                narrative: document.getElementById('output-narrative').textContent,
+                created_at: new Date().toISOString(),
+                status: 'draft'
+            };
+
+            // Save to localStorage complaints
+            const complaints = JSON.parse(localStorage.getItem('semptify_complaints') || '[]');
+            complaints.push(complaintData);
+            localStorage.setItem('semptify_complaints', JSON.stringify(complaints));
+
+            showToast('Saved to your case!');
+        }
+
+        function printComplaint() {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>AG Complaint - Print</title>
+                    <style>
+                        body { font-family: 'Courier New', monospace; padding: 40px; line-height: 1.6; }
+                        pre { white-space: pre-wrap; font-size: 11pt; }
+                    </style>
+                </head>
+                <body>
+                    <pre>${document.getElementById('output-full').textContent}</pre>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+    </script>
+</body>
+</html>

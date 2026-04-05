@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗺️ Semptify GUI Flowchart</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .control-btn.active {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+        }
+
+        .flowchart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            overflow-x: auto;
+            min-height: 600px;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            min-height: 500px;
+        }
+
+        .legend {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .legend-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .legend-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .legend-item {
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid transparent;
+        }
+
+        .legend-item.entry {
+            background: #e3f2fd;
+            border-left-color: #1976d2;
+        }
+
+        .legend-item.settings {
+            background: #f3e5f5;
+            border-left-color: #7b1fa2;
+        }
+
+        .legend-item.dashboard {
+            background: #e8f5e9;
+            border-left-color: #388e3c;
+        }
+
+        .legend-item.tools {
+            background: #fff3e0;
+            border-left-color: #f57c00;
+        }
+
+        .legend-item-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .legend-item-desc {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .nav-guide {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .guide-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .guide-section {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .guide-section:last-child {
+            border-bottom: none;
+        }
+
+        .guide-heading {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 1.05em;
+        }
+
+        .guide-steps {
+            list-style: none;
+            margin-left: 15px;
+        }
+
+        .guide-steps li {
+            padding: 5px 0;
+            color: #666;
+        }
+
+        .guide-steps li:before {
+            content: "→ ";
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .quick-nav {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .quick-nav-item {
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 600;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .quick-nav-item:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .info-box h3 {
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            line-height: 1.6;
+        }
+
+        .view-mode-toggle {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .toggle-label {
+            font-weight: bold;
+            margin-right: 15px;
+            color: #333;
+        }
+
+        .view-indicators {
+            display: inline-flex;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .flowchart-container {
+                padding: 15px;
+                font-size: 0.9em;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .control-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗺️ Semptify GUI Map</h1>
+            <p>Visual guide to all interfaces and how they connect</p>
+        </header>
+
+        <div class="controls">
+            <button class="control-btn active" onclick="showFlowchart('full')">📊 Full Map</button>
+            <button class="control-btn" onclick="showFlowchart('beginner')">👶 Beginner Path</button>
+            <button class="control-btn" onclick="showFlowchart('power')">🧠 Power User Path</button>
+            <button class="control-btn" onclick="showFlowchart('admin')">👨‍💼 Admin Path</button>
+        </div>
+
+        <div class="flowchart-container">
+            <div id="flowchart"></div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-title">🎨 Interface Types</div>
+            <div class="legend-items">
+                <div class="legend-item entry">
+                    <div class="legend-item-title">📍 Entry Point</div>
+                    <div class="legend-item-desc">Where you start</div>
+                </div>
+                <div class="legend-item settings">
+                    <div class="legend-item-title">⚙️ Settings</div>
+                    <div class="legend-item-desc">Configuration pages</div>
+                </div>
+                <div class="legend-item dashboard">
+                    <div class="legend-item-title">📊 Dashboards</div>
+                    <div class="legend-item-desc">Main work areas</div>
+                </div>
+                <div class="legend-item tools">
+                    <div class="legend-item-title">🛠️ Tools</div>
+                    <div class="legend-item-desc">Helper utilities</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-guide">
+            <div class="guide-title">🧭 How to Use Each Section</div>
+            
+            <div class="guide-section">
+                <div class="guide-heading">👶 Beginner Mode (Easy Path)</div>
+                <ul class="guide-steps">
+                    <li>Start at Home page</li>
+                    <li>Go to Easy Mode Selector for simple settings</li>
+                    <li>Use Main Dashboard for daily work</li>
+                    <li>Access Tools as needed</li>
+                </ul>
+                <div class="quick-nav">
+                    <a href="/" class="quick-nav-item">🏠 Home</a>
+                    <a href="/static/admin/easy_mode_selector.html" class="quick-nav-item">⚙️ Easy Settings</a>
+                    <a href="/" class="quick-nav-item">📊 Dashboard</a>
+                </div>
+            </div>
+
+            <div class="guide-section">
+                <div class="guide-heading">🧠 Power User Mode (Advanced Path)</div>
+                <ul class="guide-steps">
+                    <li>Start at Home or Main Dashboard</li>
+                    <li>Go to Advanced Mode Selector for full control</li>
+                    <li>Customize all 28+ settings</li>
+                    <li>Use all available Tools</li>
+                    <li>Check API Docs for integration</li>
+                </ul>
+                <div class="quick-nav">
+                    <a href="/" class="quick-nav-item">🏠 Home</a>
+                    <a href="/static/admin/mode_selector.html" class="quick-nav-item">⚙️ Advanced</a>
+                    <a href="/api/docs" class="quick-nav-item">📚 API</a>
+                </div>
+            </div>
+
+            <div class="guide-section">
+                <div class="guide-heading">👨‍💼 Admin Mode (System Control)</div>
+                <ul class="guide-steps">
+                    <li>Go to Mission Control dashboard</li>
+                    <li>Monitor system health and status</li>
+                    <li>Manage user access and settings</li>
+                    <li>Check system diagnostics</li>
+                    <li>Review API endpoints</li>
+                </ul>
+                <div class="quick-nav">
+                    <a href="/static/admin/mission_control.html" class="quick-nav-item">🎯 Mission Control</a>
+                    <a href="/healthz" class="quick-nav-item">❤️ Health Check</a>
+                    <a href="/api/docs" class="quick-nav-item">📚 API Docs</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>💡 Tips for Navigation</h3>
+            <p>
+                ✓ Every page has a navigation menu to reach other sections<br>
+                ✓ Use the GUI Navigation Hub (/static/admin/gui_navigation_hub.html) to see all pages<br>
+                ✓ Desktop/tablet/mobile views automatically adapt<br>
+                ✓ All settings save to your browser automatically<br>
+                ✓ Click on any box in the flowchart above to jump to that page
+            </p>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default', logLevel: 'debug' });
+
+        const flowcharts = {
+            full: `
+graph TD
+    Home["🏠 Home<br/>Entry Point"]
+    Hub["🗺️ Navigation Hub<br/>All Pages Listed"]
+    
+    ES["⚙️ Easy Settings<br/>6 Simple Options"]
+    AS["⚙️ Advanced Settings<br/>28+ Options"]
+    
+    MD["📊 Main Dashboard<br/>Daily Work"]
+    MC["🎯 Mission Control<br/>Admin Only"]
+    API["📚 API Docs<br/>Developer"]
+    WP["👋 Welcome<br/>New Users"]
+    
+    DU["📤 Upload Docs<br/>Add Files"]
+    FG["📋 Forms<br/>Create Forms"]
+    TL["📅 Timeline<br/>Events"]
+    LR["⚖️ Legal Research<br/>Laws & Cases"]
+    CP["🤖 AI Copilot<br/>Chat Assistant"]
+    SH["❤️ System Health<br/>Monitor Status"]
+    
+    Home --> Hub
+    Home --> ES
+    Home --> MD
+    
+    Hub --> ES
+    Hub --> AS
+    Hub --> MD
+    Hub --> MC
+    Hub --> API
+    Hub --> WP
+    Hub --> DU
+    Hub --> FG
+    Hub --> TL
+    Hub --> LR
+    Hub --> CP
+    Hub --> SH
+    
+    ES --> MD
+    AS --> MD
+    
+    MD --> DU
+    MD --> FG
+    MD --> TL
+    MD --> LR
+    MD --> CP
+    
+    MC --> SH
+    MC --> API
+    
+    style Home fill:#e3f2fd,stroke:#1976d2,stroke-width:3px
+    style Hub fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style ES fill:#f3e5f5,stroke:#7b1fa2
+    style AS fill:#f3e5f5,stroke:#7b1fa2
+    style MD fill:#e8f5e9,stroke:#388e3c
+    style MC fill:#e8f5e9,stroke:#388e3c
+    style API fill:#e8f5e9,stroke:#388e3c
+    style WP fill:#e8f5e9,stroke:#388e3c
+    style DU fill:#fff3e0,stroke:#f57c00
+    style FG fill:#fff3e0,stroke:#f57c00
+    style TL fill:#fff3e0,stroke:#f57c00
+    style LR fill:#fff3e0,stroke:#f57c00
+    style CP fill:#fff3e0,stroke:#f57c00
+    style SH fill:#fff3e0,stroke:#f57c00
+            `,
+            
+            beginner: `
+graph TD
+    Start["👶 START HERE<br/>Beginner User"]
+    Home["🏠 Home"]
+    ES["⚙️ Easy Settings<br/>6 Simple Questions"]
+    MD["📊 Dashboard<br/>Do Your Work"]
+    Tools["🛠️ Tools<br/>As Needed"]
+    DU["📤 Upload"]
+    FG["📋 Forms"]
+    TL["📅 Timeline"]
+    LR["⚖️ Research"]
+    
+    Start --> Home
+    Home --> ES
+    ES --> MD
+    MD --> Tools
+    Tools --> DU
+    Tools --> FG
+    Tools --> TL
+    Tools --> LR
+    
+    style Start fill:#e3f2fd,stroke:#1976d2,stroke-width:3px
+    style Home fill:#e3f2fd,stroke:#1976d2
+    style ES fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style MD fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style Tools fill:#fff3e0,stroke:#f57c00
+    style DU fill:#fff3e0,stroke:#f57c00
+    style FG fill:#fff3e0,stroke:#f57c00
+    style TL fill:#fff3e0,stroke:#f57c00
+    style LR fill:#fff3e0,stroke:#f57c00
+            `,
+            
+            power: `
+graph TD
+    Start["🧠 START HERE<br/>Power User"]
+    Home["🏠 Home"]
+    AS["⚙️ Advanced Settings<br/>Full Control<br/>28+ Options"]
+    MD["📊 Dashboard<br/>Work Area"]
+    Tools["🛠️ All Tools"]
+    API["📚 API Docs<br/>Integration"]
+    Hub["🗺️ Navigation Hub<br/>Explore All"]
+    
+    DU["📤 Upload"]
+    FG["📋 Forms"]
+    TL["📅 Timeline"]
+    LR["⚖️ Research"]
+    CP["🤖 Copilot"]
+    
+    Start --> Home
+    Home --> AS
+    Home --> Hub
+    AS --> MD
+    MD --> Tools
+    Tools --> DU
+    Tools --> FG
+    Tools --> TL
+    Tools --> LR
+    Tools --> CP
+    MD --> API
+    
+    style Start fill:#e3f2fd,stroke:#1976d2,stroke-width:3px
+    style Home fill:#e3f2fd,stroke:#1976d2
+    style AS fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    style MD fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style API fill:#e8f5e9,stroke:#388e3c
+    style Hub fill:#f3e5f5,stroke:#7b1fa2
+    style Tools fill:#fff3e0,stroke:#f57c00
+    style DU fill:#fff3e0,stroke:#f57c00
+    style FG fill:#fff3e0,stroke:#f57c00
+    style TL fill:#fff3e0,stroke:#f57c00
+    style LR fill:#fff3e0,stroke:#f57c00
+    style CP fill:#fff3e0,stroke:#f57c00
+            `,
+            
+            admin: `
+graph TD
+    Start["👨‍💼 START HERE<br/>Administrator"]
+    MC["🎯 Mission Control<br/>Admin Dashboard"]
+    SH["❤️ System Health<br/>Monitor Status"]
+    API["📚 API Docs<br/>38+ Endpoints"]
+    AS["⚙️ Advanced Settings<br/>Global Config"]
+    Hub["🗺️ Navigation Hub<br/>Manage Access"]
+    
+    Start --> MC
+    MC --> SH
+    MC --> API
+    MC --> AS
+    MC --> Hub
+    
+    style Start fill:#e3f2fd,stroke:#1976d2,stroke-width:3px
+    style MC fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style SH fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    style API fill:#e8f5e9,stroke:#388e3c,stroke-width:2px
+    style AS fill:#f3e5f5,stroke:#7b1fa2
+    style Hub fill:#f3e5f5,stroke:#7b1fa2
+            `
+        };
+
+        function showFlowchart(type) {
+            // Update active button
+            document.querySelectorAll('.control-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Update flowchart
+            const container = document.getElementById('flowchart');
+            container.innerHTML = `<div class="mermaid">${flowcharts[type]}</div>`;
+            
+            // Re-render Mermaid
+            mermaid.contentLoaded();
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            showFlowchart('full');
+        });
+    </script>
+</body>
+</html>

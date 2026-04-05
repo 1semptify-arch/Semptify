@@ -311,6 +311,21 @@
             width: 24px;
         }
 
+        .resource-link-copy {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .resource-link.featured {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .resource-link.featured i {
+            color: var(--primary);
+        }
+
         /* Back to top */
         .back-to-top {
             position: fixed;
@@ -350,6 +365,7 @@
     <!-- Emergency Banner -->
     <div class="emergency-banner">
         <span>🚨 <strong>EMERGENCY?</strong></span>
+        <a href="tel:988">📞 Call or Text 988</a>
         <a href="tel:211">📞 Call 211</a>
         <a href="tel:18007456686">📞 HOME Line: 1-800-745-6686</a>
         <a href="/eviction/">🆘 Legal Help Now</a>
@@ -521,6 +537,12 @@
             <h2 class="section-title">🚨 Emergency & Crisis Help</h2>
             <div class="contact-grid">
                 <div class="contact-card">
+                    <h3>📞 988 Crisis Lifeline</h3>
+                    <div class="phone">Call or Text 988</div>
+                    <p>Mental health crisis support, emotional distress, and suicide prevention help.</p>
+                    <div class="hours">24/7 Available</div>
+                </div>
+                <div class="contact-card">
                     <h3>📞 HOME Line</h3>
                     <div class="phone">1-800-745-6686</div>
                     <p>Free tenant hotline. Legal advice, counseling, and assistance.</p>
@@ -530,6 +552,12 @@
                     <h3>📞 211 United Way</h3>
                     <div class="phone">Dial 2-1-1</div>
                     <p>Emergency assistance, rental help, food, shelter resources.</p>
+                    <div class="hours">24/7 Available</div>
+                </div>
+                <div class="contact-card">
+                    <h3>📞 Domestic Violence Hotline</h3>
+                    <div class="phone">1-800-799-7233</div>
+                    <p>Confidential help with safety planning, shelter options, and urgent support.</p>
                     <div class="hours">24/7 Available</div>
                 </div>
                 <div class="contact-card">
@@ -559,57 +587,126 @@
             </div>
         </section>
 
+        <section class="section" id="rental-help">
+            <h2 class="section-title">🏘️ Rent & Housing Help</h2>
+            <div class="resource-list">
+                <a href="https://www.211.org" target="_blank" rel="noopener noreferrer" class="resource-link">
+                    <i class="fas fa-phone"></i>
+                    <div>
+                        <strong>United Way 211</strong>
+                        <p class="resource-link-copy">Local rent assistance, shelter referrals, food, transportation, and crisis support</p>
+                    </div>
+                </a>
+                <a href="https://www.housinglink.org" target="_blank" rel="noopener noreferrer" class="resource-link">
+                    <i class="fas fa-house-user"></i>
+                    <div>
+                        <strong>HousingLink</strong>
+                        <p class="resource-link-copy">Minnesota housing search, subsidized housing, and rental assistance information</p>
+                    </div>
+                </a>
+                <a href="https://www.hud.gov/topics/rental_assistance" target="_blank" rel="noopener noreferrer" class="resource-link">
+                    <i class="fas fa-building"></i>
+                    <div>
+                        <strong>HUD Rental Assistance</strong>
+                        <p class="resource-link-copy">Federal renter assistance resources and housing counseling information</p>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <section class="section" id="county-help">
+            <h2 class="section-title">🗺️ Minnesota County Contact Points</h2>
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <h3>Hennepin County</h3>
+                    <div class="phone">612-348-3000</div>
+                    <p>Emergency assistance and housing stability programs.</p>
+                    <div class="hours">Mon-Fri 8am-4:30pm</div>
+                </div>
+                <div class="contact-card">
+                    <h3>Ramsey County</h3>
+                    <div class="phone">651-266-4444</div>
+                    <p>Financial assistance and emergency housing support.</p>
+                    <div class="hours">Mon-Fri 8am-4:30pm</div>
+                </div>
+                <div class="contact-card">
+                    <h3>Dakota County</h3>
+                    <div class="phone">651-554-5611</div>
+                    <p>Community services and rental support pathways.</p>
+                    <div class="hours">Mon-Fri 8am-4:30pm</div>
+                </div>
+                <div class="contact-card">
+                    <h3>Anoka County</h3>
+                    <div class="phone">763-324-1300</div>
+                    <p>Housing support, emergency aid screening, and referrals.</p>
+                    <div class="hours">Mon-Fri 8am-4:30pm</div>
+                </div>
+                <div class="contact-card">
+                    <h3>Washington County</h3>
+                    <div class="phone">651-430-6459</div>
+                    <p>Housing assistance and family support services.</p>
+                    <div class="hours">Mon-Fri 8am-4:30pm</div>
+                </div>
+                <div class="contact-card">
+                    <h3>St. Louis County</h3>
+                    <div class="phone">218-726-2000</div>
+                    <p>Northeast Minnesota entry point for housing support and referrals.</p>
+                    <div class="hours">Mon-Fri 8am-4:30pm</div>
+                </div>
+            </div>
+        </section>
+
         <!-- Legal Resources -->
         <section class="section" id="legal">
             <h2 class="section-title">⚖️ Legal Resources</h2>
             <div class="resource-list">
-                <a href="/static/letter_builder.html" class="resource-link" style="border-color: var(--primary); background: rgba(59, 130, 246, 0.1);">
-                    <i class="fas fa-envelope" style="color: var(--primary);"></i>
+                <a href="/static/letter_builder.html" class="resource-link featured">
+                    <i class="fas fa-envelope"></i>
                     <div>
                         <strong>✨ Letter Builder</strong>
-                        <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">Generate professional repair requests & response letters to your landlord</p>
+                        <p class="resource-link-copy">Generate professional repair requests & response letters to your landlord</p>
                     </div>
                 </a>
-                <a href="https://www.lawhelpmn.org" target="_blank" class="resource-link">
+                <a href="https://www.lawhelpmn.org" target="_blank" rel="noopener noreferrer" class="resource-link">
                     <i class="fas fa-external-link-alt"></i>
                     <div>
                         <strong>LawHelpMN.org</strong>
-                        <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">Free legal information and lawyer referrals</p>
+                        <p class="resource-link-copy">Free legal information and lawyer referrals</p>
                     </div>
                 </a>
-                <a href="https://www.mncourts.gov/Help-Topics/Eviction-Landlord-and-Tenant-Cases.aspx" target="_blank" class="resource-link">
+                <a href="https://www.mncourts.gov/Help-Topics/Eviction-Landlord-and-Tenant-Cases.aspx" target="_blank" rel="noopener noreferrer" class="resource-link">
                     <i class="fas fa-gavel"></i>
                     <div>
                         <strong>Minnesota Courts - Eviction Info</strong>
-                        <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">Official court procedures and forms</p>
+                        <p class="resource-link-copy">Official court procedures and forms</p>
                     </div>
                 </a>
-                <a href="https://www.ag.state.mn.us/Consumer/Handbooks/LT/default.asp" target="_blank" class="resource-link">
+                <a href="https://www.ag.state.mn.us/Consumer/Handbooks/LT/default.asp" target="_blank" rel="noopener noreferrer" class="resource-link">
                     <i class="fas fa-book"></i>
                     <div>
                         <strong>MN Attorney General - Tenant Rights</strong>
-                        <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">Official handbook on landlord-tenant law</p>
+                        <p class="resource-link-copy">Official handbook on landlord-tenant law</p>
                     </div>
                 </a>
-                <a href="https://homelinemn.org" target="_blank" class="resource-link">
+                <a href="https://homelinemn.org" target="_blank" rel="noopener noreferrer" class="resource-link">
                     <i class="fas fa-home"></i>
                     <div>
                         <strong>HOME Line</strong>
-                        <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">Minnesota's tenant advocacy organization</p>
+                        <p class="resource-link-copy">Minnesota's tenant advocacy organization</p>
                     </div>
                 </a>
-                <a href="https://www.revisor.mn.gov/statutes/cite/504B" target="_blank" class="resource-link">
+                <a href="https://www.revisor.mn.gov/statutes/cite/504B" target="_blank" rel="noopener noreferrer" class="resource-link">
                     <i class="fas fa-scroll"></i>
                     <div>
                         <strong>MN Statutes Chapter 504B</strong>
-                        <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">Full text of Minnesota landlord-tenant law</p>
+                        <p class="resource-link-copy">Full text of Minnesota landlord-tenant law</p>
                     </div>
                 </a>
-                <a href="https://www.hud.gov/states/minnesota/renting" target="_blank" class="resource-link">
+                <a href="https://www.hud.gov/states/minnesota/renting" target="_blank" rel="noopener noreferrer" class="resource-link">
                     <i class="fas fa-building"></i>
                     <div>
                         <strong>HUD Minnesota</strong>
-                        <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">Federal housing resources and fair housing</p>
+                        <p class="resource-link-copy">Federal housing resources and fair housing</p>
                     </div>
                 </a>
             </div>
@@ -727,11 +824,35 @@
     </div>
 
     <!-- Back to Top -->
-    <button class="back-to-top" id="backToTop" onclick="scrollToTop()">
+    <button class="back-to-top" id="backToTop" onclick="scrollToTop()" title="Back to top" aria-label="Back to top">
         <i class="fas fa-arrow-up"></i>
     </button>
 
     <script>
+        async function trackHelpInteraction(action, meta = {}) {
+            const payload = {
+                event_type: 'user.action',
+                source_module: 'ui',
+                data: {
+                    page: 'public_help',
+                    action,
+                    ts: new Date().toISOString(),
+                    ...meta,
+                },
+            };
+
+            try {
+                await fetch('/brain/events', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    keepalive: true,
+                    body: JSON.stringify(payload),
+                });
+            } catch (_) {
+                // Ignore telemetry delivery failure.
+            }
+        }
+
         // FAQ toggle
         function toggleFaq(element) {
             const item = element.parentElement;
@@ -777,6 +898,17 @@
                     }
                 });
             }
+        });
+
+        document.addEventListener('click', (event) => {
+            const target = event.target.closest('a, button');
+            if (!target) return;
+
+            const href = target.getAttribute('href') || '';
+            if (!href && !target.id) return;
+
+            const action = target.dataset.helpTrack || target.id || 'help_click';
+            trackHelpInteraction(action, { href, text: (target.textContent || '').trim().slice(0, 120) });
         });
     </script>
 </body>

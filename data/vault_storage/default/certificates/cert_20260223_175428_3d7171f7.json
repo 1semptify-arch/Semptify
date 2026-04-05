@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260223_175428_3d7171f7",
+  "vault_id": "3d7171f7-3e05-4ec1-857a-9668ddc6cf65",
+  "sha256": "a6875c5a33062972ff9053543ebfa8e54f6de1d6149f4866b3c2ad72ee10e867",
+  "original_filename": "Narrative and Request for Oversight.pdf",
+  "file_size": 145578,
+  "mime_type": "application/pdf",
+  "document_type": "pdf",
+  "certified_at": "2026-02-23T17:54:28.684836+00:00",
+  "storage_path": "data\\vault_storage\\default\\3d7171f7-3e05-4ec1-857a-9668ddc6cf65.pdf",
+  "storage_provider": "local",
+  "user_id": "default",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

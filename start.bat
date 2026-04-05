@@ -33,6 +33,7 @@ echo ⚙️  Setting production mode...
 set SECURITY_MODE=enforced
 set DEBUG=false
 set LOG_LEVEL=INFO
+set PYTHONIOENCODING=utf-8
 
 echo.
 echo ============================================================

@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_005940_62b43f21",
+  "vault_id": "62b43f21-f8c1-47b6-aa1e-d3e5bc0f5f35",
+  "sha256": "8b3e8a9e23b5b4d941ff05237c3095ac0e526a8be2f33c4764697617d28575c0",
+  "original_filename": "maintenance.pdf",
+  "file_size": 382572,
+  "mime_type": "application/pdf",
+  "document_type": "other",
+  "certified_at": "2026-03-11T00:59:40.950496+00:00",
+  "storage_path": "data\\vault_storage\\DUGRdBnjGa\\62b43f21-f8c1-47b6-aa1e-d3e5bc0f5f35.pdf",
+  "storage_provider": "local",
+  "user_id": "DUGRdBnjGa",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

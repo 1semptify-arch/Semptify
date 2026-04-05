@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_190335_5f75278c",
+  "vault_id": "5f75278c-f848-4b4c-a770-c8d9585175fe",
+  "sha256": "9ae9158f4cfcca56fe7cb70864daa48d1b5bab31301f01ad7b19a408a0a0fee5",
+  "original_filename": "attourney generals  Crowe - Outlook_ocred.pdf",
+  "file_size": 93581,
+  "mime_type": "application/pdf",
+  "document_type": "other",
+  "certified_at": "2026-03-11T19:03:35.946175+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\5f75278c-f848-4b4c-a770-c8d9585175fe.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_221359_a84020b9",
+  "vault_id": "a84020b9-c44c-490a-bd40-81ce6aa79f6d",
+  "sha256": "7644c384f5f7d1cb72ed1436d13ecd8923886b917dbf322022bfa35ce25477b1",
+  "original_filename": "Settlement Agreement_25-3477.pdf",
+  "file_size": 135935,
+  "mime_type": "application/pdf",
+  "document_type": "court",
+  "certified_at": "2026-03-11T22:13:59.550452+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\a84020b9-c44c-490a-bd40-81ce6aa79f6d.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

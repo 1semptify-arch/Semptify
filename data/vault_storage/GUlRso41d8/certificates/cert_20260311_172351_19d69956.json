@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_172351_19d69956",
+  "vault_id": "19d69956-f7eb-49c4-8299-f5e98b342b5e",
+  "sha256": "f70304d47a4252cb6e804d8fa3c88f54f823b3f81698a30da28ee3c1d825bdf4",
+  "original_filename": "maintenance_ocred.pdf",
+  "file_size": 557770,
+  "mime_type": "application/pdf",
+  "document_type": "other",
+  "certified_at": "2026-03-11T17:23:51.254206+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\19d69956-f7eb-49c4-8299-f5e98b342b5e.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

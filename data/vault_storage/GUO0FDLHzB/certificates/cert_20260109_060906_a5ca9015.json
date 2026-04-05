@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260109_060906_a5ca9015",
+  "vault_id": "a5ca9015-bb95-47af-8e0f-344b65e38c35",
+  "sha256": "484ed14c93086fb2526d1cc7c6adbdff72ab404c0697c606fdf6170dee5697c3",
+  "original_filename": "Dear Ms.docx",
+  "file_size": 12608,
+  "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "document_type": "notice",
+  "certified_at": "2026-01-09T06:09:06.653667+00:00",
+  "storage_path": "data\\vault_storage\\GUO0FDLHzB\\a5ca9015-bb95-47af-8e0f-344b65e38c35.docx",
+  "storage_provider": "local",
+  "user_id": "GUO0FDLHzB",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

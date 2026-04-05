@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_193844_56beff30",
+  "vault_id": "56beff30-0a89-471a-9dd2-6e64cb38cfb3",
+  "sha256": "413dc10f82ef938b71cdc80020d9b7dd0a27f5b6592a416155c77c6fd5214440",
+  "original_filename": "MCRO_19AV-CV-25-3477_Affidavit-Other_2025-11-25_20251203175858.pdf",
+  "file_size": 112167,
+  "mime_type": "application/pdf",
+  "document_type": "court",
+  "certified_at": "2026-03-11T19:38:44.778519+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\56beff30-0a89-471a-9dd2-6e64cb38cfb3.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

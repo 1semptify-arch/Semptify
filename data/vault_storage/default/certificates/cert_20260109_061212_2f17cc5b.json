@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260109_061212_2f17cc5b",
+  "vault_id": "2f17cc5b-d2d3-4075-83d7-528cde3f3292",
+  "sha256": "e8ed3766e9b58905460df53a83b55b329646d3f348c6205ff8a825af62009af8",
+  "original_filename": "Gmail - Request for Written Rationale Regarding Non-Renewal and Assertion of Anti-Retaliation Rights.pdf",
+  "file_size": 280832,
+  "mime_type": "application/pdf",
+  "document_type": "pdf",
+  "certified_at": "2026-01-09T06:12:12.723411+00:00",
+  "storage_path": "data\\vault_storage\\default\\2f17cc5b-d2d3-4075-83d7-528cde3f3292.pdf",
+  "storage_provider": "local",
+  "user_id": "default",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

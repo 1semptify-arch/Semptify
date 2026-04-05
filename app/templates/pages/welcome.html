@@ -1,0 +1,519 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - Semptify{% endblock %}
+
+{% block nav %}{% endblock %}
+
+{% block styles %}
+<style>
+    .welcome-shell {
+        max-width: 980px;
+        margin: 2rem auto 0;
+        padding: 0 1rem;
+    }
+
+    .welcome-card {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        background: linear-gradient(170deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+        overflow: hidden;
+    }
+
+    .welcome-head {
+        padding: 1.25rem 1.25rem 1rem;
+        border-bottom: 1px solid var(--color-border);
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .welcome-tag {
+        display: inline-block;
+        margin-bottom: 0.5rem;
+        font-size: var(--font-size-sm);
+        color: var(--color-text-secondary);
+    }
+
+    .welcome-subtitle {
+        color: var(--color-text-secondary);
+        margin-top: 0.5rem;
+    }
+
+    .welcome-body {
+        padding: 1.25rem;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .welcome-pane {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .purpose {
+        margin-top: 0.75rem;
+        color: var(--color-text-secondary);
+        min-height: 3rem;
+    }
+
+    .route-preview {
+        margin-top: 0.75rem;
+        padding: 0.75rem;
+        border: 1px dashed var(--color-border);
+        border-radius: var(--radius-md);
+        color: var(--color-text-primary);
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .actions {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .map-list {
+        margin-top: 0.5rem;
+        padding-left: 1.1rem;
+        color: var(--color-text-secondary);
+    }
+
+    .map-list li {
+        margin-bottom: 0.35rem;
+    }
+
+    .coverage-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.4rem;
+        margin-top: 0.75rem;
+    }
+
+    .coverage-item {
+        padding: 0.35rem 0.5rem;
+        border-radius: var(--radius-sm);
+        font-size: var(--font-size-xs, 0.7rem);
+        text-align: center;
+        border: 1px solid transparent;
+    }
+
+    .coverage-item--active {
+        background: rgba(16, 185, 129, 0.15);
+        border-color: rgba(16, 185, 129, 0.4);
+        color: #6ee7b7;
+    }
+
+    .coverage-item--linked {
+        background: rgba(59, 130, 246, 0.12);
+        border-color: rgba(59, 130, 246, 0.35);
+        color: #93c5fd;
+    }
+
+    .coverage-item--guarded {
+        background: rgba(245, 158, 11, 0.12);
+        border-color: rgba(245, 158, 11, 0.35);
+        color: #fcd34d;
+    }
+
+    .coverage-item--na {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(255, 255, 255, 0.08);
+        color: var(--color-text-muted, rgba(255,255,255,0.3));
+    }
+
+    .welcome-footer-bar {
+        padding: 0.75rem 1.25rem;
+        border-top: 1px solid var(--color-border);
+        background: rgba(255, 255, 255, 0.015);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: var(--font-size-sm, 0.8125rem);
+        color: var(--color-text-secondary);
+    }
+
+    .coverage-legend {
+        margin-top: 0.5rem;
+        font-size: 0.7rem;
+        color: var(--color-text-secondary);
+    }
+
+    .coverage-legend__swatch {
+        display: inline-block;
+    }
+
+    .coverage-legend__swatch--active {
+        color: #6ee7b7;
+    }
+
+    .coverage-legend__swatch--linked {
+        color: #93c5fd;
+    }
+
+    .coverage-legend__swatch--guarded {
+        color: #fcd34d;
+    }
+
+    .coverage-legend__swatch--na {
+        opacity: 0.35;
+    }
+
+    .welcome-contract-link {
+        color: var(--color-text-secondary);
+        text-decoration: none;
+        font-size: 0.7rem;
+    }
+
+    .support-shell {
+        margin-top: 1rem;
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .support-pane {
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .support-pane h3 {
+        margin-bottom: 0.75rem;
+    }
+
+    .support-note {
+        color: var(--color-text-secondary);
+        margin-bottom: 0.75rem;
+    }
+
+    .support-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .support-link {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 0.75rem;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--color-border);
+        text-decoration: none;
+        color: var(--color-text-primary);
+        font-size: var(--font-size-sm);
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .support-link:hover {
+        border-color: rgba(59, 130, 246, 0.4);
+        background: rgba(59, 130, 246, 0.1);
+    }
+
+    .county-grid {
+        margin-top: 0.6rem;
+        display: grid;
+        gap: 0.45rem;
+    }
+
+    .county-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.4rem 0.55rem;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+        font-size: var(--font-size-sm);
+        background: rgba(255, 255, 255, 0.015);
+    }
+
+    .county-row a {
+        color: #93c5fd;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 860px) {
+        .welcome-body {
+            grid-template-columns: 1fr;
+        }
+        .coverage-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .support-shell {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="welcome-shell">
+    <div class="welcome-card">
+        <div class="welcome-head">
+            <span class="welcome-tag">Process A</span>
+            <h1>Welcome to Semptify</h1>
+            <p class="welcome-subtitle">Start by selecting your role and storage status. Semptify is document organization first, then guided action.</p>
+        </div>
+
+        <div class="welcome-body">
+            <div class="welcome-pane">
+                <div class="form-group">
+                    <label class="form-label" for="roleSelect">Role</label>
+                    <select class="form-select" id="roleSelect">
+                        {% for role in role_options %}
+                        <option value="{{ role.value }}" {% if role.value == default_role %}selected{% endif %}>{{ role.display_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <p id="rolePurpose" class="purpose"></p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="storageSelect">Storage status</label>
+                    <select class="form-select" id="storageSelect">
+                        {% for option in storage_options %}
+                        <option value="{{ option.value }}">{{ option.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="actions">
+                    <button id="startBtn" class="btn btn--primary">Start Process</button>
+                    <a class="btn btn--secondary" href="/storage/providers">Connect Storage</a>
+                </div>
+            </div>
+
+            <div class="welcome-pane">
+                <h3>Next Process</h3>
+                <div id="routePreview" class="route-preview"></div>
+
+                <h3 class="mt-lg">Process Map</h3>
+                <ol class="map-list">
+                    <li>A - Welcome Process</li>
+                    <li>B1 - Connect Storage + Profile Setup</li>
+                    <li>B2 - Quick Case Triage</li>
+                    <li>B4 - Professional Review Workspace</li>
+                </ol>
+
+                <h3 class="mt-lg">This Page's Group Coverage</h3>
+                <div class="coverage-grid">
+                    {% if page_contract %}
+                        {% set coverage = page_contract.group_coverage %}
+                        {% for group in process_groups %}
+                        <div class="coverage-item coverage-item--{{ coverage.get(group.name, 'n-a') | replace('-', '') }}"
+                             title="{{ group.title }}: {{ coverage.get(group.name, 'n-a') }}">
+                            {{ group.title | truncate(14, True, '') }}
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <p class="coverage-legend">
+                    <span class="coverage-legend__swatch coverage-legend__swatch--active">■</span> active &nbsp;
+                    <span class="coverage-legend__swatch coverage-legend__swatch--linked">■</span> linked &nbsp;
+                    <span class="coverage-legend__swatch coverage-legend__swatch--guarded">■</span> guarded &nbsp;
+                    <span class="coverage-legend__swatch coverage-legend__swatch--na">■</span> n/a
+                </p>
+            </div>
+        </div>
+
+        <div class="welcome-footer-bar">
+            <span>Process A — public entry point, no authentication required</span>
+            <a href="/api/workflow/contracts/welcome" target="_blank" class="welcome-contract-link">view contract ↗</a>
+        </div>
+    </div>
+
+    <div class="support-shell">
+        <div class="support-pane">
+            <h3>Urgent Help & Rent Support</h3>
+            <p class="support-note">Need a person right now? Start with 211, HOME Line, or 988 before you continue in-app.</p>
+            <div class="support-links">
+                <a class="support-link" href="tel:211" data-help-track="welcome_call_211">Call 211</a>
+                <a class="support-link" href="tel:18007456686" data-help-track="welcome_call_home_line">HOME Line</a>
+                <a class="support-link" href="tel:988" data-help-track="welcome_call_988">Call or Text 988</a>
+                <a class="support-link" href="https://www.211.org" target="_blank" rel="noopener noreferrer" data-help-track="welcome_open_211">Open 211.org</a>
+                <a class="support-link" href="https://www.housinglink.org" target="_blank" rel="noopener noreferrer" data-help-track="welcome_open_housinglink">HousingLink</a>
+            </div>
+        </div>
+
+        <div class="support-pane">
+            <h3>Minnesota County Contacts</h3>
+            <p class="support-note">Call your county first for local rental assistance intake and emergency housing pathways.</p>
+            <div class="county-grid">
+                <div class="county-row"><span>Hennepin</span><a href="tel:612-348-3000" data-help-track="welcome_county_hennepin">612-348-3000</a></div>
+                <div class="county-row"><span>Ramsey</span><a href="tel:651-266-4444" data-help-track="welcome_county_ramsey">651-266-4444</a></div>
+                <div class="county-row"><span>Dakota</span><a href="tel:651-554-5611" data-help-track="welcome_county_dakota">651-554-5611</a></div>
+                <div class="county-row"><span>Anoka</span><a href="tel:763-324-1300" data-help-track="welcome_county_anoka">763-324-1300</a></div>
+                <div class="county-row"><span>Washington</span><a href="tel:651-430-6459" data-help-track="welcome_county_washington">651-430-6459</a></div>
+                <div class="county-row"><span>St. Louis</span><a href="tel:218-726-2000" data-help-track="welcome_county_st_louis">218-726-2000</a></div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const roleDefinitions = {{ role_options|tojson }};
+    const roleByValue = Object.fromEntries(roleDefinitions.map((r) => [r.value, r]));
+
+    const roleSelect = document.getElementById("roleSelect");
+    const storageSelect = document.getElementById("storageSelect");
+    const rolePurpose = document.getElementById("rolePurpose");
+    const routePreview = document.getElementById("routePreview");
+    const startBtn = document.getElementById("startBtn");
+    const fallbackRoleRoutes = {
+        user: "/tenant",
+        advocate: "/advocate",
+        legal: "/legal",
+        manager: "/admin",
+        admin: "/admin",
+    };
+
+    let lastDecision = null;
+
+    async function trackHelpInteraction(action, meta = {}) {
+        const payload = {
+            event_type: "user.action",
+            source_module: "ui",
+            data: {
+                page: "welcome",
+                action,
+                ts: new Date().toISOString(),
+                ...meta,
+            },
+        };
+
+        try {
+            await fetch("/brain/events", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                keepalive: true,
+                body: JSON.stringify(payload),
+            });
+        } catch (_) {
+            // Ignore telemetry failures to keep UX fast.
+        }
+    }
+
+    async function fetchRouteDecision(roleValue, storageState) {
+        try {
+            const res = await fetch("/api/workflow/route", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ role: roleValue, storage_state: storageState }),
+            });
+            if (!res.ok) throw new Error("API error " + res.status);
+            return await res.json();
+        } catch (_) {
+            // Fallback: build a minimal local decision if API is unreachable
+            if (storageState === "need_connect") {
+                return { next_process: "A", next_route: "/storage/providers",
+                         deterministic_reason: "No storage connected — redirecting to connect.", warnings: [] };
+            }
+            const isTenant = roleValue === "user";
+            return {
+                next_process: isTenant ? "B2" : "B4",
+                next_route: fallbackRoleRoutes[roleValue] || "/advocate",
+                deterministic_reason: (isTenant ? "Quick Case Triage (Tenant)" : "Professional Review Workspace"),
+                warnings: [],
+            };
+        }
+    }
+
+    async function renderPreview() {
+        const roleValue = roleSelect.value;
+        const storageState = storageSelect.value;
+        const role = roleByValue[roleValue] || roleByValue.user;
+
+        rolePurpose.textContent = role ? role.purpose : "";
+        routePreview.innerHTML = "<span style='opacity:0.5'>Loading route…</span>";
+
+        const decision = await fetchRouteDecision(roleValue, storageState);
+        lastDecision = decision;
+
+        const warnHtml = (decision.warnings || []).length
+            ? "<br><span style='color:#fcd34d;font-size:0.8em;'>⚠ " + decision.warnings.join(" · ") + "</span>"
+            : "";
+
+        routePreview.innerHTML = [
+            "<strong>Role:</strong> " + (role ? role.display_name : roleValue),
+            "<br>",
+            "<strong>Process:</strong> " + decision.next_process,
+            "<br>",
+            "<span class='text-secondary'>" + decision.deterministic_reason + "</span>",
+            warnHtml,
+        ].join("");
+    }
+
+    roleSelect.addEventListener("change", renderPreview);
+    storageSelect.addEventListener("change", renderPreview);
+
+    startBtn.addEventListener("click", () => {
+        trackHelpInteraction("welcome_start_process_clicked", {
+            role: roleSelect.value,
+            storage_state: storageSelect.value,
+        });
+
+        fetch("/api/workflow/advance", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                current_page: "welcome",
+                role: roleSelect.value,
+                storage_state: storageSelect.value,
+                completed_actions: [
+                    "role_selected",
+                    "storage_status_set",
+                    "process_start_clicked",
+                ],
+            }),
+        })
+            .then((res) => {
+                if (!res.ok) throw new Error("Advance API error " + res.status);
+                return res.json();
+            })
+            .then((payload) => {
+                if (payload.status === "blocked") {
+                    const missing = (payload.missing_requirements || []).join(", ");
+                    alert("Please complete welcome setup before continuing: " + missing);
+                    return;
+                }
+
+                if (payload.next_route) {
+                    window.location.href = payload.next_route;
+                    return;
+                }
+
+                if (lastDecision && lastDecision.next_route) {
+                    window.location.href = lastDecision.next_route;
+                    return;
+                }
+
+                renderPreview().then(() => {
+                    if (lastDecision) window.location.href = lastDecision.next_route;
+                });
+            })
+            .catch(() => {
+                if (lastDecision && lastDecision.next_route) {
+                    window.location.href = lastDecision.next_route;
+                } else {
+                    renderPreview().then(() => {
+                        if (lastDecision) window.location.href = lastDecision.next_route;
+                    });
+                }
+            });
+    });
+
+    document.addEventListener("click", (event) => {
+        const tracked = event.target.closest("[data-help-track]");
+        if (!tracked) return;
+
+        const action = tracked.getAttribute("data-help-track");
+        const href = tracked.getAttribute("href") || "";
+        trackHelpInteraction(action, { href });
+    });
+
+    renderPreview();
+</script>
+{% endblock %}

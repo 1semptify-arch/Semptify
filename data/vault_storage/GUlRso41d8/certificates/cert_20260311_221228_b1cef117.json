@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_221228_b1cef117",
+  "vault_id": "b1cef117-267c-4a7c-815f-bef85519470f",
+  "sha256": "73d187f193303199c91d12d0257dda4494038a62ab1a83e07b5a6ff49cd48bac",
+  "original_filename": "text messages  from vcelait dtating that we hs.pdf",
+  "file_size": 192338,
+  "mime_type": "application/pdf",
+  "document_type": "letter",
+  "certified_at": "2026-03-11T22:12:28.676287+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\b1cef117-267c-4a7c-815f-bef85519470f.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

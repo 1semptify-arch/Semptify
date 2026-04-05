@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_192308_8961bc2e",
+  "vault_id": "8961bc2e-fffb-4908-8e12-b09f1aa2dd94",
+  "sha256": "f40fbe3e0ee040fb9391b0f17267aae912e98b38ccd186f81dc7ddd1cbf83cd0",
+  "original_filename": "HUD COMPOLAINT.pdf",
+  "file_size": 114890,
+  "mime_type": "application/pdf",
+  "document_type": "other",
+  "certified_at": "2026-03-11T19:23:08.185133+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\8961bc2e-fffb-4908-8e12-b09f1aa2dd94.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

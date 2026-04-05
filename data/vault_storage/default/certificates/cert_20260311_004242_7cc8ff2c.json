@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_004242_7cc8ff2c",
+  "vault_id": "7cc8ff2c-a343-49df-beec-e8493fc3460c",
+  "sha256": "489c3095cc3bb871490f0205583faadd3f9125137a9a0e16e06aee14eafcb939",
+  "original_filename": "lEASE 2025   2 DIFFERANT MONTHYLY  ORIGANAL AND  THE FORGED  ONE.pdf",
+  "file_size": 52468752,
+  "mime_type": "application/pdf",
+  "document_type": "pdf",
+  "certified_at": "2026-03-11T00:42:42.511904+00:00",
+  "storage_path": "data\\vault_storage\\default\\7cc8ff2c-a343-49df-beec-e8493fc3460c.pdf",
+  "storage_provider": "local",
+  "user_id": "default",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

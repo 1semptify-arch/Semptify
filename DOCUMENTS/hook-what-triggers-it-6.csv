@@ -1,0 +1,7 @@
+﻿Hook,What Triggers It,What It Does
+Evidence Intake,File upload via GUI or API,"Auto-assigns exhibit number (EX-XX-XXX), timestamps, files in correct folder, logs in tracker, tags to cases"
+Deadline Alert,Daily background task + on-demand,"Scans all deadlines, fires alerts at 7/3/1 day marks and overdue, pushes to advocate dashboard"
+Export Pipeline,One-click from dashboard,"Assembles court packet, agency complaint, press summary, or attorney bundle — applies redactions, generates PDF/ZIP"
+Version Checkpoint,Manual or auto-fires after filings/exports,"Creates ZIP snapshot, optionally pushes to GitHub (Bradleycrowe), logs in version control tracker"
+Cross-Case Pattern,New multi-case evidence or on-demand,"Finds connections across your 5 cases — same management behavior, same timeline gaps, same violations"
+Collaboration,Share action from dashboard,"Creates role-scoped access links for Dena, attorneys, tenants — controls who sees what"

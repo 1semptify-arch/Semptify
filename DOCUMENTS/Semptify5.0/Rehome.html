@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify - Reconnect Device</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #f8fafc;
+        }
+        .container {
+            background: #1e293b;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            border: 1px solid #334155;
+        }
+        .logo { font-size: 3.5rem; margin-bottom: 15px; }
+        h1 { font-size: 1.8rem; margin-bottom: 8px; color: #f8fafc; }
+        .subtitle { color: #94a3b8; margin-bottom: 25px; font-size: 0.95rem; }
+        .info-box {
+            background: #334155;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #475569;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #94a3b8; font-size: 0.9rem; }
+        .info-value { font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .btn {
+            width: 100%;
+            padding: 16px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(59,130,246,0.4);
+        }
+        .btn-primary:active { transform: translateY(0); }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+            font-size: 0.95rem;
+        }
+        .status.loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #334155;
+        }
+        .status.error {
+            display: block;
+            background: rgba(239,68,68,0.2);
+            color: #ef4444;
+        }
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid #475569;
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .security-note {
+            margin-top: 20px;
+            padding: 12px;
+            background: rgba(16,185,129,0.1);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #10b981;
+        }
+        .security-note strong { display: block; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🏠</div>
+        <h1>Welcome Back</h1>
+        <p class="subtitle">Reconnect this device to your Semptify account</p>
+        
+        <div class="info-box">
+            <div class="info-row">
+                <span class="info-label">Storage Provider</span>
+                <span class="info-value">🔷 Google Drive</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Account Type</span>
+                <span class="info-value" style="text-transform: capitalize;">🏷️ user</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Account ID</span>
+                <span class="info-value" style="font-family: 'SF Mono', Monaco, monospace; font-size: 0.85rem;">🔑 GUqao8Qx2H</span>
+            </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="rehome()" id="rehomeBtn">
+            <span>🔗</span> Connect This Device
+        </button>
+        
+        <div class="status" id="status"></div>
+        
+        <div class="security-note">
+            <strong>🔒 Secure Connection</strong>
+            Your data stays encrypted in your Google Drive. 
+            Semptify never stores your files on external servers.
+        </div>
+    </div>
+    
+    <script>
+        const USER_ID = "GUqao8Qx2H";
+        const SEMPTIFY_URL = "http://localhost:8000";
+        
+        function rehome() {
+            const status = document.getElementById("status");
+            const btn = document.getElementById("rehomeBtn");
+            
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Connecting...';
+            
+            status.className = "status loading";
+            status.innerHTML = '<span class="spinner"></span> Verifying your account...';
+            
+            // Small delay for UX, then redirect
+            setTimeout(() => {
+                window.location.href = SEMPTIFY_URL + "/storage/rehome/" + USER_ID;
+            }, 800);
+        }
+        
+        // Check if we can reach Semptify
+        fetch(SEMPTIFY_URL + "/health")
+            .then(r => r.json())
+            .catch(() => {
+                document.getElementById("status").className = "status error";
+                document.getElementById("status").innerHTML = "⚠️ Cannot reach Semptify server. Make sure it's running at " + SEMPTIFY_URL;
+            });
+    </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_185941_7dbde6ad",
+  "vault_id": "7dbde6ad-d723-4475-ad88-c2874395f3b5",
+  "sha256": "433d6a053dc93968acbcf38169da30d400b92632b141a0bdad843fc878e724bb",
+  "original_filename": "1 home line seeking legal OCR_ocred.pdf",
+  "file_size": 605976,
+  "mime_type": "application/pdf",
+  "document_type": "other",
+  "certified_at": "2026-03-11T18:59:41.504162+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\7dbde6ad-d723-4475-ad88-c2874395f3b5.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

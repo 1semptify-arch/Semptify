@@ -16,6 +16,7 @@ from pathlib import Path
 from fastapi import FastAPI, Request, Cookie
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
 
 from app.core.config import get_settings
@@ -31,57 +32,75 @@ def get_base_path() -> Path:
 
 BASE_PATH = get_base_path()
 
-# Import routers
-from app.routers import auth, vault, timeline, calendar, copilot, health, storage, documents, adaptive_ui, context_loop, tactics
-from app.routers.intake import router as intake_router
-from app.routers.registry import router as registry_router
-from app.routers.vault_engine import router as vault_engine_router
-from app.routers.law_library import router as law_library_router
-from app.routers.eviction_defense import router as eviction_defense_router
-from app.routers.zoom_court import router as zoom_court_router
-from app.routers.form_data import router as form_data_router
-from app.routers.setup import router as setup_router
-from app.routers.websocket import router as websocket_router
-from app.routers.brain import router as brain_router
-from app.routers.cloud_sync import router as cloud_sync_router
-from app.routers.complaints import router as complaints_router
-from app.routers.module_hub import router as module_hub_router
-from app.routers.positronic_mesh import router as positronic_mesh_router
-from app.routers.mesh_network import router as mesh_network_router
-from app.routers.location import router as location_router
-from app.routers.hud_funding import router as hud_funding_router
-from app.routers.fraud_exposure import router as fraud_exposure_router
-from app.routers.public_exposure import router as public_exposure_router
-from app.routers.research import router as research_router
-from app.routers.campaign import router as campaign_router
-from app.modules.research_module import router as research_module_router
-from app.routers.extraction import router as extraction_router
-from app.routers.funding_search import router as funding_search_router
-from app.routers.tenancy_hub import router as tenancy_hub_router
-from app.routers.legal_analysis import router as legal_analysis_router
-from app.routers.mesh import router as distributed_mesh_router
-from app.routers.legal_trails import router as legal_trails_router
-from app.routers.contacts import router as contacts_router
-from app.routers.recognition import router as recognition_router
-from app.routers.search import router as search_router
-from app.routers.court_forms import router as court_forms_router
-from app.routers.zoom_court_prep import router as zoom_court_prep_router
-from app.routers.pdf_tools import router as pdf_tools_router
-from app.routers.briefcase import router as briefcase_router
-from app.routers.emotion import router as emotion_router
-from app.routers.court_packet import router as court_packet_router
-from app.routers.actions import router as actions_router
-from app.routers.progress import router as progress_router
-from app.routers.dashboard import router as dashboard_router
-from app.routers.enterprise_dashboard import router as enterprise_dashboard_router
-from app.routers.crawler import router as crawler_router
-from app.routers.role_ui import router as role_ui_router
-from app.routers.role_upgrade import router as role_upgrade_router
-from app.routers.guided_intake import router as guided_intake_router
-from app.routers.case_builder import router as case_builder_router
-from app.routers.overlays import router as overlays_router
-from app.routers.document_converter import router as document_converter_router
-from app.routers.page_index import router as page_index_router
+# Jinja2 templates for frontend UI pages
+templates = Jinja2Templates(directory=str(BASE_PATH / "app" / "templates"))
+
+def _safe_router_import(module_path: str):
+    try:
+        module = __import__(module_path, fromlist=["router"])
+        return getattr(module, "router")
+    except Exception as ex:
+        logging.getLogger(__name__).warning("Router import failed (%s): %s", module_path, ex)
+        return None
+
+# Import optional routers
+auto_mode_router = _safe_router_import("app.routers.auto_mode")
+intake_router = _safe_router_import("app.routers.intake")
+registry_router = _safe_router_import("app.routers.registry")
+vault_engine_router = _safe_router_import("app.routers.vault_engine")
+law_library_router = _safe_router_import("app.routers.law_library")
+eviction_defense_router = _safe_router_import("app.routers.eviction_defense")
+zoom_court_router = _safe_router_import("app.routers.zoom_court")
+form_data_router = _safe_router_import("app.routers.form_data")
+setup_router = _safe_router_import("app.routers.setup")
+websocket_router = _safe_router_import("app.routers.websocket")
+brain_router = _safe_router_import("app.routers.brain")
+
+from app.routers import health
+cloud_sync_router = _safe_router_import("app.routers.cloud_sync")
+complaints_router = _safe_router_import("app.routers.complaints")
+module_hub_router = _safe_router_import("app.routers.module_hub")
+positronic_mesh_router = _safe_router_import("app.routers.positronic_mesh")
+mesh_network_router = _safe_router_import("app.routers.mesh_network")
+location_router = _safe_router_import("app.routers.location")
+hud_funding_router = _safe_router_import("app.routers.hud_funding")
+fraud_exposure_router = _safe_router_import("app.routers.fraud_exposure")
+public_exposure_router = _safe_router_import("app.routers.public_exposure")
+research_router = _safe_router_import("app.routers.research")
+campaign_router = _safe_router_import("app.routers.campaign")
+research_module_router = _safe_router_import("app.modules.research_module")
+extraction_router = _safe_router_import("app.routers.extraction")
+funding_search_router = _safe_router_import("app.routers.funding_search")
+tenancy_hub_router = _safe_router_import("app.routers.tenancy_hub")
+legal_analysis_router = _safe_router_import("app.routers.legal_analysis")
+legal_filing_router = _safe_router_import("app.routers.legal_filing")
+distributed_mesh_router = _safe_router_import("app.routers.mesh")
+legal_trails_router = _safe_router_import("app.routers.legal_trails")
+contacts_router = _safe_router_import("app.routers.contacts")
+recognition_router = _safe_router_import("app.routers.recognition")
+search_router = _safe_router_import("app.routers.search")
+court_forms_router = _safe_router_import("app.routers.court_forms")
+zoom_court_prep_router = _safe_router_import("app.routers.zoom_court_prep")
+pdf_tools_router = _safe_router_import("app.routers.pdf_tools")
+briefcase_router = _safe_router_import("app.routers.briefcase")
+emotion_router = _safe_router_import("app.routers.emotion")
+court_packet_router = _safe_router_import("app.routers.court_packet")
+actions_router = _safe_router_import("app.routers.actions")
+progress_router = _safe_router_import("app.routers.progress")
+dashboard_router = _safe_router_import("app.routers.dashboard")
+enterprise_dashboard_router = _safe_router_import("app.routers.enterprise_dashboard")
+crawler_router = _safe_router_import("app.routers.crawler")
+role_ui_router = _safe_router_import("app.routers.role_ui")
+role_upgrade_router = _safe_router_import("app.routers.role_upgrade")
+guided_intake_router = _safe_router_import("app.routers.guided_intake")
+case_builder_router = _safe_router_import("app.routers.case_builder")
+overlays_router = _safe_router_import("app.routers.overlays")
+document_converter_router = _safe_router_import("app.routers.document_converter")
+page_index_router = _safe_router_import("app.routers.page_index")
+documents_router = _safe_router_import("app.routers.documents")
+intake_router = _safe_router_import("app.routers.intake")
+workflow_router = _safe_router_import("app.routers.workflow")
+from app.routers import storage
 from app.core.mesh_integration import start_mesh_network, stop_mesh_network
 
 # Tenant Defense Module
@@ -377,6 +396,21 @@ async def lifespan(app: FastAPI):
         
         await run_stage(6, TOTAL_STAGES, "Final Verification", final_check, verify_final)
         
+        # --- STAGE 7: PRODUCTION MODE VALIDATION (if enforced) ---
+        if settings.security_mode == "enforced":
+            TOTAL_STAGES = 7
+            
+            async def validate_production():
+                """Validate production security requirements."""
+                from app.core.production_init import validate_production_mode
+                # This will raise an error if any security requirement fails
+                validate_production_mode()
+            
+            def verify_production():
+                return True  # If we get here, validation passed
+            
+            await run_stage(7, TOTAL_STAGES, "Production Security Validation", validate_production, verify_production)
+        
         # --- SETUP COMPLETE ---
         setup_success = True
         total_time = time.time() - start_time
@@ -386,9 +420,11 @@ async def lifespan(app: FastAPI):
         logger.info("✅ ✅ ✅  ALL STAGES COMPLETE  ✅ ✅ ✅")
         logger.info("   Setup completed in %.2f seconds", total_time)
         logger.info("")
+        if settings.security_mode == "enforced":
+            logger.info("   🔒 PRODUCTION MODE: ENFORCED SECURITY ACTIVE")
         logger.info("   🌐 Server: http://localhost:8000")
         logger.info("   📄 Welcome: http://localhost:8000/static/welcome.html")
-        logger.info("   📚 API Docs: http://localhost:8000/docs")
+        logger.info("   📚 API Docs: http://localhost:8000/api/docs")
         logger.info("=" * 60)
         logger.info("")
         
@@ -1456,38 +1492,54 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Middleware (order matters - first added = last to run)
     # =========================================================================
     
+    is_production = settings.security_mode == "enforced"
+    logger = logging.getLogger(__name__)
+    
+    # PRODUCTION SECURITY MIDDLEWARE (if enforced mode)
+    if is_production:
+        try:
+            from app.core.logging_middleware import RequestLoggingMiddleware as ProdRequestLogging
+            
+            # Request logging (security audit trail)
+            app.add_middleware(ProdRequestLogging)
+            logger.info("🚀 Request logging middleware enabled (production mode)")
+        except ImportError as e:
+            logger.error("⚠️  Failed to load request logging middleware: %s", e)
+            logger.warning("Request logging not available - continuing without it")
+    
     # Storage requirement (CRITICAL: Enforces everyone has storage connected)
     from app.core.storage_middleware import StorageRequirementMiddleware
     app.add_middleware(
         StorageRequirementMiddleware,
-        enforce=settings.security_mode == "enforced"  # Only enforce in production
+        enforce=is_production  # Only enforce in production
     )
-    logging.getLogger(__name__).info("🔒 Storage requirement middleware enabled (enforce=%s)", settings.security_mode == "enforced")
+    logger.info("🔒 Storage requirement middleware enabled (enforce=%s)", is_production)
     
-    # Security headers (runs last, adds headers to all responses)
+    # Security headers (standard mode, adds headers to all responses)
     from app.core.security_headers import SecurityHeadersMiddleware
     app.add_middleware(
         SecurityHeadersMiddleware,
-        enable_hsts=settings.security_mode == "enforced",  # HSTS only in production
+        enable_hsts=is_production,  # HSTS only in production
     )
     
     # Request timeout (prevents hung requests)
     from app.core.timeout import TimeoutMiddleware
     app.add_middleware(TimeoutMiddleware)
     
-    # Request logging (for debugging/monitoring)
+    # Request logging (for debugging/monitoring in dev mode)
     from app.core.logging_middleware import RequestLoggingMiddleware
-    if settings.log_level.upper() == "DEBUG":
+    if settings.log_level.upper() == "DEBUG" and not is_production:
         app.add_middleware(RequestLoggingMiddleware)
     
-    # CORS
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.cors_origins_list,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    # CORS (with stricter config in production)
+    cors_config = {
+        "allow_origins": settings.cors_origins_list,
+        "allow_credentials": True,
+        "allow_methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"] if is_production else ["*"],
+        "allow_headers": ["Content-Type", "Authorization", "X-Request-Id", "X-API-Key"] if is_production else ["*"],
+    }
+    app.add_middleware(CORSMiddleware, **cors_config)
+    logger.info("🔒 CORS middleware configured (production=%s)", is_production)
     
     # Request ID middleware
     @app.middleware("http")
@@ -1507,16 +1559,24 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
     # Register Routers
     # =========================================================================
-    
+
+    def include_if(router_obj, **kwargs):
+        if router_obj is not None:
+            app.include_router(router_obj, **kwargs)
+
     # API Version info (GET /api/version)
     from app.core.versioning import version_router
     app.include_router(version_router)
-    
+
     # Health & metrics (no prefix)
     app.include_router(health.router, tags=["Health"])
 
     # Role-based UI routing (directs users to appropriate interface)
     app.include_router(role_ui_router, tags=["Role UI"])
+
+    # Workflow engine + page contract API
+    if workflow_router:
+        app.include_router(workflow_router)
     
     # Role upgrade/verification API
     app.include_router(role_upgrade_router, tags=["Role Management"])
@@ -1528,24 +1588,26 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     app.include_router(storage.router, tags=["Storage Auth"])
 
     # API routes
-    app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
-    app.include_router(vault.router, prefix="/api/vault", tags=["Document Vault"])
-    app.include_router(timeline.router, prefix="/api/timeline", tags=["Timeline"])
-    app.include_router(calendar.router, prefix="/api/calendar", tags=["Calendar"])
-    app.include_router(copilot.router, prefix="/api/copilot", tags=["AI Copilot"])
-    app.include_router(tactics.router, prefix="/api/tactics", tags=["Proactive Tactics"])  # AI defense strategies
-    app.include_router(documents.router, tags=["Documents"])  # Fresh document processing API
-    app.include_router(adaptive_ui.router, tags=["Adaptive UI"])  # Self-building interface
-    app.include_router(context_loop.router, tags=["Context Loop"])  # Core processing engine
-    app.include_router(intake_router, tags=["Document Intake"])  # Document intake & extraction
-    app.include_router(registry_router, tags=["Document Registry"])  # Tamper-proof chain of custody
-    app.include_router(vault_engine_router, tags=["Vault Engine"])  # Centralized access control
-    app.include_router(form_data_router, prefix="/api/form-data", tags=["Form Data Hub"])  # Central data integration
-    app.include_router(setup_router, prefix="/api/setup", tags=["Setup Wizard"])  # Initial setup wizard
-    app.include_router(websocket_router, prefix="/ws", tags=["WebSocket Events"])  # Real-time events
-    app.include_router(module_hub_router, prefix="/api", tags=["Module Hub"])  # Central module communication
-    app.include_router(positronic_mesh_router, prefix="/api", tags=["Positronic Mesh"])  # Workflow orchestration
-    app.include_router(mesh_network_router, prefix="/api", tags=["Mesh Network"])  # True bidirectional module communication
+    # app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+    # app.include_router(vault.router, prefix="/api/vault", tags=["Document Vault"])
+    # app.include_router(timeline.router, prefix="/api/timeline", tags=["Timeline"])
+    # app.include_router(calendar.router, prefix="/api/calendar", tags=["Calendar"])
+    # app.include_router(copilot.router, prefix="/api/copilot", tags=["AI Copilot"])
+    # app.include_router(tactics.router, prefix="/api/tactics", tags=["Proactive Tactics"])  # AI defense strategies
+    # app.include_router(documents.router, tags=["Documents"])  # Fresh document processing API
+    # app.include_router(adaptive_ui.router, tags=["Adaptive UI"])  # Self-building interface
+    # app.include_router(context_loop.router, tags=["Context Loop"])  # Core processing engine
+    include_if(documents_router, tags=["Documents"])  # Document upload, analysis, intelligence
+    include_if(intake_router, tags=["Document Intake"])  # Document intake & extraction
+    include_if(registry_router, tags=["Document Registry"])  # Tamper-proof chain of custody
+    include_if(vault_engine_router, tags=["Vault Engine"])  # Centralized access control
+    include_if(form_data_router, prefix="/api/form-data", tags=["Form Data Hub"])  # Central data integration
+    include_if(setup_router, prefix="/api/setup", tags=["Setup Wizard"])  # Initial setup wizard
+    include_if(auto_mode_router, tags=["Auto Mode"])  # Auto mode analysis & summaries
+    include_if(websocket_router, prefix="/ws", tags=["WebSocket Events"])  # Real-time events
+    include_if(module_hub_router, prefix="/api", tags=["Module Hub"])  # Central module communication
+    include_if(positronic_mesh_router, prefix="/api", tags=["Positronic Mesh"])  # Workflow orchestration
+    include_if(mesh_network_router, prefix="/api", tags=["Mesh Network"])  # True bidirectional module communication
     app.include_router(location_router, tags=["Location"])  # Location detection and state-specific resources
     app.include_router(hud_funding_router, tags=["HUD Funding Guide"])  # HUD funding programs, tax credits, landlord eligibility
     app.include_router(fraud_exposure_router, tags=["Fraud Exposure"])  # Fraud analysis and detection
@@ -1556,7 +1618,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     app.include_router(research_module_router, tags=["Research Module SDK"])  # SDK-based landlord/property dossier
     app.include_router(extraction_router, tags=["Form Field Extraction"])  # Extract and map document data to form fields
     app.include_router(tenancy_hub_router, tags=["Tenancy Hub"])  # Central hub for all tenancy documentation
-    app.include_router(legal_analysis_router, tags=["Legal Analysis"])  # Legal merit, consistency, evidence analysis
+    app.include_router(legal_analysis_router, tags=["Legal Analysis"])
+    app.include_router(legal_filing_router, tags=["Legal Filing"])  # Legal merit, consistency, evidence analysis
     app.include_router(legal_trails_router, tags=["Legal Trails"])  # Track violations, claims, broker oversight, filing deadlines
     app.include_router(contacts_router, tags=["Contact Manager"])  # Track landlords, attorneys, witnesses, agencies
     app.include_router(recognition_router, tags=["Document Recognition"])  # World-class document recognition engine
@@ -1660,19 +1723,73 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         user_id = request.cookies.get(COOKIE_USER_ID)
         
         if not is_valid_storage_user(user_id):
-            # First-time visitor or invalid session → Rotate through welcome pages
+            # First-time visitor or invalid session → Template-based welcome page if available
+            welcome_template_path = BASE_PATH / "app" / "templates" / "pages" / "welcome.html"
+            if welcome_template_path.exists():
+                from app.core.user_context import UserRole, get_role_definition
+                from app.core.page_contracts import get_contract
+                from app.core.process_registry import PROCESS_GROUPS
+
+                role_options = []
+                for role in UserRole:
+                    role_def = get_role_definition(role)
+                    role_options.append({
+                        "value": role.value,
+                        "display_name": role_def["display_name"],
+                        "purpose": role_def["purpose"],
+                        "default_landing_process": role_def["default_landing_process"],
+                    })
+
+                storage_options = [
+                    {"value": "need_connect", "label": "I need to connect storage"},
+                    {"value": "already_connected", "label": "Storage is already connected"},
+                    {"value": "review_only", "label": "Review-only mode for now"},
+                ]
+
+                # Page contract for welcome (group coverage map for template use)
+                welcome_contract = get_contract("welcome")
+
+                # Process group labels for the process map panel
+                process_groups = [
+                    {"name": g.name, "title": g.title, "group_id": g.group_id}
+                    for g in PROCESS_GROUPS
+                ]
+
+                return templates.TemplateResponse(
+                    request,
+                    "pages/welcome.html",
+                    {
+                        "role_options": role_options,
+                        "default_role": UserRole.USER.value,
+                        "storage_options": storage_options,
+                        "page_contract": {
+                            "page_id": welcome_contract.page_id,
+                            "group_coverage": welcome_contract.group_coverage,
+                            "primary_groups": welcome_contract.primary_groups,
+                            "telemetry_events": welcome_contract.telemetry_events,
+                        },
+                        "process_groups": process_groups,
+                    }
+                )
+
+            # Fallback to legacy static welcome pages
             for _ in range(len(WELCOME_PAGES)):
                 welcome_path = BASE_PATH / WELCOME_PAGES[_welcome_page_index]
                 _welcome_page_index = (_welcome_page_index + 1) % len(WELCOME_PAGES)
                 if welcome_path.exists():
                     return HTMLResponse(content=welcome_path.read_text(encoding="utf-8"))
-            # Fallback to storage providers if no welcome pages exist
+
             return RedirectResponse(url="/storage/providers", status_code=302)
-        
+
         # Valid user with storage → Dashboard
+        dashboard_template_path = BASE_PATH / "app" / "templates" / "pages" / "dashboard.html"
+        if dashboard_template_path.exists():
+            return templates.TemplateResponse(request, "pages/dashboard.html")
+
         dashboard_path = BASE_PATH / "static" / "dashboard.html"
         if dashboard_path.exists():
             return HTMLResponse(content=dashboard_path.read_text(encoding="utf-8"))
+
         # Fallback JSON response if no frontend
         return JSONResponse(content={
             "name": settings.app_name,
@@ -1682,16 +1799,138 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         })
 
     @app.get("/dashboard", response_class=HTMLResponse)
-    async def dashboard_page():
+    async def dashboard_page(request: Request):
         """Serve the main dashboard with onboarding modal for new users."""
-        dashboard_path = Path("static/dashboard.html")
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import COOKIE_USER_ID
+
+        user_id = request.cookies.get(COOKIE_USER_ID)
+        if not is_valid_storage_user(user_id):
+            return RedirectResponse(url="/storage/providers", status_code=302)
+
+        dashboard_template_path = BASE_PATH / "app" / "templates" / "pages" / "dashboard.html"
+        if dashboard_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/dashboard.html")
+            except Exception as e:
+                logger.warning(f"Dashboard template error, falling back to static: {e}")
+
+        dashboard_path = BASE_PATH / "static" / "dashboard.html"
         if dashboard_path.exists():
             return HTMLResponse(content=dashboard_path.read_text(encoding="utf-8"))
+
         # Fallback to enterprise dashboard
-        enterprise_path = Path("static/enterprise-dashboard.html")
+        enterprise_template_path = BASE_PATH / "app" / "templates" / "pages" / "enterprise-dashboard.html"
+        if enterprise_template_path.exists():
+            return templates.TemplateResponse(request, "pages/enterprise-dashboard.html")
+
+        enterprise_path = BASE_PATH / "static" / "enterprise-dashboard.html"
         if enterprise_path.exists():
             return HTMLResponse(content=enterprise_path.read_text(encoding="utf-8"))
+
         return HTMLResponse(content="<h1>Dashboard not found</h1>", status_code=404)
+
+    @app.get("/gui", response_class=HTMLResponse)
+    async def gui_navigation_hub(request: Request):
+        """Serve the GUI Navigation Hub - central access to all interfaces."""
+        gui_template_path = BASE_PATH / "app" / "templates" / "pages" / "gui_navigation_hub.html"
+        if gui_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/gui_navigation_hub.html")
+            except Exception as e:
+                logger.warning(f"GUI Navigation Hub template error, falling back to static: {e}")
+
+        # Fallback to static file
+        gui_path = BASE_PATH / "static" / "admin" / "gui_navigation_hub.html"
+        if gui_path.exists():
+            return HTMLResponse(content=gui_path.read_text(encoding="utf-8"))
+
+        return HTMLResponse(content="<h1>GUI Navigation Hub not found</h1>", status_code=404)
+
+    @app.get("/auto-mode", response_class=HTMLResponse)
+    async def auto_mode_panel(request: Request):
+        """Serve the Auto Mode Control Panel."""
+        auto_mode_template_path = BASE_PATH / "app" / "templates" / "pages" / "auto_mode_panel.html"
+        if auto_mode_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/auto_mode_panel.html")
+            except Exception as e:
+                logger.warning(f"Auto Mode panel template error, falling back to static: {e}")
+
+        # Fallback to static file
+        auto_mode_path = BASE_PATH / "static" / "components" / "auto_mode_panel.html"
+        if auto_mode_path.exists():
+            return HTMLResponse(content=auto_mode_path.read_text(encoding="utf-8"))
+
+        return HTMLResponse(content="<h1>Auto Mode panel not found</h1>", status_code=404)
+
+    @app.get("/auto-analysis", response_class=HTMLResponse)
+    async def auto_analysis_summary(request: Request):
+        """Serve the Auto Analysis Summary page."""
+        auto_analysis_template_path = BASE_PATH / "app" / "templates" / "pages" / "auto_analysis_summary.html"
+        if auto_analysis_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/auto_analysis_summary.html")
+            except Exception as e:
+                logger.warning(f"Auto Analysis Summary template error, falling back to static: {e}")
+
+        # Fallback to static file
+        auto_analysis_path = BASE_PATH / "static" / "auto_analysis_summary.html"
+        if auto_analysis_path.exists():
+            return HTMLResponse(content=auto_analysis_path.read_text(encoding="utf-8"))
+
+        return HTMLResponse(content="<h1>Auto Analysis Summary not found</h1>", status_code=404)
+
+    @app.get("/mode-selector", response_class=HTMLResponse)
+    async def mode_selector_page(request: Request):
+        """Serve the Mode Selector page."""
+        mode_selector_template_path = BASE_PATH / "app" / "templates" / "pages" / "mode_selector.html"
+        if mode_selector_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/mode_selector.html")
+            except Exception as e:
+                logger.warning(f"Mode Selector template error, falling back to static: {e}")
+
+        # Fallback to static file
+        mode_selector_path = BASE_PATH / "static" / "admin" / "mode_selector.html"
+        if mode_selector_path.exists():
+            return HTMLResponse(content=mode_selector_path.read_text(encoding="utf-8"))
+
+        return HTMLResponse(content="<h1>Mode Selector not found</h1>", status_code=404)
+
+    @app.get("/auto-mode-demo", response_class=HTMLResponse)
+    async def auto_mode_demo_page(request: Request):
+        """Serve the Auto Mode Demo page."""
+        auto_mode_demo_template_path = BASE_PATH / "app" / "templates" / "pages" / "auto_mode_demo.html"
+        if auto_mode_demo_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/auto_mode_demo.html")
+            except Exception as e:
+                logger.warning(f"Auto Mode Demo template error, falling back to static: {e}")
+
+        # Fallback to static file
+        auto_mode_demo_path = BASE_PATH / "static" / "auto_mode_demo.html"
+        if auto_mode_demo_path.exists():
+            return HTMLResponse(content=auto_mode_demo_path.read_text(encoding="utf-8"))
+
+        return HTMLResponse(content="<h1>Auto Mode Demo not found</h1>", status_code=404)
+
+    @app.get("/batch-analysis-results", response_class=HTMLResponse)
+    async def batch_analysis_results_page(request: Request):
+        """Serve the Batch Analysis Results page."""
+        batch_results_template_path = BASE_PATH / "app" / "templates" / "pages" / "batch_analysis_results.html"
+        if batch_results_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/batch_analysis_results.html")
+            except Exception as e:
+                logger.warning(f"Batch Analysis Results template error, falling back to static: {e}")
+
+        # Fallback to static file
+        batch_results_path = BASE_PATH / "static" / "batch_analysis_results.html"
+        if batch_results_path.exists():
+            return HTMLResponse(content=batch_results_path.read_text(encoding="utf-8"))
+
+        return HTMLResponse(content="<h1>Batch Analysis Results not found</h1>", status_code=404)
 
     @app.get("/dev/elbow", response_class=HTMLResponse)
     async def elbow_dev():
@@ -1838,6 +2077,91 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     </div>
 
     <script>
+        let functionToken = null;
+        let functionTokenReverifySeconds = 120;
+        let functionTokenIntervalId = null;
+
+        function setFunctionTokenState(token, reverifySeconds = 120) {{
+            functionToken = token || null;
+            functionTokenReverifySeconds = Number(reverifySeconds) || 120;
+            if (functionToken) {{
+                try {{
+                    localStorage.setItem('semptify_function_token', functionToken);
+                }} catch (e) {{}}
+            }}
+        }}
+
+        async function issueFunctionToken() {{
+            const res = await fetch('/storage/function-token/issue', {{
+                method: 'POST',
+                credentials: 'include',
+            }});
+            if (!res.ok) {{
+                throw new Error('Function token issue failed');
+            }}
+            const data = await res.json();
+            if (data?.token) {{
+                setFunctionTokenState(data.token, data.reverify_in_seconds);
+            }}
+            return data;
+        }}
+
+        async function verifyFunctionToken() {{
+            if (!functionToken) {{
+                return false;
+            }}
+            try {{
+                const params = new URLSearchParams({{
+                    refresh: 'true',
+                }});
+                const res = await fetch('/storage/function-token/verify?' + params.toString(), {{
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {{
+                        'X-Function-Token': functionToken,
+                    }},
+                }});
+                const data = await res.json();
+                if (!data.valid) {{
+                    functionToken = null;
+                    return false;
+                }}
+                if (data.reverify_in_seconds) {{
+                    functionTokenReverifySeconds = Number(data.reverify_in_seconds) || functionTokenReverifySeconds;
+                }}
+                return true;
+            }} catch (e) {{
+                return false;
+            }}
+        }}
+
+        async function ensureFunctionToken() {{
+            if (functionToken) {{
+                const valid = await verifyFunctionToken();
+                if (valid) {{
+                    return true;
+                }}
+            }}
+            await issueFunctionToken();
+            return !!functionToken;
+        }}
+
+        function startFunctionTokenReverifyLoop() {{
+            if (functionTokenIntervalId) {{
+                clearInterval(functionTokenIntervalId);
+            }}
+            functionTokenIntervalId = setInterval(async () => {{
+                const valid = await verifyFunctionToken();
+                if (!valid) {{
+                    try {{
+                        await issueFunctionToken();
+                    }} catch (e) {{
+                        // Keep UI usable; upload path will surface auth errors as needed.
+                    }}
+                }}
+            }}, Math.max(30, functionTokenReverifySeconds) * 1000);
+        }}
+
         // Check session and get storage status
         async function init() {{
             try {{
@@ -1847,6 +2171,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 if (data.authenticated) {{
                     document.getElementById('provider-status').textContent = 
                         '✓ Connected: ' + data.provider;
+                    try {{
+                        await ensureFunctionToken();
+                        startFunctionTokenReverifyLoop();
+                    }} catch (e) {{
+                        showMessage('Vault function security check pending. Upload to initialize access token.', 'error');
+                    }}
                     loadDocuments(data.access_token);
                 }} else {{
                     document.getElementById('provider-status').textContent = 'Not connected';
@@ -1956,13 +2286,20 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                         body: formData,
                         credentials: 'include'
                     }});
+                    let body = null;
+                    try {{
+                        body = await res.json();
+                    }} catch (e) {{}}
                     
                     if (res.ok) {{
+                        if (body?.function_token) {{
+                            setFunctionTokenState(body.function_token, body.function_token_reverify_in_seconds);
+                            startFunctionTokenReverifyLoop();
+                        }}
                         showMessage('Uploaded: ' + file.name, 'success');
                         loadDocuments(data.access_token);
                     }} else {{
-                        const err = await res.json();
-                        showMessage('Failed: ' + (err.detail || 'Unknown error'), 'error');
+                        showMessage('Failed: ' + ((body && body.detail) || 'Unknown error'), 'error');
                     }}
                 }} catch (e) {{
                     showMessage('Upload failed: ' + e.message, 'error');
@@ -1982,8 +2319,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
 
     @app.get("/timeline", response_class=HTMLResponse)
-    async def timeline_page():
+    async def timeline_page(request: Request):
         """Serve the timeline viewer page."""
+        # Try template first
+        timeline_template_path = BASE_PATH / "app" / "templates" / "pages" / "timeline.html"
+        if timeline_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/timeline.html")
+            except Exception as e:
+                logger.warning(f"Timeline template error, falling back to static: {e}")
+
+        # Fallback to static file
         timeline_path = BASE_PATH / "static" / "timeline.html"
         if timeline_path.exists():
             return HTMLResponse(content=timeline_path.read_text(encoding="utf-8"))
@@ -1997,8 +2343,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
 
     @app.get("/documents", response_class=HTMLResponse)
-    async def documents_page():
+    async def documents_page(request: Request):
         """Serve the document intake page."""
+        # Try template first
+        documents_template_path = BASE_PATH / "app" / "templates" / "pages" / "documents.html"
+        if documents_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/documents.html")
+            except Exception as e:
+                logger.warning(f"Documents template error, falling back to static: {e}")
+
+        # Fallback to static file
         documents_path = BASE_PATH / "static" / "documents.html"
         if documents_path.exists():
             return HTMLResponse(content=documents_path.read_text(encoding="utf-8"))
@@ -2040,8 +2395,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @app.get("/legal_analysis.html", response_class=HTMLResponse)
     @app.get("/legal-analysis", response_class=HTMLResponse)
-    async def legal_analysis_page():
+    async def legal_analysis_page(request: Request):
         """Serve the legal analysis page."""
+        # Try template first
+        legal_analysis_template_path = BASE_PATH / "app" / "templates" / "pages" / "legal-analysis.html"
+        if legal_analysis_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/legal-analysis.html")
+            except Exception as e:
+                logger.warning(f"Legal analysis template error, falling back to static: {e}")
+
+        # Fallback to static file
         legal_analysis_path = BASE_PATH / "static" / "legal_analysis.html"
         if legal_analysis_path.exists():
             return HTMLResponse(content=legal_analysis_path.read_text(encoding="utf-8"))
@@ -2056,8 +2420,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @app.get("/my_tenancy.html", response_class=HTMLResponse)
     @app.get("/my-tenancy", response_class=HTMLResponse)
-    async def my_tenancy_page():
+    async def my_tenancy_page(request: Request):
         """Serve the my tenancy page."""
+        # Try template first
+        tenancy_template_path = BASE_PATH / "app" / "templates" / "pages" / "tenancy.html"
+        if tenancy_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/tenancy.html")
+            except Exception as e:
+                logger.warning(f"Tenancy template error, falling back to static: {e}")
+
+        # Fallback to static file
         tenancy_path = BASE_PATH / "static" / "my_tenancy.html"
         if tenancy_path.exists():
             return HTMLResponse(content=tenancy_path.read_text(encoding="utf-8"))
@@ -2070,10 +2443,46 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Tenant Pages (My Case)
     # =========================================================================
 
+    ROLE_HOME_BY_ROLE = {
+        "user": "/tenant",
+        "advocate": "/advocate",
+        "legal": "/legal",
+        "admin": "/admin",
+        "manager": "/admin",
+    }
+
+    def _guard_role_page(request: Request, allowed_roles: set[str]) -> Optional[RedirectResponse]:
+        """Lightweight guard: storage connected + expected role for portal page."""
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import COOKIE_USER_ID, get_role_from_user_id
+
+        user_id = request.cookies.get(COOKIE_USER_ID)
+        if not is_valid_storage_user(user_id):
+            return RedirectResponse(url="/storage/providers", status_code=302)
+
+        current_role = get_role_from_user_id(user_id) or ""
+        if current_role not in allowed_roles:
+            target = ROLE_HOME_BY_ROLE.get(current_role, "/ui")
+            return RedirectResponse(url=target, status_code=302)
+        return None
+
     @app.get("/tenant", response_class=HTMLResponse)
     @app.get("/tenant/", response_class=HTMLResponse)
-    async def tenant_page():
+    async def tenant_page(request: Request):
         """Serve the tenant My Case page."""
+        guard_redirect = _guard_role_page(request, {"user"})
+        if guard_redirect:
+            return guard_redirect
+
+        # Try template first
+        tenant_template_path = BASE_PATH / "app" / "templates" / "pages" / "tenant.html"
+        if tenant_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/tenant.html")
+            except Exception as e:
+                logger.warning(f"Tenant template error, falling back to static: {e}")
+
+        # Fallback to static file
         tenant_path = BASE_PATH / "static" / "tenant" / "index.html"
         if tenant_path.exists():
             return HTMLResponse(content=tenant_path.read_text(encoding="utf-8"))
@@ -2083,8 +2492,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         )
 
     @app.get("/tenant/{subpage}", response_class=HTMLResponse)
-    async def tenant_subpage(subpage: str):
+    async def tenant_subpage(subpage: str, request: Request):
         """Serve tenant sub-pages (documents, timeline, help, copilot)."""
+        guard_redirect = _guard_role_page(request, {"user"})
+        if guard_redirect:
+            return guard_redirect
+
         # Security: prevent directory traversal
         if ".." in subpage or "/" in subpage or "\\" in subpage:
             return HTMLResponse(content="<h1>400 - Invalid Request</h1>", status_code=400)
@@ -2100,6 +2513,167 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         
         # Fallback: redirect to main tenant page
         return RedirectResponse(url="/tenant", status_code=302)
+
+    # =========================================================================
+    # Advocate Pages
+    # =========================================================================
+
+    @app.get("/advocate", response_class=HTMLResponse)
+    @app.get("/advocate/", response_class=HTMLResponse)
+    async def advocate_page(request: Request):
+        """Serve the advocate dashboard page."""
+        guard_redirect = _guard_role_page(request, {"advocate"})
+        if guard_redirect:
+            return guard_redirect
+
+        advocate_template_path = BASE_PATH / "app" / "templates" / "pages" / "advocate.html"
+        if advocate_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/advocate.html")
+            except Exception as e:
+                logger.warning(f"Advocate template error, falling back to static: {e}")
+
+        advocate_path = BASE_PATH / "static" / "advocate" / "index.html"
+        if advocate_path.exists():
+            return HTMLResponse(content=advocate_path.read_text(encoding="utf-8"))
+
+        return HTMLResponse(content="<h1>Advocate page not found</h1>", status_code=404)
+
+    @app.get("/advocate/{subpage}", response_class=HTMLResponse)
+    async def advocate_subpage(subpage: str, request: Request):
+        """Serve advocate sub-pages."""
+        guard_redirect = _guard_role_page(request, {"advocate"})
+        if guard_redirect:
+            return guard_redirect
+
+        if ".." in subpage or "/" in subpage or "\\" in subpage:
+            return HTMLResponse(content="<h1>400 - Invalid Request</h1>", status_code=400)
+
+        subpage_path = BASE_PATH / "static" / "advocate" / f"{subpage}.html"
+        if subpage_path.exists():
+            return HTMLResponse(content=subpage_path.read_text(encoding="utf-8"))
+
+        subpage_index = BASE_PATH / "static" / "advocate" / subpage / "index.html"
+        if subpage_index.exists():
+            return HTMLResponse(content=subpage_index.read_text(encoding="utf-8"))
+
+        return RedirectResponse(url="/advocate", status_code=302)
+
+    # =========================================================================
+    # Legal Pages
+    # =========================================================================
+
+    @app.get("/legal", response_class=HTMLResponse)
+    @app.get("/legal/", response_class=HTMLResponse)
+    async def legal_page(request: Request):
+        """Serve the legal dashboard page."""
+        guard_redirect = _guard_role_page(request, {"legal"})
+        if guard_redirect:
+            return guard_redirect
+
+        legal_template_path = BASE_PATH / "app" / "templates" / "pages" / "legal.html"
+        if legal_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/legal.html")
+            except Exception as e:
+                logger.warning(f"Legal template error, falling back to static: {e}")
+
+        legal_path = BASE_PATH / "static" / "legal" / "index.html"
+        if legal_path.exists():
+            return HTMLResponse(content=legal_path.read_text(encoding="utf-8"))
+
+        return HTMLResponse(content="<h1>Legal page not found</h1>", status_code=404)
+
+    @app.get("/legal/{subpage}", response_class=HTMLResponse)
+    async def legal_subpage(subpage: str, request: Request):
+        """Serve legal sub-pages with compatibility aliases."""
+        guard_redirect = _guard_role_page(request, {"legal"})
+        if guard_redirect:
+            return guard_redirect
+
+        if ".." in subpage or "/" in subpage or "\\" in subpage:
+            return HTMLResponse(content="<h1>400 - Invalid Request</h1>", status_code=400)
+
+        subpage_aliases = {
+            "clients": "cases",
+            "queue": "cases",
+            "calendar": "cases",
+            "work-product": "privileged",
+            "research": None,
+            "library": None,
+        }
+        target = subpage_aliases.get(subpage, subpage)
+
+        if target is None:
+            return RedirectResponse(url="/law-library", status_code=302)
+
+        subpage_path = BASE_PATH / "static" / "legal" / f"{target}.html"
+        if subpage_path.exists():
+            return HTMLResponse(content=subpage_path.read_text(encoding="utf-8"))
+
+        subpage_index = BASE_PATH / "static" / "legal" / target / "index.html"
+        if subpage_index.exists():
+            return HTMLResponse(content=subpage_index.read_text(encoding="utf-8"))
+
+        return RedirectResponse(url="/legal", status_code=302)
+
+    # =========================================================================
+    # Admin Pages
+    # =========================================================================
+
+    @app.get("/admin", response_class=HTMLResponse)
+    @app.get("/admin/", response_class=HTMLResponse)
+    async def admin_page(request: Request):
+        """Serve the admin dashboard page."""
+        guard_redirect = _guard_role_page(request, {"admin", "manager"})
+        if guard_redirect:
+            return guard_redirect
+
+        admin_template_path = BASE_PATH / "app" / "templates" / "pages" / "admin.html"
+        if admin_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/admin.html")
+            except Exception as e:
+                logger.warning(f"Admin template error, falling back to static: {e}")
+
+        admin_path = BASE_PATH / "static" / "admin" / "mission_control.html"
+        if admin_path.exists():
+            return HTMLResponse(content=admin_path.read_text(encoding="utf-8"))
+
+        return HTMLResponse(content="<h1>Admin page not found</h1>", status_code=404)
+
+    @app.get("/admin/{subpage}", response_class=HTMLResponse)
+    async def admin_subpage(subpage: str, request: Request):
+        """Serve admin sub-pages with aliases for compatibility."""
+        guard_redirect = _guard_role_page(request, {"admin", "manager"})
+        if guard_redirect:
+            return guard_redirect
+
+        if ".." in subpage or "/" in subpage or "\\" in subpage:
+            return HTMLResponse(content="<h1>400 - Invalid Request</h1>", status_code=400)
+
+        subpage_aliases = {
+            "users": "gui_navigation_hub",
+            "system": "mission_control",
+            "analytics": "documentation_hub",
+            "logs": "documentation_hub",
+            "mission-control": "mission_control",
+            "gui": "gui_navigation_hub",
+            "mode-selector": "mode_selector",
+            "easy-mode": "easy_mode_selector",
+            "docs": "documentation_hub",
+        }
+        target = subpage_aliases.get(subpage, subpage)
+
+        subpage_path = BASE_PATH / "static" / "admin" / f"{target}.html"
+        if subpage_path.exists():
+            return HTMLResponse(content=subpage_path.read_text(encoding="utf-8"))
+
+        subpage_index = BASE_PATH / "static" / "admin" / target / "index.html"
+        if subpage_index.exists():
+            return HTMLResponse(content=subpage_index.read_text(encoding="utf-8"))
+
+        return RedirectResponse(url="/admin", status_code=302)
 
     # =========================================================================
     # Catch-All HTML Page Router
@@ -2143,3 +2717,4 @@ if __name__ == "__main__":
         port=settings.port,
         reload=settings.debug,
     )
+

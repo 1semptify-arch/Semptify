@@ -1,0 +1,59 @@
+{
+  "user_id": "GUlRso41d8",
+  "case_number": "AUTO-20260311142852",
+  "case_type": "eviction_defense",
+  "status": "active",
+  "court": "District Court",
+  "property_address": "",
+  "rent_amount": 0,
+  "security_deposit": 0,
+  "plaintiff": {
+    "name": "Unknown Plaintiff",
+    "role": "plaintiff",
+    "address": null,
+    "phone": null
+  },
+  "defendant": {
+    "name": "Unknown Defendant",
+    "role": "defendant",
+    "is_pro_se": true,
+    "address": null,
+    "phone": null
+  },
+  "hearing_date": null,
+  "answer_due": null,
+  "source_document_id": "c5d56c21-d67d-467b-b4e6-fa5190616eec",
+  "source_filename": "MCRO_19AV-CV-25-3477_Complaint-Civil_2025-12-03_20251203175827.pdf",
+  "timeline": [
+    {
+      "id": "evt_doc_c5d56c21",
+      "date": "2026-03-11",
+      "title": "Document Received: MCRO_19AV-CV-25-3477_Complaint-Civil_2025-12-03_20251203175827.pdf",
+      "description": "Court document 'MCRO_19AV-CV-25-3477_Complaint-Civil_2025-12-03_20251203175827.pdf' uploaded and case auto-created",
+      "category": "court",
+      "importance": "high"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "evi_c5d56c21",
+      "title": "MCRO_19AV-CV-25-3477_Complaint-Civil_2025-12-03_20251203175827.pdf",
+      "evidence_type": "document",
+      "date_obtained": "2026-03-11",
+      "description": "Original court filing: court_filing",
+      "source": "document_intake",
+      "relevance": "Primary court document",
+      "document_id": "c5d56c21-d67d-467b-b4e6-fa5190616eec"
+    }
+  ],
+  "defenses": [],
+  "counterclaims": [],
+  "motions": [],
+  "deadlines": [],
+  "notes": [
+    "Case auto-created from uploaded document: MCRO_19AV-CV-25-3477_Complaint-Civil_2025-12-03_20251203175827.pdf"
+  ],
+  "created_at": "2026-03-11T14:28:52.391655",
+  "updated_at": "2026-03-11T14:28:52.391663",
+  "auto_created": true
+}

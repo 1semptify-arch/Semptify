@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260310_154419_60359117",
+  "vault_id": "60359117-877c-42d9-9433-5ce26785c6d9",
+  "sha256": "218e6368942095dd8010f67884c43d7494c18c6602055ffd4753f8fc27ac8459",
+  "original_filename": "the one we signed 1 of11 2024-2025 lease_ocred.pdf",
+  "file_size": 4009550,
+  "mime_type": "application/pdf",
+  "document_type": "lease",
+  "certified_at": "2026-03-10T15:44:19.399876+00:00",
+  "storage_path": "data\\vault_storage\\GUIRy2Rcov\\60359117-877c-42d9-9433-5ce26785c6d9.pdf",
+  "storage_provider": "local",
+  "user_id": "GUIRy2Rcov",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

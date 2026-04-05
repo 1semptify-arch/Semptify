@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_193920_d3bff8df",
+  "vault_id": "d3bff8df-e249-4489-9b40-93ce4e4b7485",
+  "sha256": "f456d0eb9bb39b5c1d2485201ee0678c6d49b941762ef189e7d07ff1089093aa",
+  "original_filename": "MCRO_19AV-CV-25-3477_Eviction Summons_2025-11-19_20251203175914.pdf",
+  "file_size": 169519,
+  "mime_type": "application/pdf",
+  "document_type": "court",
+  "certified_at": "2026-03-11T19:39:20.148342+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\d3bff8df-e249-4489-9b40-93ce4e4b7485.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

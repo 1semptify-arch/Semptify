@@ -5,13 +5,24 @@ Includes connection pooling configuration for production.
 """
 
 from typing import AsyncGenerator
-from sqlalchemy.ext.asyncio import (
-    AsyncSession,
-    async_sessionmaker,
-    create_async_engine,
-)
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.pool import NullPool, AsyncAdaptedQueuePool
+
+try:
+    from sqlalchemy.ext.asyncio import (
+        AsyncSession,
+        async_sessionmaker,
+        create_async_engine,
+    )
+    from sqlalchemy.orm import DeclarativeBase
+    from sqlalchemy.pool import NullPool, AsyncAdaptedQueuePool
+    SQLALCHEMY_AVAILABLE = True
+except ImportError:
+    AsyncSession = object
+    async_sessionmaker = None
+    create_async_engine = None
+    DeclarativeBase = object
+    NullPool = None
+    AsyncAdaptedQueuePool = None
+    SQLALCHEMY_AVAILABLE = False
 
 from app.core.config import get_settings
 
@@ -29,16 +40,18 @@ _async_session_factory = None
 def get_engine():
     """
     Get or create the async engine with proper connection pooling.
-    
+
     Pool settings:
     - PostgreSQL: QueuePool with configurable size
     - SQLite: NullPool (SQLite doesn't support concurrent connections well)
     """
+    if not SQLALCHEMY_AVAILABLE:
+        raise RuntimeError("SQLAlchemy is not installed in this environment")
     global _engine
     if _engine is None:
         settings = get_settings()
         is_sqlite = "sqlite" in settings.database_url
-        
+
         # Connection pool configuration
         pool_config = {}
         if is_sqlite:
@@ -57,7 +70,7 @@ def get_engine():
                 "pool_recycle": 1800,  # Recycle connections after 30 min
                 "pool_pre_ping": True,  # Verify connections before use
             }
-        
+
         _engine = create_async_engine(
             settings.database_url,
             echo=settings.debug,
@@ -68,6 +81,8 @@ def get_engine():
 
 def get_session_factory():
     """Get or create the session factory."""
+    if not SQLALCHEMY_AVAILABLE:
+        raise RuntimeError("SQLAlchemy is not installed in this environment")
     global _async_session_factory
     if _async_session_factory is None:
         _async_session_factory = async_sessionmaker(

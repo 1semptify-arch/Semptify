@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_195929_f33c562e",
+  "vault_id": "f33c562e-5f89-4e7e-a862-0ef9210d0fa9",
+  "sha256": "4511c6c05aa080e072463597daf599c5167445df4ab499658c16c6e70b5b928e",
+  "original_filename": "MCRO_19AV-CV-25-3477_Amended Motion_2025-12-03_20251207202459.pdf",
+  "file_size": 146669,
+  "mime_type": "application/pdf",
+  "document_type": "",
+  "certified_at": "2026-03-11T19:59:29.319731+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\f33c562e-5f89-4e7e-a862-0ef9210d0fa9.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

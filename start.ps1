@@ -14,6 +14,9 @@ param(
 # Set window title
 $Host.UI.RawUI.WindowTitle = "Semptify v5.0 - Production"
 
+# Fix Unicode encoding for emoji and special characters in logs
+$env:PYTHONIOENCODING = 'utf-8'
+
 # Colors
 function Write-Banner { param($msg) Write-Host $msg -ForegroundColor Cyan }
 function Write-Success { param($msg) Write-Host "[OK] $msg" -ForegroundColor Green }

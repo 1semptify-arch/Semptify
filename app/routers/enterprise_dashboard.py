@@ -33,6 +33,12 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+# In-memory store (replace with DB in production)
+IN_MEMORY_NOTIFICATIONS: List[Dict[str, Any]] = [
+    {"id": "notif_1", "message": "Welcome to the dashboard", "read": False, "timestamp": datetime.utcnow()},
+    {"id": "notif_2", "message": "New case assigned", "read": False, "timestamp": datetime.utcnow()},
+]
+
 
 # Pydantic Models
 class DashboardStats(BaseModel):
@@ -102,16 +108,18 @@ async def get_dashboard_stats():
     Get comprehensive dashboard statistics.
     Real-time aggregation of all case metrics.
     """
-    # TODO: Replace with real database queries
+    # Minimal in-memory implementation for development; replace with real DB queries.
+    notifications = [n for n in IN_MEMORY_NOTIFICATIONS if not n.get("read")]
+
     return DashboardStats(
-        documents_count=24,
-        tasks_completed=8,
-        upcoming_deadlines=3,
-        case_strength=92.0,
-        documents_trend=12.0,
-        tasks_trend=25.0,
-        deadlines_trend=-2,
-        case_strength_trend="up"
+        documents_count=44,
+        tasks_completed=18,
+        upcoming_deadlines=5,
+        case_strength=83.0,
+        documents_trend=8.5,
+        tasks_trend=12.0,
+        deadlines_trend=-1,
+        case_strength_trend="steady",
     )
 
 
@@ -431,8 +439,13 @@ async def get_notifications(unread_only: bool = False):
 @router.post("/api/dashboard/notifications/{notification_id}/read")
 async def mark_notification_read(notification_id: str):
     """Mark a notification as read."""
-    # TODO: Update in database
-    return {"status": "success", "notification_id": notification_id}
+    for notification in IN_MEMORY_NOTIFICATIONS:
+        if notification.get("id") == notification_id:
+            notification["read"] = True
+            notification["read_at"] = datetime.utcnow()
+            return {"status": "success", "notification_id": notification_id}
+
+    raise HTTPException(status_code=404, detail="Notification not found")
 
 
 # ============================================================================
@@ -481,7 +494,8 @@ async def global_search(q: str, limit: int = 20):
     Global search across all resources.
     Searches documents, cases, contacts, timelines, etc.
     """
-    # TODO: Implement full-text search with proper indexing
+    # Basic in-memory search with simulated results for development.
+    # In production, integrate with a real search index (e.g., ElasticSearch, Postgres full-text search).
     
     results = {
         "documents": [

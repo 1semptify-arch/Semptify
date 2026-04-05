@@ -1,0 +1,10 @@
+﻿Folder,Purpose
+01_Filings,"Anything submitted to court (PDFs, stamped copies, receipts)"
+02_Drafts,"Working versions of motions, complaints, statements"
+03_Evidence_Raw,"Screenshots, photos, emails, recordings — untouched"
+04_Evidence_Processed,"Cropped, labeled, redacted, or combined evidence"
+05_Exhibits_Final,Final exhibit PDFs with exhibit numbers
+06_Correspondence,"Emails, letters, notices, texts exported"
+07_Research_Law,"Statutes, rules, case law"
+08_Notes_Timeline,"Your timeline, summaries, call logs"
+09_Exports_Packets,"Final packets for attorneys, reporters, agencies"

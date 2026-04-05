@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}My Tenancy - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+    /* Tenancy specific styles will be added here */
+    .tenancy-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .tenancy-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .tenancy-content {
+        /* Placeholder for tenancy content */
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        color: #a0aec0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tenancy-container">
+    <div class="tenancy-header">
+        <h1>🏠 My Tenancy</h1>
+        <p>Manage your tenancy information and documents</p>
+    </div>
+
+    <div class="tenancy-content">
+        <p>Tenancy management functionality is being migrated to use templates.</p>
+        <p>This page will be fully implemented with the new template system.</p>
+        <a href="/timeline" class="btn btn-primary">Go to Timeline</a>
+    </div>
+</div>
+{% endblock %}

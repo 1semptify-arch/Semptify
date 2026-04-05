@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_193439_c9615594",
+  "vault_id": "c9615594-4451-4ad1-ae03-6345c7021266",
+  "sha256": "92b41e4fe79711f780fc4ba5431500a1b69ebdce1abaeb57c7eb66e5f8145728",
+  "original_filename": "MCRO_19AV-CV-25-3477_Answer_2025-12-02_20251203175845.pdf",
+  "file_size": 344243,
+  "mime_type": "application/pdf",
+  "document_type": "court",
+  "certified_at": "2026-03-11T19:34:39.373291+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\c9615594-4451-4ad1-ae03-6345c7021266.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

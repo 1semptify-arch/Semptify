@@ -1,0 +1,15 @@
+{
+  "certificate_id": "cert_20260311_180351_de8a4245",
+  "vault_id": "de8a4245-1020-4883-ba76-16145b158aa6",
+  "sha256": "8a24fb581ed5f54a7bb207244afe1cfe7dba5c63364389218f7c7d227d38bccb",
+  "original_filename": "resident reminder_ocred.pdf",
+  "file_size": 4196326,
+  "mime_type": "application/pdf",
+  "document_type": "notice",
+  "certified_at": "2026-03-11T18:03:51.812228+00:00",
+  "storage_path": "data\\vault_storage\\GUlRso41d8\\de8a4245-1020-4883-ba76-16145b158aa6.pdf",
+  "storage_provider": "local",
+  "user_id": "GUlRso41d8",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}
