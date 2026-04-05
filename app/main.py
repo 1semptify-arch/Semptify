@@ -100,6 +100,7 @@ page_index_router = _safe_router_import("app.routers.page_index")
 documents_router = _safe_router_import("app.routers.documents")
 intake_router = _safe_router_import("app.routers.intake")
 workflow_router = _safe_router_import("app.routers.workflow")
+functionx_router = _safe_router_import("app.routers.functionx")
 from app.routers import storage
 from app.core.mesh_integration import start_mesh_network, stop_mesh_network
 
@@ -1604,6 +1605,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     include_if(form_data_router, prefix="/api/form-data", tags=["Form Data Hub"])  # Central data integration
     include_if(setup_router, prefix="/api/setup", tags=["Setup Wizard"])  # Initial setup wizard
     include_if(auto_mode_router, tags=["Auto Mode"])  # Auto mode analysis & summaries
+    include_if(functionx_router, tags=["FunctionX"])  # Action-set planning and execution scaffold
     include_if(websocket_router, prefix="/ws", tags=["WebSocket Events"])  # Real-time events
     include_if(module_hub_router, prefix="/api", tags=["Module Hub"])  # Central module communication
     include_if(positronic_mesh_router, prefix="/api", tags=["Positronic Mesh"])  # Workflow orchestration
