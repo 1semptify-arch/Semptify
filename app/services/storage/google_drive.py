@@ -6,6 +6,7 @@ Async Google Drive client using httpx and Google OAuth2.
 from typing import Optional
 from datetime import datetime, timezone
 import json
+import secrets
 
 import httpx
 
@@ -163,31 +164,61 @@ class GoogleDriveProvider(StorageProvider):
                             modified_at=datetime.now(timezone.utc),
                         )
                 else:
-                    # CREATE new file
+                    # CREATE new file using multipart upload so name + parent are set
+                    # atomically in a single request — no separate PATCH needed.
+                    metadata = json.dumps({
+                        "name": filename,
+                        "parents": [folder_id],
+                    }).encode()
+
+                    boundary = "semptify_boundary_" + secrets.token_hex(8)
+                    body = (
+                        f"--{boundary}\r\n"
+                        f"Content-Type: application/json; charset=UTF-8\r\n\r\n"
+                    ).encode()
+                    body += metadata
+                    body += f"\r\n--{boundary}\r\n".encode()
+                    body += f"Content-Type: {mime_type}\r\n\r\n".encode()
+                    body += file_content
+                    body += f"\r\n--{boundary}--".encode()
+
                     response = await client.post(
                         f"{self.UPLOAD_URL}/files",
                         headers={
                             "Authorization": f"Bearer {self.access_token}",
-                            "Content-Type": mime_type,
+                            "Content-Type": f"multipart/related; boundary={boundary}",
                         },
-                        params={
-                            "uploadType": "media",
-                        },
-                        content=file_content,
+                        params={"uploadType": "multipart"},
+                        content=body,
                         timeout=60.0,
                     )
-                    
+
                     if response.status_code in (200, 201):
                         file_data = response.json()
-                        # Update metadata (name and parent)
-                        await client.patch(
-                            f"{self.BASE_URL}/files/{file_data['id']}",
-                            headers={**self._headers(), "Content-Type": "application/json"},
-                            params={"addParents": folder_id},
-                            json={"name": filename},
+                        # Confirm the file is findable at the expected path before
+                        # returning success.  This makes upload_file() atomic from
+                        # the vault manager's perspective: success means the file
+                        # can immediately be resolved via download_file().
+                        confirm_query = (
+                            f"name='{filename}' and '{folder_id}' in parents"
+                            f" and trashed=false"
+                        )
+                        confirm_resp = await client.get(
+                            f"{self.BASE_URL}/files",
+                            headers=self._headers(),
+                            params={"q": confirm_query, "fields": "files(id)"},
                             timeout=10.0,
                         )
-                        
+                        if (
+                            confirm_resp.status_code != 200
+                            or not confirm_resp.json().get("files")
+                        ):
+                            raise Exception(
+                                f"Upload confirmed by Drive but file '{filename}' "
+                                f"is not resolvable at '{destination_path}'. "
+                                f"Vault write cannot be verified."
+                            )
+
                         return StorageFile(
                             id=file_data["id"],
                             name=filename,

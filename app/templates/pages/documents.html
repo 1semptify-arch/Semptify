@@ -3,6 +3,7 @@
 {% block title %}Documents - Semptify{% endblock %}
 
 {% block styles %}
+<link rel="stylesheet" href="/static/css/workspace-stage-model.css">
 <style>
     /* Documents specific styles will be added here */
     .documents-container {
@@ -39,5 +40,11 @@
         <p>This page will be fully implemented with the new template system.</p>
         <a href="/timeline" class="btn btn-primary">Go to Timeline</a>
     </div>
+
+    {% include "partials/workspace_stage_panel.html" %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/workspace-stage-model.js"></script>
 {% endblock %}

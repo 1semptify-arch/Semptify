@@ -3,6 +3,7 @@
 {% block title %}Advocate Dashboard - Semptify{% endblock %}
 
 {% block styles %}
+<link rel="stylesheet" href="/static/css/workspace-stage-model.css">
 <style>
 .role-container {
     max-width: 1150px;
@@ -52,6 +53,8 @@
     <h1>Advocate Dashboard</h1>
     <p>Case support workflow without dead ends.</p>
 
+    {% include "partials/workspace_stage_panel.html" %}
+
     <div class="role-links">
         <a href="/advocate">Overview</a>
         <a href="/advocate/clients">Clients</a>
@@ -83,4 +86,5 @@ document.querySelectorAll('[data-advocate-suggest]').forEach((chip) => {
     });
 });
 </script>
+<script src="/static/js/workspace-stage-model.js"></script>
 {% endblock %}

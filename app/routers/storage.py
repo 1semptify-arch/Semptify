@@ -12,6 +12,7 @@ Example: GT7x9kM2pQ = Google + Tenant + unique
 """
 
 from datetime import datetime, timedelta
+import logging
 
 from app.core.utc import utc_now
 from typing import Optional
@@ -59,10 +60,11 @@ except ImportError:
     AsyncSession = object
     select = None
     SQLALCHEMY_AVAILABLE = False
-from app.models.models import User, Session as SessionModel, StorageConfig
+from app.models.models import User, Session as SessionModel, StorageConfig, OAuthState
 
 
 router = APIRouter(prefix="/storage", tags=["storage"])
+logger = logging.getLogger(__name__)
 
 def _get_settings():
     """Lazy settings getter to avoid import-time validation issues."""
@@ -97,34 +99,49 @@ OAUTH_CONFIGS = {
     },
 }
 
-# Temporary state storage for OAuth CSRF protection
-# States expire after 15 minutes (increased from 5 for slower connections)
-OAUTH_STATES: dict[str, dict] = {}
-OAUTH_STATE_TIMEOUT_MINUTES = 15  # Give users more time to complete OAuth
+OAUTH_STATE_TIMEOUT_MINUTES = 15  # OAuth state TTL in minutes
 
 ALLOWED_ROLES = {"user", "manager", "advocate", "legal", "admin"}
 
-# Clean up expired states periodically
-def _cleanup_expired_states():
-    """Remove expired OAuth states from memory."""
-    now = utc_now()
-    expired = [
-        state for state, data in OAUTH_STATES.items()
-        if now - data.get("created_at", now) > timedelta(minutes=OAUTH_STATE_TIMEOUT_MINUTES)
-    ]
-    for state in expired:
-        OAUTH_STATES.pop(state, None)
-    if expired:
-        print(f"🧹 Cleaned up {len(expired)} expired OAuth states")
-
-# In-memory session cache (backed by database via SessionModel)
-# This is a cache - the source of truth is the database
+# Legacy in-memory compatibility maps.
+# DB rows remain the source of truth; these are only a transitional bridge for
+# older tests/callers still importing module-level state.
 SESSIONS: dict[str, dict] = {}
+OAUTH_STATES: dict[str, dict] = {}
 
-# User registry - maps OAuth email to user_id (for session recovery on new browser/cleared cookies)
-# When user re-authenticates with same OAuth account, we restore their original user_id
-# Backed by User table in database
-USER_REGISTRY: dict[str, str] = {}  # {email: user_id}
+async def _cleanup_expired_states(db: AsyncSession) -> None:
+    """Remove expired OAuth states from the database."""
+    from sqlalchemy import delete as sa_delete
+    result = await db.execute(
+        sa_delete(OAuthState).where(OAuthState.expires_at < utc_now())
+    )
+    if result.rowcount:
+        print(f"🧹 Cleaned up {result.rowcount} expired OAuth states")
+
+    # Transitional cleanup for legacy in-memory state map.
+    now = utc_now()
+    stale_keys = []
+    for state_id, payload in OAUTH_STATES.items():
+        expires_at = payload.get("expires_at")
+        created_at = payload.get("created_at")
+
+        if not expires_at and created_at:
+            expires_at = created_at + timedelta(minutes=OAUTH_STATE_TIMEOUT_MINUTES)
+
+        if isinstance(expires_at, str):
+            expires_at = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
+
+        if expires_at and expires_at.tzinfo is None:
+            from datetime import timezone as _tz
+            expires_at = expires_at.replace(tzinfo=_tz.utc)
+
+        if expires_at and now > expires_at:
+            stale_keys.append(state_id)
+
+    for state_id in stale_keys:
+        OAUTH_STATES.pop(state_id, None)
+
+    await db.commit()
 
 # Token expiry buffer (refresh 5 minutes before actual expiry)
 TOKEN_EXPIRY_BUFFER = timedelta(minutes=5)
@@ -303,12 +320,8 @@ async def get_valid_session(
     if needs_refresh and auto_refresh and refresh_token:
         new_token_data = await refresh_access_token(db, user_id, provider, refresh_token)
         if new_token_data:
-            # Update session with new token
-            session["access_token"] = new_token_data["access_token"]
-            session["refresh_token"] = new_token_data["refresh_token"]
-            session["expires_at"] = new_token_data["expires_at"].isoformat()
-            SESSIONS[user_id] = session
-            return session
+            # Refresh saved to DB by refresh_access_token; re-read the session.
+            return await get_session_from_db(db, user_id)
         else:
             # Refresh failed - session is invalid
             print(f"Token refresh failed for user {user_id[:4]}*** - session invalidated")
@@ -345,12 +358,7 @@ def _decrypt_string(encrypted: str, user_id: str) -> str:
 
 
 async def get_session_from_db(db: AsyncSession, user_id: str) -> Optional[dict]:
-    """Load session from database into memory cache."""
-    # Check memory cache first
-    if user_id in SESSIONS:
-        return SESSIONS[user_id]
-
-    # Load from database
+    """Load session from the database."""
     result = await db.execute(
         select(SessionModel).where(SessionModel.user_id == user_id)
     )
@@ -371,7 +379,13 @@ async def get_session_from_db(db: AsyncSession, user_id: str) -> Optional[dict]:
             return session_data
         except Exception:
             # Decryption failed - session may be corrupted
+            SESSIONS.pop(user_id, None)
             return None
+
+    # Transitional fallback for older tests/callers that still use in-memory sessions.
+    legacy_session = SESSIONS.get(user_id)
+    if legacy_session:
+        return legacy_session
 
     return None
 
@@ -384,7 +398,7 @@ async def save_session_to_db(
     refresh_token: Optional[str] = None,
     expires_at: Optional[datetime] = None,
 ) -> None:
-    """Save session to database and memory cache."""
+    """Save session to database."""
     # Check if session exists
     result = await db.execute(
         select(SessionModel).where(SessionModel.user_id == user_id)
@@ -416,7 +430,7 @@ async def save_session_to_db(
 
     await db.commit()
 
-    # Update memory cache
+    # Keep compatibility map aligned for transitional callers/tests.
     SESSIONS[user_id] = {
         "user_id": user_id,
         "provider": provider,
@@ -497,20 +511,42 @@ async def get_user_from_db(db: AsyncSession, user_id: str) -> Optional[User]:
 
 async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
     """Find user by email for session recovery."""
-    # Check memory cache first
-    if email in USER_REGISTRY:
-        return await get_user_from_db(db, USER_REGISTRY[email])
-    
-    # Query database
     result = await db.execute(
         select(User).where(User.email == email)
     )
-    user = result.scalar_one_or_none()
-    
-    if user:
-        USER_REGISTRY[email] = user.id
-    
-    return user
+    return result.scalar_one_or_none()
+
+
+async def get_user_by_provider_subject(
+    db: AsyncSession,
+    provider: str,
+    provider_subject: str,
+) -> Optional[User]:
+    """Find user by OAuth provider and provider-asserted subject/account id."""
+    result = await db.execute(
+        select(User).where(
+            User.primary_provider == provider,
+            User.storage_user_id == provider_subject,
+        )
+    )
+    return result.scalar_one_or_none()
+
+
+async def _mark_group_complete(db: AsyncSession, user_id: str, group_name: str) -> None:
+    """
+    Permanently record that a ProcessGroup's exit criteria have been met.
+    Written once. Read by middleware to skip cloud re-verification.
+    Never removed — serial gating ensures this is written only when truly complete.
+    """
+    user = await get_user_from_db(db, user_id)
+    if not user:
+        return
+    existing = user.completed_groups or ""
+    groups = set(g for g in existing.split(",") if g)
+    if group_name not in groups:
+        groups.add(group_name)
+        user.completed_groups = ",".join(sorted(groups))
+        await db.commit()
 
 
 async def create_or_update_user(
@@ -519,6 +555,7 @@ async def create_or_update_user(
     provider: str,
     email: Optional[str] = None,
     display_name: Optional[str] = None,
+    storage_user_id: Optional[str] = None,
 ) -> User:
     """Create new user or update existing one."""
     user = await get_user_from_db(db, user_id)
@@ -529,6 +566,8 @@ async def create_or_update_user(
     if user:
         # Update last login
         user.last_login = now
+        if storage_user_id and user.storage_user_id != storage_user_id:
+            user.storage_user_id = storage_user_id
         if email and not user.email:
             user.email = email
         if display_name and not user.display_name:
@@ -538,7 +577,7 @@ async def create_or_update_user(
         user = User(
             id=user_id,
             primary_provider=provider,
-            storage_user_id=user_id,  # Will be updated with actual provider ID
+            storage_user_id=storage_user_id or user_id,
             default_role=role,
             email=email,
             display_name=display_name,
@@ -547,11 +586,6 @@ async def create_or_update_user(
         db.add(user)
     
     await db.commit()
-    
-    # Update registry cache
-    if email:
-        USER_REGISTRY[email] = user_id
-    
     return user
 
 
@@ -639,6 +673,9 @@ async def storage_home(
 async def list_providers(
     request: Request,
     semptify_uid: Optional[str] = Cookie(None),
+    role: Optional[str] = Query(None),
+    from_source: Optional[str] = Query(None, alias="from"),
+    return_to: Optional[str] = Query(None),
 ):
     """
     Show storage provider selection page.
@@ -650,7 +687,7 @@ async def list_providers(
         return await _providers_json(semptify_uid)
     
     # Return HTML page
-    return HTMLResponse(content=_generate_providers_html(semptify_uid))
+    return HTMLResponse(content=_generate_providers_html(semptify_uid, role, from_source, return_to))
 
 
 async def _providers_json(semptify_uid: Optional[str] = None):
@@ -699,11 +736,25 @@ async def _providers_json(semptify_uid: Optional[str] = None):
     }
 
 
-def _generate_providers_html(semptify_uid: Optional[str] = None) -> str:
+def _generate_providers_html(
+    semptify_uid: Optional[str] = None,
+    role: Optional[str] = None,
+    from_source: Optional[str] = None,
+    return_to: Optional[str] = None,
+) -> str:
     """Generate the storage provider selection HTML page."""
     current_provider = None
     if semptify_uid:
         current_provider = get_provider_from_user_id(semptify_uid)
+
+    auth_params: dict[str, str] = {}
+    if role in ALLOWED_ROLES:
+        auth_params["role"] = role
+    if from_source:
+        auth_params["from"] = from_source
+    if return_to and return_to.startswith("/") and not return_to.startswith("//"):
+        auth_params["return_to"] = return_to
+    auth_suffix = f"?{urlencode(auth_params)}" if auth_params else ""
     
     # Build provider cards
     provider_cards = ""
@@ -711,7 +762,7 @@ def _generate_providers_html(semptify_uid: Optional[str] = None) -> str:
     if _get_settings().google_drive_client_id:
         connected = "connected" if current_provider == "google_drive" else ""
         provider_cards += f'''
-        <a href="/storage/auth/google_drive" class="provider-card {connected}">
+        <a href="/storage/auth/google_drive{auth_suffix}" class="provider-card {connected}">
             <div class="provider-icon">
                 <svg viewBox="0 0 24 24" width="48" height="48">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -728,7 +779,7 @@ def _generate_providers_html(semptify_uid: Optional[str] = None) -> str:
     if _get_settings().dropbox_app_key:
         connected = "connected" if current_provider == "dropbox" else ""
         provider_cards += f'''
-        <a href="/storage/auth/dropbox" class="provider-card {connected}">
+        <a href="/storage/auth/dropbox{auth_suffix}" class="provider-card {connected}">
             <div class="provider-icon">
                 <svg viewBox="0 0 24 24" width="48" height="48">
                     <path fill="#0061FF" d="M12 6.19L6.5 9.89l5.5 3.7-5.5 3.7L1 13.59l5.5-3.7L1 6.19 6.5 2.5 12 6.19zm0 7.4l5.5-3.7L12 6.19 6.5 9.89l5.5 3.7zm0 3.7l-5.5-3.7 5.5 3.7 5.5-3.7-5.5 3.7zm5.5-7.4L12 6.19l5.5-3.69L23 6.19l-5.5 3.7zm-5.5 11.1l-5.5-3.7v1.5l5.5 3.7 5.5-3.7v-1.5l-5.5 3.7z"/>
@@ -742,7 +793,7 @@ def _generate_providers_html(semptify_uid: Optional[str] = None) -> str:
     if _get_settings().onedrive_client_id:
         connected = "connected" if current_provider == "onedrive" else ""
         provider_cards += f'''
-        <a href="/storage/auth/onedrive" class="provider-card {connected}">
+        <a href="/storage/auth/onedrive{auth_suffix}" class="provider-card {connected}">
             <div class="provider-icon">
                 <svg viewBox="0 0 24 24" width="48" height="48">
                     <path fill="#0078D4" d="M10.5 18.5c0 .28-.22.5-.5.5H3c-1.1 0-2-.9-2-2v-1c0-2.21 1.79-4 4-4 .34 0 .68.04 1 .12V12c0-2.76 2.24-5 5-5 2.06 0 3.83 1.24 4.6 3.02.13-.01.26-.02.4-.02 2.76 0 5 2.24 5 5s-2.24 5-5 5h-5c-.28 0-.5-.22-.5-.5z"/>
@@ -1053,6 +1104,7 @@ async def list_providers_json(
 async def initiate_oauth(
     provider: str,
     request: Request,
+    db: AsyncSession = Depends(get_db),
     role: str = "user",
     existing_uid: Optional[str] = None,
     return_to: Optional[str] = None,
@@ -1099,17 +1151,31 @@ async def initiate_oauth(
 
         config = OAUTH_CONFIGS[provider]
 
-        # Housekeeping to avoid unbounded in-memory state growth.
-        _cleanup_expired_states()
+        # Housekeeping: remove expired states from the database.
+        await _cleanup_expired_states(db)
 
-        # Generate state for CSRF
+        # Generate state for CSRF and persist to DB.
         state = secrets.token_urlsafe(32)
+        oauth_state_row = OAuthState(
+            id=state,
+            provider=provider,
+            role=role,
+            existing_uid=existing_uid,
+            return_to=return_to,
+            created_at=utc_now(),
+            expires_at=utc_now() + timedelta(minutes=OAUTH_STATE_TIMEOUT_MINUTES),
+        )
+        db.add(oauth_state_row)
+        await db.commit()
+
+        # Transitional mirror for legacy tests/callers.
         OAUTH_STATES[state] = {
             "provider": provider,
             "role": role,
             "existing_uid": existing_uid,
             "return_to": return_to,
-            "created_at": utc_now(),  # In-memory state, use aware for comparison
+            "created_at": utc_now(),
+            "expires_at": utc_now() + timedelta(minutes=OAUTH_STATE_TIMEOUT_MINUTES),
         }
 
         # Build callback URL
@@ -1167,137 +1233,297 @@ async def oauth_callback(
     """
     OAuth callback. Creates/validates user and sets cookie.
     """
-    # Clean up any old states first
-    _cleanup_expired_states()
-    
-    # Validate state
-    if state not in OAUTH_STATES:
-        # More helpful error message
-        raise HTTPException(
-            status_code=400, 
-            detail={
-                "error": "bad_request",
-                "message": "Invalid or expired state. Please try connecting your storage again.",
-                "action": "redirect",
-                "redirect_url": "/storage/providers"
+    try:
+        # Clean up any old states first.
+        await _cleanup_expired_states(db)
+
+        # Load and validate the CSRF state token from the database.
+        result = await db.execute(
+            select(OAuthState).where(OAuthState.id == state)
+        )
+        state_row = result.scalar_one_or_none()
+
+        # Transitional fallback for legacy in-memory state injection (tests/tools).
+        legacy_state = None if state_row else OAUTH_STATES.pop(state, None)
+
+        if not state_row and not legacy_state:
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "bad_request",
+                    "message": "Invalid or expired state. Please try connecting your storage again.",
+                    "action": "redirect",
+                    "redirect_url": "/storage/providers",
+                },
+            )
+
+        if state_row:
+            # Consume the state (delete immediately to prevent replay).
+            await db.delete(state_row)
+            await db.commit()
+
+            if state_row.provider != provider:
+                raise HTTPException(status_code=400, detail="Provider mismatch")
+
+            # SQLite returns naive datetimes even for timezone=True columns; normalise to UTC.
+            from datetime import timezone as _tz
+            state_expires = state_row.expires_at
+            if state_expires.tzinfo is None:
+                state_expires = state_expires.replace(tzinfo=_tz.utc)
+
+            if utc_now() > state_expires:
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "bad_request",
+                        "message": "Session expired. Please try connecting your storage again.",
+                        "action": "redirect",
+                        "redirect_url": "/storage/providers",
+                    },
+                )
+
+            state_data = {
+                "provider": state_row.provider,
+                "role": state_row.role,
+                "existing_uid": state_row.existing_uid,
+                "return_to": state_row.return_to,
             }
+        else:
+            if legacy_state.get("provider") != provider:
+                raise HTTPException(status_code=400, detail="Provider mismatch")
+
+            state_expires = legacy_state.get("expires_at")
+            if not state_expires and legacy_state.get("created_at"):
+                state_expires = legacy_state["created_at"] + timedelta(minutes=OAUTH_STATE_TIMEOUT_MINUTES)
+
+            if isinstance(state_expires, str):
+                state_expires = datetime.fromisoformat(state_expires.replace("Z", "+00:00"))
+
+            if state_expires and state_expires.tzinfo is None:
+                from datetime import timezone as _tz
+                state_expires = state_expires.replace(tzinfo=_tz.utc)
+
+            if state_expires and utc_now() > state_expires:
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "bad_request",
+                        "message": "Session expired. Please try connecting your storage again.",
+                        "action": "redirect",
+                        "redirect_url": "/storage/providers",
+                    },
+                )
+
+            state_data = {
+                "provider": legacy_state.get("provider"),
+                "role": legacy_state.get("role"),
+                "existing_uid": legacy_state.get("existing_uid"),
+                "return_to": legacy_state.get("return_to"),
+            }
+
+        base_url = str(request.base_url).rstrip("/")
+        callback_uri = f"{base_url}/storage/callback/{provider}"
+
+        # Exchange code for tokens
+        token_data = await _exchange_code(provider, code, callback_uri)
+        access_token = token_data["access_token"]
+
+        # First-run source of truth: provider-asserted identity proof.
+        identity = await _fetch_oauth_identity(provider, access_token)
+        provider_subject = identity["provider_subject"]
+        identity_email = identity.get("email")
+        identity_display_name = identity.get("display_name")
+
+        # Determine user ID
+        existing_uid = state_data.get("existing_uid")
+        if existing_uid:
+            # Returning user - keep their ID
+            existing_provider, _, _ = parse_user_id(existing_uid)
+            if existing_provider != provider:
+                raise HTTPException(status_code=400, detail="existing_uid/provider mismatch in callback")
+            user_id = existing_uid
+
+            # Returning-user guard: OAuth subject must match the bound account.
+            bound_user = await get_user_from_db(db, user_id)
+            if bound_user and bound_user.storage_user_id:
+                # Backward compatibility: old rows used user_id as placeholder subject.
+                is_placeholder_subject = bound_user.storage_user_id == user_id
+                if not is_placeholder_subject and bound_user.storage_user_id != provider_subject:
+                    raise HTTPException(
+                        status_code=403,
+                        detail={
+                            "error": "identity_mismatch",
+                            "message": (
+                                "The connected storage account does not match this Semptify user. "
+                                "Please sign in with the originally linked storage account."
+                            ),
+                        },
+                    )
+            print(f"🔄 OAuth callback: Returning user with existing ID: {user_id}")
+        else:
+            # First check if this OAuth subject already has a Semptify account.
+            matched_user = await get_user_by_provider_subject(db, provider, provider_subject)
+            if matched_user:
+                user_id = matched_user.id
+                print(f"🔄 OAuth callback: Matched existing user by provider subject: {user_id}")
+            else:
+                # New user - generate ID encoding provider + role
+                role = (state_data.get("role") or "user").strip().lower()
+                if role not in ALLOWED_ROLES:
+                    role = "user"
+                user_id = generate_user_id(provider, role)
+                print(f"🆕 OAuth callback: New user - generated ID: {user_id} (provider={provider}, role={role})")
+
+        refresh_token = token_data.get("refresh_token", "")
+        expires_in = token_data.get("expires_in", 3600)
+        token_expires_at = (utc_now() + timedelta(seconds=expires_in)).isoformat() + "Z"
+
+        # Save session to database (persists across server restarts)
+        expires_at = utc_now() + timedelta(seconds=token_data.get("expires_in", 3600))
+        print(f"💾 Saving session to DB: user_id={user_id}, provider={provider}, expires_at={expires_at}")
+        await save_session_to_db(
+            db=db,
+            user_id=user_id,
+            provider=provider,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_at=expires_at,
         )
 
-    state_data = OAUTH_STATES.pop(state)
-    if state_data["provider"] != provider:
-        raise HTTPException(status_code=400, detail="Provider mismatch")
+        # Create/update user and storage config in database
+        await create_or_update_user(
+            db,
+            user_id,
+            provider,
+            email=identity_email,
+            display_name=identity_display_name,
+            storage_user_id=provider_subject,
+        )
+        await get_or_create_storage_config(db, user_id, provider)
 
-    if utc_now() - state_data["created_at"] > timedelta(minutes=OAUTH_STATE_TIMEOUT_MINUTES):
-        raise HTTPException(
-            status_code=400, 
-            detail={
-                "error": "bad_request",
-                "message": "Session expired. Please try connecting your storage again.",
-                "action": "redirect", 
-                "redirect_url": "/storage/providers"
-            }
+        # Permanently record that storage authentication is complete.
+        # This is the ProcessGroup exit gate: session saved + user row written = storage connected.
+        await _mark_group_complete(db, user_id, "storage_connected")
+
+        # Determine landing page
+        # If return_to was specified (e.g., from storage setup wizard), use that
+        return_to = state_data.get("return_to")
+        if return_to:
+            landing = return_to
+        else:
+            # Use the workflow engine to route to the correct landing page for this role.
+            # New users with no documents → B1 (/tenant/documents); professionals → B4 (/advocate etc.)
+            from app.core.workflow_engine import evaluate_from_params as _wf_evaluate
+            _, role, _ = parse_user_id(user_id)
+            try:
+                decision = _wf_evaluate(
+                    role=role,
+                    storage_state="already_connected",
+                    documents_present=False,
+                )
+                landing = decision.next_route
+            except Exception:
+                # Fallback to safe defaults if engine fails
+                landing_pages = {
+                    "user": "/tenant/documents",
+                    "manager": "/admin",
+                    "advocate": "/advocate",
+                    "legal": "/legal",
+                    "admin": "/admin",
+                }
+                landing = landing_pages.get(role, "/tenant/documents")
+
+        response = RedirectResponse(url=landing, status_code=302)
+        print(f"🍪 Setting cookie: {COOKIE_USER_ID}={user_id}, redirecting to {landing}")
+
+        # Set the ONE cookie - user ID that encodes everything
+        # For localhost development, don't use secure flag (http doesn't support secure cookies)
+        # In production with HTTPS, set secure=True
+        import os
+        is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
+        response.set_cookie(
+            key=COOKIE_USER_ID,
+            value=user_id,
+            max_age=COOKIE_MAX_AGE,  # 1 year
+            httponly=False,  # Must be False so JavaScript can read for auth checks
+            secure=False if is_localhost else True,  # Must be False for http://localhost
+            samesite="lax",
         )
 
-    config = OAUTH_CONFIGS[provider]
-    base_url = str(request.base_url).rstrip("/")
-    callback_uri = f"{base_url}/storage/callback/{provider}"
-
-    # Exchange code for tokens
-    token_data = await _exchange_code(provider, code, callback_uri)
-    access_token = token_data["access_token"]
-
-    # Determine user ID
-    existing_uid = state_data.get("existing_uid")
-    if existing_uid:
-        # Returning user - keep their ID
-        existing_provider, _, _ = parse_user_id(existing_uid)
-        if existing_provider != provider:
-            raise HTTPException(status_code=400, detail="existing_uid/provider mismatch in callback")
-        user_id = existing_uid
-        print(f"🔄 OAuth callback: Returning user with existing ID: {user_id}")
-    else:
-        # New user - generate ID encoding provider + role
-        role = (state_data.get("role") or "user").strip().lower()
-        if role not in ALLOWED_ROLES:
-            role = "user"
-        user_id = generate_user_id(provider, role)
-        print(f"🆕 OAuth callback: New user - generated ID: {user_id} (provider={provider}, role={role})")
-
-    refresh_token = token_data.get("refresh_token", "")
-    expires_in = token_data.get("expires_in", 3600)
-    token_expires_at = (utc_now() + timedelta(seconds=expires_in)).isoformat() + "Z"
-
-    # Save session to database (persists across server restarts)
-    expires_at = utc_now() + timedelta(seconds=token_data.get("expires_in", 3600))
-    print(f"💾 Saving session to DB: user_id={user_id}, provider={provider}, expires_at={expires_at}")
-    await save_session_to_db(
-        db=db,
-        user_id=user_id,
-        provider=provider,
-        access_token=access_token,
-        refresh_token=refresh_token,
-        expires_at=expires_at,
-    )
-
-    # Create/update user and storage config in database
-    await create_or_update_user(db, user_id, provider)
-    await get_or_create_storage_config(db, user_id, provider)
-
-    # Store encrypted auth marker in user's storage only AFTER session/config commits.
-    auth_marker = {
-        "user_id": user_id,
-        "provider": provider,
-        "created_at": utc_now().isoformat() + "Z",
-        "version": "5.0",
-    }
-    encrypted = _encrypt_token(auth_marker, user_id)
-    base_url = str(request.base_url).rstrip("/")
-
-    await _store_auth_marker(
-        provider=provider,
-        access_token=access_token,
-        encrypted=encrypted,
-        user_id=user_id,
-        base_url=base_url,
-        refresh_token=refresh_token,
-        token_expires_at=token_expires_at,
-    )
-
-    # Determine landing page
-    # If return_to was specified (e.g., from storage setup wizard), use that
-    return_to = state_data.get("return_to")
-    if return_to:
-        landing = return_to
-    else:
-        # Default: redirect based on role
-        _, role, _ = parse_user_id(user_id)
-        landing_pages = {
-            "user": "/dashboard",
-            "manager": "/dashboard",
-            "advocate": "/clients",
-            "legal": "/clients",
-            "admin": "/admin",
+        # Provision the user's storage vault after authentication is established.
+        # OAuth success should not be treated as a callback failure if vault setup hits
+        # a provider-side file/folder error; that creates an auth loop while the DB
+        # session already exists.
+        auth_marker = {
+            "user_id": user_id,
+            "provider": provider,
+            "created_at": utc_now().isoformat() + "Z",
+            "version": "5.0",
         }
-        landing = landing_pages.get(role, "/dashboard")
+        encrypted = _encrypt_token(auth_marker, user_id)
+        base_url = str(request.base_url).rstrip("/")
 
-    response = RedirectResponse(url=landing, status_code=302)
-    print(f"🍪 Setting cookie: {COOKIE_USER_ID}={user_id}, redirecting to {landing}")
+        try:
+            await _store_auth_marker(
+                provider=provider,
+                access_token=access_token,
+                encrypted=encrypted,
+                user_id=user_id,
+                base_url=base_url,
+                refresh_token=refresh_token,
+                token_expires_at=token_expires_at,
+                db=db,
+            )
+        except Exception:
+            logger.exception(
+                "OAuth vault provisioning failed after auth success for provider=%s user_id=%s",
+                provider,
+                user_id,
+            )
+            fallback_url = "/tenant/documents?storage_setup=retry_required&provider=" + provider
+            response = RedirectResponse(url=fallback_url, status_code=302)
+            response.set_cookie(
+                key=COOKIE_USER_ID,
+                value=user_id,
+                max_age=COOKIE_MAX_AGE,
+                httponly=False,
+                secure=False if is_localhost else True,
+                samesite="lax",
+            )
 
-    # Set the ONE cookie - user ID that encodes everything
-    # For localhost development, don't use secure flag (http doesn't support secure cookies)
-    # In production with HTTPS, set secure=True
-    import os
-    is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
-    response.set_cookie(
-        key=COOKIE_USER_ID,
-        value=user_id,
-        max_age=COOKIE_MAX_AGE,  # 1 year
-        httponly=False,  # Must be False so JavaScript can read for auth checks
-        secure=False if is_localhost else True,  # Must be False for http://localhost
-        samesite="lax",
-    )
+        return response
+    except HTTPException as exc:
+        message = "Storage connection failed. Please try connecting again."
+        if isinstance(exc.detail, dict) and exc.detail.get("message"):
+            message = str(exc.detail.get("message"))
+        elif isinstance(exc.detail, str) and exc.detail:
+            message = exc.detail
 
-    return response
+        logger.warning(
+            "OAuth callback HTTP error for provider=%s path=%s detail=%s",
+            provider,
+            request.url.path,
+            exc.detail,
+        )
+        error_url = "/storage/providers?" + urlencode({
+            "error": "oauth_callback_failed",
+            "provider": provider,
+            "message": message,
+        })
+        return RedirectResponse(url=error_url, status_code=302)
+    except Exception as exc:
+        logger.exception(
+            "OAuth callback unexpected error for provider=%s path=%s",
+            provider,
+            request.url.path,
+            exc_info=True,
+        )
+        error_url = "/storage/providers?" + urlencode({
+            "error": "oauth_callback_failed",
+            "provider": provider,
+            "message": "Unexpected callback error. Please reconnect your storage.",
+        })
+        return RedirectResponse(url=error_url, status_code=302)
 # ============================================================================
 # Token Exchange
 # ============================================================================
@@ -1333,22 +1559,121 @@ async def _exchange_code(provider: str, code: str, redirect_uri: str) -> dict:
             raise HTTPException(status_code=400, detail="Provider not implemented")
 
         if response.status_code != 200:
-            raise HTTPException(status_code=400, detail="Token exchange failed")
+            provider_error = "token_exchange_failed"
+            try:
+                payload = response.json()
+                provider_error = payload.get("error_description") or payload.get("error") or provider_error
+            except Exception:
+                if response.text:
+                    provider_error = response.text[:200]
+
+            raise HTTPException(
+                status_code=400,
+                detail={
+                    "error": "token_exchange_failed",
+                    "message": f"Token exchange failed for {provider}: {provider_error}",
+                },
+            )
 
         return response.json()
+
+
+async def _fetch_oauth_identity(provider: str, access_token: str) -> dict:
+    """
+    Fetch provider-asserted account identity.
+
+    First-run rule: OAuth token exchange is not enough by itself; we require
+    successful provider identity lookup (userinfo/me/current_account) before
+    we bind/create the Semptify user and proceed to vault provisioning.
+    """
+    config = OAUTH_CONFIGS.get(provider)
+    if not config or not config.get("userinfo_url"):
+        raise HTTPException(status_code=400, detail="OAuth identity endpoint unavailable")
+
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            if provider == "dropbox":
+                response = await client.post(
+                    config["userinfo_url"],
+                    headers={
+                        "Authorization": f"Bearer {access_token}",
+                        "Content-Type": "application/json",
+                    },
+                    content="null",
+                )
+            else:
+                response = await client.get(
+                    config["userinfo_url"],
+                    headers={"Authorization": f"Bearer {access_token}"},
+                )
+
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=401,
+                detail={
+                    "error": "oauth_identity_failed",
+                    "message": "OAuth identity verification failed with the storage provider.",
+                },
+            )
+
+        payload = response.json()
+
+        if provider == "google_drive":
+            provider_subject = payload.get("id")
+            email = payload.get("email")
+            display_name = payload.get("name")
+        elif provider == "dropbox":
+            provider_subject = payload.get("account_id")
+            email = payload.get("email")
+            name_obj = payload.get("name") if isinstance(payload.get("name"), dict) else {}
+            display_name = name_obj.get("display_name") or payload.get("display_name")
+        elif provider == "onedrive":
+            provider_subject = payload.get("id")
+            email = payload.get("mail") or payload.get("userPrincipalName")
+            display_name = payload.get("displayName")
+        else:
+            provider_subject = None
+            email = None
+            display_name = None
+
+        if not provider_subject:
+            raise HTTPException(
+                status_code=401,
+                detail={
+                    "error": "oauth_identity_missing_subject",
+                    "message": "OAuth identity response did not include a provider subject id.",
+                },
+            )
+
+        return {
+            "provider_subject": provider_subject,
+            "email": email,
+            "display_name": display_name,
+        }
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=401,
+            detail={
+                "error": "oauth_identity_failed",
+                "message": "Unable to verify storage account identity from OAuth provider.",
+            },
+        )
 
 
 # NOTE: _generate_sync_html removed - now using VaultManager.generate_rehome_html()
 
 
 async def _store_auth_marker(
-    provider: str, 
-    access_token: str, 
-    encrypted: bytes, 
-    user_id: str, 
+    provider: str,
+    access_token: str,
+    encrypted: bytes,
+    user_id: str,
     base_url: str,
     refresh_token: str = "",
     token_expires_at: str = "",
+    db: Optional[AsyncSession] = None,
 ) -> None:
     """
     Initialize complete Semptify5.0 vault structure in user's cloud storage.
@@ -1370,6 +1695,11 @@ async def _store_auth_marker(
         refresh_token=refresh_token,
         token_expires_at=token_expires_at,
     )
+
+    # Vault proven: folders created, token encrypted+written, decrypt verified.
+    # Write the permanent completion badge — serial gate is met.
+    if db is not None:
+        await _mark_group_complete(db, user_id, "vault_initialized")
 
 
 async def _vault_access_ready(
@@ -1709,12 +2039,12 @@ async def prepare_reconnect(
         }
 
     # Fully disconnect stale state so OAuth reconnect can proceed cleanly.
-    SESSIONS.pop(semptify_uid, None)
     result = await db.execute(select(SessionModel).where(SessionModel.user_id == semptify_uid))
     session_row = result.scalar_one_or_none()
     if session_row:
         await db.delete(session_row)
         await db.commit()
+    SESSIONS.pop(semptify_uid, None)
 
     invalidate_function_access_tokens(semptify_uid)
 
@@ -1954,9 +2284,8 @@ async def switch_role(
         await create_or_update_user(db, new_uid, session["provider"])
         # Update storage config
         await get_or_create_storage_config(db, new_uid, session["provider"])
-        # Clear old session from cache
+        # Clear old compatibility cache entry.
         SESSIONS.pop(semptify_uid, None)
-
     # Role transition invalidates prior function tokens bound to the old role context.
     invalidate_function_access_tokens(semptify_uid)
 
@@ -1993,7 +2322,6 @@ async def logout(
     """Clear session and cookie."""
     if semptify_uid:
         invalidate_function_access_tokens(semptify_uid)
-        # Remove from memory cache
         SESSIONS.pop(semptify_uid, None)
         # Remove from database
         result = await db.execute(

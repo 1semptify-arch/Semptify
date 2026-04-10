@@ -442,6 +442,25 @@ def verify_function_token_for_operation(
     return base
 
 
+def get_function_token_user_id(token: str) -> Optional[str]:
+    """
+    Resolve the user_id stored inside a function access token.
+
+    Used by header-only Bearer auth flows where no cookie is present.
+    Returns None if the token is missing, expired, or revoked.
+    """
+    _purge_expired_function_tokens()
+    revoked_until = FUNCTION_REVOKED_ACCESS_TOKENS.get(token)
+    if revoked_until and revoked_until > datetime.now(timezone.utc):
+        return None
+    data = FUNCTION_ACCESS_TOKENS.get(token)
+    if data is None:
+        return None
+    if data.get("expires_at") and data["expires_at"] <= datetime.now(timezone.utc):
+        return None
+    return data.get("user_id")
+
+
 def invalidate_function_access_tokens(user_id: str) -> int:
     """Invalidate all function tokens for a user (used on logout/disconnect/role switch)."""
     _purge_expired_function_tokens()

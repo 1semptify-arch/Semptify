@@ -48,6 +48,18 @@ dev:
 test:
 	pytest tests/ -v --cov=app --cov-report=term-missing
 
+test-core-gates:
+	pytest tests/test_core_completion_gates.py -q
+
+test-security-gates:
+	pytest tests/test_security_isolation_gates.py -q
+
+test-action-gates:
+	pytest tests/test_action_router_gates.py -q
+
+test-gates:
+	pytest tests/test_core_completion_gates.py tests/test_security_isolation_gates.py tests/test_action_router_gates.py -q
+
 test-quick:
 	pytest tests/test_health.py -v
 

@@ -1,0 +1,39 @@
+<section class="workspace-stage-panel" id="workspaceStageModel">
+    <div class="workspace-stage-header">
+        <div>
+            <h2>Workflow Stage Model</h2>
+            <p>Normalized stage, urgency, next-step, and alerts for this workspace.</p>
+        </div>
+    </div>
+
+    <div class="workspace-stage-status">
+        <div class="workspace-stage-metric">
+            <span>Current Stage</span>
+            <strong id="workspaceCaseStageValue">Loading...</strong>
+        </div>
+        <div class="workspace-stage-metric">
+            <span>Urgency</span>
+            <strong id="workspaceUrgencyValue">Loading...</strong>
+        </div>
+        <div class="workspace-stage-metric">
+            <span>Documents</span>
+            <strong id="workspaceDocumentCount">0</strong>
+        </div>
+        <div class="workspace-stage-metric">
+            <span>Timeline Events</span>
+            <strong id="workspaceTimelineCount">0</strong>
+        </div>
+    </div>
+
+    <div class="workspace-next-step">
+        <div class="card">
+            <span class="workspace-next-step-label">Recommended Next Step</span>
+            <h3 id="workspaceNextStepTitle">Loading...</h3>
+            <p id="workspaceNextStepReason">Analyzing workflow state.</p>
+            <a class="btn btn--primary btn--sm" id="workspaceNextStepLink" href="/">Continue</a>
+        </div>
+    </div>
+
+    <div class="workspace-stage-grid" id="workspaceStageCards"></div>
+    <div class="workspace-alerts" id="workspaceAlerts"></div>
+</section>

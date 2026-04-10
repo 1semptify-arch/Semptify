@@ -213,5 +213,60 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                 status_code=302
             )
         
-        # Valid user - continue
+        # Valid user - check permanent completion record before continuing.
+        # If "storage_connected" is in completed_groups, the ProcessGroup exit criteria
+        # were already verified at OAuth time. No cloud round-trip ever needed again.
+        if self.enforce:
+            try:
+                import logging
+                from sqlalchemy import select as _select
+                from app.core.database import get_session_factory
+                from app.models.models import User as _User
+
+                _factory = get_session_factory()
+                async with _factory() as _db:
+                    _result = await _db.execute(
+                        _select(_User.completed_groups).where(_User.id == user_id)
+                    )
+                    _row = _result.scalar_one_or_none()
+                    if _row is None:
+                        # User cookie is valid-format but no DB row — not fully registered yet
+                        _logger = logging.getLogger("semptify.security")
+                        _logger.warning(
+                            "User ID %s has valid format but no DB record — redirecting to storage",
+                            user_id[:4] + "***",
+                        )
+                        if path.startswith("/api/"):
+                            return JSONResponse(
+                                status_code=401,
+                                content={
+                                    "error": "storage_required",
+                                    "message": "Please connect your cloud storage to continue",
+                                    "action": "redirect",
+                                    "redirect_url": "/storage/providers",
+                                },
+                            )
+                        return RedirectResponse(url="/storage/providers", status_code=302)
+
+                    completed = _row or ""
+                    if "storage_connected" not in completed.split(","):
+                        # User row exists but storage_connected not yet written —
+                        # OAuth may have partially completed; redirect back to finish.
+                        if path.startswith("/api/"):
+                            return JSONResponse(
+                                status_code=401,
+                                content={
+                                    "error": "storage_required",
+                                    "message": "Please complete storage setup to continue",
+                                    "action": "redirect",
+                                    "redirect_url": "/storage/providers",
+                                },
+                            )
+                        return RedirectResponse(url="/storage/providers", status_code=302)
+
+            except Exception:
+                # If DB is unavailable, fall through — don't block the user on a DB error.
+                # This degrades gracefully: format validation still passed above.
+                pass
+
         return await call_next(request)

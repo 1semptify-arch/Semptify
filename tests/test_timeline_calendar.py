@@ -7,6 +7,9 @@ import pytest
 from httpx import AsyncClient
 from datetime import datetime, timedelta
 
+from app.models.document_overlay_models import DocumentOverlayCreate
+from app.services.document_overlay_service import document_overlay_service
+
 
 # =============================================================================
 # Timeline Tests
@@ -143,6 +146,35 @@ async def test_timeline_all_event_types(client: AsyncClient, event_type):
         "event_date": "2025-11-25T10:00:00",
     })
     assert response.status_code in [201, 401, 404]
+
+
+@pytest.mark.anyio
+async def test_timeline_create_event_resolves_document_from_overlay_ids(client: AsyncClient):
+    overlay = document_overlay_service.create_overlay(
+        DocumentOverlayCreate(
+            document_id="doc-for-timeline",
+            vault_id="vault-overlay-1",
+            overlay_type="document_extraction",
+            payload={"extracted_data": {"summary": "timeline context"}},
+        )
+    )
+
+    response = await client.post(
+        "/api/timeline/",
+        json={
+            "event_type": "notice",
+            "title": "Overlay linked event",
+            "event_date": "2025-11-25T10:00:00",
+            "overlay_record_ids": [overlay.overlay_id],
+        },
+        cookies={"semptify_uid": "GUtest1234"},
+    )
+
+    assert response.status_code in [201, 401, 404]
+    if response.status_code == 201:
+        payload = response.json()
+        assert payload["document_id"] == "vault-overlay-1"
+        assert overlay.overlay_id in payload.get("overlay_record_ids", [])
 
 
 # =============================================================================

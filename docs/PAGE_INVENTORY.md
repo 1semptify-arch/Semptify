@@ -104,7 +104,7 @@
 | `counterclaim.html` | File counterclaim | **CRITICAL** | 3 |
 | `motions.html` | File motions | **CRITICAL** | 4 |
 | `hearing_prep.html` | Prepare for hearing | **CRITICAL** | 5 |
-| `zoom_court.html` | Zoom hearing guide | **CRITICAL** | 6 |
+| `/zoom-court` | Zoom hearing guide | **CRITICAL** | 6 |
 | `court_packet.html` | Generate court packet | **CRITICAL** | 7 |
 | `court_learning.html` | Court procedures | **AUXILIARY** | - |
 
@@ -340,7 +340,7 @@ START: index.html (Single Entry Point)
         │                 ├─→ counterclaim.html (Step 2)
         │                 ├─→ motions.html (Step 3)
         │                 ├─→ hearing_prep.html (Step 4)
-        │                 ├─→ zoom_court.html (Step 5)
+      │                 ├─→ /zoom-court (Step 5)
         │                 └─→ court_packet.html (Generate)
         │
         ├─→ ADVOCATE
@@ -386,7 +386,7 @@ START: index.html (Single Entry Point)
 2. `fraud.html` - Fraud reporting
 3. `exposure.html` - Landlord research
 4. `brain.html` - AI visualization
-5. `zoom_court.html` - Zoom tips
+5. `/zoom-court` - Zoom tips
 6. `counterclaim.html` - Counterclaims
 7. `motions.html` - Motions
 

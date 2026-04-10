@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact Manager - Semptify</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/shared-nav.css">
     <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
         :root {
@@ -36,7 +37,51 @@
             background: var(--bg-dark);
             color: var(--text-primary);
             min-height: 100vh;
+        }
+
+        .page-content {
+            margin-left: 260px;
+            padding: 2rem;
+        }
+
+        .contacts-layout {
             display: flex;
+            gap: 1.25rem;
+        }
+
+        .pointer-cursor {
+            cursor: pointer;
+        }
+
+        .inline-checkbox-spacing {
+            margin-right: 0.5rem;
+        }
+
+        .interaction-contact-name {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .followup-divider {
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .followup-toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .checkbox-auto-width {
+            width: auto;
+        }
+
+        .hidden-by-default {
+            display: none;
         }
 
         /* Sidebar */
@@ -47,9 +92,10 @@
             padding: 1.5rem 0;
             display: flex;
             flex-direction: column;
-            position: fixed;
-            height: 100vh;
+            position: static;
+            height: auto;
             overflow-y: auto;
+            border-radius: 10px;
         }
 
         .sidebar-header {
@@ -114,9 +160,8 @@
 
         /* Main Content */
         .main-content {
-            margin-left: 260px;
             flex: 1;
-            padding: 2rem;
+            min-width: 0;
         }
 
         .page-header {
@@ -564,9 +609,17 @@
 
         /* Responsive */
         @media (max-width: 768px) {
+            .page-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+
+            .contacts-layout {
+                flex-direction: column;
+            }
+
             .sidebar {
-                transform: translateX(-100%);
-                z-index: 100;
+                width: 100%;
             }
 
             .main-content {
@@ -584,8 +637,9 @@
     </style>
 </head>
 <body>
-    <!-- Site-wide header -->
-    <script src="/static/js/header.js"></script>
+    <div id="semptify-nav"></div>
+    <div class="page-content">
+    <div class="contacts-layout">
 
     <!-- Sidebar -->
     <aside class="sidebar">
@@ -676,7 +730,7 @@
                 <i class="fas fa-search"></i>
                 <input type="text" id="search-input" placeholder="Search by name, organization, email...">
             </div>
-            <select class="filter-select" id="role-filter">
+            <select class="filter-select" id="role-filter" title="Filter contacts by role" aria-label="Filter contacts by role">
                 <option value="">All Roles</option>
                 <option value="opposing_party">Opposing Party</option>
                 <option value="opposing_counsel">Opposing Counsel</option>
@@ -686,8 +740,8 @@
                 <option value="caseworker">Caseworker</option>
                 <option value="support">Support Contact</option>
             </select>
-            <label class="btn btn-secondary" style="cursor: pointer;">
-                <input type="checkbox" id="starred-only" style="margin-right: 0.5rem;">
+            <label class="btn btn-secondary pointer-cursor" for="starred-only" title="Show starred contacts only">
+                <input type="checkbox" id="starred-only" aria-label="Show starred contacts only" class="inline-checkbox-spacing">
                 <i class="fas fa-star"></i> Starred Only
             </label>
         </div>
@@ -705,6 +759,7 @@
             <div class="contacts-grid" id="contacts-grid"></div>
         </div>
     </main>
+    </div>
 
     <!-- Add/Edit Contact Modal -->
     <div class="modal-overlay" id="contact-modal">
@@ -814,7 +869,7 @@
             <div class="modal-body">
                 <form id="interaction-form">
                     <input type="hidden" id="interaction-contact-id">
-                    <p id="interaction-contact-name" style="color: var(--primary); font-weight: 600; margin-bottom: 1rem;"></p>
+                    <p id="interaction-contact-name" class="interaction-contact-name"></p>
                     
                     <div class="form-grid">
                         <div class="form-group">
@@ -854,17 +909,17 @@
                             <label for="interaction-summary">Summary / Notes</label>
                             <textarea id="interaction-summary" rows="4" placeholder="What was discussed? Any important details to remember..."></textarea>
                         </div>
-                        <div class="form-group full-width" style="border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 0.5rem;">
-                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                                <input type="checkbox" id="interaction-followup" style="width: auto;">
+                        <div class="form-group full-width followup-divider">
+                            <label class="followup-toggle-label">
+                                <input type="checkbox" id="interaction-followup" class="checkbox-auto-width">
                                 <span>Follow-up needed</span>
                             </label>
                         </div>
-                        <div class="form-group" id="followup-date-group" style="display: none;">
+                        <div class="form-group hidden-by-default" id="followup-date-group">
                             <label for="interaction-followup-date">Follow-up Date</label>
                             <input type="date" id="interaction-followup-date">
                         </div>
-                        <div class="form-group full-width" id="followup-notes-group" style="display: none;">
+                        <div class="form-group full-width hidden-by-default" id="followup-notes-group">
                             <label for="interaction-followup-notes">Follow-up Notes</label>
                             <textarea id="interaction-followup-notes" rows="2" placeholder="What needs to be done?"></textarea>
                         </div>
@@ -1296,6 +1351,7 @@
     <!-- Help System -->
     <script src="/static/js/help-system.js"></script>
     <script src="/static/js/semptify-auth.js"></script>
+    <script src="/static/js/shared-nav.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof SemptifyHelp !== 'undefined') {
@@ -1303,5 +1359,6 @@
             }
         });
     </script>
+    </div>
 </body>
 </html>

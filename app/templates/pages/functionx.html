@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}FunctionX Workspace - Semptify{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="/static/css/workspace-stage-model.css">
+<style>
+    .functionx-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .functionx-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .functionx-content {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        color: #a0aec0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="functionx-container">
+    <div class="functionx-header">
+        <h1>FunctionX Workspace</h1>
+        <p>Deterministic action-set planning and execution.</p>
+    </div>
+
+    <div class="functionx-content">
+        <p>FunctionX UI is template-backed while API actions remain available.</p>
+        <p>Use this workspace to align with the same normalized stage model used across role portals.</p>
+        <a href="/api/functionx/sets" class="btn btn--primary">View FunctionX API</a>
+    </div>
+
+    {% include "partials/workspace_stage_panel.html" %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/workspace-stage-model.js"></script>
+{% endblock %}

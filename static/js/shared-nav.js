@@ -18,17 +18,16 @@ const SemptifyNav = {
             title: '🏠 Home',
             items: [
                 { icon: '🏠', label: 'Dashboard', href: '/static/home.html' },
-                { icon: '📊', label: 'My Case', href: '/tenant' },
-                { icon: '🆘', label: 'Crisis Help', href: '/static/crisis_intake.html' },
+                { icon: '📊', label: 'Case Status', href: '/tenant' },
             ]
         },
         {
             id: 'intake',
             title: '📥 Step 1: Intake',
             items: [
-                { icon: '💼', label: 'Briefcase', href: '/static/briefcase.html' },
-                { icon: '📋', label: 'Upload Documents', href: '/tenant/documents' },
+                { icon: '📋', label: 'Document Upload', href: '/tenant/documents' },
                 { icon: '🔍', label: 'AI Recognition', href: '/static/recognition.html' },
+                { icon: '💼', label: 'Briefcase', href: '/static/briefcase.html' },
             ]
         },
         {
@@ -47,7 +46,7 @@ const SemptifyNav = {
                 { icon: '📖', label: 'Law Library', href: '/static/law_library.html' },
                 { icon: '📝', label: 'File Answer', href: '/static/eviction_answer.html' },
                 { icon: '⚔️', label: 'Counterclaim', href: '/static/counterclaim.html' },
-                { icon: '📋', label: 'File Motion', href: '/static/motions.html' },
+                { icon: '📋', label: 'Motions', href: '/static/motions.html' },
             ]
         },
         {
@@ -56,7 +55,7 @@ const SemptifyNav = {
             items: [
                 { icon: '📦', label: 'Court Packet', href: '/static/court_packet.html' },
                 { icon: '🎯', label: 'Hearing Prep', href: '/static/hearing_prep.html' },
-                { icon: '💻', label: 'Zoom Court', href: '/static/zoom_court.html' },
+                { icon: '💻', label: 'Zoom Court', href: '/zoom-court' },
             ]
         },
         {
@@ -74,19 +73,7 @@ const SemptifyNav = {
             title: '📁 Vault',
             items: [
                 { icon: '🔐', label: 'Document Vault', href: '/static/vault.html' },
-                { icon: '�', label: 'Calendar View', href: '/static/document_calendar.html' },
-                { icon: '�📑', label: 'PDF Tools', href: '/static/pdf_tools.html' },
-            ]
-        },
-        {
-            id: 'settings',
-            title: '⚙️ Settings',
-            collapsed: true,
-            items: [
-                { icon: '☁️', label: 'Cloud Storage', href: '/static/storage_setup.html' },
-                { icon: '🆘', label: 'Get Help', href: '/tenant/help' },
-                { icon: '❓', label: 'FAQ', href: '/static/help.html' },
-                { icon: '🔒', label: 'Privacy', href: '/static/privacy.html' },
+                { icon: '📑', label: 'PDF Tools', href: '/static/pdf_tools.html' },
             ]
         },
     ],
