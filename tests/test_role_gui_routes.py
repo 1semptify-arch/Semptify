@@ -125,3 +125,117 @@ async def test_role_home_redirects_to_canonical_home_on_role_mismatch(client: As
     )
     assert response.status_code in (302, 307)
     assert response.headers.get("location") == "/advocate"
+
+
+@pytest.mark.anyio
+async def test_root_redirects_connected_user_to_role_ui(client: AsyncClient):
+    """Root should send returning users to the canonical role-aware UI router."""
+    response = await client.get(
+        "/",
+        follow_redirects=False,
+        cookies={"semptify_uid": "GUabc12345"},
+    )
+    assert response.status_code in (302, 307)
+    assert response.headers.get("location") == "/ui/"
+
+
+@pytest.mark.anyio
+async def test_root_renders_welcome_for_first_visit(client: AsyncClient):
+    """Root should still render a welcome entry for users without valid storage cookies."""
+    response = await client.get("/", follow_redirects=False)
+    assert response.status_code == 200
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "path,cookie_user_id",
+    [
+        ("/tenant", "GUabc12345"),
+        ("/advocate", "GVabc12345"),
+        ("/legal", "GLabc12345"),
+        ("/admin", "GAabc12345"),
+    ],
+)
+async def test_role_home_templates_expose_normalized_stage_model(
+    client: AsyncClient,
+    path: str,
+    cookie_user_id: str,
+):
+    response = await client.get(
+        path,
+        follow_redirects=False,
+        cookies={"semptify_uid": cookie_user_id},
+    )
+
+    assert response.status_code == 200
+    assert "workspaceStageModel" in response.text
+    assert "/static/js/workspace-stage-model.js" in response.text
+    assert "workspaceStageCards" in response.text
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "path,cookie_user_id",
+    [
+        ("/tenant/documents", "GUabc12345"),
+        ("/tenant/timeline", "GUabc12345"),
+        ("/tenant/help", "GUabc12345"),
+        ("/advocate/clients", "GVabc12345"),
+        ("/advocate/queue", "GVabc12345"),
+        ("/advocate/intake", "GVabc12345"),
+        ("/legal/cases", "GLabc12345"),
+        ("/legal/filings", "GLabc12345"),
+        ("/legal/privileged", "GLabc12345"),
+        ("/legal/conflicts", "GLabc12345"),
+        ("/admin/mission-control", "GAabc12345"),
+        ("/admin/gui", "GAabc12345"),
+        ("/admin/mode-selector", "GAabc12345"),
+        ("/admin/easy-mode", "GAabc12345"),
+        ("/admin/docs", "GAabc12345"),
+    ],
+)
+async def test_role_subpages_expose_normalized_stage_model(
+    client: AsyncClient,
+    path: str,
+    cookie_user_id: str,
+):
+    response = await client.get(
+        path,
+        follow_redirects=False,
+        cookies={"semptify_uid": cookie_user_id},
+    )
+
+    assert response.status_code == 200
+    assert "workspaceStageModel" in response.text
+    assert "/static/js/workspace-stage-model.js" in response.text
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "path,cookie_user_id",
+    [
+        ("/dashboard", "GUabc12345"),
+        ("/documents", "GUabc12345"),
+        ("/timeline", "GUabc12345"),
+        ("/law-library", "GLabc12345"),
+        ("/functionx", "GLabc12345"),
+        ("/eviction-defense", "GUabc12345"),
+        ("/zoom-court", "GUabc12345"),
+        ("/legal-analysis", "GLabc12345"),
+        ("/legal_analysis.html", "GLabc12345"),
+    ],
+)
+async def test_shared_workspace_pages_expose_normalized_stage_model(
+    client: AsyncClient,
+    path: str,
+    cookie_user_id: str,
+):
+    response = await client.get(
+        path,
+        follow_redirects=False,
+        cookies={"semptify_uid": cookie_user_id},
+    )
+
+    assert response.status_code == 200
+    assert "workspaceStageModel" in response.text
+    assert "/static/js/workspace-stage-model.js" in response.text

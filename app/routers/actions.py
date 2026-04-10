@@ -7,15 +7,16 @@ personalized action recommendations based on emotional state
 and case context.
 """
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
 from typing import Optional
 from pydantic import BaseModel
 
+from ..core.security import require_user, StorageUser
 from ..services.action_router import action_router, ActionCategory, ActionPriority
 from ..services.emotion_engine import emotion_engine
 
 
-router = APIRouter(prefix="/actions", tags=["Smart Actions"])
+router = APIRouter(prefix="/api/actions", tags=["Smart Actions"])
 
 
 class CaseContext(BaseModel):
@@ -40,7 +41,7 @@ async def get_action_plan(
     has_payment_records: bool = Query(False),
     maintenance_issues: bool = Query(False),
     has_notice: bool = Query(False),
-    x_user_id: Optional[str] = Header(None, alias="X-User-Id")
+    user: StorageUser = Depends(require_user),
 ):
     """
     Get a personalized action plan based on current emotional state and case context.
@@ -49,9 +50,7 @@ async def get_action_plan(
     the most appropriate next actions for the user.
     """
     # Get current emotional state
-    if not x_user_id:
-        raise HTTPException(status_code=400, detail="Missing X-User-Id header")
-    emotional_state = emotion_engine.get_state(user_id=x_user_id)
+    emotional_state = emotion_engine.get_state(user_id=user.user_id)
     
     # Build case context
     case_context = {
@@ -72,20 +71,22 @@ async def get_action_plan(
 
 
 @router.post("/plan")
-async def get_action_plan_with_context(context: CaseContext):
+async def get_action_plan_with_context(
+    context: CaseContext,
+    user: StorageUser = Depends(require_user),
+):
     """
     Get a personalized action plan with full case context.
     """
     # Get current emotional state
-    # TODO: Replace 'user_id' with actual user identifier from request/session
-    emotional_state = emotion_engine.get_state(user_id="user_id")
+    emotional_state = emotion_engine.get_state(user_id=user.user_id)
     
     # Convert context to dict
     case_context = context.dict()
     
     # Generate action plan
     plan = action_router.generate_action_plan(
-        emotional_state=emotional_state,
+           emotional_state=emotional_state.to_dict(),
         case_context=case_context
     )
     
@@ -140,13 +141,14 @@ async def get_all_actions():
 
 
 @router.get("/capacity")
-async def get_current_capacity():
+async def get_current_capacity(user: StorageUser = Depends(require_user)):
     """
     Get the current emotional capacity assessment.
     """
-    emotional_state = emotion_engine.get_state()
-    capacity = action_router.assess_emotional_capacity(emotional_state)
-    mode = action_router.get_dashboard_mode(emotional_state)
+    emotional_state = emotion_engine.get_state(user_id=user.user_id)
+    state_dict = emotional_state.to_dict()
+    capacity = action_router.assess_emotional_capacity(state_dict)
+    mode = action_router.get_dashboard_mode(state_dict)
     
     capacity_descriptions = {
         "minimal": "You're handling a lot right now. Let's keep it simple - just one thing at a time.",
@@ -160,7 +162,7 @@ async def get_current_capacity():
         "capacity": capacity.value,
         "description": capacity_descriptions.get(capacity.value, ""),
         "mode": mode,
-        "emotional_state": emotional_state,
+        "emotional_state": emotional_state.to_dict(),
         "recommendations": {
             "minimal": "Focus on self-care and only critical items",
             "limited": "Prioritize urgent items, skip non-essentials",
@@ -183,14 +185,14 @@ async def get_self_care_suggestions():
 
 
 @router.get("/encouragement")
-async def get_encouragement():
+async def get_encouragement(user: StorageUser = Depends(require_user)):
     """
     Get an encouragement message based on current emotional state.
     """
     import random
     
-    emotional_state = emotion_engine.get_state()
-    mode = action_router.get_dashboard_mode(emotional_state)
+    emotional_state = emotion_engine.get_state(user_id=user.user_id)
+    mode = action_router.get_dashboard_mode(emotional_state.to_dict())
     
     messages = action_router.encouragements.get(mode, action_router.encouragements["guided"])
     message = random.choice(messages)

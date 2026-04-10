@@ -18,3 +18,6 @@ class EvidenceItem(BaseModel):
     description: str
     collected_on: Optional[date] = None
     tags: List[str] = []
+    vault_id: Optional[str] = None
+    overlay_record_ids: List[str] = []
+    extracted_data: Optional[dict] = None

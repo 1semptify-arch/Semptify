@@ -39,6 +39,7 @@ class TimelineEventCreate(BaseModel):
     description: Optional[str] = None
     event_date: str = Field(..., description="ISO format date when event occurred")
     document_id: Optional[str] = Field(None, description="Link to a vault document")
+    overlay_record_ids: List[str] = Field(default_factory=list, description="Preferred overlay references for document context")
     is_evidence: bool = Field(False, description="Mark as evidence for court")
 
 
@@ -48,6 +49,7 @@ class TimelineEventUpdate(BaseModel):
     description: Optional[str] = None
     event_date: Optional[str] = None
     document_id: Optional[str] = None
+    overlay_record_ids: Optional[List[str]] = None
     is_evidence: Optional[bool] = None
 
 
@@ -59,6 +61,7 @@ class TimelineEventResponse(BaseModel):
     description: Optional[str] = None
     event_date: str
     document_id: Optional[str] = None
+    overlay_record_ids: List[str] = []
     is_evidence: bool
     created_at: str
 
@@ -83,6 +86,7 @@ def _parse_date(date_str: str) -> datetime:
 
 def _model_to_response(event: TimelineEventModel) -> TimelineEventResponse:
     """Convert database model to response schema."""
+    overlay_record_ids = _get_overlay_record_ids(event.document_id)
     return TimelineEventResponse(
         id=event.id,
         event_type=event.event_type or "other",
@@ -90,9 +94,41 @@ def _model_to_response(event: TimelineEventModel) -> TimelineEventResponse:
         description=event.description,
         event_date=event.event_date.isoformat() if event.event_date else "",
         document_id=event.document_id,
+        overlay_record_ids=overlay_record_ids,
         is_evidence=event.is_evidence or False,
         created_at=event.created_at.isoformat() if event.created_at else "",
     )
+
+
+def _resolve_document_id_from_overlay_ids(overlay_record_ids: Optional[List[str]], fallback_document_id: Optional[str]) -> Optional[str]:
+    """Resolve vault document reference from overlay IDs, fallback to provided document_id."""
+    if fallback_document_id:
+        return fallback_document_id
+    if not overlay_record_ids:
+        return None
+
+    try:
+        from app.services.document_overlay_service import document_overlay_service
+    except Exception:
+        return None
+
+    for overlay_id in overlay_record_ids:
+        overlay = document_overlay_service.get_overlay(overlay_id)
+        if overlay and overlay.vault_id:
+            return overlay.vault_id
+    return None
+
+
+def _get_overlay_record_ids(document_id: Optional[str]) -> list[str]:
+    if not document_id:
+        return []
+    try:
+        from app.services.document_overlay_service import document_overlay_service
+
+        overlays = document_overlay_service.list_overlays(vault_id=document_id)
+        return [record.overlay_id for record in overlays]
+    except Exception:
+        return []
 
 
 # =============================================================================
@@ -125,6 +161,7 @@ async def create_event(
         )
 
     event_date = _parse_date(event.event_date)
+    resolved_document_id = _resolve_document_id_from_overlay_ids(event.overlay_record_ids, event.document_id)
 
     async with get_db_session() as session:
         db_event = TimelineEventModel(
@@ -134,7 +171,7 @@ async def create_event(
             title=event.title,
             description=event.description,
             event_date=event_date,
-            document_id=event.document_id,
+            document_id=resolved_document_id,
             is_evidence=event.is_evidence,
             created_at=datetime.utcnow(),
         )
@@ -251,6 +288,7 @@ async def list_events(
                 description=doc.description or f"Uploaded {doc.document_type or 'document'}: {doc.original_filename}",
                 event_date=doc_date.isoformat() if doc_date else "",
                 document_id=doc.id,
+                overlay_record_ids=_get_overlay_record_ids(doc.id),
                 is_evidence=True,  # All vault docs are potential evidence
                 created_at=doc_date.isoformat() if doc_date else "",
             ))
@@ -313,6 +351,12 @@ async def update_event(
 
         # Update fields
         update_data = updates.model_dump(exclude_unset=True)
+        overlay_record_ids = update_data.pop("overlay_record_ids", None)
+        if overlay_record_ids is not None:
+            update_data["document_id"] = _resolve_document_id_from_overlay_ids(
+                overlay_record_ids,
+                update_data.get("document_id"),
+            )
         
         # Parse event_date if provided
         if "event_date" in update_data and update_data["event_date"]:

@@ -3,12 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Semptify - Redirecting...</title>
-    <script>window.location.replace('/static/timeline.html');</script>
-    <meta http-equiv="refresh" content="0;url=/static/timeline.html">
-    <style>body{font-family:system-ui,sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#1e3a5f;color:white;}</style>
+    <title>Semptify - Timeline Auto Build</title>
+    <link rel="stylesheet" href="/static/css/shared-nav.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "Segoe UI", system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f1c2f 0%, #12263f 50%, #1a365d 100%);
+            color: #eaf2ff;
+            min-height: 100vh;
+        }
+
+        .page-content {
+            margin-left: 260px;
+            padding: 2rem;
+        }
+
+        .hero {
+            max-width: 900px;
+            border: 1px solid #27456a;
+            border-radius: 16px;
+            background: rgba(12, 30, 50, 0.8);
+            padding: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero p {
+            color: #adc3df;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.65rem 0.95rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .btn.primary {
+            background: #56a3ff;
+            color: #071221;
+        }
+
+        .btn.secondary {
+            background: transparent;
+            border: 1px solid #355a86;
+            color: #eaf2ff;
+        }
+
+        @media (max-width: 768px) {
+            .page-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <p>Redirecting to Timeline... <a href="/static/timeline.html" style="color:#3b82f6;">Click here</a></p>
+    <div id="semptify-nav"></div>
+    <main class="page-content">
+        <section class="hero">
+            <h1>Timeline Auto Build</h1>
+            <p>Auto-build now lives in the main timeline workflow. Use this page as the Stage 2 entry to run extraction-first timeline generation from your uploaded documents.</p>
+            <div class="actions">
+                <a class="btn primary" href="/static/timeline.html">Open Timeline</a>
+                <a class="btn secondary" href="/tenant/documents">Upload More Documents</a>
+            </div>
+        </section>
+    </main>
+    <script src="/static/js/shared-nav.js"></script>
 </body>
 </html>

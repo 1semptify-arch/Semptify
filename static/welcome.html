@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semptify - The Tenant's Journal</title>
+    <link rel="stylesheet" href="/static/css/shared-nav.css">
     <style>
         * {
             margin: 0;
@@ -28,6 +29,10 @@
             color: var(--text);
             line-height: 1.6;
             font-size: 17px;
+        }
+
+        .page-content {
+            margin-left: 260px;
         }
 
         /* Header */
@@ -408,6 +413,7 @@
 
         /* Responsive */
         @media (max-width: 768px) {
+            .page-content { margin-left: 0; }
             .header h1 { font-size: 2rem; }
             .header .tagline { font-size: 1.1rem; }
             .article { padding: 1.5rem 1.25rem; }
@@ -419,7 +425,9 @@
     </style>
 </head>
 <body>
-    
+    <div id="semptify-nav"></div>
+    <div class="page-content">
+
     <header class="header">
         <h1>📓 Semptify</h1>
         <p class="tagline">The Tenant's Journal</p>
@@ -757,7 +765,13 @@
         </p>
     </footer>
 
+    <script src="/static/js/semptify-auth.js"></script>
+    <script src="/static/js/entry-flow.js"></script>
     <script>
+        if (window.SemptifyEntryFlow && window.SemptifyEntryFlow.redirectReturningUser()) {
+            // Returning users are redirected to role-aware UI.
+        }
+
         // Process A router: role + storage choices determine the next process group.
         const PROCESS_ROUTER = {
             tenant: {
@@ -836,6 +850,18 @@
         const startButton = document.getElementById("startProcessBtn");
         const quickButton = document.getElementById("openCommandCenterBtn");
 
+        function normalizeNextRoute(nextUrl, roleValue, storageState) {
+            if (!nextUrl) return nextUrl;
+            if (
+                storageState === "need_connect" &&
+                window.SemptifyEntryFlow &&
+                (nextUrl === "/storage/providers" || nextUrl.startsWith("/storage/providers?"))
+            ) {
+                return window.SemptifyEntryFlow.buildStorageConnectUrl(roleValue, "welcome", nextUrl);
+            }
+            return nextUrl;
+        }
+
         function getRouteDecision() {
             const role = roleSelect.value;
             const storage = storageSelect.value;
@@ -852,9 +878,25 @@
         roleSelect.addEventListener("change", renderRoutePreview);
         storageSelect.addEventListener("change", renderRoutePreview);
 
-        startButton.addEventListener("click", function () {
+        startButton.addEventListener("click", async function () {
+            const roleValue = roleSelect.value;
+            const storageState = storageSelect.value;
+            if (window.SemptifyEntryFlow) {
+                window.SemptifyEntryFlow.saveWelcomeState(roleValue, storageState);
+            }
             const decision = getRouteDecision();
-            window.location.href = decision.nextUrl;
+            const normalized = normalizeNextRoute(decision.nextUrl, roleValue, storageState);
+            if (window.SemptifyEntryFlow && typeof window.SemptifyEntryFlow.resolveStartDestination === "function") {
+                const destination = await window.SemptifyEntryFlow.resolveStartDestination(
+                    roleValue,
+                    storageState,
+                    normalized,
+                    "welcome"
+                );
+                window.location.href = destination;
+                return;
+            }
+            window.location.href = normalized;
         });
 
         quickButton.addEventListener("click", function () {
@@ -863,6 +905,9 @@
 
         renderRoutePreview();
     </script>
+
+    </div>
+    <script src="/static/js/shared-nav.js"></script>
 
 </body>
 </html>

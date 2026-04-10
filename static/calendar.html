@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendar - Semptify</title>
+    <link rel="stylesheet" href="/static/css/shared-nav.css">
     <link rel="stylesheet" href="/static/css/accessibility.css">
     <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
@@ -18,6 +19,10 @@
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
             color: #fff;
+        }
+
+        .page-content {
+            margin-left: 260px;
         }
 
         /* Navigation */
@@ -488,6 +493,7 @@
         }
 
         @media (max-width: 768px) {
+            .page-content { margin-left: 0; }
             .nav {
                 flex-wrap: wrap;
                 gap: 15px;
@@ -516,26 +522,9 @@
     </style>
 </head>
 <body>
-    <!-- Site-wide header & Quick Document FAB -->
-    <script src="/static/js/header.js"></script>
+    <div id="semptify-nav"></div>
+    <div class="page-content">
     <script src="/static/js/reminders.js"></script>
-
-    <!-- Navigation -->
-    <nav class="nav">
-        <div class="nav-brand">Semptify</div>
-        <div class="nav-links">
-            <a href="/static/document_intake.html">📄 Intake</a>
-            <a href="/static/timeline.html">📅 Timeline</a>
-            <a href="/static/calendar.html" class="active">🗓️ Calendar</a>
-        </div>
-        <div class="nav-user">
-            <div class="user-badge">
-                <span id="userIcon">👤</span>
-                <span id="userRole">User</span>
-                <span class="user-id" id="userId">-</span>
-            </div>
-        </div>
-    </nav>
 
     <!-- Main Layout -->
     <div class="main-layout">
@@ -693,9 +682,12 @@
                 ...parsed
             };
 
-            document.getElementById('userIcon').textContent = parsed.roleIcon;
-            document.getElementById('userRole').textContent = parsed.roleName;
-            document.getElementById('userId').textContent = semptifyUid;
+            const userIcon = document.getElementById('userIcon');
+            const userRole = document.getElementById('userRole');
+            const userId = document.getElementById('userId');
+            if (userIcon) userIcon.textContent = parsed.roleIcon;
+            if (userRole) userRole.textContent = parsed.roleName;
+            if (userId) userId.textContent = semptifyUid;
 
             return true;
         }
@@ -1045,5 +1037,7 @@
     
     <!-- Authentication -->
     <script src="/static/js/semptify-auth.js"></script>
+    <script src="/static/js/shared-nav.js"></script>
+    </div>
 </body>
 </html>

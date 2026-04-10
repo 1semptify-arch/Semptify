@@ -68,40 +68,100 @@ if ($LASTEXITCODE -eq 0) {
 }
 
 # ==================================================================
-# STEP 2 - PostgreSQL Database
+# STEP 2 - Core Data Services (PostgreSQL + Redis)
 # ==================================================================
-Step 2 "Starting the database..."
+Step 2 "Starting core data services (PostgreSQL + Redis)..."
 
-$containerName = 'semptify-pg-validate'
+$pgContainerName = 'semptify-pg-validate'
+$redisContainerName = 'semptify-redis-local'
 $pgReady = $false
+$redisReady = $false
 
-if ($dockerRunning) {
+# First preference: locally installed PostgreSQL Windows service
+$localPgService = Get-Service | Where-Object {
+    $_.Name -match 'postgresql|postgres' -or $_.DisplayName -match 'PostgreSQL'
+} | Sort-Object Name | Select-Object -First 1
+
+if ($localPgService) {
+    INFO "Found local PostgreSQL service: $($localPgService.Name)"
+    if ($localPgService.Status -ne 'Running') {
+        INFO "Starting local PostgreSQL service..."
+        Start-Service -Name $localPgService.Name -ErrorAction SilentlyContinue
+    }
+
+    $pgPort = $null
+    $local5432 = Test-NetConnection -ComputerName localhost -Port 5432 -WarningAction SilentlyContinue
+    if ($local5432.TcpTestSucceeded) {
+        $pgPort = 5432
+    } else {
+        $local54329 = Test-NetConnection -ComputerName localhost -Port 54329 -WarningAction SilentlyContinue
+        if ($local54329.TcpTestSucceeded) {
+            $pgPort = 54329
+        }
+    }
+
+    if ($pgPort) {
+        $env:DATABASE_URL = "postgresql+asyncpg://semptify:semptify@localhost:$pgPort/semptify"
+        $pgReady = $true
+        OK "Local PostgreSQL is ready  (localhost:$pgPort)"
+    } else {
+        WARN "Local PostgreSQL service found but no listener on 5432 or 54329."
+    }
+}
+
+if (-not $pgReady -and $dockerRunning) {
     # Create container if it does not exist
-    $exists = docker ps -a --format '{{.Names}}' 2>$null | Where-Object { $_ -eq $containerName }
+    $exists = docker ps -a --format '{{.Names}}' 2>$null | Where-Object { $_ -eq $pgContainerName }
     if (-not $exists) {
         INFO "Creating new Semptify database container..."
         docker run -d `
-            --name $containerName `
+            --name $pgContainerName `
             -e POSTGRES_USER=semptify `
             -e POSTGRES_PASSWORD=semptify `
             -e POSTGRES_DB=semptify `
             -p 54329:5432 `
             postgres:16-alpine *> $null
     } else {
-        $running = docker ps --format '{{.Names}}' 2>$null | Where-Object { $_ -eq $containerName }
+        $running = docker ps --format '{{.Names}}' 2>$null | Where-Object { $_ -eq $pgContainerName }
         if (-not $running) {
             INFO "Starting existing database container..."
-            docker start $containerName *> $null
+            docker start $pgContainerName *> $null
+        }
+    }
+
+    # Create/start Redis container
+    $redisExists = docker ps -a --format '{{.Names}}' 2>$null | Where-Object { $_ -eq $redisContainerName }
+    if (-not $redisExists) {
+        INFO "Creating new Semptify Redis container..."
+        docker run -d `
+            --name $redisContainerName `
+            -p 6379:6379 `
+            redis:7-alpine `
+            redis-server --appendonly yes *> $null
+    } else {
+        $redisRunning = docker ps --format '{{.Names}}' 2>$null | Where-Object { $_ -eq $redisContainerName }
+        if (-not $redisRunning) {
+            INFO "Starting existing Redis container..."
+            docker start $redisContainerName *> $null
         }
     }
 
     # Wait for Postgres to accept connections
     for ($i = 1; $i -le 60; $i++) {
-        docker exec $containerName pg_isready -U semptify -d semptify *> $null
+        docker exec $pgContainerName pg_isready -U semptify -d semptify *> $null
         if ($LASTEXITCODE -eq 0) { $pgReady = $true; break }
         Write-Host "    Waiting for database... ($i/60)" -ForegroundColor DarkGray -NoNewline
         Write-Host "`r" -NoNewline
         Wait-Seconds 2
+    }
+
+    # Wait for Redis to accept connections
+    for ($i = 1; $i -le 40; $i++) {
+        docker exec $redisContainerName redis-cli ping *> $null
+        if ($LASTEXITCODE -eq 0) { $redisReady = $true; break }
+        Write-Host "    Waiting for Redis... ($i/40)" -ForegroundColor DarkGray -NoNewline
+        Write-Host "`r" -NoNewline
+        Wait-Seconds 1
     }
 
     if ($pgReady) {
@@ -111,7 +171,13 @@ if ($dockerRunning) {
         FAIL "Database did not start in time."
         WARN "Falling back to local file-based database."
     }
-} else {
+    if ($redisReady) {
+        $env:REDIS_URL = 'redis://localhost:6379/0'
+        OK "Redis is ready  (redis://localhost:6379/0)"
+    } else {
+        WARN "Redis did not report healthy in time."
+    }
+} elseif (-not $pgReady) {
     WARN "Skipping database - Docker not available."
     INFO "Your data will be stored in a local file (semptify.db)."
     INFO "This is fine for testing but not recommended for real case data."
@@ -127,6 +193,11 @@ $env:ENFORCE_SECURITY = 'true'
 $env:ENVIRONMENT     = 'production'
 $env:DEBUG           = 'false'
 $env:PYTHONIOENCODING = 'utf-8'
+
+# Ensure production validation gets a non-default key
+if (-not $env:SECRET_KEY -or $env:SECRET_KEY -eq 'change-me-in-production') {
+    $env:SECRET_KEY = [Convert]::ToBase64String((1..64 | ForEach-Object { Get-Random -Minimum 0 -Maximum 256 }))
+}
 
 OK "Security mode   : ENFORCED"
 OK "Environment     : production"

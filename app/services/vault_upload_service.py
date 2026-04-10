@@ -26,6 +26,8 @@ from typing import Optional
 from dataclasses import dataclass, asdict
 from pathlib import Path
 
+from app.core.config import get_settings
+
 logger = logging.getLogger(__name__)
 
 # Import storage provider
@@ -78,6 +80,20 @@ class VaultDocument:
 
 class VaultDocumentIndex:
     """Local index of vault documents for fast queries without hitting cloud storage."""
+
+    IMMUTABLE_FIELDS = {
+        "vault_id",
+        "user_id",
+        "filename",
+        "safe_filename",
+        "sha256_hash",
+        "file_size",
+        "mime_type",
+        "storage_path",
+        "storage_provider",
+        "certificate_id",
+        "uploaded_at",
+    }
     
     def __init__(self, data_dir: str = "data/vault_index"):
         self.data_dir = Path(data_dir)
@@ -146,6 +162,10 @@ class VaultDocumentIndex:
         """Update document metadata."""
         doc = self._documents.get(vault_id)
         if doc:
+            attempted_immutable = set(kwargs.keys()) & self.IMMUTABLE_FIELDS
+            if attempted_immutable:
+                fields = ", ".join(sorted(attempted_immutable))
+                raise ValueError(f"Immutable vault fields cannot be modified: {fields}")
             for key, value in kwargs.items():
                 if hasattr(doc, key):
                     setattr(doc, key, value)
@@ -194,6 +214,47 @@ class VaultUploadService:
         """Generate safe filename for storage."""
         ext = original_filename.rsplit(".", 1)[-1].lower() if "." in original_filename else "bin"
         return f"{vault_id}.{ext}"
+
+    def _validate_upload_input(self, filename: str, content: bytes, mime_type: str) -> None:
+        """Validate upload size and extension before storing immutable artifacts."""
+        if not filename or not filename.strip():
+            raise ValueError("filename is required")
+        if not content:
+            raise ValueError("file content cannot be empty")
+
+        settings = get_settings()
+        max_size_bytes = int(settings.max_upload_size_mb) * 1024 * 1024
+        if len(content) > max_size_bytes:
+            raise ValueError(f"file too large: max {settings.max_upload_size_mb}MB")
+
+        ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+        allowed_extensions = {
+            item.strip().lower()
+            for item in str(settings.allowed_extensions).split(",")
+            if item.strip()
+        }
+        if ext and ext not in allowed_extensions:
+            raise ValueError(f"file extension not allowed: {ext}")
+        if not mime_type:
+            raise ValueError("mime_type is required")
+
+    def _create_overlay_record(self, doc: VaultDocument, overlay_type: str, payload: dict, metadata: dict | None = None) -> None:
+        """Create non-blocking overlay records that reference immutable vault artifacts."""
+        try:
+            from app.models.document_overlay_models import DocumentOverlayCreate
+            from app.services.document_overlay_service import document_overlay_service
+
+            document_overlay_service.create_overlay(
+                DocumentOverlayCreate(
+                    document_id=doc.safe_filename,
+                    overlay_type=overlay_type,
+                    payload=payload,
+                    vault_id=doc.vault_id,
+                    metadata=metadata,
+                )
+            )
+        except Exception as ex:
+            logger.debug("Overlay record creation skipped for %s: %s", doc.vault_id, ex)
     
     async def _ensure_folders(self, storage) -> None:
         """Ensure vault folders exist in storage."""
@@ -237,6 +298,8 @@ class VaultUploadService:
         Returns:
             VaultDocument with vault_id and storage details
         """
+        self._validate_upload_input(filename=filename, content=content, mime_type=mime_type)
+
         # Compute hash for deduplication
         sha256_hash = self._compute_sha256(content)
         
@@ -297,6 +360,20 @@ class VaultUploadService:
         
         # Add to index
         self.index.add(doc)
+
+        self._create_overlay_record(
+            doc,
+            overlay_type="vault_upload_manifest",
+            payload={
+                "sha256_hash": doc.sha256_hash,
+                "file_size": doc.file_size,
+                "mime_type": doc.mime_type,
+                "storage_path": doc.storage_path,
+                "certificate_id": doc.certificate_id,
+                "source_module": doc.source_module,
+            },
+            metadata={"stage": "upload"},
+        )
         
         logger.info("📁 Document uploaded to vault: %s (%s) via %s", vault_id, filename, source_module)
         
@@ -465,11 +542,19 @@ class VaultUploadService:
         extracted_data: Optional[dict] = None
     ) -> Optional[VaultDocument]:
         """Mark document as processed and store extracted data."""
-        return self.index.update(
+        doc = self.index.update(
             vault_id,
             processed=True,
             extracted_data=extracted_data
         )
+        if doc and extracted_data is not None:
+            self._create_overlay_record(
+                doc,
+                overlay_type="document_extraction",
+                payload={"extracted_data": extracted_data},
+                metadata={"stage": "extraction"},
+            )
+        return doc
     
     def update_document_type(
         self,
@@ -477,7 +562,15 @@ class VaultUploadService:
         document_type: str
     ) -> Optional[VaultDocument]:
         """Update document type after classification."""
-        return self.index.update(vault_id, document_type=document_type)
+        doc = self.index.update(vault_id, document_type=document_type)
+        if doc:
+            self._create_overlay_record(
+                doc,
+                overlay_type="document_classification",
+                payload={"document_type": document_type},
+                metadata={"stage": "classification"},
+            )
+        return doc
 
 
 # =============================================================================

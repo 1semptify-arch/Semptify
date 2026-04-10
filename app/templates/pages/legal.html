@@ -3,6 +3,7 @@
 {% block title %}Legal Dashboard - Semptify{% endblock %}
 
 {% block styles %}
+<link rel="stylesheet" href="/static/css/workspace-stage-model.css">
 <style>
 .role-container {
     max-width: 1150px;
@@ -52,6 +53,8 @@
     <h1>Legal Dashboard</h1>
     <p>Attorney workflow with direct paths to active tools.</p>
 
+    {% include "partials/workspace_stage_panel.html" %}
+
     <div class="role-links">
         <a href="/legal">Overview</a>
         <a href="/legal/cases">Case Files</a>
@@ -83,4 +86,5 @@ document.querySelectorAll('[data-legal-suggest]').forEach((chip) => {
     });
 });
 </script>
+<script src="/static/js/workspace-stage-model.js"></script>
 {% endblock %}

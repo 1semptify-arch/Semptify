@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 try:
     from app.services.document_registry import (
         DocumentRegistry,
-        RegistryStatus,
-        VerificationStatus,
+        DocumentStatus,
+        IntegrityStatus,
     )
     HAS_REGISTRY = True
 except ImportError:

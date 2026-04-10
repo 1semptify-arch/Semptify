@@ -117,7 +117,12 @@ class User(Base):
 
     # Intensity Engine (tenant-specific feature)
     intensity_level: Mapped[str] = mapped_column(String(10), default="low")  # low, medium, high
-    
+
+    # Permanent process completion record — written once per group, never re-verified from cloud.
+    # Comma-separated group names, e.g. "storage_connected,vault_initialized"
+    # Serial gating: each entry is written only after its ProcessGroup exit_criteria are verifiably met.
+    completed_groups: Mapped[Optional[str]] = mapped_column(Text, nullable=True, default=None)
+
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
@@ -561,6 +566,30 @@ class StorageConfig(Base):
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
+
+
+# =============================================================================
+# OAuth State (CSRF Protection - DB-backed so server restarts don't break auth)
+# =============================================================================
+
+class OAuthState(Base):
+    """
+    Persistent OAuth CSRF state.
+
+    Replaces the in-memory OAUTH_STATES dict so state tokens survive server
+    restarts and multi-worker deployments.  Tokens are short-lived (15 min)
+    and cleaned up after use or expiry.
+    """
+    __tablename__ = "oauth_states"
+
+    id: Mapped[str] = mapped_column(String(255), primary_key=True)   # the state token
+    provider: Mapped[str] = mapped_column(String(50))
+    role: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    existing_uid: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    return_to: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+    expires_at: Mapped[datetime] = mapped_column(DateTimeTZ)
 
 
 # =============================================================================

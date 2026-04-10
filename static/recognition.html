@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🔍 Document Recognition Engine - Semptify</title>
+    <link rel="stylesheet" href="/static/css/shared-nav.css">
     <style>
         :root {
             --primary: #2563eb;
@@ -36,6 +37,10 @@
             min-height: 100vh;
             padding: 20px;
             color: #333;
+        }
+
+        .page-content {
+            margin-left: 260px;
         }
 
         .container {
@@ -71,6 +76,12 @@
         @media (max-width: 1024px) {
             .main-grid {
                 grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-content {
+                margin-left: 0;
             }
         }
 
@@ -743,6 +754,60 @@
             border-color: var(--blue-500);
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
+
+        .document-type-selector-block {
+            margin-top: 16px;
+            margin-bottom: 16px;
+        }
+
+        .document-type-selector-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+
+        .document-type-selector-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-label {
+            font-size: 12px;
+            color: var(--gray-500);
+            margin-right: 8px;
+        }
+
+        .loading-subtext {
+            font-size: 13px;
+            color: var(--gray-400);
+        }
+
+        .results-stats-card {
+            margin-bottom: 20px;
+        }
+
+        .confidence-fill-initial {
+            width: 0%;
+        }
+
+        .section-heading {
+            margin-bottom: 12px;
+            color: var(--gray-700);
+        }
+
+        .section-heading-spaced {
+            margin: 20px 0 12px;
+            color: var(--gray-700);
+        }
+
         .quick-templates {
             display: flex;
             flex-wrap: wrap;
@@ -771,8 +836,8 @@
     <script src="/static/js/emotion-integration.js"></script>
 </head>
 <body>
-    <!-- Site-wide header -->
-    <script src="/static/js/header.js"></script>
+    <div id="semptify-nav"></div>
+    <div class="page-content">
 
     <a href="/static/document_intake.html" class="nav-link">← Back to Document Intake</a>
 
@@ -807,11 +872,11 @@ The engine will automatically:
                 ></textarea>
 
                 <!-- Document Type Selector -->
-                <div class="document-type-selector" style="margin-top: 16px; margin-bottom: 16px;">
-                    <label for="documentTypeSelect" style="display: block; font-size: 14px; font-weight: 600; color: var(--gray-700); margin-bottom: 8px;">
+                <div class="document-type-selector document-type-selector-block">
+                    <label for="documentTypeSelect" class="document-type-selector-label">
                         📋 Select Document Type to Load Template:
                     </label>
-                    <select id="documentTypeSelect" onchange="loadDocumentTemplate(this.value)" style="width: 100%; padding: 12px 16px; border: 2px solid var(--gray-200); border-radius: 12px; font-size: 14px; background: white; cursor: pointer; transition: all 0.2s;">
+                    <select id="documentTypeSelect" class="document-type-selector-input" onchange="loadDocumentTemplate(this.value)">
                         <option value="">-- Choose a document type --</option>
                         <optgroup label="🏠 Housing & Eviction">
                             <option value="eviction_notice">Eviction Notice (3-Day, 14-Day, etc.)</option>
@@ -852,7 +917,7 @@ The engine will automatically:
                     
                     <!-- Quick template buttons -->
                     <div class="quick-templates">
-                        <span style="font-size: 12px; color: var(--gray-500); margin-right: 8px;">Quick:</span>
+                        <span class="quick-label">Quick:</span>
                         <button class="quick-template-btn" onclick="loadDocumentTemplate('eviction_notice')">🏠 Eviction</button>
                         <button class="quick-template-btn" onclick="loadDocumentTemplate('court_summons')">⚖️ Summons</button>
                         <button class="quick-template-btn" onclick="loadDocumentTemplate('repair_request')">🔧 Repair</button>
@@ -893,13 +958,13 @@ The engine will automatically:
         <div class="loading" id="loadingSection">
             <div class="spinner"></div>
             <p>Analyzing document...</p>
-            <p style="font-size: 13px; color: var(--gray-400);">Multi-pass reasoning in progress</p>
+            <p class="loading-subtext">Multi-pass reasoning in progress</p>
         </div>
 
         <!-- Results Section -->
         <div class="results-section" id="resultsSection">
             <!-- Stats -->
-            <div class="card" style="margin-bottom: 20px;">
+            <div class="card results-stats-card">
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value" id="statEntities">0</div>
@@ -937,7 +1002,7 @@ The engine will automatically:
                             <span id="confidenceValue">0%</span>
                         </div>
                         <div class="meter-bar">
-                            <div class="meter-fill high" id="confidenceFill" style="width: 0%"></div>
+                            <div class="meter-fill high confidence-fill-initial" id="confidenceFill"></div>
                         </div>
                     </div>
 
@@ -970,10 +1035,10 @@ The engine will automatically:
 
                     <!-- Defenses Tab -->
                     <div class="tab-content" id="defensesTab">
-                        <h3 style="margin-bottom: 12px; color: var(--gray-700);">Applicable Statutes</h3>
+                        <h3 class="section-heading">Applicable Statutes</h3>
                         <div class="statutes-list" id="statutesList"></div>
 
-                        <h3 style="margin: 20px 0 12px; color: var(--gray-700);">Defense Options</h3>
+                        <h3 class="section-heading-spaced">Defense Options</h3>
                         <div class="defense-list" id="defenseList">
                             <div class="empty-state">
                                 <div class="icon">🛡️</div>
@@ -1001,7 +1066,7 @@ The engine will automatically:
                     </div>
 
                     <!-- Signatures -->
-                    <h3 style="margin: 20px 0 12px; color: var(--gray-700);">Signatures Detected</h3>
+                    <h3 class="section-heading-spaced">Signatures Detected</h3>
                     <div class="signature-list" id="signatureList">
                         <div class="empty-state">
                             <div class="icon">✒️</div>
@@ -1011,7 +1076,7 @@ The engine will automatically:
 
                     <!-- Forgery Indicators -->
                     <div class="forgery-indicators" id="forgerySection">
-                        <h3 style="margin: 20px 0 12px; color: var(--gray-700);">Forgery Indicators</h3>
+                        <h3 class="section-heading-spaced">Forgery Indicators</h3>
                         <div id="forgeryList">
                             <div class="empty-state">
                                 <div class="icon">🔒</div>
@@ -1022,7 +1087,7 @@ The engine will automatically:
 
                     <!-- Recommendations -->
                     <div class="recommendations" id="recommendationsSection">
-                        <h3 style="margin: 20px 0 12px; color: var(--gray-700);">Recommendations</h3>
+                        <h3 class="section-heading-spaced">Recommendations</h3>
                         <ul class="recommendation-list" id="recommendationList"></ul>
                     </div>
                 </div>
@@ -1720,5 +1785,7 @@ _________________________________`
             setTimeout(() => toast.remove(), 4000);
         }
     </script>
+    <script src="/static/js/shared-nav.js"></script>
+    </div>
 </body>
 </html>

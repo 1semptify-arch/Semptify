@@ -58,6 +58,19 @@ except ImportError:
 router = APIRouter(prefix="/api/intake", tags=["Document Intake"])
 
 
+def _get_overlay_record_ids(vault_id: Optional[str]) -> list[str]:
+    """Resolve overlay records linked to a vault artifact."""
+    if not vault_id:
+        return []
+    try:
+        from app.services.document_overlay_service import document_overlay_service
+
+        overlays = document_overlay_service.list_overlays(vault_id=vault_id)
+        return [record.overlay_id for record in overlays]
+    except Exception:
+        return []
+
+
 # =============================================================================
 # PYDANTIC MODELS
 # =============================================================================
@@ -151,6 +164,8 @@ class UploadResponse(BaseModel):
     filename: str
     status: str
     message: str
+    vault_id: Optional[str] = None
+    overlay_record_ids: list[str] = []
 
 
 class BatchUploadResponse(BaseModel):
@@ -316,6 +331,8 @@ async def upload_document(
     except Exception as e:
         logger.error(f"Intake failed: {e}")
         doc = None
+
+    overlay_record_ids = _get_overlay_record_ids(vault_id)
     
     return UploadResponse(
         id=doc.id if doc else "",
@@ -326,6 +343,8 @@ async def upload_document(
             f"Notarization: {notarization_id}. "
             f"Use /status/{doc.id if doc else 'pending'} to check processing."
         ),
+        vault_id=vault_id,
+        overlay_record_ids=overlay_record_ids,
     )
 
 
@@ -337,6 +356,7 @@ class AutoProcessResponse(BaseModel):
     doc_type: str
     message: str
     vault_id: Optional[str] = None
+    overlay_record_ids: list[str] = []
     extracted_data: dict = {}
     timeline_events: int = 0
     issues_found: int = 0
@@ -513,6 +533,8 @@ async def upload_and_process(
             "amounts": len(doc.extraction.amounts) if doc.extraction.amounts else 0,
             "summary": doc.extraction.summary[:200] if doc.extraction.summary else "",
         }
+
+    overlay_record_ids = _get_overlay_record_ids(vault_id)
     
     return AutoProcessResponse(
         id=doc.id,
@@ -524,6 +546,7 @@ async def upload_and_process(
             f"and processed successfully in vault ({vault_id or 'local'})"
         ),
         vault_id=vault_id,
+        overlay_record_ids=overlay_record_ids,
         extracted_data=extracted_data,
         timeline_events=flow_result.get("stages", {}).get("events", {}).get("count", 0),
         issues_found=len(doc.extraction.issues) if doc.extraction and doc.extraction.issues else 0,
@@ -691,6 +714,8 @@ async def process_document_from_vault(
                 "amounts": len(intake_doc.extraction.amounts) if intake_doc.extraction.amounts else 0,
                 "summary": intake_doc.extraction.summary[:200] if intake_doc.extraction.summary else "",
             }
+
+        overlay_record_ids = _get_overlay_record_ids(doc_id)
         
         return AutoProcessResponse(
             id=doc_id,  # Return vault document ID
@@ -698,6 +723,8 @@ async def process_document_from_vault(
             status=intake_doc.status.value if intake_doc.status else "complete",
             doc_type=intake_doc.doc_type.value if intake_doc.doc_type else "unknown",
             message="Document processed successfully from vault",
+            vault_id=doc_id,
+            overlay_record_ids=overlay_record_ids,
             extracted_data=extracted_data,
             timeline_events=0,
             issues_found=len(intake_doc.extraction.issues) if intake_doc.extraction and intake_doc.extraction.issues else 0,
