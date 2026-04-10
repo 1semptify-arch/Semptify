@@ -102,16 +102,22 @@ async def test_document_list_filter_by_status(client: AsyncClient, test_user_id)
 # =============================================================================
 
 @pytest.mark.anyio
-async def test_document_get_nonexistent(client: AsyncClient):
+async def test_document_get_nonexistent(client: AsyncClient, test_user_id):
     """Test getting a non-existent document."""
-    response = await client.get("/api/documents/nonexistent-id")
+    response = await client.get(
+        "/api/documents/nonexistent-id",
+        cookies={"semptify_uid": test_user_id},
+    )
     assert response.status_code == 404
 
 
 @pytest.mark.anyio
-async def test_document_reprocess_nonexistent(client: AsyncClient):
+async def test_document_reprocess_nonexistent(client: AsyncClient, test_user_id):
     """Test reprocessing a non-existent document."""
-    response = await client.post("/api/documents/nonexistent-id/reprocess")
+    response = await client.post(
+        "/api/documents/nonexistent-id/reprocess",
+        cookies={"semptify_uid": test_user_id},
+    )
     assert response.status_code == 404
 
 

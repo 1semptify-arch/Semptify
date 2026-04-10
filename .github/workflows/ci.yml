@@ -67,6 +67,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       
+      - name: Run Sprint 1 core gates (mandatory)
+        run: |
+          pytest tests/test_core_completion_gates.py -q
+        env:
+          SECURITY_MODE: enforced
+          DATABASE_URL: sqlite+aiosqlite:///./test.db
+          SECRET_KEY: test-secret-key-for-ci-only
+
+      - name: Run Sprint 2 security isolation gates (mandatory)
+        run: |
+          pytest tests/test_security_isolation_gates.py -q
+        env:
+          SECURITY_MODE: enforced
+          DATABASE_URL: sqlite+aiosqlite:///./test.db
+          SECRET_KEY: test-secret-key-for-ci-only
+
+      - name: Run Sprint 3 action router gates (mandatory)
+        run: |
+          pytest tests/test_action_router_gates.py -q
+        env:
+          SECURITY_MODE: enforced
+          DATABASE_URL: sqlite+aiosqlite:///./test.db
+          SECRET_KEY: test-secret-key-for-ci-only
+
       - name: Run tests with coverage
         run: |
           pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing

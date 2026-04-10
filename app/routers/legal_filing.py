@@ -13,6 +13,39 @@ from app.services.legal_filing_service import (
 router = APIRouter(prefix="/api/legal-filing", tags=["Legal Filing"])
 
 
+def _resolve_overlay_context(evidence: EvidenceItem) -> EvidenceItem:
+    """Prefer overlay-linked vault and extraction context, fallback to legacy evidence fields."""
+    if not evidence.overlay_record_ids:
+        return evidence
+
+    if evidence.vault_id and evidence.extracted_data:
+        return evidence
+
+    try:
+        from app.services.document_overlay_service import document_overlay_service
+    except Exception:
+        return evidence
+
+    for overlay_id in evidence.overlay_record_ids:
+        overlay = document_overlay_service.get_overlay(overlay_id)
+        if not overlay:
+            continue
+
+        if not evidence.vault_id and overlay.vault_id:
+            evidence.vault_id = overlay.vault_id
+
+        if not evidence.extracted_data:
+            if isinstance(overlay.payload, dict) and "extracted_data" in overlay.payload:
+                evidence.extracted_data = overlay.payload.get("extracted_data")
+            elif isinstance(overlay.payload, dict):
+                evidence.extracted_data = overlay.payload
+
+        if evidence.vault_id and evidence.extracted_data:
+            break
+
+    return evidence
+
+
 def _get_user_role(request: Request) -> str:
     user_id = request.cookies.get("semptify_uid", "anonymous")
     role = get_role_from_user_id(user_id)
@@ -59,6 +92,7 @@ def add_evidence(case_id: str, evidence: EvidenceItem, request: Request):
         _ = load_case(case_id)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Case not found")
+    evidence = _resolve_overlay_context(evidence)
     saved = save_evidence(case_id, evidence)
     return {"status": "evidence added", "evidence": saved}
 

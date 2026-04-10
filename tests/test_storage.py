@@ -383,10 +383,17 @@ async def test_oauth_callback_commits_before_vault_enable(client: AsyncClient, m
     async def fake_exchange_code(provider: str, code: str, redirect_uri: str) -> dict:
         return {"access_token": "access-token", "refresh_token": "refresh-token", "expires_in": 3600}
 
+    async def fake_fetch_oauth_identity(provider: str, access_token: str) -> dict:
+        return {
+            "provider_subject": "google-subject-123",
+            "email": "test@example.com",
+            "display_name": "Test User",
+        }
+
     async def fake_save_session_to_db(**kwargs):
         call_order.append("save_session")
 
-    async def fake_create_or_update_user(db, user_id: str, provider: str):
+    async def fake_create_or_update_user(db, user_id: str, provider: str, **kwargs):
         call_order.append("create_or_update_user")
         return MagicMock()
 
@@ -398,6 +405,7 @@ async def test_oauth_callback_commits_before_vault_enable(client: AsyncClient, m
         call_order.append("store_auth_marker")
 
     monkeypatch.setattr(storage_router, "_exchange_code", fake_exchange_code)
+    monkeypatch.setattr(storage_router, "_fetch_oauth_identity", fake_fetch_oauth_identity)
     monkeypatch.setattr(storage_router, "save_session_to_db", fake_save_session_to_db)
     monkeypatch.setattr(storage_router, "create_or_update_user", fake_create_or_update_user)
     monkeypatch.setattr(storage_router, "get_or_create_storage_config", fake_get_or_create_storage_config)

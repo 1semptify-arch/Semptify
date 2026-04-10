@@ -9,15 +9,16 @@ in court if it goes that far - hopefully it won't.
 import asyncio
 import logging
 import sys
-import os
 from contextlib import asynccontextmanager
 from pathlib import Path
+from typing import Optional
 
-from fastapi import FastAPI, Request, Cookie
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import get_settings
 from app.core.database import init_db, close_db
@@ -27,7 +28,7 @@ def get_base_path() -> Path:
     """Get base path - handles PyInstaller frozen mode."""
     if getattr(sys, 'frozen', False):
         # Running as compiled exe
-        return Path(sys._MEIPASS)
+        return Path(getattr(sys, "_MEIPASS", "."))
     return Path(".")
 
 BASE_PATH = get_base_path()
@@ -39,7 +40,7 @@ def _safe_router_import(module_path: str):
     try:
         module = __import__(module_path, fromlist=["router"])
         return getattr(module, "router")
-    except Exception as ex:
+    except (ImportError, AttributeError) as ex:
         logging.getLogger(__name__).warning("Router import failed (%s): %s", module_path, ex)
         return None
 
@@ -98,14 +99,14 @@ overlays_router = _safe_router_import("app.routers.overlays")
 document_converter_router = _safe_router_import("app.routers.document_converter")
 page_index_router = _safe_router_import("app.routers.page_index")
 documents_router = _safe_router_import("app.routers.documents")
-intake_router = _safe_router_import("app.routers.intake")
 workflow_router = _safe_router_import("app.routers.workflow")
 functionx_router = _safe_router_import("app.routers.functionx")
+document_overlays_router = _safe_router_import("app.routers.document_overlays")
 from app.routers import storage
 from app.core.mesh_integration import start_mesh_network, stop_mesh_network
 
 # Tenant Defense Module
-from app.modules.tenant_defense import router as tenant_defense_router, initialize as init_tenant_defense
+from app.modules.tenant_defense import router as tenant_defense_router
 
 # Dakota County Eviction Defense Module
 try:
@@ -129,11 +130,11 @@ except ImportError as e:
 def setup_logging():
     """Configure logging based on settings using enhanced logging config."""
     from app.core.logging_config import setup_logging as configure_logging
-    settings = get_settings()
+    logging_settings = get_settings()
     configure_logging(
-        level=settings.log_level.upper(),
-        json_format=settings.log_json_format,
-        log_file=Path("logs/semptify.log") if settings.log_json_format else None,
+        level=logging_settings.log_level.upper(),
+        json_format=logging_settings.log_json_format,
+        log_file=Path("logs/semptify.log") if logging_settings.log_json_format else None,
     )
 
 
@@ -142,7 +143,7 @@ def setup_logging():
 # =============================================================================
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """
     Application lifespan handler with staged setup.
     - Runs setup in stages with verification
@@ -150,7 +151,7 @@ async def lifespan(app: FastAPI):
     - Total timeout: 20 seconds
     - If all retries fail, wipes and starts fresh
     """
-    settings = get_settings()
+    lifespan_settings = get_settings()
     logger = logging.getLogger(__name__)
     
     # Configuration
@@ -179,7 +180,10 @@ async def lifespan(app: FastAPI):
             
             try:
                 log_stage(stage_num, total, name, f"Attempt {attempt}/{MAX_RETRIES}...")
-                await action() if asyncio.iscoroutinefunction(action) else action()
+                if asyncio.iscoroutinefunction(action):
+                    await action()
+                else:
+                    action()
                 
                 # Verify if verification function provided
                 if verify:
@@ -217,11 +221,8 @@ async def lifespan(app: FastAPI):
                     shutil.rmtree(path, ignore_errors=True)
                     logger.info("  Removed directory: %s", dir_path)
         
-        # Clear in-memory caches
-        from app.routers.storage import SESSIONS, OAUTH_STATES
-        SESSIONS.clear()
-        OAUTH_STATES.clear()
-        logger.info("  Cleared in-memory caches")
+        # Sessions and OAuth states are now DB-backed (no in-memory dicts to clear)
+        logger.info("  Sessions/OAuth states are DB-backed - no cache to clear")
         
         logger.warning("🧹 Wipe complete - ready for fresh start")
     
@@ -230,7 +231,6 @@ async def lifespan(app: FastAPI):
     # =========================================================================
     
     TOTAL_STAGES = 6
-    setup_success = False
     
     # Required packages for each feature area
     REQUIRED_PACKAGES = {
@@ -265,8 +265,8 @@ async def lifespan(app: FastAPI):
     }
     
     logger.info("=" * 60)
-    logger.info("🚀 STARTING %s v%s", settings.app_name, settings.app_version)
-    logger.info("   Security mode: %s", settings.security_mode)
+    logger.info("🚀 STARTING %s v%s", lifespan_settings.app_name, lifespan_settings.app_version)
+    logger.info("   Security mode: %s", lifespan_settings.security_mode)
     logger.info("   Timeout: %ss | Retries per stage: %s", TOTAL_TIMEOUT, MAX_RETRIES)
     logger.info("=" * 60)
     
@@ -328,7 +328,7 @@ async def lifespan(app: FastAPI):
                     from sqlalchemy import text
                     await db.execute(text("SELECT 1"))
                     return True
-            except Exception:
+            except SQLAlchemyError:
                 return False
         
         await run_stage(3, TOTAL_STAGES, "Initialize Database", init_database, verify_database)
@@ -336,20 +336,17 @@ async def lifespan(app: FastAPI):
         # --- STAGE 4: Load Configuration ---
         async def load_config():
             # Verify settings are accessible
-            _ = settings.app_name
-            _ = settings.security_mode
+            _ = lifespan_settings.app_name
+            _ = lifespan_settings.security_mode
         
         def verify_config():
-            return settings.app_name is not None
+            return lifespan_settings.app_name is not None
         
         await run_stage(4, TOTAL_STAGES, "Load Configuration", load_config, verify_config)
         
         # --- STAGE 5: Initialize Services ---
         async def init_services():
             # Initialize any service caches/state
-            # Verify routers can be imported
-            from app.routers import storage, documents, timeline, calendar, health
-            from app.services import azure_ai, document_pipeline
             # Initialize Positronic Brain connections
             from app.services.brain_integrations import initialize_brain_connections
             await initialize_brain_connections()
@@ -366,7 +363,7 @@ async def lifespan(app: FastAPI):
             logger.info("   🧠 Positronic Mesh initialized with workflow orchestration")
 
             # Initialize Location Service (registers with mesh for cross-module awareness)
-            from app.services.location_service import location_service, register_with_mesh
+            from app.services.location_service import register_with_mesh
             register_with_mesh()
             logger.info("   📍 Location Service initialized - Minnesota-focused tenant rights")
 
@@ -387,9 +384,6 @@ async def lifespan(app: FastAPI):
             # Verify critical paths exist
             assert Path("uploads/vault").exists(), "Vault directory missing"
             assert Path("data").exists(), "Data directory missing"
-            # Verify we can import core functionality
-            from app.core.user_id import generate_user_id, parse_user_id
-            from app.core.security import get_user_token_store
         
         async def verify_final():
             # Test a simple endpoint would work
@@ -398,7 +392,7 @@ async def lifespan(app: FastAPI):
         await run_stage(6, TOTAL_STAGES, "Final Verification", final_check, verify_final)
         
         # --- STAGE 7: PRODUCTION MODE VALIDATION (if enforced) ---
-        if settings.security_mode == "enforced":
+        if lifespan_settings.security_mode == "enforced":
             TOTAL_STAGES = 7
             
             async def validate_production():
@@ -413,7 +407,6 @@ async def lifespan(app: FastAPI):
             await run_stage(7, TOTAL_STAGES, "Production Security Validation", validate_production, verify_production)
         
         # --- SETUP COMPLETE ---
-        setup_success = True
         total_time = time.time() - start_time
         
         logger.info("")
@@ -421,7 +414,7 @@ async def lifespan(app: FastAPI):
         logger.info("✅ ✅ ✅  ALL STAGES COMPLETE  ✅ ✅ ✅")
         logger.info("   Setup completed in %.2f seconds", total_time)
         logger.info("")
-        if settings.security_mode == "enforced":
+        if lifespan_settings.security_mode == "enforced":
             logger.info("   🔒 PRODUCTION MODE: ENFORCED SECURITY ACTIVE")
         logger.info("   🌐 Server: http://localhost:8000")
         logger.info("   📄 Welcome: http://localhost:8000/static/welcome.html")
@@ -430,14 +423,14 @@ async def lifespan(app: FastAPI):
         logger.info("")
         
     except TimeoutError as e:
-        logger.error(f"❌ SETUP TIMEOUT: {e}")
+        logger.error("❌ SETUP TIMEOUT: %s", e)
         await wipe_and_reset()
-        raise SystemExit("Setup failed - timeout exceeded")
+        raise SystemExit("Setup failed - timeout exceeded") from e
         
-    except Exception as e:
-        logger.error(f"❌ SETUP FAILED: {e}")
+    except (RuntimeError, ValueError, ImportError, AssertionError, OSError) as e:
+        logger.error("❌ SETUP FAILED: %s", e)
         await wipe_and_reset()
-        raise SystemExit(f"Setup failed after retries: {e}")
+        raise SystemExit(f"Setup failed after retries: {e}") from e
     
     # Register graceful shutdown handler
     from app.core.shutdown import register_shutdown_handler, task_manager
@@ -447,8 +440,8 @@ async def lifespan(app: FastAPI):
     try:
         await start_mesh_network()
         logger.info("🌐 Distributed Mesh Network started - P2P communication active")
-    except Exception as e:
-        logger.warning(f"⚠️ Mesh network start warning: {e}")
+    except (OSError, RuntimeError, ValueError) as e:
+        logger.warning("⚠️ Mesh network start warning: %s", e)
 
     yield  # Application runs here
 
@@ -466,8 +459,8 @@ async def lifespan(app: FastAPI):
     try:
         await stop_mesh_network()
         logger.info("🌐 Distributed Mesh Network stopped")
-    except Exception as e:
-        logger.warning(f"⚠️ Mesh network stop warning: {e}")
+    except (OSError, RuntimeError, ValueError) as e:
+        logger.warning("⚠️ Mesh network stop warning: %s", e)
 
     await close_db()
     logger.info("   Database connections closed")
@@ -1361,7 +1354,7 @@ def create_app() -> FastAPI:
     Application factory.
     Creates and configures the FastAPI application.
     """
-    settings = get_settings()
+    app_settings = get_settings()
     setup_logging()
 
     # OpenAPI tags for documentation organization
@@ -1440,9 +1433,9 @@ def create_app() -> FastAPI:
         },
     ]
 
-    app = FastAPI(
-        title=settings.app_name,
-        description=f"""{settings.app_description}
+    fastapi_app = FastAPI(  # pylint: disable=redefined-outer-name
+        title=app_settings.app_name,
+        description=f"""{app_settings.app_description}
 
 ## Authentication
 Semptify uses **storage-based authentication**. Connect your cloud storage (Google Drive, Dropbox, or OneDrive) to authenticate. Your identity IS your storage access - no passwords required.
@@ -1459,11 +1452,11 @@ Current version: **v1**. Check `GET /api/version` for version info.
 ## Error Responses
 All errors return JSON with `detail` field. Rate limit errors include `retry_after` header.
 """,
-        version=settings.app_version,
+        version=app_settings.app_version,
         lifespan=lifespan,
-        docs_url="/api/docs" if settings.enable_docs else None,
-        redoc_url="/api/redoc" if settings.enable_docs else None,
-        openapi_url="/api/openapi.json" if settings.enable_docs else None,
+        docs_url="/api/docs" if app_settings.enable_docs else None,
+        redoc_url="/api/redoc" if app_settings.enable_docs else None,
+        openapi_url="/api/openapi.json" if app_settings.enable_docs else None,
         openapi_tags=tags_metadata,
         contact={
             "name": "Semptify Support",
@@ -1486,14 +1479,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     from slowapi.errors import RateLimitExceeded
     from app.core.rate_limit import limiter, rate_limit_exceeded_handler
     
-    app.state.limiter = limiter
-    app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+    fastapi_app.state.limiter = limiter
+    fastapi_app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
     
     # =========================================================================
     # Middleware (order matters - first added = last to run)
     # =========================================================================
     
-    is_production = settings.security_mode == "enforced"
+    is_production = app_settings.security_mode == "enforced"
     logger = logging.getLogger(__name__)
     
     # PRODUCTION SECURITY MIDDLEWARE (if enforced mode)
@@ -1502,7 +1495,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             from app.core.logging_middleware import RequestLoggingMiddleware as ProdRequestLogging
             
             # Request logging (security audit trail)
-            app.add_middleware(ProdRequestLogging)
+            fastapi_app.add_middleware(ProdRequestLogging)
             logger.info("🚀 Request logging middleware enabled (production mode)")
         except ImportError as e:
             logger.error("⚠️  Failed to load request logging middleware: %s", e)
@@ -1510,7 +1503,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     
     # Storage requirement (CRITICAL: Enforces everyone has storage connected)
     from app.core.storage_middleware import StorageRequirementMiddleware
-    app.add_middleware(
+    fastapi_app.add_middleware(
         StorageRequirementMiddleware,
         enforce=is_production  # Only enforce in production
     )
@@ -1518,32 +1511,32 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     
     # Security headers (standard mode, adds headers to all responses)
     from app.core.security_headers import SecurityHeadersMiddleware
-    app.add_middleware(
+    fastapi_app.add_middleware(
         SecurityHeadersMiddleware,
         enable_hsts=is_production,  # HSTS only in production
     )
     
     # Request timeout (prevents hung requests)
     from app.core.timeout import TimeoutMiddleware
-    app.add_middleware(TimeoutMiddleware)
+    fastapi_app.add_middleware(TimeoutMiddleware)
     
     # Request logging (for debugging/monitoring in dev mode)
     from app.core.logging_middleware import RequestLoggingMiddleware
-    if settings.log_level.upper() == "DEBUG" and not is_production:
-        app.add_middleware(RequestLoggingMiddleware)
+    if app_settings.log_level.upper() == "DEBUG" and not is_production:
+        fastapi_app.add_middleware(RequestLoggingMiddleware)
     
     # CORS (with stricter config in production)
     cors_config = {
-        "allow_origins": settings.cors_origins_list,
+        "allow_origins": app_settings.cors_origins_list,
         "allow_credentials": True,
         "allow_methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"] if is_production else ["*"],
         "allow_headers": ["Content-Type", "Authorization", "X-Request-Id", "X-API-Key"] if is_production else ["*"],
     }
-    app.add_middleware(CORSMiddleware, **cors_config)
+    fastapi_app.add_middleware(CORSMiddleware, **cors_config)
     logger.info("🔒 CORS middleware configured (production=%s)", is_production)
     
     # Request ID middleware
-    @app.middleware("http")
+    @fastapi_app.middleware("http")
     async def add_request_id(request: Request, call_next):
         import uuid
         request_id = request.headers.get("X-Request-Id", str(uuid.uuid4()))
@@ -1555,7 +1548,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Exception Handlers
     # =========================================================================
     from app.core.errors import setup_exception_handlers
-    setup_exception_handlers(app)
+    setup_exception_handlers(fastapi_app)
     
     # =========================================================================
     # Register Routers
@@ -1563,30 +1556,30 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     def include_if(router_obj, **kwargs):
         if router_obj is not None:
-            app.include_router(router_obj, **kwargs)
+            fastapi_app.include_router(router_obj, **kwargs)
 
     # API Version info (GET /api/version)
     from app.core.versioning import version_router
-    app.include_router(version_router)
+    fastapi_app.include_router(version_router)
 
     # Health & metrics (no prefix)
-    app.include_router(health.router, tags=["Health"])
+    fastapi_app.include_router(health.router, tags=["Health"])
 
     # Role-based UI routing (directs users to appropriate interface)
-    app.include_router(role_ui_router, tags=["Role UI"])
+    fastapi_app.include_router(role_ui_router, tags=["Role UI"])
 
     # Workflow engine + page contract API
     if workflow_router:
-        app.include_router(workflow_router)
+        fastapi_app.include_router(workflow_router)
     
     # Role upgrade/verification API
-    app.include_router(role_upgrade_router, tags=["Role Management"])
+    fastapi_app.include_router(role_upgrade_router, tags=["Role Management"])
     
     # Guided Intake - Conversational intake like an attorney/advocate
-    app.include_router(guided_intake_router, tags=["Guided Intake"])
+    fastapi_app.include_router(guided_intake_router, tags=["Guided Intake"])
 
     # Storage OAuth (handles authentication)
-    app.include_router(storage.router, tags=["Storage Auth"])
+    fastapi_app.include_router(storage.router, tags=["Storage Auth"])
 
     # API routes
     # app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
@@ -1606,81 +1599,82 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     include_if(setup_router, prefix="/api/setup", tags=["Setup Wizard"])  # Initial setup wizard
     include_if(auto_mode_router, tags=["Auto Mode"])  # Auto mode analysis & summaries
     include_if(functionx_router, tags=["FunctionX"])  # Action-set planning and execution scaffold
+    include_if(document_overlays_router, tags=["Document Overlays v2"])  # Overlay-first document state
     include_if(websocket_router, prefix="/ws", tags=["WebSocket Events"])  # Real-time events
     include_if(module_hub_router, prefix="/api", tags=["Module Hub"])  # Central module communication
     include_if(positronic_mesh_router, prefix="/api", tags=["Positronic Mesh"])  # Workflow orchestration
     include_if(mesh_network_router, prefix="/api", tags=["Mesh Network"])  # True bidirectional module communication
-    app.include_router(location_router, tags=["Location"])  # Location detection and state-specific resources
-    app.include_router(hud_funding_router, tags=["HUD Funding Guide"])  # HUD funding programs, tax credits, landlord eligibility
-    app.include_router(fraud_exposure_router, tags=["Fraud Exposure"])  # Fraud analysis and detection
-    app.include_router(public_exposure_router, tags=["Public Exposure"])  # Press releases and media campaigns
-    app.include_router(campaign_router, tags=["Campaign Orchestration"])  # Combined complaint, fraud, press campaigns
-    app.include_router(funding_search_router, tags=["Funding & Tax Credit Search"])  # LIHTC, NMTC, HUD funding search
-    app.include_router(research_router, tags=["Research Module"])  # Landlord/property research and dossier
-    app.include_router(research_module_router, tags=["Research Module SDK"])  # SDK-based landlord/property dossier
-    app.include_router(extraction_router, tags=["Form Field Extraction"])  # Extract and map document data to form fields
-    app.include_router(tenancy_hub_router, tags=["Tenancy Hub"])  # Central hub for all tenancy documentation
-    app.include_router(legal_analysis_router, tags=["Legal Analysis"])
-    app.include_router(legal_filing_router, tags=["Legal Filing"])  # Legal merit, consistency, evidence analysis
-    app.include_router(legal_trails_router, tags=["Legal Trails"])  # Track violations, claims, broker oversight, filing deadlines
-    app.include_router(contacts_router, tags=["Contact Manager"])  # Track landlords, attorneys, witnesses, agencies
-    app.include_router(recognition_router, tags=["Document Recognition"])  # World-class document recognition engine
-    app.include_router(search_router, prefix="/api/search", tags=["Global Search"])  # Universal search across all content
-    app.include_router(court_forms_router, tags=["Court Forms"])  # Auto-generate Minnesota court forms
-    app.include_router(zoom_court_prep_router, tags=["Zoom Court Prep"])  # Hearing preparation and tech checks
-    app.include_router(pdf_tools_router, tags=["PDF Tools"])  # PDF reader, viewer, page extractor
-    app.include_router(briefcase_router, tags=["Briefcase"])  # Document & folder organization system
-    app.include_router(emotion_router, tags=["Emotion Engine"])  # Adaptive UI emotion tracking
-    app.include_router(court_packet_router, tags=["Court Packet"])  # Export court-ready document packets
-    app.include_router(actions_router, tags=["Smart Actions"])  # Personalized action recommendations
-    app.include_router(progress_router, tags=["Progress Tracker"])  # User journey progress tracking
-    app.include_router(case_builder_router, tags=["Case Builder"])  # Case management & intake
-    app.include_router(document_converter_router, tags=["Document Converter"])  # Markdown to DOCX/HTML conversion
-    app.include_router(page_index_router, tags=["Page Index"])  # HTML page index database
+    fastapi_app.include_router(location_router, tags=["Location"])  # Location detection and state-specific resources
+    fastapi_app.include_router(hud_funding_router, tags=["HUD Funding Guide"])  # HUD funding programs, tax credits, landlord eligibility
+    fastapi_app.include_router(fraud_exposure_router, tags=["Fraud Exposure"])  # Fraud analysis and detection
+    fastapi_app.include_router(public_exposure_router, tags=["Public Exposure"])  # Press releases and media campaigns
+    fastapi_app.include_router(campaign_router, tags=["Campaign Orchestration"])  # Combined complaint, fraud, press campaigns
+    fastapi_app.include_router(funding_search_router, tags=["Funding & Tax Credit Search"])  # LIHTC, NMTC, HUD funding search
+    fastapi_app.include_router(research_router, tags=["Research Module"])  # Landlord/property research and dossier
+    fastapi_app.include_router(research_module_router, tags=["Research Module SDK"])  # SDK-based landlord/property dossier
+    fastapi_app.include_router(extraction_router, tags=["Form Field Extraction"])  # Extract and map document data to form fields
+    fastapi_app.include_router(tenancy_hub_router, tags=["Tenancy Hub"])  # Central hub for all tenancy documentation
+    fastapi_app.include_router(legal_analysis_router, tags=["Legal Analysis"])
+    fastapi_app.include_router(legal_filing_router, tags=["Legal Filing"])  # Legal merit, consistency, evidence analysis
+    fastapi_app.include_router(legal_trails_router, tags=["Legal Trails"])  # Track violations, claims, broker oversight, filing deadlines
+    fastapi_app.include_router(contacts_router, tags=["Contact Manager"])  # Track landlords, attorneys, witnesses, agencies
+    fastapi_app.include_router(recognition_router, tags=["Document Recognition"])  # World-class document recognition engine
+    fastapi_app.include_router(search_router, prefix="/api/search", tags=["Global Search"])  # Universal search across all content
+    fastapi_app.include_router(court_forms_router, tags=["Court Forms"])  # Auto-generate Minnesota court forms
+    fastapi_app.include_router(zoom_court_prep_router, tags=["Zoom Court Prep"])  # Hearing preparation and tech checks
+    fastapi_app.include_router(pdf_tools_router, tags=["PDF Tools"])  # PDF reader, viewer, page extractor
+    fastapi_app.include_router(briefcase_router, tags=["Briefcase"])  # Document & folder organization system
+    fastapi_app.include_router(emotion_router, tags=["Emotion Engine"])  # Adaptive UI emotion tracking
+    fastapi_app.include_router(court_packet_router, tags=["Court Packet"])  # Export court-ready document packets
+    fastapi_app.include_router(actions_router, tags=["Smart Actions"])  # Personalized action recommendations
+    fastapi_app.include_router(progress_router, tags=["Progress Tracker"])  # User journey progress tracking
+    fastapi_app.include_router(case_builder_router, tags=["Case Builder"])  # Case management & intake
+    fastapi_app.include_router(document_converter_router, tags=["Document Converter"])  # Markdown to DOCX/HTML conversion
+    fastapi_app.include_router(page_index_router, tags=["Page Index"])  # HTML page index database
 
-    app.include_router(dashboard_router, tags=["Unified Dashboard"])  # Combined dashboard data
-    app.include_router(enterprise_dashboard_router, tags=["Enterprise Dashboard"])  # Premium enterprise UI & API
-    app.include_router(crawler_router, tags=["Public Data Crawler"])  # Ethical web crawler for MN public data
+    fastapi_app.include_router(dashboard_router, tags=["Unified Dashboard"])  # Combined dashboard data
+    fastapi_app.include_router(enterprise_dashboard_router, tags=["Enterprise Dashboard"])  # Premium enterprise UI & API
+    fastapi_app.include_router(crawler_router, tags=["Public Data Crawler"])  # Ethical web crawler for MN public data
 
     # Tenant Defense Module - Evidence collection, sealing petitions, demand letters
-    app.include_router(tenant_defense_router, tags=["Tenant Defense"])
+    fastapi_app.include_router(tenant_defense_router, tags=["Tenant Defense"])
     logging.getLogger(__name__).info("⚖️ Tenant Defense module loaded - Evidence, petitions, and screening disputes")
 
     # Distributed Mesh Network - P2P Module Communication
-    app.include_router(distributed_mesh_router, prefix="/api", tags=["Distributed Mesh"])
+    fastapi_app.include_router(distributed_mesh_router, prefix="/api", tags=["Distributed Mesh"])
     logging.getLogger(__name__).info("🌐 Distributed Mesh router connected - P2P architecture active")
 
     # Dakota County Eviction Defense Module
     if DAKOTA_AVAILABLE:
-        app.include_router(dakota_case, prefix="/eviction", tags=["Eviction Case"])
-        app.include_router(dakota_learning, prefix="/eviction/learn", tags=["Court Learning"])
-        app.include_router(dakota_procedures, tags=["Dakota Procedures"])
-        app.include_router(dakota_flows, prefix="/eviction", tags=["Eviction Defense"])
-        app.include_router(dakota_forms, prefix="/eviction/forms", tags=["Court Forms"])
+        fastapi_app.include_router(dakota_case, prefix="/eviction", tags=["Eviction Case"])
+        fastapi_app.include_router(dakota_learning, prefix="/eviction/learn", tags=["Court Learning"])
+        fastapi_app.include_router(dakota_procedures, tags=["Dakota Procedures"])
+        fastapi_app.include_router(dakota_flows, prefix="/eviction", tags=["Eviction Defense"])
+        fastapi_app.include_router(dakota_forms, prefix="/eviction/forms", tags=["Court Forms"])
         logging.getLogger(__name__).info("✅ Dakota County Eviction Defense module loaded")
     else:
         logging.getLogger(__name__).warning("⚠️ Dakota County module not available")
 
     # New Legal Defense Modules
-    app.include_router(law_library_router, tags=["Law Library"])
-    app.include_router(eviction_defense_router, tags=["Eviction Defense Toolkit"])
-    app.include_router(zoom_court_router, tags=["Zoom Courtroom"])
+    fastapi_app.include_router(law_library_router, tags=["Law Library"])
+    fastapi_app.include_router(eviction_defense_router, tags=["Eviction Defense Toolkit"])
+    fastapi_app.include_router(zoom_court_router, tags=["Zoom Courtroom"])
     logging.getLogger(__name__).info("✅ Legal Defense modules loaded (Law Library, Eviction Defense, Zoom Court)")
 
     # Positronic Brain - Central Intelligence Hub
-    app.include_router(brain_router, prefix="/brain", tags=["Positronic Brain"])
+    fastapi_app.include_router(brain_router, prefix="/brain", tags=["Positronic Brain"])
     logging.getLogger(__name__).info("🧠 Positronic Brain connected - Central intelligence hub active")
     
     # Cloud Sync - User-Controlled Persistent Storage
-    app.include_router(cloud_sync_router, tags=["Cloud Sync"])
+    fastapi_app.include_router(cloud_sync_router, tags=["Cloud Sync"])
     logging.getLogger(__name__).info("☁️ Cloud Sync router connected - User-controlled data persistence active")
 
     # Document Overlays - Non-destructive annotations and processing
-    app.include_router(overlays_router, tags=["Document Overlays"])
+    fastapi_app.include_router(overlays_router, tags=["Document Overlays"])
     logging.getLogger(__name__).info("📝 Document Overlays router connected - Non-destructive annotation system active")
 
     # Complaint Filing Wizard - Regulatory Accountability
-    app.include_router(complaints_router, tags=["Complaint Wizard"])
+    fastapi_app.include_router(complaints_router, tags=["Complaint Wizard"])
     logging.getLogger(__name__).info("⚖️ Complaint Filing Wizard loaded - Regulatory accountability tools active")
 
     # app.include_router(complaints.router, prefix="/api/complaints", tags=["Complaints"])
@@ -1693,7 +1687,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     static_path = BASE_PATH / "static"
     if static_path.exists():
-        app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
+        fastapi_app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 
     # =========================================================================
     # Root endpoint - Serve SPA
@@ -1708,14 +1702,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     ]
     _welcome_page_index = 0
 
-    @app.get("/", response_class=HTMLResponse)
+    @fastapi_app.get("/", response_class=HTMLResponse)
     async def root(request: Request):
         """
         Main entry point - routes based on storage connection status.
         
         Flow:
         1. No storage cookie → Welcome page (first-time visitor, rotates through themes)
-        2. Has storage cookie → Dashboard (returning user)
+        2. Has storage cookie → Role UI router (returning user)
         """
         nonlocal _welcome_page_index
         from app.core.storage_middleware import is_valid_storage_user
@@ -1778,29 +1772,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             for _ in range(len(WELCOME_PAGES)):
                 welcome_path = BASE_PATH / WELCOME_PAGES[_welcome_page_index]
                 _welcome_page_index = (_welcome_page_index + 1) % len(WELCOME_PAGES)
-                if welcome_path.exists():
-                    return HTMLResponse(content=welcome_path.read_text(encoding="utf-8"))
+                welcome_fallback = _render_static_page(welcome_path)
+                if welcome_fallback:
+                    return welcome_fallback
 
             return RedirectResponse(url="/storage/providers", status_code=302)
 
-        # Valid user with storage → Dashboard
-        dashboard_template_path = BASE_PATH / "app" / "templates" / "pages" / "dashboard.html"
-        if dashboard_template_path.exists():
-            return templates.TemplateResponse(request, "pages/dashboard.html")
+        # Valid user with storage → canonical role-aware UI entry point
+        return RedirectResponse(url="/ui/", status_code=302)
 
-        dashboard_path = BASE_PATH / "static" / "dashboard.html"
-        if dashboard_path.exists():
-            return HTMLResponse(content=dashboard_path.read_text(encoding="utf-8"))
-
-        # Fallback JSON response if no frontend
-        return JSONResponse(content={
-            "name": settings.app_name,
-            "version": settings.app_version,
-            "description": settings.app_description,
-            "docs": "/api/docs" if settings.debug else "disabled",
-        })
-
-    @app.get("/dashboard", response_class=HTMLResponse)
+    @fastapi_app.get("/dashboard", response_class=HTMLResponse)
     async def dashboard_page(request: Request):
         """Serve the main dashboard with onboarding modal for new users."""
         from app.core.storage_middleware import is_valid_storage_user
@@ -1814,12 +1795,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if dashboard_template_path.exists():
             try:
                 return templates.TemplateResponse(request, "pages/dashboard.html")
-            except Exception as e:
-                logger.warning(f"Dashboard template error, falling back to static: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Dashboard template error, falling back to static: %s", e)
 
         dashboard_path = BASE_PATH / "static" / "dashboard.html"
-        if dashboard_path.exists():
-            return HTMLResponse(content=dashboard_path.read_text(encoding="utf-8"))
+        dashboard_fallback = _render_static_page(dashboard_path, inject_stage_model=True)
+        if dashboard_fallback:
+            return dashboard_fallback
 
         # Fallback to enterprise dashboard
         enterprise_template_path = BASE_PATH / "app" / "templates" / "pages" / "enterprise-dashboard.html"
@@ -1827,132 +1809,140 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return templates.TemplateResponse(request, "pages/enterprise-dashboard.html")
 
         enterprise_path = BASE_PATH / "static" / "enterprise-dashboard.html"
-        if enterprise_path.exists():
-            return HTMLResponse(content=enterprise_path.read_text(encoding="utf-8"))
+        enterprise_fallback = _render_static_page(enterprise_path, inject_stage_model=True)
+        if enterprise_fallback:
+            return enterprise_fallback
 
         return HTMLResponse(content="<h1>Dashboard not found</h1>", status_code=404)
 
-    @app.get("/gui", response_class=HTMLResponse)
+    @fastapi_app.get("/gui", response_class=HTMLResponse)
     async def gui_navigation_hub(request: Request):
         """Serve the GUI Navigation Hub - central access to all interfaces."""
         gui_template_path = BASE_PATH / "app" / "templates" / "pages" / "gui_navigation_hub.html"
         if gui_template_path.exists():
             try:
                 return templates.TemplateResponse(request, "pages/gui_navigation_hub.html")
-            except Exception as e:
-                logger.warning(f"GUI Navigation Hub template error, falling back to static: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("GUI Navigation Hub template error, falling back to static: %s", e)
 
         # Fallback to static file
         gui_path = BASE_PATH / "static" / "admin" / "gui_navigation_hub.html"
-        if gui_path.exists():
-            return HTMLResponse(content=gui_path.read_text(encoding="utf-8"))
+        gui_fallback = _render_static_page(gui_path)
+        if gui_fallback:
+            return gui_fallback
 
         return HTMLResponse(content="<h1>GUI Navigation Hub not found</h1>", status_code=404)
 
-    @app.get("/auto-mode", response_class=HTMLResponse)
+    @fastapi_app.get("/auto-mode", response_class=HTMLResponse)
     async def auto_mode_panel(request: Request):
         """Serve the Auto Mode Control Panel."""
         auto_mode_template_path = BASE_PATH / "app" / "templates" / "pages" / "auto_mode_panel.html"
         if auto_mode_template_path.exists():
             try:
                 return templates.TemplateResponse(request, "pages/auto_mode_panel.html")
-            except Exception as e:
-                logger.warning(f"Auto Mode panel template error, falling back to static: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Auto Mode panel template error, falling back to static: %s", e)
 
         # Fallback to static file
         auto_mode_path = BASE_PATH / "static" / "components" / "auto_mode_panel.html"
-        if auto_mode_path.exists():
-            return HTMLResponse(content=auto_mode_path.read_text(encoding="utf-8"))
+        auto_mode_fallback = _render_static_page(auto_mode_path)
+        if auto_mode_fallback:
+            return auto_mode_fallback
 
         return HTMLResponse(content="<h1>Auto Mode panel not found</h1>", status_code=404)
 
-    @app.get("/auto-analysis", response_class=HTMLResponse)
+    @fastapi_app.get("/auto-analysis", response_class=HTMLResponse)
     async def auto_analysis_summary(request: Request):
         """Serve the Auto Analysis Summary page."""
         auto_analysis_template_path = BASE_PATH / "app" / "templates" / "pages" / "auto_analysis_summary.html"
         if auto_analysis_template_path.exists():
             try:
                 return templates.TemplateResponse(request, "pages/auto_analysis_summary.html")
-            except Exception as e:
-                logger.warning(f"Auto Analysis Summary template error, falling back to static: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Auto Analysis Summary template error, falling back to static: %s", e)
 
         # Fallback to static file
         auto_analysis_path = BASE_PATH / "static" / "auto_analysis_summary.html"
-        if auto_analysis_path.exists():
-            return HTMLResponse(content=auto_analysis_path.read_text(encoding="utf-8"))
+        auto_analysis_fallback = _render_static_page(auto_analysis_path)
+        if auto_analysis_fallback:
+            return auto_analysis_fallback
 
         return HTMLResponse(content="<h1>Auto Analysis Summary not found</h1>", status_code=404)
 
-    @app.get("/mode-selector", response_class=HTMLResponse)
+    @fastapi_app.get("/mode-selector", response_class=HTMLResponse)
     async def mode_selector_page(request: Request):
         """Serve the Mode Selector page."""
         mode_selector_template_path = BASE_PATH / "app" / "templates" / "pages" / "mode_selector.html"
         if mode_selector_template_path.exists():
             try:
                 return templates.TemplateResponse(request, "pages/mode_selector.html")
-            except Exception as e:
-                logger.warning(f"Mode Selector template error, falling back to static: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Mode Selector template error, falling back to static: %s", e)
 
         # Fallback to static file
         mode_selector_path = BASE_PATH / "static" / "admin" / "mode_selector.html"
-        if mode_selector_path.exists():
-            return HTMLResponse(content=mode_selector_path.read_text(encoding="utf-8"))
+        mode_selector_fallback = _render_static_page(mode_selector_path)
+        if mode_selector_fallback:
+            return mode_selector_fallback
 
         return HTMLResponse(content="<h1>Mode Selector not found</h1>", status_code=404)
 
-    @app.get("/auto-mode-demo", response_class=HTMLResponse)
+    @fastapi_app.get("/auto-mode-demo", response_class=HTMLResponse)
     async def auto_mode_demo_page(request: Request):
         """Serve the Auto Mode Demo page."""
         auto_mode_demo_template_path = BASE_PATH / "app" / "templates" / "pages" / "auto_mode_demo.html"
         if auto_mode_demo_template_path.exists():
             try:
                 return templates.TemplateResponse(request, "pages/auto_mode_demo.html")
-            except Exception as e:
-                logger.warning(f"Auto Mode Demo template error, falling back to static: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Auto Mode Demo template error, falling back to static: %s", e)
 
         # Fallback to static file
         auto_mode_demo_path = BASE_PATH / "static" / "auto_mode_demo.html"
-        if auto_mode_demo_path.exists():
-            return HTMLResponse(content=auto_mode_demo_path.read_text(encoding="utf-8"))
+        auto_mode_demo_fallback = _render_static_page(auto_mode_demo_path)
+        if auto_mode_demo_fallback:
+            return auto_mode_demo_fallback
 
         return HTMLResponse(content="<h1>Auto Mode Demo not found</h1>", status_code=404)
 
-    @app.get("/batch-analysis-results", response_class=HTMLResponse)
+    @fastapi_app.get("/batch-analysis-results", response_class=HTMLResponse)
     async def batch_analysis_results_page(request: Request):
         """Serve the Batch Analysis Results page."""
         batch_results_template_path = BASE_PATH / "app" / "templates" / "pages" / "batch_analysis_results.html"
         if batch_results_template_path.exists():
             try:
                 return templates.TemplateResponse(request, "pages/batch_analysis_results.html")
-            except Exception as e:
-                logger.warning(f"Batch Analysis Results template error, falling back to static: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Batch Analysis Results template error, falling back to static: %s", e)
 
         # Fallback to static file
         batch_results_path = BASE_PATH / "static" / "batch_analysis_results.html"
-        if batch_results_path.exists():
-            return HTMLResponse(content=batch_results_path.read_text(encoding="utf-8"))
+        batch_results_fallback = _render_static_page(batch_results_path)
+        if batch_results_fallback:
+            return batch_results_fallback
 
         return HTMLResponse(content="<h1>Batch Analysis Results not found</h1>", status_code=404)
 
-    @app.get("/dev/elbow", response_class=HTMLResponse)
+    @fastapi_app.get("/dev/elbow", response_class=HTMLResponse)
     async def elbow_dev():
         """
         Elbow UI - Development mode only.
         The experimental Elbow interface for legal flow assistance.
         """
-        if not settings.debug:
+        if not app_settings.debug:
             return HTMLResponse(
                 content="<h1>404 - Not Found</h1><p>This page is only available in development mode.</p>",
                 status_code=404
             )
         index_path = BASE_PATH / "static" / "index.html"
-        if index_path.exists():
-            return HTMLResponse(content=index_path.read_text(encoding="utf-8"))
+        index_fallback = _render_static_page(index_path)
+        if index_fallback:
+            return index_fallback
         return JSONResponse(content={"error": "Elbow UI not found"}, status_code=404)    # =========================================================================
     # Vault UI Page (after OAuth redirect)
     # =========================================================================
 
-    @app.get("/vault", response_class=HTMLResponse)
+    @fastapi_app.get("/vault", response_class=HTMLResponse)
     async def vault_page(request: Request):
         """
         Vault UI page - where users land after OAuth authentication.
@@ -1968,7 +1958,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Vault - {settings.app_name}</title>
+    <title>Document Vault - {app_settings.app_name}</title>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
         body {{ 
@@ -2320,7 +2310,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Timeline Page
     # =========================================================================
 
-    @app.get("/timeline", response_class=HTMLResponse)
+    @fastapi_app.get("/timeline", response_class=HTMLResponse)
     async def timeline_page(request: Request):
         """Serve the timeline viewer page."""
         # Try template first
@@ -2328,15 +2318,41 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if timeline_template_path.exists():
             try:
                 return templates.TemplateResponse(request, "pages/timeline.html")
-            except Exception as e:
-                logger.warning(f"Timeline template error, falling back to static: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Timeline template error, falling back to static: %s", e)
 
         # Fallback to static file
         timeline_path = BASE_PATH / "static" / "timeline.html"
-        if timeline_path.exists():
-            return HTMLResponse(content=timeline_path.read_text(encoding="utf-8"))
+        timeline_fallback = _render_static_page(timeline_path, inject_stage_model=True)
+        if timeline_fallback:
+            return timeline_fallback
         return HTMLResponse(
             content="<h1>Timeline viewer not found</h1>",
+            status_code=404
+        )
+
+    # =========================================================================
+    # Calendar Page
+    # =========================================================================
+
+    @fastapi_app.get("/calendar", response_class=HTMLResponse)
+    async def calendar_page(request: Request):
+        """Serve the calendar page."""
+        # Try template first
+        calendar_template_path = BASE_PATH / "app" / "templates" / "pages" / "calendar.html"
+        if calendar_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/calendar.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Calendar template error, falling back to static: %s", e)
+
+        # Fallback to static file
+        calendar_path = BASE_PATH / "static" / "tenant" / "calendar.html"
+        calendar_fallback = _render_static_page(calendar_path, inject_stage_model=True)
+        if calendar_fallback:
+            return calendar_fallback
+        return HTMLResponse(
+            content="<h1>Calendar not found</h1>",
             status_code=404
         )
 
@@ -2344,7 +2360,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Documents Page
     # =========================================================================
 
-    @app.get("/documents", response_class=HTMLResponse)
+    @fastapi_app.get("/documents", response_class=HTMLResponse)
     async def documents_page(request: Request):
         """Serve the document intake page."""
         # Try template first
@@ -2352,13 +2368,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if documents_template_path.exists():
             try:
                 return templates.TemplateResponse(request, "pages/documents.html")
-            except Exception as e:
-                logger.warning(f"Documents template error, falling back to static: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Documents template error, falling back to static: %s", e)
 
         # Fallback to static file
         documents_path = BASE_PATH / "static" / "documents.html"
-        if documents_path.exists():
-            return HTMLResponse(content=documents_path.read_text(encoding="utf-8"))
+        documents_fallback = _render_static_page(documents_path, inject_stage_model=True)
+        if documents_fallback:
+            return documents_fallback
         return HTMLResponse(
             content="<h1>Documents page not found</h1>",
             status_code=404
@@ -2368,35 +2385,80 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Law Library Page
     # =========================================================================
 
-    @app.get("/law-library", response_class=HTMLResponse)
+    @fastapi_app.get("/law-library", response_class=HTMLResponse)
     async def law_library_page():
         """Serve the law library page."""
-        return HTMLResponse(content=generate_law_library_html())
+        return HTMLResponse(content=_inject_workspace_stage_model(generate_law_library_html()))
+
+    # =========================================================================
+    # Command Center Page
+    # =========================================================================
+
+    @fastapi_app.get("/command-center", response_class=HTMLResponse)
+    async def command_center_page():
+        """Serve the command center dashboard."""
+        command_center_path = BASE_PATH / "static" / "command_center.html"
+        command_center_content = _render_static_page(command_center_path)
+        if command_center_content:
+            return command_center_content
+        return HTMLResponse(
+            content="<h1>Command Center not found</h1>",
+            status_code=404
+        )
+
+    @fastapi_app.get("/functionx", response_class=HTMLResponse)
+    async def functionx_page(request: Request):
+        """Serve FunctionX workspace page."""
+        functionx_template_path = BASE_PATH / "app" / "templates" / "pages" / "functionx.html"
+        if functionx_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/functionx.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("FunctionX template error, falling back to static: %s", e)
+
+        fallback_html = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=\"utf-8\" />
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
+    <title>FunctionX Workspace</title>
+</head>
+<body>
+    <main style=\"padding: 1rem;\">
+        <h1>FunctionX Workspace</h1>
+        <p>FunctionX UI is loading fallback mode.</p>
+        <a href=\"/api/functionx/sets\">Open FunctionX API</a>
+    </main>
+</body>
+</html>
+        """
+        return HTMLResponse(content=_inject_workspace_stage_model(fallback_html))
 
     # =========================================================================
     # Eviction Defense Page
     # =========================================================================
 
-    @app.get("/eviction-defense", response_class=HTMLResponse)
+    @fastapi_app.get("/eviction-defense", response_class=HTMLResponse)
     async def eviction_defense_page():
         """Serve the eviction defense toolkit page."""
-        return HTMLResponse(content=generate_eviction_defense_html())
+        return HTMLResponse(content=_inject_workspace_stage_model(generate_eviction_defense_html()))
 
     # =========================================================================
     # Zoom Court Page
     # =========================================================================
 
-    @app.get("/zoom-court", response_class=HTMLResponse)
+    @fastapi_app.get("/zoom-court", response_class=HTMLResponse)
     async def zoom_court_page():
         """Serve the zoom court helper page."""
-        return HTMLResponse(content=generate_zoom_court_html())
+        return HTMLResponse(content=_inject_workspace_stage_model(generate_zoom_court_html()))
 
     # =========================================================================
     # Legal Analysis Page
     # =========================================================================
 
-    @app.get("/legal_analysis.html", response_class=HTMLResponse)
-    @app.get("/legal-analysis", response_class=HTMLResponse)
+    @fastapi_app.get("/legal_analysis.html", response_class=HTMLResponse)
+    @fastapi_app.get("/legal-analysis", response_class=HTMLResponse)
     async def legal_analysis_page(request: Request):
         """Serve the legal analysis page."""
         # Try template first
@@ -2404,13 +2466,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if legal_analysis_template_path.exists():
             try:
                 return templates.TemplateResponse(request, "pages/legal-analysis.html")
-            except Exception as e:
-                logger.warning(f"Legal analysis template error, falling back to static: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Legal analysis template error, falling back to static: %s", e)
 
         # Fallback to static file
         legal_analysis_path = BASE_PATH / "static" / "legal_analysis.html"
-        if legal_analysis_path.exists():
-            return HTMLResponse(content=legal_analysis_path.read_text(encoding="utf-8"))
+        legal_analysis_fallback = _render_static_page(legal_analysis_path, inject_stage_model=True)
+        if legal_analysis_fallback:
+            return legal_analysis_fallback
         return HTMLResponse(
             content="<h1>Legal Analysis page not found</h1>",
             status_code=404
@@ -2420,8 +2483,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # My Tenancy Page
     # =========================================================================
 
-    @app.get("/my_tenancy.html", response_class=HTMLResponse)
-    @app.get("/my-tenancy", response_class=HTMLResponse)
+    @fastapi_app.get("/my_tenancy.html", response_class=HTMLResponse)
+    @fastapi_app.get("/my-tenancy", response_class=HTMLResponse)
     async def my_tenancy_page(request: Request):
         """Serve the my tenancy page."""
         # Try template first
@@ -2429,13 +2492,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if tenancy_template_path.exists():
             try:
                 return templates.TemplateResponse(request, "pages/tenancy.html")
-            except Exception as e:
-                logger.warning(f"Tenancy template error, falling back to static: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Tenancy template error, falling back to static: %s", e)
 
         # Fallback to static file
         tenancy_path = BASE_PATH / "static" / "my_tenancy.html"
-        if tenancy_path.exists():
-            return HTMLResponse(content=tenancy_path.read_text(encoding="utf-8"))
+        tenancy_fallback = _render_static_page(tenancy_path)
+        if tenancy_fallback:
+            return tenancy_fallback
         return HTMLResponse(
             content="<h1>My Tenancy page not found</h1>",
             status_code=404
@@ -2468,8 +2532,61 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return RedirectResponse(url=target, status_code=302)
         return None
 
-    @app.get("/tenant", response_class=HTMLResponse)
-    @app.get("/tenant/", response_class=HTMLResponse)
+    def _render_static_page(path: Path, inject_stage_model: bool = False) -> Optional[HTMLResponse]:
+        """Read a static HTML page and optionally inject stage-model assets/markup."""
+        if not path.exists():
+            return None
+        html = path.read_text(encoding="utf-8")
+        if inject_stage_model:
+            html = _inject_workspace_stage_model(html)
+        return HTMLResponse(content=html)
+
+    def _inject_workspace_stage_model(html: str) -> str:
+        """Inject normalized workspace stage model shell into static role pages."""
+        if "id=\"workspaceStageModel\"" in html:
+            return html
+
+        css_link = '<link rel="stylesheet" href="/static/css/workspace-stage-model.css">'
+        script_tag = '<script src="/static/js/workspace-stage-model.js"></script>'
+
+        if css_link not in html and "</head>" in html:
+            html = html.replace("</head>", f"    {css_link}\n</head>")
+
+        panel_html = """
+    <section class="workspace-stage-panel" id="workspaceStageModel" style="margin: 1rem;">
+        <div class="workspace-stage-header">
+            <div>
+                <h2>Workflow Stage Model</h2>
+                <p>Normalized stage, urgency, next-step, and alerts for this workspace.</p>
+            </div>
+        </div>
+        <div class="workspace-stage-status">
+            <div class="workspace-stage-metric"><span>Current Stage</span><strong id="workspaceCaseStageValue">Loading...</strong></div>
+            <div class="workspace-stage-metric"><span>Urgency</span><strong id="workspaceUrgencyValue">Loading...</strong></div>
+            <div class="workspace-stage-metric"><span>Documents</span><strong id="workspaceDocumentCount">0</strong></div>
+            <div class="workspace-stage-metric"><span>Timeline Events</span><strong id="workspaceTimelineCount">0</strong></div>
+        </div>
+        <div class="workspace-next-step">
+            <div class="card">
+                <span class="workspace-next-step-label">Recommended Next Step</span>
+                <h3 id="workspaceNextStepTitle">Loading...</h3>
+                <p id="workspaceNextStepReason">Analyzing workflow state.</p>
+                <a class="btn btn--primary btn--sm" id="workspaceNextStepLink" href="/">Continue</a>
+            </div>
+        </div>
+        <div class="workspace-stage-grid" id="workspaceStageCards"></div>
+        <div class="workspace-alerts" id="workspaceAlerts"></div>
+    </section>
+        """
+
+        payload = f"{panel_html}\n    {script_tag}\n"
+        if "</body>" in html:
+            return html.replace("</body>", f"{payload}</body>")
+
+        return f"{html}\n{payload}"
+
+    @fastapi_app.get("/tenant", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/", response_class=HTMLResponse)
     async def tenant_page(request: Request):
         """Serve the tenant My Case page."""
         guard_redirect = _guard_role_page(request, {"user"})
@@ -2481,19 +2598,20 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if tenant_template_path.exists():
             try:
                 return templates.TemplateResponse(request, "pages/tenant.html")
-            except Exception as e:
-                logger.warning(f"Tenant template error, falling back to static: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Tenant template error, falling back to static: %s", e)
 
         # Fallback to static file
         tenant_path = BASE_PATH / "static" / "tenant" / "index.html"
-        if tenant_path.exists():
-            return HTMLResponse(content=tenant_path.read_text(encoding="utf-8"))
+        tenant_fallback = _render_static_page(tenant_path, inject_stage_model=True)
+        if tenant_fallback:
+            return tenant_fallback
         return HTMLResponse(
             content="<h1>Tenant page not found</h1>",
             status_code=404
         )
 
-    @app.get("/tenant/{subpage}", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/{subpage}", response_class=HTMLResponse)
     async def tenant_subpage(subpage: str, request: Request):
         """Serve tenant sub-pages (documents, timeline, help, copilot)."""
         guard_redirect = _guard_role_page(request, {"user"})
@@ -2506,12 +2624,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         
         # Try subpage.html first, then subpage/index.html
         subpage_path = BASE_PATH / "static" / "tenant" / f"{subpage}.html"
-        if subpage_path.exists():
-            return HTMLResponse(content=subpage_path.read_text(encoding="utf-8"))
+        subpage_fallback = _render_static_page(subpage_path, inject_stage_model=True)
+        if subpage_fallback:
+            return subpage_fallback
         
         subpage_index = BASE_PATH / "static" / "tenant" / subpage / "index.html"
-        if subpage_index.exists():
-            return HTMLResponse(content=subpage_index.read_text(encoding="utf-8"))
+        subpage_index_fallback = _render_static_page(subpage_index, inject_stage_model=True)
+        if subpage_index_fallback:
+            return subpage_index_fallback
         
         # Fallback: redirect to main tenant page
         return RedirectResponse(url="/tenant", status_code=302)
@@ -2520,8 +2640,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Advocate Pages
     # =========================================================================
 
-    @app.get("/advocate", response_class=HTMLResponse)
-    @app.get("/advocate/", response_class=HTMLResponse)
+    @fastapi_app.get("/advocate", response_class=HTMLResponse)
+    @fastapi_app.get("/advocate/", response_class=HTMLResponse)
     async def advocate_page(request: Request):
         """Serve the advocate dashboard page."""
         guard_redirect = _guard_role_page(request, {"advocate"})
@@ -2532,16 +2652,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if advocate_template_path.exists():
             try:
                 return templates.TemplateResponse(request, "pages/advocate.html")
-            except Exception as e:
-                logger.warning(f"Advocate template error, falling back to static: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Advocate template error, falling back to static: %s", e)
 
         advocate_path = BASE_PATH / "static" / "advocate" / "index.html"
-        if advocate_path.exists():
-            return HTMLResponse(content=advocate_path.read_text(encoding="utf-8"))
+        advocate_fallback = _render_static_page(advocate_path, inject_stage_model=True)
+        if advocate_fallback:
+            return advocate_fallback
 
         return HTMLResponse(content="<h1>Advocate page not found</h1>", status_code=404)
 
-    @app.get("/advocate/{subpage}", response_class=HTMLResponse)
+    @fastapi_app.get("/advocate/{subpage}", response_class=HTMLResponse)
     async def advocate_subpage(subpage: str, request: Request):
         """Serve advocate sub-pages."""
         guard_redirect = _guard_role_page(request, {"advocate"})
@@ -2552,12 +2673,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return HTMLResponse(content="<h1>400 - Invalid Request</h1>", status_code=400)
 
         subpage_path = BASE_PATH / "static" / "advocate" / f"{subpage}.html"
-        if subpage_path.exists():
-            return HTMLResponse(content=subpage_path.read_text(encoding="utf-8"))
+        subpage_fallback = _render_static_page(subpage_path, inject_stage_model=True)
+        if subpage_fallback:
+            return subpage_fallback
 
         subpage_index = BASE_PATH / "static" / "advocate" / subpage / "index.html"
-        if subpage_index.exists():
-            return HTMLResponse(content=subpage_index.read_text(encoding="utf-8"))
+        subpage_index_fallback = _render_static_page(subpage_index, inject_stage_model=True)
+        if subpage_index_fallback:
+            return subpage_index_fallback
 
         return RedirectResponse(url="/advocate", status_code=302)
 
@@ -2565,8 +2688,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Legal Pages
     # =========================================================================
 
-    @app.get("/legal", response_class=HTMLResponse)
-    @app.get("/legal/", response_class=HTMLResponse)
+    @fastapi_app.get("/legal", response_class=HTMLResponse)
+    @fastapi_app.get("/legal/", response_class=HTMLResponse)
     async def legal_page(request: Request):
         """Serve the legal dashboard page."""
         guard_redirect = _guard_role_page(request, {"legal"})
@@ -2577,16 +2700,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if legal_template_path.exists():
             try:
                 return templates.TemplateResponse(request, "pages/legal.html")
-            except Exception as e:
-                logger.warning(f"Legal template error, falling back to static: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Legal template error, falling back to static: %s", e)
 
         legal_path = BASE_PATH / "static" / "legal" / "index.html"
-        if legal_path.exists():
-            return HTMLResponse(content=legal_path.read_text(encoding="utf-8"))
+        legal_fallback = _render_static_page(legal_path, inject_stage_model=True)
+        if legal_fallback:
+            return legal_fallback
 
         return HTMLResponse(content="<h1>Legal page not found</h1>", status_code=404)
 
-    @app.get("/legal/{subpage}", response_class=HTMLResponse)
+    @fastapi_app.get("/legal/{subpage}", response_class=HTMLResponse)
     async def legal_subpage(subpage: str, request: Request):
         """Serve legal sub-pages with compatibility aliases."""
         guard_redirect = _guard_role_page(request, {"legal"})
@@ -2610,12 +2734,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return RedirectResponse(url="/law-library", status_code=302)
 
         subpage_path = BASE_PATH / "static" / "legal" / f"{target}.html"
-        if subpage_path.exists():
-            return HTMLResponse(content=subpage_path.read_text(encoding="utf-8"))
+        subpage_fallback = _render_static_page(subpage_path, inject_stage_model=True)
+        if subpage_fallback:
+            return subpage_fallback
 
         subpage_index = BASE_PATH / "static" / "legal" / target / "index.html"
-        if subpage_index.exists():
-            return HTMLResponse(content=subpage_index.read_text(encoding="utf-8"))
+        subpage_index_fallback = _render_static_page(subpage_index, inject_stage_model=True)
+        if subpage_index_fallback:
+            return subpage_index_fallback
 
         return RedirectResponse(url="/legal", status_code=302)
 
@@ -2623,8 +2749,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Admin Pages
     # =========================================================================
 
-    @app.get("/admin", response_class=HTMLResponse)
-    @app.get("/admin/", response_class=HTMLResponse)
+    @fastapi_app.get("/admin", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/", response_class=HTMLResponse)
     async def admin_page(request: Request):
         """Serve the admin dashboard page."""
         guard_redirect = _guard_role_page(request, {"admin", "manager"})
@@ -2635,16 +2761,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if admin_template_path.exists():
             try:
                 return templates.TemplateResponse(request, "pages/admin.html")
-            except Exception as e:
-                logger.warning(f"Admin template error, falling back to static: {e}")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Admin template error, falling back to static: %s", e)
 
         admin_path = BASE_PATH / "static" / "admin" / "mission_control.html"
-        if admin_path.exists():
-            return HTMLResponse(content=admin_path.read_text(encoding="utf-8"))
+        admin_fallback = _render_static_page(admin_path, inject_stage_model=True)
+        if admin_fallback:
+            return admin_fallback
 
         return HTMLResponse(content="<h1>Admin page not found</h1>", status_code=404)
 
-    @app.get("/admin/{subpage}", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/{subpage}", response_class=HTMLResponse)
     async def admin_subpage(subpage: str, request: Request):
         """Serve admin sub-pages with aliases for compatibility."""
         guard_redirect = _guard_role_page(request, {"admin", "manager"})
@@ -2668,12 +2795,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         target = subpage_aliases.get(subpage, subpage)
 
         subpage_path = BASE_PATH / "static" / "admin" / f"{target}.html"
-        if subpage_path.exists():
-            return HTMLResponse(content=subpage_path.read_text(encoding="utf-8"))
+        subpage_fallback = _render_static_page(subpage_path, inject_stage_model=True)
+        if subpage_fallback:
+            return subpage_fallback
 
         subpage_index = BASE_PATH / "static" / "admin" / target / "index.html"
-        if subpage_index.exists():
-            return HTMLResponse(content=subpage_index.read_text(encoding="utf-8"))
+        subpage_index_fallback = _render_static_page(subpage_index, inject_stage_model=True)
+        if subpage_index_fallback:
+            return subpage_index_fallback
 
         return RedirectResponse(url="/admin", status_code=302)
 
@@ -2681,7 +2810,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Catch-All HTML Page Router
     # =========================================================================
 
-    @app.get("/{page_name}.html", response_class=HTMLResponse)
+    @fastapi_app.get("/{page_name}.html", response_class=HTMLResponse)
     async def serve_html_page(page_name: str):
         """
         Serve any HTML page from the static folder.
@@ -2692,15 +2821,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return HTMLResponse(content="<h1>400 - Invalid Request</h1>", status_code=400)
         
         page_path = BASE_PATH / "static" / f"{page_name}.html"
-        if page_path.exists():
-            return HTMLResponse(content=page_path.read_text(encoding="utf-8"))
+        page_fallback = _render_static_page(page_path)
+        if page_fallback:
+            return page_fallback
         
         return JSONResponse(
             content={"error": "not_found", "message": f"Page '{page_name}.html' not found"},
             status_code=404
         )
 
-    return app
+    return fastapi_app
 # Create the app instance
 app = create_app()
 
@@ -2712,11 +2842,12 @@ app = create_app()
 if __name__ == "__main__":
     import uvicorn
     
-    settings = get_settings()
+    runtime_settings = get_settings()
     uvicorn.run(
         "app.main:app",
-        host=settings.host,
-        port=settings.port,
-        reload=settings.debug,
+        host=runtime_settings.host,
+        port=runtime_settings.port,
+        reload=runtime_settings.debug,
     )
+
 

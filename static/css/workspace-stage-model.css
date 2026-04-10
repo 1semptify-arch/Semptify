@@ -1,0 +1,122 @@
+.workspace-stage-panel {
+    margin-top: 1.25rem;
+    padding: 1.1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-bg-card);
+}
+
+.workspace-stage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.workspace-stage-header p {
+    color: var(--color-text-secondary);
+}
+
+.workspace-stage-status {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.workspace-stage-metric {
+    padding: 0.8rem 0.9rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.workspace-stage-metric span {
+    display: block;
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+}
+
+.workspace-stage-metric strong {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: var(--font-size-xl);
+}
+
+.workspace-next-step {
+    margin-bottom: 1rem;
+}
+
+.workspace-next-step .card {
+    border-color: rgba(59, 130, 246, 0.35);
+    box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.18) inset;
+}
+
+.workspace-next-step-label {
+    display: inline-block;
+    margin-bottom: 0.45rem;
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+}
+
+.workspace-stage-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+}
+
+.workspace-stage-card {
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.workspace-stage-card h3 {
+    margin-bottom: 0.45rem;
+}
+
+.workspace-stage-card p {
+    margin-bottom: 0.8rem;
+    color: var(--color-text-secondary);
+}
+
+.workspace-stage-card.is-complete {
+    border-color: rgba(16, 185, 129, 0.55);
+}
+
+.workspace-stage-card.is-current {
+    border-color: rgba(59, 130, 246, 0.55);
+}
+
+.workspace-stage-card.is-upcoming {
+    opacity: 0.82;
+}
+
+.workspace-stage-card.is-available {
+    border-color: rgba(148, 163, 184, 0.45);
+}
+
+.workspace-stage-state {
+    display: inline-block;
+    margin-bottom: 0.45rem;
+    font-size: var(--font-size-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+}
+
+.workspace-alerts {
+    margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+    .workspace-stage-header {
+        flex-direction: column;
+    }
+}

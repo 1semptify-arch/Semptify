@@ -65,6 +65,19 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/documents", tags=["Documents"])
 
 
+def _get_overlay_record_ids(vault_id: Optional[str]) -> list[str]:
+    """Resolve overlay records associated with a vault document for adapter consumers."""
+    if not vault_id:
+        return []
+    try:
+        from app.services.document_overlay_service import document_overlay_service
+
+        overlays = document_overlay_service.list_overlays(vault_id=vault_id)
+        return [record.overlay_id for record in overlays]
+    except Exception:
+        return []
+
+
 # =============================================================================
 # Response Models
 # =============================================================================
@@ -73,13 +86,17 @@ class DocumentResponse(BaseModel):
     """Response for a single document."""
     id: str
     filename: str
+    original_filename: Optional[str] = None   # alias used by UI
     status: str
     doc_type: Optional[str] = None
+    document_type: Optional[str] = None       # alias used by UI
+    mime_type: Optional[str] = None
     confidence: Optional[float] = None
     title: Optional[str] = None
     summary: Optional[str] = None
     uploaded_at: Optional[str] = None
     analyzed_at: Optional[str] = None
+    certificate_path: Optional[str] = None
 
 
 class DocumentDetailResponse(DocumentResponse):
@@ -104,6 +121,8 @@ class UnifiedUploadResponse(BaseModel):
     # Document identifiers
     id: str
     registry_id: Optional[str] = None  # Semptify Document ID (SEM-YYYY-NNNNNN-XXXX)
+    vault_id: Optional[str] = None
+    overlay_record_ids: list[str] = []
     filename: str
     
     # Processing status
@@ -493,10 +512,14 @@ async def upload_document(
     # =========================================================================
     # BUILD COMPREHENSIVE RESPONSE
     # =========================================================================
+    overlay_record_ids = _get_overlay_record_ids(vault_id)
+
     return UnifiedUploadResponse(
         # Identifiers
         id=doc.id,
         registry_id=registry_id,
+        vault_id=vault_id,
+        overlay_record_ids=overlay_record_ids,
         filename=doc.filename,
         
         # Status
@@ -609,26 +632,33 @@ async def list_documents(
         DocumentResponse(
             id=d.id,
             filename=d.filename,
+            original_filename=getattr(d, 'original_filename', None) or d.filename,
             status=d.status.value,
             doc_type=d.doc_type.value if d.doc_type else None,
+            document_type=d.doc_type.value if d.doc_type else None,
+            mime_type=getattr(d, 'mime_type', None),
             confidence=d.confidence,
             title=d.title,
             summary=d.summary,
             uploaded_at=d.uploaded_at.isoformat() if d.uploaded_at else None,
-            analyzed_at=d.analyzed_at.isoformat() if d.analyzed_at else None
+            analyzed_at=d.analyzed_at.isoformat() if d.analyzed_at else None,
+            certificate_path=getattr(d, 'certificate_path', None),
         )
         for d in docs
     ]
 
 
 @router.get("/{doc_id}", response_model=DocumentDetailResponse)
-async def get_document(doc_id: str):
+async def get_document(doc_id: str, user: StorageUser = Depends(require_user)):
     """Get detailed information about a document."""
     pipeline = get_document_pipeline()
     doc = pipeline.get_document(doc_id)
     
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
+
+    if doc.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied")
     
     # Get law references if not already set
     if doc.status == ProcessingStatus.CLASSIFIED and not doc.law_references:
@@ -658,13 +688,16 @@ async def get_document(doc_id: str):
 
 
 @router.post("/{doc_id}/reprocess")
-async def reprocess_document(doc_id: str):
+async def reprocess_document(doc_id: str, user: StorageUser = Depends(require_user)):
     """Reprocess an existing document."""
     pipeline = get_document_pipeline()
     doc = pipeline.get_document(doc_id)
 
     if not doc:
         raise HTTPException(status_code=404, detail="Document not found")
+
+    if doc.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied")
 
     doc = await pipeline.process(doc_id)
 
@@ -858,6 +891,66 @@ async def update_document_category(
         }
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid document type")
+
+
+@router.get("/{doc_id}/view")
+async def view_document(
+    doc_id: str,
+    user: StorageUser = Depends(require_user)
+):
+    """Serve a document inline for in-browser viewing."""
+    import os
+    from fastapi.responses import FileResponse
+
+    pipeline = get_document_pipeline()
+    doc = pipeline.get_document(doc_id)
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if doc.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    if hasattr(doc, 'file_path') and doc.file_path and os.path.exists(doc.file_path):
+        mime = getattr(doc, 'mime_type', None) or "application/octet-stream"
+        return FileResponse(
+            path=doc.file_path,
+            filename=doc.filename,
+            media_type=mime,
+            headers={"Content-Disposition": f'inline; filename="{doc.filename}"'},
+        )
+
+    raise HTTPException(status_code=404, detail="Document file not found")
+
+
+@router.get("/{doc_id}/thumbnail")
+async def thumbnail_document(
+    doc_id: str,
+    user: StorageUser = Depends(require_user)
+):
+    """Return document thumbnail — for images serves the file inline; for non-images returns 404."""
+    import os
+    from fastapi.responses import FileResponse
+
+    pipeline = get_document_pipeline()
+    doc = pipeline.get_document(doc_id)
+
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found")
+    if doc.user_id != user.user_id:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    mime = getattr(doc, 'mime_type', None) or ""
+    if not mime.startswith("image/"):
+        raise HTTPException(status_code=404, detail="No thumbnail for non-image documents")
+
+    if hasattr(doc, 'file_path') and doc.file_path and os.path.exists(doc.file_path):
+        return FileResponse(
+            path=doc.file_path,
+            media_type=mime,
+            headers={"Content-Disposition": f'inline; filename="{doc.filename}"'},
+        )
+
+    raise HTTPException(status_code=404, detail="Document file not found")
 
 
 @router.get("/{doc_id}/download")

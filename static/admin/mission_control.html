@@ -88,6 +88,115 @@
             font-size: 0.85rem;
             font-weight: 600;
         }
+
+        .admin-startup-module {
+            margin: 0.75rem 2rem 0;
+            padding: 0.65rem 0.85rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.25);
+            background: rgba(0,0,0,0.22);
+        }
+
+        .asm-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.45rem;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .asm-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            opacity: 0.9;
+        }
+
+        .asm-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .asm-btn {
+            font-size: 0.72rem;
+            line-height: 1;
+            padding: 0.4rem 0.55rem;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.35);
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .asm-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(110px, 1fr));
+            gap: 0.4rem 0.8rem;
+            margin-bottom: 0.45rem;
+        }
+
+        .asm-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.73rem;
+        }
+
+        .asm-item-left {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .asm-light {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #64748b;
+        }
+
+        .asm-light.ok { background: #22c55e; }
+        .asm-light.warn { background: #f59e0b; }
+        .asm-light.bad { background: #ef4444; }
+
+        .asm-val {
+            font-family: Consolas, monospace;
+            opacity: 0.95;
+        }
+
+        .asm-bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .asm-bar {
+            flex: 1;
+            height: 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.25);
+            background: rgba(255,255,255,0.12);
+            overflow: hidden;
+        }
+
+        .asm-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #ef4444, #f59e0b, #22c55e);
+            transition: width 0.25s ease;
+        }
+
+        .asm-score {
+            font-size: 0.7rem;
+            font-family: Consolas, monospace;
+            min-width: 54px;
+            text-align: right;
+        }
         
         .badge-urgent {
             background: var(--danger);
@@ -780,6 +889,34 @@
                 </span>
             </div>
         </div>
+
+        <div class="admin-startup-module" id="adminStartupModule">
+            <div class="asm-head">
+                <div class="asm-title">Startup Service Module</div>
+                <div class="asm-actions">
+                    <button class="asm-btn" onclick="refreshStartupModule()">Refresh</button>
+                    <a class="asm-btn" href="file:///C:/Semptify/Semptify-FastAPI/SEMPTIFY-LAUNCHER.hta" target="_blank">Open Startup Manager</a>
+                </div>
+            </div>
+            <div class="asm-grid">
+                <div class="asm-item">
+                    <span class="asm-item-left"><span class="asm-light" id="asm-api-light"></span>API</span>
+                    <span class="asm-val" id="asm-api-value">checking</span>
+                </div>
+                <div class="asm-item">
+                    <span class="asm-item-left"><span class="asm-light" id="asm-ready-light"></span>Ready</span>
+                    <span class="asm-val" id="asm-ready-value">checking</span>
+                </div>
+                <div class="asm-item">
+                    <span class="asm-item-left"><span class="asm-light" id="asm-db-light"></span>Database</span>
+                    <span class="asm-val" id="asm-db-value">checking</span>
+                </div>
+            </div>
+            <div class="asm-bar-wrap">
+                <div class="asm-bar"><div class="asm-fill" id="asm-fill"></div></div>
+                <div class="asm-score" id="asm-score">0/3</div>
+            </div>
+        </div>
     </header>
 
     <!-- Main Content -->
@@ -955,6 +1092,50 @@
         let unifiedData = null;
         let devMode = false;
 
+        function setStartupLight(id, state) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.remove('ok', 'warn', 'bad');
+            el.classList.add(state);
+        }
+
+        async function refreshStartupModule() {
+            let pass = 0;
+            const total = 3;
+
+            let apiOk = false;
+            try {
+                const apiResp = await fetch('/health', { credentials: 'include' });
+                apiOk = apiResp.ok;
+            } catch (_) {}
+            document.getElementById('asm-api-value').textContent = apiOk ? 'online' : 'offline';
+            setStartupLight('asm-api-light', apiOk ? 'ok' : 'bad');
+            if (apiOk) pass += 1;
+
+            let readyOk = false;
+            let dbOk = false;
+            try {
+                const readyResp = await fetch('/readyz', { credentials: 'include' });
+                if (readyResp.ok) {
+                    const payload = await readyResp.json();
+                    readyOk = (payload.status === 'ready' || payload.status === 'degraded');
+                    dbOk = payload?.checks?.database === true;
+                }
+            } catch (_) {}
+
+            document.getElementById('asm-ready-value').textContent = readyOk ? 'reachable' : 'down';
+            setStartupLight('asm-ready-light', readyOk ? 'ok' : 'bad');
+            if (readyOk) pass += 1;
+
+            document.getElementById('asm-db-value').textContent = dbOk ? 'ready' : (readyOk ? 'degraded' : 'unknown');
+            setStartupLight('asm-db-light', dbOk ? 'ok' : (readyOk ? 'warn' : 'bad'));
+            if (dbOk) pass += 1;
+
+            const pct = Math.round((pass / total) * 100);
+            document.getElementById('asm-fill').style.width = `${pct}%`;
+            document.getElementById('asm-score').textContent = `${pass}/${total}`;
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
             // Initialize emotion engine
@@ -963,6 +1144,8 @@
             // Load unified dashboard data (combines everything)
             await loadUnifiedDashboard();
             recordTrigger('session_start');
+            refreshStartupModule();
+            setInterval(refreshStartupModule, 15000);
             
             // Show welcome message after brief delay
             setTimeout(() => {

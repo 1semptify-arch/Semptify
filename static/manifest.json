@@ -85,7 +85,7 @@
       "name": "Court Prep",
       "short_name": "Court",
       "description": "Prepare for your hearing",
-      "url": "/static/zoom_court.html",
+      "url": "/zoom-court",
       "icons": [{"src": "/static/icons/court-96.png", "sizes": "96x96"}]
     }
   ],

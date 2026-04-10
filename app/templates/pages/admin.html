@@ -3,6 +3,7 @@
 {% block title %}Admin Dashboard - Semptify{% endblock %}
 
 {% block styles %}
+<link rel="stylesheet" href="/static/css/workspace-stage-model.css">
 <style>
 .role-container {
     max-width: 1150px;
@@ -52,6 +53,8 @@
     <h1>Admin Dashboard</h1>
     <p>System control center with direct, valid navigation.</p>
 
+    {% include "partials/workspace_stage_panel.html" %}
+
     <div class="role-links">
         <a href="/admin">Overview</a>
         <a href="/admin/mission-control">Mission Control</a>
@@ -84,4 +87,5 @@ document.querySelectorAll('[data-admin-suggest]').forEach((chip) => {
     });
 });
 </script>
+<script src="/static/js/workspace-stage-model.js"></script>
 {% endblock %}

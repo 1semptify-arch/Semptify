@@ -12,10 +12,11 @@ and may influence what the user SEES, but they never override the engine's
 routing logic or permission decisions.
 
 Process codes:
-  A   — Welcome & Role Selection
-  B1  — Document Upload Wizard (storage required)
-  B2  — Quick Case Triage (tenant/mobile path)
-  B4  — Professional Review Workspace (advocate/manager/legal/admin)
+    A   — Welcome & Role Selection
+    B1  — Document Upload Wizard (storage required)
+    B2  — Quick Case Triage (tenant/mobile path)
+    B3  — Filing & Packet Preparation
+    B4  — Professional Review Workspace / Hearing Readiness
 """
 
 from dataclasses import dataclass, field
@@ -45,14 +46,16 @@ class ProcessCode(str, Enum):
     A = "A"      # Welcome
     B1 = "B1"    # Document Upload Wizard
     B2 = "B2"    # Quick Case Triage (Tenant path)
+    B3 = "B3"    # Filing & Packet Preparation
     B4 = "B4"    # Professional Review Workspace
 
 
 # Mapping of process codes to route paths
 PROCESS_ROUTES: dict[ProcessCode, str] = {
     ProcessCode.A: "/",
-    ProcessCode.B1: "/onboard/upload",
+    ProcessCode.B1: "/tenant/documents",
     ProcessCode.B2: "/tenant",
+    ProcessCode.B3: "/static/eviction_answer.html",
     ProcessCode.B4: "/advocate",
 }
 
@@ -119,12 +122,12 @@ def _tenant_decision(state: WorkflowState) -> WorkflowDecision:
     if state.storage_state == StorageState.NEED_CONNECT:
         return WorkflowDecision(
             next_process=ProcessCode.A,
-            next_route=PROCESS_ROUTES[ProcessCode.A],
+            next_route="/storage/providers",
             allowed_actions=["select_role", "connect_storage"],
             blocked_actions=["upload_document", "start_case", "view_vault"],
             deterministic_reason=(
                 "Tenant has not connected a storage provider. "
-                "Routing back to Process A to complete storage setup."
+                "Routing to storage provider selection to complete setup."
             ),
             block_reason="Storage provider not connected.",
         )

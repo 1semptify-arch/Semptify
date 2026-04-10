@@ -3,6 +3,7 @@
 {% block title %}My Case - Semptify{% endblock %}
 
 {% block styles %}
+<link rel="stylesheet" href="/static/css/workspace-stage-model.css">
 <style>
 .role-home {
     max-width: 1150px;
@@ -52,6 +53,8 @@
     <h1>My Case</h1>
     <p>One place for your eviction defense workflow.</p>
 
+    {% include "partials/workspace_stage_panel.html" %}
+
     <div class="role-grid">
         <a href="/tenant">Case Overview</a>
         <a href="/tenant/documents">Documents</a>
@@ -82,4 +85,5 @@ document.querySelectorAll('[data-suggest]').forEach((chip) => {
     });
 });
 </script>
+<script src="/static/js/workspace-stage-model.js"></script>
 {% endblock %}

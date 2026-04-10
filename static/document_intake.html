@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semptify - Document Intake</title>
+    <link rel="stylesheet" href="/static/css/shared-nav.css">
     <link rel="stylesheet" href="/static/css/accessibility.css">
     <link rel="stylesheet" href="/static/css/help-system.css">
     <style>
@@ -137,6 +138,10 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
+        }
+
+        .page-content {
+            margin-left: 260px;
         }
         
         .container {
@@ -1359,6 +1364,7 @@
 
         /* Mobile Responsive Styles */
         @media (max-width: 768px) {
+            .page-content { margin-left: 0; }
             .container { padding: 1rem; }
             .card-header { padding: 12px 16px; }
             .card-body { padding: 16px; }
@@ -1370,8 +1376,8 @@
     </style>
 </head>
 <body>
-    <!-- Site-wide header -->
-    <script src="/static/js/header.js"></script>
+    <div id="semptify-nav"></div>
+    <div class="page-content">
 
     <div class="container">
         <!-- Auth Banner -->
@@ -4576,6 +4582,7 @@
     <!-- Help System -->
     <script src="/static/js/help-system.js"></script>
     <script src="/static/js/semptify-auth.js"></script>
+    <script src="/static/js/shared-nav.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof SemptifyHelp !== 'undefined') {
@@ -4583,5 +4590,6 @@
             }
         });
     </script>
+    </div>
 </body>
 </html>

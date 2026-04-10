@@ -353,7 +353,13 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/semptify-auth.js"></script>
+<script src="/static/js/entry-flow.js"></script>
 <script>
+    if (window.SemptifyEntryFlow && window.SemptifyEntryFlow.redirectReturningUser()) {
+        // Returning users are routed to their role landing immediately.
+    }
+
     const roleDefinitions = {{ role_options|tojson }};
     const roleByValue = Object.fromEntries(roleDefinitions.map((r) => [r.value, r]));
 
@@ -371,6 +377,18 @@
     };
 
     let lastDecision = null;
+
+    function normalizeNextRoute(nextRoute, roleValue, storageState) {
+        if (!nextRoute) return nextRoute;
+        if (
+            storageState === "need_connect" &&
+            window.SemptifyEntryFlow &&
+            (nextRoute === "/storage/providers" || nextRoute.startsWith("/storage/providers?"))
+        ) {
+            return window.SemptifyEntryFlow.buildStorageConnectUrl(roleValue, "welcome", nextRoute);
+        }
+        return nextRoute;
+    }
 
     async function trackHelpInteraction(action, meta = {}) {
         const payload = {
@@ -449,10 +467,17 @@
     roleSelect.addEventListener("change", renderPreview);
     storageSelect.addEventListener("change", renderPreview);
 
-    startBtn.addEventListener("click", () => {
+    startBtn.addEventListener("click", async () => {
+        const selectedRole = roleSelect.value;
+        const selectedStorageState = storageSelect.value;
+
+        if (window.SemptifyEntryFlow) {
+            window.SemptifyEntryFlow.saveWelcomeState(selectedRole, selectedStorageState);
+        }
+
         trackHelpInteraction("welcome_start_process_clicked", {
-            role: roleSelect.value,
-            storage_state: storageSelect.value,
+            role: selectedRole,
+            storage_state: selectedStorageState,
         });
 
         fetch("/api/workflow/advance", {
@@ -460,8 +485,8 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 current_page: "welcome",
-                role: roleSelect.value,
-                storage_state: storageSelect.value,
+                role: selectedRole,
+                storage_state: selectedStorageState,
                 completed_actions: [
                     "role_selected",
                     "storage_status_set",
@@ -481,25 +506,84 @@
                 }
 
                 if (payload.next_route) {
-                    window.location.href = payload.next_route;
+                    const normalized = normalizeNextRoute(payload.next_route, selectedRole, selectedStorageState);
+                    if (window.SemptifyEntryFlow && typeof window.SemptifyEntryFlow.resolveStartDestination === "function") {
+                        const destination = await window.SemptifyEntryFlow.resolveStartDestination(
+                            selectedRole,
+                            selectedStorageState,
+                            normalized,
+                            "welcome"
+                        );
+                        window.location.href = destination;
+                        return;
+                    }
+                    window.location.href = normalized;
                     return;
                 }
 
                 if (lastDecision && lastDecision.next_route) {
-                    window.location.href = lastDecision.next_route;
+                    const normalized = normalizeNextRoute(lastDecision.next_route, selectedRole, selectedStorageState);
+                    if (window.SemptifyEntryFlow && typeof window.SemptifyEntryFlow.resolveStartDestination === "function") {
+                        const destination = await window.SemptifyEntryFlow.resolveStartDestination(
+                            selectedRole,
+                            selectedStorageState,
+                            normalized,
+                            "welcome"
+                        );
+                        window.location.href = destination;
+                        return;
+                    }
+                    window.location.href = normalized;
                     return;
                 }
 
-                renderPreview().then(() => {
-                    if (lastDecision) window.location.href = lastDecision.next_route;
+                renderPreview().then(async () => {
+                    if (lastDecision) {
+                        const normalized = normalizeNextRoute(lastDecision.next_route, selectedRole, selectedStorageState);
+                        if (window.SemptifyEntryFlow && typeof window.SemptifyEntryFlow.resolveStartDestination === "function") {
+                            const destination = await window.SemptifyEntryFlow.resolveStartDestination(
+                                selectedRole,
+                                selectedStorageState,
+                                normalized,
+                                "welcome"
+                            );
+                            window.location.href = destination;
+                            return;
+                        }
+                        window.location.href = normalized;
+                    }
                 });
             })
-            .catch(() => {
+            .catch(async () => {
                 if (lastDecision && lastDecision.next_route) {
-                    window.location.href = lastDecision.next_route;
+                    const normalized = normalizeNextRoute(lastDecision.next_route, selectedRole, selectedStorageState);
+                    if (window.SemptifyEntryFlow && typeof window.SemptifyEntryFlow.resolveStartDestination === "function") {
+                        const destination = await window.SemptifyEntryFlow.resolveStartDestination(
+                            selectedRole,
+                            selectedStorageState,
+                            normalized,
+                            "welcome"
+                        );
+                        window.location.href = destination;
+                        return;
+                    }
+                    window.location.href = normalized;
                 } else {
-                    renderPreview().then(() => {
-                        if (lastDecision) window.location.href = lastDecision.next_route;
+                    renderPreview().then(async () => {
+                        if (lastDecision) {
+                            const normalized = normalizeNextRoute(lastDecision.next_route, selectedRole, selectedStorageState);
+                            if (window.SemptifyEntryFlow && typeof window.SemptifyEntryFlow.resolveStartDestination === "function") {
+                                const destination = await window.SemptifyEntryFlow.resolveStartDestination(
+                                    selectedRole,
+                                    selectedStorageState,
+                                    normalized,
+                                    "welcome"
+                                );
+                                window.location.href = destination;
+                                return;
+                            }
+                            window.location.href = normalized;
+                        }
                     });
                 }
             });

@@ -249,7 +249,7 @@ async def get_navigation_menu(
         return {
             "menu": [
                 {"label": "Home", "path": "/", "icon": "🏠"},
-                {"label": "Sign In", "path": "/auth/login", "icon": "🔑"},
+                {"label": "Sign In", "path": "/storage/providers", "icon": "🔑"},
             ]
         }
     

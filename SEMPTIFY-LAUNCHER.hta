@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html>
+<head>
+<HTA:APPLICATION
+  ID="SemptifyLauncher"
+  APPLICATIONNAME="Semptify Startup Manager"
+  BORDER="thin"
+  BORDERSTYLE="normal"
+  CAPTION="yes"
+  SHOWINTASKBAR="yes"
+  SINGLEINSTANCE="yes"
+  SYSMENU="yes"
+  WINDOWSTATE="normal"
+  SCROLL="auto"
+  INNERWIDTH="760"
+  INNERHEIGHT="670"
+/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>Semptify Startup Manager</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Segoe UI, Arial, sans-serif;
+    background: #0f1117;
+    color: #e0e0e0;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, #1a1d2e 0%, #0f1117 100%);
+    border-bottom: 2px solid #2a2d3e;
+    padding: 20px 28px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-left h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+  }
+  .header-left p {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 3px;
+  }
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  .status-pill.checking {
+    background: #1e2030;
+    border-color: #3a3d50;
+    color: #9ca3af;
+  }
+  .status-pill.online {
+    background: #0c2a1a;
+    border-color: #16a34a;
+    color: #4ade80;
+  }
+  .status-pill.offline {
+    background: #2a0f0f;
+    border-color: #dc2626;
+    color: #f87171;
+  }
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .status-dot.pulse {
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ── Notice bar ── */
+  .notice {
+    background: #1a1d2e;
+    border-bottom: 1px solid #2a2d3e;
+    padding: 8px 28px;
+    font-size: 11px;
+    color: #6b7280;
+  }
+  .notice b { color: #9ca3af; }
+
+  /* ── Compact Service Module ── */
+  .service-module {
+    margin: 12px 24px 10px;
+    padding: 10px 12px;
+    border: 1px solid #2a2d3e;
+    border-radius: 10px;
+    background: #151826;
+  }
+  .service-module-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .service-module-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #cbd5e1;
+    letter-spacing: 0.35px;
+    text-transform: uppercase;
+  }
+  .module-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .mini-btn {
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid #39405a;
+    background: #1e2336;
+    color: #d1d5db;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .mini-btn:hover {
+    border-color: #4b5576;
+    background: #242b42;
+  }
+  .mini-btn.primary {
+    border-color: #1f7a38;
+    background: #114127;
+    color: #bbf7d0;
+  }
+  .mini-btn.warn {
+    border-color: #9a6700;
+    background: #45300e;
+    color: #fcd34d;
+  }
+  .service-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 14px;
+    margin-bottom: 8px;
+  }
+  .service-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 11px;
+    color: #a5b4fc;
+  }
+  .service-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #cbd5e1;
+  }
+  .light {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #64748b;
+    box-shadow: 0 0 0 2px rgba(100, 116, 139, 0.2);
+  }
+  .light.online {
+    background: #22c55e;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
+  }
+  .light.offline {
+    background: #ef4444;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+  }
+  .light.warn {
+    background: #f59e0b;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+  }
+  .service-value {
+    color: #93c5fd;
+    font-family: Consolas, monospace;
+    font-size: 10px;
+    text-align: right;
+  }
+  .health-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .health-bar {
+    flex: 1;
+    height: 8px;
+    border-radius: 8px;
+    background: #22283a;
+    overflow: hidden;
+    border: 1px solid #30364f;
+  }
+  .health-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #22c55e 100%);
+    transition: width 0.3s ease;
+  }
+  .health-text {
+    font-size: 10px;
+    color: #93c5fd;
+    font-family: Consolas, monospace;
+    min-width: 110px;
+    text-align: right;
+  }
+
+  /* ── Cards grid ── */
+  .grid {
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .card {
+    background: #1a1d2e;
+    border: 1px solid #2a2d3e;
+    border-radius: 10px;
+    padding: 16px 18px;
+    transition: border-color 0.15s;
+  }
+  .card:hover {
+    border-color: #3a4060;
+  }
+  .card.recommended {
+    border-color: #1e3a4a;
+    background: #141a2a;
+  }
+  .card.recommended:hover {
+    border-color: #2563eb;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    gap: 8px;
+  }
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #f0f0f0;
+    line-height: 1.3;
+    flex: 1;
+  }
+  .badges {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  .badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .badge-rec   { background: #1e3a5f; color: #60a5fa; border: 1px solid #2563eb; }
+  .badge-dock  { background: #1e3531; color: #34d399; border: 1px solid #059669; }
+  .badge-leg   { background: #2a2020; color: #f97316; border: 1px solid #c2410c; }
+  .badge-gui   { background: #2a1a3a; color: #c084fc; border: 1px solid #7c3aed; }
+  .badge-ps    { background: #1a2430; color: #38bdf8; border: 1px solid #0284c7; }
+  .badge-bat   { background: #2a2418; color: #fbbf24; border: 1px solid #b45309; }
+
+  .card-file {
+    font-size: 11px;
+    color: #4b5563;
+    font-family: Consolas, monospace;
+    margin-bottom: 8px;
+  }
+  .card-desc {
+    font-size: 12px;
+    color: #9ca3af;
+    line-height: 1.5;
+    margin-bottom: 13px;
+    min-height: 36px;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    letter-spacing: 0.2px;
+    transition: opacity 0.1s, transform 0.1s;
+  }
+  .btn:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn:active { transform: translateY(0); opacity: 1; }
+
+  .btn-start {
+    background: #16a34a;
+    color: #fff;
+  }
+  .btn-restart {
+    background: #d97706;
+    color: #fff;
+  }
+  .btn-disabled {
+    background: #2a2d3e;
+    color: #4b5563;
+    cursor: default;
+  }
+  .btn-disabled:hover { opacity: 1; transform: none; }
+
+  /* ── Log area ── */
+  .log-section {
+    margin: 0 24px 20px;
+    background: #0d0f17;
+    border: 1px solid #2a2d3e;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .log-header {
+    background: #1a1d2e;
+    border-bottom: 1px solid #2a2d3e;
+    padding: 8px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .log-header span { font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; }
+  .log-clear { font-size: 10px; color: #4b5563; cursor: pointer; background: none; border: none; color: #6b7280; }
+  .log-clear:hover { color: #9ca3af; }
+  #logArea {
+    padding: 10px 14px;
+    font-size: 11px;
+    font-family: Consolas, monospace;
+    color: #6b7280;
+    min-height: 60px;
+    max-height: 120px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+  .log-line { padding: 1px 0; }
+  .log-ok    { color: #4ade80; }
+  .log-err   { color: #f87171; }
+  .log-info  { color: #60a5fa; }
+  .log-warn  { color: #fbbf24; }
+
+  /* ── Footer ── */
+  .footer {
+    border-top: 1px solid #2a2d3e;
+    padding: 10px 28px;
+    font-size: 10px;
+    color: #374151;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <h1>Semptify Startup Manager</h1>
+    <p>Launch or restart server from any registered startup path</p>
+  </div>
+  <div>
+    <div id="statusPill" class="status-pill checking" onclick="checkStatus()" title="Click to refresh">
+      <span class="status-dot pulse" id="statusDot"></span>
+      <span id="statusText">Checking...</span>
+    </div>
+  </div>
+</div>
+
+<!-- Notice -->
+<div class="notice">
+  <b>How it works:</b>
+  <b>Start</b> launches a new terminal window running that startup path &nbsp;|&nbsp;
+  <b>Restart</b> kills any running Python/uvicorn process first, then starts fresh &nbsp;|&nbsp;
+  Status indicator checks <b>localhost:8000</b>
+</div>
+
+<!-- Compact Services Module -->
+<div class="service-module" id="serviceModule">
+  <div class="service-module-header">
+    <div class="service-module-title">Core Service Module</div>
+    <div class="module-actions">
+      <button class="mini-btn" onclick="refreshServiceModule()">Refresh</button>
+      <button class="mini-btn primary" onclick="launch('START-WITH-POSTGRES.bat', false)">Start Linked Stack</button>
+      <button class="mini-btn warn" onclick="cyclePostgresService()">Cycle PostgreSQL</button>
+    </div>
+  </div>
+  <div class="service-grid">
+    <div class="service-row">
+      <span class="service-label"><span class="light" id="light-api"></span>API Server</span>
+      <span class="service-value" id="value-api">checking</span>
+    </div>
+    <div class="service-row">
+      <span class="service-label"><span class="light" id="light-ready"></span>Readiness</span>
+      <span class="service-value" id="value-ready">checking</span>
+    </div>
+    <div class="service-row">
+      <span class="service-label"><span class="light" id="light-postgres"></span>PostgreSQL Service</span>
+      <span class="service-value" id="value-postgres">detecting</span>
+    </div>
+    <div class="service-row">
+      <span class="service-label"><span class="light" id="light-link"></span>Linked Startup</span>
+      <span class="service-value" id="value-link">checking</span>
+    </div>
+  </div>
+  <div class="health-wrap">
+    <div class="health-bar"><div class="health-fill" id="healthFill"></div></div>
+    <div class="health-text" id="healthText">0 / 4 checks</div>
+  </div>
+</div>
+
+<!-- Cards -->
+<div class="grid">
+
+  <!-- 1 - RECOMMENDED -->
+  <div class="card recommended">
+    <div class="card-header">
+      <div class="card-title">Local PostgreSQL + Full App</div>
+      <div class="badges">
+        <span class="badge badge-rec">Recommended</span>
+        <span class="badge badge-bat">BAT</span>
+      </div>
+    </div>
+    <div class="card-file">START-WITH-POSTGRES.bat</div>
+    <div class="card-desc">Starts the local Windows PostgreSQL service (postgresql-x64-16 on port 5432), waits for it to be ready, then starts uvicorn. Use this as the primary startup path.</div>
+    <div class="card-actions">
+      <button class="btn btn-start" onclick="launch('START-WITH-POSTGRES.bat', false)">&#9654; Start</button>
+      <button class="btn btn-restart" onclick="restart('START-WITH-POSTGRES.bat', false)">&#8635; Restart</button>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Full Production Launcher (Docker-Aware)</div>
+      <div class="badges">
+        <span class="badge badge-dock">Docker</span>
+        <span class="badge badge-bat">BAT</span>
+      </div>
+    </div>
+    <div class="card-file">START-SEMPTIFY.bat</div>
+    <div class="card-desc">Batch wrapper that calls LAUNCH-SEMPTIFY.ps1. Detects Docker if available, runs full production checks, opens browser automatically. Requires Docker if using containerized PostgreSQL.</div>
+    <div class="card-actions">
+      <button class="btn btn-start" onclick="launch('START-SEMPTIFY.bat', false)">&#9654; Start</button>
+      <button class="btn btn-restart" onclick="restart('START-SEMPTIFY.bat', false)">&#8635; Restart</button>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">PowerShell Production Launcher (Docker-Aware)</div>
+      <div class="badges">
+        <span class="badge badge-dock">Docker</span>
+        <span class="badge badge-ps">PS1</span>
+      </div>
+    </div>
+    <div class="card-file">LAUNCH-SEMPTIFY.ps1</div>
+    <div class="card-desc">Full PowerShell production launcher with Docker detection, environment validation, and browser auto-open. Run directly if you prefer PowerShell over the .bat wrapper above.</div>
+    <div class="card-actions">
+      <button class="btn btn-start" onclick="launch('LAUNCH-SEMPTIFY.ps1', true)">&#9654; Start</button>
+      <button class="btn btn-restart" onclick="restart('LAUNCH-SEMPTIFY.ps1', true)">&#8635; Restart</button>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Batch Production Launcher</div>
+      <div class="badges">
+        <span class="badge badge-bat">BAT</span>
+      </div>
+    </div>
+    <div class="card-file">start.bat</div>
+    <div class="card-desc">Standard batch production launcher. Activates the venv, sets SECURITY_MODE=enforced and DEBUG=false, then starts uvicorn. Does not start or check PostgreSQL.</div>
+    <div class="card-actions">
+      <button class="btn btn-start" onclick="launch('start.bat', false)">&#9654; Start</button>
+      <button class="btn btn-restart" onclick="restart('start.bat', false)">&#8635; Restart</button>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">PowerShell Production Launcher</div>
+      <div class="badges">
+        <span class="badge badge-ps">PS1</span>
+      </div>
+    </div>
+    <div class="card-file">start.ps1</div>
+    <div class="card-desc">PowerShell equivalent of start.bat. Sets production environment variables, validates venv, starts uvicorn, and opens the browser automatically. No PostgreSQL management.</div>
+    <div class="card-actions">
+      <button class="btn btn-start" onclick="launch('start.ps1', true)">&#9654; Start</button>
+      <button class="btn btn-restart" onclick="restart('start.ps1', true)">&#8635; Restart</button>
+    </div>
+  </div>
+
+  <!-- 6 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Simple Launcher (Local Only)</div>
+      <div class="badges">
+        <span class="badge badge-bat">BAT</span>
+      </div>
+    </div>
+    <div class="card-file">Semptify.bat</div>
+    <div class="card-desc">Minimal launcher that binds uvicorn to 127.0.0.1:8000 (localhost only, not exposed on the network). Displays the ASCII logo and auto-opens the browser. Fastest cold start.</div>
+    <div class="card-actions">
+      <button class="btn btn-start" onclick="launch('Semptify.bat', false)">&#9654; Start</button>
+      <button class="btn btn-restart" onclick="restart('Semptify.bat', false)">&#8635; Restart</button>
+    </div>
+  </div>
+
+  <!-- 7 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Docker PostgreSQL + App (Legacy)</div>
+      <div class="badges">
+        <span class="badge badge-dock">Docker</span>
+        <span class="badge badge-leg">Legacy</span>
+        <span class="badge badge-ps">PS1</span>
+      </div>
+    </div>
+    <div class="card-file">scripts\start_with_postgres.ps1</div>
+    <div class="card-desc">Original Docker-based startup script. Starts the semptify-pg-validate container on port 54329, then launches uvicorn. Superseded by START-WITH-POSTGRES.bat for local PostgreSQL installs.</div>
+    <div class="card-actions">
+      <button class="btn btn-start" onclick="launch('scripts\\\\start_with_postgres.ps1', true)">&#9654; Start</button>
+      <button class="btn btn-restart" onclick="restart('scripts\\\\start_with_postgres.ps1', true)">&#8635; Restart</button>
+    </div>
+  </div>
+
+  <!-- 8 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">GUI Browser &amp; Profile Selector</div>
+      <div class="badges">
+        <span class="badge badge-gui">GUI</span>
+        <span class="badge badge-ps">PS1</span>
+      </div>
+    </div>
+    <div class="card-file">scripts\SemptifyLauncher.ps1</div>
+    <div class="card-desc">Windows Forms graphical launcher with a browser selector (Chrome, Firefox, Edge) and profile picker. Useful when you need to open Semptify in a specific browser profile, e.g. for testing.</div>
+    <div class="card-actions">
+      <button class="btn btn-start" onclick="launch('scripts\\\\SemptifyLauncher.ps1', true)">&#9654; Start</button>
+      <button class="btn btn-disabled" title="GUI launcher does not manage the server process directly">&#8635; N/A</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Log -->
+<div class="log-section">
+  <div class="log-header">
+    <span>Activity Log</span>
+    <button class="log-clear" onclick="clearLog()">Clear</button>
+  </div>
+  <div id="logArea"><div class="log-line log-info">Semptify Startup Manager ready. Select a startup path above.</div></div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  <span>Semptify v5.0 &nbsp;|&nbsp; Startup Manager &nbsp;|&nbsp; .hta runs locally with no server dependency</span>
+  <span id="footerTime"></span>
+</div>
+
+<script type="text/javascript">
+// ── Shell access (available in .hta / mshta.exe context) ──
+var shell = new ActiveXObject("WScript.Shell");
+var BASE = "C:\\Semptify\\Semptify-FastAPI\\";
+
+// ── Logging ──
+function log(msg, cls) {
+  var area = document.getElementById("logArea");
+  var ts   = new Date();
+  var h    = ("0" + ts.getHours()).slice(-2);
+  var m    = ("0" + ts.getMinutes()).slice(-2);
+  var s    = ("0" + ts.getSeconds()).slice(-2);
+  var line = document.createElement("div");
+  line.className = "log-line " + (cls || "");
+  line.innerHTML = "[" + h + ":" + m + ":" + s + "] " + msg;
+  area.appendChild(line);
+  area.scrollTop = area.scrollHeight;
+}
+
+function clearLog() {
+  document.getElementById("logArea").innerHTML = "";
+}
+
+function setLight(id, state) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.className = "light " + state;
+}
+
+function runCmd(command) {
+  try {
+    var exec = shell.Exec('cmd.exe /c ' + command);
+    while (exec.Status === 0) {}
+    var out = "";
+    var err = "";
+    try { out = exec.StdOut.ReadAll(); } catch (_o) {}
+    try { err = exec.StdErr.ReadAll(); } catch (_e) {}
+    return { ok: exec.ExitCode === 0, code: exec.ExitCode, out: out, err: err };
+  } catch (e) {
+    return { ok: false, code: -1, out: "", err: e.message };
+  }
+}
+
+function getPostgresServiceName() {
+  var ps = "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$svc = Get-Service | Where-Object { $_.Name -match 'postgresql|postgres' -or $_.DisplayName -match 'PostgreSQL' } | Select-Object -First 1 -ExpandProperty Name; if ($svc) { Write-Output $svc }\"";
+  var res = runCmd(ps);
+  if (!res.ok) return "";
+  var name = (res.out || "").replace(/\r|\n/g, "").replace(/^\s+|\s+$/g, "");
+  return name;
+}
+
+function getPostgresServiceStatus(serviceName) {
+  if (!serviceName) return "not-found";
+  var res = runCmd('sc query "' + serviceName + '"');
+  if (!res.ok) return "error";
+  var text = (res.out || "") + " " + (res.err || "");
+  if (/RUNNING/i.test(text)) return "Running";
+  if (/STOPPED/i.test(text)) return "Stopped";
+  return "Unknown";
+}
+
+function checkApiHealth() {
+  try {
+    var xhr = new ActiveXObject("Msxml2.XMLHTTP");
+    xhr.open("GET", "http://localhost:8000/health", false);
+    xhr.setRequestHeader("Accept", "application/json");
+    xhr.send();
+    return xhr.status >= 200 && xhr.status < 400;
+  } catch (_e) {
+    return false;
+  }
+}
+
+function checkReadyz() {
+  try {
+    var xhr = new ActiveXObject("Msxml2.XMLHTTP");
+    xhr.open("GET", "http://localhost:8000/readyz", false);
+    xhr.setRequestHeader("Accept", "application/json");
+    xhr.send();
+    if (xhr.status < 200 || xhr.status >= 400) return { ok: false, dbOk: false };
+    var data = JSON.parse(xhr.responseText || "{}");
+    var dbOk = !!(data && data.checks && data.checks.database === true);
+    return { ok: true, dbOk: dbOk };
+  } catch (_e2) {
+    return { ok: false, dbOk: false };
+  }
+}
+
+function checkLinkedStartupScript() {
+  try {
+    var fso = new ActiveXObject("Scripting.FileSystemObject");
+    return fso.FileExists(BASE + "START-WITH-POSTGRES.bat");
+  } catch (_e) {
+    return false;
+  }
+}
+
+function refreshServiceModule() {
+  var pass = 0;
+  var total = 4;
+
+  var apiOk = checkApiHealth();
+  document.getElementById("value-api").innerHTML = apiOk ? "online:8000" : "offline";
+  setLight("light-api", apiOk ? "online" : "offline");
+  if (apiOk) pass++;
+
+  var ready = checkReadyz();
+  var readyText = "unreachable";
+  var readyLight = "offline";
+  if (ready.ok && ready.dbOk) {
+    readyText = "database-ready";
+    readyLight = "online";
+    pass++;
+  } else if (ready.ok && !ready.dbOk) {
+    readyText = "degraded-db";
+    readyLight = "warn";
+  }
+  document.getElementById("value-ready").innerHTML = readyText;
+  setLight("light-ready", readyLight);
+
+  var pgName = getPostgresServiceName();
+  var pgStatus = getPostgresServiceStatus(pgName);
+  var pgRunning = (pgStatus + "").toLowerCase() === "running";
+  var pgText = pgName ? (pgName + ":" + pgStatus) : "service-not-found";
+  document.getElementById("value-postgres").innerHTML = pgText;
+  setLight("light-postgres", pgRunning ? "online" : (pgName ? "offline" : "warn"));
+  if (pgRunning) pass++;
+
+  var linkOk = checkLinkedStartupScript();
+  document.getElementById("value-link").innerHTML = linkOk ? "START-WITH-POSTGRES.bat" : "missing";
+  setLight("light-link", linkOk ? "online" : "offline");
+  if (linkOk) pass++;
+
+  var pct = Math.round((pass / total) * 100);
+  document.getElementById("healthFill").style.width = pct + "%";
+  document.getElementById("healthText").innerHTML = pass + " / " + total + " checks";
+
+  log("Service module refreshed: " + pass + "/" + total + " healthy", pass === total ? "log-ok" : "log-info");
+}
+
+function cyclePostgresService() {
+  var serviceName = getPostgresServiceName();
+  if (!serviceName) {
+    log("No PostgreSQL Windows service found to cycle.", "log-err");
+    refreshServiceModule();
+    return;
+  }
+
+  var current = getPostgresServiceStatus(serviceName);
+  log("Cycling PostgreSQL service: " + serviceName + " (current=" + current + ")", "log-warn");
+
+  var stopRes = null;
+  var startRes = null;
+  var running = (current + "").toLowerCase() === "running";
+
+  if (running) {
+    stopRes = runCmd('sc stop "' + serviceName + '"');
+  }
+  startRes = runCmd('sc start "' + serviceName + '"');
+
+  var res = { ok: (startRes && startRes.ok), err: ((stopRes && !stopRes.ok) ? stopRes.err + " " : "") + ((startRes && !startRes.ok) ? startRes.err : "") };
+  if (res.ok) {
+    log("PostgreSQL cycle completed for service: " + serviceName, "log-ok");
+  } else {
+    log("PostgreSQL cycle failed: " + (res.err || "unknown error"), "log-err");
+  }
+
+  refreshServiceModule();
+}
+
+// ── Launch a startup file in a new cmd window ──
+function launch(scriptPath, isPowerShell) {
+  try {
+    var fullPath = BASE + scriptPath;
+    var cmd;
+    if (isPowerShell) {
+      cmd = 'cmd.exe /k "powershell.exe -ExecutionPolicy Bypass -NoProfile -File \\"' + fullPath + '\\""';
+    } else {
+      cmd = 'cmd.exe /k "' + fullPath + '"';
+    }
+    shell.Run(cmd, 1, false);
+    log("Launched: " + scriptPath, "log-ok");
+    setTimeout(function() { checkStatus(); }, 5000);
+  } catch(e) {
+    log("ERROR launching " + scriptPath + ": " + e.message, "log-err");
+  }
+}
+
+// ── Kill python/uvicorn then launch ──
+function restart(scriptPath, isPowerShell) {
+  log("Stopping any running Python/uvicorn processes...", "log-warn");
+  try {
+    shell.Run('cmd.exe /c taskkill /F /IM python.exe >nul 2>&1', 0, true);
+    log("  python.exe terminated (if running)", "log-warn");
+  } catch(e) { /* none running */ }
+  try {
+    shell.Run('cmd.exe /c taskkill /F /IM pythonw.exe >nul 2>&1', 0, true);
+  } catch(e) { /* none running */ }
+  log("Waiting 2 seconds before restart...", "log-info");
+  var start = (new Date()).getTime();
+  while ((new Date()).getTime() - start < 2000) { /* spin wait */ }
+  launch(scriptPath, isPowerShell);
+  log("Restarted: " + scriptPath, "log-ok");
+}
+
+// ── Server status check against localhost:8000 ──
+function checkStatus() {
+  var pill = document.getElementById("statusPill");
+  var dot  = document.getElementById("statusDot");
+  var txt  = document.getElementById("statusText");
+  pill.className = "status-pill checking";
+  dot.className  = "status-dot pulse";
+  txt.innerHTML  = "Checking...";
+
+  try {
+    var xhr = new ActiveXObject("Msxml2.XMLHTTP");
+    xhr.open("GET", "http://localhost:8000/health", false);
+    xhr.setRequestHeader("Accept", "application/json");
+    try {
+      xhr.send();
+      if (xhr.status >= 200 && xhr.status < 400) {
+        pill.className = "status-pill online";
+        dot.className  = "status-dot";
+        txt.innerHTML  = "Server Online :8000";
+        log("Status check: server is online at localhost:8000", "log-ok");
+        return;
+      }
+    } catch(ex) { /* connection refused */ }
+  } catch(e2) { /* no XMLHTTP */ }
+
+  pill.className = "status-pill offline";
+  dot.className  = "status-dot";
+  txt.innerHTML  = "Server Offline";
+}
+
+// ── Footer clock ──
+function updateClock() {
+  var now = new Date();
+  document.getElementById("footerTime").innerHTML =
+    now.toLocaleDateString() + " " +
+    ("0"+now.getHours()).slice(-2) + ":" +
+    ("0"+now.getMinutes()).slice(-2) + ":" +
+    ("0"+now.getSeconds()).slice(-2);
+}
+
+// ── Init ──
+updateClock();
+setInterval(updateClock, 1000);
+setInterval(checkStatus, 15000);
+setInterval(refreshServiceModule, 15000);
+window.onload = function() {
+  checkStatus();
+  refreshServiceModule();
+};
+</script>
+
+</body>
+</html>
