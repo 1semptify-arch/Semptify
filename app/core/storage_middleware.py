@@ -15,6 +15,10 @@ from typing import Set
 
 from app.core.user_id import parse_user_id, COOKIE_USER_ID
 
+# Redirect loop tracking cookie name
+REDIRECT_LOOP_COOKIE = "semptify_redirect_loop_count"
+MAX_REDIRECT_LOOPS = 3
+
 
 # Pages that don't require storage (public/auth pages)
 PUBLIC_PATHS: Set[str] = {
@@ -26,6 +30,12 @@ PUBLIC_PATHS: Set[str] = {
     "/health",
     "/metrics",
     "/api/version",
+    
+    # Onboarding & special pages
+    "/onboarding",
+    "/onboarding/",
+    "/onboarding/max-redirects",
+    "/onboarding/max-redirects/",
     
     # Storage/Auth flow (must be public to connect)
     "/storage",
@@ -251,18 +261,56 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                     completed = _row or ""
                     if "storage_connected" not in completed.split(","):
                         # User row exists but storage_connected not yet written —
-                        # OAuth may have partially completed; redirect back to finish.
+                        # Onboarding is incomplete; track redirect attempts
+                        
+                        # Get current redirect loop count
+                        loop_count_str = request.cookies.get(REDIRECT_LOOP_COOKIE, "0")
+                        try:
+                            loop_count = int(loop_count_str)
+                        except ValueError:
+                            loop_count = 0
+                        
+                        # Check if max redirects exceeded
+                        if loop_count >= MAX_REDIRECT_LOOPS:
+                            # Max redirects reached - show special instructions
+                            if path.startswith("/api/"):
+                                return JSONResponse(
+                                    status_code=401,
+                                    content={
+                                        "error": "redirect_loop_max",
+                                        "message": "Too many redirect attempts. Please review setup instructions.",
+                                        "action": "redirect",
+                                        "redirect_url": "/onboarding/max-redirects",
+                                    },
+                                )
+                            response = RedirectResponse(url="/onboarding/max-redirects", status_code=302)
+                            response.delete_cookie(REDIRECT_LOOP_COOKIE)
+                            return response
+                        
+                        # Increment loop count and redirect to welcome screen
+                        loop_count += 1
+                        
                         if path.startswith("/api/"):
                             return JSONResponse(
                                 status_code=401,
                                 content={
-                                    "error": "storage_required",
-                                    "message": "Please complete storage setup to continue",
+                                    "error": "onboarding_incomplete",
+                                    "message": "Please complete onboarding to continue",
                                     "action": "redirect",
-                                    "redirect_url": "/storage/providers",
+                                    "redirect_url": "/",
                                 },
                             )
-                        return RedirectResponse(url="/storage/providers", status_code=302)
+                        
+                        # Redirect to welcome screen
+                        response = RedirectResponse(url="/", status_code=302)
+                        response.set_cookie(
+                            key=REDIRECT_LOOP_COOKIE,
+                            value=str(loop_count),
+                            max_age=3600,  # 1 hour
+                            httponly=True,
+                            samesite="lax",
+                        )
+                        return response
 
             except Exception:
                 # If DB is unavailable, fall through — don't block the user on a DB error.

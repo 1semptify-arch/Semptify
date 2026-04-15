@@ -1449,6 +1449,9 @@ async def oauth_callback(
             secure=False if is_localhost else True,  # Must be False for http://localhost
             samesite="lax",
         )
+        
+        # Clear the redirect loop counter cookie (onboarding is now complete)
+        response.delete_cookie("semptify_redirect_loop_count")
 
         # Provision the user's storage vault after authentication is established.
         # OAuth success should not be treated as a callback failure if vault setup hits

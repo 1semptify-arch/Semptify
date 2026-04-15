@@ -31,6 +31,8 @@ from typing import Optional, Any
 from uuid import uuid4
 import base64
 
+from app.core.config import get_settings
+
 
 # =============================================================================
 # ENUMS
@@ -296,9 +298,15 @@ class DocumentIDGenerator:
 
 class HashGenerator:
     """Generate and verify tamper-proof hashes."""
-    
-    # Secret key for HMAC (in production, load from secure config)
-    _SECRET_KEY = b"SEMPTIFY_DOCUMENT_INTEGRITY_KEY_2025"
+
+    @classmethod
+    def _get_secret_key(cls) -> bytes:
+        """Load the HMAC secret key from settings."""
+        settings = get_settings()
+        secret = getattr(settings, "secret_key", None) or getattr(settings, "SECRET_KEY", "")
+        if not secret:
+            raise ValueError("SECRET_KEY must be configured for document registry integrity.")
+        return secret.encode()
     
     @classmethod
     def content_hash(cls, content: bytes) -> str:
@@ -316,7 +324,7 @@ class HashGenerator:
     def combined_hash(cls, content_hash: str, metadata_hash: str, doc_id: str) -> str:
         """Generate HMAC-based combined hash for tamper detection."""
         message = f"{doc_id}:{content_hash}:{metadata_hash}".encode()
-        return hmac.new(cls._SECRET_KEY, message, hashlib.sha256).hexdigest()
+        return hmac.new(cls._get_secret_key(), message, hashlib.sha256).hexdigest()
     
     @classmethod
     def verify_integrity(
@@ -340,7 +348,7 @@ class HashGenerator:
     def generate_verification_token(cls, doc_id: str, timestamp: datetime) -> str:
         """Generate a verification token for document access."""
         message = f"{doc_id}:{timestamp.isoformat()}".encode()
-        signature = hmac.new(cls._SECRET_KEY, message, hashlib.sha256).digest()
+        signature = hmac.new(cls._get_secret_key(), message, hashlib.sha256).digest()
         return base64.urlsafe_b64encode(signature).decode()[:32]
 
 
@@ -813,6 +821,19 @@ class DocumentRegistry:
             doc.integrity_status = IntegrityStatus.METADATA_CHANGED
             self._save_registry()
             return IntegrityStatus.METADATA_CHANGED
+
+        # Verify combined HMAC-based integrity hash
+        if not HashGenerator.verify_integrity(content, metadata, doc.document_id, doc.combined_hash):
+            doc.integrity_status = IntegrityStatus.CORRUPTED
+            doc.custody_chain.append(CustodyRecord(
+                timestamp=datetime.now(timezone.utc),
+                action=CustodyAction.INTEGRITY_CHECK,
+                actor="system",
+                details="Integrity hash mismatch: Stored combined hash invalid",
+                integrity_hash=doc.combined_hash,
+            ))
+            self._save_registry()
+            return IntegrityStatus.CORRUPTED
         
         # All checks passed
         doc.integrity_status = IntegrityStatus.VERIFIED
