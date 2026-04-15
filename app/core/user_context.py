@@ -173,7 +173,7 @@ ROLE_DEFINITIONS = {
         "purpose": "Individual renter or resident organizing their own housing and case documents with guided help.",
         "default_landing_process": "B2 - Quick Case Triage",
         "ui_mode": "mobile",           # Mobile-first, simplified
-        "landing_page": "/tenant",
+        "landing_page": "/tenant/home",
         "icon": "🏠",
     },
     UserRole.ADVOCATE: {
@@ -181,7 +181,7 @@ ROLE_DEFINITIONS = {
         "purpose": "Frontline support worker helping tenants prepare evidence, organize timelines, and complete non-privileged actions.",
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "responsive",       # Tablet-friendly
-        "landing_page": "/advocate",
+        "landing_page": "/advocate/home",
         "icon": "🤝",
     },
     UserRole.MANAGER: {
@@ -189,7 +189,7 @@ ROLE_DEFINITIONS = {
         "purpose": "Multi-client housing support professional coordinating client cases across nonprofit, charity, and agency programs.",
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",
-        "landing_page": "/admin",
+        "landing_page": "/manager/home",
         "icon": "📋",
     },
     UserRole.LEGAL: {
@@ -197,7 +197,7 @@ ROLE_DEFINITIONS = {
         "purpose": "Court and legal professional role for formal review, legal packet quality, and filing readiness.",
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",          # Full complexity
-        "landing_page": "/legal",
+        "landing_page": "/legal/home",
         "icon": "⚖️",
     },
     UserRole.ADMIN: {
@@ -205,7 +205,7 @@ ROLE_DEFINITIONS = {
         "purpose": "Platform operations role with system-wide configuration, governance, and support access.",
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",          # Full complexity
-        "landing_page": "/admin",
+        "landing_page": "/admin/home",
         "icon": "🔧",
     },
 }

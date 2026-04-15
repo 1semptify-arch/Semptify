@@ -78,6 +78,7 @@ R2_BUCKET_NAME=semptify-system
 - **Setup Time:** ~10 minutes
 - **Pricing:** Pay-as-you-go, no egress fees
 - **Status:** ✅ Available (Admin only)
+- **Production requirement:** Required for stateless deployment and server-side system storage
 
 ## Quick Start
 

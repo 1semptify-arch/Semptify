@@ -1,0 +1,14 @@
+{
+  "name": "Housing Accountability Intelligence Module",
+  "id": "semp_housing_accountability",
+  "version": "1.0.0",
+  "description": "Pattern analysis, evidence intake, oversight packet generation, and public records aggregation for tenant advocacy.",
+  "entrypoints": {
+    "intake": "intake/intake_engine.py",
+    "pattern": "pattern_engine/pattern_engine.py",
+    "oversight": "oversight_packets/packet_builder.py",
+    "public_records": "public_records/records_scanner.py",
+    "press": "press_builder/press_builder.py",
+    "coalition": "coalition/coalition_manager.py"
+  }
+}

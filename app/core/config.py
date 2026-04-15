@@ -23,7 +23,12 @@ logger = logging.getLogger(__name__)
 def _resolve_secret_key() -> str:
     """Return SECRET_KEY from env, or generate a secure random key with a warning."""
     key = os.getenv("SECRET_KEY", "")
+    security_mode = os.getenv("SECURITY_MODE", "open").lower()
     if not key or key == _WEAK_KEY:
+        if security_mode == "enforced":
+            raise ValueError(
+                "SECRET_KEY must be configured for document registry integrity when SECURITY_MODE=enforced."
+            )
         generated = secrets.token_urlsafe(64)
         logger.warning(
             "SECRET_KEY not set or uses the insecure default. "
