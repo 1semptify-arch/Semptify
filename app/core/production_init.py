@@ -66,12 +66,27 @@ def validate_production_mode() -> bool:
                 return False
             logger.info(f"✅ CORS configured for {len(settings.ALLOWED_ORIGINS)} origins")
             
-            # 7. Database SSL
+            # 7. System storage: Cloudflare R2
+            missing_r2 = []
+            if not settings.R2_ACCOUNT_ID:
+                missing_r2.append("R2_ACCOUNT_ID")
+            if not settings.R2_ACCESS_KEY_ID:
+                missing_r2.append("R2_ACCESS_KEY_ID")
+            if not settings.R2_SECRET_ACCESS_KEY:
+                missing_r2.append("R2_SECRET_ACCESS_KEY")
+            if not settings.R2_BUCKET_NAME:
+                missing_r2.append("R2_BUCKET_NAME")
+            if missing_r2:
+                logger.error("❌ Cloudflare R2 system storage is not fully configured: %s", ", ".join(missing_r2))
+                return False
+            logger.info("✅ Cloudflare R2 system storage configured")
+            
+            # 8. Database SSL
             if settings.DB_SSL_MODE != "require":
                 logger.warning("⚠️  Database SSL mode not set to 'require'")
             logger.info(f"✅ Database SSL: {settings.DB_SSL_MODE}")
             
-            # 8. Secure cookies
+            # 9. Secure cookies
             if not settings.SECURE_COOKIES or not settings.HTTPONLY_COOKIES:
                 logger.warning("⚠️  Cookie security may not be optimal")
             logger.info(f"✅ Secure cookies: {settings.SECURE_COOKIES}, HttpOnly: {settings.HTTPONLY_COOKIES}")

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Semptify Control Panel</title>
+    <HTA:APPLICATION
+        APPLICATIONNAME="Semptify Control Panel"
+        BORDER="thin"
+        BORDERSTYLE="complex"
+        CAPTION="yes"
+        CONTEXTMENU="no"
+        ICON=""
+        MAXIMIZEBUTTON="yes"
+        MINIMIZEBUTTON="yes"
+        SCROLL="no"
+        SINGLEINSTANCE="yes"
+        SYSMENU="yes"
+    />
+    <style>
+        body { font-family: Segoe UI, Tahoma, sans-serif; background: #1f2937; color: #f8fafc; margin: 0; padding: 16px; }
+        h1 { margin-top: 0; color: #fbbf24; }
+        .card { background: #111827; border: 1px solid #374151; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+        .row { display: flex; flex-wrap: wrap; gap: 16px; }
+        .column { flex: 1; min-width: 260px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; }
+        .toggle { margin-bottom: 12px; }
+        input[type=checkbox] { transform: scale(1.2); margin-right: 8px; }
+        button { background: #2563eb; color: white; border: none; padding: 12px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+        button:hover { background: #1d4ed8; }
+        .light { display: inline-block; width: 14px; height: 14px; border-radius: 50%; margin-right: 8px; border: 1px solid #374151; vertical-align: middle; }
+        .status-item { margin-bottom: 10px; }
+        .console { background: #0f172a; border: 1px solid #334155; border-radius: 8px; min-height: 180px; padding: 12px; color: #e2e8f0; overflow-y: auto; }
+        .console p { margin: 0 0 8px 0; line-height: 1.4; }
+        .note { color: #94a3b8; margin-top: 8px; font-size: 13px; }
+    </style>
+    <script type="text/javascript">
+        var shell = new ActiveXObject("WScript.Shell");
+        function setLight(id, color) {
+            var el = document.getElementById(id);
+            el.style.background = color;
+        }
+        function setState(id, state) {
+            var color = '#dc2626';
+            if (state === 'starting') color = '#f59e0b';
+            if (state === 'running') color = '#22c55e';
+            setLight(id, color);
+        }
+        function log(message) {
+            var consoleEl = document.getElementById('console');
+            var p = document.createElement('p');
+            p.innerText = new Date().toLocaleTimeString() + ' - ' + message;
+            consoleEl.appendChild(p);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+        function buildCommand() {
+            var useDocker = document.getElementById('dockerToggle').checked;
+            var devMode = document.getElementById('devModeToggle').checked;
+            var enforced = document.getElementById('enforcedToggle').checked;
+            var postgres = document.getElementById('postgresToggle').checked;
+            var redis = document.getElementById('redisToggle').checked;
+            var server = document.getElementById('serverToggle').checked;
+            var htmlOnly = document.getElementById('htmlToggle').checked;
+            var jinja = document.getElementById('jinjaToggle').checked;
+            var r2 = document.getElementById('r2Toggle').checked;
+
+            var commands = [];
+
+            if (useDocker) {
+                if (postgres) {
+                    commands.push('docker compose up -d postgres');
+                }
+                if (redis) {
+                    commands.push('docker compose up -d redis');
+                }
+                if (server) {
+                    commands.push('docker compose up -d app');
+                }
+            } else {
+                if (postgres) {
+                    commands.push('echo Starting Postgres service externally or with local tooling...');
+                }
+                if (redis) {
+                    commands.push('echo Starting Redis service externally or with local tooling...');
+                }
+                if (server) {
+                    if (enforced) {
+                        commands.push('powershell -NoProfile -Command "$env:ENVIRONMENT=\'production\'; $env:SECURITY_MODE=\'enforced\'; python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"');
+                    } else if (devMode) {
+                        commands.push('python -m uvicorn app.main:app --reload --port 8000');
+                    } else {
+                        commands.push('python -m uvicorn app.main:app --host 0.0.0.0 --port 8000');
+                    }
+                }
+            }
+
+            if (htmlOnly) {
+                commands.push('start http://localhost:8000');
+            }
+
+            if (jinja) {
+                commands.push('start http://localhost:8000');
+            }
+
+            if (r2 && !useDocker) {
+                commands.push('echo Ensure R2 config is set in .env before production use.');
+            }
+
+            return commands;
+        }
+        function executeCommands() {
+            var commands = buildCommand();
+            if (commands.length === 0) {
+                log('No actions selected. Please choose at least one service or mode.');
+                return;
+            }
+            setStartingStates();
+            commands.forEach(function(cmd) {
+                log('Executing: ' + cmd);
+                try {
+                    shell.Run('cmd.exe /c ' + cmd, 1, false);
+                    log('Started: ' + cmd);
+                } catch (e) {
+                    log('ERROR: ' + e.message);
+                }
+            });
+            setRunningStates();
+        }
+        function setStartingStates() {
+            setState('statusDocker', document.getElementById('dockerToggle').checked ? 'starting' : 'off');
+            setState('statusPostgres', document.getElementById('postgresToggle').checked ? 'starting' : 'off');
+            setState('statusRedis', document.getElementById('redisToggle').checked ? 'starting' : 'off');
+            setState('statusServer', document.getElementById('serverToggle').checked ? 'starting' : 'off');
+            setState('statusSecurity', document.getElementById('enforcedToggle').checked ? 'starting' : 'off');
+            setState('statusHtml', document.getElementById('htmlToggle').checked ? 'starting' : 'off');
+            setState('statusJinja', document.getElementById('jinjaToggle').checked ? 'starting' : 'off');
+            setState('statusR2', document.getElementById('r2Toggle').checked ? 'starting' : 'off');
+        }
+        function setRunningStates() {
+            setState('statusDocker', document.getElementById('dockerToggle').checked ? 'running' : 'off');
+            setState('statusPostgres', document.getElementById('postgresToggle').checked ? 'running' : 'off');
+            setState('statusRedis', document.getElementById('redisToggle').checked ? 'running' : 'off');
+            setState('statusServer', document.getElementById('serverToggle').checked ? 'running' : 'off');
+            setState('statusSecurity', document.getElementById('enforcedToggle').checked ? 'running' : 'off');
+            setState('statusHtml', document.getElementById('htmlToggle').checked ? 'running' : 'off');
+            setState('statusJinja', document.getElementById('jinjaToggle').checked ? 'running' : 'off');
+            setState('statusR2', document.getElementById('r2Toggle').checked ? 'running' : 'off');
+        }
+        function updateStatus() {
+            setState('statusDocker', document.getElementById('dockerToggle').checked ? 'starting' : 'off');
+            setState('statusPostgres', document.getElementById('postgresToggle').checked ? 'starting' : 'off');
+            setState('statusRedis', document.getElementById('redisToggle').checked ? 'starting' : 'off');
+            setState('statusServer', document.getElementById('serverToggle').checked ? 'starting' : 'off');
+            setState('statusSecurity', document.getElementById('enforcedToggle').checked ? 'starting' : 'off');
+            setState('statusHtml', document.getElementById('htmlToggle').checked ? 'starting' : 'off');
+            setState('statusJinja', document.getElementById('jinjaToggle').checked ? 'starting' : 'off');
+            setState('statusR2', document.getElementById('r2Toggle').checked ? 'starting' : 'off');
+        }
+        function openDocs() {
+            shell.Run('cmd.exe /c start http://localhost:8000/api/docs', 1, false);
+            log('Opening Swagger UI...');
+        }
+        function toggleAll(enable) {
+            ['dockerToggle','postgresToggle','redisToggle','serverToggle','enforcedToggle','htmlToggle','jinjaToggle','r2Toggle'].forEach(function(id) {
+                document.getElementById(id).checked = enable;
+            });
+            updateStatus();
+        }
+        function init() {
+            updateStatus();
+            log('Semptify Control Panel ready.');
+        }
+    </script>
+</head>
+<body onload="init()">
+    <h1>Semptify Control Panel</h1>
+    <div class="card">
+        <div class="row">
+            <div class="column">
+                <label>Mode</label>
+                <div class="toggle"><input type="checkbox" id="devModeToggle" onclick="updateStatus()"> Dev mode</div>
+                <div class="toggle"><input type="checkbox" id="enforcedToggle" onclick="updateStatus()"> Enforced security / production mode</div>
+                <div class="toggle"><input type="checkbox" id="htmlToggle" onclick="updateStatus()"> HTML-only view</div>
+                <div class="toggle"><input type="checkbox" id="jinjaToggle" onclick="updateStatus()"> Jinja UI / templates</div>
+            </div>
+            <div class="column">
+                <label>Services</label>
+                <div class="toggle"><input type="checkbox" id="dockerToggle" onclick="updateStatus()"> Use Docker compose</div>
+                <div class="toggle"><input type="checkbox" id="postgresToggle" onclick="updateStatus()"> Start PostgreSQL</div>
+                <div class="toggle"><input type="checkbox" id="redisToggle" onclick="updateStatus()"> Start Redis</div>
+                <div class="toggle"><input type="checkbox" id="serverToggle" onclick="updateStatus()"> Start Semptify server</div>
+                <div class="toggle"><input type="checkbox" id="r2Toggle" onclick="updateStatus()"> Require Cloudflare R2 system storage</div>
+            </div>
+        </div>
+        <div style="margin-top: 16px;">
+            <button onclick="executeCommands()">Launch selected services</button>
+            <button onclick="openDocs()" style="margin-left: 8px;">Open API docs</button>
+            <button onclick="toggleAll(true)" style="margin-left: 8px;">All Green</button>
+            <button onclick="toggleAll(false)" style="margin-left: 8px;">All Off</button>
+        </div>
+    </div>
+    <div class="card">
+        <h2>Status Lights</h2>
+        <div class="status-item"><span id="statusDocker" class="light"></span>Docker selected</div>
+        <div class="status-item"><span id="statusPostgres" class="light"></span>PostgreSQL selected</div>
+        <div class="status-item"><span id="statusRedis" class="light"></span>Redis selected</div>
+        <div class="status-item"><span id="statusServer" class="light"></span>Semptify server selected</div>
+        <div class="status-item"><span id="statusSecurity" class="light"></span>Enforced security</div>
+        <div class="status-item"><span id="statusHtml" class="light"></span>HTML view</div>
+        <div class="status-item"><span id="statusJinja" class="light"></span>Jinja UI templates</div>
+        <div class="status-item"><span id="statusR2" class="light"></span>R2 system storage required</div>
+        <p class="note">Note: R2 config is expected in .env for production mode. Docker selection will use compose commands; without Docker the app starts directly via Python.</p>
+    </div>
+    <div class="card">
+        <h2>Console</h2>
+        <div id="console" class="console"></div>
+    </div>
+</body>
+</html>

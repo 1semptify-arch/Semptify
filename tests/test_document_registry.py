@@ -14,6 +14,10 @@ Tests cover:
 Test Count Target: 50+ tests
 """
 
+import hashlib
+import hmac
+from types import SimpleNamespace
+
 import pytest
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
@@ -181,6 +185,41 @@ class TestHashGenerator:
         metadata_hash = HashGenerator.metadata_hash({"key": "value"})
         combined = HashGenerator.combined_hash(content_hash, metadata_hash, "SEM-2025-000001-ABCD")
         assert len(combined) == 64
+
+    def test_combined_hash_uses_configured_secret(self, sample_content):
+        """Should use the configured secret key for HMAC generation."""
+        doc_id = "SEM-2025-000001-TEST"
+        metadata = {"filename": "test.pdf"}
+        content_hash = HashGenerator.content_hash(sample_content)
+        metadata_hash = HashGenerator.metadata_hash(metadata)
+
+        with patch("app.services.document_registry.get_settings") as mock_get_settings:
+            mock_get_settings.return_value = SimpleNamespace(secret_key="fixed-secret")
+            combined = HashGenerator.combined_hash(content_hash, metadata_hash, doc_id)
+
+        expected = hmac.new(
+            b"fixed-secret",
+            f"{doc_id}:{content_hash}:{metadata_hash}".encode(),
+            hashlib.sha256,
+        ).hexdigest()
+        assert combined == expected
+
+    def test_secret_key_required_for_integrity(self):
+        """Should raise an error when no secret key is configured."""
+        with patch("app.services.document_registry.get_settings") as mock_get_settings:
+            mock_get_settings.return_value = SimpleNamespace(secret_key="")
+            with pytest.raises(ValueError, match="SECRET_KEY must be configured"):
+                HashGenerator._get_secret_key()
+
+    def test_secret_key_required_in_enforced_mode(self, monkeypatch):
+        """Should require SECRET_KEY in enforced security mode."""
+        from app.core.config import _resolve_secret_key
+
+        monkeypatch.setenv("SECURITY_MODE", "enforced")
+        monkeypatch.delenv("SECRET_KEY", raising=False)
+
+        with pytest.raises(ValueError, match="SECRET_KEY must be configured"):
+            _resolve_secret_key()
     
     def test_verify_integrity_passes(self, sample_content):
         """Verify integrity should pass for matching content."""
@@ -429,7 +468,27 @@ class TestIntegrityVerification:
         )
         
         assert result == IntegrityStatus.TAMPERED
-    
+
+    def test_detect_corrupted_combined_hash(self, fresh_registry, sample_content):
+        """Corrupting the stored combined hash should fail verification."""
+        registered = fresh_registry.register_document(
+            user_id="user_123",
+            content=sample_content,
+            filename="test.pdf",
+            mime_type="application/pdf"
+        )
+        
+        # Simulate tampering with the stored integrity hash only
+        registered.combined_hash = "0" * 64
+        fresh_registry._documents[registered.document_id] = registered
+        
+        result = fresh_registry.verify_integrity(
+            doc_id=registered.document_id,
+            content=sample_content
+        )
+        
+        assert result == IntegrityStatus.CORRUPTED
+
     def test_verify_records_custody_event(self, fresh_registry, sample_content):
         """Verification should record custody event."""
         registered = fresh_registry.register_document(

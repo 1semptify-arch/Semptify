@@ -21,6 +21,7 @@ from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import get_settings
+from app.core.compliance import validate_app_compliance
 from app.core.database import init_db, close_db
 
 # PyInstaller frozen executable detection
@@ -99,6 +100,7 @@ overlays_router = _safe_router_import("app.routers.overlays")
 document_converter_router = _safe_router_import("app.routers.document_converter")
 page_index_router = _safe_router_import("app.routers.page_index")
 documents_router = _safe_router_import("app.routers.documents")
+vault_router = _safe_router_import("app.routers.vault")
 workflow_router = _safe_router_import("app.routers.workflow")
 functionx_router = _safe_router_import("app.routers.functionx")
 document_overlays_router = _safe_router_import("app.routers.document_overlays")
@@ -1356,6 +1358,7 @@ def create_app() -> FastAPI:
     """
     app_settings = get_settings()
     setup_logging()
+    validate_app_compliance(app_settings)
 
     # OpenAPI tags for documentation organization
     tags_metadata = [
@@ -1592,6 +1595,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # app.include_router(adaptive_ui.router, tags=["Adaptive UI"])  # Self-building interface
     # app.include_router(context_loop.router, tags=["Context Loop"])  # Core processing engine
     include_if(documents_router, tags=["Documents"])  # Document upload, analysis, intelligence
+    include_if(vault_router, prefix="/api/vault", tags=["Document Vault"])  # User storage vault API
     include_if(intake_router, tags=["Document Intake"])  # Document intake & extraction
     include_if(registry_router, tags=["Document Registry"])  # Tamper-proof chain of custody
     include_if(vault_engine_router, tags=["Vault Engine"])  # Centralized access control
@@ -2636,6 +2640,25 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # Fallback: redirect to main tenant page
         return RedirectResponse(url="/tenant", status_code=302)
 
+    @fastapi_app.get("/tenant/home", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/home/", response_class=HTMLResponse)
+    async def tenant_home(request: Request):
+        """Serve the tenant home hub page (lightweight entry point after onboarding)."""
+        guard_redirect = _guard_role_page(request, {"user"})
+        if guard_redirect:
+            return guard_redirect
+        
+        # Try tenant home template first, then fall back to main tenant template
+        tenant_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "tenant_home.html"
+        if tenant_home_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/tenant_home.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Tenant home template error: %s", e)
+        
+        # Fallback to main tenant page
+        return await tenant_page(request)
+
     # =========================================================================
     # Advocate Pages
     # =========================================================================
@@ -2683,6 +2706,25 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return subpage_index_fallback
 
         return RedirectResponse(url="/advocate", status_code=302)
+
+    @fastapi_app.get("/advocate/home", response_class=HTMLResponse)
+    @fastapi_app.get("/advocate/home/", response_class=HTMLResponse)
+    async def advocate_home(request: Request):
+        """Serve the advocate home hub page (lightweight entry point after onboarding)."""
+        guard_redirect = _guard_role_page(request, {"advocate"})
+        if guard_redirect:
+            return guard_redirect
+        
+        # Try advocate home template first, then fall back to main advocate template
+        advocate_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "advocate_home.html"
+        if advocate_home_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/advocate_home.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Advocate home template error: %s", e)
+        
+        # Fallback to main advocate page
+        return await advocate_page(request)
 
     # =========================================================================
     # Legal Pages
@@ -2745,6 +2787,25 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         return RedirectResponse(url="/legal", status_code=302)
 
+    @fastapi_app.get("/legal/home", response_class=HTMLResponse)
+    @fastapi_app.get("/legal/home/", response_class=HTMLResponse)
+    async def legal_home(request: Request):
+        """Serve the legal home hub page (lightweight entry point after onboarding)."""
+        guard_redirect = _guard_role_page(request, {"legal"})
+        if guard_redirect:
+            return guard_redirect
+        
+        # Try legal home template first, then fall back to main legal template
+        legal_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "legal_home.html"
+        if legal_home_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/legal_home.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Legal home template error: %s", e)
+        
+        # Fallback to main legal page
+        return await legal_page(request)
+
     # =========================================================================
     # Admin Pages
     # =========================================================================
@@ -2805,6 +2866,191 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return subpage_index_fallback
 
         return RedirectResponse(url="/admin", status_code=302)
+
+    @fastapi_app.get("/admin/home", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/home/", response_class=HTMLResponse)
+    async def admin_home(request: Request):
+        """Serve the admin home hub page (lightweight entry point after onboarding)."""
+        guard_redirect = _guard_role_page(request, {"admin"})
+        if guard_redirect:
+            return guard_redirect
+        
+        # Try admin home template first, then fall back to main admin template
+        admin_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "admin_home.html"
+        if admin_home_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/admin_home.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Admin home template error: %s", e)
+        
+        # Fallback to main admin page
+        return await admin_page(request)
+
+    @fastapi_app.get("/manager/home", response_class=HTMLResponse)
+    @fastapi_app.get("/manager/home/", response_class=HTMLResponse)
+    async def manager_home(request: Request):
+        """Serve the manager (case manager) home hub page (lightweight entry point after onboarding)."""
+        guard_redirect = _guard_role_page(request, {"manager"})
+        if guard_redirect:
+            return guard_redirect
+        
+        # Try manager home template first, then fall back to admin template (manager uses admin UI)
+        manager_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "manager_home.html"
+        if manager_home_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/manager_home.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Manager home template error: %s", e)
+        
+        # Fallback to main admin page (manager uses admin UI)
+        return await admin_page(request)
+
+    @fastapi_app.get("/onboarding/max-redirects", response_class=HTMLResponse)
+    @fastapi_app.get("/onboarding/max-redirects/", response_class=HTMLResponse)
+    async def onboarding_max_redirects(request: Request):
+        """
+        Special instructions page displayed when user has been redirected too many times.
+        This happens when onboarding keeps getting interrupted (network issues, browser closes, etc).
+        """
+        return HTMLResponse("""
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Onboarding Assistance - Semptify</title>
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 1rem;
+                }
+                .container {
+                    background: white;
+                    border-radius: 16px;
+                    padding: 2rem;
+                    max-width: 600px;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                    text-align: center;
+                }
+                .icon { font-size: 4rem; margin-bottom: 1rem; }
+                h1 { color: #1f2937; font-size: 2rem; margin-bottom: 0.5rem; }
+                .subtitle { color: #6b7280; font-size: 1.1rem; margin-bottom: 2rem; }
+                .content {
+                    background: #f9fafb;
+                    border-radius: 12px;
+                    padding: 1.5rem;
+                    margin-bottom: 2rem;
+                    text-align: left;
+                }
+                .content h2 { color: #1f2937; font-size: 1.1rem; margin-bottom: 1rem; }
+                .content p { color: #4b5563; line-height: 1.6; margin-bottom: 0.75rem; }
+                .content ul { list-style: none; margin-left: 0; }
+                .content li { 
+                    color: #4b5563; 
+                    padding: 0.5rem 0;
+                    padding-left: 1.75rem;
+                    position: relative;
+                }
+                .content li::before {
+                    content: '✓';
+                    position: absolute;
+                    left: 0;
+                    color: #10b981;
+                    font-weight: bold;
+                }
+                .buttons {
+                    display: flex;
+                    gap: 1rem;
+                    margin-bottom: 1.5rem;
+                }
+                .btn {
+                    flex: 1;
+                    padding: 0.75rem 1.5rem;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 1rem;
+                    cursor: pointer;
+                    font-weight: 600;
+                    transition: all 0.2s;
+                }
+                .btn-primary {
+                    background: #d97706;
+                    color: white;
+                }
+                .btn-primary:hover { background: #b45309; }
+                .btn-secondary {
+                    background: #e5e7eb;
+                    color: #1f2937;
+                }
+                .btn-secondary:hover { background: #d1d5db; }
+                .footer {
+                    font-size: 0.9rem;
+                    color: #9ca3af;
+                }
+                .footer a {
+                    color: #d97706;
+                    text-decoration: none;
+                }
+                .footer a:hover { text-decoration: underline; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="icon">⚠️</div>
+                <h1>Onboarding Needs Reset</h1>
+                <p class="subtitle">We've noticed the setup is stuck. Let's get you back on track.</p>
+                
+                <div class="content">
+                    <h2>What Happened?</h2>
+                    <p>
+                        We've tried to redirect you to complete onboarding multiple times, but something 
+                        keeps interrupting the process. This can happen due to:
+                    </p>
+                    <ul>
+                        <li>Network connection dropped during setup</li>
+                        <li>Browser window was closed mid-setup</li>
+                        <li>Storage provider connection issues</li>
+                        <li>Browser cache conflicts</li>
+                    </ul>
+                </div>
+                
+                <div class="content">
+                    <h2>Quick Fixes to Try</h2>
+                    <ul>
+                        <li><strong>Clear your browser cache:</strong> Try Ctrl+Shift+Delete or Cmd+Shift+Delete</li>
+                        <li><strong>Try a fresh browser:</strong> Use Incognito or Private Browsing mode</li>
+                        <li><strong>Check your internet:</strong> Ensure you have a stable connection</li>
+                        <li><strong>Use a different device:</strong> If available, try another computer or phone</li>
+                    </ul>
+                </div>
+                
+                <div class="buttons">
+                    <button class="btn btn-primary" onclick="location.href='/'">Try Again</button>
+                    <button class="btn btn-secondary" onclick="clearCacheAndTry()">Clear Cache & Try</button>
+                </div>
+                
+                <div class="footer">
+                    Still stuck? <a href="mailto:support@semptify.com">Contact support</a> and we'll help you get started.
+                </div>
+            </div>
+            
+            <script>
+                function clearCacheAndTry() {
+                    // Clear the redirect loop cookie
+                    document.cookie = 'semptify_redirect_loop_count=; Max-Age=0; path=/;';
+                    // Redirect to start
+                    location.href = '/';
+                }
+            </script>
+        </body>
+        </html>
+        """)
 
     # =========================================================================
     # Catch-All HTML Page Router

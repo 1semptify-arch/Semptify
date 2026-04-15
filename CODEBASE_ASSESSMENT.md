@@ -332,23 +332,35 @@
 
 ---
 
-## 🏗️ PART 6: MODULES (5 Implemented)
+## 🏗️ PART 6: MODULES (7 Present in app/modules)
 
-### Domain-Specific Modules
-| Module | Status | Purpose | Features |
-|--------|--------|---------|----------|
-| **tenant_defense.py** | ✅ Complete | Tenant defense toolkit | Defenses, rights, procedures, learning |
-| **research_module.py** | ✅ Complete | Legal research | Case law, precedents, analysis |
-| **case_builder.py** | ✅ Complete | Case construction | Strategic case building |
-| **complaint_wizard_module.py** | ✅ Complete | Complaint filing | Multi-agency complaint management |
-| **document_converter.py** | ✅ Complete | Document conversion | DOCX, HTML, PDF formats |
+### Actual App Modules
+| Module | File | Status | Purpose | Notes |
+|--------|------|--------|---------|-------|
+| tenant_defense | `app/modules/tenant_defense.py` | ✅ Implemented | Tenant defense toolkit | Core eviction defense flows and case narrative builder |
+| research_module | `app/modules/research_module.py` | ✅ Implemented | Legal research | Statute/case law lookup and research integration |
+| case_builder | `app/modules/case_builder.py` | ✅ Implemented | Case construction | Builds court-ready case packages and evidence summaries |
+| complaint_wizard_module | `app/modules/complaint_wizard_module.py` | ✅ Implemented | Complaint filing | Multi-agency complaint wizard flow |
+| document_converter | `app/modules/document_converter.py` | ✅ Implemented | Document conversion | DOCX/HTML/PDF conversion utilities |
+| legal_filing_module | `app/modules/legal_filing_module.py` | ✅ Implemented | Legal filing integration | Router wrapper for legal filing endpoints |
+| example_payment_tracking | `app/modules/example_payment_tracking.py` | ✅ Example | Payment tracking sample | SDK-style example module, not core production flow |
 
-### Module Subsystems (Services)
-| Subsystem | Status | Purpose |
-|-----------|--------|---------|
-| **recognition/** | ✅ Complete | Recognition/ML services |
-| **eviction/** | ✅ Complete | Eviction-specific services |
-| **storage/** | ✅ Complete | Cloud storage provider implementations |
+### Module Compliance Matrix
+| Module | Privacy / Compliance | Evidence / Integrity | Security / Controls | Next Action |
+|--------|---------------------|----------------------|---------------------|-------------|
+| tenant_defense | Uses case context and defense data; avoid storing extra PII | Builds tenant defense stories linked to evidence and cases | Must use module hub routing for traceability | Review module_hub update hooks and audit logging |
+| research_module | Should sanitize case details before external research queries | Supports legal precedent and statute evidence | Keep logs free of raw user identifiers | Validate query sanitization before search execution |
+| case_builder | Constructs court packages; preserve provenance of linked documents | Assembles evidence into filings and briefs | Enforce storage OAuth + session checks before export | Confirm builder does not duplicate raw vault content unexpectedly |
+| complaint_wizard_module | Handles complaint forms; do not persist more fields than required | Correlates complaint filing with timeline and attachments | Must respect storage access restrictions | Audit temporary complaint state retention and cleanup |
+| document_converter | Converts documents without changing evidence metadata | Maintains chain-of-custody on converted artifacts | Temporary files should not persist beyond request | Review cleanup path for conversion temp files |
+| legal_filing_module | Routes filing workflows only; no new data capture | Links filing actions into legal workflow | Must inherit app security and storage rules | Ensure router authorization is enforced by legal filing service |
+| example_payment_tracking | Sample module; not core compliance flow | Demonstration-only finance tracking | Keep isolated from production compliance behavior | Document sample status clearly and avoid production use |
+
+### Router / Service Summary
+- `app/routers/`: 69 router components included in the compliance inventory
+- `app/services/`: 80 service components included in the compliance inventory
+
+- Note: counts exclude `__init__.py` files and focus on actual Python component files.
 
 ---
 
