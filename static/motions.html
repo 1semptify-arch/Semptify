@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File a Motion - Semptify</title>
-    <link rel="stylesheet" href="/static/css/shared-nav.css">
-    <link rel="stylesheet" href="/static/css/accessibility.css">
-    <link rel="stylesheet" href="/static/css/help-system.css">
+    <link rel="stylesheet" href="/css/shared-nav.css">
+    <link rel="stylesheet" href="/css/accessibility.css">
+    <link rel="stylesheet" href="/css/help-system.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -234,8 +234,8 @@
             <div class="btn-group">
                 <button class="btn btn-primary" onclick="downloadMotion()">📥 Download Motion</button>
                 <button class="btn btn-outline" onclick="printMotion()">🖨️ Print</button>
-                <a href="/static/eviction_answer.html" class="btn btn-outline">📝 File Answer</a>
-                <a href="/static/dakota_defense.html" class="btn btn-outline">← Defense Center</a>
+                <a href="/eviction_answer.html" class="btn btn-outline">📝 File Answer</a>
+                <a href="/dakota_defense.html" class="btn btn-outline">← Defense Center</a>
             </div>
         </div>
     </main>
@@ -245,7 +245,7 @@
         <p>Generating your motion...</p>
     </div>
     
-    <script src="/static/js/shared-nav.js"></script>
+    <script src="/js/shared-nav.js"></script>
     <script>
         let selectedMotion = null;
         let formData = {};
@@ -539,8 +539,8 @@
     </script>
     
     <!-- Help System -->
-    <script src="/static/js/help-system.js"></script>
-    <script src="/static/js/semptify-auth.js"></script>
+    <script src="/js/help-system.js"></script>
+    <script src="/js/semptify-auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof SemptifyHelp !== 'undefined') {

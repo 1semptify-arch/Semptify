@@ -5,7 +5,7 @@
  * Provides preview, rename, and skip functionality.
  * 
  * Include this script on any page:
- * <script src="/static/components/file-upload-preview.js"></script>
+ * <script src="/components/file-upload-preview.js"></script>
  */
 
 (function() {

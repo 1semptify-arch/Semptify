@@ -840,6 +840,14 @@ def _generate_providers_html(
             font-size: 3rem;
             margin-bottom: 1rem;
         }}
+        .step-indicator {{
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }}
         h1 {{
             font-size: 2rem;
             font-weight: 600;
@@ -958,6 +966,7 @@ def _generate_providers_html(
 <body>
     <div class="container">
         <div class="logo">⚖️</div>
+        {"<div class='step-indicator'>Step 2 of 3</div>" if from_source == "onboarding" and role == "user" else "<div class='step-indicator'>Step 3 of 3</div>" if from_source == "onboarding" else ""}
         <h1>Connect Your Storage</h1>
         <p class="subtitle">Your documents stay in YOUR cloud storage. We never store your files.</p>
         

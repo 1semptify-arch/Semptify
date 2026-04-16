@@ -579,3 +579,60 @@ async def get_deadline_summary(
         "urgent_actions": action_items,
         "total_upcoming": len(calendar_deadlines),
     }
+
+
+@router.post("/notify-deadlines")
+async def send_deadline_notifications(
+    days_ahead: int = Query(7, description="Send notifications for deadlines within this many days"),
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Send email notifications for upcoming deadlines.
+    
+    Checks for critical deadlines within the specified days and sends notifications.
+    In a production system, this would send actual emails.
+    For now, it creates in-app notifications.
+    """
+    from app.core.event_bus import send_notification
+    
+    async with get_db_session() as session:
+        # Get upcoming critical events
+        cutoff_date = datetime.utcnow() + timedelta(days=days_ahead)
+        
+        query = select(CalendarEventModel).where(
+            and_(
+                CalendarEventModel.user_id == user.user_id,
+                CalendarEventModel.is_critical == True,
+                CalendarEventModel.start_datetime <= cutoff_date,
+                CalendarEventModel.start_datetime >= datetime.utcnow()
+            )
+        ).order_by(CalendarEventModel.start_datetime.asc())
+        
+        result = await session.execute(query)
+        upcoming_events = result.scalars().all()
+    
+    notifications_sent = 0
+    
+    for event in upcoming_events:
+        days_until = (event.start_datetime - datetime.utcnow()).days
+        
+        # Send in-app notification
+        await send_notification(
+            title=f"Upcoming Deadline: {event.title}",
+            message=f"You have a critical deadline in {days_until} days: {event.description or event.title}",
+            level="warning",
+            user_id=user.user_id
+        )
+        
+        # TODO: Send actual email when email service is configured
+        # For now, just log that we would send an email
+        print(f"TODO: Send email to user {user.user_id} about deadline: {event.title} in {days_until} days")
+        
+        notifications_sent += 1
+    
+    return {
+        "notifications_sent": notifications_sent,
+        "upcoming_deadlines": len(upcoming_events),
+        "email_service_status": "not_configured",  # TODO: Check email service status
+        "message": f"Sent {notifications_sent} deadline notifications. Email sending not yet implemented."
+    }

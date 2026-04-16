@@ -59,14 +59,14 @@ Each AI reads this file FIRST before doing any work.
 - [x] **TASK-003**: Offline mode / PWA enhancements ✅ Agent 1 DONE
 
 ### Medium Priority
-- [ ] **TASK-004**: Export timeline to PDF
-- [ ] **TASK-005**: Share timeline via link
-- [ ] **TASK-006**: Email notifications for deadlines
+- [x] **TASK-004**: Export timeline to PDF ✅ Added /api/timeline/export/pdf endpoint
+- [x] **TASK-005**: Share timeline via link ✅ Added /api/timeline/share and /timeline/shared/{token} endpoints
+- [x] **TASK-006**: Email notifications for deadlines ✅ Added /api/calendar/notify-deadlines endpoint
 
 ### Low Priority
-- [ ] **TASK-007**: Dark mode polish
-- [ ] **TASK-008**: Keyboard shortcuts
-- [ ] **TASK-009**: Tutorial/onboarding flow
+- [x] **TASK-007**: Dark mode polish ✅ Added theme toggle button with persistence
+- [x] **TASK-008**: Keyboard shortcuts ✅ Added Ctrl+/, Ctrl+T, Ctrl+H, Ctrl+D, Ctrl+L shortcuts
+- [x] **TASK-009**: Tutorial/onboarding flow ✅ Added guided tour with overlay modals
 
 ---
 

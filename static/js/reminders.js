@@ -14,7 +14,7 @@
  * - Session-only state for UI preferences (dismissals reset each session)
  * 
  * Usage: Include this script on any page:
- *   <script src="/static/js/reminders.js"></script>
+ *   <script src="/js/reminders.js"></script>
  */
 
 (function() {
@@ -205,7 +205,7 @@
                 <div class="reminder-toast-title">${reminder.title}</div>
                 <div class="reminder-toast-message">${reminder.message}</div>
                 <div class="reminder-toast-actions">
-                    <a href="/static/document_intake.html?source=reminder" class="reminder-toast-cta">${reminder.cta}</a>
+                    <a href="/document_intake.html?source=reminder" class="reminder-toast-cta">${reminder.cta}</a>
                     <button class="reminder-toast-dismiss" onclick="window.dismissReminder()">Later</button>
                 </div>
             </div>

@@ -18,7 +18,7 @@ from app.core.database import get_db_session
 from app.core.security import require_user, StorageUser
 from app.core.utc import utc_now
 from app.core.document_hub import get_document_hub
-from app.models.models import TimelineEvent as TimelineEventModel
+from app.models.models import TimelineEvent as TimelineEventModel, Document as DocumentModel
 from app.services.timeline_builder import TimelineBuilder, extract_timeline_from_text
 
 
@@ -926,4 +926,238 @@ async def get_combined_timeline(
         "synced_events": len([e for e in combined if e.get("source") == "database"]),
         "unsynced_events": len([e for e in combined if e.get("not_synced")]),
         "documents_analyzed": case_data.document_count,
+    }
+
+@router.get("/export/pdf")
+async def export_timeline_pdf(
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Export the user's timeline as a PDF document.
+    
+    Generates a formatted PDF with all timeline events, sorted chronologically.
+    """
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from io import BytesIO
+    
+    # Get all timeline events
+    async with get_db_session() as session:
+        query = select(TimelineEventModel).where(
+            TimelineEventModel.user_id == user.user_id
+        ).order_by(TimelineEventModel.event_date.asc())
+        result = await session.execute(query)
+        events = result.scalars().all()
+        
+        # Also get document events
+        doc_query = select(DocumentModel).where(
+            DocumentModel.user_id == user.user_id
+        )
+        doc_result = await session.execute(doc_query)
+        documents = doc_result.scalars().all()
+    
+    # Create PDF buffer
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    
+    # Custom styles
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=18,
+        spaceAfter=30,
+        alignment=1  # Center
+    )
+    
+    event_title_style = ParagraphStyle(
+        'EventTitle',
+        parent=styles['Heading2'],
+        fontSize=12,
+        spaceAfter=5,
+        textColor=colors.blue
+    )
+    
+    # Build PDF content
+    content = []
+    
+    # Title
+    content.append(Paragraph("Case Timeline Export", title_style))
+    content.append(Spacer(1, 12))
+    
+    # Summary
+    total_events = len(events) + len(documents)
+    content.append(Paragraph(f"Total Events: {total_events}", styles['Normal']))
+    content.append(Paragraph(f"Manual Events: {len(events)}", styles['Normal']))
+    content.append(Paragraph(f"Document Events: {len(documents)}", styles['Normal']))
+    content.append(Spacer(1, 20))
+    
+    # Events table data
+    table_data = [['Date', 'Type', 'Title', 'Description', 'Evidence']]
+    
+    # Add manual events
+    for event in events:
+        date_str = event.event_date.strftime('%Y-%m-%d') if event.event_date else 'No Date'
+        table_data.append([
+            date_str,
+            event.event_type or 'other',
+            event.title,
+            event.description or '',
+            'Yes' if event.is_evidence else 'No'
+        ])
+    
+    # Add document events
+    for doc in documents:
+        date_str = doc.uploaded_at.strftime('%Y-%m-%d') if doc.uploaded_at else 'No Date'
+        doc_type = doc.document_type or 'document'
+        table_data.append([
+            date_str,
+            doc_type,
+            f"Document: {doc.original_filename}",
+            doc.description or f"Uploaded {doc_type}",
+            'Yes'  # All documents are evidence
+        ])
+    
+    # Create table
+    if len(table_data) > 1:
+        table = Table(table_data)
+        table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        content.append(table)
+    
+    # Build PDF
+    doc.build(content)
+    buffer.seek(0)
+    
+    return StreamingResponse(
+        buffer,
+        media_type='application/pdf',
+        headers={'Content-Disposition': 'attachment; filename=timeline_export.pdf'}
+    )
+
+
+@router.post("/share")
+async def create_timeline_share_link(
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Create a shareable link for the timeline.
+    
+    Returns a public URL that can be shared with others to view the timeline.
+    The link expires after 7 days.
+    """
+    import secrets
+    from datetime import datetime, timedelta
+    
+    # Generate a secure token
+    share_token = secrets.token_urlsafe(32)
+    expires_at = datetime.utcnow() + timedelta(days=7)
+    
+    # Store the share token (in a real app, this would be in a database)
+    # For now, we'll use a simple in-memory store
+    if not hasattr(router, 'share_tokens'):
+        router.share_tokens = {}
+    
+    router.share_tokens[share_token] = {
+        'user_id': user.user_id,
+        'created_at': datetime.utcnow(),
+        'expires_at': expires_at
+    }
+    
+    # Generate the share URL
+    base_url = "http://localhost:8000"  # In production, get from config
+    share_url = f"{base_url}/timeline/shared/{share_token}"
+    
+    return {
+        "share_url": share_url,
+        "expires_at": expires_at.isoformat(),
+        "token": share_token
+    }
+
+
+@router.get("/shared/{share_token}")
+async def get_shared_timeline(
+    share_token: str,
+):
+    """
+    View a shared timeline (public endpoint, no auth required).
+    
+    Shows the timeline events for the shared case.
+    """
+    # Check if token exists and is valid
+    if not hasattr(router, 'share_tokens') or share_token not in router.share_tokens:
+        raise HTTPException(status_code=404, detail="Share link not found or expired")
+    
+    share_data = router.share_tokens[share_token]
+    
+    # Check expiration
+    if datetime.utcnow() > share_data['expires_at']:
+        # Clean up expired token
+        del router.share_tokens[share_token]
+        raise HTTPException(status_code=410, detail="Share link has expired")
+    
+    user_id = share_data['user_id']
+    
+    # Get timeline events for the shared user
+    async with get_db_session() as session:
+        # Get manual events
+        query = select(TimelineEventModel).where(
+            TimelineEventModel.user_id == user_id
+        ).order_by(TimelineEventModel.event_date.asc())
+        result = await session.execute(query)
+        events = result.scalars().all()
+        
+        # Get document events
+        doc_query = select(DocumentModel).where(
+            DocumentModel.user_id == user_id
+        )
+        doc_result = await session.execute(doc_query)
+        documents = doc_result.scalars().all()
+    
+    # Format for display
+    timeline_events = []
+    
+    # Manual events
+    for event in events:
+        timeline_events.append({
+            "id": event.id,
+            "date": event.event_date.isoformat() if event.event_date else None,
+            "type": event.event_type or "other",
+            "title": event.title,
+            "description": event.description,
+            "is_evidence": event.is_evidence or False,
+            "source": "manual"
+        })
+    
+    # Document events
+    for doc in documents:
+        doc_type = doc.document_type or "document"
+        timeline_events.append({
+            "id": f"doc_{doc.id}",
+            "date": doc.uploaded_at.isoformat() if doc.uploaded_at else None,
+            "type": doc_type,
+            "title": f"Document: {doc.original_filename}",
+            "description": doc.description or f"Uploaded {doc_type}",
+            "is_evidence": True,
+            "source": "document"
+        })
+    
+    # Sort by date
+    timeline_events.sort(key=lambda x: x.get("date") or "9999-99-99")
+    
+    return {
+        "timeline": timeline_events,
+        "total_events": len(timeline_events),
+        "shared_by": "Anonymous",  # Could add user name if needed
+        "expires_at": share_data['expires_at'].isoformat()
     }

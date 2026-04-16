@@ -1,5 +1,7 @@
 # 🏢 SEMPTIFY ENTERPRISE - WORLD-CLASS LEGAL PLATFORM
 
+> Note: This document is supplemental. The canonical build and onboarding reference is `README.md`, and the repository governance hierarchy is `PROJECT_BIBLE.md`.
+
 ## 🌟 EXECUTIVE SUMMARY
 
 **Semptify Enterprise Edition** is a comprehensive, enterprise-grade legal case management platform designed for multi-billion dollar law offices. Built with cutting-edge FastAPI architecture, real-time WebSocket capabilities, and AI-powered intelligence.

@@ -932,7 +932,7 @@
             switch(el.type) {
                 case 'header':
                     return `<div class="element-header" style="height:100%; background:${el.styles.bg}; border-radius:${el.styles.radius}px;">
-                        <img src="/static/logo.png" alt="Logo" onerror="this.style.display='none'">
+                        <img src="/logo.png" alt="Logo" onerror="this.style.display='none'">
                         <nav>${el.content.nav.map(n => `<a href="#">${n}</a>`).join('')}</nav>
                     </div>`;
                 case 'nav':
@@ -1439,7 +1439,7 @@
             // Simplified export HTML
             switch(el.type) {
                 case 'header':
-                    return `<header style="height:100%; background:${el.styles.bg}; border-radius:${el.styles.radius}px; padding:1rem; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.1);"><img src="/static/logo.png" alt="Logo" style="height:60px;"><nav style="margin-top:0.5rem;">${el.content.nav.map(n => `<a href="#" style="margin:0 0.5rem; color:#1e3a5f; text-decoration:none;">${n}</a>`).join('')}</nav></header>`;
+                    return `<header style="height:100%; background:${el.styles.bg}; border-radius:${el.styles.radius}px; padding:1rem; text-align:center; box-shadow:0 2px 4px rgba(0,0,0,0.1);"><img src="/logo.png" alt="Logo" style="height:60px;"><nav style="margin-top:0.5rem;">${el.content.nav.map(n => `<a href="#" style="margin:0 0.5rem; color:#1e3a5f; text-decoration:none;">${n}</a>`).join('')}</nav></header>`;
                 case 'card':
                     return `<div style="height:100%; background:${el.styles.bg}; border-radius:${el.styles.radius}px; padding:1.5rem; box-shadow:0 4px 6px rgba(0,0,0,0.1);"><h3 style="color:#1e3a5f; margin-bottom:0.5rem;">${el.content.title}</h3><p style="color:#666;">${el.content.text}</p></div>`;
                 case 'button':

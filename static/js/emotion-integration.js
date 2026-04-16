@@ -6,7 +6,7 @@
  * This creates a consistent emotional experience throughout the application.
  * 
  * Usage:
- *   <script src="/static/js/emotion-integration.js"></script>
+ *   <script src="/js/emotion-integration.js"></script>
  *   <script>
  *     EmotionEngine.init();
  *     EmotionEngine.trigger('task_completed');

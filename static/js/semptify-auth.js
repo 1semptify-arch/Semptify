@@ -3,7 +3,7 @@
  * Single source of truth for user authentication across ALL pages
  * 
  * Usage: Include in any page:
- *   <script src="/static/js/semptify-auth.js"></script>
+ *   <script src="/js/semptify-auth.js"></script>
  *   
  * Then use:
  *   await SemptifyAuth.ensureAuth();      // Redirects to /auth if not logged in

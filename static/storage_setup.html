@@ -6,7 +6,7 @@
     <title>Storage Setup - Semptify</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/static/css/accessibility.css">
+    <link rel="stylesheet" href="/css/accessibility.css">
     <style>
         /* Base fallback styles in case Tailwind doesn't load */
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -176,19 +176,19 @@
         .bg-blue-notice { background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); }
         .bg-yellow-notice { background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.3); }
     </style>
-    <link rel="stylesheet" href="/static/css/help-system.css">
+    <link rel="stylesheet" href="/css/help-system.css">
 </head>
 <body class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
     <!-- Navigation -->
     <nav class="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
         <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <a href="/static/command_center.html" class="flex items-center space-x-3">
+            <a href="/command_center.html" class="flex items-center space-x-3">
                 <i class="fas fa-gavel text-2xl text-purple-400"></i>
                 <span class="text-xl font-bold text-white">Semptify</span>
             </a>
             <div class="flex items-center space-x-4">
                 <span class="text-gray-400 text-sm">Step <span id="currentStep">1</span> of 4</span>
-                <a href="/static/command_center.html" class="text-gray-400 hover:text-white transition-colors">
+                <a href="/command_center.html" class="text-gray-400 hover:text-white transition-colors">
                     <i class="fas fa-times text-xl"></i>
                 </a>
             </div>
@@ -530,15 +530,15 @@
 
                     <!-- Quick Actions -->
                     <div class="grid md:grid-cols-3 gap-4 mb-8 max-w-2xl mx-auto">
-                        <a href="/static/command_center.html" class="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 transition-all">
+                        <a href="/command_center.html" class="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 transition-all">
                             <i class="fas fa-home text-2xl text-purple-400 mb-2"></i>
                             <div class="text-white font-medium">Command Center</div>
                         </a>
-                        <a href="/static/documents.html" class="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 transition-all">
+                        <a href="/documents.html" class="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 transition-all">
                             <i class="fas fa-file-upload text-2xl text-blue-400 mb-2"></i>
                             <div class="text-white font-medium">Upload Documents</div>
                         </a>
-                        <a href="/static/timeline.html" class="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 transition-all">
+                        <a href="/timeline.html" class="bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl p-4 transition-all">
                             <i class="fas fa-clock text-2xl text-green-400 mb-2"></i>
                             <div class="text-white font-medium">Case Timeline</div>
                         </a>
@@ -767,6 +767,6 @@
             }
         });
     </script>
-    <script src="/static/js/help-system.js"></script>
+    <script src="/js/help-system.js"></script>
 </body>
 </html>

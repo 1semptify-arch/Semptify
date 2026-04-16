@@ -7,9 +7,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Semptify - My Case</title>
-    <link rel="manifest" href="/static/manifest.json">
-    <link rel="icon" href="/static/favicon.ico">
-    <link rel="stylesheet" href="/static/css/shared-nav.css">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="stylesheet" href="/css/shared-nav.css">
     <style>
         :root {
             --primary: #1e40af;
@@ -167,6 +167,20 @@
         .case-detail {
             color: var(--text-muted);
             font-size: 14px;
+        }
+
+        .vault-status {
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .vault-status strong {
+            color: var(--text);
+            font-weight: 600;
         }
         
         /* Progress Steps */
@@ -500,19 +514,19 @@
     
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
-        <a href="/static/tenant/index.html" class="nav-item active">
+        <a href="/tenant/index.html" class="nav-item active">
             <span class="nav-icon">🏠</span>
             <span class="nav-label">Home</span>
         </a>
-        <a href="/static/tenant/documents.html" class="nav-item">
+        <a href="/tenant/documents.html" class="nav-item">
             <span class="nav-icon">📄</span>
             <span class="nav-label">Docs</span>
         </a>
-        <a href="/static/tenant/timeline.html" class="nav-item">
+        <a href="/tenant/timeline.html" class="nav-item">
             <span class="nav-icon">📅</span>
             <span class="nav-label">Timeline</span>
         </a>
-        <a href="/static/tenant/help.html" class="nav-item">
+        <a href="/tenant/help.html" class="nav-item">
             <span class="nav-icon">🆘</span>
             <span class="nav-label">Help</span>
         </a>
@@ -522,10 +536,12 @@
         // State
         let userData = null;
         let caseData = null;
+        let vaultSessionData = null;
         
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
             await loadUserData();
+            await loadVaultSession();
             await loadCaseData();
             renderDashboard();
         });
@@ -548,6 +564,20 @@
             }
         }
         
+        // Load vault session
+        async function loadVaultSession() {
+            try {
+                const resp = await fetch('/storage/status', { credentials: 'include' });
+                if (resp.ok) {
+                    vaultSessionData = await resp.json();
+                } else {
+                    vaultSessionData = { authenticated: false };
+                }
+            } catch (e) {
+                vaultSessionData = { authenticated: false };
+            }
+        }
+
         // Load case data
         async function loadCaseData() {
             try {
@@ -560,7 +590,7 @@
                 console.log('No active case found');
             }
         }
-        
+
         // Render dashboard
         function renderDashboard() {
             const main = document.getElementById('mainContent');
@@ -586,6 +616,12 @@
                         ${caseData 
                             ? `Started ${formatDate(caseData.created_at)} • ${caseData.documents_count || 0} documents`
                             : 'No pending actions required'}
+                    </div>
+                    <div class="vault-status">
+                        <strong>Vault Session:</strong>
+                        ${vaultSessionData && vaultSessionData.authenticated
+                            ? `Connected to ${vaultSessionData.provider || 'storage'} (${vaultSessionData.session_id || 'session active'})`
+                            : 'Not connected. Tap Vault to connect storage.'}
                     </div>
                     ${caseData ? `
                     <div class="progress-section">
@@ -621,6 +657,12 @@
                         <div class="action-sub">Generate documents</div>
                     </button>
                     
+                    <button class="action-btn" onclick="goToVault()">
+                        <div class="action-icon">🗄️</div>
+                        <div class="action-label">Vault Session</div>
+                        <div class="action-sub">Open your secure document vault</div>
+                    </button>
+                    
                     <button class="action-btn" onclick="goToLawLibrary()">
                         <div class="action-icon">📚</div>
                         <div class="action-label">Know Rights</div>
@@ -640,7 +682,7 @@
                 <div class="deadlines-card">
                     <div class="deadline-header">
                         <span class="deadline-title">📅 Upcoming Deadlines</span>
-                        <a href="/static/tenant/calendar.html" class="deadline-see-all">See All</a>
+                        <a href="/tenant/calendar.html" class="deadline-see-all">See All</a>
                     </div>
                     <div id="deadlinesList">
                         <div class="loading">
@@ -728,6 +770,10 @@
             window.location.href = '/static/court_forms.html';
         }
         
+        function goToVault() {
+            window.location.href = '/vault';
+        }
+
         function goToLawLibrary() {
             window.location.href = '/static/law_library.html';
         }
@@ -743,6 +789,6 @@
     
     <!-- Shared Site Navigation -->
     <div id="semptify-nav"></div>
-    <script src="/static/js/shared-nav.js"></script>
+    <script src="/js/shared-nav.js"></script>
 </body>
 </html>

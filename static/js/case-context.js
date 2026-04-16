@@ -389,7 +389,7 @@ const CaseContext = {
             container.innerHTML = `
                 <div class="alert alert-info mb-3 d-flex align-items-center">
                     <i class="bi bi-info-circle me-2"></i>
-                    <span>No active case selected. <a href="/static/cases.html">Select a case</a> to auto-fill forms.</span>
+                    <span>No active case selected. <a href="/cases.html">Select a case</a> to auto-fill forms.</span>
                 </div>
             `;
             return;

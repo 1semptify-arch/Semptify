@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mock OAuth - Semptify Demo</title>
+  <style>
+    body{font-family:system-ui, -apple-system, 'Segoe UI', Roboto;background:#fff;padding:2rem;color:#0b1220}
+    .box{max-width:720px;margin:2rem auto;padding:1.5rem;border:1px solid #e6eef8;border-radius:8px}
+    .btn{display:inline-block;padding:0.6rem 1rem;background:#059; color:white;border-radius:8px;text-decoration:none}
+    .muted{color:#6b7380}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Mock OAuth Consent</h2>
+    <p class="muted">This page simulates granting access to a cloud provider. Click "Authorize" to continue the demo onboarding flow.</p>
+    <div style="margin-top:1rem">
+      <a id="authorize" class="btn" href="#">Authorize</a>
+      <a id="cancel" style="margin-left:0.5rem;color:#333;text-decoration:none" href="#">Cancel</a>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const role = params.get('role') || 'user';
+
+    document.getElementById('authorize').addEventListener('click', (e) => {
+      e.preventDefault();
+      // On success, redirect to the (static) tenant documents page for demo
+      if (role === 'user') {
+        window.location.href = '/tenant/documents.html';
+      } else if (role === 'advocate') {
+        window.location.href = '/advocate/index.html';
+      } else if (role === 'legal') {
+        window.location.href = '/legal/legal_analysis.html';
+      } else {
+        window.location.href = '/tenant/documents.html';
+      }
+    });
+
+    document.getElementById('cancel').addEventListener('click', (e) => {
+      e.preventDefault();
+      window.history.back();
+    });
+  </script>
+</body>
+</html>

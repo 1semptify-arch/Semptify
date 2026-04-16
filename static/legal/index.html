@@ -191,6 +191,26 @@
         .stat-change { font-size: 11px; margin-top: 4px; }
         .stat-change.up { color: var(--success); }
         
+        /* Vault Status */
+        .vault-status {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--primary);
+            box-shadow: var(--shadow);
+        }
+        
+        .vault-status-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .vault-status-text {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        
         /* Main Layout */
         .main-layout {
             display: grid;
@@ -372,11 +392,11 @@
         <nav class="sidebar-nav">
             <div class="nav-section">
                 <div class="nav-section-title">Overview</div>
-                <a href="/static/legal/index.html" class="nav-link active">
+                <a href="/legal/index.html" class="nav-link active">
                     <span class="nav-icon">📊</span>
                     Dashboard
                 </a>
-                <a href="/static/legal/cases.html" class="nav-link">
+                <a href="/legal/cases.html" class="nav-link">
                     <span class="nav-icon">📁</span>
                     Case Management
                 </a>
@@ -384,16 +404,16 @@
             
             <div class="nav-section">
                 <div class="nav-section-title">Privileged</div>
-                <a href="/static/legal/privileged.html" class="nav-link">
+                <a href="/legal/privileged.html" class="nav-link">
                     <span class="nav-icon">🔒</span>
                     Privileged Docs
                     <span class="nav-badge priv">12</span>
                 </a>
-                <a href="/static/legal/work-product.html" class="nav-link">
+                <a href="/legal/work-product.html" class="nav-link">
                     <span class="nav-icon">📝</span>
                     Work Product
                 </a>
-                <a href="/static/legal/notes.html" class="nav-link">
+                <a href="/legal/notes.html" class="nav-link">
                     <span class="nav-icon">🗒️</span>
                     Case Notes
                 </a>
@@ -401,16 +421,16 @@
             
             <div class="nav-section">
                 <div class="nav-section-title">Court</div>
-                <a href="/static/legal/filings.html" class="nav-link">
+                <a href="/legal/filings.html" class="nav-link">
                     <span class="nav-icon">⚖️</span>
                     Court Filings
                     <span class="nav-badge">2</span>
                 </a>
-                <a href="/static/legal/discovery.html" class="nav-link">
+                <a href="/legal/discovery.html" class="nav-link">
                     <span class="nav-icon">🔍</span>
                     Discovery
                 </a>
-                <a href="/static/legal/calendar.html" class="nav-link">
+                <a href="/legal/calendar.html" class="nav-link">
                     <span class="nav-icon">📅</span>
                     Calendar
                 </a>
@@ -418,11 +438,11 @@
             
             <div class="nav-section">
                 <div class="nav-section-title">Research</div>
-                <a href="/static/legal/research.html" class="nav-link">
+                <a href="/legal/research.html" class="nav-link">
                     <span class="nav-icon">📚</span>
                     Legal Research
                 </a>
-                <a href="/static/law_library.html" class="nav-link">
+                <a href="/law_library.html" class="nav-link">
                     <span class="nav-icon">📖</span>
                     MN Statutes
                 </a>
@@ -430,11 +450,11 @@
             
             <div class="nav-section">
                 <div class="nav-section-title">Admin</div>
-                <a href="/static/legal/conflicts.html" class="nav-link">
+                <a href="/legal/conflicts.html" class="nav-link">
                     <span class="nav-icon">⚠️</span>
                     Conflict Check
                 </a>
-                <a href="/static/dashboard.html" class="nav-link">
+                <a href="/dashboard.html" class="nav-link">
                     <span class="nav-icon">🔧</span>
                     Full System
                 </a>
@@ -467,6 +487,13 @@
             <div class="conflict-check" id="conflictStatus">
                 <span class="conflict-icon">✓</span>
                 <span class="conflict-text">No conflicts detected. Last check: Today at 9:15 AM</span>
+            </div>
+            
+            <!-- Vault Status -->
+            <div class="vault-status" id="vaultStatus">
+                <div class="vault-status-title">🔐 Vault Session</div>
+                <div class="vault-status-text" id="vaultStatusText">Loading vault status...</div>
+                <button class="btn btn-primary btn-sm" onclick="goToVault()" style="margin-top: 8px;">Open Vault</button>
             </div>
             
             <!-- Stats -->
@@ -597,7 +624,31 @@
             renderCases();
             renderWorkProduct();
             renderCalendar();
+            loadVaultStatus();
         });
+        
+        // Vault Status
+        async function loadVaultStatus() {
+            try {
+                const response = await fetch('/api/storage/status');
+                if (response.ok) {
+                    const data = await response.json();
+                    const statusText = data.connected ? 
+                        'Connected - Secure storage active' : 
+                        'Not connected. Click Vault to connect storage.';
+                    document.getElementById('vaultStatusText').textContent = statusText;
+                    document.getElementById('vaultStatus').style.borderLeftColor = data.connected ? '#10b981' : '#f59e0b';
+                } else {
+                    document.getElementById('vaultStatusText').textContent = 'Unable to check vault status.';
+                }
+            } catch (error) {
+                document.getElementById('vaultStatusText').textContent = 'Not connected. Tap Vault to connect storage.';
+            }
+        }
+        
+        function goToVault() {
+            window.location.href = '/vault';
+        }
         
         function renderCases() {
             const container = document.getElementById('casesList');

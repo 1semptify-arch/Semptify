@@ -293,11 +293,11 @@
 - [x] Launch app → Setup wizard appears (first run) ✅ VERIFIED
 - [x] Complete setup → Command center appears ✅ VERIFIED  
 - [x] Upload document → Auto-extracts data ✅ UPLOAD WORKING, VAULT STORAGE CONFIRMED
-- [ ] View timeline → Shows all events from docs
-- [ ] View calendar → Shows deadlines
+- [x] View timeline → Shows all events from docs
+- [x] View calendar → Shows deadlines
 - [x] Click "Generate Answer" → PDF downloads ✅ FORM GENERATION ENDPOINTS IMPLEMENTED
-- [ ] Ask AI question → Gets helpful response
-- [ ] All widgets update in real-time
+- [x] Ask AI question → Gets helpful response
+- [x] All widgets update in real-time
 - [ ] Works on mobile browser
 
 ---

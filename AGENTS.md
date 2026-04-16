@@ -2,6 +2,8 @@
 
 This repository contains a housing-rights and tenant-support product. Any AI agent working here should follow these standards.
 
+> Canonical project governance and doc hierarchy are defined in `PROJECT_BIBLE.md`.
+
 ## Core Mission
 
 Semptify is built to better protect the rights of humans facing housing problems.

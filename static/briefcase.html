@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Briefcase - Semptify</title>
-    <link rel="stylesheet" href="/static/css/shared-nav.css">
+    <link rel="stylesheet" href="/css/shared-nav.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/accessibility.css">
-    <link rel="stylesheet" href="/static/css/help-system.css">
+    <link rel="stylesheet" href="/css/accessibility.css">
+    <link rel="stylesheet" href="/css/help-system.css">
     <!-- Authentication module - must be first -->
-    <script src="/static/js/semptify-auth.js"></script>
+    <script src="/js/semptify-auth.js"></script>
     <style>
         :root {
             --primary: #4ade80;
@@ -976,7 +976,7 @@
 <body>
     <div id="semptify-nav"></div>
     <div class="page-content">
-    <script src="/static/js/reminders.js"></script>
+    <script src="/js/reminders.js"></script>
 
     <!-- Navigation -->
     <nav class="navbar navbar-dark briefcase-navbar">
@@ -1026,7 +1026,7 @@
                     <button class="btn btn-outline-warning btn-sm" onclick="showConverterModal()" title="Convert Markdown to DOCX/HTML">
                         <i class="bi bi-file-earmark-arrow-up me-1"></i>Converter
                     </button>
-                    <a href="/static/letter_builder.html" class="btn btn-outline-primary btn-sm" title="Generate formal letters">
+                    <a href="/letter_builder.html" class="btn btn-outline-primary btn-sm" title="Generate formal letters">
                         <i class="bi bi-envelope me-1"></i>Letter
                     </a>
                     <button class="btn btn-outline-info btn-sm d-none d-md-inline-block" onclick="toggleSelectMode()" id="selectModeBtn">
@@ -2679,7 +2679,7 @@
     </script>
     
     <!-- Help System -->
-    <script src="/static/js/help-system.js"></script>
+    <script src="/js/help-system.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof SemptifyHelp !== 'undefined') {
@@ -2687,7 +2687,7 @@
             }
         });
     </script>
-    <script src="/static/js/shared-nav.js"></script>
+    <script src="/js/shared-nav.js"></script>
     </div>
 </body>
 </html>
