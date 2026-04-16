@@ -1046,7 +1046,140 @@ class TestForgeryIndicators:
 
 
 # =============================================================================
-# Singleton Pattern Tests
+# DocumentIDGenerator Tests
+# =============================================================================
+
+class TestDocumentIDGenerator:
+    """Tests for DocumentIDGenerator class."""
+
+    def test_generate_format_validity(self):
+        """Generated IDs should match SEM-YYYY-NNNNNN-XXXX format."""
+        doc_id = DocumentIDGenerator.generate()
+
+        # Should start with SEM-
+        assert doc_id.startswith("SEM-")
+
+        # Should be parseable
+        parsed = DocumentIDGenerator.parse(doc_id)
+        assert parsed is not None
+
+        # Should be valid
+        assert DocumentIDGenerator.is_valid(doc_id)
+
+        # Check components
+        parts = doc_id.split("-")
+        assert len(parts) == 4
+        assert parts[0] == "SEM"
+        assert len(parts[1]) == 4  # Year
+        assert len(parts[2]) == 6  # Sequence
+        assert len(parts[3]) == 4  # Suffix
+
+    def test_parse_valid_id(self):
+        """Should correctly parse valid document ID."""
+        test_id = "SEM-2024-000001-ABCD"
+        parsed = DocumentIDGenerator.parse(test_id)
+
+        assert parsed is not None
+        assert parsed["year"] == "2024"
+        assert parsed["sequence"] == 1
+        assert parsed["suffix"] == "ABCD"
+
+    def test_parse_invalid_formats(self):
+        """Should return None for invalid formats."""
+        invalid_ids = [
+            "INVALID-2024-000001-ABCD",  # Wrong prefix
+            "SEM-2024-00001-ABCD",       # Sequence too short
+            "SEM-2024-000001-ABC",       # Suffix too short
+            "SEM-2024-000001-ABCD-extra", # Too many parts
+            "SEM-2024-000001-abc",       # Lowercase suffix
+            "SEM-2024-000001-1234",      # Numeric suffix
+            "",                          # Empty
+            "SEM-2024",                  # Missing parts
+        ]
+
+        for invalid_id in invalid_ids:
+            assert DocumentIDGenerator.parse(invalid_id) is None
+            assert not DocumentIDGenerator.is_valid(invalid_id)
+
+    def test_is_valid_edge_cases(self):
+        """Test edge cases for validity checking."""
+        # Valid cases
+        valid_ids = [
+            "SEM-2024-000001-ABCD",
+            "SEM-2024-999999-FFFF",
+            "SEM-2024-000001-0000",  # Numeric-looking suffix
+            "SEM-2024-000001-A1B2",  # Mixed alphanumeric
+        ]
+
+        for valid_id in valid_ids:
+            assert DocumentIDGenerator.is_valid(valid_id)
+
+        # Invalid cases
+        invalid_ids = [
+            "SEM-2024-000001-ABCD-extra",
+            "SEM-2024-000001-abc",   # Lowercase
+            "SEM-2024-000001-ABCD\n", # With newline
+            "SEM-2024-000001-ABCD ",  # With space
+        ]
+
+        for invalid_id in invalid_ids:
+            assert not DocumentIDGenerator.is_valid(invalid_id)
+
+    @patch('app.services.document_registry.datetime')
+    def test_year_reset_behavior(self, mock_datetime):
+        """Counter should reset when year changes."""
+        # Mock datetime to control year
+        mock_now = MagicMock()
+        mock_datetime.now.return_value = mock_now
+        mock_now.strftime.return_value = "2024"
+
+        # Reset class state for clean test
+        DocumentIDGenerator._counter = 0
+        DocumentIDGenerator._last_date = ""
+
+        # Generate first ID in 2024
+        mock_now.strftime.return_value = "2024"
+        id1 = DocumentIDGenerator.generate()
+        assert "SEM-2024-000001-" in id1
+
+        # Generate second ID in same year
+        id2 = DocumentIDGenerator.generate()
+        assert "SEM-2024-000002-" in id2
+
+        # Change to new year
+        mock_now.strftime.return_value = "2025"
+        id3 = DocumentIDGenerator.generate()
+        assert "SEM-2025-000001-" in id3  # Counter reset
+
+    def test_uniqueness(self):
+        """Generated IDs should be unique."""
+        ids = set()
+        for _ in range(100):
+            doc_id = DocumentIDGenerator.generate()
+            assert doc_id not in ids
+            ids.add(doc_id)
+
+    def test_sequence_increment(self):
+        """Sequence number should increment properly."""
+        # Reset counter
+        DocumentIDGenerator._counter = 0
+        DocumentIDGenerator._last_date = "2024"
+
+        # Generate a few IDs and check sequence
+        id1 = DocumentIDGenerator.generate()
+        seq1 = int(DocumentIDGenerator.parse(id1)["sequence"])
+
+        id2 = DocumentIDGenerator.generate()
+        seq2 = int(DocumentIDGenerator.parse(id2)["sequence"])
+
+        id3 = DocumentIDGenerator.generate()
+        seq3 = int(DocumentIDGenerator.parse(id3)["sequence"])
+
+        assert seq2 == seq1 + 1
+        assert seq3 == seq2 + 1
+
+
+# =============================================================================
 # =============================================================================
 
 class TestSingletonPattern:

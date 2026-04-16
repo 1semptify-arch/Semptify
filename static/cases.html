@@ -6,10 +6,10 @@
     <title>Case Management - Semptify</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/shared-nav.css">
-    <link rel="stylesheet" href="/static/css/help-system.css">
+    <link rel="stylesheet" href="/css/shared-nav.css">
+    <link rel="stylesheet" href="/css/help-system.css">
     <!-- Case Context Manager - Central case data service -->
-    <script src="/static/js/case-context.js"></script>
+    <script src="/js/case-context.js"></script>
     <style>
         :root {
             --primary: #6366f1;
@@ -916,19 +916,19 @@
                 <div class="panel-section">
                     <div class="panel-section-title">Quick Actions</div>
                     <div class="quick-actions">
-                        <a href="/static/eviction_answer.html" class="quick-action-btn">
+                        <a href="/eviction_answer.html" class="quick-action-btn">
                             <i class="bi bi-file-earmark-text"></i>
                             <span>File Answer</span>
                         </a>
-                        <a href="/static/counterclaim.html" class="quick-action-btn">
+                        <a href="/counterclaim.html" class="quick-action-btn">
                             <i class="bi bi-arrow-left-right"></i>
                             <span>Counterclaim</span>
                         </a>
-                        <a href="/static/court_packet.html" class="quick-action-btn">
+                        <a href="/court_packet.html" class="quick-action-btn">
                             <i class="bi bi-folder2"></i>
                             <span>Court Packet</span>
                         </a>
-                        <a href="/static/hearing_prep.html" class="quick-action-btn">
+                        <a href="/hearing_prep.html" class="quick-action-btn">
                             <i class="bi bi-mortarboard"></i>
                             <span>Hearing Prep</span>
                         </a>
@@ -1068,7 +1068,7 @@
     
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/static/js/shared-nav.js"></script>
+    <script src="/js/shared-nav.js"></script>
     <script>
         // State
         let cases = [];
@@ -1519,7 +1519,7 @@
                         <small class="text-muted">Evidence Items</small>
                     </div>
                 </div>
-                <a href="/static/briefcase.html" class="btn btn-outline-light btn-sm">
+                <a href="/briefcase.html" class="btn btn-outline-light btn-sm">
                     <i class="bi bi-folder"></i> View in Briefcase
                 </a>
             `;
@@ -1711,8 +1711,8 @@
     </script>
     
     <!-- Help System -->
-    <script src="/static/js/help-system.js"></script>
-    <script src="/static/js/semptify-auth.js"></script>
+    <script src="/js/help-system.js"></script>
+    <script src="/js/semptify-auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof SemptifyHelp !== 'undefined') {

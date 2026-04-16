@@ -4,7 +4,7 @@
  * 
  * Usage: Add to any page:
  *   <div id="semptify-nav"></div>
- *   <script src="/static/js/shared-nav.js"></script>
+ *   <script src="/js/shared-nav.js"></script>
  */
 
 const SemptifyNav = {
@@ -223,7 +223,7 @@ const SemptifyNav = {
                     <span id="pinIcon">📌</span>
                 </button>
                 <div class="sidebar-header">
-                    <a href="/static/home.html" class="sidebar-logo">
+                    <a href="/home.html" class="sidebar-logo">
                         <span class="logo-icon">⚖️</span>
                         <span class="logo-text">Semptify</span>
                     </a>
@@ -231,7 +231,7 @@ const SemptifyNav = {
                 </div>
                 
                 <!-- Quick Access Vault Button - Always Visible -->
-                <a href="/static/vault.html" class="vault-quick-access" title="Open Document Vault">
+                <a href="/vault.html" class="vault-quick-access" title="Open Document Vault">
                     <span class="vault-icon">🔐</span>
                     <span class="vault-label">VAULT</span>
                 </a>
@@ -241,6 +241,18 @@ const SemptifyNav = {
                 </div>
                 
                 <div class="sidebar-footer">
+                    <!-- Theme Toggle Button -->
+                    <button class="theme-toggle" onclick="SemptifyNav.toggleTheme()" title="Toggle dark/light theme" id="themeToggle">
+                        <span class="theme-icon" id="themeIcon">🌙</span>
+                        <span class="theme-label" id="themeLabel">Dark</span>
+                    </button>
+                    
+                    <!-- Tutorial Button -->
+                    <button class="tutorial-button" onclick="SemptifyNav.startTutorial()" title="Start guided tour" id="tutorialBtn">
+                        <span class="tutorial-icon">🎯</span>
+                        <span class="tutorial-label">Tour</span>
+                    </button>
+                    
                     <!-- User Button -->
                     <button class="user-button" onclick="SemptifyNav.toggleUserPanel()" id="navUserButton">
                         <span class="user-avatar" id="navUserAvatar">👤</span>
@@ -317,8 +329,159 @@ const SemptifyNav = {
     },
 
     // =================================================================
-    // User Panel Functions
+    // Theme Toggle Functions
     // =================================================================
+    
+    toggleTheme() {
+        const html = document.documentElement;
+        const currentTheme = html.getAttribute('data-theme') || 'light';
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        html.setAttribute('data-theme', newTheme);
+        localStorage.setItem('semptify_theme', newTheme);
+        
+        this.updateThemeButton(newTheme);
+    },
+    
+    updateThemeButton(theme) {
+        const icon = document.getElementById('themeIcon');
+        const label = document.getElementById('themeLabel');
+        
+        if (theme === 'dark') {
+            icon.textContent = '☀️';
+            label.textContent = 'Light';
+        } else {
+            icon.textContent = '🌙';
+            label.textContent = 'Dark';
+        }
+    },
+    
+    loadTheme() {
+        const savedTheme = localStorage.getItem('semptify_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        this.updateThemeButton(savedTheme);
+    },
+    
+    // =================================================================
+    // Tutorial/Onboarding Functions
+    // =================================================================
+    
+    startTutorial() {
+        if (localStorage.getItem('semptify_tutorial_completed')) {
+            return; // Already completed
+        }
+        
+        this.tutorialStep = 0;
+        this.showTutorialStep();
+    },
+    
+    showTutorialStep() {
+        const steps = [
+            {
+                title: "Welcome to Semptify!",
+                content: "Let's take a quick tour of your tenant rights protection platform.",
+                target: ".sidebar-logo",
+                position: "right"
+            },
+            {
+                title: "Navigation",
+                content: "Use these sections to navigate through your case workflow: Intake → Timeline → Defense → Court.",
+                target: ".sidebar-content",
+                position: "right"
+            },
+            {
+                title: "Theme Toggle",
+                content: "Click here to switch between light and dark themes.",
+                target: ".theme-toggle",
+                position: "right"
+            },
+            {
+                title: "Document Vault",
+                content: "Your secure document storage is always accessible here.",
+                target: ".vault-quick-access",
+                position: "right"
+            },
+            {
+                title: "Keyboard Shortcuts",
+                content: "Try Ctrl+/ to toggle navigation, Ctrl+T for theme, Ctrl+H for home.",
+                target: ".sidebar-header",
+                position: "bottom"
+            }
+        ];
+        
+        if (this.tutorialStep >= steps.length) {
+            this.endTutorial();
+            return;
+        }
+        
+        const step = steps[this.tutorialStep];
+        this.showTutorialOverlay(step);
+    },
+    
+    showTutorialOverlay(step) {
+        // Remove existing overlay
+        this.removeTutorialOverlay();
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'tutorial-overlay';
+        overlay.innerHTML = `
+            <div class="tutorial-modal">
+                <div class="tutorial-header">
+                    <h3>${step.title}</h3>
+                    <button class="tutorial-close" onclick="SemptifyNav.endTutorial()">×</button>
+                </div>
+                <div class="tutorial-content">
+                    <p>${step.content}</p>
+                </div>
+                <div class="tutorial-footer">
+                    <button class="tutorial-prev" onclick="SemptifyNav.prevTutorialStep()" ${this.tutorialStep === 0 ? 'disabled' : ''}>Previous</button>
+                    <span class="tutorial-progress">${this.tutorialStep + 1} of 5</span>
+                    <button class="tutorial-next" onclick="SemptifyNav.nextTutorialStep()">Next</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(overlay);
+        
+        // Position the modal
+        setTimeout(() => {
+            const target = document.querySelector(step.target);
+            if (target) {
+                const rect = target.getBoundingClientRect();
+                const modal = overlay.querySelector('.tutorial-modal');
+                
+                if (step.position === 'right') {
+                    modal.style.left = `${rect.right + 10}px`;
+                    modal.style.top = `${rect.top}px`;
+                } else if (step.position === 'bottom') {
+                    modal.style.left = `${rect.left}px`;
+                    modal.style.top = `${rect.bottom + 10}px`;
+                }
+            }
+        }, 100);
+    },
+    
+    nextTutorialStep() {
+        this.tutorialStep++;
+        this.showTutorialStep();
+    },
+    
+    prevTutorialStep() {
+        this.tutorialStep--;
+        this.showTutorialStep();
+    },
+    
+    endTutorial() {
+        this.removeTutorialOverlay();
+        localStorage.setItem('semptify_tutorial_completed', 'true');
+    },
+    
+    removeTutorialOverlay() {
+        const overlay = document.querySelector('.tutorial-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+    },
     
     userInfo: null,
     
@@ -545,6 +708,9 @@ const SemptifyNav = {
         // Restore pinned state (desktop)
         this.restorePinnedState();
         
+        // Load theme
+        this.loadTheme();
+        
         // Update user button from API (async)
         console.log('🔄 Calling updateNavUserButton...');
         await this.updateNavUserButton();
@@ -563,6 +729,48 @@ const SemptifyNav = {
             if (e.key === 'Escape') {
                 this.closeMobile();
                 this.closeUserPanel();
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Only handle shortcuts when not typing in inputs
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.contentEditable === 'true') {
+                return;
+            }
+            
+            // Ctrl/Cmd + / : Toggle navigation
+            if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+                e.preventDefault();
+                if (window.innerWidth <= 768) {
+                    this.toggleMobile();
+                } else {
+                    this.togglePin();
+                }
+            }
+            
+            // Ctrl/Cmd + T : Toggle theme
+            if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+                e.preventDefault();
+                this.toggleTheme();
+            }
+            
+            // Ctrl/Cmd + H : Go to home
+            if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+                e.preventDefault();
+                window.location.href = '/static/home.html';
+            }
+            
+            // Ctrl/Cmd + D : Go to documents
+            if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+                e.preventDefault();
+                window.location.href = '/tenant/documents';
+            }
+            
+            // Ctrl/Cmd + L : Go to timeline
+            if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+                e.preventDefault();
+                window.location.href = '/tenant/timeline';
             }
         });
 

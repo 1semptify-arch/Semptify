@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semptify - Court Packet Export</title>
-    <link rel="stylesheet" href="/static/css/shared-nav.css">
+    <link rel="stylesheet" href="/css/shared-nav.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/accessibility.css">
-    <link rel="stylesheet" href="/static/css/help-system.css">
+    <link rel="stylesheet" href="/css/accessibility.css">
+    <link rel="stylesheet" href="/css/help-system.css">
     <style>
         :root {
             --primary: #2C5F2D;
@@ -322,13 +322,13 @@
                 <p class="mb-0 opacity-75">Generate court-ready document packets</p>
             </div>
             <div>
-                <a href="/static/letter_builder.html" class="btn btn-outline-light btn-sm me-2">
+                <a href="/letter_builder.html" class="btn btn-outline-light btn-sm me-2">
                     <i class="bi bi-envelope"></i> Letter Builder
                 </a>
-                <a href="/static/dashboard.html" class="btn btn-outline-light btn-sm me-2">
+                <a href="/dashboard.html" class="btn btn-outline-light btn-sm me-2">
                     <i class="bi bi-arrow-left"></i> Mission Control
                 </a>
-                <a href="/static/briefcase.html" class="btn btn-outline-light btn-sm">
+                <a href="/briefcase.html" class="btn btn-outline-light btn-sm">
                     <i class="bi bi-briefcase"></i> Briefcase
                 </a>
             </div>
@@ -603,7 +603,7 @@
             }
 
             if (!html) {
-                html = '<p class="text-muted text-center">No items in briefcase yet.<br><a href="/static/briefcase.html">Add documents →</a></p>';
+                html = '<p class="text-muted text-center">No items in briefcase yet.<br><a href="/briefcase.html">Add documents →</a></p>';
             }
 
             container.innerHTML = html;
@@ -689,9 +689,9 @@
     </script>
     
     <!-- Help System -->
-    <script src="/static/js/help-system.js"></script>
-    <script src="/static/js/semptify-auth.js"></script>
-    <script src="/static/js/shared-nav.js"></script>
+    <script src="/js/help-system.js"></script>
+    <script src="/js/semptify-auth.js"></script>
+    <script src="/js/shared-nav.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof SemptifyHelp !== 'undefined') {

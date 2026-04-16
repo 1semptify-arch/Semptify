@@ -1,7 +1,7 @@
 /**
  * Semptify Site-Wide Footer Component
  * Include this script on any page to add the standard footer
- * Usage: <script src="/static/js/footer.js"></script>
+ * Usage: <script src="/js/footer.js"></script>
  */
 
 (function() {
@@ -17,13 +17,13 @@
                 <div class="footer-links">
                     <div class="footer-column">
                         <h4>Legal</h4>
-                        <a href="/static/privacy.html">Privacy Policy</a>
-                        <a href="/static/law_library.html">Law Library</a>
+                        <a href="/privacy.html">Privacy Policy</a>
+                        <a href="/law_library.html">Law Library</a>
                     </div>
                     <div class="footer-column">
                         <h4>Support</h4>
-                        <a href="/static/help.html">Help Center</a>
-                        <a href="/static/contacts.html">Contact</a>
+                        <a href="/help.html">Help Center</a>
+                        <a href="/contacts.html">Contact</a>
                     </div>
                 </div>
             </div>

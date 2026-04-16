@@ -507,3 +507,182 @@ async def test_function_token_verify_with_header_uses_verifier_result(client: As
     data = response.json()
     assert data["valid"] is False
     assert data["reason"] == "token_expired"
+
+
+# =============================================================================
+# Token Encryption Tests
+# =============================================================================
+
+@pytest.mark.anyio
+async def test_encrypt_decrypt_token_roundtrip():
+    """Test that encrypting and decrypting a token preserves the original data."""
+    from app.routers.storage import _encrypt_token, _decrypt_token
+
+    user_id = "GUtest1234"
+    original_data = {
+        "access_token": "ya29.abc123def456",
+        "refresh_token": "1//refresh_token_here",
+        "expires_at": "2024-01-01T12:00:00Z"
+    }
+
+    # Encrypt the data
+    encrypted = _encrypt_token(original_data, user_id)
+    assert isinstance(encrypted, bytes)
+    assert len(encrypted) > 12  # Should have nonce + ciphertext
+
+    # Decrypt and verify
+    decrypted = _decrypt_token(encrypted, user_id)
+    assert decrypted == original_data
+
+
+@pytest.mark.anyio
+async def test_encrypt_decrypt_token_different_users():
+    """Test that tokens encrypted for different users cannot be decrypted by each other."""
+    from app.routers.storage import _encrypt_token, _decrypt_token
+
+    user1_id = "GUuser1"
+    user2_id = "GUuser2"
+    data = {"access_token": "test_token"}
+
+    # Encrypt for user1
+    encrypted = _encrypt_token(data, user1_id)
+
+    # Try to decrypt with user2 - should fail
+    with pytest.raises(Exception):
+        _decrypt_token(encrypted, user2_id)
+
+
+@pytest.mark.anyio
+async def test_encrypt_decrypt_string_roundtrip():
+    """Test that encrypting and decrypting a string preserves the original value."""
+    from app.routers.storage import _encrypt_string, _decrypt_string
+
+    user_id = "GUtest1234"
+    original_string = "ya29.abc123def456"
+
+    # Encrypt the string
+    encrypted = _encrypt_string(original_string, user_id)
+    assert isinstance(encrypted, str)
+    # Should be base64 encoded
+    assert len(encrypted) > len(original_string)
+
+    # Decrypt and verify
+    decrypted = _decrypt_string(encrypted, user_id)
+    assert decrypted == original_string
+
+
+@pytest.mark.anyio
+async def test_encrypt_decrypt_string_different_users():
+    """Test that strings encrypted for different users cannot be decrypted by each other."""
+    from app.routers.storage import _encrypt_string, _decrypt_string
+
+    user1_id = "GUuser1"
+    user2_id = "GUuser2"
+    original_string = "secret_token"
+
+    # Encrypt for user1
+    encrypted = _encrypt_string(original_string, user1_id)
+
+    # Try to decrypt with user2 - should fail
+    with pytest.raises(Exception):
+        _decrypt_string(encrypted, user2_id)
+
+
+@pytest.mark.anyio
+async def test_encrypt_decrypt_token_with_special_characters():
+    """Test encryption/decryption with special characters and unicode."""
+    from app.routers.storage import _encrypt_token, _decrypt_token
+
+    user_id = "GUtest1234"
+    original_data = {
+        "access_token": "ya29.abc123def456!@#$%^&*()",
+        "refresh_token": "1//refresh_token_ñáéíóú",
+        "special_chars": "!@#$%^&*()_+-=[]{}|;:,.<>?",
+        "unicode": "🚀📁🔐🔑"
+    }
+
+    # Encrypt the data
+    encrypted = _encrypt_token(original_data, user_id)
+
+    # Decrypt and verify
+    decrypted = _decrypt_token(encrypted, user_id)
+    assert decrypted == original_data
+
+
+@pytest.mark.anyio
+async def test_encrypt_decrypt_string_empty_and_whitespace():
+    """Test encryption/decryption with empty strings and whitespace."""
+    from app.routers.storage import _encrypt_string, _decrypt_string
+
+    user_id = "GUtest1234"
+
+    # Test empty string
+    encrypted_empty = _encrypt_string("", user_id)
+    decrypted_empty = _decrypt_string(encrypted_empty, user_id)
+    assert decrypted_empty == ""
+
+    # Test whitespace
+    original_whitespace = "   \t\n  "
+    encrypted_whitespace = _encrypt_string(original_whitespace, user_id)
+    decrypted_whitespace = _decrypt_string(encrypted_whitespace, user_id)
+    assert decrypted_whitespace == original_whitespace
+
+
+@pytest.mark.anyio
+async def test_encrypt_token_consistency():
+    """Test that encrypting the same data multiple times produces different ciphertexts (due to random nonce)."""
+    from app.routers.storage import _encrypt_token
+
+    user_id = "GUtest1234"
+    data = {"access_token": "consistent_test"}
+
+    # Encrypt multiple times
+    encrypted1 = _encrypt_token(data, user_id)
+    encrypted2 = _encrypt_token(data, user_id)
+
+    # Should be different due to random nonce
+    assert encrypted1 != encrypted2
+
+    # But both should decrypt to the same data
+    from app.routers.storage import _decrypt_token
+    decrypted1 = _decrypt_token(encrypted1, user_id)
+    decrypted2 = _decrypt_token(encrypted2, user_id)
+    assert decrypted1 == data
+    assert decrypted2 == data
+
+
+@pytest.mark.anyio
+async def test_decrypt_token_corrupted_data():
+    """Test that decrypting corrupted data raises an exception."""
+    from app.routers.storage import _encrypt_token, _decrypt_token
+
+    user_id = "GUtest1234"
+    data = {"access_token": "test"}
+
+    # Encrypt normally
+    encrypted = _encrypt_token(data, user_id)
+
+    # Corrupt the data
+    corrupted = bytearray(encrypted)
+    if len(corrupted) > 12:
+        corrupted[15] ^= 0xFF  # Flip a bit in the ciphertext
+
+    # Should fail to decrypt
+    with pytest.raises(Exception):
+        _decrypt_token(bytes(corrupted), user_id)
+
+
+@pytest.mark.anyio
+async def test_decrypt_token_wrong_length():
+    """Test that decrypting data that's too short raises an exception."""
+    from app.routers.storage import _decrypt_token
+
+    user_id = "GUtest1234"
+
+    # Too short (less than nonce + minimum ciphertext)
+    with pytest.raises(Exception):
+        _decrypt_token(b"short", user_id)
+
+    # Only nonce, no ciphertext
+    with pytest.raises(Exception):
+        _decrypt_token(b"123456789012", user_id)

@@ -2,6 +2,8 @@
 
 Tenant rights protection platform - rebuilt with async-first FastAPI architecture.
 
+> Canonical project guide: see `PROJECT_BIBLE.md` for the single source-of-truth hierarchy, build reference rules, and governance.
+
 ## Core Promise
 
 **Help tenants with tools and information to uphold tenant rights as a renter, in court if it goes that far - hopefully it won't.**
@@ -89,6 +91,8 @@ Semptify-FastAPI/
 ├── .env.template
 └── README.md
 ```
+
+> Before working in this repository, run `python scripts/require_read_project_bible.py` to confirm you have reviewed the canonical governance and build docs.
 
 ## API Endpoints
 

@@ -1,5 +1,7 @@
 # 🚀 QUICK START GUIDE - ENTERPRISE EDITION
 
+> Note: This guide is supplemental. The canonical build and onboarding reference is `README.md`, and the repository governance hierarchy is `PROJECT_BIBLE.md`.
+
 ## IMMEDIATE ACTION STEPS
 
 ### Step 1: Launch the Server (30 seconds)
