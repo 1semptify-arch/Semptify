@@ -95,3 +95,4 @@ Do not optimize first for:
 - Keep technical and policy claims aligned with what the code actually does.
 - If a proposed change conflicts with these standards, call it out explicitly before implementing.
 - Prefer solutions that help a tenant, advocate, or attorney get to the truth faster with less friction.
+- Use `PROJECT_BIBLE.md` as the repository-level governance and doc hierarchy reference.

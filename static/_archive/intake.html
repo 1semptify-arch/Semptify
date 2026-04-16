@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Complaint Intake - Start Your Case</title>
-    <link rel="stylesheet" href="/static/css/help-system.css">
+    <link rel="stylesheet" href="/css/help-system.css">
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -326,10 +326,10 @@
                         </ul>
                         
                         <div class="actions">
-                            <a href="/static/case-builder.html?case=${encodeURIComponent(json.case_number)}">
+                            <a href="/case-builder.html?case=${encodeURIComponent(json.case_number)}">
                                 📂 View Case
                             </a>
-                            <a href="/static/complaints.html">
+                            <a href="/complaints.html">
                                 📝 File Complaint
                             </a>
                         </div>
@@ -365,8 +365,8 @@
     </script>
     
     <!-- Help System -->
-    <script src="/static/js/help-system.js"></script>
-    <script src="/static/js/semptify-auth.js"></script>
+    <script src="/js/help-system.js"></script>
+    <script src="/js/semptify-auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof SemptifyHelp !== 'undefined') {

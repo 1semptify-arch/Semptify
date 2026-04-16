@@ -298,6 +298,7 @@ def _build_home_stage_cards(
     timeline_events: int,
     hearing_scheduled: bool,
     court_packet_ready: bool,
+    storage_connected: bool,
 ) -> list[HomeStageCard]:
     if role == UserRole.USER.value:
         b1_state, b1_button = _progress_state_label(current_process, ProcessCode.B1.value)
@@ -315,8 +316,17 @@ def _build_home_stage_cards(
                 button_label=b1_button,
             ),
             HomeStageCard(
+                card_id="vault_session",
+                title="2. Vault Session",
+                description="Open your secure document vault and confirm the active storage session for this case.",
+                route="/vault",
+                state="Available" if storage_connected else "Upcoming",
+                button_label="Open" if storage_connected else "Connect",
+                button_variant="primary" if storage_connected else "secondary",
+            ),
+            HomeStageCard(
                 card_id="timeline",
-                title="2. Review Timeline",
+                title="3. Review Timeline",
                 description="Confirm extracted dates and events before moving into filings and hearing prep.",
                 route="/tenant/timeline",
                 state=b2_state,
@@ -324,7 +334,7 @@ def _build_home_stage_cards(
             ),
             HomeStageCard(
                 card_id="research",
-                title="3. Research & Knowledge",
+                title="4. Research & Knowledge",
                 description="Open legal analysis to review statutes, evidence framing, and issue patterns before filing.",
                 route="/legal-analysis",
                 state=research_state,
@@ -333,7 +343,7 @@ def _build_home_stage_cards(
             ),
             HomeStageCard(
                 card_id="filing",
-                title="4. Filing & Packet Prep",
+                title="5. Filing & Packet Prep",
                 description="Build the eviction answer, assemble the packet, and prepare for hearing readiness.",
                 route="/static/eviction_answer.html" if not court_packet_ready else "/static/court_packet.html",
                 state=b3_state,
@@ -341,7 +351,7 @@ def _build_home_stage_cards(
             ),
             HomeStageCard(
                 card_id="help",
-                title="5. Help & Contacts",
+                title="6. Help & Contacts",
                 description="Reach legal aid, emergency housing contacts, and support resources when you need human help.",
                 route="/tenant/help",
                 state="Available",
@@ -370,8 +380,17 @@ def _build_home_stage_cards(
             button_label="Open",
         ),
         HomeStageCard(
+            card_id="vault_session",
+            title="2. Vault Session",
+            description="Open your secure document vault and confirm the active storage session for this case.",
+            route="/vault",
+            state="Available" if storage_connected else "Upcoming",
+            button_label="Open" if storage_connected else "Connect",
+            button_variant="primary" if storage_connected else "secondary",
+        ),
+        HomeStageCard(
             card_id="research",
-            title="2. Research & Knowledge",
+            title="3. Research & Knowledge",
             description="Run legal analysis and evidence review before drafting filings or escalation plans.",
             route="/legal-analysis",
             state="Available" if documents_present else "Upcoming",
@@ -380,7 +399,7 @@ def _build_home_stage_cards(
         ),
         HomeStageCard(
             card_id="actions",
-            title="3. Functions & Actions",
+            title="4. Functions & Actions",
             description="Use FunctionX to build action sets, draft work, and execute deterministic case operations.",
             route="/functionx",
             state="Available",
@@ -388,7 +407,7 @@ def _build_home_stage_cards(
         ),
         HomeStageCard(
             card_id="output",
-            title="4. Output & Delivery",
+            title="5. Output & Delivery",
             description="Package filings, hearing materials, and export bundles once case work is ready for delivery.",
             route=output_route,
             state=output_state,
@@ -765,6 +784,7 @@ async def get_case_state(request: Request) -> CaseStateResponse:
         timeline_events=int(timeline_count),
         hearing_scheduled=int(hearing_count) > 0,
         court_packet_ready=court_packet_ready,
+        storage_connected=storage_connected,
     )
 
     alerts = _build_home_alerts(

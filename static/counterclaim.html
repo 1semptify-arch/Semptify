@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File a Counterclaim - Semptify</title>
-    <link rel="stylesheet" href="/static/css/shared-nav.css">
-    <link rel="stylesheet" href="/static/css/help-system.css">
+    <link rel="stylesheet" href="/css/shared-nav.css">
+    <link rel="stylesheet" href="/css/help-system.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -203,7 +203,7 @@
             </div>
             
             <div class="step-nav">
-                <a href="/static/dakota_defense.html" class="btn btn-outline">← Back to Menu</a>
+                <a href="/dakota_defense.html" class="btn btn-outline">← Back to Menu</a>
                 <button class="btn btn-primary" onclick="nextStep()">Next: Select Claims →</button>
             </div>
         </div>
@@ -378,8 +378,8 @@ The furnace stopped working on November 15, 2024. I notified the landlord in wri
             <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin: 2rem 0;">
                 <button class="btn btn-primary" onclick="downloadPDF()">📥 Download</button>
                 <button class="btn btn-outline" onclick="printDocument()">🖨️ Print</button>
-                <a href="/static/eviction_answer.html" class="btn btn-outline">📝 File Answer</a>
-                <a href="/static/dakota_defense.html" class="btn btn-outline">← Defense Center</a>
+                <a href="/eviction_answer.html" class="btn btn-outline">📝 File Answer</a>
+                <a href="/dakota_defense.html" class="btn btn-outline">← Defense Center</a>
             </div>
         </div>
     </main>
@@ -389,7 +389,7 @@ The furnace stopped working on November 15, 2024. I notified the landlord in wri
         <p>Generating your counterclaim...</p>
     </div>
     
-    <script src="/static/js/shared-nav.js"></script>
+    <script src="/js/shared-nav.js"></script>
     <script>
         let currentStep = 1;
         let formData = {};
@@ -558,8 +558,8 @@ The furnace stopped working on November 15, 2024. I notified the landlord in wri
     </script>
     
     <!-- Help System -->
-    <script src="/static/js/help-system.js"></script>
-    <script src="/static/js/semptify-auth.js"></script>
+    <script src="/js/help-system.js"></script>
+    <script src="/js/semptify-auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof SemptifyHelp !== 'undefined') {

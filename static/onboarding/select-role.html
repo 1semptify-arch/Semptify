@@ -277,7 +277,7 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <a href="/static/onboarding/welcome.html" class="back-link">
+            <a href="/onboarding/welcome.html" class="back-link">
                 ← Back to Welcome
             </a>
             <span class="step-indicator">Step 1 of 3</span>
@@ -426,13 +426,25 @@
                 alert('Please select a role to continue');
                 return;
             }
-            
+
+            // Detect static-demo environment (served from the static folder, commonly on port 8080)
+            const isStaticDemo = (location.hostname === 'localhost' && (location.port === '8080' || location.port === '8000')) || location.pathname.startsWith('/onboarding');
+
             // Tenant goes directly to storage (no validation needed)
             if (selectedRole === 'user') {
-                window.location.href = '/storage/providers?role=user&from=onboarding';
+                if (isStaticDemo) {
+                    // Static demo: use a local mock providers page
+                    window.location.href = `/onboarding/storage-providers.html?role=user&from=onboarding`;
+                } else {
+                    window.location.href = '/storage/providers?role=user&from=onboarding';
+                }
             } else {
                 // Advocate and Legal need validation
-                window.location.href = `/static/onboarding/validate-${selectedRole}.html`;
+                if (isStaticDemo) {
+                    window.location.href = `/onboarding/validate-${selectedRole}.html`;
+                } else {
+                    window.location.href = `/onboarding/validate-${selectedRole}.html`;
+                }
             }
         }
         

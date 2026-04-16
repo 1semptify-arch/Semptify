@@ -1,7 +1,7 @@
 /**
  * Semptify Site-Wide Header Component
  * Include this script on any page to add the standard header with navigation
- * Usage: <script src="/static/js/header.js"></script>
+ * Usage: <script src="/js/header.js"></script>
  * 
  * NOTE: This header is DISABLED on pages using shared-nav.js
  * The shared nav component provides navigation for app pages.
@@ -19,14 +19,14 @@
     const headerHTML = `
     <header class="semptify-header">
         <div class="header-container">
-            <a href="/static/welcome.html" class="header-logo">
-                <img src="/static/logo.png" alt="Semptify">
+            <a href="/welcome.html" class="header-logo">
+                <img src="/logo.png" alt="Semptify">
             </a>
             <nav class="header-nav">
-                <a href="/static/welcome.html">Home</a>
-                <a href="/static/dashboard.html">Dashboard</a>
-                <a href="/static/document_intake.html">Documents</a>
-                <a href="/static/crisis_intake.html">Crisis Help</a>
+                <a href="/welcome.html">Home</a>
+                <a href="/dashboard.html">Dashboard</a>
+                <a href="/document_intake.html">Documents</a>
+                <a href="/crisis_intake.html">Crisis Help</a>
             </nav>
         </div>
     </header>

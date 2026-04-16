@@ -281,6 +281,10 @@ async def lifespan(_app: FastAPI):
             nonlocal missing_required, missing_optional
             import importlib
             
+            # Clear lists before checking (fix for retry accumulation)
+            missing_required.clear()
+            missing_optional.clear()
+            
             # Check required packages
             for pkg, desc in REQUIRED_PACKAGES.items():
                 try:

@@ -359,7 +359,7 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <a href="/static/onboarding/select-role.html" class="back-link">
+            <a href="/onboarding/select-role.html" class="back-link">
                 ← Change Role
             </a>
             <span class="step-indicator">Step 2 of 3</span>
@@ -652,7 +652,11 @@
             if (data.success) {
                 showResult(elementId, 'success', data.message);
                 setTimeout(() => {
-                    window.location.href = '/storage/providers?role=legal&from=onboarding&verified=true';
+                    if (location.hostname === 'localhost' && (location.port === '8080' || location.port === '8000')) {
+                        window.location.href = '/onboarding/storage-providers.html?role=legal&from=onboarding&verified=true';
+                    } else {
+                        window.location.href = '/storage/providers?role=legal&from=onboarding&verified=true';
+                    }
                 }, 1500);
             } else if (data.status === 'pending') {
                 showResult(elementId, 'pending', data.message + '<br><small>' + data.next_steps + '</small>');

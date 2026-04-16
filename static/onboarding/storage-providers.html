@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Connect Your Storage (Demo)</title>
+  <style>
+    body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial;background:#071529;color:#e6eef8;padding:2rem}
+    .card{background:#07263a;border-radius:12px;padding:1.25rem;margin:0.75rem 0;display:flex;align-items:center;gap:1rem}
+    .btn{background:#1e7bd6;color:white;padding:0.6rem 1rem;border-radius:8px;text-decoration:none}
+    .muted{color:#9fb4c8}
+    .header{display:flex;align-items:center;justify-content:space-between}
+    .step{background:rgba(255,255,255,0.06);padding:0.4rem 0.75rem;border-radius:999px}
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>Connect Your Storage</h1>
+      <div class="muted">Demo: simulated OAuth flow for onboarding</div>
+    </div>
+    <div class="step" id="step-indicator">Step</div>
+  </div>
+
+  <p class="muted">Choose a provider to connect. This is a static demo that simulates the OAuth flow.</p>
+
+  <div class="card">
+    <div style="flex:1">
+      <strong>Google Drive</strong>
+      <div class="muted">Recommended</div>
+    </div>
+    <a id="google-link" class="btn" href="#">Connect</a>
+  </div>
+
+  <div class="card">
+    <div style="flex:1">
+      <strong>Dropbox</strong>
+      <div class="muted">Optional</div>
+    </div>
+    <a id="dropbox-link" class="btn" href="#">Connect</a>
+  </div>
+
+  <div class="card">
+    <div style="flex:1">
+      <strong>OneDrive</strong>
+      <div class="muted">Optional</div>
+    </div>
+    <a id="onedrive-link" class="btn" href="#">Connect</a>
+  </div>
+
+  <p class="muted">If this were the real app, you'd be redirected to the provider to grant access, then returned here.</p>
+
+  <script>
+    // Show step indicator based on query params
+    const params = new URLSearchParams(window.location.search);
+    const role = params.get('role') || 'user';
+    const from = params.get('from');
+    if (from === 'onboarding') {
+      if (role === 'user') document.getElementById('step-indicator').textContent = 'Step 2 of 3';
+      else document.getElementById('step-indicator').textContent = 'Step 3 of 3';
+    } else {
+      document.getElementById('step-indicator').textContent = 'Storage';
+    }
+
+    function gotoMockOAuth(provider){
+      // Simulate an OAuth redirect and success landing
+      const next = `/onboarding/mock-oauth.html?provider=${encodeURIComponent(provider)}&role=${encodeURIComponent(role)}&from=onboarding`;
+      window.location.href = next;
+    }
+
+    document.getElementById('google-link').addEventListener('click', (e)=>{e.preventDefault(); gotoMockOAuth('google_drive')});
+    document.getElementById('dropbox-link').addEventListener('click', (e)=>{e.preventDefault(); gotoMockOAuth('dropbox')});
+    document.getElementById('onedrive-link').addEventListener('click', (e)=>{e.preventDefault(); gotoMockOAuth('onedrive')});
+  </script>
+</body>
+</html>

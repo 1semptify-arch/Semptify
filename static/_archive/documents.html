@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Semptify - Document Intake</title>
-    <link rel="stylesheet" href="/static/css/app.css">
-    <link rel="stylesheet" href="/static/css/help-system.css">
+    <link rel="stylesheet" href="/css/app.css">
+    <link rel="stylesheet" href="/css/help-system.css">
     <style>
         :root {
             --primary-color: #2563eb;
@@ -614,13 +614,13 @@
             .document-item { flex-direction: column; align-items: flex-start; }
         }
     </style>
-    <script src="/static/js/law-linker.js"></script>
-    <link rel="stylesheet" href="/static/css/shared-nav.css">
+    <script src="/js/law-linker.js"></script>
+    <link rel="stylesheet" href="/css/shared-nav.css">
 </head>
 <body>
     <!-- Shared Navigation -->
     <div id="semptify-nav"></div>
-    <script src="/static/js/shared-nav.js"></script>
+    <script src="/js/shared-nav.js"></script>
 
     <header class="header">
         <div class="logo">
@@ -657,7 +657,7 @@
             <button class="action-btn" onclick="exportDocuments()">
                 <span>📥</span> Export Documents
             </button>
-            <a href="/static/letter_builder.html" class="action-btn" style="background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; text-decoration: none;">
+            <a href="/letter_builder.html" class="action-btn" style="background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; text-decoration: none;">
                 <span>✉️</span> Letter Builder
             </a>
         </div>
@@ -1241,8 +1241,8 @@
     </script>
 
     <!-- Site-Wide Help System -->
-    <script src="/static/js/help-system.js"></script>
-    <script src="/static/js/help-content.js"></script>
+    <script src="/js/help-system.js"></script>
+    <script src="/js/help-content.js"></script>
     <script>SemptifyHelp.init('documents');</script>
     <script>
         // Initialize law linker for automatic statute linking

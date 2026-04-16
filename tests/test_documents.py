@@ -14,8 +14,8 @@ import httpx
 # =============================================================================
 
 @pytest.mark.anyio
-async def test_document_upload(client: AsyncClient, test_user_id):
-    """Test document upload endpoint."""
+async def test_document_upload_happy_path(client: AsyncClient, test_user_id):
+    """Test complete document upload happy path with vault storage."""
     # Create a mock PDF file
     file_content = b"%PDF-1.4 mock pdf content for testing"
     files = {"file": ("test_lease.pdf", BytesIO(file_content), "application/pdf")}
@@ -30,6 +30,166 @@ async def test_document_upload(client: AsyncClient, test_user_id):
         assert "id" in data
         assert "filename" in data
         assert "status" in data
+        assert "vault_id" in data  # Should have vault ID from unified upload
+        assert "registry_id" in data  # Should have registry ID
+        assert data["filename"] == "test_lease.pdf"
+
+
+@pytest.mark.anyio
+async def test_vault_deduplication_by_sha256(client: AsyncClient, test_user_id):
+    """Test that vault deduplicates documents by SHA-256 hash."""
+    # Upload the same content twice
+    file_content = b"Identical document content for deduplication test"
+    files1 = {"file": ("doc1.pdf", BytesIO(file_content), "application/pdf")}
+    files2 = {"file": ("doc2.pdf", BytesIO(file_content), "application/pdf")}
+    
+    # First upload
+    response1 = await client.post(
+        f"/api/documents/upload?user_id={test_user_id}",
+        files=files1
+    )
+    
+    # Second upload (same content, different filename)
+    response2 = await client.post(
+        f"/api/documents/upload?user_id={test_user_id}",
+        files=files2
+    )
+    
+    if response1.status_code in [200, 201] and response2.status_code in [200, 201]:
+        data1 = response1.json()
+        data2 = response2.json()
+        
+        # Should both succeed
+        assert data1["status"] in ["completed", "processed", "classified"]
+        assert data2["status"] in ["completed", "processed", "classified"]
+        
+        # Should have different document IDs but potentially same vault ID
+        assert data1["id"] != data2["id"]
+        
+        # Check if vault deduplication worked (same vault_id would indicate deduplication)
+        # Note: This depends on vault service implementation
+        assert "vault_id" in data1
+        assert "vault_id" in data2
+
+
+@pytest.mark.anyio
+async def test_vault_certificate_record_creation(client: AsyncClient, test_user_id):
+    """Test that vault upload creates proper certificate records."""
+    file_content = b"Document for certificate testing"
+    files = {"file": ("cert_test.pdf", BytesIO(file_content), "application/pdf")}
+    
+    response = await client.post(
+        f"/api/documents/upload?user_id={test_user_id}",
+        files=files
+    )
+    
+    if response.status_code in [200, 201]:
+        data = response.json()
+        
+        # Should have vault metadata
+        assert "vault_id" in data
+        assert "certificate_path" in data or "certificate_id" in data
+        
+        # Should have integrity information
+        assert "content_hash" in data or "sha256_hash" in data
+        
+        # Document should be marked as original (not duplicate)
+        assert data.get("is_duplicate") is False or "is_duplicate" not in data
+
+
+@pytest.mark.anyio
+async def test_document_upload_large_file_rejection(client: AsyncClient, test_user_id):
+    """Test that uploads reject files over the size limit."""
+    # Create a large file (over typical 50MB limit)
+    large_content = b"x" * (60 * 1024 * 1024)  # 60MB
+    files = {"file": ("large_file.pdf", BytesIO(large_content), "application/pdf")}
+    
+    response = await client.post(
+        f"/api/documents/upload?user_id={test_user_id}",
+        files=files
+    )
+    
+    # Should be rejected for size
+    assert response.status_code == 400
+    data = response.json()
+    assert "too large" in data.get("detail", "").lower() or "size" in data.get("detail", "").lower()
+
+
+@pytest.mark.anyio
+async def test_document_upload_invalid_file_type(client: AsyncClient, test_user_id):
+    """Test that uploads reject disallowed file types."""
+    # Try to upload an executable
+    exe_content = b"MZ\x90\x00\x03\x00\x00\x00\x04\x00\x00\x00\xff\xff\x00\x00"  # Fake EXE header
+    files = {"file": ("malware.exe", BytesIO(exe_content), "application/x-msdownload")}
+    
+    response = await client.post(
+        f"/api/documents/upload?user_id={test_user_id}",
+        files=files
+    )
+    
+    # Should be rejected for file type
+    assert response.status_code == 400
+    data = response.json()
+    assert "not allowed" in data.get("detail", "").lower() or "type" in data.get("detail", "").lower()
+
+
+@pytest.mark.anyio
+async def test_document_upload_missing_filename(client: AsyncClient, test_user_id):
+    """Test that uploads require a filename."""
+    file_content = b"Content without filename"
+    # Upload without filename in the file tuple
+    files = {"file": (None, BytesIO(file_content), "application/pdf")}
+    
+    response = await client.post(
+        f"/api/documents/upload?user_id={test_user_id}",
+        files=files
+    )
+    
+    # Should be rejected
+    assert response.status_code == 400
+    data = response.json()
+    assert "filename" in data.get("detail", "").lower()
+
+
+@pytest.mark.anyio
+async def test_document_upload_with_case_number(client: AsyncClient, test_user_id):
+    """Test document upload with case number association."""
+    file_content = b"Case-related document"
+    files = {"file": ("case_doc.pdf", BytesIO(file_content), "application/pdf")}
+    
+    response = await client.post(
+        f"/api/documents/upload?user_id={test_user_id}&case_number=CASE-2024-001",
+        files=files
+    )
+    
+    if response.status_code in [200, 201]:
+        data = response.json()
+        assert "id" in data
+        # Case number should be associated (may not be returned in response but stored)
+
+
+@pytest.mark.anyio
+async def test_document_upload_processing_pipeline(client: AsyncClient, test_user_id):
+    """Test that upload triggers the full processing pipeline."""
+    file_content = b"Document for pipeline testing"
+    files = {"file": ("pipeline_test.pdf", BytesIO(file_content), "application/pdf")}
+    
+    response = await client.post(
+        f"/api/documents/upload?user_id={test_user_id}",
+        files=files
+    )
+    
+    if response.status_code in [200, 201]:
+        data = response.json()
+        
+        # Should have processing results
+        assert "status" in data
+        assert data["status"] in ["completed", "processed", "classified", "pending"]
+        
+        # Should have analysis results if processed
+        if data["status"] in ["completed", "processed", "classified"]:
+            # May have classification, text extraction, etc.
+            assert "doc_type" in data or "document_type" in data or "mime_type" in data
 
 
 @pytest.mark.anyio

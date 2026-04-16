@@ -304,7 +304,7 @@
     <div class="container">
         <!-- Header -->
         <div class="header">
-            <a href="/static/onboarding/select-role.html" class="back-link">
+            <a href="/onboarding/select-role.html" class="back-link">
                 ← Change Role
             </a>
             <span class="step-indicator">Step 2 of 3</span>
@@ -372,7 +372,7 @@
         
         <!-- Not an advocate -->
         <div class="not-advocate">
-            <a href="/static/onboarding/select-role.html?role=user">
+            <a href="/onboarding/select-role.html?role=user">
                 ← I'm a tenant, not an advocate
             </a>
         </div>
@@ -411,7 +411,12 @@
                 if (data.success) {
                     showResult('success', '✅ Code verified! Redirecting to storage setup...');
                     setTimeout(() => {
-                        window.location.href = '/storage/providers?role=advocate&from=onboarding&verified=true';
+                        // If running from static demo server, route to local mock providers page
+                        if (location.hostname === 'localhost' && (location.port === '8080' || location.port === '8000')) {
+                            window.location.href = '/onboarding/storage-providers.html?role=advocate&from=onboarding&verified=true';
+                        } else {
+                            window.location.href = '/storage/providers?role=advocate&from=onboarding&verified=true';
+                        }
                     }, 1500);
                 } else if (data.status === 'pending') {
                     showResult('pending', '⏳ ' + data.message);
