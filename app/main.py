@@ -1657,35 +1657,44 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     # API Version info (GET /api/version)
     from app.core.versioning import version_router
-    fastapi_app.include_router(version_router)
+    if version_router:
+        fastapi_app.include_router(version_router)
 
     # Health & metrics (no prefix)
-    fastapi_app.include_router(health.router, tags=["Health"])
+    if health.router:
+        fastapi_app.include_router(health.router, tags=["Health"])
 
     # Role-based UI routing (directs users to appropriate interface)
-    fastapi_app.include_router(role_ui_router, tags=["Role UI"])
+    if role_ui_router:
+        fastapi_app.include_router(role_ui_router, tags=["Role UI"])
 
     # Workflow engine + page contract API
     if workflow_router:
         fastapi_app.include_router(workflow_router)
     
     # Role upgrade/verification API
-    fastapi_app.include_router(role_upgrade_router, tags=["Role Management"])
+    if role_upgrade_router:
+        fastapi_app.include_router(role_upgrade_router, tags=["Role Management"])
     
     # Guided Intake - Conversational intake like an attorney/advocate
-    fastapi_app.include_router(guided_intake_router, tags=["Guided Intake"])
+    if guided_intake_router:
+        fastapi_app.include_router(guided_intake_router, tags=["Guided Intake"])
 
     # Unified Onboarding (primary entry point for new users)
-    fastapi_app.include_router(onboarding.router, tags=["Onboarding"])
+    if onboarding.router:
+        fastapi_app.include_router(onboarding.router, tags=["Onboarding"])
 
     # Storage OAuth (handles authentication)
-    fastapi_app.include_router(storage.router, tags=["Storage Auth"])
+    if storage.router:
+        fastapi_app.include_router(storage.router, tags=["Storage Auth"])
     
     # Plugin System (extensible module architecture)
-    fastapi_app.include_router(plugins.router, tags=["Plugin System"])
+    if plugins.router:
+        fastapi_app.include_router(plugins.router, tags=["Plugin System"])
     
     # Development Tools (crawler, analysis, debugging)
-    fastapi_app.include_router(development.router, tags=["Development Tools"])
+    if development.router:
+        fastapi_app.include_router(development.router, tags=["Development Tools"])
 
     # API routes
     # app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
@@ -1711,21 +1720,36 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     include_if(module_hub_router, prefix="/api", tags=["Module Hub"])  # Central module communication
     include_if(positronic_mesh_router, prefix="/api", tags=["Positronic Mesh"])  # Workflow orchestration
     include_if(mesh_network_router, prefix="/api", tags=["Mesh Network"])  # True bidirectional module communication
-    fastapi_app.include_router(location_router, tags=["Location"])  # Location detection and state-specific resources
-    fastapi_app.include_router(hud_funding_router, tags=["HUD Funding Guide"])  # HUD funding programs, tax credits, landlord eligibility
-    fastapi_app.include_router(fraud_exposure_router, tags=["Fraud Exposure"])  # Fraud analysis and detection
-    fastapi_app.include_router(public_exposure_router, tags=["Public Exposure"])  # Press releases and media campaigns
-    fastapi_app.include_router(campaign_router, tags=["Campaign Orchestration"])  # Combined complaint, fraud, press campaigns
-    fastapi_app.include_router(funding_search_router, tags=["Funding & Tax Credit Search"])  # LIHTC, NMTC, HUD funding search
-    fastapi_app.include_router(research_router, tags=["Research Module"])  # Landlord/property research and dossier
-    fastapi_app.include_router(research_module_router, tags=["Research Module SDK"])  # SDK-based landlord/property dossier
-    fastapi_app.include_router(extraction_router, tags=["Form Field Extraction"])  # Extract and map document data to form fields
-    fastapi_app.include_router(tenancy_hub_router, tags=["Tenancy Hub"])  # Central hub for all tenancy documentation
-    fastapi_app.include_router(legal_analysis_router, tags=["Legal Analysis"])
-    fastapi_app.include_router(legal_filing_router, tags=["Legal Filing"])  # Legal merit, consistency, evidence analysis
-    fastapi_app.include_router(legal_trails_router, tags=["Legal Trails"])  # Track violations, claims, broker oversight, filing deadlines
-    fastapi_app.include_router(contacts_router, tags=["Contact Manager"])  # Track landlords, attorneys, witnesses, agencies
-    fastapi_app.include_router(recognition_router, tags=["Document Recognition"])  # World-class document recognition engine
+    if location_router:
+        fastapi_app.include_router(location_router, tags=["Location"])  # Location detection and state-specific resources
+    if hud_funding_router:
+        fastapi_app.include_router(hud_funding_router, tags=["HUD Funding Guide"])  # HUD funding programs, tax credits, landlord eligibility
+    if fraud_exposure_router:
+        fastapi_app.include_router(fraud_exposure_router, tags=["Fraud Exposure"])  # Fraud analysis and detection
+    if public_exposure_router:
+        fastapi_app.include_router(public_exposure_router, tags=["Public Exposure"])  # Press releases and media campaigns
+    if campaign_router:
+        fastapi_app.include_router(campaign_router, tags=["Campaign Orchestration"])  # Combined complaint, fraud, press campaigns
+    if funding_search_router:
+        fastapi_app.include_router(funding_search_router, tags=["Funding & Tax Credit Search"])  # LIHTC, NMTC, HUD funding search
+    if research_router:
+        fastapi_app.include_router(research_router, tags=["Research Module"])  # Landlord/property research and dossier
+    if research_module_router:
+        fastapi_app.include_router(research_module_router, tags=["Research Module SDK"])  # SDK-based landlord/property dossier
+    if extraction_router:
+        fastapi_app.include_router(extraction_router, tags=["Form Field Extraction"])  # Extract and map document data to form fields
+    if tenancy_hub_router:
+        fastapi_app.include_router(tenancy_hub_router, tags=["Tenancy Hub"])  # Central hub for all tenancy documentation
+    if legal_analysis_router:
+        fastapi_app.include_router(legal_analysis_router, tags=["Legal Analysis"])
+    if legal_filing_router:
+        fastapi_app.include_router(legal_filing_router, tags=["Legal Filing"])  # Legal merit, consistency, evidence analysis
+    if legal_trails_router:
+        fastapi_app.include_router(legal_trails_router, tags=["Legal Trails"])  # Track violations, claims, broker oversight, filing deadlines
+    if contacts_router:
+        fastapi_app.include_router(contacts_router, tags=["Contact Manager"])  # Track landlords, attorneys, witnesses, agencies
+    if recognition_router:
+        fastapi_app.include_router(recognition_router, tags=["Document Recognition"])  # World-class document recognition engine
     if search_router:
         fastapi_app.include_router(search_router, prefix="/api/search", tags=["Global Search"])  # Universal search across all content
     if court_forms_router:
@@ -1780,32 +1804,40 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logging.getLogger(__name__).warning("⚠️ Dakota County module not available")
 
     # New Legal Defense Modules
-    fastapi_app.include_router(law_library_router, tags=["Law Library"])
-    fastapi_app.include_router(eviction_defense_router, tags=["Eviction Defense Toolkit"])
-    fastapi_app.include_router(zoom_court_router, tags=["Zoom Courtroom"])
+    if law_library_router:
+        fastapi_app.include_router(law_library_router, tags=["Law Library"])
+    if eviction_defense_router:
+        fastapi_app.include_router(eviction_defense_router, tags=["Eviction Defense Toolkit"])
+    if zoom_court_router:
+        fastapi_app.include_router(zoom_court_router, tags=["Zoom Courtroom"])
     logging.getLogger(__name__).info("✅ Legal Defense modules loaded (Law Library, Eviction Defense, Zoom Court)")
 
     # Positronic Brain - Central Intelligence Hub
-    fastapi_app.include_router(brain_router, prefix="/brain", tags=["Positronic Brain"])
-    logging.getLogger(__name__).info("🧠 Positronic Brain connected - Central intelligence hub active")
+    if brain_router:
+        fastapi_app.include_router(brain_router, prefix="/brain", tags=["Positronic Brain"])
+        logging.getLogger(__name__).info("🧠 Positronic Brain connected - Central intelligence hub active")
     
     # Cloud Sync - User-Controlled Persistent Storage
-    fastapi_app.include_router(cloud_sync_router, tags=["Cloud Sync"])
-    logging.getLogger(__name__).info("☁️ Cloud Sync router connected - User-controlled data persistence active")
+    if cloud_sync_router:
+        fastapi_app.include_router(cloud_sync_router, tags=["Cloud Sync"])
+        logging.getLogger(__name__).info("☁️ Cloud Sync router connected - User-controlled data persistence active")
 
     # Document Overlays - Non-destructive annotations and processing
-    fastapi_app.include_router(overlays_router, tags=["Document Overlays"])
-    logging.getLogger(__name__).info("?? Document Overlays router connected - Non-destructive annotation system active")
+    if overlays_router:
+        fastapi_app.include_router(overlays_router, tags=["Document Overlays"])
+        logging.getLogger(__name__).info("📝 Document Overlays router connected - Non-destructive annotation system active")
 
     # Modular Components - New component system integration
     from app.routers import components
-    fastapi_app.include_router(components.router, tags=["Modular Components"])
-    logging.getLogger(__name__).info("?? Modular Components router connected - Component system integration active")
+    if components.router:
+        fastapi_app.include_router(components.router, tags=["Modular Components"])
+        logging.getLogger(__name__).info("🧩 Modular Components router connected - Component system integration active")
     
     # Litigation Intelligence System (LIS) - Justice-Grade Legal Intelligence
     try:
         from app.routers import litigation_intelligence
         fastapi_app.include_router(litigation_intelligence.lis_router, tags=["Litigation Intelligence"])
+        logging.getLogger(__name__).info("📊 Litigation Intelligence System router connected - Justice-grade legal intelligence active")
         logging.getLogger(__name__).info("?? Litigation Intelligence System router connected - Justice-grade legal intelligence active")
     except ImportError as e:
         logging.getLogger(__name__).warning(f"Litigation Intelligence System not available: {e}")
@@ -1902,8 +1934,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logging.getLogger(__name__).warning(f"Vault router not available: {e}")
 
     # Complaint Filing Wizard - Regulatory Accountability
-    fastapi_app.include_router(complaints_router, tags=["Complaint Wizard"])
-    logging.getLogger(__name__).info("⚖️ Complaint Filing Wizard loaded - Regulatory accountability tools active")
+    if complaints_router:
+        fastapi_app.include_router(complaints_router, tags=["Complaint Wizard"])
+        logging.getLogger(__name__).info("⚖️ Complaint Filing Wizard loaded - Regulatory accountability tools active")
 
     # app.include_router(complaints.router, prefix="/api/complaints", tags=["Complaints"])
     # app.include_router(ledger.router, prefix="/api/ledger", tags=["Rent Ledger"])
