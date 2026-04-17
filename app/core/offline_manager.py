@@ -154,12 +154,12 @@ class OfflineManager:
             function createIndicators() {
                 // Create offline indicator
                 offlineIndicator = document.createElement('div');
-                offlineIndicator.innerHTML = `""" + self.get_offline_html().replace(/"/g, '\\"').replace(/'/g, "\\'") + """`;
+                offlineIndicator.innerHTML = `""" + self.get_offline_html().replace('"', '\\"').replace("'", "\\'") + """`;
                 document.body.appendChild(offlineIndicator);
                 
                 // Create online indicator
                 onlineIndicator = document.createElement('div');
-                onlineIndicator.innerHTML = `""" + self.get_online_html().replace(/"/g, '\\"').replace(/'/g, "\\'") + """`;
+                onlineIndicator.innerHTML = `""" + self.get_online_html().replace('"', '\\"').replace("'", "\\'") + """;
                 document.body.appendChild(onlineIndicator);
             }
             
