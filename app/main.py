@@ -6,9 +6,15 @@ Core Promise: Help tenants with tools and information to uphold tenant rights,
 in court if it goes that far - hopefully it won't.
 """
 
+# Fix Windows console encoding for emojis
+import sys
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 import asyncio
 import logging
-import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
@@ -1720,30 +1726,47 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     fastapi_app.include_router(legal_trails_router, tags=["Legal Trails"])  # Track violations, claims, broker oversight, filing deadlines
     fastapi_app.include_router(contacts_router, tags=["Contact Manager"])  # Track landlords, attorneys, witnesses, agencies
     fastapi_app.include_router(recognition_router, tags=["Document Recognition"])  # World-class document recognition engine
-    fastapi_app.include_router(search_router, prefix="/api/search", tags=["Global Search"])  # Universal search across all content
-    fastapi_app.include_router(court_forms_router, tags=["Court Forms"])  # Auto-generate Minnesota court forms
-    fastapi_app.include_router(zoom_court_prep_router, tags=["Zoom Court Prep"])  # Hearing preparation and tech checks
-    fastapi_app.include_router(pdf_tools_router, tags=["PDF Tools"])  # PDF reader, viewer, page extractor
-    fastapi_app.include_router(briefcase_router, tags=["Briefcase"])  # Document & folder organization system
-    fastapi_app.include_router(emotion_router, tags=["Emotion Engine"])  # Adaptive UI emotion tracking
-    fastapi_app.include_router(court_packet_router, tags=["Court Packet"])  # Export court-ready document packets
-    fastapi_app.include_router(actions_router, tags=["Smart Actions"])  # Personalized action recommendations
-    fastapi_app.include_router(progress_router, tags=["Progress Tracker"])  # User journey progress tracking
-    fastapi_app.include_router(case_builder_router, tags=["Case Builder"])  # Case management & intake
-    fastapi_app.include_router(document_converter_router, tags=["Document Converter"])  # Markdown to DOCX/HTML conversion
-    fastapi_app.include_router(page_index_router, tags=["Page Index"])  # HTML page index database
+    if search_router:
+        fastapi_app.include_router(search_router, prefix="/api/search", tags=["Global Search"])  # Universal search across all content
+    if court_forms_router:
+        fastapi_app.include_router(court_forms_router, tags=["Court Forms"])  # Auto-generate Minnesota court forms
+    if zoom_court_prep_router:
+        fastapi_app.include_router(zoom_court_prep_router, tags=["Zoom Court Prep"])  # Hearing preparation and tech checks
+    if pdf_tools_router:
+        fastapi_app.include_router(pdf_tools_router, tags=["PDF Tools"])  # PDF reader, viewer, page extractor
+    if briefcase_router:
+        fastapi_app.include_router(briefcase_router, tags=["Briefcase"])  # Document & folder organization system
+    if emotion_router:
+        fastapi_app.include_router(emotion_router, tags=["Emotion Engine"])  # Adaptive UI emotion tracking
+    if court_packet_router:
+        fastapi_app.include_router(court_packet_router, tags=["Court Packet"])  # Export court-ready document packets
+    if actions_router:
+        fastapi_app.include_router(actions_router, tags=["Smart Actions"])  # Personalized action recommendations
+    if progress_router:
+        fastapi_app.include_router(progress_router, tags=["Progress Tracker"])  # User journey progress tracking
+    if case_builder_router:
+        fastapi_app.include_router(case_builder_router, tags=["Case Builder"])  # Case management & intake
+    if document_converter_router:
+        fastapi_app.include_router(document_converter_router, tags=["Document Converter"])  # Markdown to DOCX/HTML conversion
+    if page_index_router:
+        fastapi_app.include_router(page_index_router, tags=["Page Index"])  # HTML page index database
 
-    fastapi_app.include_router(dashboard_router, tags=["Unified Dashboard"])  # Combined dashboard data
-    fastapi_app.include_router(enterprise_dashboard_router, tags=["Enterprise Dashboard"])  # Premium enterprise UI & API
-    fastapi_app.include_router(crawler_router, tags=["Public Data Crawler"])  # Ethical web crawler for MN public data
+    if dashboard_router:
+        fastapi_app.include_router(dashboard_router, tags=["Unified Dashboard"])  # Combined dashboard data
+    if enterprise_dashboard_router:
+        fastapi_app.include_router(enterprise_dashboard_router, tags=["Enterprise Dashboard"])  # Premium enterprise UI & API
+    if crawler_router:
+        fastapi_app.include_router(crawler_router, tags=["Public Data Crawler"])  # Ethical web crawler for MN public data
 
     # Tenant Defense Module - Evidence collection, sealing petitions, demand letters
-    fastapi_app.include_router(tenant_defense_router, tags=["Tenant Defense"])
-    logging.getLogger(__name__).info("⚖️ Tenant Defense module loaded - Evidence, petitions, and screening disputes")
+    if tenant_defense_router:
+        fastapi_app.include_router(tenant_defense_router, tags=["Tenant Defense"])
+        logging.getLogger(__name__).info("⚖️ Tenant Defense module loaded - Evidence, petitions, and screening disputes")
 
     # Distributed Mesh Network - P2P Module Communication
-    fastapi_app.include_router(distributed_mesh_router, prefix="/api", tags=["Distributed Mesh"])
-    logging.getLogger(__name__).info("🌐 Distributed Mesh router connected - P2P architecture active")
+    if distributed_mesh_router:
+        fastapi_app.include_router(distributed_mesh_router, prefix="/api", tags=["Distributed Mesh"])
+        logging.getLogger(__name__).info("🌐 Distributed Mesh router connected - P2P architecture active")
 
     # Dakota County Eviction Defense Module
     if DAKOTA_AVAILABLE:
