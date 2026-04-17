@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify Onboarding Demo</title>
+    <link rel="stylesheet" href="/design-system/index.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+        }
+        
+        .demo-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .demo-header {
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+        }
+        
+        .demo-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .demo-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .demo-content {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+        
+        .role-selector {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .role-selector h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1e293b;
+        }
+        
+        .role-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .role-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            color: #64748b;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .role-btn:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+            transform: translateY(-1px);
+        }
+        
+        .role-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        
+        .role-btn.active.tenant {
+            background: #3b82f6;
+            border-color: #3b82f6;
+        }
+        
+        .role-btn.active.advocate {
+            background: #7c3aed;
+            border-color: #7c3aed;
+        }
+        
+        .role-btn.active.legal {
+            background: #10b981;
+            border-color: #10b981;
+        }
+        
+        .role-btn.active.admin {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+        
+        .component-showcase {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .showcase-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .showcase-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .showcase-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .showcase-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background: white;
+            color: #64748b;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .showcase-btn:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+        
+        .showcase-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+        
+        .component-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.2s;
+        }
+        
+        .component-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        }
+        
+        .component-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .component-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: #3b82f6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .component-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        
+        .component-description {
+            color: #64748b;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        
+        .component-demo {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 1rem;
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .event-log {
+            background: #1e293b;
+            color: #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.75rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 2rem;
+        }
+        
+        .event-entry {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        
+        .event-time {
+            color: #10b981;
+            margin-right: 0.5rem;
+        }
+        
+        .event-type {
+            color: #3b82f6;
+            margin-right: 0.5rem;
+        }
+        
+        .event-data {
+            color: #e2e8f0;
+        }
+        
+        @media (max-width: 768px) {
+            .demo-content {
+                padding: 1rem;
+            }
+            
+            .component-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .role-buttons {
+                flex-direction: column;
+            }
+            
+            .role-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1 class="demo-title">Semptify Component System Demo</h1>
+            <p class="demo-subtitle">Interactive showcase of modular GUI components</p>
+        </div>
+        
+        <div class="demo-content">
+            <!-- Role Selector -->
+            <div class="role-selector">
+                <h2>Select User Role</h2>
+                <div class="role-buttons">
+                    <button class="role-btn active tenant" onclick="switchRole('tenant')">Tenant</button>
+                    <button class="role-btn advocate" onclick="switchRole('advocate')">Advocate</button>
+                    <button class="role-btn legal" onclick="switchRole('legal')">Legal</button>
+                    <button class="role-btn admin" onclick="switchRole('admin')">Admin</button>
+                </div>
+            </div>
+            
+            <!-- Component Showcase -->
+            <div class="component-showcase">
+                <div class="showcase-header">
+                    <h2 class="showcase-title">Component Library</h2>
+                    <div class="showcase-actions">
+                        <button class="showcase-btn active" onclick="filterComponents('all')">All</button>
+                        <button class="showcase-btn" onclick="filterComponents('capture')">Capture</button>
+                        <button class="showcase-btn" onclick="filterComponents('understand')">Understand</button>
+                        <button class="showcase-btn" onclick="filterComponents('plan')">Plan</button>
+                    </div>
+                </div>
+                
+                <div class="component-grid" id="componentGrid">
+                    <!-- Components will be dynamically loaded here -->
+                </div>
+            </div>
+            
+            <!-- Event Log -->
+            <div class="event-log" id="eventLog">
+                <div class="event-entry">
+                    <span class="event-time">[00:00:00]</span>
+                    <span class="event-type">SYSTEM</span>
+                    <span class="event-data">Demo initialized</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State management
+        let currentRole = 'tenant';
+        let currentFilter = 'all';
+        let eventLog = [];
+        
+        // Component definitions
+        const components = [
+            {
+                id: 'upload-zone',
+                name: 'Upload Zone',
+                category: 'capture',
+                description: 'Drag-and-drop file upload with progress tracking',
+                icon: 'U'
+            },
+            {
+                id: 'quick-input',
+                name: 'Quick Input',
+                category: 'capture',
+                description: 'Text input with type selection and suggestions',
+                icon: 'Q'
+            },
+            {
+                id: 'voice-intake',
+                name: 'Voice Intake',
+                category: 'capture',
+                description: 'Real-time speech-to-text recording',
+                icon: 'V'
+            },
+            {
+                id: 'timeline-view',
+                name: 'Timeline View',
+                category: 'understand',
+                description: 'Chronological and grouped timeline views',
+                icon: 'T'
+            },
+            {
+                id: 'rights-analysis',
+                name: 'Rights Analysis',
+                category: 'understand',
+                description: 'AI-powered rights detection and analysis',
+                icon: 'R'
+            },
+            {
+                id: 'risk-detection',
+                name: 'Risk Detection',
+                category: 'understand',
+                description: 'Risk assessment with priority levels',
+                icon: '!'
+            },
+            {
+                id: 'action-list',
+                name: 'Action List',
+                category: 'plan',
+                description: 'Prioritized action items with progress tracking',
+                icon: 'A'
+            },
+            {
+                id: 'deadline-tracker',
+                name: 'Deadline Tracker',
+                category: 'plan',
+                description: 'Calendar and list views for deadline management',
+                icon: 'D'
+            },
+            {
+                id: 'next-step-card',
+                name: 'Next Step Card',
+                category: 'plan',
+                description: 'AI-recommended next steps with alternatives',
+                icon: 'N'
+            }
+        ];
+        
+        // Initialize demo
+        function initDemo() {
+            renderComponents();
+            setupEventListeners();
+            logEvent('SYSTEM', 'Demo initialized');
+        }
+        
+        // Render components based on current filter
+        function renderComponents() {
+            const grid = document.getElementById('componentGrid');
+            const filteredComponents = currentFilter === 'all' 
+                ? components 
+                : components.filter(c => c.category === currentFilter);
+            
+            grid.innerHTML = filteredComponents.map(component => `
+                <div class="component-card" data-component-id="${component.id}">
+                    <div class="component-header">
+                        <div class="component-icon">${component.icon}</div>
+                        <h3 class="component-title">${component.name}</h3>
+                    </div>
+                    <p class="component-description">${component.description}</p>
+                    <div class="component-demo">
+                        <button class="demo-component-btn" onclick="demoComponent('${component.id}')">
+                            Try ${component.name}
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Switch role
+        function switchRole(role) {
+            currentRole = role;
+            
+            // Update button states
+            document.querySelectorAll('.role-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.role-btn.${role}`).classList.add('active');
+            
+            // Update component colors
+            updateComponentColors();
+            
+            logEvent('ROLE', `Switched to ${role} role`);
+        }
+        
+        // Filter components
+        function filterComponents(filter) {
+            currentFilter = filter;
+            
+            // Update button states
+            document.querySelectorAll('.showcase-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            renderComponents();
+            logEvent('FILTER', `Filtered to ${filter} components`);
+        }
+        
+        // Update component colors based on role
+        function updateComponentColors() {
+            const roleColors = {
+                tenant: '#3b82f6',
+                advocate: '#7c3aed',
+                legal: '#10b981',
+                admin: '#ef4444'
+            };
+            
+            const color = roleColors[currentRole];
+            
+            document.querySelectorAll('.component-icon').forEach(icon => {
+                icon.style.background = color;
+            });
+            
+            document.querySelectorAll('.demo-component-btn').forEach(btn => {
+                btn.style.background = color;
+                btn.style.color = 'white';
+                btn.style.border = `1px solid ${color}`;
+            });
+        }
+        
+        // Demo component functionality
+        function demoComponent(componentId) {
+            const component = components.find(c => c.id === componentId);
+            if (!component) return;
+            
+            // Simulate component interaction
+            logEvent('COMPONENT', `Demo: ${component.name} (${component.category})`);
+            
+            // Add visual feedback
+            const card = document.querySelector(`[data-component-id="${componentId}"]`);
+            if (card) {
+                card.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    card.style.transform = '';
+                }, 200);
+            }
+            
+            // Emit mock event
+            const mockEvent = new CustomEvent(`${component.category}-${component.id}`, {
+                detail: {
+                    componentId: componentId,
+                    role: currentRole,
+                    timestamp: new Date().toISOString()
+                }
+            });
+            document.dispatchEvent(mockEvent);
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Listen for component events
+            document.addEventListener('capture-upload-zone', handleComponentEvent);
+            document.addEventListener('capture-quick-input', handleComponentEvent);
+            document.addEventListener('capture-voice-intake', handleComponentEvent);
+            document.addEventListener('understand-timeline-view', handleComponentEvent);
+            document.addEventListener('understand-rights-analysis', handleComponentEvent);
+            document.addEventListener('understand-risk-detection', handleComponentEvent);
+            document.addEventListener('plan-action-list', handleComponentEvent);
+            document.addEventListener('plan-deadline-tracker', handleComponentEvent);
+            document.addEventListener('plan-next-step-card', handleComponentEvent);
+        }
+        
+        // Handle component events
+        function handleComponentEvent(event) {
+            logEvent('EVENT', `${event.type}: ${JSON.stringify(event.detail)}`);
+        }
+        
+        // Log event to console
+        function logEvent(type, data) {
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = {
+                time: timestamp,
+                type: type,
+                data: JSON.stringify(data)
+            };
+            
+            eventLog.push(entry);
+            
+            // Update UI
+            const logElement = document.getElementById('eventLog');
+            const logEntry = document.createElement('div');
+            logEntry.className = 'event-entry';
+            logEntry.innerHTML = `
+                <span class="event-time">[${timestamp}]</span>
+                <span class="event-type">${type}</span>
+                <span class="event-data">${data}</span>
+            `;
+            
+            logElement.appendChild(logEntry);
+            logElement.scrollTop = logElement.scrollHeight;
+            
+            // Keep log size manageable
+            if (logElement.children.length > 50) {
+                logElement.removeChild(logElement.firstChild);
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initDemo);
+    </script>
+</body>
+</html>

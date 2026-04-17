@@ -1,0 +1,655 @@
+{# Tenant Case Summary Component #}
+{# Purpose: Focused case summary for tenant role with key information and quick actions #}
+{# Usage: {% include "design-system/components/function-groups/role-specific/tenant/case-summary.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "tenant_case_" ~ random_string() %}
+{% set role = "tenant" %}
+{% set compact_view = compact_view|default(false) %}
+{% set show_timeline = show_timeline|default(true) %}
+{% set show_actions = show_actions|default(true) %}
+
+<div class="tenant-case-summary role-{{ role }} {{ 'compact' if compact_view else '' }}" id="{{ component_id }}">
+  <div class="case-header">
+    <div class="case-title-section">
+      <div class="case-icon">+</div>
+      <div>
+        <div class="case-title">My Case</div>
+        <div class="case-subtitle">Housing rights protection case</div>
+      </div>
+    </div>
+    <div class="case-status">
+      <div class="case-stage" id="{{ component_id }}_stage">Loading...</div>
+      <div class="case-urgency" id="{{ component_id }}_urgency">Loading...</div>
+    </div>
+  </div>
+  
+  <div class="case-content">
+    <!-- Key Metrics -->
+    <div class="case-metrics">
+      <div class="metric-item">
+        <div class="metric-value" id="{{ component_id }}_documents">0</div>
+        <div class="metric-label">Documents</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-value" id="{{ component_id }}_timeline">0</div>
+        <div class="metric-label">Timeline Events</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-value" id="{{ component_id }}_deadlines">0</div>
+        <div class="metric-label">Deadlines</div>
+      </div>
+      <div class="metric-item">
+        <div class="metric-value" id="{{ component_id }}_rights">0</div>
+        <div class="metric-label">Rights Protected</div>
+      </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div class="recent-activity">
+      <div class="activity-header">
+        <div class="activity-title">Recent Activity</div>
+        <div class="activity-actions">
+          <button class="activity-action-btn" onclick="viewFullActivity()">View All</button>
+        </div>
+      </div>
+      <div class="activity-list" id="{{ component_id }}_activity">
+        <div class="activity-loading">Loading recent activity...</div>
+      </div>
+    </div>
+    
+    {% if show_timeline %}
+    <!-- Timeline Preview -->
+    <div class="timeline-preview">
+      <div class="timeline-header">
+        <div class="timeline-title">Recent Timeline</div>
+        <div class="timeline-actions">
+          <button class="timeline-action-btn" onclick="viewFullTimeline()">View All</button>
+        </div>
+      </div>
+      <div class="timeline-list" id="{{ component_id }}_timeline_preview">
+        <div class="timeline-loading">Loading timeline...</div>
+      </div>
+    </div>
+    {% endif %}
+    
+    {% if show_actions %}
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <div class="actions-header">
+        <div class="actions-title">Quick Actions</div>
+      </div>
+      <div class="actions-grid">
+        <button class="action-btn primary" onclick="uploadDocument()">
+          <span class="action-icon">+</span>
+          <span class="action-text">Upload Document</span>
+        </button>
+        <button class="action-btn secondary" onclick="addNote()">
+          <span class="action-icon">+</span>
+          <span class="action-text">Add Note</span>
+        </button>
+        <button class="action-btn secondary" onclick="recordVoice()">
+          <span class="action-icon">+</span>
+          <span class="action-text">Voice Memo</span>
+        </button>
+        <button class="action-btn secondary" onclick="viewTimeline()">
+          <span class="action-icon">+</span>
+          <span class="action-text">View Timeline</span>
+        </button>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{# Store configuration in data attributes #}
+<div id="{{ component_id }}_config" 
+     data-component-id="{{ component_id }}"
+     data-role="{{ role }}"
+     data-compact-view="{{ compact_view|lower }}"
+     data-show-timeline="{{ show_timeline|lower }}"
+     data-show-actions="{{ show_actions|lower }}"
+     style="display: none;"></div>
+
+<style>
+.tenant-case-summary {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  transition: all var(--transition-normal);
+}
+
+.tenant-case-summary.compact {
+  padding: var(--space-md);
+}
+
+.tenant-case-summary:hover {
+  border-color: var(--color-tenant-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.case-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--space-lg);
+}
+
+.case-title-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.case-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-tenant-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.case-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.case-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-xs);
+}
+
+.case-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-xs);
+}
+
+.case-stage, .case-urgency {
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.case-urgency.high {
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.case-urgency.medium {
+  color: var(--color-warning);
+  border-color: var(--color-warning);
+}
+
+.case-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.case-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: var(--space-md);
+}
+
+.metric-item {
+  text-align: center;
+  padding: var(--space-md);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+}
+
+.metric-item:hover {
+  border-color: var(--color-tenant-primary);
+  transform: translateY(-1px);
+}
+
+.metric-value {
+  font-size: var(--font-size-2xl);
+  font-weight: 600;
+  color: var(--color-tenant-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.metric-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.recent-activity, .timeline-preview {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
+.activity-header, .timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+}
+
+.activity-title, .timeline-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.activity-action-btn, .timeline-action-btn {
+  padding: var(--space-xs) var(--space-sm);
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.activity-action-btn:hover, .timeline-action-btn:hover {
+  border-color: var(--color-tenant-primary);
+  color: var(--color-tenant-primary);
+}
+
+.activity-list, .timeline-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.activity-item, .timeline-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.activity-item:hover, .timeline-item:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-tenant-primary);
+}
+
+.activity-icon, .timeline-icon {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-tenant-primary);
+  flex-shrink: 0;
+  margin-top: var(--space-xs);
+}
+
+.activity-content, .timeline-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-title, .timeline-title {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+  line-height: 1.4;
+}
+
+.activity-description, .timeline-description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.activity-time, .timeline-time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.quick-actions {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
+.actions-header {
+  margin-bottom: var(--space-sm);
+}
+
+.actions-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-sm);
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.action-btn:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-tenant-primary);
+  transform: translateY(-1px);
+}
+
+.action-btn.primary {
+  background: var(--color-tenant-primary);
+  color: white;
+  border-color: var(--color-tenant-primary);
+}
+
+.action-btn.primary:hover {
+  background: var(--color-tenant-primary-dark, #1e40af);
+}
+
+.action-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-md);
+  background: var(--color-tenant-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.action-btn.primary .action-icon {
+  background: white;
+  color: var(--color-tenant-primary);
+}
+
+.action-text {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  text-align: center;
+}
+
+.activity-loading, .timeline-loading {
+  text-align: center;
+  padding: var(--space-md);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.tenant-case-summary.compact .case-metrics {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.tenant-case-summary.compact .recent-activity,
+.tenant-case-summary.compact .timeline-preview,
+.tenant-case-summary.compact .quick-actions {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .case-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+  
+  .case-status {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  
+  .case-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get configuration from data attributes
+  const configEl = document.getElementById('{{ component_id }}_config');
+  const config = {
+    componentId: configEl.dataset.componentId,
+    role: configEl.dataset.role,
+    compactView: configEl.dataset.compactView === 'true',
+    showTimeline: configEl.dataset.showTimeline === 'true',
+    showActions: configEl.dataset.showActions === 'true'
+  };
+  
+  // Initialize case summary
+  initCaseSummary();
+  
+  function initCaseSummary() {
+    loadCaseData();
+    setupEventListeners();
+  }
+  
+  function loadCaseData() {
+    // Simulate loading case data
+    setTimeout(() => {
+      const caseData = {
+        stage: 'Planning',
+        urgency: 'High',
+        metrics: {
+          documents: 12,
+          timeline: 8,
+          deadlines: 3,
+          rights: 6
+        },
+        recentActivity: [
+          {
+            id: '1',
+            title: 'Uploaded eviction notice',
+            description: 'Added to documents folder',
+            time: '2 hours ago'
+          },
+          {
+            id: '2',
+            title: 'Added timeline event',
+            description: 'Received notice from landlord',
+            time: '5 hours ago'
+          },
+          {
+            id: '3',
+            title: 'Voice memo recorded',
+            description: 'Details about property condition',
+            time: '1 day ago'
+          }
+        ],
+        timeline: [
+          {
+            id: '1',
+            title: 'Eviction notice received',
+            description: 'Formal notice delivered',
+            time: '2 days ago'
+          },
+          {
+            id: '2',
+            title: 'Communication with landlord',
+            description: 'Email exchange about repairs',
+            time: '3 days ago'
+          }
+        ]
+      };
+      
+      updateCaseDisplay(caseData);
+      updateMetrics(caseData.metrics);
+      updateRecentActivity(caseData.recentActivity);
+      if (config.showTimeline) {
+        updateTimelinePreview(caseData.timeline);
+      }
+    }, 800);
+  }
+  
+  function updateCaseDisplay(caseData) {
+    const stageEl = document.getElementById(config.componentId + '_stage');
+    const urgencyEl = document.getElementById(config.componentId + '_urgency');
+    
+    if (stageEl) stageEl.textContent = caseData.stage;
+    if (urgencyEl) {
+      urgencyEl.textContent = caseData.urgency;
+      urgencyEl.className = `case-urgency ${caseData.urgency.toLowerCase()}`;
+    }
+  }
+  
+  function updateMetrics(metrics) {
+    const documentsEl = document.getElementById(config.componentId + '_documents');
+    const timelineEl = document.getElementById(config.componentId + '_timeline');
+    const deadlinesEl = document.getElementById(config.componentId + '_deadlines');
+    const rightsEl = document.getElementById(config.componentId + '_rights');
+    
+    if (documentsEl) documentsEl.textContent = metrics.documents;
+    if (timelineEl) timelineEl.textContent = metrics.timeline;
+    if (deadlinesEl) deadlinesEl.textContent = metrics.deadlines;
+    if (rightsEl) rightsEl.textContent = metrics.rights;
+  }
+  
+  function updateRecentActivity(activities) {
+    const activityListEl = document.getElementById(config.componentId + '_activity');
+    if (!activityListEl) return;
+    
+    const html = activities.map(activity => `
+      <div class="activity-item" data-activity-id="${activity.id}">
+        <div class="activity-icon"></div>
+        <div class="activity-content">
+          <div class="activity-title">${activity.title}</div>
+          <div class="activity-description">${activity.description}</div>
+          <div class="activity-time">${activity.time}</div>
+        </div>
+      </div>
+    `).join('');
+    
+    activityListEl.innerHTML = html;
+  }
+  
+  function updateTimelinePreview(timeline) {
+    const timelineListEl = document.getElementById(config.componentId + '_timeline_preview');
+    if (!timelineListEl) return;
+    
+    const html = timeline.map(event => `
+      <div class="timeline-item" data-timeline-id="${event.id}">
+        <div class="timeline-icon"></div>
+        <div class="timeline-content">
+          <div class="timeline-title">${event.title}</div>
+          <div class="timeline-description">${event.description}</div>
+          <div class="timeline-time">${event.time}</div>
+        </div>
+      </div>
+    `).join('');
+    
+    timelineListEl.innerHTML = html;
+  }
+  
+  function setupEventListeners() {
+    // Listen for function group events
+    document.addEventListener('capture-upload', handleCaptureEvent);
+    document.addEventListener('capture-quick-input', handleCaptureEvent);
+    document.addEventListener('capture-voice-input', handleCaptureEvent);
+    document.addEventListener('understand-timeline-select', handleUnderstandEvent);
+    document.addEventListener('plan-action-select', handlePlanEvent);
+  }
+  
+  function handleCaptureEvent(event) {
+    console.log('Tenant case summary - Capture event:', event.detail);
+    loadCaseData(); // Refresh data
+  }
+  
+  function handleUnderstandEvent(event) {
+    console.log('Tenant case summary - Understand event:', event.detail);
+    loadCaseData(); // Refresh data
+  }
+  
+  function handlePlanEvent(event) {
+    console.log('Tenant case summary - Plan event:', event.detail);
+    loadCaseData(); // Refresh data
+  }
+  
+  // Action handlers
+  function uploadDocument() {
+    const event = new CustomEvent('tenant-upload-document', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function addNote() {
+    const event = new CustomEvent('tenant-add-note', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function recordVoice() {
+    const event = new CustomEvent('tenant-record-voice', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function viewTimeline() {
+    const event = new CustomEvent('tenant-view-timeline', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function viewFullActivity() {
+    const event = new CustomEvent('tenant-view-activity', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function viewFullTimeline() {
+    const event = new CustomEvent('tenant-view-full-timeline', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  // Make action handlers available globally
+  window.uploadDocument = uploadDocument;
+  window.addNote = addNote;
+  window.recordVoice = recordVoice;
+  window.viewTimeline = viewTimeline;
+  window.viewFullActivity = viewFullActivity;
+  window.viewFullTimeline = viewFullTimeline;
+});
+</script>

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Under Maintenance{% endblock %}
+
+{% block body_class %}maintenance-page{% endblock %}
+
+{% block content %}
+<div class="maintenance-container">
+    <div class="maintenance-content">
+        <div class="maintenance-icon">🚧</div>
+        <h1>Under Maintenance</h1>
+        <p class="maintenance-message">{{ message }}</p>
+        <div class="maintenance-info">
+            <p>We apologize for the inconvenience. Our team is working hard to restore service.</p>
+            <p>Please check back in a few minutes.</p>
+        </div>
+        <div class="maintenance-actions">
+            <a href="/" class="btn btn-primary">Try Again</a>
+            <a href="mailto:support@semptify.org" class="btn btn-secondary">Contact Support</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.maintenance-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 2rem;
+}
+
+.maintenance-content {
+    text-align: center;
+    max-width: 500px;
+}
+
+.maintenance-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.maintenance-content h1 {
+    color: var(--color-text);
+    margin-bottom: 1rem;
+    font-size: 2rem;
+}
+
+.maintenance-message {
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+}
+
+.maintenance-info {
+    background: var(--color-surface-secondary);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+}
+
+.maintenance-info p {
+    margin: 0.5rem 0;
+    color: var(--color-text-secondary);
+}
+
+.maintenance-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--color-primary-hover);
+}
+
+.btn-secondary {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+    background: var(--color-surface-hover);
+}
+
+@media (max-width: 480px) {
+    .maintenance-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .btn {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+</style>
+{% endblock %}

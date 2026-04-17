@@ -1,14 +1,14 @@
 """
-Global Search API
-=================
+Global Search API - Enhanced with Advanced Search Engine
+========================================================
 
-Searches across all Semptify data sources:
-- Documents
+Searches across all Semptify data sources with advanced indexing:
+- Documents (full-text indexed)
 - Timeline events
 - Contacts
 - Law library
 
-Provides unified search results with relevance scoring.
+Provides unified search results with BM25 relevance scoring, highlights, and suggestions.
 """
 
 import logging
@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
 from app.core.security import require_user, StorageUser
+from app.core.search_engine import get_search_engine, SearchType, SearchOperator
 from app.models.models import (
     Document as DocumentModel,
     TimelineEvent as TimelineEventModel,
@@ -357,6 +358,199 @@ async def global_search(
     
     return response
 
+
+@router.get("/advanced")
+async def advanced_search(
+    q: str = Query(..., min_length=1, description="Search query"),
+    search_type: str = Query("full_text", description="Search type: full_text, metadata, content, hybrid"),
+    operator: str = Query("and", description="Search operator: and, or, not"),
+    file_types: Optional[str] = Query(None, description="Comma-separated file types to filter"),
+    tags: Optional[str] = Query(None, description="Comma-separated tags to filter"),
+    date_from: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
+    date_to: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
+    limit: int = Query(20, ge=1, le=100, description="Max results"),
+    offset: int = Query(0, ge=0, description="Results offset"),
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Advanced search with BM25 relevance scoring and filters.
+    
+    Features:
+    - Full-text search with BM25 scoring
+    - Multiple search operators (AND, OR, NOT)
+    - File type and tag filtering
+    - Date range filtering
+    - Search highlights
+    """
+    try:
+        # Parse search parameters
+        search_type_enum = SearchType(search_type)
+        operator_enum = SearchOperator(operator)
+        
+        file_type_list = file_types.split(',') if file_types else None
+        tag_list = tags.split(',') if tags else None
+        
+        date_range = None
+        if date_from and date_to:
+            try:
+                start_date = datetime.strptime(date_from, "%Y-%m-%d")
+                end_date = datetime.strptime(date_to, "%Y-%m-%d")
+                date_range = (start_date, end_date)
+            except ValueError:
+                pass
+        
+        # Perform advanced search
+        search_engine = get_search_engine()
+        results = search_engine.search(
+            query=q,
+            user_id=user.user_id,
+            search_type=search_type_enum,
+            operator=operator_enum,
+            file_types=file_type_list,
+            tags=tag_list,
+            date_range=date_range,
+            limit=limit,
+            offset=offset
+        )
+        
+        return results
+        
+    except ValueError as e:
+        return {
+            "error": f"Invalid search parameters: {str(e)}",
+            "results": [],
+            "total": 0
+        }
+    except Exception as e:
+        logger.error(f"Advanced search error: {e}")
+        return {
+            "error": "Search failed",
+            "results": [],
+            "total": 0
+        }
+
+@router.get("/suggestions")
+async def search_suggestions(
+    q: str = Query(..., min_length=1, description="Partial query for suggestions"),
+    limit: int = Query(10, ge=1, le=20, description="Max suggestions"),
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Get search suggestions based on partial query.
+    Uses popular queries and auto-completion.
+    """
+    try:
+        search_engine = get_search_engine()
+        suggestions = search_engine.suggest_queries(q, user.user_id, limit)
+        
+        return {
+            "query": q,
+            "suggestions": suggestions,
+            "total": len(suggestions)
+        }
+        
+    except Exception as e:
+        logger.error(f"Search suggestions error: {e}")
+        return {
+            "query": q,
+            "suggestions": [],
+            "total": 0
+        }
+
+@router.get("/statistics")
+async def search_statistics(
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Get search statistics and index information.
+    """
+    try:
+        search_engine = get_search_engine()
+        stats = search_engine.get_search_statistics()
+        
+        return stats
+        
+    except Exception as e:
+        logger.error(f"Search statistics error: {e}")
+        return {
+            "error": "Failed to get statistics",
+            "search_stats": {},
+            "index_stats": {}
+        }
+
+@router.post("/index")
+async def index_document(
+    document_id: str = Query(..., description="Document ID to index"),
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Manually index a document for search.
+    """
+    try:
+        # Get document from database
+        async with get_db_session() as session:
+            doc_query = select(DocumentModel).where(
+                DocumentModel.id == document_id,
+                DocumentModel.user_id == user.user_id
+            )
+            result = await session.execute(doc_query)
+            doc = result.scalar_one_or_none()
+            
+            if not doc:
+                return {"error": "Document not found"}
+            
+            # Index document
+            search_engine = get_search_engine()
+            success = search_engine.index_document(
+                document_id=doc.id,
+                user_id=doc.user_id,
+                title=doc.filename or "Untitled",
+                content=doc.extracted_text or "",
+                metadata={
+                    "document_type": doc.document_type,
+                    "created_at": doc.created_at.isoformat() if doc.created_at else None
+                },
+                file_type=doc.document_type or "unknown",
+                tags=[]
+            )
+            
+            return {
+                "success": success,
+                "document_id": document_id,
+                "message": "Document indexed successfully" if success else "Indexing failed"
+            }
+            
+    except Exception as e:
+        logger.error(f"Document indexing error: {e}")
+        return {
+            "error": f"Indexing failed: {str(e)}",
+            "document_id": document_id
+        }
+
+@router.delete("/index/{document_id}")
+async def remove_from_index(
+    document_id: str,
+    user: StorageUser = Depends(require_user),
+):
+    """
+    Remove a document from search index.
+    """
+    try:
+        search_engine = get_search_engine()
+        success = search_engine.remove_document(document_id)
+        
+        return {
+            "success": success,
+            "document_id": document_id,
+            "message": "Document removed from index" if success else "Removal failed"
+        }
+        
+    except Exception as e:
+        logger.error(f"Document removal error: {e}")
+        return {
+            "error": f"Removal failed: {str(e)}",
+            "document_id": document_id
+        }
 
 @router.get("/quick")
 async def quick_search(

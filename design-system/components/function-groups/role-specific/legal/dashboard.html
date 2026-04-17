@@ -1,0 +1,580 @@
+{# Legal Dashboard Component #}
+{# Purpose: Main dashboard for legal role with case management and legal oversight #}
+{# Usage: {% include "design-system/components/function-groups/role-specific/legal/dashboard.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "legal_dashboard_" ~ random_string() %}
+{% set role = "legal" %}
+{% set show_case_review = show_case_review|default(true) %}
+{% set show_document_review = show_document_review|default(true) %}
+
+<div class="legal-dashboard role-{{ role }}" id="{{ component_id }}">
+  <div class="legal-header">
+    <div class="header-content">
+      <div class="header-title-section">
+        <div class="header-icon">+</div>
+        <div>
+          <div class="header-title">Legal Dashboard</div>
+          <div class="header-subtitle">Legal case review and document analysis</div>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="stat-item">
+          <div class="stat-value" id="{{ component_id }}_pending_cases">0</div>
+          <div class="stat-label">Pending Review</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="{{ component_id }}_urgent_cases">0</div>
+          <div class="stat-label">Urgent</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="{{ component_id }}_documents">0</div>
+          <div class="stat-label">Documents</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  {% if show_case_review %}
+  <div class="case-review">
+    <div class="review-header">
+      <div class="review-title">Case Review Queue</div>
+      <div class="review-actions">
+        <button class="review-action-btn" onclick="viewAllCases()">View All Cases</button>
+      </div>
+    </div>
+    <div class="case-list" id="{{ component_id }}_case_list">
+      <div class="case-loading">Loading cases for review...</div>
+    </div>
+  </div>
+  {% endif %}
+  
+  {% if show_document_review %}
+  <div class="document-review">
+    <div class="document-header">
+      <div class="document-title">Document Review</div>
+      <div class="document-actions">
+        <button class="document-action-btn" onclick="reviewAllDocuments()">Review All</button>
+      </div>
+    </div>
+    <div class="document-list" id="{{ component_id }}_document_list">
+      <div class="document-loading">Loading documents for review...</div>
+    </div>
+  </div>
+  {% endif %}
+  
+  <div class="legal-actions">
+    <div class="actions-header">
+      <div class="actions-title">Quick Legal Actions</div>
+    </div>
+    <div class="actions-grid">
+      <button class="action-btn primary" onclick="startCaseReview()">
+        <span class="action-icon">+</span>
+        <span class="action-text">Start Case Review</span>
+      </button>
+      <button class="action-btn secondary" onclick="reviewDocuments()">
+        <span class="action-icon">+</span>
+        <span class="action-text">Review Documents</span>
+      </button>
+      <button class="action-btn secondary" onclick="generateLegalReport()">
+        <span class="action-icon">+</span>
+        <span class="action-text">Generate Report</span>
+      </button>
+      <button class="action-btn secondary" onclick="scheduleConsultation()">
+        <span class="action-icon">+</span>
+        <span class="action-text">Schedule Consultation</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+{# Store configuration in data attributes #}
+<div id="{{ component_id }}_config" 
+     data-component-id="{{ component_id }}"
+     data-role="{{ role }}"
+     data-show-case-review="{{ show_case_review|lower }}"
+     data-show-document-review="{{ show_document_review|lower }}"
+     style="display: none;"></div>
+
+<style>
+.legal-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  padding: var(--space-lg);
+}
+
+.legal-header {
+  background: linear-gradient(135deg, var(--color-legal-primary), var(--color-legal-primary-dark, #047857));
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.header-title-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.header-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.header-subtitle {
+  font-size: var(--font-size-base);
+  opacity: 0.9;
+}
+
+.header-stats {
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.stat-item {
+  text-align: center;
+  padding: var(--space-sm);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  min-width: 80px;
+}
+
+.stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.stat-label {
+  font-size: var(--font-size-xs);
+  opacity: 0.9;
+}
+
+.case-review, .document-review, .legal-actions {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+
+.review-header, .document-header, .actions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.review-title, .document-title, .actions-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.review-action-btn, .document-action-btn {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-legal-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.review-action-btn:hover, .document-action-btn:hover {
+  background: var(--color-legal-primary-dark, #047857);
+  transform: translateY(-1px);
+}
+
+.case-list, .document-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.case-item, .document-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.case-item:hover, .document-item:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-legal-primary);
+  transform: translateY(-1px);
+}
+
+.case-item.urgent, .document-item.urgent {
+  border-color: var(--color-error);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.item-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--color-legal-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.item-description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-xs);
+}
+
+.item-meta {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.item-status {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.item-status.pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--color-warning);
+}
+
+.item-status.urgent {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+}
+
+.item-status.reviewed {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-sm);
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.action-btn:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-legal-primary);
+  transform: translateY(-1px);
+}
+
+.action-btn.primary {
+  background: var(--color-legal-primary);
+  color: white;
+  border-color: var(--color-legal-primary);
+}
+
+.action-btn.primary:hover {
+  background: var(--color-legal-primary-dark, #047857);
+}
+
+.action-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-md);
+  background: var(--color-legal-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.action-btn.primary .action-icon {
+  background: white;
+  color: var(--color-legal-primary);
+}
+
+.action-text {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  text-align: center;
+}
+
+.case-loading, .document-loading {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+  
+  .header-stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get configuration from data attributes
+  const configEl = document.getElementById('{{ component_id }}_config');
+  const config = {
+    componentId: configEl.dataset.componentId,
+    role: configEl.dataset.role,
+    showCaseReview: configEl.dataset.showCaseReview === 'true',
+    showDocumentReview: configEl.dataset.showDocumentReview === 'true'
+  };
+  
+  // Initialize legal dashboard
+  initLegalDashboard();
+  
+  function initLegalDashboard() {
+    loadLegalData();
+    setupEventListeners();
+  }
+  
+  function loadLegalData() {
+    // Simulate loading legal data
+    setTimeout(() => {
+      const legalData = {
+        stats: {
+          pendingCases: 8,
+          urgentCases: 3,
+          documents: 15
+        },
+        cases: [
+          {
+            id: '1',
+            title: 'Eviction Defense - John Smith',
+            description: 'Review eviction notice and prepare defense strategy',
+            status: 'urgent',
+            submitted: '2 hours ago'
+          },
+          {
+            id: '2',
+            title: 'Habitability Case - Sarah Johnson',
+            description: 'Review property condition evidence',
+            status: 'pending',
+            submitted: '1 day ago'
+          }
+        ],
+        documents: [
+          {
+            id: '1',
+            title: 'Lease Agreement Review',
+            description: 'Review lease terms for potential violations',
+            status: 'pending',
+            uploaded: '3 hours ago'
+          },
+          {
+            id: '2',
+            title: 'Eviction Notice Analysis',
+            description: 'Analyze notice for legal compliance',
+            status: 'urgent',
+            uploaded: '1 hour ago'
+          }
+        ]
+      };
+      
+      updateHeaderStats(legalData.stats);
+      if (config.showCaseReview) {
+        updateCaseList(legalData.cases);
+      }
+      if (config.showDocumentReview) {
+        updateDocumentList(legalData.documents);
+      }
+    }, 1000);
+  }
+  
+  function updateHeaderStats(stats) {
+    const pendingEl = document.getElementById(config.componentId + '_pending_cases');
+    const urgentEl = document.getElementById(config.componentId + '_urgent_cases');
+    const documentsEl = document.getElementById(config.componentId + '_documents');
+    
+    if (pendingEl) pendingEl.textContent = stats.pendingCases;
+    if (urgentEl) urgentEl.textContent = stats.urgentCases;
+    if (documentsEl) documentsEl.textContent = stats.documents;
+  }
+  
+  function updateCaseList(cases) {
+    const caseListEl = document.getElementById(config.componentId + '_case_list');
+    if (!caseListEl) return;
+    
+    const html = cases.map(case_ => `
+      <div class="case-item ${case_.status}" data-case-id="${case_.id}">
+        <div class="item-icon">L</div>
+        <div class="item-content">
+          <div class="item-title">${case_.title}</div>
+          <div class="item-description">${case_.description}</div>
+          <div class="item-meta">
+            <span>Submitted: ${case_.submitted}</span>
+          </div>
+        </div>
+        <div class="item-status ${case_.status}">${case_.status}</div>
+      </div>
+    `).join('');
+    
+    caseListEl.innerHTML = html;
+  }
+  
+  function updateDocumentList(documents) {
+    const documentListEl = document.getElementById(config.componentId + '_document_list');
+    if (!documentListEl) return;
+    
+    const html = documents.map(doc => `
+      <div class="document-item ${doc.status}" data-document-id="${doc.id}">
+        <div class="item-icon">D</div>
+        <div class="item-content">
+          <div class="item-title">${doc.title}</div>
+          <div class="item-description">${doc.description}</div>
+          <div class="item-meta">
+            <span>Uploaded: ${doc.uploaded}</span>
+          </div>
+        </div>
+        <div class="item-status ${doc.status}">${doc.status}</div>
+      </div>
+    `).join('');
+    
+    documentListEl.innerHTML = html;
+  }
+  
+  function setupEventListeners() {
+    // Listen for function group events
+    document.addEventListener('capture-upload', handleCaptureEvent);
+    document.addEventListener('capture-quick-input', handleCaptureEvent);
+    document.addEventListener('capture-voice-input', handleCaptureEvent);
+    document.addEventListener('understand-timeline-select', handleUnderstandEvent);
+    document.addEventListener('plan-action-select', handlePlanEvent);
+  }
+  
+  function handleCaptureEvent(event) {
+    console.log('Legal dashboard - Capture event:', event.detail);
+    loadLegalData(); // Refresh data
+  }
+  
+  function handleUnderstandEvent(event) {
+    console.log('Legal dashboard - Understand event:', event.detail);
+    loadLegalData(); // Refresh data
+  }
+  
+  function handlePlanEvent(event) {
+    console.log('Legal dashboard - Plan event:', event.detail);
+    loadLegalData(); // Refresh data
+  }
+  
+  // Action handlers
+  function viewAllCases() {
+    const event = new CustomEvent('legal-view-all-cases', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function reviewAllDocuments() {
+    const event = new CustomEvent('legal-review-all-documents', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function startCaseReview() {
+    const event = new CustomEvent('legal-start-case-review', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function reviewDocuments() {
+    const event = new CustomEvent('legal-review-documents', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function generateLegalReport() {
+    const event = new CustomEvent('legal-generate-report', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function scheduleConsultation() {
+    const event = new CustomEvent('legal-schedule-consultation', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  // Make action handlers available globally
+  window.viewAllCases = viewAllCases;
+  window.reviewAllDocuments = reviewAllDocuments;
+  window.startCaseReview = startCaseReview;
+  window.reviewDocuments = reviewDocuments;
+  window.generateLegalReport = generateLegalReport;
+  window.scheduleConsultation = scheduleConsultation;
+});
+</script>

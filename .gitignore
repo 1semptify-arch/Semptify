@@ -116,3 +116,6 @@ SemptifyBundle.zip
 installer/dependencies/*.exe
 installer/dependencies/**/*.exe
 *.msi
+CREDENTIALS_SETUP_WORKBOOK_REVEALED.html
+.gitignore
+r2.pdf

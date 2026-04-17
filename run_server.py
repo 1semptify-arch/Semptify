@@ -20,6 +20,9 @@ if sys.platform == 'win32':
 
 def main():
     # Load from .env if not already set (don't override environment variables)
+    from dotenv import load_dotenv
+    load_dotenv(dotenv_path=".env", override=False)
+    
     if "SECURITY_MODE" not in os.environ:
         os.environ["SECURITY_MODE"] = "enforced"  # Default to enforced/production
     if "DEBUG" not in os.environ:
@@ -33,8 +36,8 @@ def main():
     print("=" * 60)
     print()
     print(f"  Security:       {security_mode.upper()}")
-    print("  Command Center: http://localhost:8000/static/command_center.html")
-    print("  Dashboard:      http://localhost:8000/static/dashboard.html")
+    print("  Welcome:        http://localhost:8000/onboarding")
+    print("  Dashboard:      http://localhost:8000/dashboard")
     print("  API Docs:       http://localhost:8000/docs")
     print("  Eviction:       http://localhost:8000/eviction/")
     print()
@@ -45,7 +48,7 @@ def main():
     import webbrowser
     def open_browser():
         time.sleep(3)
-        webbrowser.open("http://localhost:8000/static/command_center.html")
+        webbrowser.open("http://localhost:8000/onboarding")
     
     threading.Thread(target=open_browser, daemon=True).start()
     

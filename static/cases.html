@@ -1631,7 +1631,7 @@
                 });
             }
             // Navigate to case builder with case ID
-            window.location.href = `/static/case_builder.html?case=${caseId}`;
+            window.location.href = `/case_builder.html?case=${caseId}`;
         }
         
         async function deleteCase(caseId) {
@@ -1654,7 +1654,7 @@
         
         function openCaseDetail() {
             if (selectedCaseId) {
-                window.location.href = `/static/case_detail.html?case=${selectedCaseId}`;
+                window.location.href = `/case_detail.html?case=${selectedCaseId}`;
             }
         }
         

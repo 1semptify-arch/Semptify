@@ -209,42 +209,330 @@ class TestWriteOperations:
 
 
 # =============================================================================
-# Delete Endpoint Tests
+# Role-Based Access Control Tests
 # =============================================================================
 
-class TestDeleteOperations:
-    """Test vault delete operations."""
-    
-    def test_delete_soft(self, admin_cookie):
-        """Admin should be able to soft delete."""
-        response = client.post("/api/vault-engine/delete", json={
+class TestRoleBasedAccessControl:
+    """Test role-based access decisions for different scopes."""
+
+    def test_user_access_matrix(self, user_cookie):
+        """Test user role access permissions."""
+        # User should have RWD on OWN resources
+        response = client.post("/api/vault-engine/check-access", json={
             "resource_type": "document",
-            "resource_id": "delete-test-1",
-            "hard_delete": False,
-            "reason": "Testing soft delete"
-        }, cookies=admin_cookie)
-        # May succeed or fail if resource doesn't exist
-        assert response.status_code in [200, 403, 404]
-    
-    def test_delete_hard(self, admin_cookie):
-        """Admin should be able to hard delete."""
-        response = client.post("/api/vault-engine/delete", json={
-            "resource_type": "document",
-            "resource_id": "delete-test-2",
-            "hard_delete": True,
-            "reason": "Testing hard delete"
-        }, cookies=admin_cookie)
-        assert response.status_code in [200, 403, 404]
-    
-    def test_delete_user_denied(self, user_cookie):
-        """Regular user should not be able to delete."""
-        response = client.post("/api/vault-engine/delete", json={
-            "resource_type": "document",
-            "resource_id": "delete-test-3",
-            "hard_delete": False
+            "resource_id": "user-own-doc",
+            "action": "read"
         }, cookies=user_cookie)
-        # Users typically can't delete - should be denied or not found
-        assert response.status_code in [403, 404]
+        assert response.status_code == 200
+        assert response.json()["allowed"] is True
+
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "user-own-doc",
+            "action": "write"
+        }, cookies=user_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is True
+
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "user-own-doc",
+            "action": "delete"
+        }, cookies=user_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is True
+
+        # User should have only READ on SHARED resources
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "shared-doc",
+            "action": "read"
+        }, cookies=user_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is True
+
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "shared-doc",
+            "action": "write"
+        }, cookies=user_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is False
+
+        # User should have NO access to CASE/ORG/SYSTEM resources
+        for scope_resource in ["case-doc", "org-doc", "system-doc"]:
+            for action in ["read", "write", "delete"]:
+                response = client.post("/api/vault-engine/check-access", json={
+                    "resource_type": "document",
+                    "resource_id": scope_resource,
+                    "action": action
+                }, cookies=user_cookie)
+                assert response.status_code == 200
+                assert response.json()["allowed"] is False
+
+    def test_advocate_access_matrix(self):
+        """Test advocate role access permissions."""
+        advocate_cookie = {"semptify_uid": "GAa8Km3xPq"}  # Google + Advocate + random
+
+        # Advocate should have RWD on OWN, RW on SHARED, RW on CASE, R on ORG
+        # OWN - all permissions
+        for action in ["read", "write", "delete"]:
+            response = client.post("/api/vault-engine/check-access", json={
+                "resource_type": "document",
+                "resource_id": "advocate-own-doc",
+                "action": action
+            }, cookies=advocate_cookie)
+            assert response.status_code == 200
+            assert response.json()["allowed"] is True
+
+        # SHARED - read/write only
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "advocate-shared-doc",
+            "action": "read"
+        }, cookies=advocate_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is True
+
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "advocate-shared-doc",
+            "action": "write"
+        }, cookies=advocate_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is True
+
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "advocate-shared-doc",
+            "action": "delete"
+        }, cookies=advocate_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is False
+
+        # CASE - read/write only
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "advocate-case-doc",
+            "action": "read"
+        }, cookies=advocate_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is True
+
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "advocate-case-doc",
+            "action": "write"
+        }, cookies=advocate_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is True
+
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "advocate-case-doc",
+            "action": "delete"
+        }, cookies=advocate_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is False
+
+        # ORG - read only
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "advocate-org-doc",
+            "action": "read"
+        }, cookies=advocate_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is True
+
+        for action in ["write", "delete"]:
+            response = client.post("/api/vault-engine/check-access", json={
+                "resource_type": "document",
+                "resource_id": "advocate-org-doc",
+                "action": action
+            }, cookies=advocate_cookie)
+            assert response.status_code == 200
+            assert response.json()["allowed"] is False
+
+        # SYSTEM - no access
+        for action in ["read", "write", "delete"]:
+            response = client.post("/api/vault-engine/check-access", json={
+                "resource_type": "document",
+                "resource_id": "advocate-system-doc",
+                "action": action
+            }, cookies=advocate_cookie)
+            assert response.status_code == 200
+            assert response.json()["allowed"] is False
+
+    def test_legal_access_matrix(self):
+        """Test legal role access permissions."""
+        legal_cookie = {"semptify_uid": "GLc6Pk4wQt"}  # Google + Legal + random
+
+        # Legal should have RWD on OWN, RW on SHARED, RWD on CASE, RW on ORG, R on SYSTEM
+        # OWN - all permissions
+        for action in ["read", "write", "delete"]:
+            response = client.post("/api/vault-engine/check-access", json={
+                "resource_type": "document",
+                "resource_id": "legal-own-doc",
+                "action": action
+            }, cookies=legal_cookie)
+            assert response.status_code == 200
+            assert response.json()["allowed"] is True
+
+        # SHARED - read/write only
+        for action in ["read", "write"]:
+            response = client.post("/api/vault-engine/check-access", json={
+                "resource_type": "document",
+                "resource_id": "legal-shared-doc",
+                "action": action
+            }, cookies=legal_cookie)
+            assert response.status_code == 200
+            assert response.json()["allowed"] is True
+
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "legal-shared-doc",
+            "action": "delete"
+        }, cookies=legal_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is False
+
+        # CASE - all permissions
+        for action in ["read", "write", "delete"]:
+            response = client.post("/api/vault-engine/check-access", json={
+                "resource_type": "document",
+                "resource_id": "legal-case-doc",
+                "action": action
+            }, cookies=legal_cookie)
+            assert response.status_code == 200
+            assert response.json()["allowed"] is True
+
+        # ORG - read/write only
+        for action in ["read", "write"]:
+            response = client.post("/api/vault-engine/check-access", json={
+                "resource_type": "document",
+                "resource_id": "legal-org-doc",
+                "action": action
+            }, cookies=legal_cookie)
+            assert response.status_code == 200
+            assert response.json()["allowed"] is True
+
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "legal-org-doc",
+            "action": "delete"
+        }, cookies=legal_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is False
+
+        # SYSTEM - read only
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "legal-system-doc",
+            "action": "read"
+        }, cookies=legal_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is True
+
+        for action in ["write", "delete"]:
+            response = client.post("/api/vault-engine/check-access", json={
+                "resource_type": "document",
+                "resource_id": "legal-system-doc",
+                "action": action
+            }, cookies=legal_cookie)
+            assert response.status_code == 200
+            assert response.json()["allowed"] is False
+
+    def test_manager_access_matrix(self):
+        """Test manager role access permissions."""
+        manager_cookie = {"semptify_uid": "GMb7Nj2yRs"}  # Google + Manager + random
+
+        # Manager should have RWD on OWN, RW on SHARED, RW on CASE, RWD on ORG, R on SYSTEM
+        # OWN - all permissions
+        for action in ["read", "write", "delete"]:
+            response = client.post("/api/vault-engine/check-access", json={
+                "resource_type": "document",
+                "resource_id": "manager-own-doc",
+                "action": action
+            }, cookies=manager_cookie)
+            assert response.status_code == 200
+            assert response.json()["allowed"] is True
+
+        # SHARED - read/write only
+        for action in ["read", "write"]:
+            response = client.post("/api/vault-engine/check-access", json={
+                "resource_type": "document",
+                "resource_id": "manager-shared-doc",
+                "action": action
+            }, cookies=manager_cookie)
+            assert response.status_code == 200
+            assert response.json()["allowed"] is True
+
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "manager-shared-doc",
+            "action": "delete"
+        }, cookies=manager_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is False
+
+        # CASE - read/write only
+        for action in ["read", "write"]:
+            response = client.post("/api/vault-engine/check-access", json={
+                "resource_type": "document",
+                "resource_id": "manager-case-doc",
+                "action": action
+            }, cookies=manager_cookie)
+            assert response.status_code == 200
+            assert response.json()["allowed"] is True
+
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "manager-case-doc",
+            "action": "delete"
+        }, cookies=manager_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is False
+
+        # ORG - all permissions
+        for action in ["read", "write", "delete"]:
+            response = client.post("/api/vault-engine/check-access", json={
+                "resource_type": "document",
+                "resource_id": "manager-org-doc",
+                "action": action
+            }, cookies=manager_cookie)
+            assert response.status_code == 200
+            assert response.json()["allowed"] is True
+
+        # SYSTEM - read only
+        response = client.post("/api/vault-engine/check-access", json={
+            "resource_type": "document",
+            "resource_id": "manager-system-doc",
+            "action": "read"
+        }, cookies=manager_cookie)
+        assert response.status_code == 200
+        assert response.json()["allowed"] is True
+
+        for action in ["write", "delete"]:
+            response = client.post("/api/vault-engine/check-access", json={
+                "resource_type": "document",
+                "resource_id": "manager-system-doc",
+                "action": action
+            }, cookies=manager_cookie)
+            assert response.status_code == 200
+            assert response.json()["allowed"] is False
+
+    def test_admin_access_matrix(self, admin_cookie):
+        """Test admin role has all permissions on all scopes."""
+        # Admin should have all permissions on all scopes
+        for scope_resource in ["admin-own-doc", "admin-shared-doc", "admin-case-doc", "admin-org-doc", "admin-system-doc"]:
+            for action in ["read", "write", "delete"]:
+                response = client.post("/api/vault-engine/check-access", json={
+                    "resource_type": "document",
+                    "resource_id": scope_resource,
+                    "action": action
+                }, cookies=admin_cookie)
+                assert response.status_code == 200
+                assert response.json()["allowed"] is True
 
 
 # =============================================================================

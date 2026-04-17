@@ -460,7 +460,7 @@
             updateOverlay();
             updateChangesUI();
             
-            frame.src = `/static/${page}`;
+            frame.src = `/${page}`;
             
             frame.onload = () => {
                 initializeEditMode();
@@ -470,7 +470,7 @@
 
         function refreshPage() {
             if (currentPage) {
-                frame.src = `/static/${currentPage}`;
+                frame.src = `/${currentPage}`;
                 frame.onload = () => initializeEditMode();
             }
         }

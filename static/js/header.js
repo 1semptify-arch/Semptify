@@ -133,7 +133,7 @@
         // Highlight current page in nav
         const currentPath = window.location.pathname;
         document.querySelectorAll('.header-nav a').forEach(link => {
-            if (currentPath.includes(link.getAttribute('href').replace('/static/', ''))) {
+            if (currentPath.includes(link.getAttribute('href').replace('/', ''))) {
                 link.classList.add('active');
             }
         });
@@ -158,7 +158,7 @@
 
     // Quick Document FAB HTML
     const fab = document.createElement('a');
-    fab.href = '/static/document_intake.html?quick=true';
+    fab.href = '/document_intake.html?quick=true';
     fab.className = 'quick-document-fab';
     fab.innerHTML = '📸 Document';
     fab.title = 'Quick Document - Upload photo, receipt, or screenshot';

@@ -1,0 +1,544 @@
+{# Plan Deadline Tracker Component #}
+{# Purpose: Track urgent deadlines and court dates for case management #}
+{# Usage: {% include "design-system/components/function-groups/plan/deadline-tracker.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "plan_deadline_" ~ random_string() %}
+{% set function_group = "plan" %}
+{% set role = role or "tenant" %}
+{% set view_mode = view_mode or "list" %}
+{% set show_calendar = show_calendar|default(true) %}
+{% set show_overview = show_overview|default(true) %}
+{% set auto_refresh = auto_refresh|default(false) %}
+{% set refresh_interval = refresh_interval or 60 %}
+
+<div class="plan-deadline-tracker role-{{ role }}" 
+     id="{{ component_id }}"
+     data-function-group="{{ function_group }}"
+     data-role="{{ role }}"
+     data-view-mode="{{ view_mode }}"
+     data-show-calendar="{{ show_calendar|lower }}"
+     data-show-overview="{{ show_overview|lower }}"
+     data-auto-refresh="{{ auto_refresh|lower }}"
+     data-refresh-interval="{{ refresh_interval }}">
+  
+  <div class="deadline-header">
+    <div class="deadline-header-left">
+      <div class="deadline-icon">+</div>
+      <div>
+        <div class="deadline-title">Deadline Tracker</div>
+        <div class="deadline-subtitle">Track urgent deadlines and court dates</div>
+      </div>
+    </div>
+    
+    <div class="deadline-controls">
+      <select class="deadline-filter" id="{{ component_id }}_filter">
+        <option value="all">All Deadlines</option>
+        <option value="overdue">Overdue</option>
+        <option value="today">Today</option>
+        <option value="this-week">This Week</option>
+        <option value="upcoming">Upcoming</option>
+      </select>
+      
+      <div class="deadline-view-toggle">
+        <button class="deadline-view-btn active" data-view="list">List</button>
+        <button class="deadline-view-btn" data-view="calendar">Calendar</button>
+      </div>
+    </div>
+  </div>
+  
+  {% if show_overview %}
+  <div class="deadline-overview" id="{{ component_id }}_overview">
+    <div class="deadline-overview-item">
+      <div class="deadline-overview-value overdue" id="{{ component_id }}_overdue_count">0</div>
+      <div class="deadline-overview-label">Overdue</div>
+    </div>
+    <div class="deadline-overview-item">
+      <div class="deadline-overview-value today" id="{{ component_id }}_today_count">0</div>
+      <div class="deadline-overview-label">Today</div>
+    </div>
+    <div class="deadline-overview-item">
+      <div class="deadline-overview-value this-week" id="{{ component_id }}_week_count">0</div>
+      <div class="deadline-overview-label">This Week</div>
+    </div>
+    <div class="deadline-overview-item">
+      <div class="deadline-overview-value upcoming" id="{{ component_id }}_upcoming_count">0</div>
+      <div class="deadline-overview-label">Upcoming</div>
+    </div>
+  </div>
+  {% endif %}
+  
+  <div class="deadline-content" id="{{ component_id }}_content">
+    <div class="deadline-loading">
+      <div class="deadline-loading-spinner"></div>
+      <div class="deadline-loading-text">Loading deadlines...</div>
+    </div>
+  </div>
+</div>
+
+{# Store configuration in data attributes #}
+<div id="{{ component_id }}_config" 
+     data-component-id="{{ component_id }}"
+     data-role="{{ role }}"
+     data-view-mode="{{ view_mode }}"
+     data-show-calendar="{{ show_calendar|lower }}"
+     data-show-overview="{{ show_overview|lower }}"
+     data-auto-refresh="{{ auto_refresh|lower }}"
+     data-refresh-interval="{{ refresh_interval }}"
+     style="display: none;"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get configuration from data attributes
+  const configEl = document.getElementById('{{ component_id }}_config');
+  const config = {
+    componentId: configEl.dataset.componentId,
+    role: configEl.dataset.role,
+    viewMode: configEl.dataset.viewMode,
+    showCalendar: configEl.dataset.showCalendar === 'true',
+    showOverview: configEl.dataset.showOverview === 'true',
+    autoRefresh: configEl.dataset.autoRefresh === 'true',
+    refreshInterval: parseInt(configEl.dataset.refreshInterval)
+  };
+  
+  // Get DOM elements
+  const component = document.getElementById(config.componentId);
+  const content = document.getElementById(config.componentId + '_content');
+  const filter = document.getElementById(config.componentId + '_filter');
+  const viewBtns = component.querySelectorAll('.deadline-view-btn');
+  
+  // State
+  let currentFilter = 'all';
+  let currentView = config.viewMode;
+  let deadlineData = null;
+  let refreshTimer = null;
+  
+  // Initialize
+  initDeadlineTracker();
+  
+  function initDeadlineTracker() {
+    // Set up event listeners
+    if (filter) {
+      filter.addEventListener('change', handleFilterChange);
+    }
+    
+    viewBtns.forEach(btn => {
+      btn.addEventListener('click', handleViewChange);
+    });
+    
+    // Load initial data
+    loadDeadlineData();
+    
+    // Set up auto-refresh
+    if (config.autoRefresh) {
+      startAutoRefresh();
+    }
+  }
+  
+  function handleFilterChange(e) {
+    currentFilter = e.target.value;
+    renderDeadlines();
+  }
+  
+  function handleViewChange(e) {
+    const view = e.target.dataset.view;
+    currentView = view;
+    
+    // Update button states
+    viewBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    
+    renderDeadlines();
+  }
+  
+  function loadDeadlineData() {
+    // Show loading state
+    content.innerHTML = `
+      <div class="deadline-loading">
+        <div class="deadline-loading-spinner"></div>
+        <div class="deadline-loading-text">Loading deadlines...</div>
+      </div>
+    `;
+    
+    // Simulate API call
+    setTimeout(() => {
+      deadlineData = generateMockDeadlineData();
+      updateOverview();
+      renderDeadlines();
+    }, 1000);
+  }
+  
+  function generateMockDeadlineData() {
+    const now = new Date();
+    const deadlines = [
+      {
+        id: '1',
+        title: 'Eviction Response Due',
+        description: 'Formal response to eviction notice must be filed with court.',
+        type: 'legal',
+        deadline: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+        time: '5:00 PM',
+        location: 'County Courthouse',
+        priority: 'urgent',
+        status: 'pending',
+        documents: ['eviction_notice.pdf', 'response_template.docx']
+      },
+      {
+        id: '2',
+        title: 'Court Hearing',
+        description: 'Unlawful detainer hearing for eviction case.',
+        type: 'court',
+        deadline: new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000), // 10 days from now
+        time: '9:00 AM',
+        location: 'Courtroom 3B',
+        priority: 'high',
+        status: 'pending',
+        documents: ['court_summons.pdf', 'evidence_packet.pdf']
+      },
+      {
+        id: '3',
+        title: 'Legal Aid Consultation',
+        description: 'Free consultation with legal aid organization.',
+        type: 'legal',
+        deadline: new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000), // 1 day from now
+        time: '2:00 PM',
+        location: 'Legal Aid Office',
+        priority: 'high',
+        status: 'pending',
+        documents: []
+      },
+      {
+        id: '4',
+        title: 'Demand Letter Response',
+        description: 'Landlord must respond to demand letter within 14 days.',
+        type: 'response',
+        deadline: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago (overdue)
+        time: '11:59 PM',
+        location: 'Mail',
+        priority: 'medium',
+        status: 'overdue',
+        documents: ['demand_letter.pdf', 'certified_mail_receipt.pdf']
+      },
+      {
+        id: '5',
+        title: 'Filing Deadline Extension',
+        description: 'Last day to request extension for response filing.',
+        type: 'filing',
+        deadline: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+        time: '4:30 PM',
+        location: 'Court Clerk Office',
+        priority: 'medium',
+        status: 'pending',
+        documents: ['extension_request_form.pdf']
+      },
+      {
+        id: '6',
+        title: 'Inspection Response',
+        description: 'Landlord must respond to health inspection violations.',
+        type: 'response',
+        deadline: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        time: '5:00 PM',
+        location: 'Property Management Office',
+        priority: 'medium',
+        status: 'pending',
+        documents: ['health_inspection_report.pdf']
+      }
+    ];
+    
+    return deadlines;
+  }
+  
+  function updateOverview() {
+    if (!deadlineData || !config.showOverview) return;
+    
+    const now = new Date();
+    const stats = {
+      overdue: 0,
+      today: 0,
+      thisWeek: 0,
+      upcoming: 0
+    };
+    
+    deadlineData.forEach(deadline => {
+      const daysUntil = Math.ceil((deadline.deadline - now) / (1000 * 60 * 60 * 24));
+      
+      if (daysUntil < 0) {
+        stats.overdue++;
+      } else if (daysUntil === 0) {
+        stats.today++;
+      } else if (daysUntil <= 7) {
+        stats.thisWeek++;
+      } else {
+        stats.upcoming++;
+      }
+    });
+    
+    // Update overview display
+    const overdueEl = document.getElementById(config.componentId + '_overdue_count');
+    const todayEl = document.getElementById(config.componentId + '_today_count');
+    const weekEl = document.getElementById(config.componentId + '_week_count');
+    const upcomingEl = document.getElementById(config.componentId + '_upcoming_count');
+    
+    if (overdueEl) overdueEl.textContent = stats.overdue;
+    if (todayEl) todayEl.textContent = stats.today;
+    if (weekEl) weekEl.textContent = stats.thisWeek;
+    if (upcomingEl) upcomingEl.textContent = stats.upcoming;
+  }
+  
+  function renderDeadlines() {
+    if (!deadlineData) return;
+    
+    // Filter deadlines
+    let filteredDeadlines = deadlineData;
+    if (currentFilter !== 'all') {
+      filteredDeadlines = deadlineData.filter(deadline => {
+        const now = new Date();
+        const daysUntil = Math.ceil((deadline.deadline - now) / (1000 * 60 * 60 * 24));
+        
+        switch(currentFilter) {
+          case 'overdue': return daysUntil < 0;
+          case 'today': return daysUntil === 0;
+          case 'this-week': return daysUntil > 0 && daysUntil <= 7;
+          case 'upcoming': return daysUntil > 7;
+          default: return true;
+        }
+      });
+    }
+    
+    // Sort by deadline (closest first)
+    filteredDeadlines.sort((a, b) => a.deadline - b.deadline);
+    
+    // Render based on view mode
+    if (currentView === 'calendar') {
+      renderCalendarView(filteredDeadlines);
+    } else {
+      renderListView(filteredDeadlines);
+    }
+  }
+  
+  function renderListView(deadlines) {
+    if (deadlines.length === 0) {
+      renderEmptyState();
+      return;
+    }
+    
+    const html = `
+      <div class="deadline-list">
+        ${deadlines.map(deadline => createDeadlineItemHTML(deadline)).join('')}
+      </div>
+    `;
+    
+    content.innerHTML = html;
+    attachEventListeners();
+  }
+  
+  function renderCalendarView(deadlines) {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const firstDay = new Date(currentYear, currentMonth, 1);
+    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    // Create calendar grid
+    let calendarHTML = '<div class="deadline-calendar-view">';
+    
+    // Day headers
+    const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    dayHeaders.forEach(day => {
+      calendarHTML += `<div class="deadline-calendar-day-header">${day}</div>`;
+    });
+    
+    // Empty cells for days before month starts
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      calendarHTML += '<div class="deadline-calendar-day-cell"></div>';
+    }
+    
+    // Days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const cellDate = new Date(currentYear, currentMonth, day);
+      const dayDeadlines = deadlines.filter(d => 
+        d.deadline.toDateString() === cellDate.toDateString()
+      );
+      
+      const isToday = cellDate.toDateString() === now.toDateString();
+      const hasDeadline = dayDeadlines.length > 0;
+      const hasOverdue = dayDeadlines.some(d => d.status === 'overdue');
+      
+      let classes = ['deadline-calendar-day-cell'];
+      if (isToday) classes.push('today');
+      if (hasDeadline) classes.push('has-deadline');
+      if (hasOverdue) classes.push('overdue');
+      
+      calendarHTML += `
+        <div class="${classes.join(' ')}" data-date="${cellDate.toISOString()}">
+          <div class="deadline-calendar-day-number">${day}</div>
+          ${hasDeadline ? '<div class="deadline-calendar-indicator ' + (hasOverdue ? 'overdue' : '') + '"></div>' : ''}
+        </div>
+      `;
+    }
+    
+    calendarHTML += '</div>';
+    
+    // Add deadline list below calendar
+    calendarHTML += '<div class="deadline-list">';
+    calendarHTML += deadlines.map(deadline => createDeadlineItemHTML(deadline)).join('');
+    calendarHTML += '</div>';
+    
+    content.innerHTML = calendarHTML;
+    attachEventListeners();
+  }
+  
+  function createDeadlineItemHTML(deadline) {
+    const now = new Date();
+    const daysUntil = Math.ceil((deadline.deadline - now) / (1000 * 60 * 60 * 24));
+    let statusClass = '';
+    
+    if (daysUntil < 0) {
+      statusClass = 'overdue';
+    } else if (daysUntil === 0) {
+      statusClass = 'today';
+    } else if (daysUntil <= 7) {
+      statusClass = 'this-week';
+    }
+    
+    return `
+      <div class="deadline-item ${statusClass}" data-deadline-id="${deadline.id}">
+        <div class="deadline-item-calendar ${statusClass}">
+          <div class="deadline-calendar-month">${deadline.deadline.toLocaleDateString('en-US', { month: 'short' })}</div>
+          <div class="deadline-calendar-day">${deadline.deadline.getDate()}</div>
+        </div>
+        <div class="deadline-item-content">
+          <div class="deadline-item-title">${deadline.title}</div>
+          <div class="deadline-item-description">${deadline.description}</div>
+          <div class="deadline-item-meta">
+            <div class="deadline-item-time">${deadline.time} - ${deadline.location}</div>
+            <div class="deadline-item-type ${deadline.type}">${deadline.type}</div>
+          </div>
+        </div>
+        <div class="deadline-item-actions">
+          <button class="deadline-item-action" title="View details" onclick="viewDeadlineDetails('${deadline.id}')">+</button>
+          <button class="deadline-item-action" title="Set reminder" onclick="setReminder('${deadline.id}')">+</button>
+        </div>
+      </div>
+    `;
+  }
+  
+  function renderEmptyState() {
+    content.innerHTML = `
+      <div class="deadline-empty">
+        <div class="deadline-empty-icon">+</div>
+        <div class="deadline-empty-text">No deadlines found</div>
+        <div class="deadline-empty-subtext">Try adjusting your filters or check back later.</div>
+      </div>
+    `;
+  }
+  
+  function attachEventListeners() {
+    // Deadline item click handlers
+    const deadlineElements = content.querySelectorAll('.deadline-item');
+    deadlineElements.forEach(deadlineEl => {
+      deadlineEl.addEventListener('click', function(e) {
+        if (!e.target.closest('.deadline-item-actions')) {
+          handleDeadlineClick(this);
+        }
+      });
+    });
+    
+    // Calendar cell click handlers
+    const calendarCells = content.querySelectorAll('.deadline-calendar-day-cell[data-date]');
+    calendarCells.forEach(cell => {
+      cell.addEventListener('click', function() {
+        handleCalendarClick(this);
+      });
+    });
+  }
+  
+  function handleDeadlineClick(deadlineEl) {
+    const deadlineId = deadlineEl.dataset.deadlineId;
+    const deadline = deadlineData.find(d => d.id === deadlineId);
+    
+    if (deadline) {
+      // Emit deadline selection event
+      const deadlineEvent = new CustomEvent('plan-deadline-select', {
+        detail: {
+          deadline: deadline,
+          componentId: config.componentId,
+          role: config.role
+        }
+      });
+      document.dispatchEvent(deadlineEvent);
+    }
+  }
+  
+  function handleCalendarClick(cellEl) {
+    const date = new Date(cellEl.dataset.date);
+    
+    // Emit calendar date selection event
+    const calendarEvent = new CustomEvent('plan-calendar-select', {
+      detail: {
+        date: date,
+        componentId: config.componentId,
+        role: config.role
+      }
+    });
+    document.dispatchEvent(calendarEvent);
+  }
+  
+  function viewDeadlineDetails(deadlineId) {
+    const deadline = deadlineData.find(d => d.id === deadlineId);
+    if (deadline) {
+      // Emit view details event
+      const detailsEvent = new CustomEvent('plan-deadline-details', {
+        detail: {
+          deadline: deadline,
+          componentId: config.componentId,
+          role: config.role
+        }
+      });
+      document.dispatchEvent(detailsEvent);
+    }
+  }
+  
+  function setReminder(deadlineId) {
+    const deadline = deadlineData.find(d => d.id === deadlineId);
+    if (deadline) {
+      // Emit reminder event
+      const reminderEvent = new CustomEvent('plan-deadline-reminder', {
+        detail: {
+          deadline: deadline,
+          componentId: config.componentId,
+          role: config.role
+        }
+      });
+      document.dispatchEvent(reminderEvent);
+    }
+  }
+  
+  function startAutoRefresh() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+    }
+    
+    refreshTimer = setInterval(() => {
+      loadDeadlineData();
+    }, config.refreshInterval * 1000);
+  }
+  
+  function stopAutoRefresh() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+      refreshTimer = null;
+    }
+  }
+  
+  // Make action functions available globally
+  window.viewDeadlineDetails = viewDeadlineDetails;
+  window.setReminder = setReminder;
+  
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', stopAutoRefresh);
+});
+</script>

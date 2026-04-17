@@ -1,0 +1,14 @@
+{
+  "HOMELINE2025": {
+    "role": "advocate",
+    "org": "HOME Line",
+    "expires": "2025-12-31",
+    "uses_remaining": 50
+  },
+  "LEGALAID-MN": {
+    "role": "legal",
+    "org": "Legal Aid MN",
+    "expires": "2025-12-31",
+    "uses_remaining": 100
+  }
+}

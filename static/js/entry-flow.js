@@ -145,7 +145,7 @@ const SemptifyEntryFlow = {
         }
 
         const current = window.location.pathname;
-        const allowedPaths = new Set(["/", "/index.html", "/static/welcome.html", "/welcome.html"]);
+        const allowedPaths = new Set(["/", "/index.html", "/welcome.html", "/welcome.html"]);
         if (!allowedPaths.has(current)) {
             return false;
         }

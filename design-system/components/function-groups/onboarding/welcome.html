@@ -1,0 +1,840 @@
+{# Onboarding Welcome Component #}
+{# Purpose: Interactive onboarding experience showcasing the modular component system #}
+{# Usage: {% include "design-system/components/function-groups/onboarding/welcome.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "onboarding_welcome_" ~ random_string() %}
+{% set role = role or "tenant" %}
+{% set show_tour = show_tour|default(true) %}
+{% set auto_start = auto_start|default(false) %}
+
+<div class="onboarding-welcome role-{{ role }}" id="{{ component_id }}">
+  <div class="welcome-hero">
+    <div class="hero-content">
+      <div class="hero-icon">+</div>
+      <div class="hero-text">
+        <h1 class="hero-title">Welcome to Semptify</h1>
+        <p class="hero-subtitle">Your tenant rights protection starts here</p>
+      </div>
+    </div>
+    
+    <div class="hero-progress">
+      <div class="progress-steps">
+        <div class="step active" data-step="1">
+          <div class="step-number">1</div>
+          <div class="step-label">Welcome</div>
+        </div>
+        <div class="step" data-step="2">
+          <div class="step-number">2</div>
+          <div class="step-label">Your Case</div>
+        </div>
+        <div class="step" data-step="3">
+          <div class="step-number">3</div>
+          <div class="step-label">Get Started</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="welcome-content">
+    <div class="welcome-intro">
+      <h2 class="intro-title">Protect Your Housing Rights</h2>
+      <p class="intro-text">
+        Semptify helps you understand and protect your tenant rights through smart case management, 
+        timeline tracking, and AI-powered legal insights.
+      </p>
+    </div>
+    
+    <div class="feature-showcase">
+      <div class="feature-grid">
+        <div class="feature-card" data-feature="capture">
+          <div class="feature-icon">+</div>
+          <div class="feature-content">
+            <h3 class="feature-title">Capture Information</h3>
+            <p class="feature-description">Upload documents, add notes, or record voice memos to build your case</p>
+            <div class="feature-demo">
+              {% include "design-system/components/function-groups/capture/upload-zone.html" with context %}
+            </div>
+          </div>
+        </div>
+        
+        <div class="feature-card" data-feature="understand">
+          <div class="feature-icon">+</div>
+          <div class="feature-content">
+            <h3 class="feature-title">Understand Your Rights</h3>
+            <p class="feature-description">AI-powered timeline analysis and rights detection</p>
+            <div class="feature-demo">
+              {% include "design-system/components/function-groups/understand/timeline-view.html" with context %}
+            </div>
+          </div>
+        </div>
+        
+        <div class="feature-card" data-feature="plan">
+          <div class="feature-icon">+</div>
+          <div class="feature-content">
+            <h3 class="feature-title">Plan Your Actions</h3>
+            <p class="feature-description">Prioritized action steps and deadline tracking</p>
+            <div class="feature-demo">
+              {% include "design-system/components/function-groups/plan/next-step-card.html" with context %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="welcome-actions">
+      <button class="action-btn primary" onclick="startOnboarding()">
+        <span class="btn-icon">+</span>
+        <span class="btn-text">Start Guided Tour</span>
+      </button>
+      <button class="action-btn secondary" onclick="skipToDashboard()">
+        <span class="btn-icon">+</span>
+        <span class="btn-text">Go to Dashboard</span>
+      </button>
+    </div>
+  </div>
+  
+  {% if show_tour %}
+  <div class="tour-overlay" id="{{ component_id }}_tour_overlay" style="display: none;">
+    <div class="tour-tooltip" id="{{ component_id }}_tour_tooltip">
+      <div class="tour-content">
+        <div class="tour-title" id="{{ component_id }}_tour_title">Welcome!</div>
+        <div class="tour-description" id="{{ component_id }}_tour_description">
+          Let's take a quick tour of how Semptify protects your housing rights.
+        </div>
+        <div class="tour-actions">
+          <button class="tour-btn secondary" onclick="skipTour()">Skip Tour</button>
+          <button class="tour-btn primary" onclick="nextTourStep()">Next</button>
+        </div>
+      </div>
+      <div class="tour-arrow"></div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{# Store configuration in data attributes #}
+<div id="{{ component_id }}_config" 
+     data-component-id="{{ component_id }}"
+     data-role="{{ role }}"
+     data-show-tour="{{ show_tour|lower }}"
+     data-auto-start="{{ auto_start|lower }}"
+     style="display: none;"></div>
+
+<style>
+.onboarding-welcome {
+  background: linear-gradient(135deg, #f8fafc, #e0f2fe);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.welcome-hero {
+  background: linear-gradient(135deg, var(--color-tenant-primary), var(--color-tenant-primary-dark, #1e40af));
+  color: white;
+  padding: var(--space-2xl) var(--space-lg);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: float 20s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-20px, -20px) rotate(180deg); }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  margin: 0 auto var(--space-lg);
+}
+
+.hero-title {
+  font-size: var(--font-size-4xl);
+  font-weight: 800;
+  margin-bottom: var(--space-md);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.hero-subtitle {
+  font-size: var(--font-size-xl);
+  opacity: 0.9;
+  margin-bottom: var(--space-xl);
+}
+
+.hero-progress {
+  position: relative;
+  z-index: 1;
+}
+
+.progress-steps {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-lg);
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  opacity: 0.5;
+  transition: all var(--transition-normal);
+}
+
+.step.active {
+  opacity: 1;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.step.active .step-number {
+  background: white;
+  color: var(--color-tenant-primary);
+  border-color: white;
+}
+
+.step-label {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.step.active .step-label {
+  opacity: 1;
+}
+
+.welcome-content {
+  flex: 1;
+  padding: var(--space-2xl) var(--space-lg);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.welcome-intro {
+  text-align: center;
+  margin-bottom: var(--space-2xl);
+}
+
+.intro-title {
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-md);
+}
+
+.intro-text {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.feature-showcase {
+  margin-bottom: var(--space-2xl);
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: var(--space-xl);
+}
+
+.feature-card {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card:hover {
+  border-color: var(--color-tenant-primary);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-tenant-primary);
+}
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--color-tenant-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: var(--space-md);
+}
+
+.feature-content {
+  margin-bottom: var(--space-lg);
+}
+
+.feature-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.feature-description {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.feature-demo {
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.welcome-actions {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  border: none;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  min-width: 200px;
+  justify-content: center;
+}
+
+.action-btn.primary {
+  background: var(--color-tenant-primary);
+  color: white;
+}
+
+.action-btn.primary:hover {
+  background: var(--color-tenant-primary-dark, #1e40af);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.action-btn.secondary {
+  background: transparent;
+  color: var(--color-tenant-primary);
+  border: 2px solid var(--color-tenant-primary);
+}
+
+.action-btn.secondary:hover {
+  background: rgba(59, 130, 246, 0.1);
+  transform: translateY(-2px);
+}
+
+.btn-icon {
+  font-size: 20px;
+}
+
+.btn-text {
+  font-weight: 600;
+}
+
+/* Tour Styles */
+.tour-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tour-tooltip {
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  max-width: 400px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  position: relative;
+}
+
+.tour-content {
+  margin-bottom: var(--space-md);
+}
+
+.tour-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-sm);
+}
+
+.tour-description {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.tour-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+}
+
+.tour-btn {
+  padding: var(--space-sm) var(--space-md);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.tour-btn.primary {
+  background: var(--color-tenant-primary);
+  color: white;
+}
+
+.tour-btn.primary:hover {
+  background: var(--color-tenant-primary-dark, #1e40af);
+}
+
+.tour-btn.secondary {
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.tour-btn.secondary:hover {
+  background: var(--color-bg-hover);
+}
+
+.tour-arrow {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid white;
+}
+
+.tour-arrow.top {
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tour-arrow.bottom {
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  transform: translateX(-50%) rotate(180deg);
+}
+
+.tour-arrow.left {
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+}
+
+.tour-arrow.right {
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: var(--font-size-3xl);
+  }
+  
+  .progress-steps {
+    gap: var(--space-md);
+  }
+  
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .welcome-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .action-btn {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .tour-tooltip {
+    margin: var(--space-md);
+    max-width: 90%;
+  }
+}
+
+/* Role-specific variations */
+.onboarding-welcome.role-advocate .hero-icon,
+.onboarding-welcome.role-advocate .feature-icon {
+  background: var(--color-advocate-primary);
+}
+
+.onboarding-welcome.role-advocate .action-btn.primary,
+.onboarding-welcome.role-advocate .tour-btn.primary {
+  background: var(--color-advocate-primary);
+}
+
+.onboarding-welcome.role-advocate .action-btn.secondary,
+.onboarding-welcome.role-advocate .tour-btn.secondary {
+  color: var(--color-advocate-primary);
+  border-color: var(--color-advocate-primary);
+}
+
+.onboarding-welcome.role-legal .hero-icon,
+.onboarding-welcome.role-legal .feature-icon {
+  background: var(--color-legal-primary);
+}
+
+.onboarding-welcome.role-legal .action-btn.primary,
+.onboarding-welcome.role-legal .tour-btn.primary {
+  background: var(--color-legal-primary);
+}
+
+.onboarding-welcome.role-legal .action-btn.secondary,
+.onboarding-welcome.role-legal .tour-btn.secondary {
+  color: var(--color-legal-primary);
+  border-color: var(--color-legal-primary);
+}
+
+.onboarding-welcome.role-admin .hero-icon,
+.onboarding-welcome.role-admin .feature-icon {
+  background: var(--color-admin-primary);
+}
+
+.onboarding-welcome.role-admin .action-btn.primary,
+.onboarding-welcome.role-admin .tour-btn.primary {
+  background: var(--color-admin-primary);
+}
+
+.onboarding-welcome.role-admin .action-btn.secondary,
+.onboarding-welcome.role-admin .tour-btn.secondary {
+  color: var(--color-admin-primary);
+  border-color: var(--color-admin-primary);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get configuration from data attributes
+  const configEl = document.getElementById('{{ component_id }}_config');
+  const config = {
+    componentId: configEl.dataset.componentId,
+    role: configEl.dataset.role,
+    showTour: configEl.dataset.showTour === 'true',
+    autoStart: configEl.dataset.autoStart === 'true'
+  };
+  
+  // Tour state
+  let currentTourStep = 0;
+  let tourActive = false;
+  
+  // Initialize onboarding
+  initOnboarding();
+  
+  function initOnboarding() {
+    // Auto-start tour if enabled
+    if (config.autoStart) {
+      setTimeout(() => {
+        startOnboarding();
+      }, 1000);
+    }
+    
+    // Set up event listeners for feature cards
+    setupFeatureListeners();
+  }
+  
+  function setupFeatureListeners() {
+    const featureCards = document.querySelectorAll('.feature-card');
+    featureCards.forEach(card => {
+      card.addEventListener('click', function() {
+        const feature = this.dataset.feature;
+        highlightFeature(feature);
+      });
+    });
+  }
+  
+  function highlightFeature(feature) {
+    // Remove existing highlights
+    document.querySelectorAll('.feature-card').forEach(card => {
+      card.classList.remove('highlighted');
+    });
+    
+    // Add highlight to selected feature
+    const selectedCard = document.querySelector(`.feature-card[data-feature="${feature}"]`);
+    if (selectedCard) {
+      selectedCard.classList.add('highlighted');
+      selectedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    // Emit feature selection event
+    const featureEvent = new CustomEvent('onboarding-feature-select', {
+      detail: {
+        feature: feature,
+        componentId: config.componentId,
+        role: config.role
+      }
+    });
+    document.dispatchEvent(featureEvent);
+  }
+  
+  function startOnboarding() {
+    if (!config.showTour) return;
+    
+    tourActive = true;
+    currentTourStep = 0;
+    showTourStep(0);
+    
+    // Show tour overlay
+    const overlay = document.getElementById(config.componentId + '_tour_overlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+    }
+    
+    // Update progress step
+    updateProgressStep(1);
+  }
+  
+  function showTourStep(stepIndex) {
+    const tourSteps = [
+      {
+        title: 'Welcome to Semptify!',
+        description: 'Let\'s take a quick tour of how Semptify helps protect your housing rights.',
+        target: '.hero-icon'
+      },
+      {
+        title: 'Capture Information',
+        description: 'Upload documents, add notes, or record voice memos to build your case. Our system organizes everything automatically.',
+        target: '.feature-card[data-feature="capture"]'
+      },
+      {
+        title: 'Understand Your Rights',
+        description: 'AI-powered analysis helps you understand your tenant rights and identify potential violations.',
+        target: '.feature-card[data-feature="understand"]'
+      },
+      {
+        title: 'Plan Your Actions',
+        description: 'Get prioritized action steps and deadline tracking to ensure you never miss important dates.',
+        target: '.feature-card[data-feature="plan"]'
+      },
+      {
+        title: 'Ready to Start!',
+        description: 'You\'re all set! Your dashboard will guide you through each step of protecting your housing rights.',
+        target: '.action-btn.primary'
+      }
+    ];
+    
+    if (stepIndex >= tourSteps.length) {
+      completeTour();
+      return;
+    }
+    
+    const step = tourSteps[stepIndex];
+    const tooltip = document.getElementById(config.componentId + '_tour_tooltip');
+    const titleEl = document.getElementById(config.componentId + '_tour_title');
+    const descriptionEl = document.getElementById(config.componentId + '_tour_description');
+    
+    if (tooltip && titleEl && descriptionEl) {
+      titleEl.textContent = step.title;
+      descriptionEl.textContent = step.description;
+      
+      // Position tooltip near target
+      positionTooltip(step.target);
+      
+      // Highlight target element
+      highlightTourTarget(step.target);
+    }
+  }
+  
+  function positionTooltip(targetSelector) {
+    const target = document.querySelector(targetSelector);
+    const tooltip = document.getElementById(config.componentId + '_tour_tooltip');
+    const overlay = document.getElementById(config.componentId + '_tour_overlay');
+    
+    if (!target || !tooltip || !overlay) return;
+    
+    const targetRect = target.getBoundingClientRect();
+    const overlayRect = overlay.getBoundingClientRect();
+    
+    // Calculate position
+    let top = targetRect.top - overlayRect.top - 200;
+    let left = targetRect.left - overlayRect.left + (targetRect.width / 2) - 200;
+    
+    // Adjust if tooltip goes outside viewport
+    if (top < 20) top = targetRect.bottom - overlayRect.top + 20;
+    if (left < 20) left = 20;
+    if (left + 400 > window.innerWidth) left = window.innerWidth - 420;
+    
+    tooltip.style.position = 'absolute';
+    tooltip.style.top = top + 'px';
+    tooltip.style.left = left + 'px';
+  }
+  
+  function highlightTourTarget(targetSelector) {
+    // Remove existing highlights
+    document.querySelectorAll('.tour-highlight').forEach(el => {
+      el.classList.remove('tour-highlight');
+    });
+    
+    // Add highlight to target
+    const target = document.querySelector(targetSelector);
+    if (target) {
+      target.classList.add('tour-highlight');
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+  
+  function nextTourStep() {
+    currentTourStep++;
+    updateProgressStep(currentTourStep + 1);
+    showTourStep(currentTourStep);
+  }
+  
+  function skipTour() {
+    completeTour();
+  }
+  
+  function completeTour() {
+    tourActive = false;
+    
+    // Hide tour overlay
+    const overlay = document.getElementById(config.componentId + '_tour_overlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+    
+    // Remove highlights
+    document.querySelectorAll('.tour-highlight').forEach(el => {
+      el.classList.remove('tour-highlight');
+    });
+    
+    // Update progress to final step
+    updateProgressStep(3);
+    
+    // Emit tour completion event
+    const completeEvent = new CustomEvent('onboarding-tour-complete', {
+      detail: {
+        componentId: config.componentId,
+        role: config.role
+      }
+    });
+    document.dispatchEvent(completeEvent);
+  }
+  
+  function updateProgressStep(step) {
+    // Update progress steps
+    const steps = document.querySelectorAll('.step');
+    steps.forEach((stepEl, index) => {
+      if (index < step) {
+        stepEl.classList.add('active');
+      } else {
+        stepEl.classList.remove('active');
+      }
+    });
+  }
+  
+  // Action handlers
+  function startOnboarding() {
+    startOnboarding();
+  }
+  
+  function skipToDashboard() {
+    // Emit skip to dashboard event
+    const skipEvent = new CustomEvent('onboarding-skip-dashboard', {
+      detail: {
+        componentId: config.componentId,
+        role: config.role
+      }
+    });
+    document.dispatchEvent(skipEvent);
+  }
+  
+  // Make action handlers available globally
+  window.startOnboarding = startOnboarding;
+  window.skipToDashboard = skipToDashboard;
+  window.nextTourStep = nextTourStep;
+  window.skipTour = skipTour;
+  
+  // Listen for component events
+  document.addEventListener('capture-upload', (event) => {
+    console.log('Onboarding - Capture event:', event.detail);
+  });
+  
+  document.addEventListener('understand-timeline-select', (event) => {
+    console.log('Onboarding - Understand event:', event.detail);
+  });
+  
+  document.addEventListener('plan-action-select', (event) => {
+    console.log('Onboarding - Plan event:', event.detail);
+  });
+});
+</script>

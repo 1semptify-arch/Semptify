@@ -19,49 +19,9 @@ from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
 
 from app.core.user_context import UserRole
+from app.core.trusted_config import TRUSTED_ADVOCATE_DOMAINS, TRUSTED_LEGAL_DOMAINS, ACTIVE_INVITE_CODES
 
 logger = logging.getLogger(__name__)
-
-
-# =============================================================================
-# Trusted Organizations (expandable)
-# =============================================================================
-
-TRUSTED_ADVOCATE_DOMAINS = {
-    # Minnesota Housing Organizations
-    "homeline.org",                    # HOME Line - Tenant Hotline
-    "legalaidmn.org",                  # Legal Aid MN
-    "smrls.org",                       # Southern MN Regional Legal Services
-    "mylsm.org",                       # Legal Services of NW MN
-    "centralmnlegal.org",              # Central MN Legal Services
-    "housinglink.org",                 # HousingLink
-    "mnhousing.gov",                   # MN Housing Finance Agency
-    "metrocouncil.org",                # Met Council Housing
-    "hennepinus.attorney",             # Hennepin Co Public Defender
-    "ramseycounty.us",                 # Ramsey County
-    # Community Organizations
-    "midmnlegalaid.org",
-    "volunteerlawyersnetwork.org",
-    "tubman.org",
-    "hmong.org",
-    # Add more as partnerships form
-}
-
-TRUSTED_LEGAL_DOMAINS = {
-    # All advocate domains also qualify
-    *TRUSTED_ADVOCATE_DOMAINS,
-    # Law Firms (pro bono partners)
-    "faegredrinker.com",
-    "fredlaw.com",
-    "stinson.com",
-    "briggs.com",
-    "gpmlaw.com",
-    # Law Schools (clinical programs)
-    "umn.edu",                         # U of M Law Clinic
-    "stthomas.edu",                    # St. Thomas Law Clinic
-    "mitchellhamline.edu",             # Mitchell Hamline
-    # Add verified partners
-}
 
 
 # =============================================================================
@@ -130,40 +90,7 @@ class RoleValidator:
     def __init__(self):
         # In production, this would be database-backed
         self._pending_verifications: Dict[str, RoleVerification] = {}
-        self._active_invite_codes: Dict[str, Dict] = {}
-        self._load_invite_codes()
-    
-    def _load_invite_codes(self):
-        """Load active invite codes. In production: from database."""
-        # Example codes - in production these would be in DB
-        self._active_invite_codes = {
-            # Format: code -> {role, org, expires, uses_remaining}
-            "HOMELINE2025": {
-                "role": UserRole.ADVOCATE,
-                "org": "HOME Line",
-                "expires": datetime(2025, 12, 31),
-                "uses_remaining": 50,
-            },
-            "LEGALAID-MN": {
-                "role": UserRole.LEGAL,
-                "org": "Legal Aid MN",
-                "expires": datetime(2025, 12, 31),
-                "uses_remaining": 100,
-            },
-            # Demo codes for testing
-            "DEMO-ADVOCATE": {
-                "role": UserRole.ADVOCATE,
-                "org": "Demo",
-                "expires": datetime(2026, 12, 31),
-                "uses_remaining": 999,
-            },
-            "DEMO-LEGAL": {
-                "role": UserRole.LEGAL,
-                "org": "Demo",
-                "expires": datetime(2026, 12, 31),
-                "uses_remaining": 999,
-            },
-        }
+        # Invite codes are now loaded from trusted_config.py
     
     # -------------------------------------------------------------------------
     # Main Validation Entry Point
@@ -255,9 +182,11 @@ class RoleValidator:
         code: str
     ) -> RoleVerification:
         """Verify using partner organization invite code."""
+        from app.core.trusted_config import ACTIVE_INVITE_CODES
+        
         code = code.upper().strip()
         
-        if code not in self._active_invite_codes:
+        if code not in ACTIVE_INVITE_CODES:
             return RoleVerification(
                 user_id=user_id,
                 role=requested_role,
@@ -266,7 +195,7 @@ class RoleValidator:
                 notes=f"Invalid invite code: {code}"
             )
         
-        code_data = self._active_invite_codes[code]
+        code_data = ACTIVE_INVITE_CODES[code]
         
         # Check if code is for requested role or higher
         if not self._role_qualifies(code_data["role"], requested_role):
@@ -298,8 +227,8 @@ class RoleValidator:
                 notes=f"Invite code {code} has no uses remaining"
             )
         
-        # Success! Decrement uses
-        self._active_invite_codes[code]["uses_remaining"] -= 1
+        # Success! Decrement uses (in production, this would be atomic DB update)
+        ACTIVE_INVITE_CODES[code]["uses_remaining"] -= 1
         
         logger.info(f"✅ User {user_id} verified as {requested_role.value} via invite code from {code_data['org']}")
         

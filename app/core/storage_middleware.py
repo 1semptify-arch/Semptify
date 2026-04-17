@@ -312,6 +312,33 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                         )
                         return response
 
+                    # Check client_activated gate — user must have uploaded at least one document
+                    # to unlock full Semptify functionality
+                    if "client_activated" not in completed.split(","):
+                        # User has storage connected but no documents uploaded yet
+                        # Allow access to document upload and basic vault operations only
+                        if path.startswith("/api/documents/upload") or path.startswith("/api/vault/upload"):
+                            # Allow document uploads to activate the client
+                            pass
+                        elif path.startswith("/api/") and not (
+                            path.startswith("/api/health") or
+                            path.startswith("/api/version") or
+                            path.startswith("/api/roles")
+                        ):
+                            # Block most API endpoints until client activation
+                            return JSONResponse(
+                                status_code=403,
+                                content={
+                                    "error": "client_activation_required",
+                                    "message": "Please upload your first document to activate your Semptify account",
+                                    "action": "redirect",
+                                    "redirect_url": "/documents",
+                                },
+                            )
+                        elif not path.startswith("/static/") and not path.startswith("/documents"):
+                            # Block most HTML pages until client activation
+                            return RedirectResponse(url="/documents", status_code=302)
+
             except Exception:
                 # If DB is unavailable, fall through — don't block the user on a DB error.
                 # This degrades gracefully: format validation still passed above.

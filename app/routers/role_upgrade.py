@@ -232,7 +232,7 @@ async def get_trusted_organizations():
     """
     Get list of trusted organizations whose email domains auto-verify.
     """
-    from app.core.role_validation import TRUSTED_ADVOCATE_DOMAINS, TRUSTED_LEGAL_DOMAINS
+    from app.core.trusted_config import TRUSTED_ADVOCATE_DOMAINS, TRUSTED_LEGAL_DOMAINS
     
     return {
         "advocate_domains": sorted(TRUSTED_ADVOCATE_DOMAINS),

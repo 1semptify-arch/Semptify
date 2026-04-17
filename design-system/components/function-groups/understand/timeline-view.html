@@ -1,0 +1,458 @@
+{# Understand Timeline View Component #}
+{# Purpose: Timeline extraction and visualization for understanding case chronology #}
+{# Usage: {% include "design-system/components/function-groups/understand/timeline-view.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "understand_timeline_" ~ random_string() %}
+{% set function_group = "understand" %}
+{% set role = role or "tenant" %}
+{% set view_mode = view_mode or "chronological" %}
+{% set show_stats = show_stats|default(true) %}
+{% set show_filters = show_filters|default(true) %}
+{% set show_empty = show_empty|default(true) %}
+{% set auto_refresh = auto_refresh|default(false) %}
+{% set refresh_interval = refresh_interval or 30 %}
+
+<div class="understand-timeline-view role-{{ role }}" 
+     id="{{ component_id }}"
+     data-function-group="{{ function_group }}"
+     data-role="{{ role }}"
+     data-view-mode="{{ view_mode }}"
+     data-auto-refresh="{{ auto_refresh|lower }}"
+     data-refresh-interval="{{ refresh_interval }}">
+  
+  <div class="timeline-header">
+    <div class="timeline-header-left">
+      <div class="timeline-icon">+</div>
+      <div>
+        <div class="timeline-title">Case Timeline</div>
+        <div class="timeline-subtitle">Chronological view of all events and documents</div>
+      </div>
+    </div>
+    
+    {% if show_filters %}
+    <div class="timeline-controls">
+      <select class="timeline-filter" id="{{ component_id }}_filter">
+        <option value="all">All Events</option>
+        <option value="communications">Communications</option>
+        <option value="documents">Documents</option>
+        <option value="legal">Legal Events</option>
+        <option value="deadlines">Deadlines</option>
+        <option value="maintenance">Maintenance Issues</option>
+      </select>
+      
+      <div class="timeline-view-toggle">
+        <button class="timeline-view-btn active" data-view="chronological">Chronological</button>
+        <button class="timeline-view-btn" data-view="grouped">Grouped</button>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  
+  {% if show_stats %}
+  <div class="timeline-stats" id="{{ component_id }}_stats">
+    <div class="timeline-stat">
+      <div class="timeline-stat-value" id="{{ component_id }}_total_events">0</div>
+      <div class="timeline-stat-label">Total Events</div>
+    </div>
+    <div class="timeline-stat">
+      <div class="timeline-stat-value" id="{{ component_id }}_documents">0</div>
+      <div class="timeline-stat-label">Documents</div>
+    </div>
+    <div class="timeline-stat">
+      <div class="timeline-stat-value" id="{{ component_id }}_deadlines">0</div>
+      <div class="timeline-stat-label">Deadlines</div>
+    </div>
+    <div class="timeline-stat">
+      <div class="timeline-stat-value" id="{{ component_id }}_upcoming">0</div>
+      <div class="timeline-stat-label">Upcoming</div>
+    </div>
+  </div>
+  {% endif %}
+  
+  <div class="timeline-content" id="{{ component_id }}_content">
+    <div class="timeline-loading">
+      <div class="timeline-loading-spinner"></div>
+      <div class="timeline-loading-text">Loading timeline...</div>
+    </div>
+  </div>
+</div>
+
+{# Store configuration in data attributes #}
+<div id="{{ component_id }}_config" 
+     data-component-id="{{ component_id }}"
+     data-role="{{ role }}"
+     data-view-mode="{{ view_mode }}"
+     data-auto-refresh="{{ auto_refresh|lower }}"
+     data-refresh-interval="{{ refresh_interval }}"
+     style="display: none;"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get configuration from data attributes
+  const configEl = document.getElementById('{{ component_id }}_config');
+  const config = {
+    componentId: configEl.dataset.componentId,
+    role: configEl.dataset.role,
+    viewMode: configEl.dataset.viewMode,
+    autoRefresh: configEl.dataset.autoRefresh === 'true',
+    refreshInterval: parseInt(configEl.dataset.refreshInterval)
+  };
+  
+  // Get DOM elements
+  const component = document.getElementById(config.componentId);
+  const content = document.getElementById(config.componentId + '_content');
+  const filter = document.getElementById(config.componentId + '_filter');
+  const viewBtns = component.querySelectorAll('.timeline-view-btn');
+  
+  // State
+  let currentFilter = 'all';
+  let currentView = config.viewMode;
+  let timelineData = null;
+  let refreshTimer = null;
+  
+  // Initialize
+  initTimeline();
+  
+  function initTimeline() {
+    // Set up event listeners
+    if (filter) {
+      filter.addEventListener('change', handleFilterChange);
+    }
+    
+    viewBtns.forEach(btn => {
+      btn.addEventListener('click', handleViewChange);
+    });
+    
+    // Load initial data
+    loadTimelineData();
+    
+    // Set up auto-refresh
+    if (config.autoRefresh) {
+      startAutoRefresh();
+    }
+  }
+  
+  function handleFilterChange(e) {
+    currentFilter = e.target.value;
+    renderTimeline();
+  }
+  
+  function handleViewChange(e) {
+    const view = e.target.dataset.view;
+    currentView = view;
+    
+    // Update button states
+    viewBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.view === view);
+    });
+    
+    renderTimeline();
+  }
+  
+  function loadTimelineData() {
+    // Show loading state
+    content.innerHTML = `
+      <div class="timeline-loading">
+        <div class="timeline-loading-spinner"></div>
+        <div class="timeline-loading-text">Loading timeline...</div>
+      </div>
+    `;
+    
+    // Simulate API call
+    setTimeout(() => {
+      // Mock timeline data
+      timelineData = generateMockTimelineData();
+      updateStats();
+      renderTimeline();
+    }, 1000);
+  }
+  
+  function generateMockTimelineData() {
+    const now = new Date();
+    const events = [
+      {
+        id: '1',
+        date: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+        type: 'communication',
+        title: 'Received notice from landlord',
+        description: 'Landlord sent notice about alleged lease violation regarding noise complaints.',
+        tags: ['communication', 'legal'],
+        priority: 'urgent',
+        documents: ['notice_2024_04_09.pdf']
+      },
+      {
+        id: '2',
+        date: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+        type: 'document',
+        title: 'Uploaded lease agreement',
+        description: 'Original lease agreement signed on January 1, 2024.',
+        tags: ['document', 'legal'],
+        priority: 'normal',
+        documents: ['lease_agreement.pdf']
+      },
+      {
+        id: '3',
+        date: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+        type: 'deadline',
+        title: 'Response deadline',
+        description: 'Must respond to landlord notice within 10 days.',
+        tags: ['deadline', 'legal'],
+        priority: 'urgent',
+        deadline: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000) // 3 days from now
+      },
+      {
+        id: '4',
+        date: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+        type: 'communication',
+        title: 'Email exchange with landlord',
+        description: 'Discussed noise complaints and potential solutions.',
+        tags: ['communication'],
+        priority: 'normal',
+        documents: ['email_thread_2024_04_14.eml']
+      },
+      {
+        id: '5',
+        date: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+        type: 'maintenance',
+        title: 'Maintenance request submitted',
+        description: 'Requested repair of leaking faucet in bathroom.',
+        tags: ['maintenance'],
+        priority: 'normal'
+      }
+    ];
+    
+    return events;
+  }
+  
+  function updateStats() {
+    if (!timelineData) return;
+    
+    const stats = {
+      total: timelineData.length,
+      documents: timelineData.filter(e => e.type === 'document').length,
+      deadlines: timelineData.filter(e => e.type === 'deadline').length,
+      upcoming: timelineData.filter(e => e.deadline && e.deadline > new Date()).length
+    };
+    
+    // Update stats display
+    const totalEl = document.getElementById(config.componentId + '_total_events');
+    const docsEl = document.getElementById(config.componentId + '_documents');
+    const deadlinesEl = document.getElementById(config.componentId + '_deadlines');
+    const upcomingEl = document.getElementById(config.componentId + '_upcoming');
+    
+    if (totalEl) totalEl.textContent = stats.total;
+    if (docsEl) docsEl.textContent = stats.documents;
+    if (deadlinesEl) deadlinesEl.textContent = stats.deadlines;
+    if (upcomingEl) upcomingEl.textContent = stats.upcoming;
+  }
+  
+  function renderTimeline() {
+    if (!timelineData) return;
+    
+    // Filter events
+    let filteredEvents = timelineData;
+    if (currentFilter !== 'all') {
+      filteredEvents = timelineData.filter(event => {
+        if (currentFilter === 'communications') return event.type === 'communication';
+        if (currentFilter === 'documents') return event.type === 'document';
+        if (currentFilter === 'legal') return event.tags.includes('legal');
+        if (currentFilter === 'deadlines') return event.type === 'deadline';
+        if (currentFilter === 'maintenance') return event.type === 'maintenance';
+        return true;
+      });
+    }
+    
+    // Sort by date (newest first)
+    filteredEvents.sort((a, b) => b.date - a.date);
+    
+    // Render based on view mode
+    if (currentView === 'chronological') {
+      renderChronologicalView(filteredEvents);
+    } else {
+      renderGroupedView(filteredEvents);
+    }
+  }
+  
+  function renderChronologicalView(events) {
+    if (events.length === 0) {
+      renderEmptyState();
+      return;
+    }
+    
+    const html = `
+      <div class="timeline-view-chronological">
+        ${events.map(event => createEventHTML(event)).join('')}
+      </div>
+    `;
+    
+    content.innerHTML = html;
+    attachEventListeners();
+  }
+  
+  function renderGroupedView(events) {
+    if (events.length === 0) {
+      renderEmptyState();
+      return;
+    }
+    
+    // Group events by type
+    const groups = {};
+    events.forEach(event => {
+      const groupKey = event.type;
+      if (!groups[groupKey]) {
+        groups[groupKey] = [];
+      }
+      groups[groupKey].push(event);
+    });
+    
+    const html = `
+      <div class="timeline-view-grouped">
+        ${Object.entries(groups).map(([type, groupEvents]) => createGroupHTML(type, groupEvents)).join('')}
+      </div>
+    `;
+    
+    content.innerHTML = html;
+    attachEventListeners();
+  }
+  
+  function createEventHTML(event) {
+    const date = event.date.toLocaleDateString();
+    const priorityClass = event.priority || 'normal';
+    
+    return `
+      <div class="timeline-event" data-event-id="${event.id}" data-priority="${priorityClass}">
+        <div class="timeline-event-marker ${priorityClass}"></div>
+        <div class="timeline-event-content">
+          <div class="timeline-event-date">${date}</div>
+          <div class="timeline-event-title">${event.title}</div>
+          <div class="timeline-event-description">${event.description}</div>
+          ${event.tags ? `
+            <div class="timeline-event-tags">
+              ${event.tags.map(tag => `<span class="timeline-event-tag ${tag}">${tag}</span>`).join('')}
+            </div>
+          ` : ''}
+        </div>
+        <div class="timeline-event-actions">
+          <button class="timeline-event-action" title="View details">+</button>
+          <button class="timeline-event-action" title="Edit">+</button>
+        </div>
+      </div>
+    `;
+  }
+  
+  function createGroupHTML(type, events) {
+    const typeLabels = {
+      communication: 'Communications',
+      document: 'Documents',
+      deadline: 'Deadlines',
+      maintenance: 'Maintenance Issues'
+    };
+    
+    return `
+      <div class="timeline-group">
+        <div class="timeline-group-title">
+          ${typeLabels[type] || type}
+          <span class="timeline-group-count">${events.length}</span>
+        </div>
+        <div class="timeline-events">
+          ${events.map(event => createEventHTML(event)).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  function renderEmptyState() {
+    content.innerHTML = `
+      <div class="timeline-empty">
+        <div class="timeline-empty-icon">+</div>
+        <div class="timeline-empty-text">No events found</div>
+        <div class="timeline-empty-subtext">Try adjusting your filters or add some events to get started.</div>
+      </div>
+    `;
+  }
+  
+  function attachEventListeners() {
+    // Event click handlers
+    const eventElements = content.querySelectorAll('.timeline-event');
+    eventElements.forEach(eventEl => {
+      eventEl.addEventListener('click', function(e) {
+        if (!e.target.closest('.timeline-event-actions')) {
+          handleEventClick(this);
+        }
+      });
+    });
+    
+    // Action button handlers
+    const actionButtons = content.querySelectorAll('.timeline-event-action');
+    actionButtons.forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        handleActionClick(this);
+      });
+    });
+  }
+  
+  function handleEventClick(eventEl) {
+    const eventId = eventEl.dataset.eventId;
+    const event = timelineData.find(e => e.id === eventId);
+    
+    if (event) {
+      // Emit timeline event selection
+      const timelineEvent = new CustomEvent('understand-timeline-select', {
+        detail: {
+          event: event,
+          componentId: config.componentId,
+          role: config.role
+        }
+      });
+      document.dispatchEvent(timelineEvent);
+      
+      // Update selection state
+      content.querySelectorAll('.timeline-event').forEach(el => {
+        el.classList.remove('selected');
+      });
+      eventEl.classList.add('selected');
+    }
+  }
+  
+  function handleActionClick(btn) {
+    const eventEl = btn.closest('.timeline-event');
+    const eventId = eventEl.dataset.eventId;
+    const event = timelineData.find(e => e.id === eventId);
+    
+    if (event) {
+      // Emit action event
+      const actionEvent = new CustomEvent('understand-timeline-action', {
+        detail: {
+          event: event,
+          action: btn.title,
+          componentId: config.componentId,
+          role: config.role
+        }
+      });
+      document.dispatchEvent(actionEvent);
+    }
+  }
+  
+  function startAutoRefresh() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+    }
+    
+    refreshTimer = setInterval(() => {
+      loadTimelineData();
+    }, config.refreshInterval * 1000);
+  }
+  
+  function stopAutoRefresh() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+      refreshTimer = null;
+    }
+  }
+  
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', stopAutoRefresh);
+});
+</script>

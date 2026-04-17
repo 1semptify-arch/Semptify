@@ -3,7 +3,8 @@ Semptify 5.0 - Simple User ID System
 User ID encodes provider + role + unique identifier in one string.
 
 Format: <provider><role><8-char-random>
-Example: GU7x9kM2pQ = Google Drive + User + 7x9kM2pQ
+Example: GU7x9kM2pQ = Google Drive + User (Tenant) + 7x9kM2pQ
+Example: GA7x9kM2pQ = Google Drive + Admin + 7x9kM2pQ
 
 Provider Codes (1 char):
 - G = Google Drive
@@ -11,14 +12,17 @@ Provider Codes (1 char):
 - O = OneDrive
 
 Role Codes (1 char):
-- U = User (default)
+- U = User (displayed as Tenant in housing context)
 - M = Manager
 - V = Advocate
 - L = Legal
-- A = AdminThis keeps it simple:
-1. User visits → read cookie → parse user ID
-2. Know immediately: which storage to check, what role to load
-3. One cookie, one ID, everything works
+- J = Judge
+- A = Admin
+
+Architecture Note:
+- Role = stable identity throughout Semptify lifetime
+- Gates (storage_connected, vault_initialized, client_activated) = state, separate from role
+- One cookie, one ID, clean separation of concerns
 """
 
 import secrets
@@ -46,6 +50,7 @@ class RoleCode(str, Enum):
     USER = "U"
     ADVOCATE = "V"  # V for adVocate since A is Admin
     LEGAL = "L"
+    JUDGE = "J"
 
 
 # Mappings for conversion
@@ -70,6 +75,7 @@ ROLE_TO_CODE = {
     "user": RoleCode.USER,
     "advocate": RoleCode.ADVOCATE,
     "legal": RoleCode.LEGAL,
+    "judge": RoleCode.JUDGE,
 }
 
 CODE_TO_ROLE = {
@@ -78,11 +84,13 @@ CODE_TO_ROLE = {
     RoleCode.USER: "user",
     RoleCode.ADVOCATE: "advocate",
     RoleCode.LEGAL: "legal",
+    RoleCode.JUDGE: "judge",
     "A": "admin",
     "M": "manager",
     "U": "user",
     "V": "advocate",
     "L": "legal",
+    "J": "judge",
 }
 
 

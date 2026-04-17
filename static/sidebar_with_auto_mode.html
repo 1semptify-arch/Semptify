@@ -493,7 +493,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   if (panelContainer) {
     // Fetch and inject auto mode panel component
-    fetch('/static/components/auto_mode_panel.html')
+    fetch('/components/auto_mode_panel.html')
       .then(response => response.text())
       .then(html => {
         panelContainer.innerHTML = html;

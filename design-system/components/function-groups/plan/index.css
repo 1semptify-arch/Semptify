@@ -1,0 +1,290 @@
+/**
+ * Plan Function Group Components
+ * Part of the Plan function group for producing clear paths and next steps
+ */
+
+@import url('./action-list.css');
+@import url('./deadline-tracker.css');
+@import url('./next-step-card.css');
+
+/* Base plan function group styles */
+.function-group-plan {
+  --color-plan: #10b981;
+  --color-plan-hover: #059669;
+  --color-plan-light: rgba(16, 185, 129, 0.1);
+}
+
+/* Role-specific variations for plan components */
+.function-group-plan.role-tenant {
+  --color-plan: var(--color-tenant-primary);
+  --color-plan-hover: #2563eb;
+  --color-plan-light: rgba(59, 130, 246, 0.1);
+}
+
+.function-group-plan.role-advocate {
+  --color-plan: var(--color-advocate-primary);
+  --color-plan-hover: #7c3aed;
+  --color-plan-light: rgba(124, 58, 237, 0.1);
+}
+
+.function-group-plan.role-legal {
+  --color-plan: var(--color-legal-primary);
+  --color-plan-hover: #059669;
+  --color-plan-light: rgba(16, 185, 129, 0.1);
+}
+
+.function-group-plan.role-admin {
+  --color-plan: var(--color-admin-primary);
+  --color-plan-hover: #dc2626;
+  --color-plan-light: rgba(239, 68, 68, 0.1);
+}
+
+/* Plan function group container styles */
+.plan-function-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.plan-function-group.horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.plan-function-group.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-lg);
+}
+
+/* Plan function group header */
+.plan-function-group-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.plan-function-group-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.plan-function-group-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Plan function group status */
+.plan-function-group-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-plan-light);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-plan);
+}
+
+.plan-function-group-status.planning {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-accent);
+}
+
+.plan-function-group-status.ready {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+}
+
+.plan-function-group-status.urgent {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+}
+
+/* Plan function group actions */
+.plan-function-group-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+  margin-top: var(--space-md);
+}
+
+/* Workflow progress indicator */
+.plan-workflow-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-md);
+}
+
+.plan-workflow-steps {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.plan-workflow-step {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  transition: all var(--transition-normal);
+}
+
+.plan-workflow-step.completed {
+  background: var(--color-plan);
+  color: white;
+}
+
+.plan-workflow-step.current {
+  background: var(--color-accent);
+  color: white;
+}
+
+.plan-workflow-step.future {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.plan-workflow-connector {
+  flex: 1;
+  height: 2px;
+  background: var(--color-border);
+  transition: all var(--transition-normal);
+}
+
+.plan-workflow-connector.completed {
+  background: var(--color-plan);
+}
+
+.plan-workflow-progress-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+/* Priority indicators */
+.plan-priority-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.plan-priority-indicator.urgent {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.plan-priority-indicator.high {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--color-warning);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.plan-priority-indicator.medium {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-accent);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.plan-priority-indicator.low {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+/* Action suggestions */
+.plan-action-suggestion {
+  background: linear-gradient(135deg, var(--color-plan-light), rgba(16, 185, 129, 0.05));
+  border: 1px solid var(--color-plan);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.plan-action-suggestion-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-plan);
+  margin-bottom: var(--space-sm);
+}
+
+.plan-action-suggestion-content {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+}
+
+.plan-action-suggestion-actions {
+  margin-top: var(--space-sm);
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.plan-action-suggestion-btn {
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-plan);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.plan-action-suggestion-btn:hover {
+  background: var(--color-plan-hover);
+  transform: translateY(-1px);
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .plan-function-group.horizontal {
+    flex-direction: column;
+  }
+  
+  .plan-function-group.grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .plan-function-group-actions {
+    flex-direction: column;
+  }
+  
+  .plan-function-group-actions button {
+    width: 100%;
+  }
+  
+  .plan-workflow-progress {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+  
+  .plan-workflow-steps {
+    width: 100%;
+  }
+  
+  .plan-workflow-connector {
+    width: 2px;
+    height: 20px;
+  }
+}

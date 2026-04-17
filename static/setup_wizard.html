@@ -1144,7 +1144,7 @@
 
                 if (data.is_complete) {
                     // Already completed, redirect to dashboard
-                    window.location.href = '/static/command_center.html';
+                    window.location.href = '/command_center.html';
                     return;
                 }
 
@@ -1610,7 +1610,7 @@
 
                 if (response.ok) {
                     const result = await response.json();
-                    window.location.href = result.redirect || '/static/command_center.html';
+                    window.location.href = result.redirect || '/command_center.html';
                 } else {
                     const error = await response.json();
                     alert('Error completing setup: ' + (error.detail || 'Unknown error'));

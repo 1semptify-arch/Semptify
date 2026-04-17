@@ -889,7 +889,7 @@
         
         function createResponse() {
             if (!selectedItem) return;
-            window.location.href = `/static/letter_builder.html?reply_to=${selectedItem.id}&party=${selectedItem.partyName}`;
+            window.location.href = `/letter_builder.html?reply_to=${selectedItem.id}&party=${selectedItem.partyName}`;
         }
         
         function addToTimeline() {
@@ -912,7 +912,7 @@
         
         function saveToBriefcase() {
             if (!selectedItem) return;
-            window.location.href = `/static/briefcase.html?add_doc=${selectedItem.id}&type=correspondence`;
+            window.location.href = `/briefcase.html?add_doc=${selectedItem.id}&type=correspondence`;
         }
         
         // Utility functions
