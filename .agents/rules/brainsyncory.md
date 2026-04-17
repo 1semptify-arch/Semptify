@@ -1,7 +1,7 @@
 
 
 # Project Memory — Semptify5.0
-> 71 notes | Score threshold: >40
+> 76 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -18,7 +18,7 @@
 
 **Stack:** Python · FastAPI · DB: PostgreSQL, Redis, SQLAlchemy
 
-## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Important Warnings
+## Important Warnings
 
 - **gotcha in session.py** — File updated (external): venv311_clean/Lib/site-packages/pip/_internal
 - **gotcha in RECORD** — File updated (external): venv311/Lib/site-packages/setuptools-65.5.0.d
@@ -36,6 +36,7 @@ Content summary (4
 
 ## Project Standards
 
+- Added session cookies authentication — confirmed 3x
 - Added session cookies authentication — confirmed 5x
 - what-changed in shared-context.json — confirmed 3x
 - Strengthened types Patched
@@ -43,7 +44,6 @@ Content summary (4
 - [.windsurfrules] NEVER use TailwindCSS. Only use vanilla CSS.
 - [CLAUDE.md] NEVER use TailwindCSS. Only use vanilla CSS.
 - what-changed in shared-context.json — confirmed 4x
-- Strengthened types Recent
 
 ## Recent Decisions
 
