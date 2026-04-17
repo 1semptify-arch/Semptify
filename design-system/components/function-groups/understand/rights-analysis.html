@@ -1,0 +1,382 @@
+{# Understand Rights Analysis Component #}
+{# Purpose: Rights and risk detection from case data and documents #}
+{# Usage: {% include "design-system/components/function-groups/understand/rights-analysis.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "understand_rights_" ~ random_string() %}
+{% set function_group = "understand" %}
+{% set role = role or "tenant" %}
+{% set auto_analyze = auto_analyze|default(true) %}
+{% set show_confidence = show_confidence|default(true) %}
+{% set show_actions = show_actions|default(true) %}
+
+<div class="understand-rights-analysis role-{{ role }}" 
+     id="{{ component_id }}"
+     data-function-group="{{ function_group }}"
+     data-role="{{ role }}"
+     data-auto-analyze="{{ auto_analyze|lower }}"
+     data-show-confidence="{{ show_confidence|lower }}"
+     data-show-actions="{{ show_actions|lower }}">
+  
+  <div class="rights-header">
+    <div class="rights-icon">+</div>
+    <div>
+      <div class="rights-title">Rights Analysis</div>
+      <div class="rights-subtitle">AI-powered detection of your tenant rights and risks</div>
+    </div>
+  </div>
+  
+  <div class="rights-controls">
+    <button class="rights-refresh-btn" id="{{ component_id }}_refresh_btn">
+      Refresh Analysis
+    </button>
+    <div class="rights-status analyzing" id="{{ component_id }}_status">
+      Analyzing case data...
+    </div>
+  </div>
+  
+  <div class="rights-content" id="{{ component_id }}_content">
+    <div class="rights-loading">
+      <div class="rights-loading-spinner"></div>
+      <div class="rights-loading-text">Analyzing your case for rights and risks...</div>
+    </div>
+  </div>
+</div>
+
+{# Store configuration in data attributes #}
+<div id="{{ component_id }}_config" 
+     data-component-id="{{ component_id }}"
+     data-role="{{ role }}"
+     data-auto-analyze="{{ auto_analyze|lower }}"
+     data-show-confidence="{{ show_confidence|lower }}"
+     data-show-actions="{{ show_actions|lower }}"
+     style="display: none;"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get configuration from data attributes
+  const configEl = document.getElementById('{{ component_id }}_config');
+  const config = {
+    componentId: configEl.dataset.componentId,
+    role: configEl.dataset.role,
+    autoAnalyze: configEl.dataset.autoAnalyze === 'true',
+    showConfidence: configEl.dataset.showConfidence === 'true',
+    showActions: configEl.dataset.showActions === 'true'
+  };
+  
+  // Get DOM elements
+  const component = document.getElementById(config.componentId);
+  const content = document.getElementById(config.componentId + '_content');
+  const refreshBtn = document.getElementById(config.componentId + '_refresh_btn');
+  const status = document.getElementById(config.componentId + '_status');
+  
+  // State
+  let analysisData = null;
+  let isAnalyzing = false;
+  
+  // Initialize
+  initRightsAnalysis();
+  
+  function initRightsAnalysis() {
+    // Set up event listeners
+    refreshBtn.addEventListener('click', handleRefresh);
+    
+    // Load initial analysis
+    if (config.autoAnalyze) {
+      performAnalysis();
+    }
+  }
+  
+  function handleRefresh() {
+    if (!isAnalyzing) {
+      performAnalysis();
+    }
+  }
+  
+  function performAnalysis() {
+    isAnalyzing = true;
+    refreshBtn.disabled = true;
+    
+    // Update status
+    status.className = 'rights-status analyzing';
+    status.textContent = 'Analyzing case data...';
+    
+    // Show loading state
+    content.innerHTML = `
+      <div class="rights-loading">
+        <div class="rights-loading-spinner"></div>
+        <div class="rights-loading-text">Analyzing your case for rights and risks...</div>
+      </div>
+    `;
+    
+    // Simulate API call
+    setTimeout(() => {
+      analysisData = generateMockAnalysisData();
+      renderAnalysis();
+      
+      // Update status
+      status.className = 'rights-status complete';
+      status.textContent = 'Analysis complete';
+      
+      isAnalyzing = false;
+      refreshBtn.disabled = false;
+    }, 2000);
+  }
+  
+  function generateMockAnalysisData() {
+    return {
+      summary: {
+        totalRights: 8,
+        protectedRights: 6,
+        atRiskRights: 2,
+        violations: 1
+      },
+      categories: [
+        {
+          id: 'housing',
+          name: 'Housing Rights',
+          icon: 'housing',
+          score: 'high',
+          items: [
+            {
+              id: 'quiet_enjoyment',
+              title: 'Right to Quiet Enjoyment',
+              description: 'You have the right to peaceful enjoyment of your rental unit without excessive disturbance.',
+              status: 'positive',
+              confidence: 0.85,
+              evidence: ['lease_agreement.pdf', 'noise_complaints.pdf']
+            },
+            {
+              id: 'repairs',
+              title: 'Right to Repairs',
+              description: 'Landlord must maintain habitable conditions and make necessary repairs.',
+              status: 'negative',
+              confidence: 0.92,
+              evidence: ['maintenance_requests.pdf', 'photos_leak.jpg']
+            }
+          ]
+        },
+        {
+          id: 'safety',
+          name: 'Safety & Health',
+          icon: 'safety',
+          score: 'medium',
+          items: [
+            {
+              id: 'habitability',
+              title: 'Habitability Standards',
+              description: 'Rental unit must meet basic health and safety standards.',
+              status: 'positive',
+              confidence: 0.78,
+              evidence: ['inspection_report.pdf']
+            },
+            {
+              id: 'emergency',
+              title: 'Emergency Repairs',
+              description: 'Landlord must respond to emergency repairs within 24-48 hours.',
+              status: 'neutral',
+              confidence: 0.65,
+              evidence: []
+            }
+          ]
+        },
+        {
+          id: 'financial',
+          name: 'Financial Rights',
+          icon: 'financial',
+          score: 'medium',
+          items: [
+            {
+              id: 'security_deposit',
+              title: 'Security Deposit Protection',
+              description: 'Security deposit must be handled according to state laws.',
+              status: 'positive',
+              confidence: 0.88,
+              evidence: ['deposit_receipt.pdf', 'lease_agreement.pdf']
+            },
+            {
+              id: 'rent_increases',
+              title: 'Rent Increase Limits',
+              description: 'Rent increases must follow legal notice periods and limits.',
+              status: 'negative',
+              confidence: 0.95,
+              evidence: ['rent_increase_notice.pdf']
+            }
+          ]
+        },
+        {
+          id: 'legal',
+          name: 'Legal Protections',
+          icon: 'legal',
+          score: 'high',
+          items: [
+            {
+              id: 'retaliation',
+              title: 'Anti-Retaliation Protection',
+              description: 'Protected against retaliation for exercising legal rights.',
+              status: 'positive',
+              confidence: 0.82,
+              evidence: ['complaint_letter.pdf']
+            },
+            {
+              id: 'discrimination',
+              title: 'Anti-Discrimination Laws',
+              description: 'Protected against discrimination based on protected classes.',
+              status: 'positive',
+              confidence: 0.75,
+              evidence: []
+            }
+          ]
+        }
+      ]
+    };
+  }
+  
+  function renderAnalysis() {
+    if (!analysisData) return;
+    
+    const html = `
+      <div class="rights-summary">
+        <div class="rights-summary-title">Rights Overview</div>
+        <div class="rights-summary-grid">
+          <div class="rights-summary-item">
+            <div class="rights-summary-value">${analysisData.summary.totalRights}</div>
+            <div class="rights-summary-label">Total Rights</div>
+          </div>
+          <div class="rights-summary-item">
+            <div class="rights-summary-value positive">${analysisData.summary.protectedRights}</div>
+            <div class="rights-summary-label">Protected</div>
+          </div>
+          <div class="rights-summary-item">
+            <div class="rights-summary-value negative">${analysisData.summary.atRiskRights}</div>
+            <div class="rights-summary-label">At Risk</div>
+          </div>
+          <div class="rights-summary-item">
+            <div class="rights-summary-value neutral">${analysisData.summary.violations}</div>
+            <div class="rights-summary-label">Violations</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="rights-categories">
+        ${analysisData.categories.map(category => createCategoryHTML(category)).join('')}
+      </div>
+      
+      ${config.showActions ? `
+        <div class="rights-actions">
+          <button class="rights-action-btn primary" onclick="handleViewDetails()">
+            View Detailed Analysis
+          </button>
+          <button class="rights-action-btn secondary" onclick="handleExportReport()">
+            Export Rights Report
+          </button>
+        </div>
+      ` : ''}
+    `;
+    
+    content.innerHTML = html;
+    attachEventListeners();
+  }
+  
+  function createCategoryHTML(category) {
+    return `
+      <div class="rights-category">
+        <div class="rights-category-header">
+          <div class="rights-category-icon ${category.icon}">${category.icon[0].toUpperCase()}</div>
+          <div class="rights-category-title">${category.name}</div>
+          <div class="rights-category-score ${category.score}">${category.score.toUpperCase()}</div>
+        </div>
+        <div class="rights-category-items">
+          ${category.items.map(item => createItemHTML(item)).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  function createItemHTML(item) {
+    return `
+      <div class="rights-item" data-item-id="${item.id}" data-status="${item.status}">
+        <div class="rights-item-marker ${item.status}"></div>
+        <div class="rights-item-content">
+          <div class="rights-item-title">${item.title}</div>
+          <div class="rights-item-description">${item.description}</div>
+          ${config.showConfidence ? `
+            <div class="rights-item-confidence">
+              <span>Confidence: ${Math.round(item.confidence * 100)}%</span>
+              <div class="rights-confidence-bar">
+                <div class="rights-confidence-fill ${getConfidenceLevel(item.confidence)}" style="width: ${item.confidence * 100}%"></div>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+  
+  function getConfidenceLevel(confidence) {
+    if (confidence >= 0.8) return 'high';
+    if (confidence >= 0.6) return 'medium';
+    return 'low';
+  }
+  
+  function attachEventListeners() {
+    // Item click handlers
+    const itemElements = content.querySelectorAll('.rights-item');
+    itemElements.forEach(itemEl => {
+      itemEl.addEventListener('click', function() {
+        handleItemClick(this);
+      });
+    });
+  }
+  
+  function handleItemClick(itemEl) {
+    const itemId = itemEl.dataset.itemId;
+    const category = analysisData.categories.find(cat => 
+      cat.items.some(item => item.id === itemId)
+    );
+    const item = category ? category.items.find(item => item.id === itemId) : null;
+    
+    if (item) {
+      // Emit rights item selection event
+      const rightsEvent = new CustomEvent('understand-rights-select', {
+        detail: {
+          item: item,
+          category: category,
+          componentId: config.componentId,
+          role: config.role
+        }
+      });
+      document.dispatchEvent(rightsEvent);
+    }
+  }
+  
+  function handleViewDetails() {
+    // Emit view details event
+    const detailsEvent = new CustomEvent('understand-rights-details', {
+      detail: {
+        analysis: analysisData,
+        componentId: config.componentId,
+        role: config.role
+      }
+    });
+    document.dispatchEvent(detailsEvent);
+  }
+  
+  function handleExportReport() {
+    // Emit export report event
+    const exportEvent = new CustomEvent('understand-rights-export', {
+      detail: {
+        analysis: analysisData,
+        format: 'pdf',
+        componentId: config.componentId,
+        role: config.role
+      }
+    });
+    document.dispatchEvent(exportEvent);
+  }
+  
+  // Make action functions available globally
+  window.handleViewDetails = handleViewDetails;
+  window.handleExportReport = handleExportReport;
+});
+</script>

@@ -1,0 +1,398 @@
+{# Capture Voice Intake Component #}
+{# Purpose: Voice-to-text input for rapid information capture #}
+{# Usage: {% include "design-system/components/function-groups/capture/voice-intake.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "capture_voice_" ~ random_string() %}
+{% set function_group = "capture" %}
+{% set role = role or "tenant" %}
+{% set max_duration = max_duration or 300 %}
+{% set show_settings = show_settings|default(false) %}
+{% set auto_submit = auto_submit|default(false) %}
+
+<div class="capture-voice-intake role-{{ role }}" 
+     id="{{ component_id }}"
+     data-function-group="{{ function_group }}"
+     data-role="{{ role }}"
+     data-max-duration="{{ max_duration }}"
+     data-auto-submit="{{ auto_submit|lower }}">
+  
+  <div class="voice-intake-header">
+    <div class="voice-intake-icon">+</div>
+    <div>
+      <div class="voice-intake-title">Voice Recording</div>
+      <div class="voice-intake-subtitle">Speak naturally to add information to your case</div>
+    </div>
+  </div>
+  
+  {% if show_settings %}
+  <div class="voice-settings">
+    <div class="voice-setting">
+      <label for="{{ component_id }}_language">Language:</label>
+      <select id="{{ component_id }}_language">
+        <option value="en-US">English (US)</option>
+        <option value="en-GB">English (UK)</option>
+        <option value="es-US">Spanish (US)</option>
+        <option value="fr-FR">French</option>
+      </select>
+    </div>
+    <div class="voice-setting">
+      <label for="{{ component_id }}_accuracy">Accuracy:</label>
+      <select id="{{ component_id }}_accuracy">
+        <option value="high">High</option>
+        <option value="medium">Medium</option>
+        <option value="low">Low</option>
+      </select>
+    </div>
+  </div>
+  {% endif %}
+  
+  <div class="voice-controls">
+    <button type="button" class="voice-record-btn" id="{{ component_id }}_record_btn">
+      <span class="record-icon">+</span>
+    </button>
+    
+    <div class="voice-waves" id="{{ component_id }}_waves">
+      <div class="voice-wave"></div>
+      <div class="voice-wave"></div>
+      <div class="voice-wave"></div>
+      <div class="voice-wave"></div>
+      <div class="voice-wave"></div>
+    </div>
+    
+    <div class="voice-status">
+      <div class="voice-status-text" id="{{ component_id }}_status_text">Click to start recording</div>
+      <div class="voice-status-timer" id="{{ component_id }}_timer">00:00</div>
+    </div>
+  </div>
+  
+  <div class="voice-transcript" id="{{ component_id }}_transcript">
+    <div class="transcript-placeholder">Your speech will appear here...</div>
+  </div>
+  
+  <div class="voice-actions">
+    <button type="button" class="voice-action-btn secondary" id="{{ component_id }}_clear_btn" disabled>
+      Clear
+    </button>
+    <button type="button" class="voice-action-btn danger" id="{{ component_id }}_discard_btn" disabled>
+      Discard
+    </button>
+    <button type="button" class="voice-action-btn primary" id="{{ component_id }}_save_btn" disabled>
+      Save to Case
+    </button>
+  </div>
+  
+  <div class="voice-error" id="{{ component_id }}_error" style="display: none;"></div>
+</div>
+
+{# Store configuration in data attributes #}
+<div id="{{ component_id }}_config" 
+     data-component-id="{{ component_id }}"
+     data-role="{{ role }}"
+     data-max-duration="{{ max_duration }}"
+     data-show-settings="{{ show_settings|lower }}"
+     data-auto-submit="{{ auto_submit|lower }}"
+     style="display: none;"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get configuration from data attributes
+  const configEl = document.getElementById('{{ component_id }}_config');
+  const config = {
+    componentId: configEl.dataset.componentId,
+    role: configEl.dataset.role,
+    maxDuration: parseInt(configEl.dataset.maxDuration),
+    showSettings: configEl.dataset.showSettings === 'true',
+    autoSubmit: configEl.dataset.autoSubmit === 'true'
+  };
+  
+  // Get DOM elements
+  const component = document.getElementById(config.componentId);
+  const recordBtn = document.getElementById(config.componentId + '_record_btn');
+  const waves = document.getElementById(config.componentId + '_waves');
+  const statusText = document.getElementById(config.componentId + '_status_text');
+  const timer = document.getElementById(config.componentId + '_timer');
+  const transcript = document.getElementById(config.componentId + '_transcript');
+  const clearBtn = document.getElementById(config.componentId + '_clear_btn');
+  const discardBtn = document.getElementById(config.componentId + '_discard_btn');
+  const saveBtn = document.getElementById(config.componentId + '_save_btn');
+  const error = document.getElementById(config.componentId + '_error');
+  
+  // State variables
+  let isRecording = false;
+  let recognition = null;
+  let startTime = null;
+  let timerInterval = null;
+  let finalTranscript = '';
+  let interimTranscript = '';
+  
+  // Initialize speech recognition
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    
+    // Settings configuration - only included if show_settings is true
+    if (config.showSettings) {
+      // Configure based on settings
+      const languageSelect = document.getElementById(config.componentId + '_language');
+      const accuracySelect = document.getElementById(config.componentId + '_accuracy');
+      
+      recognition.lang = languageSelect.value;
+      
+      languageSelect.addEventListener('change', function() {
+        recognition.lang = this.value;
+      });
+      
+      accuracySelect.addEventListener('change', function() {
+        // Adjust recognition parameters based on accuracy
+        switch(this.value) {
+          case 'high':
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            break;
+          case 'medium':
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            break;
+          case 'low':
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            break;
+        }
+      });
+    }
+    
+    recognition.onresult = function(event) {
+      interimTranscript = '';
+      
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript + ' ';
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+      
+      updateTranscript();
+    };
+    
+    recognition.onerror = function(event) {
+      console.error('Speech recognition error:', event.error);
+      let errorMessage = 'Voice input error';
+      
+      switch(event.error) {
+        case 'no-speech':
+          errorMessage = 'No speech detected';
+          break;
+        case 'audio-capture':
+          errorMessage = 'Microphone not available';
+          break;
+        case 'not-allowed':
+          errorMessage = 'Microphone access denied';
+          break;
+        case 'network':
+          errorMessage = 'Network error';
+          break;
+        case 'service-not-allowed':
+          errorMessage = 'Voice recognition not available';
+          break;
+      }
+      
+      showError(errorMessage);
+      stopRecording();
+    };
+    
+    recognition.onend = function() {
+      if (isRecording) {
+        // Auto-restart if still recording
+        if (getRecordingDuration() < config.maxDuration) {
+          recognition.start();
+        } else {
+          stopRecording();
+        }
+      }
+    };
+  } else {
+    showError('Voice recognition not supported in this browser');
+    recordBtn.disabled = true;
+  }
+  
+  // Event listeners
+  recordBtn.addEventListener('click', toggleRecording);
+  clearBtn.addEventListener('click', clearTranscript);
+  discardBtn.addEventListener('click', discardRecording);
+  saveBtn.addEventListener('click', saveTranscript);
+  
+  function toggleRecording() {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  }
+  
+  function startRecording() {
+    if (!recognition) {
+      showError('Voice recognition not available');
+      return;
+    }
+    
+    isRecording = true;
+    startTime = Date.now();
+    finalTranscript = '';
+    interimTranscript = '';
+    
+    // Update UI
+    component.classList.add('recording');
+    recordBtn.classList.add('recording');
+    recordBtn.innerHTML = '<span class="record-icon">×</span>';
+    statusText.textContent = 'Recording... Speak now';
+    
+    // Start waves animation
+    const waveElements = waves.querySelectorAll('.voice-wave');
+    waveElements.forEach(wave => wave.classList.add('active'));
+    
+    // Start timer
+    timerInterval = setInterval(updateTimer, 100);
+    
+    // Start recognition
+    recognition.start();
+    
+    // Enable action buttons
+    clearBtn.disabled = false;
+    discardBtn.disabled = false;
+  }
+  
+  function stopRecording() {
+    if (!isRecording) return;
+    
+    isRecording = false;
+    
+    // Stop recognition
+    if (recognition) {
+      recognition.stop();
+    }
+    
+    // Update UI
+    component.classList.remove('recording');
+    recordBtn.classList.remove('recording');
+    recordBtn.innerHTML = '<span class="record-icon">+</span>';
+    statusText.textContent = 'Recording stopped';
+    
+    // Stop waves animation
+    const waveElements = waves.querySelectorAll('.voice-wave');
+    waveElements.forEach(wave => wave.classList.remove('active'));
+    
+    // Stop timer
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+    
+    // Update transcript one last time
+    updateTranscript();
+    
+    // Enable save if there's content
+    saveBtn.disabled = !finalTranscript.trim();
+    
+    if (config.autoSubmit) {
+      if (finalTranscript.trim()) {
+        setTimeout(() => saveTranscript(), 1000);
+      }
+    }
+  }
+  
+  function updateTimer() {
+    const duration = getRecordingDuration();
+    const minutes = Math.floor(duration / 60);
+    const seconds = Math.floor(duration % 60);
+    timer.textContent = minutes.toString().padStart(2, '0') + ':' + seconds.toString().padStart(2, '0');
+    
+    // Auto-stop at max duration
+    if (duration >= config.maxDuration) {
+      stopRecording();
+      statusText.textContent = 'Maximum recording time reached';
+    }
+  }
+  
+  function getRecordingDuration() {
+    return startTime ? (Date.now() - startTime) / 1000 : 0;
+  }
+  
+  function updateTranscript() {
+    if (finalTranscript || interimTranscript) {
+      let html = '';
+      if (finalTranscript) {
+        html += '<div class="transcript-text">' + finalTranscript + '</div>';
+      }
+      if (interimTranscript) {
+        html += '<div class="transcript-interim">' + interimTranscript + '</div>';
+      }
+      transcript.innerHTML = html;
+    } else {
+      transcript.innerHTML = '<div class="transcript-placeholder">Your speech will appear here...</div>';
+    }
+  }
+  
+  function clearTranscript() {
+    finalTranscript = '';
+    interimTranscript = '';
+    updateTranscript();
+    saveBtn.disabled = true;
+    statusText.textContent = 'Transcript cleared';
+  }
+  
+  function discardRecording() {
+    clearTranscript();
+    clearBtn.disabled = true;
+    discardBtn.disabled = true;
+    statusText.textContent = 'Recording discarded';
+  }
+  
+  function saveTranscript() {
+    const content = finalTranscript.trim();
+    if (!content) {
+      showError('No content to save');
+      return;
+    }
+    
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Saving...';
+    
+    // Emit voice capture event
+    const voiceEvent = new CustomEvent('capture-voice-input', {
+      detail: {
+        content: content,
+        duration: getRecordingDuration(),
+        timestamp: new Date().toISOString(),
+        componentId: config.componentId,
+        role: config.role
+      }
+    });
+    document.dispatchEvent(voiceEvent);
+    
+    // Show success
+    statusText.textContent = 'Voice note saved to case';
+    
+    // Reset after delay
+    setTimeout(() => {
+      discardRecording();
+      saveBtn.textContent = 'Save to Case';
+      statusText.textContent = 'Click to start recording';
+    }, 2000);
+  }
+  
+  function showError(message) {
+    error.textContent = message;
+    error.style.display = 'block';
+    
+    setTimeout(() => {
+      error.style.display = 'none';
+    }, 5000);
+  }
+});
+</script>

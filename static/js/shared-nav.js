@@ -17,7 +17,7 @@ const SemptifyNav = {
             id: 'home',
             title: '🏠 Home',
             items: [
-                { icon: '🏠', label: 'Dashboard', href: '/static/home.html' },
+                { icon: '🏠', label: 'Dashboard', href: '/home.html' },
                 { icon: '📊', label: 'Case Status', href: '/tenant' },
             ]
         },
@@ -26,35 +26,35 @@ const SemptifyNav = {
             title: '📥 Step 1: Intake',
             items: [
                 { icon: '📋', label: 'Document Upload', href: '/tenant/documents' },
-                { icon: '🔍', label: 'AI Recognition', href: '/static/recognition.html' },
-                { icon: '💼', label: 'Briefcase', href: '/static/briefcase.html' },
+                { icon: '🔍', label: 'AI Recognition', href: '/recognition.html' },
+                { icon: '💼', label: 'Briefcase', href: '/briefcase.html' },
             ]
         },
         {
             id: 'timeline',
             title: '📅 Step 2: Timeline',
             items: [
-                { icon: '⚡', label: 'Auto-Build', href: '/static/timeline_auto_build.html' },
+                { icon: '⚡', label: 'Auto-Build', href: '/timeline_auto_build.html' },
                 { icon: '📅', label: 'View Timeline', href: '/tenant/timeline', badge: 'timelineCount' },
-                { icon: '📆', label: 'Calendar', href: '/static/calendar.html' },
+                { icon: '📆', label: 'Calendar', href: '/calendar.html' },
             ]
         },
         {
             id: 'defense',
             title: '⚖️ Step 3: Defense',
             items: [
-                { icon: '📖', label: 'Law Library', href: '/static/law_library.html' },
-                { icon: '📝', label: 'File Answer', href: '/static/eviction_answer.html' },
-                { icon: '⚔️', label: 'Counterclaim', href: '/static/counterclaim.html' },
-                { icon: '📋', label: 'Motions', href: '/static/motions.html' },
+                { icon: '📖', label: 'Law Library', href: '/law_library.html' },
+                { icon: '📝', label: 'File Answer', href: '/eviction_answer.html' },
+                { icon: '⚔️', label: 'Counterclaim', href: '/counterclaim.html' },
+                { icon: '📋', label: 'Motions', href: '/motions.html' },
             ]
         },
         {
             id: 'court',
             title: '🏛️ Step 4: Court',
             items: [
-                { icon: '📦', label: 'Court Packet', href: '/static/court_packet.html' },
-                { icon: '🎯', label: 'Hearing Prep', href: '/static/hearing_prep.html' },
+                { icon: '📦', label: 'Court Packet', href: '/court_packet.html' },
+                { icon: '🎯', label: 'Hearing Prep', href: '/hearing_prep.html' },
                 { icon: '💻', label: 'Zoom Court', href: '/zoom-court' },
             ]
         },
@@ -62,18 +62,18 @@ const SemptifyNav = {
             id: 'tools',
             title: '🔧 Tools',
             items: [
-                { icon: '✉️', label: 'Letters', href: '/static/letter_builder.html' },
-                { icon: '📝', label: 'Complaints', href: '/static/complaints.html' },
-                { icon: '📇', label: 'Contacts', href: '/static/contacts.html' },
-                { icon: '📬', label: 'Correspondence', href: '/static/correspondence.html' },
+                { icon: '✉️', label: 'Letters', href: '/letter_builder.html' },
+                { icon: '📝', label: 'Complaints', href: '/complaints.html' },
+                { icon: '📇', label: 'Contacts', href: '/contacts.html' },
+                { icon: '📬', label: 'Correspondence', href: '/correspondence.html' },
             ]
         },
         {
             id: 'vault',
             title: '📁 Vault',
             items: [
-                { icon: '🔐', label: 'Document Vault', href: '/static/vault.html' },
-                { icon: '📑', label: 'PDF Tools', href: '/static/pdf_tools.html' },
+                { icon: '🔐', label: 'Document Vault', href: '/vault.html' },
+                { icon: '📑', label: 'PDF Tools', href: '/pdf_tools.html' },
             ]
         },
     ],
@@ -88,7 +88,7 @@ const SemptifyNav = {
         const current = this.getCurrentPage();
         if (href === current) return true;
         // Also match without /static/ prefix
-        if (href.replace('/static/', '/') === current) return true;
+        if (href.replace('/', '/') === current) return true;
         if (current.includes(href.split('?')[0])) return true;
         return false;
     },
@@ -668,7 +668,7 @@ const SemptifyNav = {
     },
     
     changeStorage() {
-        window.location.href = '/static/storage_setup.html';
+        window.location.href = '/storage_setup.html';
     },
     
     signOut() {
@@ -678,7 +678,7 @@ const SemptifyNav = {
             document.cookie = 'semptify_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
             
             // Redirect to welcome
-            window.location.href = '/static/welcome.html';
+            window.location.href = '/welcome.html';
         }
     },
 
@@ -695,7 +695,7 @@ const SemptifyNav = {
             const link = document.createElement('link');
             link.id = 'semptify-nav-styles';
             link.rel = 'stylesheet';
-            link.href = '/static/css/shared-nav.css';
+            link.href = '/css/shared-nav.css';
             document.head.appendChild(link);
         }
 
@@ -758,7 +758,7 @@ const SemptifyNav = {
             // Ctrl/Cmd + H : Go to home
             if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
                 e.preventDefault();
-                window.location.href = '/static/home.html';
+                window.location.href = '/home.html';
             }
             
             // Ctrl/Cmd + D : Go to documents

@@ -36,6 +36,14 @@ try:
 except ImportError:
     HAS_VAULT_SERVICE = False
 
+# Import preview generation
+try:
+    from app.core.preview_generator import generate_document_thumbnail, generate_document_preview
+    from app.core.job_processor import submit_thumbnail_generation_job
+    HAS_PREVIEW_GENERATOR = True
+except ImportError:
+    HAS_PREVIEW_GENERATOR = False
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
@@ -251,6 +259,30 @@ async def upload_document(
             "document_ids": [document_id],
         },
     )
+
+    # Generate preview and thumbnail (async, non-blocking)
+    if HAS_PREVIEW_GENERATOR:
+        try:
+            # Submit thumbnail generation job
+            from app.core.job_processor import submit_thumbnail_generation_job
+            job_id = submit_thumbnail_generation_job(
+                document_id=document_id,
+                page_numbers=[1],  # Generate first page thumbnail
+                user_id=user.user_id
+            )
+            logger.info(f"Submitted thumbnail generation job {job_id} for document {document_id}")
+            
+            # Also submit document analysis job
+            from app.core.job_processor import submit_document_analysis_job
+            analysis_job_id = submit_document_analysis_job(
+                document_id=document_id,
+                analysis_type="basic",
+                user_id=user.user_id
+            )
+            logger.info(f"Submitted document analysis job {analysis_job_id} for document {document_id}")
+            
+        except Exception as e:
+            logger.warning(f"Preview generation failed for {document_id}: {e}")
 
     # Build response
     return DocumentResponse(
@@ -769,3 +801,289 @@ async def mark_vault_document_processed(
         vault_service.update_document_type(vault_id, document_type)
     
     return {"success": True, "vault_id": vault_id, "processed": True}
+
+# ============================================================================
+# Persistent Vault Sidebar Endpoints
+# ============================================================================
+
+@router.get("/sidebar/files")
+async def get_sidebar_files(
+    user: StorageUser = Depends(require_user),
+):
+    """Get files for vault sidebar component"""
+    if not HAS_VAULT_SERVICE:
+        raise HTTPException(status_code=404, detail="Vault service not available")
+    
+    vault_service = get_vault_service()
+    documents = vault_service.get_user_documents(user.user_id)
+    
+    # Convert to sidebar format
+    files = []
+    for doc in documents:
+        files.append({
+            "id": doc.vault_id,
+            "name": doc.filename,
+            "size": doc.size,
+            "type": doc.mime_type,
+            "category": _get_file_category(doc.filename),
+            "uploaded_at": doc.created_at.isoformat() if doc.created_at else datetime.utcnow().isoformat(),
+            "provider": doc.provider,
+            "user_id": doc.user_id,
+            "path": doc.vault_path,
+            "tags": doc.tags or [],
+            "metadata": {
+                "source": "vault_upload",
+                "original_filename": doc.filename,
+                "upload_timestamp": doc.created_at.isoformat() if doc.created_at else datetime.utcnow().isoformat()
+            }
+        })
+    
+    return JSONResponse({
+        "success": True,
+        "message": f"Retrieved {len(files)} files for sidebar",
+        "files": files
+    })
+
+@router.post("/sidebar/upload")
+async def sidebar_upload(
+    files: List[UploadFile] = File(...),
+    metadata: str = Form(...),
+    user: StorageUser = Depends(require_user),
+):
+    """Handle upload from vault sidebar"""
+    if not HAS_VAULT_SERVICE:
+        raise HTTPException(status_code=404, detail="Vault service not available")
+    
+    try:
+        # Parse metadata
+        metadata_dict = json.loads(metadata)
+        source = metadata_dict.get('source', 'vault_sidebar')
+        
+        # Process uploaded files
+        uploaded_files = []
+        upload_errors = []
+        
+        for i, uploaded_file in enumerate(files):
+            try:
+                # Read file content
+                file_content = await uploaded_file.read()
+                
+                # Validate file
+                from app.core.file_validator import validate_upload_file
+                validation_result = validate_upload_file(file_content, uploaded_file.filename, uploaded_file.size)
+                
+                if not validation_result.is_valid:
+                    # Log validation failure
+                    from app.core.audit_logger import log_security_event
+                    log_security_event(
+                        user_id=user.user_id,
+                        event_type="file_validation_failure",
+                        details={
+                            "filename": uploaded_file.filename,
+                            "validation_error": validation_result.error_message,
+                            "security_risk": validation_result.security_risk
+                        },
+                        ip_address=request.client.host if hasattr(request, 'client') else "unknown",
+                        user_agent=request.headers.get("user-agent", "unknown")
+                    )
+                    
+                    upload_errors.append({
+                        "filename": uploaded_file.filename,
+                        "error": validation_result.error_message,
+                        "security_risk": validation_result.security_risk,
+                        "recommended_action": validation_result.recommended_action
+                    })
+                    continue
+                
+                # Create vault document
+                vault_id = f"vault_{datetime.utcnow().timestamp()}_{i}"
+                
+                # Store via vault service
+                vault_service = get_vault_service()
+                doc = VaultDocument(
+                    vault_id=vault_id,
+                    filename=uploaded_file.filename,
+                    size=uploaded_file.size,
+                    mime_type=validation_result.mime_type or uploaded_file.content_type or 'application/octet-stream',
+                    user_id=user.user_id,
+                    provider=vault_service.get_user_provider(user.user_id),
+                    vault_path=f"/vault/{uploaded_file.filename}",
+                    tags=[],
+                    created_at=datetime.utcnow()
+                )
+                
+                # Store document
+                vault_service.store_document(doc, file_content)
+                
+                # Log successful upload
+                from app.core.audit_logger import log_document_upload
+                log_document_upload(
+                    user_id=user.user_id,
+                    document_id=vault_id,
+                    filename=uploaded_file.filename,
+                    file_size=uploaded_file.size,
+                    file_type=validation_result.file_type,
+                    ip_address=request.client.host if hasattr(request, 'client') else "unknown",
+                    user_agent=request.headers.get("user-agent", "unknown")
+                )
+                
+                uploaded_files.append({
+                    "id": vault_id,
+                    "name": uploaded_file.filename,
+                    "size": uploaded_file.size,
+                    "type": doc.mime_type,
+                    "category": _get_file_category(uploaded_file.filename),
+                    "uploaded_at": datetime.utcnow().isoformat(),
+                    "provider": vault_service.get_user_provider(user.user_id),
+                    "user_id": user.user_id,
+                    "path": f"/vault/{uploaded_file.filename}",
+                    "tags": [],
+                    "metadata": {
+                        "source": source,
+                        "original_filename": uploaded_file.filename,
+                        "upload_timestamp": datetime.utcnow().isoformat()
+                    }
+                })
+                
+                logger.info(f"Vault sidebar upload: {vault_id} for user {user.user_id}")
+                
+            except Exception as e:
+                error_msg = f"Failed to process {uploaded_file.filename}: {str(e)}"
+                upload_errors.append(error_msg)
+                logger.error(error_msg)
+        
+        # Return response
+        response_data = {
+            "success": True,
+            "message": f"Uploaded {len(uploaded_files)} files to vault",
+            "files": uploaded_files
+        }
+        
+        if upload_errors:
+            response_data["errors"] = upload_errors
+            response_data["message"] = f"Uploaded {len(uploaded_files)} files with {len(upload_errors)} errors"
+        
+        return JSONResponse(response_data)
+        
+    except json.JSONDecodeError:
+        return JSONResponse({
+            "success": False,
+            "message": "Invalid metadata format",
+            "files": []
+        })
+    except Exception as e:
+        logger.error(f"Error in vault sidebar upload: {e}")
+        raise HTTPException(status_code=500, detail="Failed to upload to vault")
+
+@router.get("/sidebar/stats")
+async def get_sidebar_stats(
+    user: StorageUser = Depends(require_user),
+):
+    """Get vault statistics for sidebar"""
+    if not HAS_VAULT_SERVICE:
+        raise HTTPException(status_code=404, detail="Vault service not available")
+    
+    vault_service = get_vault_service()
+    documents = vault_service.get_user_documents(user.user_id)
+    
+    total_files = len(documents)
+    total_size = sum(doc.size for doc in documents)
+    
+    # Count by category
+    categories = {
+        'all': total_files,
+        'documents': len([doc for doc in documents if _get_file_category(doc.filename) == 'documents']),
+        'images': len([doc for doc in documents if _get_file_category(doc.filename) == 'images']),
+        'audio': len([doc for doc in documents if _get_file_category(doc.filename) == 'audio']),
+        'video': len([doc for doc in documents if _get_file_category(doc.filename) == 'video'])
+    }
+    
+    # Calculate storage usage (assuming 1GB limit)
+    storage_limit = 1024 * 1024 * 1024  # 1GB in bytes
+    storage_used = (total_size / storage_limit) * 100
+    
+    return JSONResponse({
+        "success": True,
+        "message": "Vault statistics retrieved",
+        "stats": {
+            "total_files": total_files,
+            "total_size": total_size,
+            "categories": categories,
+            "storage_used": storage_used,
+            "storage_limit": storage_limit
+        }
+    })
+
+@router.get("/sidebar/search")
+async def sidebar_search(
+    query: str,
+    user: StorageUser = Depends(require_user),
+):
+    """Search vault files for sidebar"""
+    if not HAS_VAULT_SERVICE:
+        raise HTTPException(status_code=404, detail="Vault service not available")
+    
+    if not query.strip():
+        return JSONResponse({
+            "success": False,
+            "message": "Search query required",
+            "files": []
+        })
+    
+    vault_service = get_vault_service()
+    documents = vault_service.get_user_documents(user.user_id)
+    query_lower = query.lower()
+    
+    filtered_docs = [
+        doc for doc in documents 
+        if query_lower in doc.filename.lower() or 
+           any(query_lower in tag.lower() for tag in (doc.tags or []))
+    ]
+    
+    # Convert to sidebar format
+    filtered_files = []
+    for doc in filtered_docs:
+        filtered_files.append({
+            "id": doc.vault_id,
+            "name": doc.filename,
+            "size": doc.size,
+            "type": doc.mime_type,
+            "category": _get_file_category(doc.filename),
+            "uploaded_at": doc.created_at.isoformat() if doc.created_at else datetime.utcnow().isoformat(),
+            "provider": doc.provider,
+            "user_id": doc.user_id,
+            "path": doc.vault_path,
+            "tags": doc.tags or [],
+            "metadata": {
+                "source": "vault_upload",
+                "original_filename": doc.filename,
+                "upload_timestamp": doc.created_at.isoformat() if doc.created_at else datetime.utcnow().isoformat()
+            }
+        })
+    
+    return JSONResponse({
+        "success": True,
+        "message": f"Found {len(filtered_files)} files matching '{query}'",
+        "files": filtered_files
+    })
+
+def _get_file_category(filename: str) -> str:
+    """Determine file category from filename"""
+    from pathlib import Path
+    extension = Path(filename).suffix.lower()
+    
+    document_extensions = {'.pdf', '.doc', '.docx', '.txt', '.rtf'}
+    image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg'}
+    audio_extensions = {'.mp3', '.wav', '.m4a', '.aac', '.flac'}
+    video_extensions = {'.mp4', '.avi', '.mov', '.wmv', '.flv'}
+    
+    if extension in document_extensions:
+        return 'documents'
+    elif extension in image_extensions:
+        return 'images'
+    elif extension in audio_extensions:
+        return 'audio'
+    elif extension in video_extensions:
+        return 'video'
+    else:
+        return 'other'

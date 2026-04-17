@@ -1,0 +1,1036 @@
+{# Advocate Client Management Component #}
+{# Purpose: Comprehensive client management for advocate role with case tracking and collaboration #}
+{# Usage: {% include "design-system/components/function-groups/role-specific/advocate/client-management.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "advocate_clients_" ~ random_string() %}
+{% set role = "advocate" %}
+{% set show_handoff = show_handoff|default(true) %}
+{% set show_collaboration = show_collaboration|default(true) %}
+{% set auto_refresh = auto_refresh|default(true) %}
+{% set refresh_interval = refresh_interval or 30 %}
+
+<div class="advocate-client-management role-{{ role }}" id="{{ component_id }}">
+  <div class="client-management-header">
+    <div class="header-content">
+      <div class="header-title-section">
+        <div class="header-icon">+</div>
+        <div>
+          <div class="header-title">Client Management</div>
+          <div class="header-subtitle">Manage client cases and track progress</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="header-action-btn primary" onclick="addNewClient()">
+          <span class="btn-icon">+</span>
+          <span class="btn-text">Add Client</span>
+        </button>
+        <button class="header-action-btn secondary" onclick="importClients()">
+          <span class="btn-icon">+</span>
+          <span class="btn-text">Import</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="client-filters">
+    <div class="filter-group">
+      <label class="filter-label">Status:</label>
+      <select class="filter-select" id="{{ component_id }}_status_filter">
+        <option value="all">All Clients</option>
+        <option value="active">Active</option>
+        <option value="new">New</option>
+        <option value="urgent">Urgent</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Case Type:</label>
+      <select class="filter-select" id="{{ component_id }}_type_filter">
+        <option value="all">All Types</option>
+        <option value="eviction">Eviction Defense</option>
+        <option value="habitability">Habitability</option>
+        <option value="deposit">Security Deposit</option>
+        <option value="discrimination">Discrimination</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label class="filter-label">Search:</label>
+      <input type="text" class="filter-input" id="{{ component_id }}_search_input" placeholder="Search clients...">
+    </div>
+  </div>
+  
+  <div class="client-stats">
+    <div class="stat-item">
+      <div class="stat-value" id="{{ component_id }}_total_clients">0</div>
+      <div class="stat-label">Total Clients</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="{{ component_id }}_active_cases">0</div>
+      <div class="stat-label">Active Cases</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="{{ component_id }}_urgent_cases">0</div>
+      <div class="stat-label">Urgent</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value" id="{{ component_id }}_new_cases">0</div>
+      <div class="stat-label">New</div>
+    </div>
+  </div>
+  
+  <div class="client-list-container">
+    <div class="list-header">
+      <div class="list-title">Client List</div>
+      <div class="list-actions">
+        <button class="list-action-btn" onclick="exportClientList()">Export</button>
+        <button class="list-action-btn" onclick="refreshClientList()">Refresh</button>
+      </div>
+    </div>
+    <div class="client-list" id="{{ component_id }}_client_list">
+      <div class="client-loading">Loading client list...</div>
+    </div>
+  </div>
+  
+  {% if show_handoff %}
+  <div class="handoff-section">
+    <div class="handoff-header">
+      <div class="handoff-title">Case Handoffs</div>
+      <div class="handoff-actions">
+        <button class="handoff-action-btn" onclick="createHandoff()">Create Handoff</button>
+      </div>
+    </div>
+    <div class="handoff-list" id="{{ component_id }}_handoff_list">
+      <div class="handoff-loading">Loading handoffs...</div>
+    </div>
+  </div>
+  {% endif %}
+  
+  {% if show_collaboration %}
+  <div class="collaboration-section">
+    <div class="collaboration-header">
+      <div class="collaboration-title">Team Collaboration</div>
+      <div class="collaboration-actions">
+        <button class="collaboration-action-btn" onclick="startCollaboration()">Start Session</button>
+      </div>
+    </div>
+    <div class="collaboration-list" id="{{ component_id }}_collaboration_list">
+      <div class="collaboration-loading">Loading collaboration...</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{# Store configuration in data attributes #}
+<div id="{{ component_id }}_config" 
+     data-component-id="{{ component_id }}"
+     data-role="{{ role }}"
+     data-show-handoff="{{ show_handoff|lower }}"
+     data-show-collaboration="{{ show_collaboration|lower }}"
+     data-auto-refresh="{{ auto_refresh|lower }}"
+     data-refresh-interval="{{ refresh_interval }}"
+     style="display: none;"></div>
+
+<style>
+.advocate-client-management {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  padding: var(--space-lg);
+}
+
+.client-management-header {
+  background: linear-gradient(135deg, var(--color-advocate-primary), var(--color-advocate-primary-dark, #5b21b6));
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.header-title-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.header-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.header-subtitle {
+  font-size: var(--font-size-base);
+  opacity: 0.9;
+}
+
+.header-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.header-action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.header-action-btn.primary {
+  background: white;
+  color: var(--color-advocate-primary);
+}
+
+.header-action-btn.primary:hover {
+  background: var(--color-bg-hover);
+  transform: translateY(-1px);
+}
+
+.header-action-btn.secondary {
+  background: transparent;
+  color: white;
+  border: 1px solid white;
+}
+
+.header-action-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-icon {
+  font-size: 16px;
+}
+
+.btn-text {
+  font-size: var(--font-size-sm);
+}
+
+.client-filters {
+  display: flex;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.filter-label {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  min-width: 60px;
+}
+
+.filter-select, .filter-input {
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  min-width: 150px;
+}
+
+.filter-select:focus, .filter-input:focus {
+  outline: none;
+  border-color: var(--color-advocate-primary);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+}
+
+.client-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.stat-item {
+  text-align: center;
+  padding: var(--space-sm);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+}
+
+.stat-item:hover {
+  border-color: var(--color-advocate-primary);
+  transform: translateY(-1px);
+}
+
+.stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-advocate-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.client-list-container {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.list-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.list-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.list-action-btn {
+  padding: var(--space-xs) var(--space-sm);
+  background: transparent;
+  color: var(--color-advocate-primary);
+  border: 1px solid var(--color-advocate-primary);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.list-action-btn:hover {
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.client-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.client-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.client-item:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-advocate-primary);
+  transform: translateY(-1px);
+}
+
+.client-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: var(--color-advocate-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.client-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.client-name {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.client-case {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-xs);
+}
+
+.client-meta {
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.client-status {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.client-status.active {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+}
+
+.client-status.urgent {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+}
+
+.client-status.new {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-accent);
+}
+
+.client-status.completed {
+  background: rgba(107, 114, 128, 0.1);
+  color: var(--color-text-muted);
+}
+
+.client-actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.client-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.client-action-btn:hover {
+  border-color: var(--color-advocate-primary);
+  color: var(--color-advocate-primary);
+  background: var(--color-bg-hover);
+}
+
+.handoff-section, .collaboration-section {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+
+.handoff-header, .collaboration-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.handoff-title, .collaboration-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.handoff-action-btn, .collaboration-action-btn {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-advocate-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.handoff-action-btn:hover, .collaboration-action-btn:hover {
+  background: var(--color-advocate-primary-dark, #5b21b6);
+  transform: translateY(-1px);
+}
+
+.handoff-list, .collaboration-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.handoff-item, .collaboration-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+}
+
+.handoff-item:hover, .collaboration-item:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-advocate-primary);
+}
+
+.handoff-icon, .collaboration-icon {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-advocate-primary);
+  flex-shrink: 0;
+  margin-top: var(--space-xs);
+}
+
+.handoff-content, .collaboration-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.handoff-title, .collaboration-title {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.handoff-description, .collaboration-description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--space-xs);
+}
+
+.handoff-time, .collaboration-time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.client-loading, .handoff-loading, .collaboration-loading {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .client-filters {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
+  
+  .filter-select, .filter-input {
+    width: 100%;
+  }
+  
+  .client-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+  
+  .client-actions {
+    align-self: flex-end;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get configuration from data attributes
+  const configEl = document.getElementById('{{ component_id }}_config');
+  const config = {
+    componentId: configEl.dataset.componentId,
+    role: configEl.dataset.role,
+    showHandoff: configEl.dataset.showHandoff === 'true',
+    showCollaboration: configEl.dataset.showCollaboration === 'true',
+    autoRefresh: configEl.dataset.autoRefresh === 'true',
+    refreshInterval: parseInt(configEl.dataset.refreshInterval)
+  };
+  
+  // State
+  let clientData = null;
+  let filteredClients = null;
+  let refreshTimer = null;
+  
+  // Initialize client management
+  initClientManagement();
+  
+  function initClientManagement() {
+    loadClientData();
+    setupEventListeners();
+    
+    if (config.autoRefresh) {
+      startAutoRefresh();
+    }
+  }
+  
+  function loadClientData() {
+    // Show loading state
+    const clientListEl = document.getElementById(config.componentId + '_client_list');
+    if (clientListEl) {
+      clientListEl.innerHTML = '<div class="client-loading">Loading client list...</div>';
+    }
+    
+    // Simulate API call
+    setTimeout(() => {
+      clientData = generateMockClientData();
+      filteredClients = clientData.clients;
+      updateClientStats();
+      renderClientList();
+      
+      if (config.showHandoff) {
+        updateHandoffList();
+      }
+      
+      if (config.showCollaboration) {
+        updateCollaborationList();
+      }
+    }, 1000);
+  }
+  
+  function generateMockClientData() {
+    return {
+      clients: [
+        {
+          id: '1',
+          name: 'John Smith',
+          caseType: 'Eviction Defense',
+          status: 'active',
+          urgency: 'high',
+          lastUpdate: new Date(Date.now() - 2 * 60 * 60 * 1000),
+          documents: 12,
+          deadline: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+        },
+        {
+          id: '2',
+          name: 'Sarah Johnson',
+          caseType: 'Habitability',
+          status: 'urgent',
+          urgency: 'high',
+          lastUpdate: new Date(Date.now() - 1 * 60 * 60 * 1000),
+          documents: 8,
+          deadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000)
+        },
+        {
+          id: '3',
+          name: 'Mike Davis',
+          caseType: 'Security Deposit',
+          status: 'new',
+          urgency: 'medium',
+          lastUpdate: new Date(Date.now() - 6 * 60 * 60 * 1000),
+          documents: 5,
+          deadline: null
+        },
+        {
+          id: '4',
+          name: 'Emily Wilson',
+          caseType: 'Discrimination',
+          status: 'active',
+          urgency: 'medium',
+          lastUpdate: new Date(Date.now() - 4 * 60 * 60 * 1000),
+          documents: 15,
+          deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        },
+        {
+          id: '5',
+          name: 'Robert Brown',
+          caseType: 'Eviction Defense',
+          status: 'completed',
+          urgency: 'low',
+          lastUpdate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          documents: 20,
+          deadline: null
+        }
+      ],
+      handoffs: [
+        {
+          id: '1',
+          title: 'Eviction case to legal team',
+          description: 'John Smith case ready for legal review',
+          time: '2 hours ago'
+        },
+        {
+          id: '2',
+          title: 'Habitability case to housing specialist',
+          description: 'Sarah Johnson case requires expert review',
+          time: '1 day ago'
+        }
+      ],
+      collaborations: [
+        {
+          id: '1',
+          title: 'Case review session',
+          description: 'Weekly team case review meeting',
+          time: '30 minutes ago'
+        },
+        {
+          id: '2',
+          title: 'Client consultation prep',
+          description: 'Preparing for client meeting tomorrow',
+          time: '3 hours ago'
+        }
+      ]
+    };
+  }
+  
+  function updateClientStats() {
+    if (!clientData || !clientData.clients) return;
+    
+    const stats = {
+      total: clientData.clients.length,
+      active: clientData.clients.filter(c => c.status === 'active').length,
+      urgent: clientData.clients.filter(c => c.urgency === 'high').length,
+      new: clientData.clients.filter(c => c.status === 'new').length
+    };
+    
+    const totalEl = document.getElementById(config.componentId + '_total_clients');
+    const activeEl = document.getElementById(config.componentId + '_active_cases');
+    const urgentEl = document.getElementById(config.componentId + '_urgent_cases');
+    const newEl = document.getElementById(config.componentId + '_new_cases');
+    
+    if (totalEl) totalEl.textContent = stats.total;
+    if (activeEl) activeEl.textContent = stats.active;
+    if (urgentEl) urgentEl.textContent = stats.urgent;
+    if (newEl) newEl.textContent = stats.new;
+  }
+  
+  function renderClientList() {
+    const clientListEl = document.getElementById(config.componentId + '_client_list');
+    if (!clientListEl) return;
+    
+    if (filteredClients.length === 0) {
+      clientListEl.innerHTML = '<div class="client-loading">No clients found</div>';
+      return;
+    }
+    
+    const html = filteredClients.map(client => createClientItemHTML(client)).join('');
+    clientListEl.innerHTML = html;
+    attachClientEventListeners();
+  }
+  
+  function createClientItemHTML(client) {
+    const initials = client.name.split(' ').map(n => n[0]).join('');
+    const deadlineText = client.deadline ? `Deadline: ${client.deadline.toLocaleDateString()}` : '';
+    
+    return `
+      <div class="client-item" data-client-id="${client.id}">
+        <div class="client-avatar">${initials}</div>
+        <div class="client-info">
+          <div class="client-name">${client.name}</div>
+          <div class="client-case">${client.caseType}</div>
+          <div class="client-meta">
+            <span>${client.documents} documents</span>
+            <span>Updated: ${client.lastUpdate.toLocaleDateString()}</span>
+            ${deadlineText ? `<span>${deadlineText}</span>` : ''}
+          </div>
+        </div>
+        <div class="client-status ${client.status}">${client.status}</div>
+        <div class="client-actions">
+          <button class="client-action-btn" title="View case" onclick="viewClientCase('${client.id}')">+</button>
+          <button class="client-action-btn" title="Edit client" onclick="editClient('${client.id}')">+</button>
+          <button class="client-action-btn" title="Handoff" onclick="handoffClient('${client.id}')">+</button>
+        </div>
+      </div>
+    `;
+  }
+  
+  function updateHandoffList() {
+    const handoffListEl = document.getElementById(config.componentId + '_handoff_list');
+    if (!handoffListEl) return;
+    
+    const html = clientData.handoffs.map(handoff => `
+      <div class="handoff-item" data-handoff-id="${handoff.id}">
+        <div class="handoff-icon"></div>
+        <div class="handoff-content">
+          <div class="handoff-title">${handoff.title}</div>
+          <div class="handoff-description">${handoff.description}</div>
+          <div class="handoff-time">${handoff.time}</div>
+        </div>
+      </div>
+    `).join('');
+    
+    handoffListEl.innerHTML = html;
+  }
+  
+  function updateCollaborationList() {
+    const collaborationListEl = document.getElementById(config.componentId + '_collaboration_list');
+    if (!collaborationListEl) return;
+    
+    const html = clientData.collaborations.map(collab => `
+      <div class="collaboration-item" data-collaboration-id="${collab.id}">
+        <div class="collaboration-icon"></div>
+        <div class="collaboration-content">
+          <div class="collaboration-title">${collab.title}</div>
+          <div class="collaboration-description">${collab.description}</div>
+          <div class="collaboration-time">${collab.time}</div>
+        </div>
+      </div>
+    `).join('');
+    
+    collaborationListEl.innerHTML = html;
+  }
+  
+  function setupEventListeners() {
+    // Filter listeners
+    const statusFilter = document.getElementById(config.componentId + '_status_filter');
+    const typeFilter = document.getElementById(config.componentId + '_type_filter');
+    const searchInput = document.getElementById(config.componentId + '_search_input');
+    
+    if (statusFilter) {
+      statusFilter.addEventListener('change', applyFilters);
+    }
+    
+    if (typeFilter) {
+      typeFilter.addEventListener('change', applyFilters);
+    }
+    
+    if (searchInput) {
+      searchInput.addEventListener('input', applyFilters);
+    }
+    
+    // Listen for function group events
+    document.addEventListener('capture-upload', handleCaptureEvent);
+    document.addEventListener('capture-quick-input', handleCaptureEvent);
+    document.addEventListener('capture-voice-input', handleCaptureEvent);
+    document.addEventListener('understand-timeline-select', handleUnderstandEvent);
+    document.addEventListener('plan-action-select', handlePlanEvent);
+  }
+  
+  function applyFilters() {
+    if (!clientData || !clientData.clients) return;
+    
+    const statusFilter = document.getElementById(config.componentId + '_status_filter');
+    const typeFilter = document.getElementById(config.componentId + '_type_filter');
+    const searchInput = document.getElementById(config.componentId + '_search_input');
+    
+    let filtered = clientData.clients;
+    
+    // Apply status filter
+    if (statusFilter && statusFilter.value !== 'all') {
+      filtered = filtered.filter(client => client.status === statusFilter.value);
+    }
+    
+    // Apply type filter
+    if (typeFilter && typeFilter.value !== 'all') {
+      filtered = filtered.filter(client => client.caseType.toLowerCase().includes(typeFilter.value.toLowerCase()));
+    }
+    
+    // Apply search filter
+    if (searchInput && searchInput.value.trim()) {
+      const searchTerm = searchInput.value.toLowerCase();
+      filtered = filtered.filter(client => 
+        client.name.toLowerCase().includes(searchTerm) ||
+        client.caseType.toLowerCase().includes(searchTerm)
+      );
+    }
+    
+    filteredClients = filtered;
+    renderClientList();
+  }
+  
+  function attachClientEventListeners() {
+    const clientItems = document.querySelectorAll('.client-item');
+    clientItems.forEach(item => {
+      item.addEventListener('click', function(e) {
+        if (!e.target.closest('.client-actions')) {
+          handleClientClick(this);
+        }
+      });
+    });
+  }
+  
+  function handleClientClick(clientEl) {
+    const clientId = clientEl.dataset.clientId;
+    const client = clientData.clients.find(c => c.id === clientId);
+    
+    if (client) {
+      // Emit client selection event
+      const clientEvent = new CustomEvent('advocate-client-select', {
+        detail: {
+          client: client,
+          componentId: config.componentId,
+          role: config.role
+        }
+      });
+      document.dispatchEvent(clientEvent);
+    }
+  }
+  
+  function handleCaptureEvent(event) {
+    console.log('Advocate client management - Capture event:', event.detail);
+    loadClientData(); // Refresh data
+  }
+  
+  function handleUnderstandEvent(event) {
+    console.log('Advocate client management - Understand event:', event.detail);
+    loadClientData(); // Refresh data
+  }
+  
+  function handlePlanEvent(event) {
+    console.log('Advocate client management - Plan event:', event.detail);
+    loadClientData(); // Refresh data
+  }
+  
+  // Action handlers
+  function addNewClient() {
+    const event = new CustomEvent('advocate-add-client', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function importClients() {
+    const event = new CustomEvent('advocate-import-clients', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function exportClientList() {
+    const event = new CustomEvent('advocate-export-clients', {
+      detail: { clients: filteredClients, componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function refreshClientList() {
+    loadClientData();
+  }
+  
+  function viewClientCase(clientId) {
+    const client = clientData.clients.find(c => c.id === clientId);
+    if (client) {
+      const event = new CustomEvent('advocate-view-case', {
+        detail: { client: client, componentId: config.componentId, role: config.role }
+      });
+      document.dispatchEvent(event);
+    }
+  }
+  
+  function editClient(clientId) {
+    const client = clientData.clients.find(c => c.id === clientId);
+    if (client) {
+      const event = new CustomEvent('advocate-edit-client', {
+        detail: { client: client, componentId: config.componentId, role: config.role }
+      });
+      document.dispatchEvent(event);
+    }
+  }
+  
+  function handoffClient(clientId) {
+    const client = clientData.clients.find(c => c.id === clientId);
+    if (client) {
+      const event = new CustomEvent('advocate-handoff-client', {
+        detail: { client: client, componentId: config.componentId, role: config.role }
+      });
+      document.dispatchEvent(event);
+    }
+  }
+  
+  function createHandoff() {
+    const event = new CustomEvent('advocate-create-handoff', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function startCollaboration() {
+    const event = new CustomEvent('advocate-start-collaboration', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function startAutoRefresh() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+    }
+    
+    refreshTimer = setInterval(() => {
+      loadClientData();
+    }, config.refreshInterval * 1000);
+  }
+  
+  function stopAutoRefresh() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+      refreshTimer = null;
+    }
+  }
+  
+  // Make action handlers available globally
+  window.addNewClient = addNewClient;
+  window.importClients = importClients;
+  window.exportClientList = exportClientList;
+  window.refreshClientList = refreshClientList;
+  window.viewClientCase = viewClientCase;
+  window.editClient = editClient;
+  window.handoffClient = handoffClient;
+  window.createHandoff = createHandoff;
+  window.startCollaboration = startCollaboration;
+  
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', stopAutoRefresh);
+});
+</script>

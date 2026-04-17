@@ -1779,7 +1779,7 @@
             event.stopPropagation(); // Prevent group toggle
             if (url && url !== '#' && url !== '') {
                 EmotionEngine.trigger(EmotionEngine.triggers.TASK_COMPLETED);
-                window.location.href = '/static/' + url;
+                window.location.href = '/' + url;
             } else {
                 toggleTask(el);
             }
@@ -1794,7 +1794,7 @@
             }
         }        // Actions
         function navigate(page) {
-            window.location.href = '/static/' + page;
+            window.location.href = '/' + page;
         }
 
         function toggleTask(el) {
@@ -1814,7 +1814,7 @@
             // In crisis mode, do the single focused action
             EmotionEngine.trigger(EmotionEngine.triggers.TASK_COMPLETED);
             const btn = document.getElementById('singleActionBtn');
-            const url = btn.dataset.url || '/static/document_intake.html';
+            const url = btn.dataset.url || '/document_intake.html';
             window.location.href = url;
         }
 

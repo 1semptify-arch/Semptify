@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}Semptify - Tenant Rights Protection Platform{% endblock %}">
+
+    <title>{% block title %}Semptify{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Design System -->
+    <link rel="stylesheet" href="/design-system/index.css">
+
+    <!-- Page-specific styles -->
+    {% block styles %}{% endblock %}
+
+    <!-- Skip link for accessibility -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <!-- Header -->
+    {% block header %}
+    <header class="header">
+        <div class="container">
+            <div class="header-inner">
+                <a href="/" class="header-logo">
+                    <span class="logo-icon">⚖️</span>
+                    <span class="logo-text">Semptify</span>
+                </a>
+                <nav class="header-nav">
+                    {% block nav %}
+                    <a href="/dashboard">Dashboard</a>
+                    <a href="/documents">Documents</a>
+                    <a href="/timeline">Timeline</a>
+                    {% endblock %}
+                </nav>
+            </div>
+        </div>
+    </header>
+    {% endblock %}
+
+    <!-- Flash Messages -->
+    {% if messages %}
+    <div class="container">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main id="main-content" class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% block footer %}
+    <footer class="footer">
+        <div class="container">
+            <p>© {{ current_year or '2025' }} Semptify. Protecting tenant rights everywhere.</p>
+            <nav class="footer-nav">
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+                <a href="/help">Help</a>
+            </nav>
+        </div>
+    </footer>
+    {% endblock %}
+
+    <!-- Core JavaScript -->
+    <script src="/design-system/index.js"></script>
+
+    <!-- Page-specific scripts -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>

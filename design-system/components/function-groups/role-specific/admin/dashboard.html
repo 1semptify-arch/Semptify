@@ -1,0 +1,609 @@
+{# Admin Dashboard Component #}
+{# Purpose: Main dashboard for admin role with system oversight and user management #}
+{# Usage: {% include "design-system/components/function-groups/role-specific/admin/dashboard.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "admin_dashboard_" ~ random_string() %}
+{% set role = "admin" %}
+{% set show_system_stats = show_system_stats|default(true) %}
+{% set show_user_management = show_user_management|default(true) %}
+
+<div class="admin-dashboard role-{{ role }}" id="{{ component_id }}">
+  <div class="admin-header">
+    <div class="header-content">
+      <div class="header-title-section">
+        <div class="header-icon">+</div>
+        <div>
+          <div class="header-title">Admin Dashboard</div>
+          <div class="header-subtitle">System oversight and user management</div>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="stat-item">
+          <div class="stat-value" id="{{ component_id }}_total_users">0</div>
+          <div class="stat-label">Total Users</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="{{ component_id }}_active_cases">0</div>
+          <div class="stat-label">Active Cases</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="{{ component_id }}_system_health">0%</div>
+          <div class="stat-label">System Health</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  {% if show_system_stats %}
+  <div class="system-overview">
+    <div class="overview-header">
+      <div class="overview-title">System Overview</div>
+      <div class="overview-actions">
+        <button class="overview-action-btn" onclick="viewSystemMetrics()">Detailed Metrics</button>
+      </div>
+    </div>
+    <div class="metrics-grid" id="{{ component_id }}_metrics_grid">
+      <div class="metrics-loading">Loading system metrics...</div>
+    </div>
+  </div>
+  {% endif %}
+  
+  {% if show_user_management %}
+  <div class="user-management">
+    <div class="user-header">
+      <div class="user-title">User Management</div>
+      <div class="user-actions">
+        <button class="user-action-btn" onclick="addNewUser()">Add User</button>
+        <button class="user-action-btn secondary" onclick="viewUserReports()">Reports</button>
+      </div>
+    </div>
+    <div class="user-list" id="{{ component_id }}_user_list">
+      <div class="user-loading">Loading user list...</div>
+    </div>
+  </div>
+  {% endif %}
+  
+  <div class="admin-actions">
+    <div class="actions-header">
+      <div class="actions-title">System Administration</div>
+    </div>
+    <div class="actions-grid">
+      <button class="action-btn primary" onclick="systemMaintenance()">
+        <span class="action-icon">+</span>
+        <span class="action-text">System Maintenance</span>
+      </button>
+      <button class="action-btn secondary" onclick="generateSystemReport()">
+        <span class="action-icon">+</span>
+        <span class="action-text">Generate Report</span>
+      </button>
+      <button class="action-btn secondary" onclick="viewAuditLogs()">
+        <span class="action-icon">+</span>
+        <span class="action-text">Audit Logs</span>
+      </button>
+      <button class="action-btn secondary" onclick="systemSettings()">
+        <span class="action-icon">+</span>
+        <span class="action-text">System Settings</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+{# Store configuration in data attributes #}
+<div id="{{ component_id }}_config" 
+     data-component-id="{{ component_id }}"
+     data-role="{{ role }}"
+     data-show-system-stats="{{ show_system_stats|lower }}"
+     data-show-user-management="{{ show_user_management|lower }}"
+     style="display: none;"></div>
+
+<style>
+.admin-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  padding: var(--space-lg);
+}
+
+.admin-header {
+  background: linear-gradient(135deg, var(--color-admin-primary), var(--color-admin-primary-dark, #b91c1c));
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.header-title-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.header-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.header-subtitle {
+  font-size: var(--font-size-base);
+  opacity: 0.9;
+}
+
+.header-stats {
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.stat-item {
+  text-align: center;
+  padding: var(--space-sm);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  min-width: 80px;
+}
+
+.stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.stat-label {
+  font-size: var(--font-size-xs);
+  opacity: 0.9;
+}
+
+.system-overview, .user-management, .admin-actions {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+
+.overview-header, .user-header, .actions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.overview-title, .user-title, .actions-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.overview-action-btn, .user-action-btn {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-admin-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.overview-action-btn:hover, .user-action-btn:hover {
+  background: var(--color-admin-primary-dark, #b91c1c);
+  transform: translateY(-1px);
+}
+
+.user-action-btn.secondary {
+  background: transparent;
+  color: var(--color-admin-primary);
+  border: 1px solid var(--color-admin-primary);
+}
+
+.user-action-btn.secondary:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.metrics-grid, .user-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-md);
+}
+
+.metric-item, .user-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.metric-item:hover, .user-item:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-admin-primary);
+  transform: translateY(-1px);
+}
+
+.metric-icon, .user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--color-admin-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.metric-content, .user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.metric-title, .user-name {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.metric-value, .user-role {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-admin-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.metric-description, .user-meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.user-status {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.user-status.active {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+}
+
+.user-status.inactive {
+  background: rgba(107, 114, 128, 0.1);
+  color: var(--color-text-muted);
+}
+
+.user-status.pending {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--color-warning);
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-sm);
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.action-btn:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-admin-primary);
+  transform: translateY(-1px);
+}
+
+.action-btn.primary {
+  background: var(--color-admin-primary);
+  color: white;
+  border-color: var(--color-admin-primary);
+}
+
+.action-btn.primary:hover {
+  background: var(--color-admin-primary-dark, #b91c1c);
+}
+
+.action-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-md);
+  background: var(--color-admin-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.action-btn.primary .action-icon {
+  background: white;
+  color: var(--color-admin-primary);
+}
+
+.action-text {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  text-align: center;
+}
+
+.metrics-loading, .user-loading {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+  
+  .header-stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .metrics-grid, .user-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .actions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get configuration from data attributes
+  const configEl = document.getElementById('{{ component_id }}_config');
+  const config = {
+    componentId: configEl.dataset.componentId,
+    role: configEl.dataset.role,
+    showSystemStats: configEl.dataset.showSystemStats === 'true',
+    showUserManagement: configEl.dataset.showUserManagement === 'true'
+  };
+  
+  // Initialize admin dashboard
+  initAdminDashboard();
+  
+  function initAdminDashboard() {
+    loadAdminData();
+    setupEventListeners();
+  }
+  
+  function loadAdminData() {
+    // Simulate loading admin data
+    setTimeout(() => {
+      const adminData = {
+        stats: {
+          totalUsers: 156,
+          activeCases: 42,
+          systemHealth: 98
+        },
+        metrics: [
+          {
+            id: '1',
+            title: 'Server Response Time',
+            value: '245ms',
+            description: 'Average response time'
+          },
+          {
+            id: '2',
+            title: 'Database Performance',
+            value: '99.2%',
+            description: 'Query efficiency'
+          },
+          {
+            id: '3',
+            title: 'Storage Usage',
+            value: '67%',
+            description: 'Disk space used'
+          },
+          {
+            id: '4',
+            title: 'Active Sessions',
+            value: '89',
+            description: 'Current user sessions'
+          }
+        ],
+        users: [
+          {
+            id: '1',
+            name: 'John Smith',
+            role: 'Tenant',
+            status: 'active',
+            lastLogin: '2 hours ago'
+          },
+          {
+            id: '2',
+            name: 'Sarah Johnson',
+            role: 'Advocate',
+            status: 'active',
+            lastLogin: '1 day ago'
+          },
+          {
+            id: '3',
+            name: 'Mike Wilson',
+            role: 'Legal',
+            status: 'pending',
+            lastLogin: '3 days ago'
+          }
+        ]
+      };
+      
+      updateHeaderStats(adminData.stats);
+      if (config.showSystemStats) {
+        updateSystemMetrics(adminData.metrics);
+      }
+      if (config.showUserManagement) {
+        updateUserList(adminData.users);
+      }
+    }, 1000);
+  }
+  
+  function updateHeaderStats(stats) {
+    const usersEl = document.getElementById(config.componentId + '_total_users');
+    const casesEl = document.getElementById(config.componentId + '_active_cases');
+    const healthEl = document.getElementById(config.componentId + '_system_health');
+    
+    if (usersEl) usersEl.textContent = stats.totalUsers;
+    if (casesEl) casesEl.textContent = stats.activeCases;
+    if (healthEl) healthEl.textContent = stats.systemHealth + '%';
+  }
+  
+  function updateSystemMetrics(metrics) {
+    const metricsGridEl = document.getElementById(config.componentId + '_metrics_grid');
+    if (!metricsGridEl) return;
+    
+    const html = metrics.map(metric => `
+      <div class="metric-item" data-metric-id="${metric.id}">
+        <div class="metric-icon">M</div>
+        <div class="metric-content">
+          <div class="metric-title">${metric.title}</div>
+          <div class="metric-value">${metric.value}</div>
+          <div class="metric-description">${metric.description}</div>
+        </div>
+      </div>
+    `).join('');
+    
+    metricsGridEl.innerHTML = html;
+  }
+  
+  function updateUserList(users) {
+    const userListEl = document.getElementById(config.componentId + '_user_list');
+    if (!userListEl) return;
+    
+    const html = users.map(user => `
+      <div class="user-item" data-user-id="${user.id}">
+        <div class="user-avatar">${user.name.split(' ').map(n => n[0]).join('')}</div>
+        <div class="user-info">
+          <div class="user-name">${user.name}</div>
+          <div class="user-role">${user.role}</div>
+          <div class="user-meta">Last login: ${user.lastLogin}</div>
+        </div>
+        <div class="user-status ${user.status}">${user.status}</div>
+      </div>
+    `).join('');
+    
+    userListEl.innerHTML = html;
+  }
+  
+  function setupEventListeners() {
+    // Listen for function group events
+    document.addEventListener('capture-upload', handleCaptureEvent);
+    document.addEventListener('capture-quick-input', handleCaptureEvent);
+    document.addEventListener('capture-voice-input', handleCaptureEvent);
+    document.addEventListener('understand-timeline-select', handleUnderstandEvent);
+    document.addEventListener('plan-action-select', handlePlanEvent);
+  }
+  
+  function handleCaptureEvent(event) {
+    console.log('Admin dashboard - Capture event:', event.detail);
+    loadAdminData(); // Refresh data
+  }
+  
+  function handleUnderstandEvent(event) {
+    console.log('Admin dashboard - Understand event:', event.detail);
+    loadAdminData(); // Refresh data
+  }
+  
+  function handlePlanEvent(event) {
+    console.log('Admin dashboard - Plan event:', event.detail);
+    loadAdminData(); // Refresh data
+  }
+  
+  // Action handlers
+  function viewSystemMetrics() {
+    const event = new CustomEvent('admin-view-system-metrics', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function addNewUser() {
+    const event = new CustomEvent('admin-add-user', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function viewUserReports() {
+    const event = new CustomEvent('admin-view-user-reports', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function systemMaintenance() {
+    const event = new CustomEvent('admin-system-maintenance', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function generateSystemReport() {
+    const event = new CustomEvent('admin-generate-system-report', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function viewAuditLogs() {
+    const event = new CustomEvent('admin-view-audit-logs', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function systemSettings() {
+    const event = new CustomEvent('admin-system-settings', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  // Make action handlers available globally
+  window.viewSystemMetrics = viewSystemMetrics;
+  window.addNewUser = addNewUser;
+  window.viewUserReports = viewUserReports;
+  window.systemMaintenance = systemMaintenance;
+  window.generateSystemReport = generateSystemReport;
+  window.viewAuditLogs = viewAuditLogs;
+  window.systemSettings = systemSettings;
+});
+</script>

@@ -1,0 +1,298 @@
+{# Plan Next Step Card Component #}
+{# Purpose: Display recommended next steps based on case analysis #}
+{# Usage: {% include "design-system/components/function-groups/plan/next-step-card.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "plan_nextstep_" ~ random_string() %}
+{% set function_group = "plan" %}
+{% set role = role or "tenant" %}
+{% set show_alternatives = show_alternatives|default(true) %}
+{% set show_reasoning = show_reasoning|default(true) %}
+{% set auto_refresh = auto_refresh|default(false) %}
+{% set refresh_interval = refresh_interval or 30 %}
+
+<div class="plan-next-step-card role-{{ role }}" 
+     id="{{ component_id }}"
+     data-function-group="{{ function_group }}"
+     data-role="{{ role }}"
+     data-show-alternatives="{{ show_alternatives|lower }}"
+     data-show-reasoning="{{ show_reasoning|lower }}"
+     data-auto-refresh="{{ auto_refresh|lower }}"
+     data-refresh-interval="{{ refresh_interval }}">
+  
+  <div class="next-step-header">
+    <div class="next-step-icon">+</div>
+    <div>
+      <div class="next-step-title">Recommended Next Step</div>
+      <div class="next-step-subtitle">AI-powered recommendation based on your case stage and urgency</div>
+    </div>
+  </div>
+  
+  <div class="next-step-content" id="{{ component_id }}_content">
+    <div class="next-step-loading">
+      <div class="next-step-loading-spinner"></div>
+      <div class="next-step-loading-text">Analyzing your case for next steps...</div>
+    </div>
+  </div>
+</div>
+
+{# Store configuration in data attributes #}
+<div id="{{ component_id }}_config" 
+     data-component-id="{{ component_id }}"
+     data-role="{{ role }}"
+     data-show-alternatives="{{ show_alternatives|lower }}"
+     data-show-reasoning="{{ show_reasoning|lower }}"
+     data-auto-refresh="{{ auto_refresh|lower }}"
+     data-refresh-interval="{{ refresh_interval }}"
+     style="display: none;"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get configuration from data attributes
+  const configEl = document.getElementById('{{ component_id }}_config');
+  const config = {
+    componentId: configEl.dataset.componentId,
+    role: configEl.dataset.role,
+    showAlternatives: configEl.dataset.showAlternatives === 'true',
+    showReasoning: configEl.dataset.showReasoning === 'true',
+    autoRefresh: configEl.dataset.autoRefresh === 'true',
+    refreshInterval: parseInt(configEl.dataset.refreshInterval)
+  };
+  
+  // Get DOM elements
+  const component = document.getElementById(config.componentId);
+  const content = document.getElementById(config.componentId + '_content');
+  
+  // State
+  let nextStepData = null;
+  let refreshTimer = null;
+  
+  // Initialize
+  initNextStepCard();
+  
+  function initNextStepCard() {
+    // Load initial data
+    loadNextStepData();
+    
+    // Set up auto-refresh
+    if (config.autoRefresh) {
+      startAutoRefresh();
+    }
+  }
+  
+  function loadNextStepData() {
+    // Show loading state
+    content.innerHTML = `
+      <div class="next-step-loading">
+        <div class="next-step-loading-spinner"></div>
+        <div class="next-step-loading-text">Analyzing your case for next steps...</div>
+      </div>
+    `;
+    
+    // Simulate API call
+    setTimeout(() => {
+      nextStepData = generateMockNextStepData();
+      renderNextStepCard();
+    }, 1500);
+  }
+  
+  function generateMockNextStepData() {
+    const now = new Date();
+    
+    return {
+      primary: {
+        id: '1',
+        title: 'File Response to Eviction Notice',
+        description: 'Submit your formal response to the eviction notice with the court. This is the most critical next step to protect your housing rights.',
+        priority: 'urgent',
+        category: 'legal',
+        estimatedTime: '2-3 hours',
+        deadline: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+        reasoning: 'Based on your case stage (eviction notice received) and the 5-day response deadline, filing a formal response is the highest priority action. Failure to respond could result in automatic default judgment.',
+        route: '/legal/response-form',
+        actions: ['Start Response', 'View Template', 'Get Help']
+      },
+      alternatives: [
+        {
+          id: '2',
+          title: 'Contact Legal Aid Immediately',
+          description: 'Get free legal consultation to understand your rights and options.',
+          priority: 'high',
+          category: 'communication',
+          estimatedTime: '1-2 hours',
+          reasoning: 'Legal aid can provide expert guidance and may represent you for free, significantly improving your chances of success.',
+          route: '/resources/legal-aid'
+        },
+        {
+          id: '3',
+          title: 'Gather Supporting Evidence',
+          description: 'Collect and organize documents that support your case against eviction.',
+          priority: 'high',
+          category: 'document',
+          estimatedTime: '3-4 hours',
+          reasoning: 'Strong evidence is crucial for your defense. Start with lease agreement, payment records, and communication history.',
+          route: '/documents/evidence'
+        },
+        {
+          id: '4',
+          title: 'Document Property Conditions',
+          description: 'Take photos and document any property issues that may support your case.',
+          priority: 'medium',
+          category: 'document',
+          estimatedTime: '1-2 hours',
+          reasoning: 'Property condition evidence can be used to counter eviction claims or support your own claims against the landlord.',
+          route: '/documents/property-photos'
+        }
+      ]
+    };
+  }
+  
+  function renderNextStepCard() {
+    if (!nextStepData || !nextStepData.primary) return;
+    
+    const primary = nextStepData.primary;
+    
+    const html = `
+      <div class="next-step-card ${primary.priority}">
+        <div class="next-step-priority">
+          <div class="next-step-priority-badge ${primary.priority}">${primary.priority}</div>
+        </div>
+        
+        <div class="next-step-action-title">${primary.title}</div>
+        <div class="next-step-action-description">${primary.description}</div>
+        
+        ${config.showReasoning ? `
+          <div class="next-step-reasoning">
+            <div class="next-step-reasoning-title">Why this action?</div>
+            <div class="next-step-reasoning-text">${primary.reasoning}</div>
+          </div>
+        ` : ''}
+        
+        <div class="next-step-meta">
+          <div class="next-step-estimated-time">Time: ${primary.estimatedTime}</div>
+          <div class="next-step-category ${primary.category}">${primary.category}</div>
+          ${primary.deadline ? `<div>Deadline: ${primary.deadline.toLocaleDateString()}</div>` : ''}
+        </div>
+        
+        <div class="next-step-actions">
+          <button class="next-step-action-btn primary" onclick="executePrimaryAction('${primary.id}')">
+            ${primary.actions[0]}
+          </button>
+          <button class="next-step-action-btn secondary" onclick="viewActionDetails('${primary.id}')">
+            Learn More
+          </button>
+        </div>
+      </div>
+      
+      ${config.showAlternatives && nextStepData.alternatives && nextStepData.alternatives.length > 0 ? `
+        <div class="next-step-alternatives">
+          <div class="next-step-alternatives-title">Alternative Actions</div>
+          <div class="next-step-alternatives-list">
+            ${nextStepData.alternatives.map(alt => createAlternativeHTML(alt)).join('')}
+          </div>
+        </div>
+      ` : ''}
+    `;
+    
+    content.innerHTML = html;
+    attachEventListeners();
+  }
+  
+  function createAlternativeHTML(alternative) {
+    return `
+      <div class="next-step-alternative" data-alternative-id="${alternative.id}">
+        <div class="next-step-alternative-marker"></div>
+        <div class="next-step-alternative-content">
+          <div class="next-step-alternative-title">${alternative.title}</div>
+          <div class="next-step-alternative-description">${alternative.description}</div>
+        </div>
+      </div>
+    `;
+  }
+  
+  function attachEventListeners() {
+    // Alternative click handlers
+    const alternativeElements = content.querySelectorAll('.next-step-alternative');
+    alternativeElements.forEach(altEl => {
+      altEl.addEventListener('click', function() {
+        handleAlternativeClick(this);
+      });
+    });
+  }
+  
+  function handleAlternativeClick(altEl) {
+    const alternativeId = altEl.dataset.alternativeId;
+    const alternative = nextStepData.alternatives.find(alt => alt.id === alternativeId);
+    
+    if (alternative) {
+      // Emit alternative selection event
+      const altEvent = new CustomEvent('plan-alternative-select', {
+        detail: {
+          alternative: alternative,
+          componentId: config.componentId,
+          role: config.role
+        }
+      });
+      document.dispatchEvent(altEvent);
+    }
+  }
+  
+  function executePrimaryAction(actionId) {
+    const action = nextStepData.primary.id === actionId ? nextStepData.primary : 
+                   nextStepData.alternatives.find(alt => alt.id === actionId);
+    
+    if (action) {
+      // Emit action execution event
+      const executeEvent = new CustomEvent('plan-action-execute', {
+        detail: {
+          action: action,
+          componentId: config.componentId,
+          role: config.role
+        }
+      });
+      document.dispatchEvent(executeEvent);
+    }
+  }
+  
+  function viewActionDetails(actionId) {
+    const action = nextStepData.primary.id === actionId ? nextStepData.primary : 
+                   nextStepData.alternatives.find(alt => alt.id === actionId);
+    
+    if (action) {
+      // Emit view details event
+      const detailsEvent = new CustomEvent('plan-action-details', {
+        detail: {
+          action: action,
+          componentId: config.componentId,
+          role: config.role
+        }
+      });
+      document.dispatchEvent(detailsEvent);
+    }
+  }
+  
+  function startAutoRefresh() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+    }
+    
+    refreshTimer = setInterval(() => {
+      loadNextStepData();
+    }, config.refreshInterval * 1000);
+  }
+  
+  function stopAutoRefresh() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+      refreshTimer = null;
+    }
+  }
+  
+  // Make action functions available globally
+  window.executePrimaryAction = executePrimaryAction;
+  window.viewActionDetails = viewActionDetails;
+  
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', stopAutoRefresh);
+});
+</script>

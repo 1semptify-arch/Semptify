@@ -739,12 +739,12 @@
                     a.click();
                 } else {
                     // Redirect to wizard instead
-                    window.location.href = '/static/eviction_answer.html';
+                    window.location.href = '/eviction_answer.html';
                 }
             } catch (e) {
                 console.error('PDF generation failed:', e);
                 alert('Please use the Answer wizard to generate your PDF.');
-                window.location.href = '/static/eviction_answer.html';
+                window.location.href = '/eviction_answer.html';
             }
         }
         

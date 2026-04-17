@@ -221,7 +221,7 @@
     <script src="/js/entry-flow.js"></script>
     <script>
         if (window.SemptifyEntryFlow && !window.SemptifyEntryFlow.hasValidStorageUser()) {
-            window.location.replace('/static/welcome.html');
+            window.location.replace('/welcome.html');
         }
 
         function applyNextStep(payload) {
@@ -357,7 +357,7 @@
                             {
                                 title: '4. Filing & Packet Prep',
                                 description: 'Build the eviction answer and assemble the packet for hearing readiness.',
-                                route: '/static/eviction_answer.html',
+                                route: '/eviction_answer.html',
                                 state: 'Upcoming',
                                 button_label: 'Open',
                             },
@@ -430,7 +430,7 @@
                         {
                             title: '4. Filing & Packet Prep',
                             description: 'Build the eviction answer and assemble the packet for hearing readiness.',
-                            route: '/static/eviction_answer.html',
+                            route: '/eviction_answer.html',
                             state: 'Upcoming',
                             button_label: 'Open',
                         },

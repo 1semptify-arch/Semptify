@@ -2,11 +2,22 @@
 Semptify 5.0 - User Context System
 Handles role, storage provider, and permissions for each user session.
 
+Architecture Principles (ONE SOURCE OF TRUTH):
+- ROLE = stable identity (USER, JUDGE, ADVOCATE, LEGAL, MANAGER, ADMIN)
+- GATE = state flag (storage_connected, vault_initialized, client_activated)
+- Do NOT conflate role with gate
+- USER role displays as "Tenant" in UI for housing context
+
+Clean Separation:
+  role == UserRole.USER:           Who they are
+  "client_activated" in gates:     What they've done (state)
+
 Design Principles:
 - User ID is stable (derived from first storage provider used)
 - Role determines what UI/features to show
 - Provider tells us where to look for documents/tokens
 - Permissions are derived from role
+- Gates track user progression without changing identity
 """
 
 from dataclasses import dataclass, field
@@ -23,12 +34,16 @@ class UserRole(str, Enum):
     """
     User roles determine what features/UI to show.
     A user can have ONE active role per session, but can switch.
+    
+    NOTE: Role is stable identity, not tied to gates or activation state.
+    The USER role is displayed as "Tenant" in housing context.
     """
     ADMIN = "admin"            # System admin: full access
     MANAGER = "manager"        # Case manager: multi-client coordination
-    USER = "user"              # Default: standard user access
+    USER = "user"              # Default: standard user (displayed as Tenant in UI)
     ADVOCATE = "advocate"      # Tenant advocate: help multiple users
-    LEGAL = "legal"            # Legal role: attorneys, judges, clerks, and court staff
+    LEGAL = "legal"            # Legal role: attorneys, clerks, and court staff
+    JUDGE = "judge"            # Judge: judicial officer overseeing cases
 
 
 # =============================================================================
@@ -154,6 +169,28 @@ ROLE_PERMISSIONS = {
     },
     
     # ==========================================================================
+    # JUDGE - Judicial officers with oversight capabilities
+    # Focus: Case review, read-only access to evidence and timelines
+    # ==========================================================================
+    UserRole.JUDGE: {
+        # Read access
+        "vault_read",
+        "timeline_read",
+        "calendar_read",
+        "ledger_read",
+        # Case oversight
+        "case_review",            # Review all case materials
+        "case_oversight",         # Judicial oversight of cases
+        "complaints_review",      # Review complaints and evidence
+        "multi_user",             # View multiple case files
+        # Legal tools (read-only)
+        "legal_research",         # Access legal research
+        # Judicial functions
+        "judicial_order",         # Record judicial orders/decisions
+        "case_notes",             # Add judicial notes
+    },
+    
+    # ==========================================================================
     # ADMIN - System administrators (you)
     # Focus: System config, analytics, full access
     # ==========================================================================
@@ -199,6 +236,14 @@ ROLE_DEFINITIONS = {
         "ui_mode": "desktop",          # Full complexity
         "landing_page": "/legal/home",
         "icon": "⚖️",
+    },
+    UserRole.JUDGE: {
+        "display_name": "Judge",
+        "purpose": "Judicial officer with case oversight, evidence review, and decision recording capabilities.",
+        "default_landing_process": "B4 - Professional Review Workspace",
+        "ui_mode": "desktop",          # Full complexity
+        "landing_page": "/judge/home",
+        "icon": "📜",
     },
     UserRole.ADMIN: {
         "display_name": "Administrator",
@@ -444,3 +489,20 @@ ROLE_UI_CONFIG = {
 def get_ui_config(role: UserRole) -> dict:
     """Get UI configuration for a role."""
     return ROLE_UI_CONFIG.get(role, ROLE_UI_CONFIG[UserRole.USER])
+
+
+async def get_user_context(
+    storage_provider: Optional[str] = None,
+    semptify_uid: Optional[str] = None,
+) -> dict:
+    """
+    Get user context for API responses.
+    This is a simplified version that returns basic user info.
+    """
+    return {
+        "user_id": semptify_uid or "anonymous",
+        "role": UserRole.USER.value,
+        "storage_provider": storage_provider,
+        "gates": [],
+        "permissions": get_permissions_for_role(UserRole.USER),
+    }

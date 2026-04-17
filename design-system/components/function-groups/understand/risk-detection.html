@@ -1,0 +1,411 @@
+{# Understand Risk Detection Component #}
+{# Purpose: Risk assessment and complaint opportunity detection #}
+{# Usage: {% include "design-system/components/function-groups/understand/risk-detection.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "understand_risk_" ~ random_string() %}
+{% set function_group = "understand" %}
+{% set role = role or "tenant" %}
+{% set auto_analyze = auto_analyze|default(true) %}
+{% set show_timeline = show_timeline|default(true) %}
+{% set show_actions = show_actions|default(true) %}
+
+<div class="understand-risk-detection role-{{ role }}" 
+     id="{{ component_id }}"
+     data-function-group="{{ function_group }}"
+     data-role="{{ role }}"
+     data-auto-analyze="{{ auto_analyze|lower }}"
+     data-show-timeline="{{ show_timeline|lower }}"
+     data-show-actions="{{ show_actions|lower }}">
+  
+  <div class="risk-header">
+    <div class="risk-icon">+</div>
+    <div>
+      <div class="risk-title">Risk Detection</div>
+      <div class="risk-subtitle">AI-powered risk assessment and complaint opportunity analysis</div>
+    </div>
+  </div>
+  
+  <div class="risk-content" id="{{ component_id }}_content">
+    <div class="risk-loading">
+      <div class="risk-loading-spinner"></div>
+      <div class="risk-loading-text">Analyzing risks and opportunities...</div>
+    </div>
+  </div>
+</div>
+
+{# Store configuration in data attributes #}
+<div id="{{ component_id }}_config" 
+     data-component-id="{{ component_id }}"
+     data-role="{{ role }}"
+     data-auto-analyze="{{ auto_analyze|lower }}"
+     data-show-timeline="{{ show_timeline|lower }}"
+     data-show-actions="{{ show_actions|lower }}"
+     style="display: none;"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get configuration from data attributes
+  const configEl = document.getElementById('{{ component_id }}_config');
+  const config = {
+    componentId: configEl.dataset.componentId,
+    role: configEl.dataset.role,
+    autoAnalyze: configEl.dataset.autoAnalyze === 'true',
+    showTimeline: configEl.dataset.showTimeline === 'true',
+    showActions: configEl.dataset.showActions === 'true'
+  };
+  
+  // Get DOM elements
+  const component = document.getElementById(config.componentId);
+  const content = document.getElementById(config.componentId + '_content');
+  
+  // State
+  let riskData = null;
+  let isAnalyzing = false;
+  
+  // Initialize
+  initRiskDetection();
+  
+  function initRiskDetection() {
+    // Load initial analysis
+    if (config.autoAnalyze) {
+      performRiskAnalysis();
+    }
+  }
+  
+  function performRiskAnalysis() {
+    isAnalyzing = true;
+    
+    // Show loading state
+    content.innerHTML = `
+      <div class="risk-loading">
+        <div class="risk-loading-spinner"></div>
+        <div class="risk-loading-text">Analyzing risks and opportunities...</div>
+      </div>
+    `;
+    
+    // Simulate API call
+    setTimeout(() => {
+      riskData = generateMockRiskData();
+      renderRiskAnalysis();
+      isAnalyzing = false;
+    }, 2000);
+  }
+  
+  function generateMockRiskData() {
+    const now = new Date();
+    
+    return {
+      overview: {
+        critical: 1,
+        high: 2,
+        medium: 3,
+        low: 4,
+        total: 10
+      },
+      categories: [
+        {
+          id: 'eviction',
+          name: 'Eviction Risk',
+          icon: 'eviction',
+          items: [
+            {
+              id: 'eviction_notice',
+              title: 'Eviction Notice Received',
+              description: 'Formal eviction notice received for alleged lease violations. Immediate action required.',
+              impact: 'critical',
+              confidence: 0.95,
+              timeline: {
+                date: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+                urgency: 'immediate',
+                deadline: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000) // 5 days from now
+              },
+              evidence: ['eviction_notice.pdf', 'lease_agreement.pdf'],
+              actions: ['File response', 'Legal consultation', 'Document evidence']
+            },
+            {
+              id: 'court_date',
+              title: 'Court Date Scheduled',
+              description: 'Unlawful detainer court date set. Must appear or file response.',
+              impact: 'critical',
+              confidence: 0.88,
+              timeline: {
+                date: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+                urgency: 'immediate',
+                deadline: new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000) // 10 days from now
+              },
+              evidence: ['court_summons.pdf'],
+              actions: ['Prepare defense', 'Gather evidence', 'Legal representation']
+            }
+          ]
+        },
+        {
+          id: 'financial',
+          name: 'Financial Risks',
+          icon: 'financial',
+          items: [
+            {
+              id: 'rent_increase',
+              title: 'Excessive Rent Increase',
+              description: 'Rent increase exceeds legal limits for jurisdiction. Potential violation.',
+              impact: 'high',
+              confidence: 0.82,
+              timeline: {
+                date: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+                urgency: 'soon',
+                deadline: new Date(now.getTime() + 25 * 24 * 60 * 60 * 1000) // 25 days from now
+              },
+              evidence: ['rent_increase_notice.pdf', 'rent_history.pdf'],
+              actions: ['Challenge increase', 'File complaint', 'Legal review']
+            },
+            {
+              id: 'deposit_dispute',
+              title: 'Security Deposit Dispute',
+              description: 'Landlord withholding security deposit without proper justification.',
+              impact: 'medium',
+              confidence: 0.75,
+              timeline: {
+                date: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+                urgency: 'upcoming',
+                deadline: new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000) // 14 days from now
+              },
+              evidence: ['move_out_inspection.pdf', 'deposit_withholding_letter.pdf'],
+              actions: ['Demand letter', 'Small claims court', 'Document condition']
+            }
+          ]
+        },
+        {
+          id: 'legal',
+          name: 'Legal Opportunities',
+          icon: 'legal',
+          items: [
+            {
+              id: 'habitability_violation',
+              title: 'Habitability Violations',
+              description: 'Multiple habitability issues documented. Potential for rent withholding or repair claims.',
+              impact: 'medium',
+              confidence: 0.78,
+              timeline: {
+                date: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+                urgency: 'upcoming',
+                deadline: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
+              },
+              evidence: ['repair_requests.pdf', 'photos_mold.jpg', 'inspection_report.pdf'],
+              actions: ['File complaint', 'Rent withholding', 'Repair lawsuit']
+            },
+            {
+              id: 'harassment_claims',
+              title: 'Harassment Evidence',
+              description: 'Documented pattern of landlord harassment. Strong case for legal action.',
+              impact: 'high',
+              confidence: 0.85,
+              timeline: {
+                date: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
+                urgency: 'soon',
+                deadline: new Date(now.getTime() + 20 * 24 * 60 * 60 * 1000) // 20 days from now
+              },
+              evidence: ['harassment_log.pdf', 'witness_statements.pdf', 'recordings.wav'],
+              actions: ['Restraining order', 'Damages lawsuit', 'Police report']
+            }
+          ]
+        },
+        {
+          id: 'safety',
+          name: 'Safety Concerns',
+          icon: 'safety',
+          items: [
+            {
+              id: 'emergency_repairs',
+              title: 'Emergency Repair Issues',
+              description: 'Critical safety issues requiring immediate landlord attention.',
+              impact: 'high',
+              confidence: 0.92,
+              timeline: {
+                date: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+                urgency: 'immediate',
+                deadline: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000) // 2 days from now
+              },
+              evidence: ['emergency_repair_request.pdf', 'photos_leak.jpg', 'health_inspection.pdf'],
+              actions: ['Emergency repair order', 'Health department', 'Alternative housing']
+            },
+            {
+              id: 'security_issues',
+              title: 'Security Problems',
+              description: 'Building security deficiencies creating safety risks.',
+              impact: 'medium',
+              confidence: 0.68,
+              timeline: {
+                date: new Date(now.getTime() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
+                urgency: 'upcoming',
+                deadline: new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000) // 15 days from now
+              },
+              evidence: ['security_incident_log.pdf', 'police_reports.pdf'],
+              actions: ['Security upgrade demand', 'Police involvement', 'Rent reduction']
+            }
+          ]
+        }
+      ]
+    };
+  }
+  
+  function renderRiskAnalysis() {
+    if (!riskData) return;
+    
+    const html = `
+      <div class="risk-overview">
+        <div class="risk-overview-item">
+          <div class="risk-overview-value critical">${riskData.overview.critical}</div>
+          <div class="risk-overview-label">Critical</div>
+        </div>
+        <div class="risk-overview-item">
+          <div class="risk-overview-value high">${riskData.overview.high}</div>
+          <div class="risk-overview-label">High</div>
+        </div>
+        <div class="risk-overview-item">
+          <div class="risk-overview-value medium">${riskData.overview.medium}</div>
+          <div class="risk-overview-label">Medium</div>
+        </div>
+        <div class="risk-overview-item">
+          <div class="risk-overview-value low">${riskData.overview.low}</div>
+          <div class="risk-overview-label">Low</div>
+        </div>
+      </div>
+      
+      <div class="risk-levels">
+        <div class="risk-level critical">
+          <div>Critical</div>
+          <div>Immediate Action Required</div>
+        </div>
+        <div class="risk-level high">
+          <div>High</div>
+          <div>Urgent Attention Needed</div>
+        </div>
+        <div class="risk-level medium">
+          <div>Medium</div>
+          <div>Plan to Address</div>
+        </div>
+        <div class="risk-level low">
+          <div>Low</div>
+          <div>Monitor Situation</div>
+        </div>
+      </div>
+      
+      <div class="risk-categories">
+        ${riskData.categories.map(category => createCategoryHTML(category)).join('')}
+      </div>
+      
+      ${config.showActions ? `
+        <div class="risk-actions">
+          <button class="risk-action-btn primary" onclick="handleViewActionPlan()">
+            View Action Plan
+          </button>
+          <button class="risk-action-btn secondary" onclick="handleExportReport()">
+            Export Risk Report
+          </button>
+        </div>
+      ` : ''}
+    `;
+    
+    content.innerHTML = html;
+    attachEventListeners();
+  }
+  
+  function createCategoryHTML(category) {
+    return `
+      <div class="risk-category">
+        <div class="risk-category-header">
+          <div class="risk-category-icon ${category.icon}">${category.icon[0].toUpperCase()}</div>
+          <div class="risk-category-title">${category.name}</div>
+          <div class="risk-category-count">${category.items.length}</div>
+        </div>
+        <div class="risk-items">
+          ${category.items.map(item => createItemHTML(item)).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  function createItemHTML(item) {
+    return `
+      <div class="risk-item" data-item-id="${item.id}" data-impact="${item.impact}">
+        <div class="risk-item-marker ${item.impact}"></div>
+        <div class="risk-item-content">
+          <div class="risk-item-title">${item.title}</div>
+          <div class="risk-item-description">${item.description}</div>
+          <div class="risk-item-impact">
+            <span class="risk-impact-label">Impact:</span>
+            <span class="risk-impact-value ${item.impact}">${item.impact.toUpperCase()}</span>
+          </div>
+          ${config.showTimeline && item.timeline ? `
+            <div class="risk-item-timeline">
+              <span class="risk-timeline-date">${item.timeline.date.toLocaleDateString()}</span>
+              <span class="risk-timeline-urgency ${item.timeline.urgency}">${item.timeline.urgency.toUpperCase()}</span>
+              <span>Deadline: ${item.timeline.deadline.toLocaleDateString()}</span>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+  
+  function attachEventListeners() {
+    // Item click handlers
+    const itemElements = content.querySelectorAll('.risk-item');
+    itemElements.forEach(itemEl => {
+      itemEl.addEventListener('click', function() {
+        handleItemClick(this);
+      });
+    });
+  }
+  
+  function handleItemClick(itemEl) {
+    const itemId = itemEl.dataset.itemId;
+    const category = riskData.categories.find(cat => 
+      cat.items.some(item => item.id === itemId)
+    );
+    const item = category ? category.items.find(item => item.id === itemId) : null;
+    
+    if (item) {
+      // Emit risk item selection event
+      const riskEvent = new CustomEvent('understand-risk-select', {
+        detail: {
+          item: item,
+          category: category,
+          componentId: config.componentId,
+          role: config.role
+        }
+      });
+      document.dispatchEvent(riskEvent);
+    }
+  }
+  
+  function handleViewActionPlan() {
+    // Emit view action plan event
+    const actionEvent = new CustomEvent('understand-risk-action-plan', {
+      detail: {
+        risks: riskData,
+        componentId: config.componentId,
+        role: config.role
+      }
+    });
+    document.dispatchEvent(actionEvent);
+  }
+  
+  function handleExportReport() {
+    // Emit export report event
+    const exportEvent = new CustomEvent('understand-risk-export', {
+      detail: {
+        risks: riskData,
+        format: 'pdf',
+        componentId: config.componentId,
+        role: config.role
+      }
+    });
+    document.dispatchEvent(exportEvent);
+  }
+  
+  // Make action functions available globally
+  window.handleViewActionPlan = handleViewActionPlan;
+  window.handleExportReport = handleExportReport;
+});
+</script>

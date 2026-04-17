@@ -16,6 +16,8 @@ from pydantic import BaseModel
 from app.core.config import get_settings, Settings
 from app.core.security import require_user, StorageUser
 from app.core.event_bus import event_bus, EventType
+from app.core.database import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.document_pipeline import (
     get_document_pipeline,
     TenancyDocument,
@@ -23,6 +25,7 @@ from app.services.document_pipeline import (
     DocumentType
 )
 from app.services.law_engine import get_law_engine
+from app.routers.storage import _mark_group_complete
 
 # Import vault upload service - ALL uploads go through here first
 try:
@@ -264,6 +267,7 @@ async def upload_document(
     access_token: Optional[str] = Form(None, description="Storage provider access token"),
     storage_provider: str = Form("local", description="Storage provider (google_drive, dropbox, onedrive, local)"),
     user: StorageUser = Depends(require_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     🚀 UNIFIED DOCUMENT UPLOAD - Complete Processing in One Action
@@ -319,6 +323,16 @@ async def upload_document(
             )
             vault_id = vault_doc.vault_id
             logger.info(f"📁 Document stored in vault: {vault_id}")
+            
+            # =========================================================================
+            # CLIENT ACTIVATION GATE: First vault upload activates the user as a client
+            # =========================================================================
+            # This is the final gate in the serial gating sequence:
+            # storage_connected → vault_initialized → client_activated
+            # Once this gate is passed, the user has full access to all Semptify tools
+            await _mark_group_complete(db, user_id, "client_activated")
+            logger.info(f"🎉 User {user_id} activated as client after first vault upload")
+            
         except Exception as e:
             logger.warning(f"Vault upload failed, continuing with legacy flow: {e}")
     

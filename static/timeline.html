@@ -703,14 +703,14 @@
         async function checkAuth() {
             const semptifyUid = getCookie('semptify_uid');
             if (!semptifyUid) {
-                window.location.href = '/static/welcome.html';
+                window.location.href = '/welcome.html';
                 return false;
             }
 
             const parsed = parseUserId(semptifyUid);
             if (!parsed) {
                 document.cookie = 'semptify_uid=; path=/; max-age=0';
-                window.location.href = '/static/welcome.html';
+                window.location.href = '/welcome.html';
                 return false;
             }
 

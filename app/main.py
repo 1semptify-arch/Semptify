@@ -13,11 +13,13 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import JSONResponse, HTMLResponse, RedirectResponse, FileResponse
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import get_settings
@@ -105,6 +107,9 @@ workflow_router = _safe_router_import("app.routers.workflow")
 functionx_router = _safe_router_import("app.routers.functionx")
 document_overlays_router = _safe_router_import("app.routers.document_overlays")
 from app.routers import storage
+from app.routers import onboarding
+from app.routers import plugins
+from app.routers import development
 from app.core.mesh_integration import start_mesh_network, stop_mesh_network
 
 # Tenant Defense Module
@@ -382,6 +387,14 @@ async def lifespan(_app: FastAPI):
             from app.services.mesh_handlers import register_all_mesh_handlers
             mesh_stats = register_all_mesh_handlers()
             logger.info("   🕸️ Mesh Network initialized: %s modules, %s handlers", mesh_stats['modules_registered'], mesh_stats['total_handlers'])
+
+            # Initialize Plugin System
+            from app.sdk.plugin_manager import plugin_manager
+            discovered_plugins = plugin_manager.discover_plugins()
+            plugin_stats = plugin_manager.load_all()
+            discovered_count = len(discovered_plugins)
+            loaded_count = sum(1 for v in plugin_stats.values() if v)
+            logger.info("   📦 Plugin System initialized: %s plugins discovered, %s loaded", discovered_count, loaded_count)
         
         await run_stage(5, TOTAL_STAGES, "Initialize Services", init_services)
         
@@ -1308,41 +1321,9 @@ def generate_zoom_court_html() -> str:
             document.getElementById('etiquette-rules').innerHTML = etiquette.map(rule => `
                 <div class="rule-item">
                     <div class="rule-icon">📌</div>
-                    <div class="rule-content">
-                        <div class="rule-title">${rule.rule}</div>
-                        <div class="rule-desc">${rule.explanation}</div>
-                    </div>
+                    <div class="rule-text">${rule.rule}</div>
                 </div>
             `).join('');
-            
-            // Load phrases
-            const phrases = await fetch('/api/zoom-court/phrases-to-use').then(r => r.json());
-            let phrasesHtml = '';
-            for (const [category, items] of Object.entries(phrases)) {
-                phrasesHtml += `<div class="phrase-category"><h3>${category.replace(/_/g, ' ').toUpperCase()}</h3>`;
-                phrasesHtml += items.map(p => `
-                    <div class="phrase-item">
-                        <div class="phrase-situation">${p.situation}</div>
-                        <div class="phrase-text">"${p.phrase}"</div>
-                    </div>
-                `).join('');
-                phrasesHtml += '</div>';
-            }
-            document.getElementById('phrases-list').innerHTML = phrasesHtml;
-            
-            // Load quick tips
-            const tips = await fetch('/api/zoom-court/quick-tips').then(r => r.json());
-            let tipsHtml = '';
-            for (const [category, items] of Object.entries(tips)) {
-                tipsHtml += `<div class="tip-category"><h3>${category.replace(/_/g, ' ')}</h3><ul class="tip-list">`;
-                tipsHtml += items.map(t => `<li>${t}</li>`).join('');
-                tipsHtml += '</ul></div>';
-            }
-            document.getElementById('quick-tips').innerHTML = tipsHtml;
-        }
-        
-        function scrollTo(id) {
-            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
         }
         
         loadData();
@@ -1351,15 +1332,13 @@ def generate_zoom_court_html() -> str:
 </html>"""
 
 
-# =============================================================================
 # Create FastAPI App
 # =============================================================================
 
 def create_app() -> FastAPI:
-    """
-    Application factory.
-    Creates and configures the FastAPI application.
-    """
+    """Application factory. Creates and configures the FastAPI application."""
+    logger = logging.getLogger(__name__)
+    
     app_settings = get_settings()
     setup_logging()
     validate_app_compliance(app_settings)
@@ -1489,6 +1468,111 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     fastapi_app.state.limiter = limiter
     fastapi_app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
     
+    # Initialize OAuth token manager
+    from app.core.oauth_token_manager import init_oauth_token_manager
+    init_oauth_token_manager()
+    
+    # Start performance monitoring
+    from app.core.performance_monitor import get_performance_monitor
+    performance_monitor = get_performance_monitor()
+    performance_monitor.start_monitoring()
+    
+    logger.info("Semptify 5.0 FastAPI application created successfully")
+    
+    # =========================================================================
+    # Global Exception Handlers
+    # =========================================================================
+    
+    # Import error handling system
+    from app.core.error_handling import (
+        semptify_exception_handler,
+        SemptifyError,
+        UserError,
+        StorageError,
+        AuthenticationError,
+        ValidationError
+    )
+    from fastapi.exceptions import RequestValidationError
+    from starlette.exceptions import HTTPException as StarletteHTTPException
+    
+    # Register global exception handlers
+    fastapi_app.add_exception_handler(Exception, semptify_exception_handler)
+    fastapi_app.add_exception_handler(SemptifyError, semptify_exception_handler)
+    fastapi_app.add_exception_handler(RequestValidationError, semptify_exception_handler)
+    fastapi_app.add_exception_handler(StarletteHTTPException, semptify_exception_handler)
+    
+    logger.info("Global error handling system registered")
+    
+    # =========================================================================
+    # Performance Monitoring Middleware
+    # =========================================================================
+    
+    @fastapi_app.middleware("http")
+    async def performance_monitoring_middleware(request: Request, call_next):
+        """Monitor request performance."""
+        from app.core.performance_monitor import get_performance_monitor
+        
+        start_time = time.time()
+        
+        # Get user info from request
+        user_id = None
+        if hasattr(request.state, 'user'):
+            user_id = getattr(request.state.user, 'user_id', None)
+        
+        # Process request
+        response = await call_next(request)
+        
+        # Calculate duration
+        duration_ms = (time.time() - start_time) * 1000
+        
+        # Record performance
+        performance_monitor = get_performance_monitor()
+        performance_monitor.record_request(
+            endpoint=request.url.path,
+            method=request.method,
+            status_code=response.status_code,
+            duration_ms=duration_ms,
+            user_id=user_id,
+            ip_address=request.client.host if request.client else None
+        )
+        
+        return response
+    
+    logger.info("Performance monitoring middleware registered")
+    
+    # =========================================================================
+    # Offline Detection Middleware
+    # =========================================================================
+    
+    @fastapi_app.middleware("http")
+    async def offline_detection_middleware(request: Request, call_next):
+        """Add offline detection to all responses."""
+        response = await call_next(request)
+        
+        # Add offline indicators to HTML responses
+        if response.headers.get("content-type", "").startswith("text/html"):
+            from app.core.offline_manager import get_offline_indicators
+            offline_indicators = get_offline_indicators()
+            
+            # Inject offline indicators into HTML
+            if hasattr(response, 'body'):
+                body = response.body.decode() if isinstance(response.body, bytes) else response.body
+                if '<head>' in body:
+                    # Insert after <head> tag
+                    body = body.replace('<head>', f'<head>{offline_indicators}')
+                elif '<html>' in body:
+                    # Insert after <html> tag
+                    body = body.replace('<html>', f'<html>{offline_indicators}')
+                else:
+                    # Insert at beginning of body
+                    body = f'{offline_indicators}{body}'
+                
+                response.body = body.encode() if isinstance(response.body, bytes) else body
+        
+        return response
+    
+    logger.info("Offline detection middleware registered")
+    
     # =========================================================================
     # Middleware (order matters - first added = last to run)
     # =========================================================================
@@ -1585,8 +1669,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Guided Intake - Conversational intake like an attorney/advocate
     fastapi_app.include_router(guided_intake_router, tags=["Guided Intake"])
 
+    # Unified Onboarding (primary entry point for new users)
+    fastapi_app.include_router(onboarding.router, tags=["Onboarding"])
+
     # Storage OAuth (handles authentication)
     fastapi_app.include_router(storage.router, tags=["Storage Auth"])
+    
+    # Plugin System (extensible module architecture)
+    fastapi_app.include_router(plugins.router, tags=["Plugin System"])
+    
+    # Development Tools (crawler, analysis, debugging)
+    fastapi_app.include_router(development.router, tags=["Development Tools"])
 
     # API routes
     # app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
@@ -1679,7 +1772,103 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     # Document Overlays - Non-destructive annotations and processing
     fastapi_app.include_router(overlays_router, tags=["Document Overlays"])
-    logging.getLogger(__name__).info("📝 Document Overlays router connected - Non-destructive annotation system active")
+    logging.getLogger(__name__).info("?? Document Overlays router connected - Non-destructive annotation system active")
+
+    # Modular Components - New component system integration
+    from app.routers import components
+    fastapi_app.include_router(components.router, tags=["Modular Components"])
+    logging.getLogger(__name__).info("?? Modular Components router connected - Component system integration active")
+    
+    # Litigation Intelligence System (LIS) - Justice-Grade Legal Intelligence
+    try:
+        from app.routers import litigation_intelligence
+        fastapi_app.include_router(litigation_intelligence.lis_router, tags=["Litigation Intelligence"])
+        logging.getLogger(__name__).info("?? Litigation Intelligence System router connected - Justice-grade legal intelligence active")
+    except ImportError as e:
+        logging.getLogger(__name__).warning(f"Litigation Intelligence System not available: {e}")
+    
+    # Core System - System Infrastructure and Services
+    try:
+        from app.routers import core_system
+        fastapi_app.include_router(core_system.core_router, tags=["Core System"])
+        logging.getLogger(__name__).info("?? Core System router connected - System infrastructure active")
+    except ImportError as e:
+        logging.getLogger(__name__).warning(f"Core System not available: {e}")
+    
+    # Housing Accountability - Regulatory Compliance & Oversight
+    try:
+        from app.routers import housing_accountability
+        fastapi_app.include_router(housing_accountability.accountability_router, tags=["Housing Accountability"])
+        logging.getLogger(__name__).info("?? Housing Accountability router connected - Regulatory compliance active")
+    except ImportError as e:
+        logging.getLogger(__name__).warning(f"Housing Accountability not available: {e}")
+    
+    # Phase 2 Advanced Features Integration
+    # =========================================================================
+    
+    # Document Preview System - Multi-format preview generation
+    try:
+        from app.routers import preview
+        fastapi_app.include_router(preview.router, prefix="/api/preview", tags=["Document Preview"])
+        logging.getLogger(__name__).info("📄 Document Preview router connected - Multi-format preview generation active")
+    except ImportError as e:
+        logging.getLogger(__name__).warning(f"Document Preview router not available: {e}")
+    
+    # Batch Operations - Bulk document management
+    try:
+        from app.routers import batch
+        fastapi_app.include_router(batch.router, prefix="/api/batch", tags=["Batch Operations"])
+        logging.getLogger(__name__).info("📦 Batch Operations router connected - Bulk document management active")
+    except ImportError as e:
+        logging.getLogger(__name__).warning(f"Batch Operations router not available: {e}")
+    
+    # Data Export/Import - GDPR-compliant data management
+    try:
+        from app.routers import export_import
+        fastapi_app.include_router(export_import.router, prefix="/api/export-import", tags=["Data Export/Import"])
+        logging.getLogger(__name__).info("📊 Data Export/Import router connected - GDPR-compliant data management active")
+    except ImportError as e:
+        logging.getLogger(__name__).warning(f"Data Export/Import router not available: {e}")
+    
+    # Advanced Security - 2FA and session management
+    try:
+        from app.routers import security
+        fastapi_app.include_router(security.router, prefix="/api/security", tags=["Advanced Security"])
+        logging.getLogger(__name__).info("🔒 Advanced Security router connected - 2FA and session management active")
+    except ImportError as e:
+        logging.getLogger(__name__).warning(f"Advanced Security router not available: {e}")
+    
+    # Automated Testing - Comprehensive testing framework
+    try:
+        from app.routers import testing
+        fastapi_app.include_router(testing.router, prefix="/api/testing", tags=["Automated Testing"])
+        logging.getLogger(__name__).info("🧪 Automated Testing router connected - Comprehensive testing framework active")
+    except ImportError as e:
+        logging.getLogger(__name__).warning(f"Automated Testing router not available: {e}")
+    
+    # API Documentation - Developer portal and API docs
+    try:
+        from app.routers import documentation
+        fastapi_app.include_router(documentation.router, prefix="/api/docs", tags=["API Documentation"])
+        logging.getLogger(__name__).info("📚 API Documentation router connected - Developer portal active")
+    except ImportError as e:
+        logging.getLogger(__name__).warning(f"API Documentation router not available: {e}")
+    
+    logging.getLogger(__name__).info("🚀 Phase 2 Advanced Features Integration Complete")
+    logging.getLogger(__name__).info("   - Document Preview: Multi-format preview generation")
+    logging.getLogger(__name__).info("   - Batch Operations: Bulk document management")
+    logging.getLogger(__name__).info("   - Data Export/Import: GDPR-compliant data management")
+    logging.getLogger(__name__).info("   - Advanced Security: 2FA and session management")
+    logging.getLogger(__name__).info("   - Automated Testing: Comprehensive testing framework")
+    logging.getLogger(__name__).info("   - API Documentation: Developer portal and API docs")
+    
+    # Vault - Persistent document storage
+    try:
+        from app.routers import vault
+        fastapi_app.include_router(vault.router, tags=["Vault"])
+        logging.getLogger(__name__).info("🔐 Vault router connected - Persistent document storage active")
+    except ImportError as e:
+        logging.getLogger(__name__).warning(f"Vault router not available: {e}")
 
     # Complaint Filing Wizard - Regulatory Accountability
     fastapi_app.include_router(complaints_router, tags=["Complaint Wizard"])
@@ -1697,97 +1886,113 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if static_path.exists():
         fastapi_app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 
+        # =========================================================================
+        # Onboarding Redirect (before catch-all)
+        # =========================================================================
+
+        @fastapi_app.get("/onboarding", response_class=HTMLResponse)
+        async def onboarding_redirect():
+            """Redirect /onboarding to /onboarding/ for the router."""
+            return RedirectResponse(url="/onboarding/", status_code=302)
+
+        @fastapi_app.get("/welcome.html", response_class=HTMLResponse)
+        async def welcome_redirect():
+            """Redirect legacy /welcome.html to canonical /onboarding entry point."""
+            return RedirectResponse(url="/onboarding", status_code=301)
+
+        @fastapi_app.get("/", response_class=HTMLResponse)
+        async def root_redirect():
+            """Redirect root to unified onboarding flow."""
+            return RedirectResponse(url="/onboarding", status_code=302)
+
+        @fastapi_app.get("/{path:path}")
+        async def serve_legacy_static(path: str):
+            """Serve legacy root-level static pages from the static directory."""
+            candidate = static_path / path
+            if candidate.exists() and candidate.is_file():
+                return FileResponse(str(candidate))
+            raise HTTPException(status_code=404, detail="Static asset not found")
+
     # =========================================================================
     # Root endpoint - Serve SPA
     # =========================================================================
 
-    # Welcome page rotation - cycle through all available welcome pages
-    WELCOME_PAGES = [
-        "static/onboarding/welcome.html",       # Main: The Tenant's Journal
-        "static/_archive/welcome_new.html",     # Backup: Tenant's Journal
-        "static/_archive/welcome_old2.html",    # Semper Fi / Always Faithful theme
-        "static/_archive/welcome_backup.html",  # Interactive wizard
-    ]
-    _welcome_page_index = 0
-
-    @fastapi_app.get("/", response_class=HTMLResponse)
-    async def root(request: Request):
-        """
-        Main entry point - routes based on storage connection status.
-        
-        Flow:
-        1. No storage cookie → Welcome page (first-time visitor, rotates through themes)
-        2. Has storage cookie → Role UI router (returning user)
-        """
-        nonlocal _welcome_page_index
+    # Role-Specific Dashboard Pages
+    @fastapi_app.get("/tenant/dashboard", response_class=HTMLResponse)
+    async def tenant_dashboard_page(request: Request):
+        """Serve the tenant dashboard with modular components."""
         from app.core.storage_middleware import is_valid_storage_user
         from app.core.user_id import COOKIE_USER_ID
-        
-        # Check if user has valid storage connected
+
         user_id = request.cookies.get(COOKIE_USER_ID)
-        
         if not is_valid_storage_user(user_id):
-            # First-time visitor or invalid session → Template-based welcome page if available
-            welcome_template_path = BASE_PATH / "app" / "templates" / "pages" / "welcome.html"
-            if welcome_template_path.exists():
-                from app.core.user_context import UserRole, get_role_definition
-                from app.core.page_contracts import get_contract
-                from app.core.process_registry import PROCESS_GROUPS
-
-                role_options = []
-                for role in UserRole:
-                    role_def = get_role_definition(role)
-                    role_options.append({
-                        "value": role.value,
-                        "display_name": role_def["display_name"],
-                        "purpose": role_def["purpose"],
-                        "default_landing_process": role_def["default_landing_process"],
-                    })
-
-                storage_options = [
-                    {"value": "need_connect", "label": "I need to connect storage"},
-                    {"value": "already_connected", "label": "Storage is already connected"},
-                    {"value": "review_only", "label": "Review-only mode for now"},
-                ]
-
-                # Page contract for welcome (group coverage map for template use)
-                welcome_contract = get_contract("welcome")
-
-                # Process group labels for the process map panel
-                process_groups = [
-                    {"name": g.name, "title": g.title, "group_id": g.group_id}
-                    for g in PROCESS_GROUPS
-                ]
-
-                return templates.TemplateResponse(
-                    request,
-                    "pages/welcome.html",
-                    {
-                        "role_options": role_options,
-                        "default_role": UserRole.USER.value,
-                        "storage_options": storage_options,
-                        "page_contract": {
-                            "page_id": welcome_contract.page_id,
-                            "group_coverage": welcome_contract.group_coverage,
-                            "primary_groups": welcome_contract.primary_groups,
-                            "telemetry_events": welcome_contract.telemetry_events,
-                        },
-                        "process_groups": process_groups,
-                    }
-                )
-
-            # Fallback to legacy static welcome pages
-            for _ in range(len(WELCOME_PAGES)):
-                welcome_path = BASE_PATH / WELCOME_PAGES[_welcome_page_index]
-                _welcome_page_index = (_welcome_page_index + 1) % len(WELCOME_PAGES)
-                welcome_fallback = _render_static_page(welcome_path)
-                if welcome_fallback:
-                    return welcome_fallback
-
             return RedirectResponse(url="/storage/providers", status_code=302)
 
-        # Valid user with storage → canonical role-aware UI entry point
-        return RedirectResponse(url="/ui/", status_code=302)
+        tenant_dashboard_path = BASE_PATH / "app" / "templates" / "pages" / "tenant_dashboard.html"
+        if tenant_dashboard_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/tenant_dashboard.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Tenant dashboard template error, falling back to static: %s", e)
+
+        return HTMLResponse(content="<h1>Tenant Dashboard not found</h1>", status_code=404)
+
+    @fastapi_app.get("/advocate/dashboard", response_class=HTMLResponse)
+    async def advocate_dashboard_page(request: Request):
+        """Serve the advocate dashboard with modular components."""
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import COOKIE_USER_ID
+
+        user_id = request.cookies.get(COOKIE_USER_ID)
+        if not is_valid_storage_user(user_id):
+            return RedirectResponse(url="/storage/providers", status_code=302)
+
+        advocate_dashboard_path = BASE_PATH / "app" / "templates" / "pages" / "advocate_dashboard.html"
+        if advocate_dashboard_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/advocate_dashboard.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Advocate dashboard template error, falling back to static: %s", e)
+
+        return HTMLResponse(content="<h1>Advocate Dashboard not found</h1>", status_code=404)
+
+    @fastapi_app.get("/legal/dashboard", response_class=HTMLResponse)
+    async def legal_dashboard_page(request: Request):
+        """Serve the legal dashboard with modular components."""
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import COOKIE_USER_ID
+
+        user_id = request.cookies.get(COOKIE_USER_ID)
+        if not is_valid_storage_user(user_id):
+            return RedirectResponse(url="/storage/providers", status_code=302)
+
+        legal_dashboard_path = BASE_PATH / "app" / "templates" / "pages" / "legal_dashboard.html"
+        if legal_dashboard_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/legal_dashboard.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Legal dashboard template error, falling back to static: %s", e)
+
+        return HTMLResponse(content="<h1>Legal Dashboard not found</h1>", status_code=404)
+
+    @fastapi_app.get("/admin/dashboard", response_class=HTMLResponse)
+    async def admin_dashboard_page(request: Request):
+        """Serve the admin dashboard with modular components."""
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import COOKIE_USER_ID
+
+        user_id = request.cookies.get(COOKIE_USER_ID)
+        if not is_valid_storage_user(user_id):
+            return RedirectResponse(url="/storage/providers", status_code=302)
+
+        admin_dashboard_path = BASE_PATH / "app" / "templates" / "pages" / "admin_dashboard.html"
+        if admin_dashboard_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/admin_dashboard.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Admin dashboard template error, falling back to static: %s", e)
+
+        return HTMLResponse(content="<h1>Admin Dashboard not found</h1>", status_code=404)
 
     @fastapi_app.get("/dashboard", response_class=HTMLResponse)
     async def dashboard_page(request: Request):
@@ -1946,7 +2151,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         index_fallback = _render_static_page(index_path)
         if index_fallback:
             return index_fallback
-        return JSONResponse(content={"error": "Elbow UI not found"}, status_code=404)    # =========================================================================
+        return JSONResponse(content={"error": "Elbow UI not found"}, status_code=404)
+
+    # =========================================================================
     # Vault UI Page (after OAuth redirect)
     # =========================================================================
 
@@ -1960,7 +2167,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if not session_id:
             return RedirectResponse(url="/", status_code=302)
         
-        return HTMLResponse(content=f"""
+        # Use template instead of embedded HTML to avoid syntax conflicts
+        vault_template_path = BASE_PATH / "app" / "templates" / "pages" / "vault.html"
+        if vault_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/vault.html", {
+                    "app_name": app_settings.app_name
+                })
+            except Exception as e:
+                logger.warning("Vault template error: %s", e)
+        
+        # Fallback to simple HTML if template fails
+        vault_html = f"""
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1968,351 +2186,41 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document Vault - {app_settings.app_name}</title>
     <style>
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        body {{ 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
-            min-height: 100vh;
-            padding: 2rem;
-        }}
-        .container {{ max-width: 900px; margin: 0 auto; }}
-        header {{ 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }}
-        h1 {{ font-size: 1.5rem; font-weight: 600; }}
-        .status {{ 
-            background: #10b981; 
-            padding: 0.5rem 1rem; 
-            border-radius: 2rem;
-            font-size: 0.875rem;
-        }}
-        .card {{
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }}
-        .card h2 {{ font-size: 1.125rem; margin-bottom: 1rem; color: #94a3b8; }}
-        .upload-zone {{
-            border: 2px dashed rgba(255,255,255,0.2);
-            border-radius: 0.75rem;
-            padding: 3rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }}
-        .upload-zone:hover {{ border-color: #3b82f6; background: rgba(59,130,246,0.1); }}
-        .upload-zone input {{ display: none; }}
-        .upload-icon {{ font-size: 3rem; margin-bottom: 1rem; }}
-        .btn {{
-            background: #3b82f6;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.2s;
-        }}
-        .btn:hover {{ background: #2563eb; }}
-        .documents {{ display: grid; gap: 1rem; }}
-        .doc-item {{
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            background: rgba(255,255,255,0.03);
-            border-radius: 0.5rem;
-        }}
-        .doc-icon {{ font-size: 2rem; }}
-        .doc-info {{ flex: 1; }}
-        .doc-name {{ font-weight: 500; }}
-        .doc-meta {{ font-size: 0.875rem; color: #64748b; }}
-        #message {{ 
-            padding: 1rem; 
-            border-radius: 0.5rem; 
-            margin-bottom: 1rem;
-            display: none;
-        }}
-        .success {{ background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; }}
-        .error {{ background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+               background: linear-gradient(135deg, #064e3b 0%, #065f46 100%); 
+               color: #fff; 
+               min-height: 100vh; 
+               padding: 2rem; }}
+        .container {{ max-width: 800px; margin: 0 auto; 
+                     background: rgba(255,255,255,0.05); 
+                     border-radius: 16px; 
+                     padding: 2rem; 
+                     backdrop-filter: blur(10px); }}
+        h1 {{ margin-bottom: 1rem; font-size: 2rem; }}
+        .status {{ background: rgba(16, 185, 129, 0.1); 
+                  border: 1px solid #10b981; 
+                  border-radius: 8px; 
+                  padding: 1rem; 
+                  margin: 1rem 0; 
+                  color: #d1fae5; }}
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>📁 Document Vault</h1>
-            <span class="status" id="provider-status">Loading...</span>
-        </header>
-
-        <div id="message"></div>
-
-        <div class="card">
-            <h2>Upload Documents</h2>
-            <div class="upload-zone" id="upload-zone">
-                <div class="upload-icon">📤</div>
-                <p>Drag & drop files here or click to browse</p>
-                <p style="color: #64748b; margin-top: 0.5rem; font-size: 0.875rem;">
-                    Documents are stored securely in YOUR cloud storage
-                </p>
-                <input type="file" id="file-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt">
-            </div>
+        <h1>📁 Document Vault</h1>
+        <div class="status">
+            ✅ Storage Connected - Your documents are secure in your cloud storage
         </div>
-
-        <div class="card">
-            <h2>Your Documents</h2>
-            <div class="documents" id="documents-list">
-                <p style="color: #64748b; text-align: center; padding: 2rem;">
-                    Loading documents...
-                </p>
-            </div>
-        </div>
+        <p>Vault interface is loading...</p>
+        <p>Please ensure your storage is connected.</p>
     </div>
-
-    <script>
-        let functionToken = null;
-        let functionTokenReverifySeconds = 120;
-        let functionTokenIntervalId = null;
-
-        function setFunctionTokenState(token, reverifySeconds = 120) {{
-            functionToken = token || null;
-            functionTokenReverifySeconds = Number(reverifySeconds) || 120;
-            if (functionToken) {{
-                try {{
-                    localStorage.setItem('semptify_function_token', functionToken);
-                }} catch (e) {{}}
-            }}
-        }}
-
-        async function issueFunctionToken() {{
-            const res = await fetch('/storage/function-token/issue', {{
-                method: 'POST',
-                credentials: 'include',
-            }});
-            if (!res.ok) {{
-                throw new Error('Function token issue failed');
-            }}
-            const data = await res.json();
-            if (data?.token) {{
-                setFunctionTokenState(data.token, data.reverify_in_seconds);
-            }}
-            return data;
-        }}
-
-        async function verifyFunctionToken() {{
-            if (!functionToken) {{
-                return false;
-            }}
-            try {{
-                const params = new URLSearchParams({{
-                    refresh: 'true',
-                }});
-                const res = await fetch('/storage/function-token/verify?' + params.toString(), {{
-                    method: 'GET',
-                    credentials: 'include',
-                    headers: {{
-                        'X-Function-Token': functionToken,
-                    }},
-                }});
-                const data = await res.json();
-                if (!data.valid) {{
-                    functionToken = null;
-                    return false;
-                }}
-                if (data.reverify_in_seconds) {{
-                    functionTokenReverifySeconds = Number(data.reverify_in_seconds) || functionTokenReverifySeconds;
-                }}
-                return true;
-            }} catch (e) {{
-                return false;
-            }}
-        }}
-
-        async function ensureFunctionToken() {{
-            if (functionToken) {{
-                const valid = await verifyFunctionToken();
-                if (valid) {{
-                    return true;
-                }}
-            }}
-            await issueFunctionToken();
-            return !!functionToken;
-        }}
-
-        function startFunctionTokenReverifyLoop() {{
-            if (functionTokenIntervalId) {{
-                clearInterval(functionTokenIntervalId);
-            }}
-            functionTokenIntervalId = setInterval(async () => {{
-                const valid = await verifyFunctionToken();
-                if (!valid) {{
-                    try {{
-                        await issueFunctionToken();
-                    }} catch (e) {{
-                        // Keep UI usable; upload path will surface auth errors as needed.
-                    }}
-                }}
-            }}, Math.max(30, functionTokenReverifySeconds) * 1000);
-        }}
-
-        // Check session and get storage status
-        async function init() {{
-            try {{
-                const status = await fetch('/storage/status', {{ credentials: 'include' }});
-                const data = await status.json();
-                
-                if (data.authenticated) {{
-                    document.getElementById('provider-status').textContent = 
-                        '✓ Connected: ' + data.provider;
-                    try {{
-                        await ensureFunctionToken();
-                        startFunctionTokenReverifyLoop();
-                    }} catch (e) {{
-                        showMessage('Vault function security check pending. Upload to initialize access token.', 'error');
-                    }}
-                    loadDocuments(data.access_token);
-                }} else {{
-                    document.getElementById('provider-status').textContent = 'Not connected';
-                    document.getElementById('provider-status').style.background = '#ef4444';
-                }}
-            }} catch (e) {{
-                showMessage('Failed to load status', 'error');
-            }}
-        }}
-
-        async function loadDocuments(accessToken) {{
-            try {{
-                const res = await fetch('/api/vault/?access_token=' + accessToken, {{ 
-                    credentials: 'include' 
-                }});
-                const data = await res.json();
-                
-                const list = document.getElementById('documents-list');
-                if (data.documents && data.documents.length > 0) {{
-                    list.innerHTML = data.documents.map(doc => `
-                        <div class="doc-item">
-                            <span class="doc-icon">${{getIcon(doc.mime_type)}}</span>
-                            <div class="doc-info">
-                                <div class="doc-name">${{doc.original_filename}}</div>
-                                <div class="doc-meta">
-                                    ${{formatSize(doc.file_size)}} · 
-                                    ${{new Date(doc.uploaded_at).toLocaleDateString()}}
-                                </div>
-                            </div>
-                            <button class="btn" onclick="downloadDoc('${{doc.id}}', '${{accessToken}}')">
-                                Download
-                            </button>
-                        </div>
-                    `).join('');
-                }} else {{
-                    list.innerHTML = '<p style="color: #64748b; text-align: center; padding: 2rem;">No documents yet. Upload your first document above!</p>';
-                }}
-            }} catch (e) {{
-                document.getElementById('documents-list').innerHTML = 
-                    '<p style="color: #ef4444;">Failed to load documents</p>';
-            }}
-        }}
-
-        function getIcon(mime) {{
-            if (mime.includes('pdf')) return '📄';
-            if (mime.includes('image')) return '🖼️';
-            if (mime.includes('word') || mime.includes('doc')) return '📝';
-            return '📎';
-        }}
-
-        function formatSize(bytes) {{
-            if (bytes < 1024) return bytes + ' B';
-            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-        }}
-
-        function showMessage(text, type) {{
-            const el = document.getElementById('message');
-            el.textContent = text;
-            el.className = type;
-            el.style.display = 'block';
-            setTimeout(() => el.style.display = 'none', 5000);
-        }}
-
-        async function downloadDoc(id, token) {{
-            window.open('/api/vault/' + id + '/download?access_token=' + token, '_blank');
-        }}
-
-        // File upload handling
-        const uploadZone = document.getElementById('upload-zone');
-        const fileInput = document.getElementById('file-input');
-
-        uploadZone.addEventListener('click', () => fileInput.click());
-        uploadZone.addEventListener('dragover', (e) => {{
-            e.preventDefault();
-            uploadZone.style.borderColor = '#3b82f6';
-        }});
-        uploadZone.addEventListener('dragleave', () => {{
-            uploadZone.style.borderColor = 'rgba(255,255,255,0.2)';
-        }});
-        uploadZone.addEventListener('drop', async (e) => {{
-            e.preventDefault();
-            uploadZone.style.borderColor = 'rgba(255,255,255,0.2)';
-            await handleFiles(e.dataTransfer.files);
-        }});
-        fileInput.addEventListener('change', async () => {{
-            await handleFiles(fileInput.files);
-        }});
-
-        async function handleFiles(files) {{
-            const status = await fetch('/storage/status', {{ credentials: 'include' }});
-            const data = await status.json();
-            
-            if (!data.authenticated) {{
-                showMessage('Please connect your storage first', 'error');
-                return;
-            }}
-
-            for (const file of files) {{
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('access_token', data.access_token);
-
-                try {{
-                    const res = await fetch('/api/vault/upload', {{
-                        method: 'POST',
-                        body: formData,
-                        credentials: 'include'
-                    }});
-                    let body = null;
-                    try {{
-                        body = await res.json();
-                    }} catch (e) {{}}
-                    
-                    if (res.ok) {{
-                        if (body?.function_token) {{
-                            setFunctionTokenState(body.function_token, body.function_token_reverify_in_seconds);
-                            startFunctionTokenReverifyLoop();
-                        }}
-                        showMessage('Uploaded: ' + file.name, 'success');
-                        loadDocuments(data.access_token);
-                    }} else {{
-                        showMessage('Failed: ' + ((body && body.detail) || 'Unknown error'), 'error');
-                    }}
-                }} catch (e) {{
-                    showMessage('Upload failed: ' + e.message, 'error');
-                }}
-            }}
-        }}
-
-        // Init on load
-        init();
-    </script>
 </body>
 </html>
-        """)
+        """.format(app_name=app_settings.app_name)
+        
+        return HTMLResponse(content=vault_html)
+        
+        return HTMLResponse(content=vault_html)
 
     # =========================================================================
     # Timeline Page

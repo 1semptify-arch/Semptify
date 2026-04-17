@@ -1,0 +1,122 @@
+/**
+ * ============================================================================
+ * COLOR TOKENS
+ * ============================================================================
+ *
+ * Semantic color system for trust, professionalism, and accessibility.
+ */
+
+:root {
+  /* ------------------------------------------------------------------------- */
+  /* RGB Values for Transparency Calculations */
+  /* ------------------------------------------------------------------------- */
+  --color-primary-500-rgb: 59, 130, 246;
+  --color-bg-primary-rgb: 255, 255, 255;
+
+  /* ------------------------------------------------------------------------- */
+  /* Primary - Trust Blue */
+  /* ------------------------------------------------------------------------- */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+
+  /* ------------------------------------------------------------------------- */
+  /* Success - Affirming Green */
+  /* ------------------------------------------------------------------------- */
+  --color-success-50: #ecfdf5;
+  --color-success-100: #d1fae5;
+  --color-success-200: #a7f3d0;
+  --color-success-300: #6ee7b7;
+  --color-success-400: #34d399;
+  --color-success-500: #10b981;
+  --color-success-600: #059669;
+  --color-success-700: #047857;
+  --color-success-800: #065f46;
+  --color-success-900: #064e3b;
+
+  /* ------------------------------------------------------------------------- */
+  /* Warning - Attention Amber */
+  /* ------------------------------------------------------------------------- */
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+
+  /* ------------------------------------------------------------------------- */
+  /* Danger - Alert Red */
+  /* ------------------------------------------------------------------------- */
+  --color-danger-50: #fef2f2;
+  --color-danger-100: #fee2e2;
+  --color-danger-200: #fecaca;
+  --color-danger-300: #fca5a5;
+  --color-danger-400: #f87171;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+  --color-danger-700: #b91c1c;
+  --color-danger-800: #991b1b;
+  --color-danger-900: #7f1d1d;
+
+  /* ------------------------------------------------------------------------- */
+  /* Neutral - Slate for text and backgrounds */
+  /* ------------------------------------------------------------------------- */
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+  --color-neutral-950: #020617;
+
+  /* ------------------------------------------------------------------------- */
+  /* Semantic Colors (Theme-aware) */
+  /* ------------------------------------------------------------------------- */
+  --color-bg: var(--color-neutral-50);
+  --color-bg-secondary: var(--color-neutral-100);
+  --color-bg-tertiary: var(--color-neutral-200);
+  --color-bg-card: #ffffff;
+  --color-bg-elevated: #ffffff;
+
+  --color-text: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-600);
+  --color-text-muted: var(--color-neutral-400);
+  --color-text-inverse: #ffffff;
+
+  --color-border: var(--color-neutral-200);
+  --color-border-hover: var(--color-neutral-300);
+  --color-border-focus: var(--color-primary-500);
+
+  /* ------------------------------------------------------------------------- */
+  /* Dark Theme Overrides */
+  /* ------------------------------------------------------------------------- */
+  [data-theme="dark"] {
+    --color-bg: var(--color-neutral-950);
+    --color-bg-secondary: var(--color-neutral-900);
+    --color-bg-tertiary: var(--color-neutral-800);
+    --color-bg-card: var(--color-neutral-800);
+    --color-bg-elevated: var(--color-neutral-700);
+
+    --color-text: var(--color-neutral-50);
+    --color-text-secondary: var(--color-neutral-300);
+    --color-text-muted: var(--color-neutral-400);
+
+    --color-border: var(--color-neutral-700);
+    --color-border-hover: var(--color-neutral-600);
+  }
+}

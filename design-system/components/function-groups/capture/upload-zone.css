@@ -1,0 +1,214 @@
+/**
+ * Capture Upload Zone Component
+ * Part of the Capture function group for getting information into the system
+ */
+
+.capture-upload-zone {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  text-align: center;
+  background: var(--color-bg-card);
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.capture-upload-zone:hover {
+  border-color: var(--color-accent);
+  background: var(--color-bg-hover);
+}
+
+.capture-upload-zone.drag-over {
+  border-color: var(--color-accent);
+  background: rgba(59, 130, 246, 0.1);
+  transform: scale(1.02);
+}
+
+.capture-upload-zone.uploading {
+  border-color: var(--color-warning);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.capture-upload-zone.success {
+  border-color: var(--color-success);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.capture-upload-zone.error {
+  border-color: var(--color-error);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  min-height: 120px;
+  justify-content: center;
+}
+
+.upload-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  transition: all var(--transition-normal);
+}
+
+.capture-upload-zone:hover .upload-icon {
+  transform: scale(1.1);
+  background: var(--color-accent-hover);
+}
+
+.upload-text h3 {
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-sm);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+}
+
+.upload-text p {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-md);
+}
+
+.upload-input {
+  display: none;
+}
+
+.upload-button {
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.upload-button:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-1px);
+}
+
+.upload-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--transition-slow);
+}
+
+.capture-upload-zone.uploading .upload-progress {
+  transform: scaleX(1);
+}
+
+.upload-status {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.upload-status.uploading {
+  background: var(--color-warning);
+  color: white;
+}
+
+.upload-status.success {
+  background: var(--color-success);
+  color: white;
+}
+
+.upload-status.error {
+  background: var(--color-error);
+  color: white;
+}
+
+/* File types indicator */
+.upload-file-types {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: var(--space-md);
+}
+
+.file-type-badge {
+  padding: var(--space-xs) var(--space-sm);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .capture-upload-zone {
+    padding: var(--space-xl);
+  }
+  
+  .upload-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+  
+  .upload-text h3 {
+    font-size: var(--font-size-base);
+  }
+  
+  .upload-text p {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* Role-specific variations */
+.capture-upload-zone.role-tenant {
+  border-color: var(--color-tenant-primary);
+}
+
+.capture-upload-zone.role-tenant:hover {
+  border-color: var(--color-tenant-primary);
+}
+
+.capture-upload-zone.role-advocate {
+  border-color: var(--color-advocate-primary);
+}
+
+.capture-upload-zone.role-advocate:hover {
+  border-color: var(--color-advocate-primary);
+}
+
+.capture-upload-zone.role-legal {
+  border-color: var(--color-legal-primary);
+}
+
+.capture-upload-zone.role-legal:hover {
+  border-color: var(--color-legal-primary);
+}
+
+.capture-upload-zone.role-admin {
+  border-color: var(--color-admin-primary);
+}
+
+.capture-upload-zone.role-admin:hover {
+  border-color: var(--color-admin-primary);
+}
