@@ -1854,6 +1854,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     except ImportError as e:
         logging.getLogger(__name__).warning(f"API Documentation router not available: {e}")
     
+    # Free API Pack - Minnesota tenant rights APIs
+    try:
+        import semptify_free_apis
+        fastapi_app.include_router(semptify_free_apis.router)
+        logging.getLogger(__name__).info("📈 Free API Pack connected - Minnesota tenant rights APIs active")
+    except ImportError as e:
+        logging.getLogger(__name__).warning(f"Free API Pack not available: {e}")
+    
     logging.getLogger(__name__).info("🚀 Phase 2 Advanced Features Integration Complete")
     logging.getLogger(__name__).info("   - Document Preview: Multi-format preview generation")
     logging.getLogger(__name__).info("   - Batch Operations: Bulk document management")
