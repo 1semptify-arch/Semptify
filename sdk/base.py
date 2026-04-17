@@ -54,6 +54,11 @@ class BaseClient:
             )
         return self._client
     
+    @client.setter
+    def client(self, client: httpx.Client) -> None:
+        """Set the sync HTTP client."""
+        self._client = client
+    
     @property
     def async_client(self) -> httpx.AsyncClient:
         """Get or create async HTTP client."""
@@ -64,6 +69,11 @@ class BaseClient:
                 cookies=self._get_cookies(),
             )
         return self._async_client
+    
+    @async_client.setter
+    def async_client(self, client: httpx.AsyncClient) -> None:
+        """Set the async HTTP client."""
+        self._async_client = client
     
     def _get_cookies(self) -> Dict[str, str]:
         """Get authentication cookies."""
