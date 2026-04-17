@@ -1,0 +1,96 @@
+{
+  "summary": {
+    "total": 26,
+    "passed": 26,
+    "failed": 0,
+    "ready_for_frontend": true
+  },
+  "results": {
+    "server_startup": {
+      "status": "PASS",
+      "title": "Semptify",
+      "version": "5.0.0",
+      "routes_count": 959
+    },
+    "core_security_headers": {
+      "status": "PASS"
+    },
+    "core_storage_middleware": {
+      "status": "PASS"
+    },
+    "core_job_processor": {
+      "status": "PASS"
+    },
+    "core_websocket_manager": {
+      "status": "PASS"
+    },
+    "core_mesh_integration": {
+      "status": "PASS"
+    },
+    "core_module_hub": {
+      "status": "PASS"
+    },
+    "core_compliance": {
+      "status": "PASS"
+    },
+    "storage_middleware": {
+      "status": "PASS"
+    },
+    "storage_router": {
+      "status": "PASS"
+    },
+    "module_health": {
+      "status": "PASS"
+    },
+    "module_onboarding": {
+      "status": "PASS"
+    },
+    "module_storage": {
+      "status": "PASS"
+    },
+    "module_plugins": {
+      "status": "PASS"
+    },
+    "module_development": {
+      "status": "PASS"
+    },
+    "module_documents": {
+      "status": "PASS"
+    },
+    "module_vault": {
+      "status": "PASS"
+    },
+    "module_legal_analysis": {
+      "status": "PASS"
+    },
+    "module_court_forms": {
+      "status": "PASS"
+    },
+    "module_research": {
+      "status": "PASS"
+    },
+    "module_hud_funding": {
+      "status": "PASS"
+    },
+    "module_location": {
+      "status": "PASS"
+    },
+    "module_free_api_pack": {
+      "status": "PASS"
+    },
+    "api_endpoints": {
+      "status": "PASS",
+      "total_routes": 959,
+      "critical_found": 4
+    },
+    "job_processor": {
+      "status": "PASS",
+      "workers": 4
+    },
+    "websocket_manager": {
+      "status": "PASS",
+      "connections": 0
+    }
+  },
+  "errors": []
+}
