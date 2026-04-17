@@ -1,0 +1,206 @@
+/**
+ * Understand Function Group Components
+ * Part of the Understand function group for turning raw input into meaning
+ */
+
+@import url('./timeline-view.css');
+@import url('./rights-analysis.css');
+@import url('./risk-detection.css');
+
+/* Base understand function group styles */
+.function-group-understand {
+  --color-understand: #8b5cf6;
+  --color-understand-hover: #7c3aed;
+  --color-understand-light: rgba(139, 92, 246, 0.1);
+}
+
+/* Role-specific variations for understand components */
+.function-group-understand.role-tenant {
+  --color-understand: var(--color-tenant-primary);
+  --color-understand-hover: #2563eb;
+  --color-understand-light: rgba(59, 130, 246, 0.1);
+}
+
+.function-group-understand.role-advocate {
+  --color-understand: var(--color-advocate-primary);
+  --color-understand-hover: #7c3aed;
+  --color-understand-light: rgba(124, 58, 237, 0.1);
+}
+
+.function-group-understand.role-legal {
+  --color-understand: var(--color-legal-primary);
+  --color-understand-hover: #059669;
+  --color-understand-light: rgba(16, 185, 129, 0.1);
+}
+
+.function-group-understand.role-admin {
+  --color-understand: var(--color-admin-primary);
+  --color-understand-hover: #dc2626;
+  --color-understand-light: rgba(239, 68, 68, 0.1);
+}
+
+/* Understand function group container styles */
+.understand-function-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.understand-function-group.horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.understand-function-group.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-lg);
+}
+
+/* Understand function group header */
+.understand-function-group-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.understand-function-group-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.understand-function-group-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Understand function group status */
+.understand-function-group-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-understand-light);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-understand);
+}
+
+.understand-function-group-status.analyzing {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--color-warning);
+}
+
+.understand-function-group-status.complete {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+}
+
+.understand-function-group-status.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+}
+
+/* Understand function group actions */
+.understand-function-group-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+  margin-top: var(--space-md);
+}
+
+/* Analysis progress indicator */
+.understand-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-md);
+}
+
+.understand-progress-bar {
+  flex: 1;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.understand-progress-fill {
+  height: 100%;
+  background: var(--color-understand);
+  transition: width var(--transition-slow);
+}
+
+.understand-progress-text {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+/* Insight highlight */
+.understand-insight {
+  background: linear-gradient(135deg, var(--color-understand-light), rgba(139, 92, 246, 0.05));
+  border: 1px solid var(--color-understand);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.understand-insight-title {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-understand);
+  margin-bottom: var(--space-sm);
+}
+
+.understand-insight-content {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  line-height: 1.5;
+}
+
+.understand-insight-action {
+  margin-top: var(--space-sm);
+}
+
+.understand-insight-btn {
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-understand);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.understand-insight-btn:hover {
+  background: var(--color-understand-hover);
+  transform: translateY(-1px);
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .understand-function-group.horizontal {
+    flex-direction: column;
+  }
+  
+  .understand-function-group.grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .understand-function-group-actions {
+    flex-direction: column;
+  }
+  
+  .understand-function-group-actions button {
+    width: 100%;
+  }
+}

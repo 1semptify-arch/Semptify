@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Vault - {{ app_name }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        h1 { font-size: 1.5rem; font-weight: 600; }
+        .status { 
+            background: #10b981; 
+            padding: 0.5rem 1rem; 
+            border-radius: 2rem;
+            font-size: 0.875rem;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .card h2 { font-size: 1.125rem; margin-bottom: 1rem; color: #94a3b8; }
+        .upload-zone {
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 0.75rem;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .upload-zone:hover { border-color: #3b82f6; background: rgba(59,130,246,0.1); }
+        .upload-zone input { display: none; }
+        .upload-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .btn:hover { background: #2563eb; }
+        .documents { display: grid; gap: 1rem; }
+        .doc-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.03);
+            border-radius: 0.5rem;
+        }
+        .doc-icon { font-size: 2rem; }
+        .doc-info { flex: 1; }
+        .doc-name { font-weight: 500; }
+        .doc-meta { font-size: 0.875rem; color: #64748b; }
+        #message { 
+            padding: 1rem; 
+            border-radius: 0.5rem; 
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; }
+        .error { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Document Vault</h1>
+            <span class="status" id="provider-status">Loading...</span>
+        </header>
+
+        <div id="message"></div>
+
+        <div class="card">
+            <h2>Upload Documents</h2>
+            <div class="upload-zone" id="upload-zone">
+                <div class="upload-icon">Upload</div>
+                <p>Drag & drop files here or click to browse</p>
+                <p style="color: #64748b; margin-top: 0.5rem; font-size: 0.875rem;">
+                    Documents are stored securely in YOUR cloud storage
+                </p>
+                <input type="file" id="file-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt">
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Your Documents</h2>
+            <div class="documents" id="documents-list">
+                <p style="color: #64748b; text-align: center; padding: 2rem;">
+                    Loading documents...
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let functionToken = null;
+        let functionTokenReverifySeconds = 120;
+        let functionTokenIntervalId = null;
+
+        function setFunctionTokenState(token, reverifySeconds = 120) {
+            functionToken = token || null;
+            functionTokenReverifySeconds = Number(reverifySeconds) || 120;
+            if (functionToken) {
+                try {
+                    localStorage.setItem('semptify_function_token', functionToken);
+                } catch (e) {}
+            }
+        }
+
+        async function issueFunctionToken() {
+            const res = await fetch('/storage/function-token/issue', {
+                method: 'POST',
+                credentials: 'include',
+            });
+            if (!res.ok) {
+                throw new Error('Function token issue failed');
+            }
+            const data = await res.json();
+            if (data?.token) {
+                setFunctionTokenState(data.token, data.reverify_in_seconds);
+            }
+            return data;
+        }
+
+        async function verifyFunctionToken() {
+            if (!functionToken) {
+                return false;
+            }
+            try {
+                const params = new URLSearchParams({
+                    refresh: 'true',
+                });
+                const res = await fetch('/storage/function-token/verify?' + params.toString(), {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'X-Function-Token': functionToken,
+                    },
+                });
+                const data = await res.json();
+                if (!data.valid) {
+                    functionToken = null;
+                    return false;
+                }
+                if (data.reverify_in_seconds) {
+                    functionTokenReverifySeconds = Number(data.reverify_in_seconds) || functionTokenReverifySeconds;
+                }
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        async function ensureFunctionToken() {
+            if (functionToken) {
+                const valid = await verifyFunctionToken();
+                if (valid) {
+                    return true;
+                }
+            }
+            await issueFunctionToken();
+            return !!functionToken;
+        }
+
+        function startFunctionTokenReverifyLoop() {
+            if (functionTokenIntervalId) {
+                clearInterval(functionTokenIntervalId);
+            }
+            functionTokenIntervalId = setInterval(async () => {
+                const valid = await verifyFunctionToken();
+                if (!valid) {
+                    try {
+                        await issueFunctionToken();
+                    } catch (e) {
+                        // Keep UI usable; upload path will surface auth errors as needed.
+                    }
+                }
+            }, Math.max(30, functionTokenReverifySeconds) * 1000);
+        }
+
+        // Check session and get storage status
+        async function init() {
+            try {
+                const status = await fetch('/storage/status', { credentials: 'include' });
+                const data = await status.json();
+                
+                if (data.authenticated) {
+                    document.getElementById('provider-status').textContent = 
+                        'Connected: ' + data.provider;
+                    try {
+                        await ensureFunctionToken();
+                        startFunctionTokenReverifyLoop();
+                    } catch (e) {
+                        showMessage('Vault function security check pending. Upload to initialize access token.', 'error');
+                    }
+                    loadDocuments(data.access_token);
+                } else {
+                    document.getElementById('provider-status').textContent = 'Not connected';
+                    document.getElementById('provider-status').style.background = '#ef4444';
+                }
+            } catch (e) {
+                showMessage('Failed to load status', 'error');
+            }
+        }
+
+        async function loadDocuments(accessToken) {
+            try {
+                const res = await fetch('/api/vault/?access_token=' + accessToken, { 
+                    credentials: 'include' 
+                });
+                const data = await res.json();
+                
+                const list = document.getElementById('documents-list');
+                if (data.documents && data.documents.length > 0) {
+                    list.innerHTML = data.documents.map(doc => `
+                        <div class="doc-item">
+                            <span class="doc-icon">${getIcon(doc.mime_type)}</span>
+                            <div class="doc-info">
+                                <div class="doc-name">${doc.original_filename}</div>
+                                <div class="doc-meta">
+                                    ${formatSize(doc.file_size)} · 
+                                    ${new Date(doc.uploaded_at).toLocaleDateString()}
+                                </div>
+                            </div>
+                            <button class="btn" onclick="downloadDoc('${doc.id}', '${accessToken}')">
+                                Download
+                            </button>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = '<p style="color: #64748b; text-align: center; padding: 2rem;">No documents yet. Upload your first document above!</p>';
+                }
+            } catch (e) {
+                document.getElementById('documents-list').innerHTML = 
+                    '<p style="color: #ef4444;">Failed to load documents</p>';
+            }
+        }
+
+        function getIcon(mime) {
+            if (mime.includes('pdf')) return 'PDF';
+            if (mime.includes('image')) return 'IMG';
+            if (mime.includes('word') || mime.includes('doc')) return 'DOC';
+            return 'FILE';
+        }
+
+        function formatSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function showMessage(text, type) {
+            const el = document.getElementById('message');
+            el.textContent = text;
+            el.className = type;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+        }
+
+        async function downloadDoc(id, token) {
+            window.open('/api/vault/' + id + '/download?access_token=' + token, '_blank');
+        }
+
+        // File upload handling
+        const uploadZone = document.getElementById('upload-zone');
+        const fileInput = document.getElementById('file-input');
+
+        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.style.borderColor = '#3b82f6';
+        });
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.style.borderColor = 'rgba(255,255,255,0.2)';
+        });
+        uploadZone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            uploadZone.style.borderColor = 'rgba(255,255,255,0.2)';
+            await handleFiles(e.dataTransfer.files);
+        });
+        fileInput.addEventListener('change', async () => {
+            await handleFiles(fileInput.files);
+        });
+
+        async function handleFiles(files) {
+            const status = await fetch('/storage/status', { credentials: 'include' });
+            const data = await status.json();
+            
+            if (!data.authenticated) {
+                showMessage('Please connect your storage first', 'error');
+                return;
+            }
+
+            for (const file of files) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('access_token', data.access_token);
+
+                try {
+                    const res = await fetch('/api/vault/upload', {
+                        method: 'POST',
+                        body: formData,
+                        credentials: 'include'
+                    });
+                    let body = null;
+                    try {
+                        body = await res.json();
+                    } catch (e) {}
+                    
+                    if (res.ok) {
+                        if (body?.function_token) {
+                            setFunctionTokenState(body.function_token, body.function_token_reverify_in_seconds);
+                            startFunctionTokenReverifyLoop();
+                        }
+                        showMessage('Uploaded: ' + file.name, 'success');
+                        loadDocuments(data.access_token);
+                    } else {
+                        showMessage('Failed: ' + ((body && body.detail) || 'Unknown error'), 'error');
+                    }
+                } catch (e) {
+                    showMessage('Upload failed: ' + e.message, 'error');
+                }
+            }
+        }
+
+        // Init on load
+        init();
+    </script>
+</body>
+</html>

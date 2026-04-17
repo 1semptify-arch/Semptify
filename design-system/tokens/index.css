@@ -1,0 +1,15 @@
+/**
+ * ============================================================================
+ * DESIGN TOKENS
+ * ============================================================================
+ *
+ * Core design tokens that define the visual language of Semptify.
+ * All components and pages should use these tokens for consistency.
+ */
+
+@import url('./colors.css');
+@import url('./typography.css');
+@import url('./spacing.css');
+@import url('./borders.css');
+@import url('./shadows.css');
+@import url('./animations.css');

@@ -1,0 +1,378 @@
+/**
+ * Advocate Role-Specific Components
+ * Role-specific variations and components for the advocate user experience
+ */
+
+/* Base advocate role styles */
+.role-advocate {
+  --color-advocate-primary: #7c3aed;
+  --color-advocate-primary-dark: #5b21b6;
+  --color-advocate-primary-light: rgba(124, 58, 237, 0.1);
+  --color-advocate-secondary: #a78bfa;
+  --color-advocate-accent: #c4b5fd;
+}
+
+/* Advocate dashboard specific styles */
+.advocate-dashboard {
+  --advocate-dashboard-bg: linear-gradient(135deg, #f8fafc, #e9d5ff);
+  --advocate-header-bg: linear-gradient(135deg, var(--color-advocate-primary), var(--color-advocate-primary-dark));
+  --advocate-emergency-bg: rgba(239, 68, 68, 0.1);
+}
+
+.advocate-header {
+  background: var(--advocate-header-bg);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.advocate-header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+  animation: float 20s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-20px, -20px) rotate(180deg); }
+}
+
+/* Advocate client management specific styles */
+.advocate-client-management {
+  border-left: 4px solid var(--color-advocate-primary);
+  position: relative;
+}
+
+.advocate-client-management::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-advocate-primary), transparent);
+}
+
+/* Advocate-specific component variations */
+.function-group-capture.role-advocate .capture-upload-zone,
+.function-group-capture.role-advocate .capture-quick-input,
+.function-group-capture.role-advocate .capture-voice-intake {
+  border-color: var(--color-advocate-primary);
+}
+
+.function-group-capture.role-advocate .capture-upload-zone:hover,
+.function-group-capture.role-advocate .capture-quick-input:hover,
+.function-group-capture.role-advocate .capture-voice-intake:hover {
+  border-color: var(--color-advocate-primary-dark);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.function-group-understand.role-advocate .understand-timeline-view,
+.function-group-understand.role-advocate .understand-rights-analysis,
+.function-group-understand.role-advocate .understand-risk-detection {
+  border-color: var(--color-advocate-primary);
+}
+
+.function-group-understand.role-advocate .understand-timeline-view:hover,
+.function-group-understand.role-advocate .understand-rights-analysis:hover,
+.function-group-understand.role-advocate .understand-risk-detection:hover {
+  border-color: var(--color-advocate-primary-dark);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.function-group-plan.role-advocate .plan-action-list,
+.function-group-plan.role-advocate .plan-deadline-tracker,
+.function-group-plan.role-advocate .plan-next-step-card {
+  border-color: var(--color-advocate-primary);
+}
+
+.function-group-plan.role-advocate .plan-action-list:hover,
+.function-group-plan.role-advocate .plan-deadline-tracker:hover,
+.function-group-plan.role-advocate .plan-next-step-card:hover {
+  border-color: var(--color-advocate-primary-dark);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+/* Advocate-specific button styles */
+.role-advocate .btn-primary {
+  background: var(--color-advocate-primary);
+  border-color: var(--color-advocate-primary);
+}
+
+.role-advocate .btn-primary:hover {
+  background: var(--color-advocate-primary-dark);
+  border-color: var(--color-advocate-primary-dark);
+}
+
+.role-advocate .btn-secondary {
+  color: var(--color-advocate-primary);
+  border-color: var(--color-advocate-primary);
+}
+
+.role-advocate .btn-secondary:hover {
+  background: var(--color-advocate-primary-light);
+  color: var(--color-advocate-primary-dark);
+}
+
+/* Advocate-specific form styles */
+.role-advocate .form-control:focus {
+  border-color: var(--color-advocate-primary);
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+}
+
+.role-advocate .form-label {
+  color: var(--color-advocate-primary);
+  font-weight: 600;
+}
+
+/* Advocate-specific card styles */
+.role-advocate .card {
+  border-left: 3px solid var(--color-advocate-primary);
+}
+
+.role-advocate .card-header {
+  background: linear-gradient(135deg, var(--color-advocate-primary-light), transparent);
+  border-bottom-color: var(--color-advocate-primary);
+}
+
+/* Advocate-specific navigation styles */
+.role-advocate .nav-link.active {
+  color: var(--color-advocate-primary);
+  border-bottom-color: var(--color-advocate-primary);
+}
+
+.role-advocate .nav-link:hover {
+  color: var(--color-advocate-primary-dark);
+}
+
+/* Advocate-specific alert styles */
+.role-advocate .alert-info {
+  background: var(--color-advocate-primary-light);
+  border-color: var(--color-advocate-primary);
+  color: var(--color-advocate-primary-dark);
+}
+
+.role-advocate .alert-success {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: var(--color-success);
+  color: var(--color-success-dark, #047857);
+}
+
+.role-advocate .alert-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: var(--color-warning);
+  color: var(--color-warning-dark, #d97706);
+}
+
+.role-advocate .alert-danger {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--color-error);
+  color: var(--color-error-dark, #b91c1c);
+}
+
+/* Advocate-specific progress styles */
+.role-advocate .progress-bar {
+  background: var(--color-advocate-primary);
+}
+
+.role-advocate .progress {
+  background: var(--color-advocate-primary-light);
+}
+
+/* Advocate-specific badge styles */
+.role-advocate .badge-primary {
+  background: var(--color-advocate-primary);
+}
+
+.role-advocate .badge-secondary {
+  background: var(--color-advocate-secondary);
+  color: white;
+}
+
+/* Advocate-specific modal styles */
+.role-advocate .modal-header {
+  background: linear-gradient(135deg, var(--color-advocate-primary-light), transparent);
+  border-bottom-color: var(--color-advocate-primary);
+}
+
+.role-advocate .modal-title {
+  color: var(--color-advocate-primary);
+}
+
+/* Advocate-specific table styles */
+.role-advocate .table th {
+  background: var(--color-advocate-primary-light);
+  color: var(--color-advocate-primary-dark);
+  border-bottom-color: var(--color-advocate-primary);
+}
+
+.role-advocate .table tbody tr:hover {
+  background: var(--color-advocate-primary-light);
+}
+
+/* Advocate-specific pagination styles */
+.role-advocate .pagination .page-link.active {
+  background: var(--color-advocate-primary);
+  border-color: var(--color-advocate-primary);
+}
+
+.role-advocate .pagination .page-link:hover {
+  color: var(--color-advocate-primary);
+  border-color: var(--color-advocate-primary);
+}
+
+/* Advocate-specific dropdown styles */
+.role-advocate .dropdown-menu {
+  border-color: var(--color-advocate-primary);
+}
+
+.role-advocate .dropdown-item:hover {
+  background: var(--color-advocate-primary-light);
+  color: var(--color-advocate-primary-dark);
+}
+
+/* Advocate-specific tooltip styles */
+.role-advocate .tooltip-inner {
+  background: var(--color-advocate-primary);
+}
+
+/* Advocate-specific popover styles */
+.role-advocate .popover-header {
+  background: var(--color-advocate-primary);
+  color: white;
+}
+
+.role-advocate .popover {
+  border-color: var(--color-advocate-primary);
+}
+
+/* Advocate-specific list group styles */
+.role-advocate .list-group-item.active {
+  background: var(--color-advocate-primary);
+  border-color: var(--color-advocate-primary);
+}
+
+.role-advocate .list-group-item:hover {
+  background: var(--color-advocate-primary-light);
+}
+
+/* Advocate-specific breadcrumb styles */
+.role-advocate .breadcrumb-item.active {
+  color: var(--color-advocate-primary);
+}
+
+.role-advocate .breadcrumb-item a:hover {
+  color: var(--color-advocate-primary-dark);
+}
+
+/* Advocate-specific carousel styles */
+.role-advocate .carousel-indicators .active {
+  background: var(--color-advocate-primary);
+}
+
+/* Advocate-specific accordion styles */
+.role-advocate .accordion-button:not(.collapsed) {
+  background: var(--color-advocate-primary-light);
+  color: var(--color-advocate-primary-dark);
+}
+
+.role-advocate .accordion-button:focus {
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.25);
+}
+
+/* Responsive adjustments for advocate role */
+@media (max-width: 768px) {
+  .advocate-dashboard {
+    padding: var(--space-md);
+  }
+  
+  .advocate-header {
+    padding: var(--space-lg);
+  }
+  
+  .advocate-client-management {
+    padding: var(--space-md);
+  }
+}
+
+/* Dark mode support for advocate role */
+@media (prefers-color-scheme: dark) {
+  .role-advocate {
+    --advocate-dashboard-bg: linear-gradient(135deg, #1e293b, #0f172a);
+    --advocate-header-bg: linear-gradient(135deg, var(--color-advocate-primary), var(--color-advocate-primary-dark));
+    --advocate-emergency-bg: rgba(239, 68, 68, 0.2);
+  }
+  
+  .advocate-header::before {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+  }
+}
+
+/* Accessibility improvements for advocate role */
+.role-advocate:focus-within {
+  outline: 2px solid var(--color-advocate-primary);
+  outline-offset: 2px;
+}
+
+.role-advocate *:focus {
+  outline: 2px solid var(--color-advocate-primary);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support for advocate role */
+@media (prefers-contrast: high) {
+  .role-advocate {
+    --color-advocate-primary: #6b21a8;
+    --color-advocate-primary-dark: #4c1d95;
+    --color-advocate-primary-light: rgba(107, 33, 168, 0.2);
+  }
+}
+
+/* Reduced motion support for advocate role */
+@media (prefers-reduced-motion: reduce) {
+  .advocate-header::before {
+    animation: none;
+  }
+  
+  .role-advocate * {
+    transition: none;
+  }
+}
+
+/* Advocate-specific loading styles */
+.role-advocate .loading-spinner {
+  border-color: var(--color-advocate-primary);
+  border-top-color: transparent;
+}
+
+/* Advocate-specific empty state styles */
+.role-advocate .empty-state {
+  color: var(--color-advocate-primary);
+}
+
+.role-advocate .empty-state-icon {
+  opacity: 0.3;
+}
+
+/* Advocate-specific error state styles */
+.role-advocate .error-state {
+  border-color: var(--color-error);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+/* Advocate-specific success state styles */
+.role-advocate .success-state {
+  border-color: var(--color-success);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+/* Advocate-specific warning state styles */
+.role-advocate .warning-state {
+  border-color: var(--color-warning);
+  background: rgba(245, 158, 11, 0.05);
+}

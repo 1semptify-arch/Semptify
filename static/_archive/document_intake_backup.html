@@ -1375,7 +1375,7 @@
                 }
 
                 if (!semptifyUid) {
-                    window.location.href = '/static/welcome.html';
+                    window.location.href = '/welcome.html';
                     return;
                 }
 
@@ -1384,7 +1384,7 @@
 
                 if (!parsed) {
                     document.cookie = 'semptify_uid=; path=/; max-age=0';
-                    window.location.href = '/static/welcome.html';
+                    window.location.href = '/welcome.html';
                     return;
                 }
 
@@ -1446,7 +1446,7 @@
                 }
                 // No valid session at all - but only redirect if we truly have no cookie
                 console.log('No valid session found after error recovery');
-                window.location.href = '/static/welcome.html';
+                window.location.href = '/welcome.html';
             }
         }
 
@@ -1536,7 +1536,7 @@
                 
                 // Redirect to welcome page after short delay
                 setTimeout(() => {
-                    window.location.href = '/static/welcome.html';
+                    window.location.href = '/welcome.html';
                 }, 1000);
 
             } catch (error) {

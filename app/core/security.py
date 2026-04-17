@@ -41,6 +41,7 @@ from app.core.user_context import (
     get_permissions,
     get_ui_config,
 )
+from app.core.oauth_token_manager import get_token_manager, get_valid_token_for_user
 
 
 # =============================================================================

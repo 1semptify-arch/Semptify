@@ -680,7 +680,7 @@
     <!-- Include the navigation bar -->
     <div id="navbar"></div>
     <script>
-        fetch('/static/components/navbar.html')
+        fetch('/components/navbar.html')
             .then(response => response.text())
             .then(html => document.getElementById('navbar').innerHTML = html);
     </script>
@@ -1231,7 +1231,7 @@
             storageStatus.addEventListener('click', () => {
                 if (!storageConnected) {
                     // Not connected - redirect to storage setup
-                    window.location.href = '/static/storage_setup.html';
+                    window.location.href = '/storage_setup.html';
                 } else {
                     // Connected - show status info
                     alert('✅ Cloud storage is connected! Your documents are synced.');

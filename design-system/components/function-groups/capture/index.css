@@ -1,0 +1,126 @@
+/**
+ * Capture Function Group Components
+ * Part of the Capture function group for getting information into the system
+ */
+
+@import url('./upload-zone.css');
+@import url('./quick-input.css');
+@import url('./voice-intake.css');
+
+/* Base capture function group styles */
+.function-group-capture {
+  --color-capture: #3b82f6;
+  --color-capture-hover: #2563eb;
+  --color-capture-light: rgba(59, 130, 246, 0.1);
+}
+
+/* Role-specific variations for capture components */
+.function-group-capture.role-tenant {
+  --color-capture: var(--color-tenant-primary);
+  --color-capture-hover: #2563eb;
+  --color-capture-light: rgba(59, 130, 246, 0.1);
+}
+
+.function-group-capture.role-advocate {
+  --color-capture: var(--color-advocate-primary);
+  --color-capture-hover: #7c3aed;
+  --color-capture-light: rgba(124, 58, 237, 0.1);
+}
+
+.function-group-capture.role-legal {
+  --color-capture: var(--color-legal-primary);
+  --color-capture-hover: #059669;
+  --color-capture-light: rgba(16, 185, 129, 0.1);
+}
+
+.function-group-capture.role-admin {
+  --color-capture: var(--color-admin-primary);
+  --color-capture-hover: #dc2626;
+  --color-capture-light: rgba(239, 68, 68, 0.1);
+}
+
+/* Capture function group container styles */
+.capture-function-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.capture-function-group.horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.capture-function-group.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-lg);
+}
+
+/* Capture function group header */
+.capture-function-group-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.capture-function-group-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.capture-function-group-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Capture function group status */
+.capture-function-group-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-capture-light);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-capture);
+}
+
+.capture-function-group-status.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+}
+
+.capture-function-group-status.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+}
+
+/* Capture function group actions */
+.capture-function-group-actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+  margin-top: var(--space-md);
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .capture-function-group.horizontal {
+    flex-direction: column;
+  }
+  
+  .capture-function-group.grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .capture-function-group-actions {
+    flex-direction: column;
+  }
+  
+  .capture-function-group-actions button {
+    width: 100%;
+  }
+}

@@ -1,0 +1,161 @@
+{# Capture Function Group Demo Page #}
+{# Purpose: Demonstrate all Capture function group components working together #}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capture Function Group Demo - Semptify</title>
+    
+    <!-- Design System -->
+    <link rel="stylesheet" href="/design-system/index.css">
+    
+    <style>
+        body {
+            padding: var(--space-2xl);
+            background: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            font-family: var(--font-family);
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .demo-header {
+            margin-bottom: var(--space-2xl);
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: var(--space-xl);
+        }
+        
+        .demo-section {
+            background: var(--color-bg-card);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+        }
+        
+        .demo-title {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            margin-bottom: var(--space-sm);
+            color: var(--color-text-primary);
+        }
+        
+        .demo-description {
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .event-log {
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: var(--space-lg);
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: var(--font-size-xs);
+        }
+        
+        .event-log-item {
+            padding: var(--space-xs);
+            border-bottom: 1px solid var(--color-border);
+            color: var(--color-text-secondary);
+        }
+        
+        .event-log-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>Capture Function Group Demo</h1>
+            <p>Test all Capture function group components: Upload Zone, Quick Input, and Voice Intake</p>
+        </div>
+        
+        <div class="demo-grid">
+            <!-- Upload Zone Demo -->
+            <div class="demo-section">
+                <h2 class="demo-title">Upload Zone</h2>
+                <p class="demo-description">Drag and drop files or click to browse. Supports multiple file types.</p>
+                
+                {% include "design-system/components/function-groups/capture/upload-zone.html" %}
+            </div>
+            
+            <!-- Quick Input Demo -->
+            <div class="demo-section">
+                <h2 class="demo-title">Quick Input</h2>
+                <p class="demo-description">Quick text input with type selection and suggestions.</p>
+                
+                {% include "design-system/components/function-groups/capture/quick-input.html" %}
+            </div>
+            
+            <!-- Voice Intake Demo -->
+            <div class="demo-section">
+                <h2 class="demo-title">Voice Intake</h2>
+                <p class="demo-description">Voice-to-text recording with real-time transcription.</p>
+                
+                {% include "design-system/components/function-groups/capture/voice-intake.html" %}
+            </div>
+        </div>
+        
+        <!-- Event Log -->
+        <div class="demo-section">
+            <h2 class="demo-title">Event Log</h2>
+            <p class="demo-description">Real-time events from Capture components:</p>
+            
+            <div class="event-log" id="event-log">
+                <div class="event-log-item">Waiting for events...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Event logging
+        const eventLog = document.getElementById('event-log');
+        
+        function logEvent(type, detail) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logItem = document.createElement('div');
+            logItem.className = 'event-log-item';
+            logItem.textContent = `[${timestamp}] ${type}: ${JSON.stringify(detail)}`;
+            
+            eventLog.appendChild(logItem);
+            eventLog.scrollTop = eventLog.scrollHeight;
+            
+            // Keep only last 50 events
+            while (eventLog.children.length > 50) {
+                eventLog.removeChild(eventLog.firstChild);
+            }
+        }
+        
+        // Listen for capture events
+        document.addEventListener('capture-upload', function(event) {
+            logEvent('UPLOAD', event.detail);
+        });
+        
+        document.addEventListener('capture-quick-input', function(event) {
+            logEvent('QUICK_INPUT', event.detail);
+        });
+        
+        document.addEventListener('capture-voice-input', function(event) {
+            logEvent('VOICE_INPUT', event.detail);
+        });
+        
+        // Clear event log
+        eventLog.addEventListener('dblclick', function() {
+            eventLog.innerHTML = '<div class="event-log-item">Event log cleared...</div>';
+        });
+    </script>
+</body>
+</html>

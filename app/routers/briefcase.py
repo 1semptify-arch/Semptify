@@ -286,11 +286,12 @@ def delete_folder_recursive(folder_id: str):
 
 @router.post("/document")
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     folder_id: str = Form(default="root"),
     tags: str = Form(default=""),
     notes: str = Form(default=""),
-    user_id: str = Form(default="default"),
+    user_id: Optional[str] = Form(None, description="User ID (auto-detected from auth if not provided)"),
     access_token: Optional[str] = Form(None, description="Storage provider access token"),
     storage_provider: str = Form("local", description="Storage provider"),
 ):
@@ -299,6 +300,29 @@ async def upload_document(
     
     ALL DOCUMENTS GO TO VAULT FIRST, then referenced from briefcase.
     """
+    # Get user_id from form or auth header
+    if not user_id:
+        user_id = request.headers.get("X-User-ID", "default")
+    
+    # Derive storage_provider from user_id if not specified
+    if storage_provider == "local" and user_id and len(user_id) > 1:
+        provider_map = {"G": "google_drive", "D": "dropbox", "O": "onedrive"}
+        prefix = user_id[0]
+        if prefix in provider_map:
+            storage_provider = provider_map[prefix]
+    
+    # Get access_token from session if not provided and we have a real storage provider
+    if not access_token and storage_provider != "local":
+        try:
+            from app.routers.storage import get_valid_session
+            from app.core.database import get_db
+            db = next(get_db())
+            session = await get_valid_session(db, user_id)
+            if session and session.get("access_token"):
+                access_token = session["access_token"]
+        except Exception as e:
+            logger.warning(f"Could not retrieve access token from session: {e}")
+    
     if folder_id not in briefcase_data["folders"]:
         raise HTTPException(status_code=404, detail="Folder not found")
     

@@ -1,0 +1,1528 @@
+{# Vault Sidebar Component - Clean Version #}
+{# Purpose: Persistent document vault accessible from every page after onboarding #}
+{# Usage: {% include "design-system/components/function-groups/vault/vault-sidebar-clean.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "vault_sidebar_" ~ random_string() %}
+{% set role = role or "tenant" %}
+{% set compact_mode = compact_mode|default(false) %}
+{% set show_stats = show_stats|default(true) %}
+
+<a href="#vault_content" class="skip-link">Skip to vault content</a>
+<div class="vault-sidebar role-{{ role }} {{ 'compact' if compact_mode else '' }}" 
+     id="{{ component_id }}"
+     data-role="{{ role }}"
+     data-compact="{{ compact_mode|lower }}"
+     role="complementary"
+     aria-label="Document vault sidebar"
+     tabindex="-1">
+  
+  <div class="vault-header">
+    <div class="vault-title">
+      <svg class="vault-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7v10c0 1.1.9 2 2h16c1.1 0 2 2v-4H4a2 2 0 0 1-2V7a2 2 0 0 2-2H4z"/>
+        <path d="M2 17v2c0 1.1.9 2 2h16c1.1 0 2 2v-4H4a2 2 0 0 1-2V7a2 2 0 0 1-2H4z"/>
+      </svg>
+      <span class="vault-name">Vault</span>
+    </div>
+    
+    <div class="vault-actions">
+      <button class="vault-toggle" onclick="toggleVaultCompact()" title="Toggle compact mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  
+  {% if not compact_mode %}
+  <div class="vault-upload-section">
+    <div class="upload-zone-mini" 
+         onclick="document.getElementById('vault_file_input').click()"
+         role="button"
+         tabindex="0"
+         aria-label="Quick upload files to vault"
+         onkeydown="if(event.key === 'Enter' || event.key === ' ') { document.getElementById('vault_file_input').click(); }">
+      <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M21 15v4a2 2 0 0 1-2H5a2 2 0 0 1-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <span>Quick Upload</span>
+    </div>
+    <input type="file" id="vault_file_input" multiple style="display: none;" 
+           accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.mp3,.mp4,.wav"
+           onchange="handleVaultUpload(event)"
+           aria-label="Upload files to vault">
+  </div>
+  {% endif %}
+  
+  {% if show_stats %}
+  <div class="vault-stats">
+    <div class="stat-item">
+      <span class="stat-value" id="vault_total_files">0</span>
+      <span class="stat-label">Files</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-value" id="vault_total_size">0 MB</span>
+      <span class="stat-label">Storage</span>
+    </div>
+  </div>
+  {% endif %}
+  
+  <div class="vault-search">
+    <input type="text" 
+           id="vault_search_input"
+           placeholder="Search vault..." 
+           onkeyup="searchVault(event)"
+           class="vault-search-input"
+           aria-label="Search vault files"
+           aria-describedby="vault_search_description">
+    <button class="search-clear" 
+            onclick="clearVaultSearch()" 
+            title="Clear search"
+            aria-label="Clear search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+    <div id="vault_search_description" class="sr-only">Type to search vault files</div>
+  </div>
+  
+  <div class="vault-categories">
+    <div class="category-header">
+      <span>Categories</span>
+      <button class="category-toggle" 
+              onclick="toggleCategories()" 
+              title="Toggle categories"
+              aria-label="Toggle category list"
+              aria-expanded="false"
+              aria-controls="vault_categories">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="category-list" id="vault_categories" role="list" aria-label="File categories">
+      <div class="category-item active" 
+           data-category="all" 
+           onclick="filterByCategory('all')"
+           role="option"
+           aria-selected="true"
+           tabindex="0"
+           onkeydown="if(event.key === 'Enter' || event.key === ' ') { filterByCategory('all'); }">
+        <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <line x1="9" y1="9" x2="15" y2="9"/>
+          <line x1="9" y1="15" x2="15" y2="15"/>
+        </svg>
+        <span>All Files</span>
+        <span class="category-count" id="category_count_all" aria-label="All files count">0</span>
+      </div>
+      
+      <div class="category-item" data-category="documents" onclick="filterByCategory('documents')">
+        <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2v16a2 2 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        <span>Documents</span>
+        <span class="category-count" id="category_count_documents">0</span>
+      </div>
+      
+      <div class="category-item" data-category="images" onclick="filterByCategory('images')">
+        <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <polyline points="21 15 16 10 5 21"/>
+        </svg>
+        <span>Images</span>
+        <span class="category-count" id="category_count_images">0</span>
+      </div>
+      
+      <div class="category-item" data-category="audio" onclick="filterByCategory('audio')">
+        <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 1a3 3 0 0 0-3 3v10a3 3 0 0 3-3H12z"/>
+          <path d="M12 4v16"/>
+        </svg>
+        <span>Audio</span>
+        <span class="category-count" id="category_count_audio">0</span>
+      </div>
+      
+      <div class="category-item" data-category="video" onclick="filterByCategory('video')">
+        <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="23 7 16 12 23 7 23 7 16 12 23 7"/>
+          <rect x="2" y="5" width="15" height="14" rx="2" ry="2"/>
+        </svg>
+        <span>Video</span>
+        <span class="category-count" id="category_count_video">0</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="vault-files" id="vault_files_container">
+    <div class="loading-indicator" id="vault_loading">
+      <div class="spinner"></div>
+      <span>Loading vault...</span>
+    </div>
+    
+    <div class="empty-state" id="vault_empty" style="display: none;">
+      <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M13 2H6a2 2 0 0 0-2v16a2 2 0 0 2-2V9z"/>
+        <path d="M13 2v7"/>
+      </svg>
+      <p>Your vault is empty</p>
+      <p>Upload documents to get started</p>
+    </div>
+    
+    <div class="files-grid" id="vault_files_grid" style="display: none;">
+      <!-- Files will be dynamically loaded here -->
+    </div>
+  </div>
+  
+  <div class="vault-footer">
+    <div class="storage-indicator">
+      <div class="storage-bar">
+        <div class="storage-used" id="storage_used_bar" style="width: 0%"></div>
+      </div>
+      <span class="storage-text" id="storage_text">0% used</span>
+    </div>
+    
+    <div class="vault-actions">
+      <button class="action-button" onclick="openVaultManager()" title="Manage vault">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 1v6m0 6v6m4.22-13.22l4.24 4.24M1.54 1.54l4.24 4.24M20.46 20.46l-4.24-4.24M1.54 20.46l4.24-4.24"/>
+        </svg>
+        <span>Manage</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+.vault-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100vh;
+  background: var(--surface-primary);
+  border-left: 1px solid var(--border-primary);
+  box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+}
+
+.vault-sidebar.compact {
+  width: 60px;
+}
+
+.vault-sidebar.compact .vault-name,
+.vault-sidebar.compact .vault-upload-section,
+.vault-sidebar.compact .vault-stats,
+.vault-sidebar.compact .vault-search,
+.vault-sidebar.compact .category-header span,
+.vault-sidebar.compact .category-list span,
+.vault-sidebar.compact .vault-footer {
+  display: none;
+}
+
+.vault-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-primary);
+  background: var(--surface-secondary);
+}
+
+.vault-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.vault-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--primary-tenant);
+}
+
+.vault-sidebar.role-advocate .vault-icon {
+  color: var(--primary-advocate);
+}
+
+.vault-sidebar.role-legal .vault-icon {
+  color: var(--primary-legal);
+}
+
+.vault-sidebar.role-admin .vault-icon {
+  color: var(--primary-admin);
+}
+
+.vault-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.vault-toggle {
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: color 0.2s ease;
+}
+
+.vault-toggle:hover {
+  color: var(--primary-tenant);
+}
+
+.vault-sidebar.role-advocate .vault-toggle:hover {
+  color: var(--primary-advocate);
+}
+
+.vault-sidebar.role-legal .vault-toggle:hover {
+  color: var(--primary-legal);
+}
+
+.vault-sidebar.role-admin .vault-toggle:hover {
+  color: var(--primary-admin);
+}
+
+.vault-upload-section {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.upload-zone-mini {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px;
+  border: 2px dashed var(--border-secondary);
+  border-radius: 8px;
+  background: var(--surface-tertiary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-zone-mini:hover {
+  border-color: var(--primary-tenant);
+  background: var(--surface-quaternary);
+}
+
+.vault-sidebar.role-advocate .upload-zone-mini:hover {
+  border-color: var(--primary-advocate);
+}
+
+.vault-sidebar.role-legal .upload-zone-mini:hover {
+  border-color: var(--primary-legal);
+}
+
+.vault-sidebar.role-admin .upload-zone-mini:hover {
+  border-color: var(--primary-admin);
+}
+
+.upload-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--text-secondary);
+}
+
+.vault-stats {
+  display: flex;
+  justify-content: space-around;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.vault-search {
+  padding: 16px;
+  border-bottom: 1px solid var(--border-primary);
+  position: relative;
+}
+
+.vault-search-input {
+  width: 100%;
+  padding: 10px 40px 10px 12px;
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.search-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.vault-categories {
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--surface-secondary);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.category-toggle {
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.category-list {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.category-list.expanded {
+  max-height: 300px;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: var(--text-secondary);
+}
+
+.category-item:hover {
+  background: var(--surface-tertiary);
+}
+
+.category-item.active {
+  background: var(--primary-tenant);
+  color: white;
+}
+
+.vault-sidebar.role-advocate .category-item.active {
+  background: var(--primary-advocate);
+}
+
+.vault-sidebar.role-legal .category-item.active {
+  background: var(--primary-legal);
+}
+
+.vault-sidebar.role-admin .category-item.active {
+  background: var(--primary-admin);
+}
+
+.category-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.category-count {
+  margin-left: auto;
+  background: var(--surface-quaternary);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.vault-files {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px;
+  color: var(--text-secondary);
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-primary);
+  border-top: 2px solid var(--primary-tenant);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.vault-sidebar.role-advocate .spinner {
+  border-top: 2px solid var(--primary-advocate);
+}
+
+.vault-sidebar.role-legal .spinner {
+  border-top: 2px solid var(--primary-legal);
+}
+
+.vault-sidebar.role-admin .spinner {
+  border-top: 2px solid var(--primary-admin);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Loading states */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  color: var(--text-secondary);
+}
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--border-primary);
+  border-top: 2px solid var(--primary-tenant);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.vault-sidebar.role-advocate .loading-spinner {
+  border-top: 2px solid var(--primary-advocate);
+}
+
+.vault-sidebar.role-legal .loading-spinner {
+  border-top: 2px solid var(--primary-legal);
+}
+
+.vault-sidebar.role-admin .loading-spinner {
+  border-top: 2px solid var(--primary-admin);
+}
+
+.loading-text {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* Error states */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.error-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--error-color, #ef4444);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.25rem;
+}
+
+.error-message {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.retry-button {
+  padding: 6px 12px;
+  background: var(--primary-tenant);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.vault-sidebar.role-advocate .retry-button {
+  background: var(--primary-advocate);
+}
+
+.vault-sidebar.role-legal .retry-button {
+  background: var(--primary-legal);
+}
+
+.vault-sidebar.role-admin .retry-button {
+  background: var(--primary-admin);
+}
+
+.retry-button:hover {
+  opacity: 0.8;
+}
+
+/* Empty states */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.empty-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--surface-tertiary);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  opacity: 0.7;
+}
+
+.empty-message {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.empty-state .action-button {
+  padding: 8px 16px;
+  background: var(--primary-tenant);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.vault-sidebar.role-advocate .empty-state .action-button {
+  background: var(--primary-advocate);
+}
+
+.vault-sidebar.role-legal .empty-state .action-button {
+  background: var(--primary-legal);
+}
+
+.vault-sidebar.role-admin .empty-state .action-button {
+  background: var(--primary-admin);
+}
+
+.empty-state .action-button:hover {
+  opacity: 0.8;
+}
+
+/* Vault messages */
+.vault-message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  z-index: 10000;
+  animation: slideIn 0.3s ease;
+  max-width: 300px;
+}
+
+.vault-message-success {
+  background: var(--success-color, #10b981);
+  color: white;
+}
+
+.vault-message-error {
+  background: var(--error-color, #ef4444);
+  color: white;
+}
+
+.vault-message-warning {
+  background: var(--warning-color, #f59e0b);
+  color: white;
+}
+
+.vault-message-info {
+  background: var(--info-color, #3b82f6);
+  color: white;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.empty-icon {
+  width: 48px;
+  height: 48px;
+  opacity: 0.5;
+}
+
+.files-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.vault-footer {
+  padding: 16px;
+  border-top: 1px solid var(--border-primary);
+  background: var(--surface-secondary);
+}
+
+.storage-indicator {
+  margin-bottom: 12px;
+}
+
+.storage-bar {
+  width: 100%;
+  height: 4px;
+  background: var(--surface-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.storage-used {
+  height: 100%;
+  background: var(--primary-tenant);
+  transition: width 0.3s ease;
+}
+
+.vault-sidebar.role-advocate .storage-used {
+  background: var(--primary-advocate);
+}
+
+.vault-sidebar.role-legal .storage-used {
+  background: var(--primary-legal);
+}
+
+.vault-sidebar.role-admin .storage-used {
+  background: var(--primary-admin);
+}
+
+.storage-text {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.vault-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid var(--border-primary);
+  border-radius: 6px;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background: var(--surface-secondary);
+  border-color: var(--primary-tenant);
+}
+
+.vault-sidebar.role-advocate .action-button:hover {
+  border-color: var(--primary-advocate);
+}
+
+.vault-sidebar.role-legal .action-button:hover {
+  border-color: var(--primary-legal);
+}
+
+.vault-sidebar.role-admin .action-button:hover {
+  border-color: var(--primary-admin);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .vault-sidebar {
+    width: 100%;
+    height: 100vh;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 9999;
+  }
+  
+  .vault-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  
+  .vault-sidebar.compact {
+    width: 60px;
+  }
+  
+  .vault-sidebar.compact.mobile-open {
+    transform: translateX(0);
+  }
+  
+  .vault-header {
+    padding: 12px 16px;
+  }
+  
+  .vault-title {
+    font-size: 1rem;
+  }
+  
+  .vault-upload-section {
+    padding: 12px;
+  }
+  
+  .upload-zone-mini {
+    padding: 16px;
+  }
+  
+  .vault-stats {
+    padding: 12px;
+  }
+  
+  .stat-value {
+    font-size: 1rem;
+  }
+  
+  .vault-search {
+    padding: 12px;
+  }
+  
+  .vault-search-input {
+    padding: 8px 40px 8px 12px;
+    font-size: 0.875rem;
+  }
+  
+  .category-header {
+    padding: 8px 12px;
+    font-size: 0.875rem;
+  }
+  
+  .category-item {
+    padding: 8px 12px;
+    font-size: 0.875rem;
+  }
+  
+  .vault-files {
+    padding: 12px;
+  }
+  
+  .files-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+  }
+  
+  .vault-footer {
+    padding: 12px;
+  }
+  
+  .action-button {
+    padding: 6px 12px;
+    font-size: 0.875rem;
+  }
+}
+
+/* Mobile overlay */
+@media (max-width: 768px) {
+  .vault-sidebar.mobile-open::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+  }
+}
+
+/* Mobile toggle button */
+.vault-mobile-toggle {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--primary-tenant);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  z-index: 9998;
+  transition: all 0.3s ease;
+}
+
+.vault-sidebar.role-advocate .vault-mobile-toggle {
+  background: var(--primary-advocate);
+}
+
+.vault-sidebar.role-legal .vault-mobile-toggle {
+  background: var(--primary-legal);
+}
+
+.vault-sidebar.role-admin .vault-mobile-toggle {
+  background: var(--primary-admin);
+}
+
+.vault-mobile-toggle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.vault-mobile-toggle svg {
+  width: 24px;
+  height: 24px;
+}
+
+@media (max-width: 768px) {
+  .vault-mobile-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Screen reader support */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus indicators */
+.vault-sidebar *:focus {
+  outline: 2px solid var(--primary-tenant);
+  outline-offset: 2px;
+}
+
+.vault-sidebar.role-advocate *:focus {
+  outline-color: var(--primary-advocate);
+}
+
+.vault-sidebar.role-legal *:focus {
+  outline-color: var(--primary-legal);
+}
+
+.vault-sidebar.role-admin *:focus {
+  outline-color: var(--primary-admin);
+}
+
+/* Skip link for accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--primary-tenant);
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 10001;
+  transition: top 0.3s ease;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+.vault-sidebar.role-advocate .skip-link {
+  background: var(--primary-advocate);
+}
+
+.vault-sidebar.role-legal .skip-link {
+  background: var(--primary-legal);
+}
+
+.vault-sidebar.role-admin .skip-link {
+  background: var(--primary-admin);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .vault-sidebar {
+    border: 2px solid;
+  }
+  
+  .category-item:hover,
+  .upload-zone-mini:hover {
+    border: 2px solid;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .vault-sidebar,
+  .vault-sidebar *,
+  .loading-spinner,
+  .vault-message {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+</style>
+
+<script>
+// Vault state management
+let vaultState = {
+  files: [],
+  categories: {
+    all: 0,
+    documents: 0,
+    images: 0,
+    audio: 0,
+    video: 0
+  },
+  currentCategory: 'all',
+  searchQuery: '',
+  compactMode: false,
+  isLoading: true
+};
+
+// Initialize vault
+document.addEventListener('DOMContentLoaded', function() {
+  if (isOnboardingComplete()) {
+    initializeVault();
+  }
+});
+
+function isOnboardingComplete() {
+  // Check if user has completed onboarding
+  return localStorage.getItem('onboarding_completed') === 'true';
+}
+
+function initializeVault() {
+  console.log('🔐 Initializing vault component');
+  
+  // Load vault data
+  loadVaultData();
+  
+  // Set up event listeners
+  setupVaultEventListeners();
+  
+  // Start periodic sync
+  startVaultSync();
+  
+  // Show vault
+  document.getElementById('{{ component_id }}').style.display = 'flex';
+}
+
+function loadVaultData() {
+  // Load from localStorage or API
+  const cachedData = localStorage.getItem('vault_data');
+  if (cachedData) {
+    vaultState.files = JSON.parse(cachedData);
+    updateVaultUI();
+  } else {
+    fetchVaultData();
+  }
+}
+
+function fetchVaultData() {
+  vaultState.isLoading = true;
+  
+  // Show loading state
+  showLoadingState('vault_files_container', 'Loading vault files...');
+  
+  fetch('/api/vault/sidebar/files', {
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    vaultState.files = data.files || [];
+    vaultState.isLoading = false;
+    
+    // Cache data
+    localStorage.setItem('vault_data', JSON.stringify(vaultState.files));
+    
+    updateVaultUI();
+    
+    // Hide loading state
+    hideLoadingState('vault_files_container');
+  })
+  .catch(error => {
+    console.error('Failed to load vault data:', error);
+    vaultState.isLoading = false;
+    
+    // Show error state with retry option
+    showErrorMessage('vault_files_container', 
+      'Failed to load vault files. Please check your connection and try again.',
+      'fetchVaultData()'
+    );
+    
+    // Show error message
+    showVaultMessage('Failed to load vault files', 'error');
+  });
+}
+
+function updateVaultUI() {
+  updateStats();
+  updateCategories();
+  displayFiles();
+  
+  // Hide loading indicator
+  document.getElementById('vault_loading').style.display = 'none';
+  
+  // Show appropriate state
+  if (vaultState.files.length === 0) {
+    document.getElementById('vault_empty').style.display = 'flex';
+    document.getElementById('vault_files_grid').style.display = 'none';
+  } else {
+    document.getElementById('vault_empty').style.display = 'none';
+    document.getElementById('vault_files_grid').style.display = 'grid';
+  }
+}
+
+function updateStats() {
+  const totalFiles = vaultState.files.length;
+  const totalSize = vaultState.files.reduce((sum, file) => sum + file.size, 0);
+  const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(1);
+  
+  document.getElementById('vault_total_files').textContent = totalFiles;
+  document.getElementById('vault_total_size').textContent = `${totalSizeMB} MB`;
+  
+  // Update storage indicator (assuming 1GB limit)
+  const storageUsed = (totalSize / (1024 * 1024 * 1024)) * 100;
+  document.getElementById('storage_used_bar').style.width = `${Math.min(storageUsed, 100)}%`;
+  document.getElementById('storage_text').textContent = `${storageUsed.toFixed(1)}% used`;
+}
+
+function updateCategories() {
+  // Reset counts
+  Object.keys(vaultState.categories).forEach(key => {
+    vaultState.categories[key] = 0;
+  });
+  
+  // Count files by category
+  vaultState.files.forEach(file => {
+    const category = getFileCategory(file);
+    vaultState.categories[category]++;
+    vaultState.categories.all++;
+  });
+  
+  // Update UI
+  Object.keys(vaultState.categories).forEach(category => {
+    const element = document.getElementById(`category_count_${category}`);
+    if (element) {
+      element.textContent = vaultState.categories[category];
+    }
+  });
+}
+
+function getFileCategory(file) {
+  const extension = file.name.split('.').pop().toLowerCase();
+  
+  if (['pdf', 'doc', 'docx', 'txt'].includes(extension)) {
+    return 'documents';
+  } else if (['jpg', 'jpeg', 'png', 'gif'].includes(extension)) {
+    return 'images';
+  } else if (['mp3', 'wav', 'm4a'].includes(extension)) {
+    return 'audio';
+  } else if (['mp4', 'avi', 'mov'].includes(extension)) {
+    return 'video';
+  }
+  
+  return 'documents'; // default
+}
+
+function displayFiles() {
+  const container = document.getElementById('vault_files_grid');
+  container.innerHTML = '';
+  
+  let filteredFiles = filterFiles();
+  
+  filteredFiles.forEach(file => {
+    const fileElement = createFileElement(file);
+    container.appendChild(fileElement);
+  });
+}
+
+function filterFiles() {
+  let files = [...vaultState.files];
+  
+  // Filter by category
+  if (vaultState.currentCategory !== 'all') {
+    files = files.filter(file => getFileCategory(file) === vaultState.currentCategory);
+  }
+  
+  // Filter by search query
+  if (vaultState.searchQuery) {
+    files = files.filter(file => 
+      file.name.toLowerCase().includes(vaultState.searchQuery.toLowerCase())
+    );
+  }
+  
+  return files;
+}
+
+function createFileElement(file) {
+  const div = document.createElement('div');
+  div.className = 'file-item';
+  div.onclick = () => openFile(file);
+  
+  const icon = getFileIcon(file);
+  const size = formatFileSize(file.size);
+  
+  div.innerHTML = `
+    <div class="file-icon">${icon}</div>
+    <div class="file-name">${file.name}</div>
+    <div class="file-size">${size}</div>
+  `;
+  
+  return div;
+}
+
+function getFileIcon(file) {
+  const category = getFileCategory(file);
+  
+  const icons = {
+    documents: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2v16a2 2 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+    images: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+    audio: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v10a3 3 0 0 3-3H12z"/><path d="M12 4v16"/></svg>',
+    video: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 7 23 7 16 12 23 7"/><rect x="2" y="5" width="15" height="14" rx="2" ry="2"/></svg>'
+  };
+  
+  return icons[category] || icons.documents;
+}
+
+function formatFileSize(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+// Event handlers
+function toggleVaultCompact() {
+  vaultState.compactMode = !vaultState.compactMode;
+  const sidebar = document.getElementById('{{ component_id }}');
+  sidebar.classList.toggle('compact');
+  
+  // Save preference
+  localStorage.setItem('vault_compact_mode', vaultState.compactMode);
+}
+
+function handleVaultUpload(event) {
+  const files = event.target.files;
+  if (files.length === 0) return;
+  
+  const formData = new FormData();
+  const fileMetadata = [];
+  
+  Array.from(files).forEach((file, index) => {
+    formData.append(`file_${index}`, file);
+    fileMetadata.push({
+      name: file.name,
+      size: file.size,
+      type: file.type
+    });
+  });
+  
+  formData.append('metadata', JSON.stringify({
+    source: 'vault_sidebar',
+    files: fileMetadata
+  }));
+  
+  // Show upload progress
+  showUploadProgress();
+  
+  fetch('/api/vault/sidebar/upload', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Add files to vault state
+      vaultState.files.push(...data.files);
+      updateVaultUI();
+      
+      // Show success message
+      showVaultMessage('Upload successful!', 'success');
+      
+      // Emit event for other components
+      emitVaultEvent('vault-upload-success', data);
+    } else {
+      showVaultMessage(data.message || 'Upload failed', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Upload error:', error);
+    showVaultMessage('Upload failed', 'error');
+  })
+  .finally(() => {
+    hideUploadProgress();
+  });
+}
+
+function searchVault(event) {
+  vaultState.searchQuery = event.target.value;
+  displayFiles();
+}
+
+function clearVaultSearch() {
+  document.getElementById('vault_search_input').value = '';
+  vaultState.searchQuery = '';
+  displayFiles();
+}
+
+function filterByCategory(category) {
+  vaultState.currentCategory = category;
+  
+  // Update active state
+  document.querySelectorAll('.category-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  document.querySelector(`[data-category="${category}"]`).classList.add('active');
+  
+  displayFiles();
+}
+
+function toggleCategories() {
+  const categoryList = document.getElementById('vault_categories');
+  categoryList.classList.toggle('expanded');
+}
+
+function openFile(file) {
+  // Open file in new tab or download
+  window.open(`/api/vault/download/${file.id}`, '_blank');
+}
+
+function openVaultManager() {
+  // Open full vault management interface
+  window.open('/vault', '_blank');
+}
+
+function showUploadProgress() {
+  // Show progress indicator
+  const progressHtml = `
+    <div class="upload-progress" id="vault_upload_progress">
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+      <span>Uploading...</span>
+    </div>
+  `;
+  
+  const uploadSection = document.querySelector('.vault-upload-section');
+  uploadSection.insertAdjacentHTML('afterbegin', progressHtml);
+}
+
+function hideUploadProgress() {
+  const progress = document.getElementById('vault_upload_progress');
+  if (progress) {
+    progress.remove();
+  }
+}
+
+function showVaultMessage(message, type) {
+  // Create message element
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `vault-message vault-message-${type}`;
+  messageDiv.textContent = message;
+  
+  // Add to vault
+  const vault = document.getElementById('{{ component_id }}');
+  vault.appendChild(messageDiv);
+  
+  // Auto-remove after 3 seconds
+  setTimeout(() => {
+    messageDiv.remove();
+  }, 3000);
+}
+
+function showLoadingState(elementId, message = 'Loading...') {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.innerHTML = `
+      <div class="loading-state">
+        <div class="loading-spinner"></div>
+        <span class="loading-text">${message}</span>
+      </div>
+    `;
+  }
+}
+
+function hideLoadingState(elementId) {
+  const element = document.getElementById(elementId);
+  if (element) {
+    const loadingState = element.querySelector('.loading-state');
+    if (loadingState) {
+      loadingState.remove();
+    }
+  }
+}
+
+function showErrorMessage(elementId, message, retryCallback = null) {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.innerHTML = `
+      <div class="error-state">
+        <div class="error-icon">!</div>
+        <div class="error-message">${message}</div>
+        ${retryCallback ? `<button class="retry-button" onclick="${retryCallback}">Retry</button>` : ''}
+      </div>
+    `;
+  }
+}
+
+function showEmptyState(elementId, message, actionText = null, actionCallback = null) {
+  const element = document.getElementById(elementId);
+  if (element) {
+    element.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">?</div>
+        <div class="empty-message">${message}</div>
+        ${actionText && actionCallback ? `<button class="action-button" onclick="${actionCallback}">${actionText}</button>` : ''}
+      </div>
+    `;
+  }
+}
+
+function emitVaultEvent(eventType, data) {
+  const event = new CustomEvent(eventType, {
+    detail: data
+  });
+  document.dispatchEvent(event);
+}
+
+function setupVaultEventListeners() {
+  // Listen for upload events from other components
+  document.addEventListener('capture-upload-success', function(event) {
+    // Refresh vault when files are uploaded elsewhere
+    if (event.detail.files && event.detail.files.length > 0) {
+      fetchVaultData(); // Refresh from server
+    }
+  });
+  
+  // Listen for workspace stage updates
+  document.addEventListener('workspace-stage-update', function(event) {
+    // Update vault based on workspace stage
+    if (event.detail.has_documents) {
+      // Ensure vault is visible
+      document.getElementById('{{ component_id }}').style.display = 'flex';
+    }
+  });
+  
+  // Listen for role changes
+  document.addEventListener('role-change', function(event) {
+    // Update vault styling for new role
+    const vault = document.getElementById('{{ component_id }}');
+    vault.className = vault.className.replace(/role-\w+/, `role-${event.detail.role}`);
+  });
+}
+
+function startVaultSync() {
+  // Sync with server every 30 seconds
+  setInterval(() => {
+    if (!document.hidden) {
+      fetchVaultData();
+    }
+  }, 30000);
+}
+
+// Mobile menu toggle
+function toggleVaultMobile() {
+  const vault = document.getElementById('{{ component_id }}');
+  vault.classList.toggle('mobile-open');
+}
+
+// Add mobile menu button
+if (window.innerWidth <= 768) {
+  const mobileButton = document.createElement('button');
+  mobileButton.className = 'vault-mobile-toggle';
+  mobileButton.innerHTML = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M21 15v4a2 2 0 0 1-2H5a2 2 0 0 1-2v-4"/>
+      <polyline points="17 8 12 3 7 8"/>
+      <line x1="12" y1="3" x2="12" y2="15"/>
+    </svg>
+  `;
+  mobileButton.onclick = toggleVaultMobile;
+  document.body.appendChild(mobileButton);
+}
+</script>

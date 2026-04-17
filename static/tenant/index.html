@@ -557,7 +557,7 @@
                         `Welcome back${userData.display_name ? ', ' + userData.display_name : ''}`;
                 } else {
                     // Redirect to login
-                    window.location.href = '/static/welcome.html';
+                    window.location.href = '/welcome.html';
                 }
             } catch (e) {
                 console.error('Failed to load user:', e);
@@ -755,19 +755,19 @@
         
         // Navigation functions
         function goToEmergency() {
-            window.location.href = '/static/eviction_answer.html';
+            window.location.href = '/eviction_answer.html';
         }
         
         function goToUpload() {
-            window.location.href = '/static/tenant/documents.html?action=upload';
+            window.location.href = '/tenant/documents.html?action=upload';
         }
         
         function goToTimeline() {
-            window.location.href = '/static/tenant/timeline.html?action=add';
+            window.location.href = '/tenant/timeline.html?action=add';
         }
         
         function goToForms() {
-            window.location.href = '/static/court_forms.html';
+            window.location.href = '/court_forms.html';
         }
         
         function goToVault() {
@@ -775,15 +775,15 @@
         }
 
         function goToLawLibrary() {
-            window.location.href = '/static/law_library.html';
+            window.location.href = '/law_library.html';
         }
         
         function goToCopilot() {
-            window.location.href = '/static/tenant/copilot.html';
+            window.location.href = '/tenant/copilot.html';
         }
         
         function openHelp() {
-            window.location.href = '/static/tenant/help.html';
+            window.location.href = '/tenant/help.html';
         }
     </script>
     

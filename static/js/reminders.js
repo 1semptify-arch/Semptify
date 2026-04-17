@@ -173,7 +173,7 @@
                 title: reminder.title,
                 action: { 
                     text: reminder.cta, 
-                    href: '/static/document_intake.html?source=reminder' 
+                    href: '/document_intake.html?source=reminder' 
                 },
                 onDismiss: dismissReminder
             });

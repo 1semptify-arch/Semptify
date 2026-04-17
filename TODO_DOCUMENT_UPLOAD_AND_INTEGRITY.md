@@ -39,18 +39,21 @@ This task list captures the next concrete actions to complete document upload, r
    - ✅ Test `require_user()` rejection for invalid storage sessions.
 
 7. Confirm front-end upload integration
-   - Verify the UI uses `/api/documents/upload` and passes `access_token` + `storage_provider`.
-   - Verify error handling for invalid tokens, large files, and disallowed extensions.
+   - ✅ Verified briefcase.html uses /api/briefcase/document endpoint which calls vault_upload_service.upload() (same as /api/documents/upload)
+   - ✅ Updated briefcase router to auto-detect user_id from X-User-ID header, derive storage_provider from user_id prefix, and retrieve access_token from session
+   - ✅ Verified error handling for invalid tokens, large files, and disallowed extensions is handled by vault service
 
 ## Priority 4 — Access scope and vault security
 
 8. Review `VaultEngine` resource scopes
-   - Audit `app/services/vault_engine.py` for OWN / SHARED / CASE / ORG / SYSTEM permissions.
-   - Add tests for role-based access decisions on vault resources.
+   - ✅ Audited `app/services/vault_engine.py` for OWN/SHARED/CASE/ORG/SYSTEM permissions - access matrix correctly implemented with role-based permissions
+   - ✅ Added comprehensive tests for role-based access decisions covering all roles (user, advocate, legal, manager, admin) and all scopes (OWN/SHARED/CASE/ORG/SYSTEM)
 
 9. Audit document process docs
-   - Review `docs/DOCUMENT_PROCESS_DEFINITIONS.md` and `docs/ID_REFERENCE.md` for alignment with code.
-   - Update any gaps after the upload path decision.
+   - ✅ Reviewed `docs/DOCUMENT_PROCESS_DEFINITIONS.md` and `docs/ID_REFERENCE.md` - both are well-aligned with current code implementation
+   - ✅ Document process definitions correctly describe vault upload service and document lifecycle stages
+   - ✅ ID reference accurately defines all identifier formats (document_id, vault_id, certificate_id, etc.) and their purposes
+   - ✅ No updates needed after upload path decisions - briefcase router uses same vault service as documents router
 
 ## Optional improvement
 

@@ -15,21 +15,21 @@ const DYNAMIC_CACHE = 'semptify-dynamic-v5';
 
 // Core assets to cache immediately
 const STATIC_ASSETS = [
-  '/static/css/design-system.css',
-  '/static/css/layouts.css',
-  '/static/css/accessibility.css',
-  '/static/js/modules/api.js',
-  '/static/js/modules/websocket.js',
-  '/static/js/modules/ui.js',
-  '/static/js/modules/state.js',
-  '/static/js/modules/a11y.js',
-  '/static/js/modules/performance.js',
-  '/static/js/app.main.js',
-  '/static/dashboard-v2.html',
-  '/static/documents-v2.html',
-  '/static/calendar-v2.html',
-  '/static/timeline-v2.html',
-  '/static/settings-v2.html'
+  '/css/design-system.css',
+  '/css/layouts.css',
+  '/css/accessibility.css',
+  '/js/modules/api.js',
+  '/js/modules/websocket.js',
+  '/js/modules/ui.js',
+  '/js/modules/state.js',
+  '/js/modules/a11y.js',
+  '/js/modules/performance.js',
+  '/js/app.main.js',
+  '/dashboard-v2.html',
+  '/documents-v2.html',
+  '/calendar-v2.html',
+  '/timeline-v2.html',
+  '/settings-v2.html'
 ];
 
 // API routes that should always go to network
@@ -279,8 +279,8 @@ self.addEventListener('push', (event) => {
   
   const options = {
     body: 'New notification from Semptify',
-    icon: '/static/icons/icon-192.png',
-    badge: '/static/icons/badge-72.png',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/badge-72.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
@@ -314,7 +314,7 @@ self.addEventListener('notificationclick', (event) => {
   
   if (event.action === 'view') {
     event.waitUntil(
-      clients.openWindow('/static/dashboard-v2.html')
+      clients.openWindow('/dashboard-v2.html')
     );
   }
 });

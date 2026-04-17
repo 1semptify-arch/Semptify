@@ -7,7 +7,7 @@
     
     "navigation_hub": {
       "name": "GUI Navigation Hub",
-      "url": "/static/admin/gui_navigation_hub.html",
+      "url": "/admin/gui_navigation_hub.html",
       "emoji": "🗺️",
       "description": "Central hub with links to all GUIs",
       "access_level": "public",
@@ -21,7 +21,7 @@
         {
           "id": "easy_mode_selector",
           "name": "Easy Mode Selector",
-          "url": "/static/admin/easy_mode_selector.html",
+          "url": "/admin/easy_mode_selector.html",
           "emoji": "👶",
           "description": "Simple settings for everyone",
           "for_users": "Beginners, non-technical",
@@ -39,7 +39,7 @@
         {
           "id": "advanced_mode_selector",
           "name": "Advanced Mode Selector",
-          "url": "/static/admin/mode_selector.html",
+          "url": "/admin/mode_selector.html",
           "emoji": "🧠",
           "description": "Complete control for power users",
           "for_users": "Power users, advanced config",
@@ -99,7 +99,7 @@
         {
           "id": "mission_control",
           "name": "Mission Control",
-          "url": "/static/admin/mission_control.html",
+          "url": "/admin/mission_control.html",
           "emoji": "🎯",
           "description": "Advanced dashboard for administrators",
           "for_users": "Administrators only",
@@ -138,7 +138,7 @@
         {
           "id": "welcome_page",
           "name": "Welcome Page",
-          "url": "/static/welcome.html",
+          "url": "/welcome.html",
           "emoji": "👋",
           "description": "First-time user orientation",
           "for_users": "New users",
@@ -290,9 +290,9 @@
         "description": "For users new to Semptify",
         "links": {
           "home": "/",
-          "welcome": "/static/welcome.html",
-          "settings": "/static/admin/easy_mode_selector.html",
-          "navigation_hub": "/static/admin/gui_navigation_hub.html"
+          "welcome": "/welcome.html",
+          "settings": "/admin/easy_mode_selector.html",
+          "navigation_hub": "/admin/gui_navigation_hub.html"
         }
       },
       "experienced": {
@@ -300,18 +300,18 @@
         "links": {
           "home": "/",
           "dashboard": "/",
-          "advanced_settings": "/static/admin/mode_selector.html",
-          "navigation_hub": "/static/admin/gui_navigation_hub.html",
+          "advanced_settings": "/admin/mode_selector.html",
+          "navigation_hub": "/admin/gui_navigation_hub.html",
           "api_docs": "/api/docs"
         }
       },
       "admin": {
         "description": "For administrators",
         "links": {
-          "mission_control": "/static/admin/mission_control.html",
+          "mission_control": "/admin/mission_control.html",
           "health_check": "/healthz",
           "api_docs": "/api/docs",
-          "advanced_settings": "/static/admin/mode_selector.html"
+          "advanced_settings": "/admin/mode_selector.html"
         }
       }
     },
@@ -325,21 +325,21 @@
         },
         {
           "label": "Navigation Hub",
-          "url": "/static/admin/gui_navigation_hub.html",
+          "url": "/admin/gui_navigation_hub.html",
           "icon": "🗺️"
         },
         {
           "label": "Settings",
-          "url": "/static/admin/easy_mode_selector.html",
+          "url": "/admin/easy_mode_selector.html",
           "icon": "⚙️",
           "dropdown": [
             {
               "label": "Easy Settings",
-              "url": "/static/admin/easy_mode_selector.html"
+              "url": "/admin/easy_mode_selector.html"
             },
             {
               "label": "Advanced Settings",
-              "url": "/static/admin/mode_selector.html"
+              "url": "/admin/mode_selector.html"
             }
           ]
         },

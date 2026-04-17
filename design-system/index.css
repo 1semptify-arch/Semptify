@@ -1,0 +1,26 @@
+/**
+ * ============================================================================
+ * SEMPTIFY DESIGN SYSTEM v5.0
+ * ============================================================================
+ *
+ * SINGLE SOURCE OF TRUTH for all page design and components
+ *
+ * This file imports and organizes all design system components into a
+ * unified, consistent system. All pages should use this as their foundation.
+ *
+ * Structure:
+ * ├── tokens/           - Design tokens (colors, spacing, typography)
+ * ├── components/       - Reusable UI components
+ * ├── layouts/          - Page layout templates
+ * ├── patterns/         - Common interaction patterns
+ * └── pages/            - Complete page templates
+ *
+ * Usage:
+ *   <link rel="stylesheet" href="/design-system/index.css">
+ *   <script src="/design-system/index.js"></script>
+ */
+
+@import url('./tokens/index.css');
+@import url('./components/index.css');
+@import url('./layouts/index.css');
+@import url('./patterns/index.css');

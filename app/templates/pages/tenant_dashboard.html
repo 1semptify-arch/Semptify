@@ -1,0 +1,524 @@
+{# Tenant Dashboard Page #}
+{# Purpose: Main tenant dashboard using modular components #}
+{# Integrates with existing backend and workspace stage model #}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenant Dashboard - Semptify</title>
+    
+    <!-- Design System -->
+    <link rel="stylesheet" href="/design-system/index.css">
+    
+    <!-- Workspace Stage Model -->
+    <script src="/static/js/workspace-stage-model.js"></script>
+    
+    <!-- Custom Styles -->
+    <style>
+        .tenant-dashboard-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f8fafc, #e0f2fe);
+            margin-right: 320px; /* Space for vault sidebar */
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--color-tenant-primary), var(--color-tenant-primary-dark, #1e40af));
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .header-subtitle {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+        
+        /* Adjust main content for vault sidebar */
+        .dashboard-content {
+            margin-right: 320px;
+            transition: margin-right 0.3s ease;
+        }
+        
+        .tenant-dashboard-page.vault-compact .dashboard-content {
+            margin-right: 60px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .header-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            color: white;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .dashboard-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .workspace-stage-panel {
+            margin-bottom: 2rem;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        
+        .emergency-section {
+            margin-bottom: 2rem;
+        }
+        
+        @media (min-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 3fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="tenant-dashboard-page">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <div>
+                    <h1 class="header-title">Tenant Dashboard</h1>
+                    <p class="header-subtitle">Protect your housing rights</p>
+                </div>
+                <div class="header-actions">
+                    <button class="header-btn" onclick="viewHelp()">Help</button>
+                    <button class="header-btn" onclick="viewSettings()">Settings</button>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main class="dashboard-content">
+            <!-- Workspace Stage Panel -->
+            <div class="workspace-stage-panel">
+                {% include "partials/workspace_stage_panel.html" %}
+            </div>
+            
+            <!-- Emergency Actions -->
+            <div class="emergency-section">
+                {% include "design-system/components/function-groups/role-specific/tenant/emergency-actions.html" %}
+            </div>
+            
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Main Dashboard -->
+                <div class="dashboard-main">
+                    {% include "design-system/components/function-groups/role-specific/tenant/dashboard.html" %}
+                </div>
+            </div>
+        </main>
+        
+        <!-- Persistent Vault Sidebar -->
+        {% include "design-system/components/function-groups/vault/vault-sidebar-clean.html" %}
+                
+                <!-- Sidebar -->
+                <div class="dashboard-sidebar">
+                    {% include "design-system/components/function-groups/role-specific/tenant/case-summary.html" %}
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Component Integration Script -->
+    <script>
+        // Component state management
+        let componentState = {
+            role: 'tenant',
+            userId: null,
+            workspaceStage: null,
+            components: {}
+        };
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+        });
+        
+        async function initializeDashboard() {
+            try {
+                // Get user context
+                await loadUserContext();
+                
+                // Load workspace stage
+                await loadWorkspaceStage();
+                
+                // Initialize components
+                initializeComponents();
+                
+                // Setup event listeners
+                setupEventListeners();
+                
+                console.log('Tenant dashboard initialized');
+            } catch (error) {
+                console.error('Failed to initialize dashboard:', error);
+            }
+        }
+        
+        async function loadUserContext() {
+            try {
+                const response = await fetch('/api/components/config/tenant');
+                const data = await response.json();
+                
+                componentState.userId = data.user_id;
+                componentState.role = data.role;
+                
+                // Apply role configuration
+                applyRoleConfiguration(data.config);
+                
+            } catch (error) {
+                console.error('Failed to load user context:', error);
+            }
+        }
+        
+        async function loadWorkspaceStage() {
+            try {
+                const response = await fetch('/api/components/workspace-stage');
+                const data = await response.json();
+                
+                componentState.workspaceStage = data;
+                
+                // Adapt components based on stage
+                adaptComponentsToStage(data);
+                
+            } catch (error) {
+                console.error('Failed to load workspace stage:', error);
+            }
+        }
+        
+        function applyRoleConfiguration(config) {
+            // Apply role-specific theme
+            document.body.className = `role-${componentState.role}`;
+            
+            // Configure components
+            if (config.show_emergency) {
+                enableEmergencyActions();
+            }
+            
+            if (config.show_progress) {
+                enableProgressTracking();
+            }
+        }
+        
+        function adaptComponentsToStage(stage) {
+            // Show/hide components based on workspace stage
+            const urgency = stage.urgency || 'medium';
+            const hasDocuments = stage.has_documents || false;
+            
+            // Highlight urgent components
+            if (urgency === 'high') {
+                highlightUrgentComponents();
+            }
+            
+            // Enable document capture if no documents
+            if (!hasDocuments) {
+                prioritizeDocumentCapture();
+            }
+        }
+        
+        function initializeComponents() {
+            // Initialize all modular components
+            const components = document.querySelectorAll('[id^="tenant_"], [id^="capture_"], [id^="understand_"], [id^="plan_"]');
+            
+            components.forEach(component => {
+                const componentId = component.id;
+                componentState.components[componentId] = {
+                    element: component,
+                    initialized: true
+                };
+            });
+        }
+        
+        function setupEventListeners() {
+            // Listen for component events
+            document.addEventListener('capture-upload', handleCaptureEvent);
+            document.addEventListener('capture-quick-input', handleCaptureEvent);
+            document.addEventListener('capture-voice-input', handleCaptureEvent);
+            document.addEventListener('understand-timeline-select', handleUnderstandEvent);
+            document.addEventListener('understand-rights-select', handleUnderstandEvent);
+            document.addEventListener('understand-risk-select', handleUnderstandEvent);
+            document.addEventListener('plan-action-select', handlePlanEvent);
+            document.addEventListener('plan-deadline-select', handlePlanEvent);
+            document.addEventListener('tenant-emergency-select', handleTenantEvent);
+            document.addEventListener('tenant-upload-document', handleTenantEvent);
+            document.addEventListener('tenant-view-timeline', handleTenantEvent);
+            
+            // Listen for workspace stage updates
+            if (window.workspaceStageModel) {
+                window.workspaceStageModel.addEventListener('stageChange', handleStageChange);
+            }
+        }
+        
+        // Event handlers
+        async function handleCaptureEvent(event) {
+            try {
+                const response = await fetch('/api/components/capture/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(event.detail)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update workspace stage
+                    await refreshWorkspaceStage();
+                    
+                    // Show success feedback
+                    showNotification('Files uploaded successfully', 'success');
+                } else {
+                    showNotification('Failed to upload files', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error handling capture event:', error);
+                showNotification('Error uploading files', 'error');
+            }
+        }
+        
+        async function handleUnderstandEvent(event) {
+            try {
+                const endpoint = event.detail.event_type.includes('timeline') 
+                    ? '/api/components/understand/timeline'
+                    : event.detail.event_type.includes('rights')
+                    ? '/api/components/understand/rights'
+                    : '/api/components/understand/risk';
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(event.detail)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('Analysis processed successfully', 'success');
+                } else {
+                    showNotification('Failed to process analysis', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error handling understand event:', error);
+                showNotification('Error processing analysis', 'error');
+            }
+        }
+        
+        async function handlePlanEvent(event) {
+            try {
+                const endpoint = event.detail.event_type.includes('action')
+                    ? '/api/components/plan/action'
+                    : '/api/components/plan/deadline';
+                
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(event.detail)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showNotification('Action updated successfully', 'success');
+                } else {
+                    showNotification('Failed to update action', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error handling plan event:', error);
+                showNotification('Error updating action', 'error');
+            }
+        }
+        
+        async function handleTenantEvent(event) {
+            try {
+                let endpoint = '';
+                
+                if (event.detail.event_type === 'tenant-emergency-select') {
+                    endpoint = '/api/components/tenant/emergency-action';
+                } else if (event.detail.event_type === 'tenant-upload-document') {
+                    endpoint = '/api/components/capture/upload';
+                } else if (event.detail.event_type === 'tenant-view-timeline') {
+                    endpoint = '/api/components/understand/timeline';
+                }
+                
+                if (endpoint) {
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(event.detail)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showNotification('Action completed successfully', 'success');
+                    } else {
+                        showNotification('Failed to complete action', 'error');
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error handling tenant event:', error);
+                showNotification('Error processing action', 'error');
+            }
+        }
+        
+        async function handleStageChange(event) {
+            // Refresh workspace stage when it changes
+            await loadWorkspaceStage();
+        }
+        
+        // Helper functions
+        async function refreshWorkspaceStage() {
+            await loadWorkspaceStage();
+            
+            // Update workspace stage panel
+            if (window.workspaceStageModel) {
+                window.workspaceStageModel.refresh();
+            }
+        }
+        
+        function highlightUrgentComponents() {
+            // Add urgency styling to components
+            const urgentComponents = document.querySelectorAll('.emergency-actions, .deadline-tracker');
+            urgentComponents.forEach(component => {
+                component.classList.add('urgent');
+            });
+        }
+        
+        function prioritizeDocumentCapture() {
+            // Show document capture prominently
+            const uploadZone = document.querySelector('.capture-upload-zone');
+            if (uploadZone) {
+                uploadZone.classList.add('priority');
+            }
+        }
+        
+        function enableEmergencyActions() {
+            // Enable emergency actions component
+            const emergencyActions = document.querySelector('.tenant-emergency-actions');
+            if (emergencyActions) {
+                emergencyActions.style.display = 'block';
+            }
+        }
+        
+        function enableProgressTracking() {
+            // Enable progress tracking
+            const progressElements = document.querySelectorAll('.progress-bar, .case-stats');
+            progressElements.forEach(element => {
+                element.style.display = 'block';
+            });
+        }
+        
+        function showNotification(message, type = 'info') {
+            // Simple notification system
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 1.5rem;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+        
+        // Header actions
+        function viewHelp() {
+            window.location.href = '/help';
+        }
+        
+        function viewSettings() {
+            window.location.href = '/settings';
+        }
+        
+        // Add slide-in animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            .urgent {
+                border-color: var(--color-error) !important;
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+            }
+            
+            .priority {
+                border-color: var(--color-tenant-primary) !important;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

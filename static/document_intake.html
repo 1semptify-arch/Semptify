@@ -2160,7 +2160,7 @@
                 
                 // Redirect to welcome page after short delay
                 setTimeout(() => {
-                    window.location.href = '/static/welcome.html';
+                    window.location.href = '/welcome.html';
                 }, 1000);
 
             } catch (error) {
@@ -3580,7 +3580,7 @@
                             <p style="color: #065f46; font-weight: 600;">Form data applied successfully!</p>
                             <p style="color: #047857; font-size: 14px;">Your extracted data is now ready to be used in court form filling.</p>
                             <div class="button-group" style="margin-top: 16px;">
-                                <button class="btn btn-primary" onclick="window.location.href='/static/legal_analysis.html'">
+                                <button class="btn btn-primary" onclick="window.location.href='/legal_analysis.html'">
                                     📝 Go to Legal Analysis
                                 </button>
                                 <button class="btn btn-outline" onclick="extractFormFields()">
@@ -3959,7 +3959,7 @@
                     result: doc.recognitionResult
                 }));
             }
-            window.location.href = '/static/recognition.html';
+            window.location.href = '/recognition.html';
         }
 
         // =====================================================================

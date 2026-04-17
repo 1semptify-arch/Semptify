@@ -1,0 +1,894 @@
+{# Advocate Dashboard Component #}
+{# Purpose: Main dashboard for advocate role with client management and case oversight #}
+{# Usage: {% include "design-system/components/function-groups/role-specific/advocate/dashboard.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "advocate_dashboard_" ~ random_string() %}
+{% set role = "advocate" %}
+{% set show_client_list = show_client_list|default(true) %}
+{% set show_case_overview = show_case_overview|default(true) %}
+{% set show_team_collaboration = show_team_collaboration|default(true) %}
+
+<div class="advocate-dashboard role-{{ role }}" id="{{ component_id }}">
+  <div class="advocate-header">
+    <div class="header-content">
+      <div class="header-title-section">
+        <div class="header-icon">+</div>
+        <div>
+          <div class="header-title">Advocate Dashboard</div>
+          <div class="header-subtitle">Client case management and legal support</div>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="stat-item">
+          <div class="stat-value" id="{{ component_id }}_active_cases">0</div>
+          <div class="stat-label">Active Cases</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="{{ component_id }}_urgent_cases">0</div>
+          <div class="stat-label">Urgent</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="{{ component_id }}_new_cases">0</div>
+          <div class="stat-label">New</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  {% if show_case_overview %}
+  <div class="case-overview">
+    <div class="overview-header">
+      <div class="overview-title">Case Overview</div>
+      <div class="overview-actions">
+        <button class="overview-action-btn" onclick="viewAllCases()">View All Cases</button>
+      </div>
+    </div>
+    <div class="overview-grid" id="{{ component_id }}_overview_grid">
+      <div class="overview-loading">Loading case overview...</div>
+    </div>
+  </div>
+  {% endif %}
+  
+  {% if show_client_list %}
+  <div class="client-management">
+    <div class="client-header">
+      <div class="client-title">Client Management</div>
+      <div class="client-actions">
+        <button class="client-action-btn" onclick="addNewClient()">Add Client</button>
+        <button class="client-action-btn secondary" onclick="viewClientQueue()">Queue</button>
+      </div>
+    </div>
+    <div class="client-list" id="{{ component_id }}_client_list">
+      <div class="client-loading">Loading client list...</div>
+    </div>
+  </div>
+  {% endif %}
+  
+  {% if show_team_collaboration %}
+  <div class="team-collaboration">
+    <div class="team-header">
+      <div class="team-title">Team Collaboration</div>
+      <div class="team-actions">
+        <button class="team-action-btn" onclick="createHandoff()">Handoff Case</button>
+      </div>
+    </div>
+    <div class="team-content">
+      <div class="team-activity" id="{{ component_id }}_team_activity">
+        <div class="team-loading">Loading team activity...</div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  
+  <div class="advocate-workspace">
+    <div class="workspace-grid">
+      <!-- Quick Actions -->
+      <div class="workspace-section quick-actions">
+        <div class="section-header">
+          <div class="section-icon">+</div>
+          <div>
+            <div class="section-title">Quick Actions</div>
+            <div class="section-subtitle">Common advocate tasks</div>
+          </div>
+        </div>
+        <div class="section-content">
+          <div class="action-grid">
+            <button class="action-btn primary" onclick="startNewCase()">
+              <span class="action-icon">+</span>
+              <span class="action-text">Start New Case</span>
+            </button>
+            <button class="action-btn secondary" onclick="reviewDocuments()">
+              <span class="action-icon">+</span>
+              <span class="action-text">Review Documents</span>
+            </button>
+            <button class="action-btn secondary" onclick="scheduleConsultation()">
+              <span class="action-icon">+</span>
+              <span class="action-text">Schedule Consultation</span>
+            </button>
+            <button class="action-btn secondary" onclick="generateReport()">
+              <span class="action-icon">+</span>
+              <span class="action-text">Generate Report</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Recent Activity -->
+      <div class="workspace-section recent-activity">
+        <div class="section-header">
+          <div class="section-icon">+</div>
+          <div>
+            <div class="section-title">Recent Activity</div>
+            <div class="section-subtitle">Latest case updates and actions</div>
+          </div>
+        </div>
+        <div class="section-content">
+          <div class="activity-list" id="{{ component_id }}_recent_activity">
+            <div class="activity-loading">Loading recent activity...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# Store configuration in data attributes #}
+<div id="{{ component_id }}_config" 
+     data-component-id="{{ component_id }}"
+     data-role="{{ role }}"
+     data-show-client-list="{{ show_client_list|lower }}"
+     data-show-case-overview="{{ show_case_overview|lower }}"
+     data-show-team-collaboration="{{ show_team_collaboration|lower }}"
+     style="display: none;"></div>
+
+<style>
+.advocate-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  padding: var(--space-lg);
+}
+
+.advocate-header {
+  background: linear-gradient(135deg, var(--color-advocate-primary), var(--color-advocate-primary-dark, #5b21b6));
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.header-title-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.header-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.header-subtitle {
+  font-size: var(--font-size-base);
+  opacity: 0.9;
+}
+
+.header-stats {
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.stat-item {
+  text-align: center;
+  padding: var(--space-sm);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  min-width: 80px;
+}
+
+.stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.stat-label {
+  font-size: var(--font-size-xs);
+  opacity: 0.9;
+}
+
+.case-overview, .client-management, .team-collaboration {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+
+.overview-header, .client-header, .team-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+}
+
+.overview-title, .client-title, .team-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.overview-action-btn, .client-action-btn, .team-action-btn {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-advocate-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.overview-action-btn:hover, .client-action-btn:hover, .team-action-btn:hover {
+  background: var(--color-advocate-primary-dark, #5b21b6);
+  transform: translateY(-1px);
+}
+
+.client-action-btn.secondary, .team-action-btn.secondary {
+  background: transparent;
+  color: var(--color-advocate-primary);
+  border: 1px solid var(--color-advocate-primary);
+}
+
+.client-action-btn.secondary:hover, .team-action-btn.secondary:hover {
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-md);
+}
+
+.overview-loading, .client-loading, .team-loading {
+  text-align: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-muted);
+}
+
+.client-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.client-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.client-item:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-advocate-primary);
+  transform: translateY(-1px);
+}
+
+.client-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: var(--color-advocate-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.client-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.client-name {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.client-case {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.client-status {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+}
+
+.client-status.active {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--color-success);
+}
+
+.client-status.urgent {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+}
+
+.client-status.new {
+  background: rgba(59, 130, 246, 0.1);
+  color: var(--color-accent);
+}
+
+.team-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.team-activity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.team-activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.team-activity-icon {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-advocate-primary);
+  flex-shrink: 0;
+  margin-top: var(--space-xs);
+}
+
+.team-activity-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.team-activity-title {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.team-activity-description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.team-activity-time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.advocate-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: var(--space-lg);
+}
+
+.workspace-section {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  transition: all var(--transition-normal);
+}
+
+.workspace-section:hover {
+  border-color: var(--color-advocate-primary);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-advocate-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.section-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.section-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-xs);
+}
+
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm);
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.action-btn:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-advocate-primary);
+  transform: translateY(-1px);
+}
+
+.action-btn.primary {
+  background: var(--color-advocate-primary);
+  color: white;
+  border-color: var(--color-advocate-primary);
+}
+
+.action-btn.primary:hover {
+  background: var(--color-advocate-primary-dark, #5b21b6);
+}
+
+.action-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-md);
+  background: var(--color-advocate-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.action-btn.primary .action-icon {
+  background: white;
+  color: var(--color-advocate-primary);
+}
+
+.action-text {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  text-align: center;
+}
+
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+}
+
+.activity-item:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-advocate-primary);
+}
+
+.activity-icon {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-advocate-primary);
+  flex-shrink: 0;
+  margin-top: var(--space-xs);
+}
+
+.activity-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-title {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+  line-height: 1.4;
+}
+
+.activity-description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.activity-time {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.activity-loading {
+  text-align: center;
+  padding: var(--space-md);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+  
+  .header-stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get configuration from data attributes
+  const configEl = document.getElementById('{{ component_id }}_config');
+  const config = {
+    componentId: configEl.dataset.componentId,
+    role: configEl.dataset.role,
+    showClientList: configEl.dataset.showClientList === 'true',
+    showCaseOverview: configEl.dataset.showCaseOverview === 'true',
+    showTeamCollaboration: configEl.dataset.showTeamCollaboration === 'true'
+  };
+  
+  // Initialize advocate dashboard
+  initAdvocateDashboard();
+  
+  function initAdvocateDashboard() {
+    loadDashboardData();
+    setupEventListeners();
+  }
+  
+  function loadDashboardData() {
+    // Simulate loading dashboard data
+    setTimeout(() => {
+      const dashboardData = {
+        stats: {
+          activeCases: 12,
+          urgentCases: 3,
+          newCases: 5
+        },
+        cases: [
+          {
+            id: '1',
+            clientName: 'John Smith',
+            caseType: 'Eviction Defense',
+            status: 'active',
+            urgency: 'high',
+            lastUpdate: '2 hours ago'
+          },
+          {
+            id: '2',
+            clientName: 'Sarah Johnson',
+            caseType: 'Habitability',
+            status: 'active',
+            urgency: 'medium',
+            lastUpdate: '1 day ago'
+          }
+        ],
+        clients: [
+          {
+            id: '1',
+            name: 'John Smith',
+            case: 'Eviction Defense',
+            status: 'active'
+          },
+          {
+            id: '2',
+            name: 'Sarah Johnson',
+            case: 'Habitability',
+            status: 'urgent'
+          },
+          {
+            id: '3',
+            name: 'Mike Davis',
+            case: 'Security Deposit',
+            status: 'new'
+          }
+        ],
+        teamActivity: [
+          {
+            id: '1',
+            title: 'Case handoff completed',
+            description: 'Eviction case transferred to legal team',
+            time: '30 minutes ago'
+          },
+          {
+            id: '2',
+            title: 'Document review completed',
+            description: 'Reviewed lease agreement for client #123',
+            time: '2 hours ago'
+          }
+        ],
+        recentActivity: [
+          {
+            id: '1',
+            title: 'New consultation scheduled',
+            description: 'Client meeting tomorrow at 2 PM',
+            time: '1 hour ago'
+          },
+          {
+            id: '2',
+            title: 'Report generated',
+            description: 'Monthly case summary report ready',
+            time: '3 hours ago'
+          }
+        ]
+      };
+      
+      updateHeaderStats(dashboardData.stats);
+      if (config.showCaseOverview) {
+        updateCaseOverview(dashboardData.cases);
+      }
+      if (config.showClientList) {
+        updateClientList(dashboardData.clients);
+      }
+      if (config.showTeamCollaboration) {
+        updateTeamActivity(dashboardData.teamActivity);
+      }
+      updateRecentActivity(dashboardData.recentActivity);
+    }, 1000);
+  }
+  
+  function updateHeaderStats(stats) {
+    const activeCasesEl = document.getElementById(config.componentId + '_active_cases');
+    const urgentCasesEl = document.getElementById(config.componentId + '_urgent_cases');
+    const newCasesEl = document.getElementById(config.componentId + '_new_cases');
+    
+    if (activeCasesEl) activeCasesEl.textContent = stats.activeCases;
+    if (urgentCasesEl) urgentCasesEl.textContent = stats.urgentCases;
+    if (newCasesEl) newCasesEl.textContent = stats.newCases;
+  }
+  
+  function updateCaseOverview(cases) {
+    const overviewGridEl = document.getElementById(config.componentId + '_overview_grid');
+    if (!overviewGridEl) return;
+    
+    const html = cases.map(case_ => `
+      <div class="case-card" data-case-id="${case_.id}">
+        <div class="case-header">
+          <div class="case-client">${case_.clientName}</div>
+          <div class="case-status ${case_.status}">${case_.status}</div>
+        </div>
+        <div class="case-type">${case_.caseType}</div>
+        <div class="case-urgency ${case_.urgency}">${case_.urgency.toUpperCase()}</div>
+        <div class="case-update">Updated: ${case_.lastUpdate}</div>
+      </div>
+    `).join('');
+    
+    overviewGridEl.innerHTML = html;
+  }
+  
+  function updateClientList(clients) {
+    const clientListEl = document.getElementById(config.componentId + '_client_list');
+    if (!clientListEl) return;
+    
+    const html = clients.map(client => `
+      <div class="client-item" data-client-id="${client.id}">
+        <div class="client-avatar">${client.name.split(' ').map(n => n[0]).join('')}</div>
+        <div class="client-info">
+          <div class="client-name">${client.name}</div>
+          <div class="client-case">${client.case}</div>
+        </div>
+        <div class="client-status ${client.status}">${client.status}</div>
+      </div>
+    `).join('');
+    
+    clientListEl.innerHTML = html;
+  }
+  
+  function updateTeamActivity(activity) {
+    const teamActivityEl = document.getElementById(config.componentId + '_team_activity');
+    if (!teamActivityEl) return;
+    
+    const html = activity.map(item => `
+      <div class="team-activity-item" data-activity-id="${item.id}">
+        <div class="team-activity-icon"></div>
+        <div class="team-activity-content">
+          <div class="team-activity-title">${item.title}</div>
+          <div class="team-activity-description">${item.description}</div>
+          <div class="team-activity-time">${item.time}</div>
+        </div>
+      </div>
+    `).join('');
+    
+    teamActivityEl.innerHTML = html;
+  }
+  
+  function updateRecentActivity(activity) {
+    const recentActivityEl = document.getElementById(config.componentId + '_recent_activity');
+    if (!recentActivityEl) return;
+    
+    const html = activity.map(item => `
+      <div class="activity-item" data-activity-id="${item.id}">
+        <div class="activity-icon"></div>
+        <div class="activity-content">
+          <div class="activity-title">${item.title}</div>
+          <div class="activity-description">${item.description}</div>
+          <div class="activity-time">${item.time}</div>
+        </div>
+      </div>
+    `).join('');
+    
+    recentActivityEl.innerHTML = html;
+  }
+  
+  function setupEventListeners() {
+    // Listen for function group events
+    document.addEventListener('capture-upload', handleCaptureEvent);
+    document.addEventListener('capture-quick-input', handleCaptureEvent);
+    document.addEventListener('capture-voice-input', handleCaptureEvent);
+    document.addEventListener('understand-timeline-select', handleUnderstandEvent);
+    document.addEventListener('plan-action-select', handlePlanEvent);
+  }
+  
+  function handleCaptureEvent(event) {
+    console.log('Advocate dashboard - Capture event:', event.detail);
+    loadDashboardData(); // Refresh data
+  }
+  
+  function handleUnderstandEvent(event) {
+    console.log('Advocate dashboard - Understand event:', event.detail);
+    loadDashboardData(); // Refresh data
+  }
+  
+  function handlePlanEvent(event) {
+    console.log('Advocate dashboard - Plan event:', event.detail);
+    loadDashboardData(); // Refresh data
+  }
+  
+  // Action handlers
+  function viewAllCases() {
+    const event = new CustomEvent('advocate-view-all-cases', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function addNewClient() {
+    const event = new CustomEvent('advocate-add-client', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function viewClientQueue() {
+    const event = new CustomEvent('advocate-view-queue', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function createHandoff() {
+    const event = new CustomEvent('advocate-create-handoff', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function startNewCase() {
+    const event = new CustomEvent('advocate-start-case', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function reviewDocuments() {
+    const event = new CustomEvent('advocate-review-documents', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function scheduleConsultation() {
+    const event = new CustomEvent('advocate-schedule-consultation', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  function generateReport() {
+    const event = new CustomEvent('advocate-generate-report', {
+      detail: { componentId: config.componentId, role: config.role }
+    });
+    document.dispatchEvent(event);
+  }
+  
+  // Make action handlers available globally
+  window.viewAllCases = viewAllCases;
+  window.addNewClient = addNewClient;
+  window.viewClientQueue = viewClientQueue;
+  window.createHandoff = createHandoff;
+  window.startNewCase = startNewCase;
+  window.reviewDocuments = reviewDocuments;
+  window.scheduleConsultation = scheduleConsultation;
+  window.generateReport = generateReport;
+});
+</script>

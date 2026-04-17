@@ -1,0 +1,492 @@
+{# Plan Action List Component #}
+{# Purpose: Prioritized action lists and next steps for case management #}
+{# Usage: {% include "design-system/components/function-groups/plan/action-list.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "plan_action_" ~ random_string() %}
+{% set function_group = "plan" %}
+{% set role = role or "tenant" %}
+{% set show_progress = show_progress|default(true) %}
+{% set show_filters = show_filters|default(true) %}
+{% set show_completed = show_completed|default(true) %}
+{% set auto_refresh = auto_refresh|default(false) %}
+{% set refresh_interval = refresh_interval or 30 %}
+
+<div class="plan-action-list role-{{ role }}" 
+     id="{{ component_id }}"
+     data-function-group="{{ function_group }}"
+     data-role="{{ role }}"
+     data-show-progress="{{ show_progress|lower }}"
+     data-show-filters="{{ show_filters|lower }}"
+     data-show-completed="{{ show_completed|lower }}"
+     data-auto-refresh="{{ auto_refresh|lower }}"
+     data-refresh-interval="{{ refresh_interval }}">
+  
+  <div class="action-list-header">
+    <div class="action-list-header-left">
+      <div class="action-list-icon">+</div>
+      <div>
+        <div class="action-list-title">Action Plan</div>
+        <div class="action-list-subtitle">Prioritized actions and next steps for your case</div>
+      </div>
+    </div>
+    
+    {% if show_filters %}
+    <div class="action-list-controls">
+      <select class="action-list-filter" id="{{ component_id }}_filter">
+        <option value="all">All Actions</option>
+        <option value="pending">Pending</option>
+        <option value="in_progress">In Progress</option>
+        <option value="completed">Completed</option>
+      </select>
+      
+      <select class="action-list-sort" id="{{ component_id }}_sort">
+        <option value="priority">Priority</option>
+        <option value="deadline">Deadline</option>
+        <option value="category">Category</option>
+      </select>
+    </div>
+    {% endif %}
+  </div>
+  
+  {% if show_progress %}
+  <div class="action-list-progress" id="{{ component_id }}_progress">
+    <div class="action-list-progress-header">
+      <div class="action-list-progress-title">Overall Progress</div>
+      <div class="action-list-progress-stats" id="{{ component_id }}_progress_stats">0 of 0 completed</div>
+    </div>
+    <div class="action-list-progress-bar">
+      <div class="action-list-progress-fill" id="{{ component_id }}_progress_fill" style="width: 0%"></div>
+    </div>
+  </div>
+  {% endif %}
+  
+  <div class="action-list-content" id="{{ component_id }}_content">
+    <div class="action-list-loading">
+      <div class="action-list-loading-spinner"></div>
+      <div class="action-list-loading-text">Loading action plan...</div>
+    </div>
+  </div>
+</div>
+
+{# Store configuration in data attributes #}
+<div id="{{ component_id }}_config" 
+     data-component-id="{{ component_id }}"
+     data-role="{{ role }}"
+     data-show-progress="{{ show_progress|lower }}"
+     data-show-filters="{{ show_filters|lower }}"
+     data-show-completed="{{ show_completed|lower }}"
+     data-auto-refresh="{{ auto_refresh|lower }}"
+     data-refresh-interval="{{ refresh_interval }}"
+     style="display: none;"></div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get configuration from data attributes
+  const configEl = document.getElementById('{{ component_id }}_config');
+  const config = {
+    componentId: configEl.dataset.componentId,
+    role: configEl.dataset.role,
+    showProgress: configEl.dataset.showProgress === 'true',
+    showFilters: configEl.dataset.showFilters === 'true',
+    showCompleted: configEl.dataset.showCompleted === 'true',
+    autoRefresh: configEl.dataset.autoRefresh === 'true',
+    refreshInterval: parseInt(configEl.dataset.refreshInterval)
+  };
+  
+  // Get DOM elements
+  const component = document.getElementById(config.componentId);
+  const content = document.getElementById(config.componentId + '_content');
+  const filter = document.getElementById(config.componentId + '_filter');
+  const sort = document.getElementById(config.componentId + '_sort');
+  
+  // State
+  let currentFilter = 'all';
+  let currentSort = 'priority';
+  let actionData = null;
+  let refreshTimer = null;
+  
+  // Initialize
+  initActionList();
+  
+  function initActionList() {
+    // Set up event listeners
+    if (filter) {
+      filter.addEventListener('change', handleFilterChange);
+    }
+    
+    if (sort) {
+      sort.addEventListener('change', handleSortChange);
+    }
+    
+    // Load initial data
+    loadActionData();
+    
+    // Set up auto-refresh
+    if (config.autoRefresh) {
+      startAutoRefresh();
+    }
+  }
+  
+  function handleFilterChange(e) {
+    currentFilter = e.target.value;
+    renderActionList();
+  }
+  
+  function handleSortChange(e) {
+    currentSort = e.target.value;
+    renderActionList();
+  }
+  
+  function loadActionData() {
+    // Show loading state
+    content.innerHTML = `
+      <div class="action-list-loading">
+        <div class="action-list-loading-spinner"></div>
+        <div class="action-list-loading-text">Loading action plan...</div>
+      </div>
+    `;
+    
+    // Simulate API call
+    setTimeout(() => {
+      actionData = generateMockActionData();
+      updateProgress();
+      renderActionList();
+    }, 1000);
+  }
+  
+  function generateMockActionData() {
+    const now = new Date();
+    const actions = [
+      {
+        id: '1',
+        title: 'Respond to eviction notice',
+        description: 'File formal response to eviction notice within 5 days of receipt.',
+        priority: 'urgent',
+        status: 'pending',
+        category: 'legal',
+        deadline: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
+        estimatedTime: '2-3 hours',
+        dependencies: [],
+        resources: ['eviction_notice.pdf', 'response_template.docx']
+      },
+      {
+        id: '2',
+        title: 'Gather evidence for defense',
+        description: 'Collect and organize all evidence supporting your case against eviction.',
+        priority: 'urgent',
+        status: 'in_progress',
+        category: 'document',
+        deadline: new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000), // 4 days from now
+        estimatedTime: '4-6 hours',
+        dependencies: [],
+        resources: ['evidence_checklist.pdf']
+      },
+      {
+        id: '3',
+        title: 'Contact legal aid',
+        description: 'Reach out to local legal aid organizations for free consultation.',
+        priority: 'high',
+        status: 'pending',
+        category: 'communication',
+        deadline: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
+        estimatedTime: '1-2 hours',
+        dependencies: [],
+        resources: ['legal_aid_contacts.pdf']
+      },
+      {
+        id: '4',
+        title: 'Document property conditions',
+        description: 'Take photos and document any property issues that support your case.',
+        priority: 'medium',
+        status: 'pending',
+        category: 'document',
+        deadline: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        estimatedTime: '2-3 hours',
+        dependencies: [],
+        resources: ['photo_checklist.pdf']
+      },
+      {
+        id: '5',
+        title: 'File complaint with housing authority',
+        description: 'Submit formal complaint about landlord violations to local housing authority.',
+        priority: 'medium',
+        status: 'pending',
+        category: 'legal',
+        deadline: new Date(now.getTime() + 10 * 24 * 60 * 60 * 1000), // 10 days from now
+        estimatedTime: '3-4 hours',
+        dependencies: ['3'],
+        resources: ['complaint_form.pdf', 'housing_authority_info.pdf']
+      },
+      {
+        id: '6',
+        title: 'Prepare for court hearing',
+        description: 'Organize documents and prepare testimony for upcoming court hearing.',
+        priority: 'high',
+        status: 'pending',
+        category: 'court',
+        deadline: new Date(now.getTime() + 8 * 24 * 60 * 60 * 1000), // 8 days from now
+        estimatedTime: '6-8 hours',
+        dependencies: ['1', '2'],
+        resources: ['court_preparation_guide.pdf', 'witness_questions.pdf']
+      },
+      {
+        id: '7',
+        title: 'Review lease agreement',
+        description: 'Carefully review lease agreement for any clauses that support your position.',
+        priority: 'medium',
+        status: 'completed',
+        category: 'document',
+        deadline: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+        estimatedTime: '1-2 hours',
+        dependencies: [],
+        resources: ['lease_agreement.pdf']
+      },
+      {
+        id: '8',
+        title: 'Send demand letter to landlord',
+        description: 'Send formal demand letter addressing violations and requesting remedies.',
+        priority: 'medium',
+        status: 'pending',
+        category: 'communication',
+        deadline: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+        estimatedTime: '1-2 hours',
+        dependencies: ['7'],
+        resources: ['demand_letter_template.docx']
+      }
+    ];
+    
+    return actions;
+  }
+  
+  function updateProgress() {
+    if (!actionData || !config.showProgress) return;
+    
+    const total = actionData.length;
+    const completed = actionData.filter(action => action.status === 'completed').length;
+    const percentage = total > 0 ? (completed / total) * 100 : 0;
+    
+    // Update progress display
+    const statsEl = document.getElementById(config.componentId + '_progress_stats');
+    const fillEl = document.getElementById(config.componentId + '_progress_fill');
+    
+    if (statsEl) statsEl.textContent = `${completed} of ${total} completed`;
+    if (fillEl) fillEl.style.width = `${percentage}%`;
+  }
+  
+  function renderActionList() {
+    if (!actionData) return;
+    
+    // Filter actions
+    let filteredActions = actionData;
+    if (currentFilter !== 'all') {
+      filteredActions = actionData.filter(action => action.status === currentFilter);
+    }
+    
+    // Sort actions
+    filteredActions.sort((a, b) => {
+      if (currentSort === 'priority') {
+        const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      } else if (currentSort === 'deadline') {
+        return a.deadline - b.deadline;
+      } else if (currentSort === 'category') {
+        return a.category.localeCompare(b.category);
+      }
+      return 0;
+    });
+    
+    // Group by priority
+    const groupedActions = groupActionsByPriority(filteredActions);
+    
+    const html = `
+      ${Object.entries(groupedActions).map(([priority, actions]) => createPriorityGroupHTML(priority, actions)).join('')}
+    `;
+    
+    content.innerHTML = html;
+    attachEventListeners();
+  }
+  
+  function groupActionsByPriority(actions) {
+    const groups = {
+      urgent: [],
+      high: [],
+      medium: [],
+      low: []
+    };
+    
+    actions.forEach(action => {
+      groups[action.priority].push(action);
+    });
+    
+    return groups;
+  }
+  
+  function createPriorityGroupHTML(priority, actions) {
+    if (actions.length === 0) return '';
+    
+    const priorityLabels = {
+      urgent: 'Urgent Actions',
+      high: 'High Priority',
+      medium: 'Medium Priority',
+      low: 'Low Priority'
+    };
+    
+    return `
+      <div class="action-list-priority">
+        <div class="action-list-priority-header">
+          <div class="action-list-priority-icon ${priority}">!</div>
+          <div class="action-list-priority-title">${priorityLabels[priority]}</div>
+          <div class="action-list-priority-count">${actions.length}</div>
+        </div>
+        <div class="action-list-items">
+          ${actions.map(action => createActionItemHTML(action)).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  function createActionItemHTML(action) {
+    const isCompleted = action.status === 'completed';
+    const deadlineClass = getDeadlineClass(action.deadline);
+    
+    return `
+      <div class="action-list-item ${isCompleted ? 'completed' : ''}" data-action-id="${action.id}">
+        <div class="action-list-item-checkbox ${isCompleted ? 'checked' : ''}" onclick="toggleActionComplete('${action.id}')">
+          ${isCompleted ? '×' : ''}
+        </div>
+        <div class="action-list-item-content">
+          <div class="action-list-item-title">${action.title}</div>
+          <div class="action-list-item-description">${action.description}</div>
+          <div class="action-list-item-meta">
+            <div class="action-list-item-deadline ${deadlineClass}">
+              Due: ${action.deadline.toLocaleDateString()}
+            </div>
+            <div class="action-list-item-category ${action.category}">${action.category}</div>
+            <div class="action-list-item-estimated">${action.estimatedTime}</div>
+          </div>
+        </div>
+        <div class="action-list-item-actions">
+          <button class="action-list-item-action" title="View details" onclick="viewActionDetails('${action.id}')">+</button>
+          <button class="action-list-item-action" title="Start action" onclick="startAction('${action.id}')">+</button>
+        </div>
+      </div>
+    `;
+  }
+  
+  function getDeadlineClass(deadline) {
+    const now = new Date();
+    const daysUntil = Math.ceil((deadline - now) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntil <= 3) return 'urgent';
+    if (daysUntil <= 7) return 'soon';
+    return 'upcoming';
+  }
+  
+  function attachEventListeners() {
+    // Action item click handlers (excluding checkbox and action buttons)
+    const actionElements = content.querySelectorAll('.action-list-item');
+    actionElements.forEach(actionEl => {
+      actionEl.addEventListener('click', function(e) {
+        if (!e.target.closest('.action-list-item-checkbox') && !e.target.closest('.action-list-item-actions')) {
+          handleActionClick(this);
+        }
+      });
+    });
+  }
+  
+  function handleActionClick(actionEl) {
+    const actionId = actionEl.dataset.actionId;
+    const action = actionData.find(a => a.id === actionId);
+    
+    if (action) {
+      // Emit action selection event
+      const actionEvent = new CustomEvent('plan-action-select', {
+        detail: {
+          action: action,
+          componentId: config.componentId,
+          role: config.role
+        }
+      });
+      document.dispatchEvent(actionEvent);
+    }
+  }
+  
+  function toggleActionComplete(actionId) {
+    const action = actionData.find(a => a.id === actionId);
+    if (action) {
+      action.status = action.status === 'completed' ? 'pending' : 'completed';
+      updateProgress();
+      renderActionList();
+      
+      // Emit action completion event
+      const completeEvent = new CustomEvent('plan-action-complete', {
+        detail: {
+          action: action,
+          componentId: config.componentId,
+          role: config.role
+        }
+      });
+      document.dispatchEvent(completeEvent);
+    }
+  }
+  
+  function viewActionDetails(actionId) {
+    const action = actionData.find(a => a.id === actionId);
+    if (action) {
+      // Emit view details event
+      const detailsEvent = new CustomEvent('plan-action-details', {
+        detail: {
+          action: action,
+          componentId: config.componentId,
+          role: config.role
+        }
+      });
+      document.dispatchEvent(detailsEvent);
+    }
+  }
+  
+  function startAction(actionId) {
+    const action = actionData.find(a => a.id === actionId);
+    if (action) {
+      action.status = 'in_progress';
+      renderActionList();
+      
+      // Emit action start event
+      const startEvent = new CustomEvent('plan-action-start', {
+        detail: {
+          action: action,
+          componentId: config.componentId,
+          role: config.role
+        }
+      });
+      document.dispatchEvent(startEvent);
+    }
+  }
+  
+  function startAutoRefresh() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+    }
+    
+    refreshTimer = setInterval(() => {
+      loadActionData();
+    }, config.refreshInterval * 1000);
+  }
+  
+  function stopAutoRefresh() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+      refreshTimer = null;
+    }
+  }
+  
+  // Make action functions available globally
+  window.toggleActionComplete = toggleActionComplete;
+  window.viewActionDetails = viewActionDetails;
+  window.startAction = startAction;
+  
+  // Cleanup on page unload
+  window.addEventListener('beforeunload', stopAutoRefresh);
+});
+</script>

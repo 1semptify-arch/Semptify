@@ -179,9 +179,9 @@ class PerformanceManager {
   preloadNonCriticalResources() {
     // Preload other page CSS
     const pagesToPreload = [
-      '/static/documents-v2.html',
-      '/static/calendar-v2.html',
-      '/static/timeline-v2.html'
+      '/documents-v2.html',
+      '/calendar-v2.html',
+      '/timeline-v2.html'
     ];
 
     pagesToPreload.forEach(page => {

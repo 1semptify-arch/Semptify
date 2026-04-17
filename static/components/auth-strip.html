@@ -133,7 +133,7 @@
                 status.textContent = 'Connected';
                 provider.textContent = `${providerIcons[data.provider] || '☁️'} ${providerNames[data.provider] || data.provider}`;
                 btn.textContent = 'Storage Settings';
-                btn.href = '/static/storage_setup.html';
+                btn.href = '/storage_setup.html';
                 
             } else if (data.needs_reauth) {
                 // Session expired
@@ -155,7 +155,7 @@
                 status.textContent = 'Not Connected';
                 provider.textContent = '';
                 btn.textContent = 'Connect Storage';
-                btn.href = '/static/storage_setup.html';
+                btn.href = '/storage_setup.html';
             }
         } catch (error) {
             console.error('Auth strip check failed:', error);

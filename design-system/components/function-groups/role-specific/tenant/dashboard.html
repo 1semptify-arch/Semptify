@@ -1,0 +1,542 @@
+{# Tenant Dashboard Component #}
+{# Purpose: Main dashboard for tenant role combining Capture, Understand, and Plan function groups #}
+{# Usage: {% include "design-system/components/function-groups/role-specific/tenant/dashboard.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "tenant_dashboard_" ~ random_string() %}
+{% set role = "tenant" %}
+{% set show_welcome = show_welcome|default(true) %}
+{% set show_emergency = show_emergency|default(true) %}
+{% set show_progress = show_progress|default(true) %}
+
+<div class="tenant-dashboard role-{{ role }}" id="{{ component_id }}">
+  {% if show_welcome %}
+  <div class="tenant-welcome">
+    <div class="welcome-header">
+      <div class="welcome-icon">+</div>
+      <div>
+        <div class="welcome-title">Welcome to Your Case</div>
+        <div class="welcome-subtitle">Your tenant rights protection dashboard</div>
+      </div>
+    </div>
+    <div class="welcome-status">
+      <div class="case-stage" id="{{ component_id }}_case_stage">Loading...</div>
+      <div class="case-urgency" id="{{ component_id }}_urgency">Loading...</div>
+    </div>
+  </div>
+  {% endif %}
+  
+  {% if show_emergency %}
+  <div class="tenant-emergency" id="{{ component_id }}_emergency">
+    <div class="emergency-header">
+      <div class="emergency-icon">!</div>
+      <div>
+        <div class="emergency-title">Emergency Actions</div>
+        <div class="emergency-subtitle">Critical items requiring immediate attention</div>
+      </div>
+    </div>
+    <div class="emergency-actions" id="{{ component_id }}_emergency_actions">
+      <div class="emergency-loading">Loading emergency items...</div>
+    </div>
+  </div>
+  {% endif %}
+  
+  <div class="tenant-workspace">
+    <div class="workspace-grid">
+      <!-- Capture Section -->
+      <div class="workspace-section capture-section">
+        <div class="section-header">
+          <div class="section-icon">+</div>
+          <div>
+            <div class="section-title">Add Information</div>
+            <div class="section-subtitle">Upload documents, add notes, or record voice memos</div>
+          </div>
+        </div>
+        <div class="section-content">
+          {% include "design-system/components/function-groups/capture/upload-zone.html" with context %}
+          {% include "design-system/components/function-groups/capture/quick-input.html" with context %}
+        </div>
+      </div>
+      
+      <!-- Understand Section -->
+      <div class="workspace-section understand-section">
+        <div class="section-header">
+          <div class="section-icon">+</div>
+          <div>
+            <div class="section-title">Understand Your Case</div>
+            <div class="section-subtitle">Timeline, rights analysis, and risk assessment</div>
+          </div>
+        </div>
+        <div class="section-content">
+          {% include "design-system/components/function-groups/understand/timeline-view.html" with context %}
+        </div>
+      </div>
+      
+      <!-- Plan Section -->
+      <div class="workspace-section plan-section">
+        <div class="section-header">
+          <div class="section-icon">+</div>
+          <div>
+            <div class="section-title">Your Action Plan</div>
+            <div class="section-subtitle">Next steps, deadlines, and prioritized actions</div>
+          </div>
+        </div>
+        <div class="section-content">
+          {% include "design-system/components/function-groups/plan/next-step-card.html" with context %}
+          {% include "design-system/components/function-groups/plan/deadline-tracker.html" with context %}
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  {% if show_progress %}
+  <div class="tenant-progress" id="{{ component_id }}_progress">
+    <div class="progress-header">
+      <div class="progress-title">Case Progress</div>
+      <div class="progress-stats" id="{{ component_id }}_progress_stats">Loading...</div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="{{ component_id }}_progress_fill" style="width: 0%"></div>
+    </div>
+    <div class="progress-stages" id="{{ component_id }}_progress_stages">
+      <div class="progress-stage">Intake</div>
+      <div class="progress-stage">Analysis</div>
+      <div class="progress-stage">Planning</div>
+      <div class="progress-stage">Action</div>
+      <div class="progress-stage">Resolution</div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{# Store configuration in data attributes #}
+<div id="{{ component_id }}_config" 
+     data-component-id="{{ component_id }}"
+     data-role="{{ role }}"
+     data-show-welcome="{{ show_welcome|lower }}"
+     data-show-emergency="{{ show_emergency|lower }}"
+     data-show-progress="{{ show_progress|lower }}"
+     style="display: none;"></div>
+
+<style>
+.tenant-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  padding: var(--space-lg);
+}
+
+.tenant-welcome {
+  background: linear-gradient(135deg, var(--color-tenant-primary), var(--color-tenant-primary-dark, #1e40af));
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  text-align: center;
+}
+
+.welcome-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.welcome-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.welcome-title {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  margin-bottom: var(--space-xs);
+}
+
+.welcome-subtitle {
+  font-size: var(--font-size-base);
+  opacity: 0.9;
+}
+
+.welcome-status {
+  display: flex;
+  gap: var(--space-lg);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.case-stage, .case-urgency {
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+  font-weight: 500;
+}
+
+.tenant-emergency {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+
+.emergency-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.emergency-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--color-error);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.emergency-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-error);
+  margin-bottom: var(--space-xs);
+}
+
+.emergency-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.emergency-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.tenant-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: var(--space-lg);
+}
+
+.workspace-section {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  transition: all var(--transition-normal);
+}
+
+.workspace-section:hover {
+  border-color: var(--color-tenant-primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-tenant-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.section-title {
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.section-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-xs);
+}
+
+.section-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.tenant-progress {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-md);
+}
+
+.progress-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.progress-stats {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.progress-bar {
+  height: 8px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: var(--space-md);
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--color-tenant-primary);
+  transition: width var(--transition-slow);
+}
+
+.progress-stages {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-stage {
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-align: center;
+  min-width: 80px;
+}
+
+.progress-stage.active {
+  background: var(--color-tenant-primary);
+  color: white;
+  border-color: var(--color-tenant-primary);
+}
+
+.progress-stage.completed {
+  background: var(--color-success);
+  color: white;
+  border-color: var(--color-success);
+}
+
+.emergency-loading {
+  text-align: center;
+  padding: var(--space-md);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+  .workspace-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .welcome-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .welcome-status {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .progress-stages {
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+  
+  .progress-stage {
+    min-width: auto;
+    flex: 1;
+  }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Get configuration from data attributes
+  const configEl = document.getElementById('{{ component_id }}_config');
+  const config = {
+    componentId: configEl.dataset.componentId,
+    role: configEl.dataset.role,
+    showWelcome: configEl.dataset.showWelcome === 'true',
+    showEmergency: configEl.dataset.showEmergency === 'true',
+    showProgress: configEl.dataset.showProgress === 'true'
+  };
+  
+  // Initialize tenant dashboard
+  initTenantDashboard();
+  
+  function initTenantDashboard() {
+    // Load case data
+    loadCaseData();
+    
+    // Set up event listeners for function group components
+    setupEventListeners();
+  }
+  
+  function loadCaseData() {
+    // Simulate loading case data
+    setTimeout(() => {
+      const caseData = {
+        stage: 'Planning',
+        urgency: 'High',
+        progress: 65,
+        emergencyItems: [
+          {
+            id: '1',
+            title: 'Eviction Response Due',
+            description: 'File response to eviction notice within 2 days',
+            deadline: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+            priority: 'urgent'
+          },
+          {
+            id: '2',
+            title: 'Court Hearing Scheduled',
+            description: 'Unlawful detainer hearing in 10 days',
+            deadline: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+            priority: 'high'
+          }
+        ]
+      };
+      
+      updateCaseDisplay(caseData);
+      updateEmergencyActions(caseData.emergencyItems);
+      updateProgress(caseData);
+    }, 1000);
+  }
+  
+  function updateCaseDisplay(caseData) {
+    const stageEl = document.getElementById(config.componentId + '_case_stage');
+    const urgencyEl = document.getElementById(config.componentId + '_urgency');
+    
+    if (stageEl) stageEl.textContent = `Stage: ${caseData.stage}`;
+    if (urgencyEl) {
+      urgencyEl.textContent = `Urgency: ${caseData.urgency}`;
+      urgencyEl.style.color = caseData.urgency === 'High' ? 'var(--color-error)' : 'var(--color-warning)';
+    }
+  }
+  
+  function updateEmergencyActions(emergencyItems) {
+    if (!config.showEmergency) return;
+    
+    const emergencyActionsEl = document.getElementById(config.componentId + '_emergency_actions');
+    if (!emergencyActionsEl) return;
+    
+    const html = emergencyItems.map(item => `
+      <div class="emergency-item" data-emergency-id="${item.id}">
+        <div class="emergency-item-title">${item.title}</div>
+        <div class="emergency-item-description">${item.description}</div>
+        <div class="emergency-item-deadline">Due: ${item.deadline.toLocaleDateString()}</div>
+        <button class="emergency-item-action" onclick="handleEmergencyAction('${item.id}')">
+          Take Action
+        </button>
+      </div>
+    `).join('');
+    
+    emergencyActionsEl.innerHTML = html;
+  }
+  
+  function updateProgress(caseData) {
+    if (!config.showProgress) return;
+    
+    const statsEl = document.getElementById(config.componentId + '_progress_stats');
+    const fillEl = document.getElementById(config.componentId + '_progress_fill');
+    const stagesEl = document.getElementById(config.componentId + '_progress_stages');
+    
+    if (statsEl) statsEl.textContent = `${caseData.progress}% Complete`;
+    if (fillEl) fillEl.style.width = `${caseData.progress}%`;
+    
+    // Update stage indicators
+    if (stagesEl) {
+      const stages = stagesEl.querySelectorAll('.progress-stage');
+      stages.forEach((stage, index) => {
+        stage.classList.remove('active', 'completed');
+        if (index < Math.floor(caseData.progress / 20)) {
+          stage.classList.add('completed');
+        } else if (index === Math.floor(caseData.progress / 20)) {
+          stage.classList.add('active');
+        }
+      });
+    }
+  }
+  
+  function setupEventListeners() {
+    // Listen for function group events
+    document.addEventListener('capture-upload', handleCaptureEvent);
+    document.addEventListener('capture-quick-input', handleCaptureEvent);
+    document.addEventListener('capture-voice-input', handleCaptureEvent);
+    document.addEventListener('understand-timeline-select', handleUnderstandEvent);
+    document.addEventListener('plan-action-select', handlePlanEvent);
+    document.addEventListener('plan-deadline-select', handlePlanEvent);
+  }
+  
+  function handleCaptureEvent(event) {
+    console.log('Tenant dashboard - Capture event:', event.detail);
+    // Update progress or refresh data as needed
+    loadCaseData();
+  }
+  
+  function handleUnderstandEvent(event) {
+    console.log('Tenant dashboard - Understand event:', event.detail);
+    // Update understanding or refresh data as needed
+    loadCaseData();
+  }
+  
+  function handlePlanEvent(event) {
+    console.log('Tenant dashboard - Plan event:', event.detail);
+    // Update progress or refresh data as needed
+    loadCaseData();
+  }
+  
+  function handleEmergencyAction(emergencyId) {
+    console.log('Tenant dashboard - Emergency action:', emergencyId);
+    // Emit emergency action event
+    const emergencyEvent = new CustomEvent('tenant-emergency-action', {
+      detail: {
+        emergencyId: emergencyId,
+        componentId: config.componentId,
+        role: config.role
+      }
+    });
+    document.dispatchEvent(emergencyEvent);
+  }
+  
+  // Make emergency action handler available globally
+  window.handleEmergencyAction = handleEmergencyAction;
+});
+</script>

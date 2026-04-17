@@ -1,0 +1,280 @@
+{# Capture Upload Zone Component #}
+{# Purpose: Get documents and files into the system #}
+{# Usage: {% include "design-system/components/function-groups/capture/upload-zone.html" %} #}
+
+{# Component Interface #}
+{% set component_id = component_id or "capture_upload_" ~ random_string() %}
+{% set function_group = "capture" %}
+{% set role = role or "tenant" %}
+{% set accept = accept or ".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.mp3,.mp4,.wav" %}
+{% set multiple = multiple|default(true) %}
+{% set max_size_mb = max_size_mb or 50 %}
+{% set show_file_types = show_file_types|default(true) %}
+
+<div class="capture-upload-zone role-{{ role }}" 
+     id="{{ component_id }}"
+     data-function-group="{{ function_group }}"
+     data-role="{{ role }}"
+     data-accept="{{ accept }}"
+     data-max-size="{{ max_size_mb }}"
+     data-multiple="{{ multiple }}">
+  
+  <div class="upload-area">
+    <div class="upload-icon">+</div>
+    
+    <div class="upload-text">
+      <h3>Upload documents, photos, or recordings</h3>
+      <p>Drag and drop files here, or click to browse</p>
+      
+      {% if show_file_types %}
+      <div class="upload-file-types">
+        <span class="file-type-badge">PDF</span>
+        <span class="file-type-badge">Images</span>
+        <span class="file-type-badge">Documents</span>
+        <span class="file-type-badge">Audio</span>
+        <span class="file-type-badge">Video</span>
+      </div>
+      {% endif %}
+    </div>
+    
+    <input type="file" 
+           class="upload-input" 
+           id="{{ component_id }}_input"
+           accept="{{ accept }}"
+           {% if multiple %}multiple{% endif %}
+           data-max-size="{{ max_size_mb * 1024 * 1024 }}">
+    
+    <button type="button" class="upload-button" onclick="document.getElementById('{{ component_id }}_input').click()">
+      Choose Files
+    </button>
+  </div>
+  
+  <div class="upload-progress"></div>
+  <div class="upload-status" style="display: none;"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const uploadZone = document.getElementById('{{ component_id }}');
+  const fileInput = document.getElementById('{{ component_id }}_input');
+  const uploadButton = uploadZone.querySelector('.upload-button');
+  const uploadProgress = uploadZone.querySelector('.upload-progress');
+  const uploadStatus = uploadZone.querySelector('.upload-status');
+  
+  let isUploading = false;
+  
+  // Drag and drop handlers
+  uploadZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isUploading) {
+      uploadZone.classList.add('drag-over');
+    }
+  });
+  
+  uploadZone.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadZone.classList.remove('drag-over');
+  });
+  
+  uploadZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    uploadZone.classList.remove('drag-over');
+    
+    if (!isUploading) {
+      const files = e.dataTransfer.files;
+      handleFiles(files);
+    }
+  });
+  
+  // File input change handler
+  fileInput.addEventListener('change', function(e) {
+    if (!isUploading) {
+      const files = e.target.files;
+      handleFiles(files);
+    }
+  });
+  
+  // Button click handler
+  uploadButton.addEventListener('click', function() {
+    if (!isUploading) {
+      fileInput.click();
+    }
+  });
+  
+  function handleFiles(files) {
+    const maxSize = parseInt(fileInput.dataset.maxSize);
+    const validFiles = [];
+    const errors = [];
+    
+    // Validate files
+    for (let file of files) {
+      if (file.size > maxSize) {
+        errors.push(`${file.name} is too large (max ${maxSize / 1024 / 1024}MB)`);
+      } else {
+        validFiles.push(file);
+      }
+    }
+    
+    if (errors.length > 0) {
+      showError(errors.join(', '));
+      return;
+    }
+    
+    if (validFiles.length === 0) {
+      showError('No valid files to upload');
+      return;
+    }
+    
+    uploadFiles(validFiles);
+  }
+  
+  async function uploadFiles(files) {
+    if (isUploading) return;
+    
+    isUploading = true;
+    uploadZone.classList.add('uploading');
+    uploadButton.textContent = 'Uploading...';
+    uploadButton.disabled = true;
+    showStatus('info', 'Uploading files...');
+    
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      const fileMetadata = [];
+      
+      // Add files to FormData
+      Array.from(files).forEach((file, index) => {
+        formData.append(`file_${index}`, file);
+        fileMetadata.push({
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          lastModified: file.lastModified
+        });
+      });
+      
+      // Add metadata
+      formData.append('metadata', JSON.stringify({
+        component_id: '{{ component_id }}',
+        role: '{{ role }}',
+        files: fileMetadata
+      }));
+      
+      // Upload to backend
+      const response = await fetch('/api/components/capture/upload', {
+        method: 'POST',
+        body: formData // Don't set Content-Type header, let browser set it for FormData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Upload successful
+        uploadZone.classList.remove('uploading');
+        uploadZone.classList.add('success');
+        showStatus('success', result.message);
+        uploadButton.textContent = 'Upload More';
+        uploadButton.disabled = false;
+        isUploading = false;
+        
+        // Update workspace stage
+        if (result.files_processed > 0) {
+          updateWorkspaceStage();
+        }
+        
+        // Reset after delay
+        setTimeout(() => {
+          uploadZone.classList.remove('success');
+          hideStatus();
+          uploadButton.textContent = 'Choose Files';
+        }, 3000);
+        
+        // Emit success event for parent components
+        const uploadEvent = new CustomEvent('capture-upload-success', {
+          detail: {
+            files: result.processed_files || fileMetadata,
+            componentId: '{{ component_id }}',
+            role: '{{ role }}',
+            provider: result.provider,
+            timestamp: result.timestamp
+          }
+        });
+        document.dispatchEvent(uploadEvent);
+        
+      } else {
+        // Handle storage not connected
+        if (result.redirect_to) {
+          showStatus('warning', result.message);
+          setTimeout(() => {
+            window.location.href = result.redirect_to;
+          }, 2000);
+        } else {
+          throw new Error(result.message || 'Upload failed');
+        }
+      }
+      
+    } catch (error) {
+      console.error('Upload error:', error);
+      uploadZone.classList.remove('uploading');
+      uploadZone.classList.add('error');
+      showStatus('error', `Upload failed: ${error.message}`);
+      uploadButton.textContent = 'Retry Upload';
+      uploadButton.disabled = false;
+      isUploading = false;
+      
+      // Emit error event for parent components
+      const errorEvent = new CustomEvent('capture-upload-error', {
+        detail: {
+          error: error.message,
+          componentId: '{{ component_id }}',
+          role: '{{ role }}'
+        }
+      });
+      document.dispatchEvent(errorEvent);
+      
+      // Reset after delay
+      setTimeout(() => {
+        uploadZone.classList.remove('error');
+        hideStatus();
+        uploadButton.textContent = 'Choose Files';
+      }, 3000);
+    }
+  }
+  
+  function updateWorkspaceStage() {
+    // Emit event to update workspace stage
+    const stageEvent = new CustomEvent('workspace-stage-update', {
+      detail: {
+        has_documents: true,
+        stage: 'understand',
+        componentId: '{{ component_id }}'
+      }
+    });
+    document.dispatchEvent(stageEvent);
+  }
+  
+  function showError(message) {
+    uploadZone.classList.add('error');
+    showStatus('error', message);
+    
+    setTimeout(() => {
+      uploadZone.classList.remove('error');
+      hideStatus();
+    }, 3000);
+  }
+  
+  function showStatus(type, message) {
+    uploadStatus.className = `upload-status ${type}`;
+    uploadStatus.textContent = message;
+    uploadStatus.style.display = 'block';
+  }
+  
+  function hideStatus() {
+    uploadStatus.style.display = 'none';
+    uploadProgress.style.transform = 'scaleX(0)';
+  }
+});
+</script>

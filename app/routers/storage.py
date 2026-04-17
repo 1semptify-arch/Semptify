@@ -101,7 +101,7 @@ OAUTH_CONFIGS = {
 
 OAUTH_STATE_TIMEOUT_MINUTES = 15  # OAuth state TTL in minutes
 
-ALLOWED_ROLES = {"user", "manager", "advocate", "legal", "admin"}
+ALLOWED_ROLES = {"user", "manager", "advocate", "legal", "judge", "admin"}
 
 # Legacy in-memory compatibility maps.
 # DB rows remain the source of truth; these are only a transitional bridge for
