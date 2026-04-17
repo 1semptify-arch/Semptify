@@ -184,7 +184,7 @@ class CourtScraperPack:
         
         return filings
     
-    async def _handle_mncis_login(self, page: Page):
+    async def _handle_mncis_login(self, page: "Page"):
         """Handle MNCIS login with session persistence."""
         # Check if already logged in
         login_check = await page.query_selector('.user-info')
@@ -203,7 +203,7 @@ class CourtScraperPack:
             await page.click('button[type="submit"]')
             await page.wait_for_load_state('networkidle')
     
-    async def _handle_efilemn_login(self, page: Page):
+    async def _handle_efilemn_login(self, page: "Page"):
         """Handle eFileMN login with session persistence."""
         # Check if already logged in
         login_check = await page.query_selector('.user-info')
@@ -295,7 +295,7 @@ class CaptchaSolver:
     def __init__(self):
         self.solver_services = []
     
-    async def solve_captcha(self, page: Page, captcha_element) -> bool:
+    async def solve_captcha(self, page: "Page", captcha_element) -> bool:
         """Solve CAPTCHA challenges."""
         try:
             # Check if CAPTCHA is present
