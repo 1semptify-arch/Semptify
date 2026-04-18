@@ -13,6 +13,33 @@ if sys.platform == 'win32':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
+# Python version check - Semptify requires Python 3.11+
+python_version = sys.version_info
+if python_version >= (3, 14):
+    print("=" * 70)
+    print("⚠️  CRITICAL WARNING: Python 3.14+ detected!")
+    print("=" * 70)
+    print("Semptify is NOT compatible with Python 3.14.")
+    print("Python 3.14 has known compatibility issues with required packages.")
+    print("")
+    print("Please use Python 3.11 or 3.12 instead:")
+    print("  1. Install Python 3.11: https://python.org/downloads/release/python-3119/")
+    print("  2. Create a virtual environment: python3.11 -m venv venv")
+    print("  3. Activate and reinstall dependencies")
+    print("=" * 70)
+    sys.exit(1)
+elif python_version < (3, 11):
+    print("=" * 70)
+    print("⚠️  ERROR: Python version too old!")
+    print("=" * 70)
+    print(f"Detected Python {python_version.major}.{python_version.minor}")
+    print("Semptify requires Python 3.11 or higher.")
+    print("=" * 70)
+    sys.exit(1)
+else:
+    # Log Python version for debugging
+    print(f"✅ Python {python_version.major}.{python_version.minor}.{python_version.micro} - Compatible")
+
 import asyncio
 import logging
 import time
