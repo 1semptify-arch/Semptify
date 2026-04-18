@@ -2000,6 +2000,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         @fastapi_app.get("/{path:path}")
         async def serve_legacy_static(path: str):
             """Serve legacy root-level static pages from the static directory."""
+            # Don't match paths with slashes - those should be handled by other routes
+            if "/" in path or "\\" in path:
+                raise HTTPException(status_code=404, detail="Static asset not found")
             candidate = static_path / path
             if candidate.exists() and candidate.is_file():
                 return FileResponse(str(candidate))
