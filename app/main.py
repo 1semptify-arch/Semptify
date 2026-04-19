@@ -41,6 +41,7 @@ else:
     print(f"✅ Python {python_version.major}.{python_version.minor}.{python_version.micro} - Compatible")
 
 import asyncio
+import json
 import logging
 import time
 from contextlib import asynccontextmanager
@@ -144,7 +145,7 @@ from app.routers import storage
 from app.routers import onboarding
 from app.routers import plugins
 from app.routers import development
-from app.core.mesh_integration import start_mesh_network, stop_mesh_network
+# DISABLED: from app.core.mesh_integration import start_mesh_network, stop_mesh_network
 
 # Tenant Defense Module
 from app.modules.tenant_defense import router as tenant_defense_router
@@ -391,44 +392,42 @@ async def lifespan(_app: FastAPI):
         
         # --- STAGE 5: Initialize Services ---
         async def init_services():
-            # Initialize any service caches/state
-            # Initialize Positronic Brain connections
-            from app.services.brain_integrations import initialize_brain_connections
-            await initialize_brain_connections()
-            logger.info("   🧠 Positronic Brain initialized with all modules")
+            # DISABLED: Memory-heavy services not needed for core functionality
+            # TODO: Re-enable after Phase 1 MVP is stable
             
-            # Initialize Module Hub and register all modules
-            from app.services.module_registration import register_all_modules
-            from app.services.module_actions import register_all_actions
-            register_all_modules()
-            logger.info("   🔗 Module Hub initialized with bidirectional communication")
+            # Positronic Brain - DISABLED (memory hog)
+            # from app.services.brain_integrations import initialize_brain_connections
+            # await initialize_brain_connections()
+            # logger.info("   🧠 Positronic Brain initialized with all modules")
             
-            # Initialize Positronic Mesh and register all module actions
-            register_all_actions()
-            logger.info("   🧠 Positronic Mesh initialized with workflow orchestration")
+            # Module Hub & Mesh - DISABLED (memory hog)
+            # from app.services.module_registration import register_all_modules
+            # from app.services.module_actions import register_all_actions
+            # register_all_modules()
+            # register_all_actions()
+            # logger.info("   🔗 Module Hub initialized")
+            
+            # Location Service - DISABLED
+            # from app.services.location_service import register_with_mesh
+            # register_with_mesh()
+            # logger.info("   📍 Location Service initialized")
+            
+            # Complaint Wizard - DISABLED
+            # from app.modules.complaint_wizard_module import register_with_mesh as register_complaint_wizard
+            # register_complaint_wizard()
+            # logger.info("   📝 Complaint Wizard initialized")
+            
+            # Mesh Network - DISABLED (major memory consumer)
+            # from app.services.mesh_handlers import register_all_mesh_handlers
+            # mesh_stats = register_all_mesh_handlers()
+            # logger.info("   🕸️ Mesh Network initialized")
 
-            # Initialize Location Service (registers with mesh for cross-module awareness)
-            from app.services.location_service import register_with_mesh
-            register_with_mesh()
-            logger.info("   📍 Location Service initialized - Minnesota-focused tenant rights")
-
-            # Initialize Complaint Wizard Module (registers with mesh for complaint filing workflow)
-            from app.modules.complaint_wizard_module import register_with_mesh as register_complaint_wizard
-            register_complaint_wizard()
-            logger.info("   📝 Complaint Wizard initialized - MN regulatory agency filing")
-
-            # Initialize Mesh Network for true bidirectional module communication
-            from app.services.mesh_handlers import register_all_mesh_handlers
-            mesh_stats = register_all_mesh_handlers()
-            logger.info("   🕸️ Mesh Network initialized: %s modules, %s handlers", mesh_stats['modules_registered'], mesh_stats['total_handlers'])
-
-            # Initialize Plugin System
-            from app.sdk.plugin_manager import plugin_manager
-            discovered_plugins = plugin_manager.discover_plugins()
-            plugin_stats = plugin_manager.load_all()
-            discovered_count = len(discovered_plugins)
-            loaded_count = sum(1 for v in plugin_stats.values() if v)
-            logger.info("   📦 Plugin System initialized: %s plugins discovered, %s loaded", discovered_count, loaded_count)
+            # Plugin System - DISABLED
+            # from app.sdk.plugin_manager import plugin_manager
+            # discovered_plugins = plugin_manager.discover_plugins()
+            # plugin_stats = plugin_manager.load_all()
+            
+            logger.info("   ⚡ Core services only - mesh/brain/plugins DISABLED for memory optimization")
         
         await run_stage(5, TOTAL_STAGES, "Initialize Services", init_services)
         
@@ -489,12 +488,12 @@ async def lifespan(_app: FastAPI):
     from app.core.shutdown import register_shutdown_handler, task_manager
     register_shutdown_handler()
     
-    # Start distributed mesh network
-    try:
-        await start_mesh_network()
-        logger.info("🌐 Distributed Mesh Network started - P2P communication active")
-    except (OSError, RuntimeError, ValueError) as e:
-        logger.warning("⚠️ Mesh network start warning: %s", e)
+    # DISABLED: Distributed mesh network (memory hog)
+    # try:
+    #     await start_mesh_network()
+    #     logger.info("🌐 Distributed Mesh Network started")
+    # except (OSError, RuntimeError, ValueError) as e:
+    #     logger.warning("⚠️ Mesh network start warning: %s", e)
 
     yield  # Application runs here
 
@@ -508,12 +507,12 @@ async def lifespan(_app: FastAPI):
     await task_manager.wait_for_completion(timeout=10.0)
     logger.info("   Background tasks completed")
 
-    # Stop distributed mesh network
-    try:
-        await stop_mesh_network()
-        logger.info("🌐 Distributed Mesh Network stopped")
-    except (OSError, RuntimeError, ValueError) as e:
-        logger.warning("⚠️ Mesh network stop warning: %s", e)
+    # DISABLED: Distributed mesh network
+    # try:
+    #     await stop_mesh_network()
+    #     logger.info("🌐 Distributed Mesh Network stopped")
+    # except (OSError, RuntimeError, ValueError) as e:
+    #     logger.warning("⚠️ Mesh network stop warning: %s", e)
 
     await close_db()
     logger.info("   Database connections closed")
@@ -1506,12 +1505,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     from app.core.oauth_token_manager import init_oauth_token_manager
     init_oauth_token_manager()
     
-    # Start performance monitoring
-    from app.core.performance_monitor import get_performance_monitor
-    performance_monitor = get_performance_monitor()
-    performance_monitor.start_monitoring()
+    # DISABLED: Performance monitoring - causing high memory usage (85%+)
+    # TODO: Re-enable after memory optimization
+    # from app.core.performance_monitor import get_performance_monitor
+    # performance_monitor = get_performance_monitor()
+    # performance_monitor.start_monitoring()
     
-    logger.info("Semptify 5.0 FastAPI application created successfully")
+    logger.info("Semptify 5.0 FastAPI application created successfully (performance monitoring disabled)")
     
     # =========================================================================
     # Global Exception Handlers
@@ -1538,41 +1538,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     logger.info("Global error handling system registered")
     
     # =========================================================================
-    # Performance Monitoring Middleware
+    # Performance Monitoring Middleware - DISABLED
     # =========================================================================
+    # DISABLED: Causing 85%+ memory usage
+    # TODO: Re-enable after optimization
     
-    @fastapi_app.middleware("http")
-    async def performance_monitoring_middleware(request: Request, call_next):
-        """Monitor request performance."""
-        from app.core.performance_monitor import get_performance_monitor
-        
-        start_time = time.time()
-        
-        # Get user info from request
-        user_id = None
-        if hasattr(request.state, 'user'):
-            user_id = getattr(request.state.user, 'user_id', None)
-        
-        # Process request
-        response = await call_next(request)
-        
-        # Calculate duration
-        duration_ms = (time.time() - start_time) * 1000
-        
-        # Record performance
-        performance_monitor = get_performance_monitor()
-        performance_monitor.record_request(
-            endpoint=request.url.path,
-            method=request.method,
-            status_code=response.status_code,
-            duration_ms=duration_ms,
-            user_id=user_id,
-            ip_address=request.client.host if request.client else None
-        )
-        
-        return response
+    # @fastapi_app.middleware("http")
+    # async def performance_monitoring_middleware(request: Request, call_next):
+    #     """Monitor request performance."""
+    #     from app.core.performance_monitor import get_performance_monitor
+    #     ...
     
-    logger.info("Performance monitoring middleware registered")
+    logger.info("Performance monitoring middleware DISABLED (memory optimization)")
     
     # =========================================================================
     # Offline Detection Middleware
@@ -1956,7 +1933,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Vault - Persistent document storage
     try:
         from app.routers import vault
-        fastapi_app.include_router(vault.router, tags=["Vault"])
+        fastapi_app.include_router(vault.router, prefix="/api/vault", tags=["Vault"])
         logging.getLogger(__name__).info("🔐 Vault router connected - Persistent document storage active")
     except ImportError as e:
         logging.getLogger(__name__).warning(f"Vault router not available: {e}")
@@ -2304,33 +2281,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """.format(app_name=app_settings.app_name)
         
         return HTMLResponse(content=vault_html)
-        
-        return HTMLResponse(content=vault_html)
-
-    # =========================================================================
-    # Timeline Page
-    # =========================================================================
-
-    @fastapi_app.get("/timeline", response_class=HTMLResponse)
-    async def timeline_page(request: Request):
-        """Serve the timeline viewer page."""
-        # Try template first
-        timeline_template_path = BASE_PATH / "app" / "templates" / "pages" / "timeline.html"
-        if timeline_template_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/timeline.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Timeline template error, falling back to static: %s", e)
-
-        # Fallback to static file
-        timeline_path = BASE_PATH / "static" / "timeline.html"
-        timeline_fallback = _render_static_page(timeline_path, inject_stage_model=True)
-        if timeline_fallback:
-            return timeline_fallback
-        return HTMLResponse(
-            content="<h1>Timeline viewer not found</h1>",
-            status_code=404
-        )
 
     # =========================================================================
     # Calendar Page
@@ -2510,18 +2460,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Tenant Pages (My Case)
     # =========================================================================
 
-    ROLE_HOME_BY_ROLE = {
-        "user": "/tenant",
-        "advocate": "/advocate",
-        "legal": "/legal",
-        "admin": "/admin",
-        "manager": "/admin",
-    }
-
     def _guard_role_page(request: Request, allowed_roles: set[str]) -> Optional[RedirectResponse]:
         """Lightweight guard: storage connected + expected role for portal page."""
         from app.core.storage_middleware import is_valid_storage_user
         from app.core.user_id import COOKIE_USER_ID, get_role_from_user_id
+        from app.core.workflow_engine import route_user as _route_user
 
         user_id = request.cookies.get(COOKIE_USER_ID)
         if not is_valid_storage_user(user_id):
@@ -2529,8 +2472,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         current_role = get_role_from_user_id(user_id) or ""
         if current_role not in allowed_roles:
-            target = ROLE_HOME_BY_ROLE.get(current_role, "/ui")
-            return RedirectResponse(url=target, status_code=302)
+            return RedirectResponse(url=_route_user(user_id), status_code=302)
         return None
 
     def _render_static_page(path: Path, inject_stage_model: bool = False) -> Optional[HTMLResponse]:
@@ -2612,6 +2554,109 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             status_code=404
         )
 
+    @fastapi_app.get("/documents", response_class=HTMLResponse)
+    async def documents_page(request: Request):
+        """Universal document page - same process for all roles.
+        
+        Permission check: Only verify we can access user's cloud storage.
+        No role-based restrictions - everyone uploads the same way.
+        """
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.database import get_db
+        from app.models import User
+        from sqlalchemy import select
+        
+        # Check 1: Can we access the user's cloud storage?
+        user_id = request.cookies.get(COOKIE_USER_ID)
+        if not is_valid_storage_user(user_id):
+            # No storage access = can't read or write documents
+            return RedirectResponse(url="/storage/providers", status_code=302)
+        
+        # Check 2: Fetch document list from user's cloud storage
+        documents = []
+        try:
+            # Get user's storage session from database
+            async for db in get_db():
+                result = await db.execute(select(User).where(User.id == user_id))
+                user = result.scalar_one_or_none()
+                if user and user.storage_session:
+                    # Parse storage session to get provider and token
+                    session = json.loads(user.storage_session)
+                    provider = session.get("provider")
+                    access_token = session.get("access_token")
+                    
+                    if provider == "google_drive" and access_token:
+                        from app.services.storage.google_drive import GoogleDriveStorage
+                        storage = GoogleDriveStorage(access_token)
+                        vault_files = await storage.list_files("Semptify5.0/Vault/documents")
+                        
+                        # Convert to simple document list
+                        for file in vault_files:
+                            if not file.is_folder:
+                                documents.append({
+                                    "id": file.id,
+                                    "filename": file.name,
+                                    "uploaded_at": file.modified_at.strftime("%Y-%m-%d %H:%M"),
+                                    "size": file.size
+                                })
+                    # TODO: Add Dropbox and OneDrive support
+        except Exception as e:
+            logger.warning(f"Failed to list documents: {e}")
+            documents = []  # Empty list on error
+        
+        return templates.TemplateResponse(
+            "pages/documents.html",
+            {"request": request, "documents": documents, "user_id": user_id}
+        )
+
+    @fastapi_app.get("/timeline", response_class=HTMLResponse)
+    async def timeline_page(request: Request):
+        """Universal timeline page - same for all roles."""
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import COOKIE_USER_ID
+        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.core.database import get_db_session
+        from app.services.storage import get_provider
+        from app.services.timeline_extraction import TimelineStore
+        from app.services.timeline_chronology import build_timeline_chronology
+        
+        # Check: Can we access the user's cloud storage?
+        user_id = request.cookies.get(COOKIE_USER_ID)
+        if not is_valid_storage_user(user_id):
+            return RedirectResponse(url="/storage/providers", status_code=302)
+        
+        events = []
+        chronology_items = []
+        provider_map = {"G": "google_drive", "D": "dropbox", "O": "onedrive"}
+        provider_name = provider_map.get((user_id or "")[:1].upper())
+
+        if provider_name:
+            access_token = get_valid_token_for_user(user_id)
+            if access_token:
+                try:
+                    storage = get_provider(provider_name, access_token=access_token)
+                    timeline_store = TimelineStore(storage, access_token)
+                    events = await timeline_store.get_timeline()
+                except Exception as e:  # pylint: disable=broad-exception-caught
+                    logger.warning("Failed to load timeline events from storage: %s", e)
+
+        try:
+            async with get_db_session() as db:
+                chronology_items = await build_timeline_chronology(events, db)
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.warning("Failed to build timeline chronology: %s", e)
+            chronology_items = []
+
+        return templates.TemplateResponse(
+            "pages/timeline.html",
+            {
+                "request": request,
+                "events": events,
+                "chronology_items": chronology_items,
+                "user_id": user_id,
+            }
+        )
+
     @fastapi_app.get("/tenant/{subpage}", response_class=HTMLResponse)
     async def tenant_subpage(subpage: str, request: Request):
         """Serve tenant sub-pages (documents, timeline, help, copilot)."""
@@ -2622,18 +2667,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # Security: prevent directory traversal
         if ".." in subpage or "/" in subpage or "\\" in subpage:
             return HTMLResponse(content="<h1>400 - Invalid Request</h1>", status_code=400)
-        
+
         # Try subpage.html first, then subpage/index.html
         subpage_path = BASE_PATH / "static" / "tenant" / f"{subpage}.html"
         subpage_fallback = _render_static_page(subpage_path, inject_stage_model=True)
         if subpage_fallback:
             return subpage_fallback
-        
+
         subpage_index = BASE_PATH / "static" / "tenant" / subpage / "index.html"
         subpage_index_fallback = _render_static_page(subpage_index, inject_stage_model=True)
         if subpage_index_fallback:
             return subpage_index_fallback
-        
+
         # Fallback: redirect to main tenant page
         return RedirectResponse(url="/tenant", status_code=302)
 
