@@ -5,7 +5,6 @@
 {% block styles %}
 <link rel="stylesheet" href="/static/css/workspace-stage-model.css">
 <style>
-    /* Timeline specific styles will be added here */
     .timeline-container {
         max-width: 1200px;
         margin: 0 auto;
@@ -17,13 +16,147 @@
         margin-bottom: 30px;
     }
 
-    .timeline-content {
-        /* Placeholder for timeline content */
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 10px;
+    .timeline-events {
+        background: var(--color-bg-card);
+        border-radius: var(--radius-lg);
         padding: 20px;
+        margin-top: 20px;
+    }
+
+    .timeline-graph {
+        position: relative;
+        display: grid;
+        gap: 14px;
+        margin-top: 12px;
+    }
+
+    .timeline-node {
+        position: relative;
+        display: grid;
+        grid-template-columns: 52px 1fr;
+        gap: 14px;
+    }
+
+    .timeline-node::after {
+        content: "";
+        position: absolute;
+        left: 25px;
+        top: 34px;
+        bottom: -14px;
+        width: 2px;
+        background: rgba(59, 130, 246, 0.35);
+    }
+
+    .timeline-node:last-child::after {
+        display: none;
+    }
+
+    .timeline-seq {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        color: var(--color-accent);
+        border: 2px solid rgba(59, 130, 246, 0.45);
+        background: rgba(59, 130, 246, 0.14);
+    }
+
+    .timeline-card {
+        background: var(--color-bg-secondary);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: var(--radius-md);
+        padding: 14px;
+    }
+
+    .timeline-meta-grid {
+        margin-top: 10px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 8px;
+    }
+
+    .timeline-meta-item {
+        border-radius: var(--radius-sm);
+        padding: 8px 10px;
+        background: rgba(15, 23, 42, 0.08);
+        font-size: 0.82rem;
+        color: var(--color-text-muted);
+    }
+
+    .timeline-meta-label {
+        display: block;
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        margin-bottom: 3px;
+    }
+
+    .timeline-event {
+        display: flex;
+        gap: 20px;
+        padding: 20px;
+        border-left: 3px solid var(--color-accent);
+        margin-left: 20px;
+        margin-bottom: 20px;
+        background: var(--color-bg-secondary);
+        border-radius: var(--radius-md);
+    }
+
+    .timeline-event__date {
+        min-width: 120px;
+        font-weight: 600;
+        color: var(--color-accent);
+    }
+
+    .timeline-event__content {
+        flex: 1;
+    }
+
+    .timeline-event__title {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .timeline-event__description {
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+
+    .timeline-event__source {
+        font-size: 0.8rem;
+        color: var(--color-text-muted);
+    }
+
+    .timeline-event__badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: var(--radius-sm);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
+
+    .badge--auto {
+        background: rgba(59, 130, 246, 0.2);
+        color: var(--color-accent);
+    }
+
+    .badge--verified {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+    }
+
+    .empty-state {
         text-align: center;
-        color: #a0aec0;
+        padding: 60px 20px;
+        color: var(--color-text-muted);
+    }
+
+    .add-event-btn {
+        margin-top: 20px;
+        text-align: center;
     }
 </style>
 {% endblock %}
@@ -31,18 +164,76 @@
 {% block content %}
 <div class="timeline-container">
     <div class="timeline-header">
-        <h1>📅 Timeline</h1>
-        <p>Track your case timeline and important dates</p>
+        <h1>📅 Your Timeline</h1>
+        <p class="text-secondary">Important dates and events from your documents. Extracted automatically, verified by you.</p>
     </div>
 
-    <div class="timeline-content">
-        <p>Timeline functionality is being migrated to use templates.</p>
-        <p>This page will be fully implemented with the new template system.</p>
-        <a href="/documents" class="btn btn-primary">Go to Documents</a>
+    <div class="timeline-events">
+        {% if chronology_items %}
+            <div class="timeline-graph">
+                {% for item in chronology_items %}
+                <article class="timeline-node">
+                    <div class="timeline-seq">{{ item.sequence }}</div>
+                    <div class="timeline-card">
+                        <div class="timeline-event__title">
+                            {{ item.title }}
+                            {% if not item.verified %}
+                                <span class="timeline-event__badge badge--auto">Auto</span>
+                            {% else %}
+                                <span class="timeline-event__badge badge--verified">✓ Verified</span>
+                            {% endif %}
+                        </div>
+                        <div class="timeline-event__description">{{ item.description }}</div>
+                        <div class="timeline-event__source">Source: {{ item.source_document_name }}</div>
+                        <div class="timeline-meta-grid">
+                            <div class="timeline-meta-item">
+                                <span class="timeline-meta-label">Event Time</span>
+                                {{ item.event_time_display }}
+                            </div>
+                            <div class="timeline-meta-item">
+                                <span class="timeline-meta-label">Document Created</span>
+                                {{ item.document_time_display }}
+                            </div>
+                            <div class="timeline-meta-item">
+                                <span class="timeline-meta-label">Ingested by Semptify</span>
+                                {{ item.ingested_time_display }}
+                            </div>
+                        </div>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>No timeline events yet.</p>
+                <p class="text-secondary mt-sm">Upload documents and we'll automatically extract important dates.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="add-event-btn">
+        <a href="/documents" class="btn btn--primary">📄 Upload Documents</a>
+        <button class="btn btn--secondary" onclick="addManualEvent()">+ Add Event Manually</button>
     </div>
 
     {% include "partials/workspace_stage_panel.html" %}
 </div>
+
+<script>
+function addManualEvent() {
+    const date = prompt('Date (YYYY-MM-DD):');
+    if (!date) return;
+    
+    const title = prompt('Event title:');
+    if (!title) return;
+    
+    const description = prompt('Description (optional):') || '';
+    
+    // TODO: Submit to API
+    alert('Event added: ' + title + ' on ' + date);
+    window.location.reload();
+}
+</script>
 {% endblock %}
 
 {% block scripts %}
