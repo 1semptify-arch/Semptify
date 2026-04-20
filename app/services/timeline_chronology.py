@@ -14,9 +14,32 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.module_contracts import FunctionGroupContract, register_function_group
 from app.models.models import Document, DocumentPipelineIndex
 
 TIMELINE_FUNCTION_GROUP = "timeline_chronology"
+
+register_function_group(
+    FunctionGroupContract(
+        module="timeline",
+        group_name=TIMELINE_FUNCTION_GROUP,
+        title="Timeline Chronology Builder",
+        description="Build deterministic timeline chronology from cloud events and indexed document metadata.",
+        inputs=(
+            "events",
+            "db_session",
+        ),
+        outputs=(
+            "chronology_items",
+        ),
+        dependencies=(
+            "Semptify5.0/Vault/timeline/events.json",
+            "documents",
+            "document_pipeline_index",
+        ),
+        deterministic=True,
+    )
+)
 
 
 def _parse_any_datetime(value: Any) -> datetime | None:

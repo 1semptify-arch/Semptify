@@ -27,7 +27,10 @@ from app.core.process_registry import PROCESS_GROUPS, get_groups_for_role
 from app.core.page_contracts import PAGE_CONTRACTS, get_contract, validate_all_contracts
 from app.core.user_context import UserRole
 from app.core.database import get_db_session
-from app.models.models import CalendarEvent as CalendarEventModel, TimelineEvent, Document
+from app.core.oauth_token_manager import get_valid_token_for_user
+from app.models.models import CalendarEvent as CalendarEventModel, TimelineEvent, Document, DocumentPipelineIndex
+from app.services.storage import get_provider
+from app.services.timeline_extraction import TimelineStore
 from app.services.positronic_brain import get_brain
 
 router = APIRouter(prefix="/api/workflow", tags=["Workflow Engine"])
@@ -80,6 +83,39 @@ def _scan_user_cases(user_id: str) -> tuple[bool, bool]:
             except (OSError, json.JSONDecodeError, TypeError):
                 continue
     return defense_started, court_packet_ready
+
+
+async def _load_timeline_events_from_cloud(user_id: str) -> list[dict[str, Any]] | None:
+    """
+    Load canonical timeline events from user cloud storage.
+
+    Returns:
+    - list (possibly empty): cloud read succeeded and should be treated as source of truth
+    - None: cloud read unavailable; caller should keep fallback signals
+    """
+    if not user_id:
+        return None
+
+    provider_map = {
+        "G": "google_drive",
+        "D": "dropbox",
+        "O": "onedrive",
+    }
+    provider_name = provider_map.get(user_id[:1].upper())
+    if not provider_name:
+        return None
+
+    access_token = get_valid_token_for_user(user_id)
+    if not access_token:
+        return None
+
+    try:
+        storage = get_provider(provider_name, access_token=access_token)
+        timeline_store = TimelineStore(storage, access_token)
+        events = await timeline_store.get_timeline()
+        return events if isinstance(events, list) else []
+    except Exception:
+        return None
 
 
 def _derive_current_process(
@@ -328,7 +364,7 @@ def _build_home_stage_cards(
                 card_id="timeline",
                 title="3. Review Timeline",
                 description="Confirm extracted dates and events before moving into filings and hearing prep.",
-                route="/tenant/timeline",
+                route="/timeline",
                 state=b2_state,
                 button_label=b2_button,
             ),
@@ -615,7 +651,7 @@ async def get_next_step(body: NextStepRequest) -> NextStepResponse:
         if body.timeline_events <= 0:
             return NextStepResponse(
                 next_process="B2",
-                next_route="/tenant/timeline",
+                next_route="/timeline",
                 next_action="build_timeline",
                 deterministic_reason="Documents are present but no timeline events exist. Build timeline before drafting filings.",
                 warnings=warnings,
@@ -642,7 +678,7 @@ async def get_next_step(body: NextStepRequest) -> NextStepResponse:
     if body.timeline_events <= 0:
         return NextStepResponse(
             next_process="B2",
-            next_route="/tenant/timeline",
+            next_route="/timeline",
             next_action="review_timeline",
             deterministic_reason="Documents are present but timeline is empty. Confirm events before defense drafting.",
             warnings=warnings,
@@ -689,9 +725,10 @@ async def get_case_state(request: Request) -> CaseStateResponse:
     """
     Derive real case-state signals from persisted artifacts.
 
-    Reads from three sources:
+    Reads from four sources:
     - DB ``calendar_events``: determines ``hearing_scheduled``
-    - DB ``documents`` + ``timeline_events``: counts ``document_count`` / ``timeline_events``
+    - DB ``documents`` + ``timeline_events``: counts documents and provides fallback timeline signals
+    - Cloud ``Semptify5.0/Vault/timeline/events.json``: canonical ``timeline_events`` source when available
     - File ``data/cases/{user_id}/*.json``: determines ``defense_started`` / ``court_packet_ready``
 
     Called by home.html to supply data-backed inputs to the next-step card
@@ -711,8 +748,9 @@ async def get_case_state(request: Request) -> CaseStateResponse:
 
     try:
         async with get_db_session() as db:
+            # Documents stored in DocumentPipelineIndex by pipeline
             doc_count = len((await db.execute(
-                select(Document.id).where(Document.user_id == user_id)
+                select(DocumentPipelineIndex.doc_id).where(DocumentPipelineIndex.user_id == user_id)
             )).scalars().all())
 
             timeline_count = len((await db.execute(
@@ -755,6 +793,20 @@ async def get_case_state(request: Request) -> CaseStateResponse:
             has_deadline = any(bool(row[1]) for row in timeline_rows)
     except SQLAlchemyError:
         pass  # DB unavailable; file-based signals still returned
+
+    cloud_timeline_events = await _load_timeline_events_from_cloud(user_id)
+    if cloud_timeline_events is not None:
+        timeline_count = len(cloud_timeline_events)
+        timeline_urgencies = [
+            str(event.get("urgency", "")).strip()
+            for event in cloud_timeline_events
+            if isinstance(event, dict) and event.get("urgency")
+        ]
+        has_deadline = any(
+            bool(event.get("is_deadline"))
+            for event in cloud_timeline_events
+            if isinstance(event, dict)
+        )
 
     defense_started, court_packet_ready = _scan_user_cases(user_id)
 

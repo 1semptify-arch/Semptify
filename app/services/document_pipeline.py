@@ -240,6 +240,7 @@ class DocumentPipeline:
                             user_id=doc.user_id,
                             payload_json=payload_json,
                         ))
+                await db.commit()
         except Exception as exc:
             logger.warning("PostgreSQL index save failed (local copy kept): %s", exc)
 

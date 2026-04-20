@@ -37,6 +37,8 @@ except ImportError:
 
 from app.core.config import get_settings
 from app.core.database import get_db
+from app.core.storage_middleware import is_valid_storage_user
+from app.core.workflow_engine import route_user as _route_user
 from app.core.user_id import (
     generate_user_id,
     parse_user_id,
@@ -563,6 +565,11 @@ async def create_or_update_user(
     _, role, _ = parse_user_id(user_id)
     now = utc_now()
 
+    if not user and email:
+        # Check for existing user by email (e.g. prior failed attempt with different user_id)
+        result = await db.execute(select(User).where(User.email == email))
+        user = result.scalar_one_or_none()
+
     if user:
         # Update last login
         user.last_login = now
@@ -655,16 +662,9 @@ async def storage_home(
     - Has cookie? → Parse it → Redirect to their provider's OAuth
     - No cookie? → Show provider selection page
     """
-    if semptify_uid:
-        # Returning user! Parse their ID to know where to go
-        provider, role, _ = parse_user_id(semptify_uid)
-        if provider:
-            # Redirect to their storage provider to re-authenticate
-            return RedirectResponse(
-                url=f"/storage/auth/{provider}?existing_uid={semptify_uid}",
-                status_code=302
-            )
-    
+    if semptify_uid and is_valid_storage_user(semptify_uid):
+        return RedirectResponse(url=_route_user(semptify_uid), status_code=302)
+
     # New user - show provider selection
     return RedirectResponse(url="/storage/providers", status_code=302)
 
@@ -1420,27 +1420,7 @@ async def oauth_callback(
         if return_to:
             landing = return_to
         else:
-            # Use the workflow engine to route to the correct landing page for this role.
-            # New users with no documents → B1 (/tenant/documents); professionals → B4 (/advocate etc.)
-            from app.core.workflow_engine import evaluate_from_params as _wf_evaluate
-            _, role, _ = parse_user_id(user_id)
-            try:
-                decision = _wf_evaluate(
-                    role=role,
-                    storage_state="already_connected",
-                    documents_present=False,
-                )
-                landing = decision.next_route
-            except Exception:
-                # Fallback to safe defaults if engine fails
-                landing_pages = {
-                    "user": "/tenant/documents",
-                    "manager": "/admin",
-                    "advocate": "/advocate",
-                    "legal": "/legal",
-                    "admin": "/admin",
-                }
-                landing = landing_pages.get(role, "/tenant/documents")
+            landing = _route_user(user_id)
 
         response = RedirectResponse(url=landing, status_code=302)
         print(f"🍪 Setting cookie: {COOKIE_USER_ID}={user_id}, redirecting to {landing}")

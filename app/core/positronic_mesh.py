@@ -19,6 +19,9 @@ from typing import Any, Callable, Dict, List, Optional, Set
 from dataclasses import dataclass, field
 import uuid
 
+from app.core.mesh_config import get_mesh_config
+from app.core.mesh_deferral import deferral_queue
+
 logger = logging.getLogger(__name__)
 
 
@@ -196,6 +199,11 @@ class PositronicMesh:
                 "produces": ["eviction_date", "landlord", "reason", "court_info"],
             },
             {
+                "module": "timeline",
+                "action": "extract_from_document",
+                "produces": ["timeline_extracted", "events_count", "events"],
+            },
+            {
                 "module": "calendar",
                 "action": "calculate_deadlines",
                 "produces": ["answer_deadline", "hearing_date", "critical_dates"],
@@ -230,6 +238,11 @@ class PositronicMesh:
                 "module": "documents",
                 "action": "extract_lease_terms",
                 "produces": ["rent_amount", "lease_dates", "terms", "landlord_info"],
+            },
+            {
+                "module": "timeline",
+                "action": "extract_from_document",
+                "produces": ["timeline_extracted", "events_count", "events"],
             },
             {
                 "module": "law_library",
@@ -509,6 +522,20 @@ class PositronicMesh:
     async def _execute_step(self, workflow: Workflow, step: WorkflowStep) -> Dict[str, Any]:
         """Execute a single workflow step"""
         
+        # Check mesh mode - skip deferred modules in lean mode
+        mesh_config = get_mesh_config()
+        if not mesh_config.is_action_allowed(step.module, step.action):
+            logger.info(f"⏭️ Skipping deferred action in lean mode: {step.module}.{step.action}")
+            # Record for potential retry when mode changes
+            await deferral_queue.defer(
+                module=step.module,
+                action=step.action,
+                user_id=workflow.user_id,
+                params=step.params,
+                context=workflow.context,
+            )
+            return await self._default_step_handler(workflow, step)
+        
         # Get action handler
         if step.module not in self.actions:
             logger.warning(f"Module {step.module} not registered, using default handler")
@@ -612,6 +639,20 @@ class PositronicMesh:
     ) -> Dict[str, Any]:
         """Directly invoke a module action without a full workflow"""
         
+        # Check mesh mode
+        mesh_config = get_mesh_config()
+        if not mesh_config.is_action_allowed(module, action):
+            logger.info(f"⏭️ Action deferred in lean mode: {module}.{action}")
+            # Record for potential retry
+            await deferral_queue.defer(
+                module=module,
+                action=action,
+                user_id=user_id,
+                params=params or {},
+                context={},
+            )
+            return {"deferred": True, "module": module, "action": action}
+        
         if module not in self.actions or action not in self.actions[module]:
             raise ValueError(f"Action not found: {module}.{action}")
         
@@ -673,7 +714,12 @@ class PositronicMesh:
             if w.stage in [WorkflowStage.RUNNING, WorkflowStage.WAITING_INPUT]
         )
         
+        mesh_config = get_mesh_config()
+        
         return {
+            "mode": mesh_config.mode,
+            "critical_only": mesh_config.critical_only,
+            "max_concurrent_workflows": mesh_config.max_concurrent_workflows,
             "modules_connected": len(self.actions),
             "total_actions": sum(len(actions) for actions in self.actions.values()),
             "workflow_templates": len(self.workflow_templates),
@@ -682,6 +728,8 @@ class PositronicMesh:
             "users_with_workflows": len(self.user_workflows),
             "event_subscribers": sum(len(subs) for subs in self.subscribers.values()),
             "modules": list(self.actions.keys()),
+            "deferred_modules": list(mesh_config.deferred_action_modules),
+            "deferral_queue": deferral_queue.get_status(),
         }
     
     def get_available_workflows(self) -> List[Dict[str, Any]]:
@@ -742,4 +790,119 @@ async def sync_all_modules(user_id: str) -> Workflow:
         WorkflowType.FULL_SYNC,
         user_id,
         trigger="sync_request",
+    )
+
+
+# =============================================================================
+# TELEMETRY-TRIGGERED WORKFLOWS
+# =============================================================================
+
+# Mapping from telemetry event types to workflow types
+# This connects the telemetry_hooks.py system to mesh workflows
+TELEMETRY_WORKFLOW_TRIGGERS: Dict[str, WorkflowType] = {
+    # Document upload → Auto analysis
+    "vault_upload_complete": WorkflowType.LEASE_ANALYSIS,
+    
+    # Eviction answer flow → Full eviction defense
+    "eviction_answer_load": WorkflowType.EVICTION_DEFENSE,
+    
+    # Crisis intake → Emergency mode + escalation
+    "crisis_intake_load": WorkflowType.EMERGENCY_MODE,
+    
+    # Court packet → Court prep
+    "court_packet_load": WorkflowType.COURT_PREP,
+}
+
+
+def mesh_trigger_workflow(
+    workflow_id: str,
+    payload: Dict[str, Any],
+    user_id: Optional[str] = None,
+) -> Optional[Workflow]:
+    """
+    Trigger a mesh workflow from external systems (telemetry, webhooks, etc.)
+    
+    Args:
+        workflow_id: The workflow type identifier
+        payload: Context data for the workflow
+        user_id: Optional user identifier (extracted from payload if not provided)
+    
+    Returns:
+        Started Workflow or None if trigger failed
+    """
+    # Extract user_id from payload if not provided
+    if user_id is None:
+        user_id = payload.get("session_id", payload.get("user_id", "anonymous"))
+    
+    # Map string workflow_id to WorkflowType enum
+    workflow_type = None
+    try:
+        workflow_type = WorkflowType(workflow_id)
+    except ValueError:
+        # Check telemetry trigger mapping
+        if workflow_id in TELEMETRY_WORKFLOW_TRIGGERS:
+            workflow_type = TELEMETRY_WORKFLOW_TRIGGERS[workflow_id]
+        else:
+            logger.warning(f"Unknown workflow_id: {workflow_id}")
+            return None
+    
+    # Start workflow asynchronously
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # Schedule in background if event loop is running
+            future = asyncio.create_task(
+                positronic_mesh.start_workflow(
+                    workflow_type,
+                    user_id,
+                    trigger="telemetry_event",
+                    initial_context=payload,
+                )
+            )
+            # Return a placeholder - actual workflow retrieved via status
+            return Workflow(
+                workflow_type=workflow_type,
+                user_id=user_id,
+                workflow_id=f"pending-{uuid.uuid4().hex[:8]}",
+                stage=WorkflowStage.PENDING,
+                context=payload,
+            )
+        else:
+            # Run synchronously if no event loop
+            return loop.run_until_complete(
+                positronic_mesh.start_workflow(
+                    workflow_type,
+                    user_id,
+                    trigger="telemetry_event",
+                    initial_context=payload,
+                )
+            )
+    except Exception as e:
+        logger.error(f"Failed to trigger workflow {workflow_id}: {e}")
+        return None
+
+
+# Convenience: Trigger workflow from telemetry event
+def trigger_workflow_from_telemetry(
+    event_type: str,
+    page_id: str,
+    session_id: str,
+    metadata: Dict[str, Any],
+) -> Optional[Workflow]:
+    """
+    Convenience function to trigger workflows from telemetry events.
+    Called automatically by telemetry_hooks.py for HIGH/CRITICAL events.
+    """
+    if event_type not in TELEMETRY_WORKFLOW_TRIGGERS:
+        return None
+    
+    return mesh_trigger_workflow(
+        workflow_id=event_type,
+        payload={
+            "event_type": event_type,
+            "page_id": page_id,
+            "session_id": session_id,
+            **metadata,
+        },
+        user_id=session_id,
     )

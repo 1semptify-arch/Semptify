@@ -26,6 +26,10 @@ from app.core.module_hub import (
     PackType,
     InfoPack,
 )
+from app.core.module_contracts import contract_registry
+
+# Ensure known function groups are imported and contract-registered.
+from app.services import timeline_chronology as _timeline_chronology  # noqa: F401
 
 router = APIRouter(prefix="/hub", tags=["Module Hub"])
 
@@ -95,6 +99,22 @@ async def list_modules():
         "modules": module_hub.list_modules(),
         "count": len(module_hub.list_modules()),
     }
+
+
+@router.get("/contracts")
+async def list_function_group_contracts():
+    """List all registered standardized function-group contracts."""
+    contracts = contract_registry.list_contracts()
+    return {
+        "contracts": [contract.to_dict() for contract in contracts],
+        "count": len(contracts),
+    }
+
+
+@router.get("/contracts/health")
+async def function_group_contract_health():
+    """Validate function-group contracts for plug-and-play readiness."""
+    return contract_registry.validate()
 
 
 @router.get("/packs")
@@ -346,3 +366,54 @@ async def get_user_context(
     )
 
     return request.response_data or {}
+
+
+# =============================================================================
+# MESH RESOURCE MODE CONTROLS
+# =============================================================================
+
+@router.get("/mesh/status")
+async def get_mesh_status():
+    """Get current Positronic Mesh status including mode and deferrals."""
+    from app.core.positronic_mesh import positronic_mesh
+    return positronic_mesh.get_mesh_status()
+
+
+@router.post("/mesh/mode")
+async def set_mesh_mode(mode: str):
+    """Switch mesh operating mode ('lean' or 'full').
+    
+    - lean: Critical actions only, non-critical deferred
+    - full: All registered actions enabled
+    """
+    from app.core.mesh_config import set_mesh_mode
+    
+    if mode not in ("lean", "full"):
+        raise HTTPException(
+            status_code=400,
+            detail="Mode must be 'lean' or 'full'"
+        )
+    
+    config = set_mesh_mode(mode)
+    return {
+        "mode": config.mode,
+        "max_concurrent_workflows": config.max_concurrent_workflows,
+        "deferred_modules": list(config.deferred_action_modules),
+    }
+
+
+@router.get("/mesh/deferrals")
+async def get_deferral_status():
+    """Get status of deferred actions queue."""
+    from app.core.mesh_deferral import deferral_queue
+    return deferral_queue.get_status()
+
+
+@router.post("/mesh/retry-deferred")
+async def retry_deferred_actions():
+    """Retry all deferred actions (only works in full mode)."""
+    from app.core.positronic_mesh import positronic_mesh
+    from app.core.mesh_deferral import deferral_queue
+    
+    results = await deferral_queue.retry_all(positronic_mesh)
+    return results

@@ -30,6 +30,8 @@ class TimeoutMiddleware(BaseHTTPMiddleware):
         "/api/court-packet": 180.0,  # PDF generation is slow
         "/api/research": 90.0,       # Research aggregation
         "/api/extraction": 60.0,     # Document extraction
+        "/storage/callback": 60.0,   # OAuth token exchange with external providers
+        "/storage/auth": 60.0,       # OAuth redirect initiation
     }
     
     # Paths excluded from timeout (streaming, websockets)
