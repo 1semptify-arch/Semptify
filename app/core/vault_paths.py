@@ -1,0 +1,14 @@
+"""Canonical cloud vault paths (single source of truth)."""
+
+SEMPTIFY_ROOT = "Semptify5.0"
+VAULT_ROOT = f"{SEMPTIFY_ROOT}/Vault"
+
+VAULT_DOCUMENTS = f"{VAULT_ROOT}/documents"
+VAULT_CERTIFICATES = f"{VAULT_ROOT}/certificates"
+
+VAULT_OVERLAY = f"{VAULT_ROOT}/.overlay"
+VAULT_OVERLAY_REGISTRY = f"{VAULT_OVERLAY}/registry.json"
+
+VAULT_TIMELINE = f"{VAULT_ROOT}/timeline"
+VAULT_TIMELINE_EVENTS_FILENAME = "events.json"
+VAULT_TIMELINE_EVENTS_FILE = f"{VAULT_TIMELINE}/{VAULT_TIMELINE_EVENTS_FILENAME}"

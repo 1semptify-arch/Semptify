@@ -141,6 +141,7 @@ vault_router = _safe_router_import("app.routers.vault")
 workflow_router = _safe_router_import("app.routers.workflow")
 functionx_router = _safe_router_import("app.routers.functionx")
 document_overlays_router = _safe_router_import("app.routers.document_overlays")
+free_api_router = _safe_router_import("app.routers.free_api")
 from app.routers import storage
 from app.routers import onboarding
 from app.routers import plugins
@@ -1915,12 +1916,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logging.getLogger(__name__).warning(f"API Documentation router not available: {e}")
     
     # Free API Pack - Minnesota tenant rights APIs
-    try:
-        import semptify_free_apis
-        fastapi_app.include_router(semptify_free_apis.router)
+    if free_api_router:
+        fastapi_app.include_router(free_api_router)
         logging.getLogger(__name__).info("📈 Free API Pack connected - Minnesota tenant rights APIs active")
-    except ImportError as e:
-        logging.getLogger(__name__).warning(f"Free API Pack not available: {e}")
     
     logging.getLogger(__name__).info("🚀 Phase 2 Advanced Features Integration Complete")
     logging.getLogger(__name__).info("   - Document Preview: Multi-format preview generation")
@@ -2059,12 +2057,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/dashboard", response_class=HTMLResponse)
     async def dashboard_page(request: Request):
         """Serve the main dashboard with onboarding modal for new users."""
-        from app.core.storage_middleware import is_valid_storage_user
-        from app.core.user_id import COOKIE_USER_ID
+        # Apply PageContract guard
+        guard_redirect = _guard_by_contract("dashboard", request)
+        if guard_redirect:
+            return guard_redirect
 
-        user_id = request.cookies.get(COOKIE_USER_ID)
-        if not is_valid_storage_user(user_id):
-            return RedirectResponse(url="/storage/providers", status_code=302)
+        # Telemetry
+        try:
+            from app.core.telemetry_hooks import EMITTER
+            from app.core.user_id import COOKIE_USER_ID
+            EMITTER.emit("dashboard_load", "dashboard", request.cookies.get(COOKIE_USER_ID, "anon"))
+        except Exception:  # pylint: disable=broad-exception-caught
+            pass
 
         dashboard_template_path = BASE_PATH / "app" / "templates" / "pages" / "dashboard.html"
         if dashboard_template_path.exists():
@@ -2225,10 +2229,19 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         Vault UI page - where users land after OAuth authentication.
         Shows their connected storage and vault documents.
         """
-        session_id = request.cookies.get("semptify_session")
-        if not session_id:
-            return RedirectResponse(url="/", status_code=302)
-        
+        # Apply PageContract guard
+        guard_redirect = _guard_by_contract("vault", request)
+        if guard_redirect:
+            return guard_redirect
+
+        # Telemetry
+        try:
+            from app.core.telemetry_hooks import EMITTER
+            from app.core.user_id import COOKIE_USER_ID
+            EMITTER.emit("vault_load", "vault", request.cookies.get(COOKIE_USER_ID, "anon"))
+        except Exception:  # pylint: disable=broad-exception-caught
+            pass
+
         # Use template instead of embedded HTML to avoid syntax conflicts
         vault_template_path = BASE_PATH / "app" / "templates" / "pages" / "vault.html"
         if vault_template_path.exists():
@@ -2314,6 +2327,19 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/documents", response_class=HTMLResponse)
     async def documents_page(request: Request):
         """Serve the document intake page."""
+        # Apply PageContract guard
+        guard_redirect = _guard_by_contract("documents", request)
+        if guard_redirect:
+            return guard_redirect
+
+        # Telemetry
+        try:
+            from app.core.telemetry_hooks import EMITTER
+            from app.core.user_id import COOKIE_USER_ID
+            EMITTER.emit("documents_page_load", "documents", request.cookies.get(COOKIE_USER_ID, "anon"))
+        except Exception:  # pylint: disable=broad-exception-caught
+            pass
+
         # Try template first
         documents_template_path = BASE_PATH / "app" / "templates" / "pages" / "documents.html"
         if documents_template_path.exists():
@@ -2474,6 +2500,47 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if current_role not in allowed_roles:
             return RedirectResponse(url=_route_user(user_id), status_code=302)
         return None
+
+    # =========================================================================
+    # Page Contract-Based Route Guards (High-Priority Pages)
+    # =========================================================================
+
+    def _guard_by_contract(page_id: str, request: Request) -> Optional[RedirectResponse]:
+        """
+        Guard a page using its PageContract from route_guards.py.
+        Returns RedirectResponse if access denied, None if allowed.
+        """
+        try:
+            from app.core.route_guards import guard, GuardResult
+            from app.core.page_contracts import PAGE_CONTRACTS, UserRole
+            from app.core.storage_middleware import is_valid_storage_user
+            from app.core.user_id import COOKIE_USER_ID, get_role_from_user_id
+            from app.core.workflow_engine import route_user as _route_user
+
+            contract = PAGE_CONTRACTS.get(page_id)
+            if not contract:
+                return None  # No contract = public access
+
+            # Check if anonymous allowed
+            if UserRole.ANONYMOUS in contract.roles_supported:
+                return None
+
+            # Must be authenticated
+            user_id = request.cookies.get(COOKIE_USER_ID)
+            if not is_valid_storage_user(user_id):
+                return RedirectResponse(url="/storage/providers", status_code=302)
+
+            # Check role
+            current_role = get_role_from_user_id(user_id) or ""
+            allowed_roles = {r.value for r in contract.roles_supported}
+
+            if current_role not in allowed_roles:
+                return RedirectResponse(url=_route_user(user_id), status_code=302)
+
+            return None
+        except ImportError:
+            # Guards not available, allow through
+            return None
 
     def _render_static_page(path: Path, inject_stage_model: bool = False) -> Optional[HTMLResponse]:
         """Read a static HTML page and optionally inject stage-model assets/markup."""
@@ -3099,15 +3166,51 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
 
     @fastapi_app.get("/{page_name}.html", response_class=HTMLResponse)
-    async def serve_html_page(page_name: str):
+    async def serve_html_page(page_name: str, request: Request):
         """
         Serve any HTML page from the static folder.
         This catch-all route allows accessing pages like /dashboard.html, /documents.html, etc.
+        
+        High-priority pages are protected by PageContract guards.
         """
         # Security: prevent directory traversal
         if ".." in page_name or "/" in page_name or "\\" in page_name:
             return HTMLResponse(content="<h1>400 - Invalid Request</h1>", status_code=400)
         
+        # Apply PageContract guards for high-priority pages
+        # Map file names to page_ids
+        high_priority_pages = {
+            "court_packet": "court_packet",
+            "eviction_answer": "eviction_answer",
+            "hearing_prep": "hearing_prep",
+            "storage_setup": "storage_setup",
+            "crisis_intake": "crisis_intake",
+        }
+        
+        if page_name in high_priority_pages:
+            page_id = high_priority_pages[page_name]
+            guard_redirect = _guard_by_contract(page_id, request)
+            if guard_redirect:
+                return guard_redirect
+            # Telemetry — map page_name to its load event
+            load_events = {
+                "court_packet": "court_packet_load",
+                "eviction_answer": "eviction_answer_load",
+                "hearing_prep": "hearing_prep_load",
+                "storage_setup": "storage_setup_load",
+                "crisis_intake": "crisis_intake_load",
+            }
+            try:
+                from app.core.telemetry_hooks import EMITTER
+                from app.core.user_id import COOKIE_USER_ID
+                EMITTER.emit(
+                    load_events[page_name],
+                    page_id,
+                    request.cookies.get(COOKIE_USER_ID, "anon"),
+                )
+            except Exception:  # pylint: disable=broad-exception-caught
+                pass
+
         page_path = BASE_PATH / "static" / f"{page_name}.html"
         page_fallback = _render_static_page(page_path)
         if page_fallback:

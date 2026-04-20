@@ -231,6 +231,58 @@ async def calendar_get_state(
 
 
 # =============================================================================
+# PROCESS DETECTION MODULE ACTIONS (for automatic routing)
+# =============================================================================
+
+async def process_detect_current_process(
+    user_id: str,
+    _params: Dict[str, Any],
+    context: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Detect which process the user should be in based on their state.
+    
+    This action analyzes available data and returns the appropriate process
+    for automatic routing via the mesh workflow system.
+    """
+    logger.info("🔍 Detecting process for user %s...", user_id[:8])
+    
+    # Get state from context
+    documents_state = context.get("documents_state", {})
+    eviction_state = context.get("eviction_state", {})
+    timeline_state = context.get("timeline_state", {})
+    
+    total_docs = documents_state.get("total_documents", 0)
+    has_eviction_case = eviction_state.get("active_case", False)
+    timeline_events = timeline_state.get("events", 0)
+    
+    # Determine process based on state
+    detected_process = "initial"
+    urgency = "low"
+    reason = "No documents or cases detected"
+    
+    if has_eviction_case:
+        detected_process = "eviction_defense"
+        urgency = "critical"
+        reason = "Active eviction case detected"
+    elif total_docs > 0 and timeline_events > 0:
+        # Has documents and timeline events - likely building a case
+        detected_process = "case_builder"
+        urgency = "medium"
+        reason = f"{total_docs} documents and {timeline_events} timeline events present"
+    elif total_docs > 0:
+        detected_process = "document_review"
+        urgency = "low"
+        reason = f"{total_docs} documents uploaded, no case yet"
+    
+    return {
+        "detected_process": detected_process,
+        "process_urgency": urgency,
+        "detection_reason": reason,
+        "routing_destination": detected_process,
+    }
+
+
+# =============================================================================
 # EVICTION DEFENSE MODULE ACTIONS
 # =============================================================================
 
@@ -571,6 +623,58 @@ async def timeline_build_case_timeline(
     }
 
 
+async def timeline_extract_from_document(
+    user_id: str,
+    params: Dict[str, Any],
+    context: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Extract timeline events from a document via the mesh.
+    
+    This action wraps the standalone timeline extraction service
+    to make it available as a mesh-orchestrated step.
+    """
+    logger.info(" Extracting timeline via mesh for user %s...", user_id[:8])
+    
+    document_id = params.get("document_id") or context.get("document_id")
+    overlay_id = params.get("overlay_id") or context.get("overlay_id")
+    
+    if not document_id:
+        return {"timeline_extracted": False, "error": "No document_id provided"}
+    
+    try:
+        # Import here to avoid circular deps
+        from app.services.timeline_extraction import extract_timeline_from_upload
+        
+        # Get storage provider info from context
+        provider = context.get("storage_provider", "google_drive")
+        access_token = context.get("access_token")
+        
+        if not access_token:
+            return {"timeline_extracted": False, "error": "No access_token in context"}
+        
+        # Call the extraction service
+        events = await extract_timeline_from_upload(
+            document_id=document_id,
+            overlay_id=overlay_id,
+            provider=provider,
+            access_token=access_token,
+        )
+        
+        return {
+            "timeline_extracted": True,
+            "events_count": len(events),
+            "events": events,
+            "document_id": document_id,
+        }
+    except Exception as e:
+        logger.error(f"Timeline extraction failed in mesh action: {e}")
+        return {
+            "timeline_extracted": False,
+            "error": str(e),
+            "document_id": document_id,
+        }
+
+
 async def timeline_get_state(
     _user_id: str,
     _params: Dict[str, Any],
@@ -734,6 +838,13 @@ def register_all_actions():
         produces=["urgent_deadlines"]
     )
     
+    # Process detection module (for automatic routing)
+    positronic_mesh.register_action(
+        "process_detection", "detect_current_process", process_detect_current_process,
+        "Detect user's current process for automatic routing",
+        produces=["detected_process", "process_urgency", "routing_destination"]
+    )
+    
     # Eviction defense module
     positronic_mesh.register_action(
         "eviction_defense", "analyze_defenses", eviction_analyze_defenses,
@@ -797,6 +908,11 @@ def register_all_actions():
         "timeline", "build_case_timeline", timeline_build_case_timeline,
         "Build case timeline",
         produces=["case_timeline"]
+    )
+    positronic_mesh.register_action(
+        "timeline", "extract_from_document", timeline_extract_from_document,
+        "Extract timeline events from document",
+        produces=["timeline_extracted", "events_count", "events"]
     )
     positronic_mesh.register_action(
         "timeline", "get_state", timeline_get_state,

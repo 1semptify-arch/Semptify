@@ -6,7 +6,7 @@ Documents are stored in the user's vault first, then modules access them from va
 
 Flow:
 1. Any module calls vault_upload_service.upload()
-2. Document is stored in user's cloud storage vault (.semptify/vault/)
+2. Document is stored in user's cloud storage vault (Semptify5.0/Vault/)
 3. Document metadata is indexed locally for fast queries
 4. Modules access documents via vault_id reference
 
@@ -27,6 +27,7 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 
 from app.core.config import get_settings
+from app.core.vault_paths import VAULT_ROOT, VAULT_DOCUMENTS, VAULT_CERTIFICATES
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ try:
     HAS_STORAGE = True
 except ImportError:
     HAS_STORAGE = False
-    logger.warning("Storage provider not available - using local fallback")
+    logger.warning("Storage provider not available")
 
 
 # =============================================================================
@@ -196,15 +197,12 @@ class VaultUploadService:
     Routes uploads to user's vault, then modules access from there.
     """
     
-    VAULT_FOLDER = ".semptify/vault"
-    CERTS_FOLDER = ".semptify/vault/certificates"
-    LOCAL_FALLBACK_DIR = "data/vault_storage"
+    VAULT_ROOT_FOLDER = VAULT_ROOT
+    VAULT_FOLDER = VAULT_DOCUMENTS
+    CERTS_FOLDER = VAULT_CERTIFICATES
     
     def __init__(self):
         self.index = VaultDocumentIndex()
-        # Local fallback storage
-        self._local_dir = Path(self.LOCAL_FALLBACK_DIR)
-        self._local_dir.mkdir(parents=True, exist_ok=True)
     
     def _compute_sha256(self, content: bytes) -> str:
         """Compute SHA-256 hash of file content."""
@@ -259,7 +257,8 @@ class VaultUploadService:
     async def _ensure_folders(self, storage) -> None:
         """Ensure vault folders exist in storage."""
         try:
-            await storage.create_folder(".semptify")
+            await storage.create_folder("Semptify5.0")
+            await storage.create_folder(self.VAULT_ROOT_FOLDER)
             await storage.create_folder(self.VAULT_FOLDER)
             await storage.create_folder(self.CERTS_FOLDER)
         except Exception as e:
@@ -391,30 +390,24 @@ class VaultUploadService:
         access_token: Optional[str],
         storage_provider: str,
     ) -> str:
-        """Store document in user's storage (cloud or local fallback)."""
-        
-        # Try cloud storage if available
-        if HAS_STORAGE and storage_provider != "local" and access_token:
-            try:
-                storage = get_provider(storage_provider, access_token=access_token)
-                await self._ensure_folders(storage)
-                
-                await storage.upload_file(
-                    file_content=content,
-                    destination_path=self.VAULT_FOLDER,
-                    filename=safe_filename,
-                    mime_type=mime_type,
-                )
-                return f"{self.VAULT_FOLDER}/{safe_filename}"
-            except Exception as e:
-                logger.warning("Cloud storage failed, using local fallback: %s", e)
-        
-        # Local fallback
-        user_dir = self._local_dir / user_id
-        user_dir.mkdir(parents=True, exist_ok=True)
-        file_path = user_dir / safe_filename
-        file_path.write_bytes(content)
-        return str(file_path)
+        """Store document in user's connected cloud storage only."""
+
+        if not HAS_STORAGE:
+            raise RuntimeError("storage provider unavailable")
+        if storage_provider == "local":
+            raise RuntimeError("local storage is disabled for vault uploads")
+        if not access_token:
+            raise RuntimeError("missing storage access token")
+
+        storage = get_provider(storage_provider, access_token=access_token)
+        await self._ensure_folders(storage)
+        await storage.upload_file(
+            file_content=content,
+            destination_path=self.VAULT_FOLDER,
+            filename=safe_filename,
+            mime_type=mime_type,
+        )
+        return f"{self.VAULT_FOLDER}/{safe_filename}"
     
     async def _create_certificate(
         self,
@@ -450,25 +443,20 @@ class VaultUploadService:
         
         cert_content = json.dumps(certificate, indent=2).encode("utf-8")
         
-        # Try cloud storage
-        if HAS_STORAGE and storage_provider != "local" and access_token:
-            try:
-                storage = get_provider(storage_provider, access_token=access_token)
-                await storage.upload_file(
-                    file_content=cert_content,
-                    destination_path=self.CERTS_FOLDER,
-                    filename=f"{certificate_id}.json",
-                    mime_type="application/json",
-                )
-                return certificate_id
-            except Exception as e:
-                logger.warning("Cloud cert storage failed: %s", e)
-        
-        # Local fallback
-        user_dir = self._local_dir / user_id / "certificates"
-        user_dir.mkdir(parents=True, exist_ok=True)
-        cert_path = user_dir / f"{certificate_id}.json"
-        cert_path.write_bytes(cert_content)
+        if not HAS_STORAGE:
+            raise RuntimeError("storage provider unavailable")
+        if storage_provider == "local":
+            raise RuntimeError("local storage is disabled for certificates")
+        if not access_token:
+            raise RuntimeError("missing storage access token")
+
+        storage = get_provider(storage_provider, access_token=access_token)
+        await storage.upload_file(
+            file_content=cert_content,
+            destination_path=self.CERTS_FOLDER,
+            filename=f"{certificate_id}.json",
+            mime_type="application/json",
+        )
         return certificate_id
     
     async def _emit_upload_event(self, doc: VaultDocument) -> None:
@@ -519,21 +507,19 @@ class VaultUploadService:
         if not doc:
             return None
         
-        # Try cloud storage
-        if HAS_STORAGE and doc.storage_provider != "local" and access_token:
-            try:
-                storage = get_provider(doc.storage_provider, access_token=access_token)
-                result = await storage.download_file(doc.storage_path)
-                if result:
-                    return result
-            except Exception as e:
-                logger.warning("Cloud download failed: %s", e)
-        
-        # Local fallback
-        local_path = Path(doc.storage_path)
-        if local_path.exists():
-            return local_path.read_bytes()
-        
+        if not HAS_STORAGE:
+            return None
+        if doc.storage_provider == "local" or not access_token:
+            return None
+
+        try:
+            storage = get_provider(doc.storage_provider, access_token=access_token)
+            result = await storage.download_file(doc.storage_path)
+            if result:
+                return result
+        except Exception as e:
+            logger.warning("Cloud download failed: %s", e)
+
         return None
     
     def mark_processed(

@@ -27,6 +27,7 @@ from app.core.security import (
     StorageUser,
     issue_function_access_token,
 )
+from app.core.vault_paths import SEMPTIFY_ROOT, VAULT_ROOT, VAULT_DOCUMENTS, VAULT_CERTIFICATES
 from app.services.storage import get_provider, StorageFile
 
 # Import vault upload service - central document storage
@@ -101,8 +102,8 @@ class CertificateResponse(BaseModel):
 # Constants
 # =============================================================================
 
-VAULT_FOLDER = ".semptify/vault"
-CERTS_FOLDER = ".semptify/vault/certificates"
+VAULT_FOLDER = VAULT_DOCUMENTS
+CERTS_FOLDER = VAULT_CERTIFICATES
 
 
 # =============================================================================
@@ -122,7 +123,8 @@ def is_allowed_extension(filename: str, settings: Settings) -> bool:
 
 async def ensure_vault_folders(storage, provider_name: str) -> None:
     """Ensure vault folders exist in user's storage."""
-    await storage.create_folder(".semptify")
+    await storage.create_folder(SEMPTIFY_ROOT)
+    await storage.create_folder(VAULT_ROOT)
     await storage.create_folder(VAULT_FOLDER)
     await storage.create_folder(CERTS_FOLDER)
 
@@ -250,6 +252,39 @@ async def upload_document(
         # Log this but don't fail the request
         pass
 
+    # Create overlay for safe processing (original never touched)
+    overlay = None
+    try:
+        from app.services.document_overlay import OverlayManager
+        overlay_manager = OverlayManager(storage, access_token)
+        overlay = await overlay_manager.create_overlay(
+            original_id=document_id,
+            original_path=storage_path
+        )
+        # Store overlay ID in certificate for reference
+        certificate["overlay_id"] = overlay.overlay_id
+        
+        # Auto-extract timeline events from document and persist to user's timeline storage
+        try:
+            from app.services.timeline_extraction import extract_timeline_from_upload
+            provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
+            timeline_events = await extract_timeline_from_upload(
+                document_id=document_id,
+                overlay_id=overlay.overlay_id,
+                provider=provider_name,
+                access_token=access_token,
+            )
+            certificate["timeline_events_extracted"] = len(timeline_events)
+        except Exception as e:
+            # Timeline extraction failed, but upload succeeded
+            # Log and continue - can re-extract later
+            certificate["timeline_events_extracted"] = 0
+            
+    except Exception as e:
+        # Overlay creation failed, but document is safely stored
+        # Log and continue - overlay can be created later
+        overlay = None
+
     function_token = issue_function_access_token(
         user.user_id,
         context={
@@ -283,6 +318,63 @@ async def upload_document(
             
         except Exception as e:
             logger.warning(f"Preview generation failed for {document_id}: {e}")
+
+    # =============================================================================
+    # TRIGGER MESH WORKFLOW BASED ON DOCUMENT TYPE
+    # =============================================================================
+    try:
+        from app.core.positronic_mesh import positronic_mesh, WorkflowType
+        import asyncio
+        
+        # Determine workflow type from document_type or content hints
+        workflow_type = None
+        trigger_context = {
+            "document_id": document_id,
+            "certificate_id": certificate_id,
+            "filename": file.filename,
+            "mime_type": file.content_type,
+            "document_type": document_type,
+            "overlay_id": overlay.overlay_id if overlay else None,
+            "timeline_events_count": certificate.get("timeline_events_extracted", 0),
+        }
+        
+        # Map document types to workflows
+        if document_type in ("eviction_notice", "summons", "court_order"):
+            workflow_type = WorkflowType.EVICTION_DEFENSE
+        elif document_type in ("lease", "rental_agreement"):
+            workflow_type = WorkflowType.LEASE_ANALYSIS
+        elif document_type in ("hearing_notice", "motion", "evidence_list"):
+            workflow_type = WorkflowType.COURT_PREP
+        
+        # Also check filename for hints if no explicit type
+        if not workflow_type and file.filename:
+            fname_lower = file.filename.lower()
+            if any(word in fname_lower for word in ("evict", "notice", "summons", "quit")):
+                workflow_type = WorkflowType.EVICTION_DEFENSE
+            elif any(word in fname_lower for word in ("lease", "rental", "agreement")):
+                workflow_type = WorkflowType.LEASE_ANALYSIS
+            elif any(word in fname_lower for word in ("hearing", "court", "motion")):
+                workflow_type = WorkflowType.COURT_PREP
+        
+        if workflow_type:
+            # Start workflow async (non-blocking to response)
+            asyncio.create_task(
+                positronic_mesh.start_workflow(
+                    workflow_type=workflow_type,
+                    user_id=user.user_id,
+                    trigger="document_upload",
+                    initial_context=trigger_context,
+                )
+            )
+            logger.info(f"🚀 Triggered {workflow_type.value} workflow for document {document_id}")
+            certificate["mesh_workflow_triggered"] = workflow_type.value
+        else:
+            certificate["mesh_workflow_triggered"] = None
+            
+    except Exception as e:
+        # Workflow trigger failed but upload succeeded - log and continue
+        logger.warning(f"Mesh workflow trigger failed for {document_id}: {e}")
+        certificate["mesh_workflow_triggered"] = "error"
 
     # Build response
     return DocumentResponse(

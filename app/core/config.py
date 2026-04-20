@@ -14,7 +14,7 @@ from typing import Literal
 from dotenv import load_dotenv
 
 # Load .env before any os.getenv() calls (Settings class attributes are evaluated at import time)
-load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / ".env", override=False)
+load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / ".env", override=True)
 
 _WEAK_KEY = "change-me-in-production-use-secrets"
 logger = logging.getLogger(__name__)
