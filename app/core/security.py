@@ -998,11 +998,19 @@ async def get_current_user(
         
         # Only create context if we have valid provider and role codes
         if provider and role:
+            # Get real access token from database
+            real_token = None
+            try:
+                from app.core.oauth_token_manager import get_valid_token_for_user
+                real_token = get_valid_token_for_user(semptify_uid)
+            except Exception:
+                pass  # If token fetch fails, still return context (will be caught by require_user)
+            
             return UserContext(
                 user_id=semptify_uid,
                 provider=provider,
                 storage_user_id=semptify_uid,
-                access_token="cookie-token",  # Will be refreshed from storage
+                access_token=real_token or "no-token",
                 role=role,
             )
     

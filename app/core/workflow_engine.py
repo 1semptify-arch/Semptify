@@ -249,6 +249,40 @@ def evaluate(state: WorkflowState) -> WorkflowDecision:
     return _professional_decision(state)
 
 
+def route_user(
+    user_id: Optional[str],
+    documents_present: bool = False,
+    has_active_case: bool = False,
+) -> str:
+    """
+    Single authoritative routing function for the entire application.
+
+    Given a user_id (from cookie) returns the correct URL to send them to.
+    Every redirect in the app should call this instead of hardcoding paths.
+
+    Returns:
+        URL string — always safe to redirect to.
+    """
+    from app.core.storage_middleware import is_valid_storage_user
+    from app.core.user_id import get_role_from_user_id
+
+    if not user_id or not is_valid_storage_user(user_id):
+        return "/storage/providers"
+
+    role_str = get_role_from_user_id(user_id) or "user"
+
+    try:
+        decision = evaluate_from_params(
+            role=role_str,
+            storage_state=StorageState.ALREADY_CONNECTED.value,
+            documents_present=documents_present,
+            has_active_case=has_active_case,
+        )
+        return decision.next_route
+    except ValueError:
+        return "/storage/providers"
+
+
 def evaluate_from_params(
     role: str,
     storage_state: str,

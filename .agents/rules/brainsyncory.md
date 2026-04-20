@@ -1,7 +1,7 @@
 
 
 # Project Memory — Semptify5.0
-> 76 notes | Score threshold: >40
+> 479 notes | Score threshold: >40
 
 ## Safety — Never Run Destructive Commands
 
@@ -18,42 +18,55 @@
 
 **Stack:** Python · FastAPI · DB: PostgreSQL, Redis, SQLAlchemy
 
-## Important Warnings
+## 📝 NOTE: 1 uncommitted file(s) in working tree.\n\n## Important Warnings
 
-- **gotcha in session.py** — File updated (external): venv311_clean/Lib/site-packages/pip/_internal
-- **gotcha in RECORD** — File updated (external): venv311/Lib/site-packages/setuptools-65.5.0.d
-- **gotcha in distutils-precedence.pth** — File updated (external): venv311/Lib/site-packages/distutils-precedenc
+- **⚠️ GOTCHA: Added session cookies authentication** — - - what-changed in shared-context.json — confirmed 3x
++ - Added sessi
+- **⚠️ GOTCHA: Added session cookies authentication** — - - ⚠️ GOTCHA: Patched security issue Patched
++ - gotcha in shared-con
 - **gotcha in shared-context.json** — -     }
 +     },
 -   ]
 +     {
 - }
-+       "id": "7b686e78f290945e",
++       "id": "fbaa2c3cb5a3c0ae",
 +
-- **gotcha in agent-rules.md** — File updated (external): .brainsync/agent-rules.md
-
-Content summary (4
+- **⚠️ GOTCHA: Patched security issue Patched** — - - problem-fix in agent-rules.md
++ - Patched security issue Check — p
+- **⚠️ GOTCHA: Added session cookies authentication — evolves the database schema to support...** — - > 294 notes | Score threshold: >40
++ > 295 notes | Score threshold: 
 
 ## Project Standards
 
 - Added session cookies authentication — confirmed 3x
+- Added session cookies authentication — confirmed 3x
+- Added JWT tokens authentication — confirmed 5x
 - Added session cookies authentication — confirmed 5x
 - what-changed in shared-context.json — confirmed 3x
-- Strengthened types Patched
+- Patched security issue RedirectResponse — protects against XSS and CSRF token... — confirmed 6x
 - what-changed in brainsync_auto.md — confirmed 3x
-- [.windsurfrules] NEVER use TailwindCSS. Only use vanilla CSS.
-- [CLAUDE.md] NEVER use TailwindCSS. Only use vanilla CSS.
-- what-changed in shared-context.json — confirmed 4x
+- Added session cookies authentication — confirmed 3x
+
+## Known Fixes
+
+- ❌ File updated (external): server_error.log → ✅ problem-fix in server_error.log
+- ❌ - from fastapi import FastAPI, Request, HTTPException → ✅ Patched security issue Python — hardens HTTP security headers
+- ❌ - - problem-fix in server_error.log → ✅ problem-fix in agent-rules.md
+- ❌ File updated (external): .mypy_cache/3.11/app/core/errors.meta.json → ✅ problem-fix in errors.data.json
+- ❌ - - problem-fix in error.html → ✅ problem-fix in agent-rules.md
 
 ## Recent Decisions
 
-- decision in installed.py
-- decision in _common.py
-- decision in styled.py
-- decision in .gitignore
+- decision in services.meta.json
+- decision in cards.css
+- decision in timeout.meta.json
+- decision in seed_court_data.meta.json
 
-## Verified Best Practices
+## Learned Patterns
 
+- Always: what-changed in brainsync_auto.md — confirmed 3x (seen 2x)
+- Always: what-changed in brainsync_auto.md — confirmed 3x (seen 3x)
+- Always: what-changed in brainsync_auto.md — confirmed 3x (seen 4x)
 - Agent generates new migration for every change (squash related changes)
 - Agent installs packages without checking if already installed
 

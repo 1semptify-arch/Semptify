@@ -597,12 +597,8 @@ async def onboarding_start(request: Request, semptify_uid: Optional[str] = Cooki
     """Entry point: Show welcome + role selection OR route based on gate status."""
     if not semptify_uid:
         return HTMLResponse(content=_render_welcome_and_roles())
-    elif "vault_initialized" in completed:
-        return HTMLResponse(content=_render_vault_initialized())
-    elif "storage_connected" in completed:
-        return HTMLResponse(content=_render_storage_connected())
     else:
-        return HTMLResponse(content=_render_welcome_and_roles())
+        return RedirectResponse(url="/onboarding/status", status_code=302)
 
 @router.get("/providers", response_class=HTMLResponse)
 async def storage_providers(role: Optional[str] = Query("user")):
@@ -613,7 +609,7 @@ async def storage_providers(role: Optional[str] = Query("user")):
 async def connect_storage(provider: str = Query(...), role: str = Query("user")):
     """Redirect to OAuth flow."""
     return RedirectResponse(
-        url=f"/storage/auth/{provider}?role={role}&from=onboarding&return_to=/onboarding/status",
+        url=f"/storage/auth/{provider}?role={role}&from=onboarding",
         status_code=302
     )
 
@@ -622,15 +618,15 @@ async def onboarding_status(semptify_uid: Optional[str] = Cookie(None), db: Asyn
     """Check current gate status and show appropriate message."""
     if not semptify_uid:
         return RedirectResponse(url="/onboarding", status_code=302)
-    
+
     result = await db.execute(select(User).where(User.id == semptify_uid))
     user = result.scalar_one_or_none()
-    
+
     if not user:
         return RedirectResponse(url="/onboarding", status_code=302)
-    
+
     completed = (user.completed_groups or "").split(",")
-    
+
     if "client_activated" in completed:
         return HTMLResponse(content=_render_client_activated())
     elif "vault_initialized" in completed:

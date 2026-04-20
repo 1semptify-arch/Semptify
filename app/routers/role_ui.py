@@ -260,8 +260,8 @@ async def get_navigation_menu(
     if user.role == UserRole.USER:
         menu = [
             {"label": "My Case", "path": "/tenant", "icon": "📁"},
-            {"label": "Documents", "path": "/tenant/documents", "icon": "📄"},
-            {"label": "Timeline", "path": "/tenant/timeline", "icon": "📅"},
+            {"label": "Documents", "path": "/documents", "icon": "📄"},
+            {"label": "Timeline", "path": "/timeline", "icon": "📅"},
             {"label": "Get Help", "path": "/tenant/help", "icon": "🆘"},
             {"label": "AI Assistant", "path": "/tenant/copilot", "icon": "🤖"},
         ]
@@ -270,17 +270,19 @@ async def get_navigation_menu(
     elif user.role == UserRole.ADVOCATE:
         menu = [
             {"label": "Dashboard", "path": "/advocate", "icon": "📊"},
+            {"label": "Documents", "path": "/documents", "icon": "📄"},
+            {"label": "Timeline", "path": "/timeline", "icon": "📅"},
             {"label": "My Clients", "path": "/advocate/clients", "icon": "👥"},
             {"label": "Case Queue", "path": "/advocate/queue", "icon": "📋"},
             {"label": "New Intake", "path": "/advocate/intake", "icon": "➕"},
-            {"label": "Documents", "path": "/documents", "icon": "📄"},
-            {"label": "Timeline", "path": "/timeline", "icon": "📅"},
         ]
     
     # Legal (Attorney) - full legal tools
     elif user.role == UserRole.LEGAL:
         menu = [
             {"label": "Dashboard", "path": "/legal", "icon": "⚖️"},
+            {"label": "Documents", "path": "/documents", "icon": "📄"},
+            {"label": "Timeline", "path": "/timeline", "icon": "📅"},
             {"label": "Case Files", "path": "/legal/cases", "icon": "📁"},
             {"label": "Court Filings", "path": "/legal/filings", "icon": "🏛️"},
             {"divider": True},
@@ -295,6 +297,8 @@ async def get_navigation_menu(
     elif user.role == UserRole.ADMIN:
         menu = [
             {"label": "Dashboard", "path": "/admin", "icon": "📊"},
+            {"label": "Documents", "path": "/documents", "icon": "📄"},
+            {"label": "Timeline", "path": "/timeline", "icon": "📅"},
             {"label": "Mission Control", "path": "/admin/mission-control", "icon": "🎯"},
             {"label": "GUI Hub", "path": "/admin/gui", "icon": "🗺️"},
             {"label": "Mode Selector", "path": "/admin/mode-selector", "icon": "⚙️"},

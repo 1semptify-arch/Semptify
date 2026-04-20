@@ -311,6 +311,10 @@ async def upload_document(
     if HAS_VAULT_SERVICE:
         try:
             vault_service = get_vault_service()
+            # Get access token from session (not form) - user is authenticated
+            session_token = getattr(user, 'access_token', None) or access_token
+            session_provider = getattr(user, 'provider', storage_provider)
+            
             vault_doc = await vault_service.upload(
                 user_id=user_id,
                 filename=file.filename,
@@ -318,8 +322,8 @@ async def upload_document(
                 mime_type=mime_type,
                 document_type=document_type,
                 source_module="documents",
-                access_token=access_token,
-                storage_provider=storage_provider,
+                access_token=session_token,
+                storage_provider=session_provider.value if hasattr(session_provider, 'value') else str(session_provider),
             )
             vault_id = vault_doc.vault_id
             logger.info(f"📁 Document stored in vault: {vault_id}")
@@ -334,7 +338,14 @@ async def upload_document(
             logger.info(f"🎉 User {user_id} activated as client after first vault upload")
             
         except Exception as e:
-            logger.warning(f"Vault upload failed, continuing with legacy flow: {e}")
+            logger.error("Vault upload failed: %s", e)
+            raise HTTPException(
+                status_code=502,
+                detail={
+                    "error": "vault_upload_failed",
+                    "message": "Document was not saved to your vault. Reconnect storage and try again.",
+                },
+            )
     
     # Initialize response data
     registry_id = None
