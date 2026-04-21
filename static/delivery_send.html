@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify - Send Document</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+        header h1 { font-size: 28px; margin-bottom: 10px; }
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        .form-group { margin-bottom: 20px; }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        input[type="text"],
+        input[type="email"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea { resize: vertical; min-height: 100px; }
+        .file-drop-zone {
+            border: 3px dashed #e0e0e0;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .file-drop-zone:hover,
+        .file-drop-zone.drag-over {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        .file-drop-zone svg {
+            width: 60px;
+            height: 60px;
+            fill: #667eea;
+            margin-bottom: 15px;
+        }
+        .delivery-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .option-card {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .option-card:hover { border-color: #667eea; }
+        .option-card.selected {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        .option-card h4 { color: #667eea; margin-bottom: 8px; }
+        .option-card p { font-size: 14px; color: #666; }
+        .btn {
+            padding: 14px 28px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            margin-right: 10px;
+        }
+        .recipient-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .recipient-tag {
+            background: #667eea;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .recipient-tag button {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .progress-bar {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .communication-preview {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .communication-preview h4 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        .chat-bubble {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .chat-bubble.sent {
+            border-left: 4px solid #667eea;
+        }
+        .info-text {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        @media (max-width: 768px) {
+            .delivery-options { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📤 Send Document</h1>
+            <p>Send documents to tenants through the secure communication system</p>
+        </header>
+
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage">
+            <h3>✅ Document Sent Successfully!</h3>
+            <p>The document has been delivered and a conversation thread has been created.</p>
+            <button class="btn btn-primary" onclick="sendAnother()">Send Another Document</button>
+        </div>
+
+        <form id="sendForm">
+            <!-- Document Upload -->
+            <div class="form-card">
+                <h3>1. Select Document</h3>
+                <div class="file-drop-zone" id="dropZone">
+                    <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    <p><strong>Click to upload</strong> or drag and drop</p>
+                    <p class="info-text">PDF, DOC, DOCX up to 10MB</p>
+                    <input type="file" id="fileInput" accept=".pdf,.doc,.docx" style="display: none;">
+                </div>
+                <div id="fileInfo" style="display: none; margin-top: 15px;">
+                    <strong>Selected:</strong> <span id="fileName"></span>
+                    <div class="progress-bar"><div class="progress-fill" id="progressBar"></div></div>
+                </div>
+            </div>
+
+            <!-- Recipients -->
+            <div class="form-card">
+                <h3>2. Select Recipients</h3>
+                <div class="form-group">
+                    <label>Add Tenant by Email or User ID</label>
+                    <input type="text" id="recipientInput" placeholder="Enter email or user ID...">
+                    <button type="button" class="btn btn-secondary" onclick="addRecipient()" style="margin-top: 10px;">Add Recipient</button>
+                </div>
+                <div class="recipient-list" id="recipientList"></div>
+                <p class="info-text">You can add multiple recipients. Each will receive their own copy.</p>
+            </div>
+
+            <!-- Delivery Type -->
+            <div class="form-card">
+                <h3>3. Choose Delivery Type</h3>
+                <div class="delivery-options">
+                    <div class="option-card selected" data-type="review_required" onclick="selectType(this)">
+                        <h4>👁️ Review Required</h4>
+                        <p>Tenant must open and acknowledge viewing the document. Read receipt recorded in vault.</p>
+                    </div>
+                    <div class="option-card" data-type="signature_required" onclick="selectType(this)">
+                        <h4>✍️ Signature Required</h4>
+                        <p>Tenant must review and sign. Signature + timestamp stored in vault. Cannot be rejected without reason.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message -->
+            <div class="form-card">
+                <h3>4. Add a Message (Optional)</h3>
+                <div class="form-group">
+                    <label>Subject</label>
+                    <input type="text" id="subject" placeholder="e.g., Please review and sign your lease agreement">
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea id="message" placeholder="Enter your message to the tenant..."></textarea>
+                </div>
+                
+                <div class="communication-preview">
+                    <h4>💬 Communication Preview</h4>
+                    <p class="info-text">This will start a conversation thread with:</p>
+                    <div class="chat-bubble sent">
+                        <strong>Document:</strong> <span id="previewDoc">No document selected</span><br>
+                        <strong>Type:</strong> <span id="previewType">Review Required</span><br>
+                        <strong>Message:</strong> <span id="previewMessage">-</span>
+                    </div>
+                    <p class="info-text">Tenant can reply, ask questions, and collaborate before signing.</p>
+                </div>
+            </div>
+
+            <!-- Options -->
+            <div class="form-card">
+                <h3>5. Additional Options</h3>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="requireReadReceipt"> Require read receipt
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="notifyEmail" checked> Send email notification
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>Deadline (Optional)</label>
+                    <input type="datetime-local" id="deadline">
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button type="button" class="btn btn-secondary" onclick="history.back()">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="sendBtn">Send Document</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const accessToken = urlParams.get('access_token');
+        
+        let selectedFile = null;
+        let recipients = [];
+        let deliveryType = 'review_required';
+
+        // File upload
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            if (file.size > 10 * 1024 * 1024) {
+                showError('File size must be less than 10MB');
+                return;
+            }
+            selectedFile = file;
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileInfo').style.display = 'block';
+            document.getElementById('previewDoc').textContent = file.name;
+            updateProgress(100);
+        }
+
+        function updateProgress(percent) {
+            document.getElementById('progressBar').style.width = percent + '%';
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = msg;
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 5000);
+        }
+
+        // Recipient management
+        function addRecipient() {
+            const input = document.getElementById('recipientInput');
+            const value = input.value.trim();
+            if (!value) return;
+            if (recipients.includes(value)) {
+                showError('Recipient already added');
+                return;
+            }
+            recipients.push(value);
+            renderRecipients();
+            input.value = '';
+        }
+
+        function removeRecipient(idx) {
+            recipients.splice(idx, 1);
+            renderRecipients();
+        }
+
+        function renderRecipients() {
+            const list = document.getElementById('recipientList');
+            list.innerHTML = recipients.map((r, i) => `
+                <div class="recipient-tag">
+                    ${r}
+                    <button type="button" onclick="removeRecipient(${i})">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        // Delivery type selection
+        function selectType(card) {
+            document.querySelectorAll('.option-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            deliveryType = card.dataset.type;
+            document.getElementById('previewType').textContent = 
+                deliveryType === 'review_required' ? 'Review Required' : 'Signature Required';
+        }
+
+        // Live preview updates
+        document.getElementById('message').addEventListener('input', (e) => {
+            document.getElementById('previewMessage').textContent = e.target.value || '-';
+        });
+
+        // Form submission
+        document.getElementById('sendForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!selectedFile) {
+                showError('Please select a document');
+                return;
+            }
+            if (recipients.length === 0) {
+                showError('Please add at least one recipient');
+                return;
+            }
+            if (!accessToken) {
+                showError('Missing access token');
+                return;
+            }
+
+            const btn = document.getElementById('sendBtn');
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+
+            try {
+                // Step 1: Upload document to vault
+                const uploadFormData = new FormData();
+                uploadFormData.append('file', selectedFile);
+                uploadFormData.append('access_token', accessToken);
+                uploadFormData.append('extract_timeline', 'false');
+                
+                const uploadResponse = await fetch('/api/vault/upload', {
+                    method: 'POST',
+                    body: uploadFormData
+                });
+                
+                if (!uploadResponse.ok) throw new Error('Upload failed');
+                const uploadResult = await uploadResponse.json();
+                const documentId = uploadResult.document_id;
+
+                // Step 2: Send to each recipient via communication system
+                for (const recipientId of recipients) {
+                    // Create conversation
+                    const convFormData = new FormData();
+                    convFormData.append('access_token', accessToken);
+                    convFormData.append('recipient_ids', JSON.stringify([recipientId]));
+                    convFormData.append('title', document.getElementById('subject').value || selectedFile.name);
+                    convFormData.append('initial_message', document.getElementById('message').value || `Document sent: ${selectedFile.name}`);
+                    
+                    const convResponse = await fetch('/api/communications/conversations', {
+                        method: 'POST',
+                        body: convFormData
+                    });
+                    
+                    if (!convResponse.ok) throw new Error('Failed to create conversation');
+                    const convResult = await convResponse.json();
+                    
+                    // Step 3: Create delivery record via document delivery API
+                    const deliveryFormData = new FormData();
+                    deliveryFormData.append('access_token', accessToken);
+                    deliveryFormData.append('recipient_id', recipientId);
+                    deliveryFormData.append('document_id', documentId);
+                    deliveryFormData.append('document_filename', selectedFile.name);
+                    deliveryFormData.append('delivery_type', deliveryType);
+                    deliveryFormData.append('message', document.getElementById('message').value);
+                    deliveryFormData.append('requires_read_receipt', document.getElementById('requireReadReceipt').checked);
+                    deliveryFormData.append('conversation_id', convResult.conversation_id);
+                    
+                    if (document.getElementById('deadline').value) {
+                        deliveryFormData.append('deadline', document.getElementById('deadline').value);
+                    }
+                    
+                    const deliveryResponse = await fetch('/api/delivery/send', {
+                        method: 'POST',
+                        body: deliveryFormData
+                    });
+                    
+                    if (!deliveryResponse.ok) throw new Error('Failed to create delivery');
+                }
+
+                // Show success
+                document.getElementById('sendForm').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+                
+            } catch (error) {
+                showError(error.message || 'Failed to send document');
+                btn.disabled = false;
+                btn.textContent = 'Send Document';
+            }
+        });
+
+        function sendAnother() {
+            location.reload();
+        }
+
+        // Check access token on load
+        if (!accessToken) {
+            showError('Missing access token in URL. Please log in again.');
+        }
+    </script>
+</body>
+</html>
