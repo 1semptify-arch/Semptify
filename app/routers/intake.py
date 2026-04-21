@@ -498,15 +498,22 @@ async def upload_and_process(
     if HAS_VAULT_SERVICE and vault_id and doc.extraction:
         try:
             vault_service = get_vault_service()
-            vault_service.mark_processed(
+            await vault_service.mark_processed(
                 vault_id=vault_id,
                 extracted_data={
                     "doc_type": doc.doc_type.value if doc.doc_type else None,
                     "summary": doc.extraction.summary if doc.extraction else None,
-                }
+                },
+                access_token=access_token,
+                storage_provider=storage_provider,
             )
             if doc.doc_type:
-                vault_service.update_document_type(vault_id, doc.doc_type.value)
+                await vault_service.update_document_type(
+                    vault_id,
+                    doc.doc_type.value,
+                    access_token=access_token,
+                    storage_provider=storage_provider,
+                )
         except Exception as e:
             logger.warning("Vault update failed: %s", e)
     

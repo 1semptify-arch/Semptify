@@ -54,14 +54,6 @@ from app.core.security import (
     invalidate_function_access_tokens,
 )
 
-try:
-    from sqlalchemy.ext.asyncio import AsyncSession
-    from sqlalchemy import select
-    SQLALCHEMY_AVAILABLE = True
-except ImportError:
-    AsyncSession = object
-    select = None
-    SQLALCHEMY_AVAILABLE = False
 from app.models.models import User, Session as SessionModel, StorageConfig, OAuthState
 
 
@@ -449,33 +441,29 @@ async def recover_session_from_storage(
     base_url: str,
 ) -> Optional[dict]:
     """
-    Attempt to recover session from cloud storage when database session is missing.
-    
-    This is the REHOME recovery path:
-    1. User has cookie (user_id) but no database session
-    2. We need a valid access_token to access their cloud storage
-    3. This function can only work if we have SOME way to authenticate
-    
-    Returns session dict if recovery successful, None otherwise.
-    
-    NOTE: This is a chicken-and-egg problem - we need a token to access storage,
-    but the token IS in storage. This function works in two scenarios:
-    1. OAuth re-authentication (user goes through OAuth again)
-    2. We have a cached/temporary token from the original session
+    Attempt to recover a session for a user whose DB session is missing.
+
+    Constraint: recovery requires a valid access token to read cloud storage,
+    but the token lives in cloud storage — a chicken-and-egg problem.
+    The only working recovery path is OAuth re-authentication.
+
+    Steps:
+    1. Check DB again (may have been written by a concurrent request).
+    2. If not found, return None — caller must redirect the user to OAuth.
+
+    NOTE: rehome.html / encrypted identity file approach is PARKED pending
+    format decision. Do not implement cloud-read recovery here until that
+    design is finalised.
     """
-    from app.core.user_id import parse_user_id
-    
-    provider, role, _ = parse_user_id(user_id)
+    provider, _role, _ = parse_user_id(user_id)
     if not provider:
         return None
-    
-    # Try to get session from database first (might have been restored)
+
     session = await get_session_from_db(db, user_id)
     if session:
         return session
-    
-    # At this point, user needs to re-authenticate through OAuth
-    # Return None to trigger re-auth flow
+
+    logger.info("Session recovery: no DB session for %s*** — OAuth re-auth required", user_id[:4])
     return None
 
 

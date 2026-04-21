@@ -1,4 +1,21 @@
+"""
+DEPRECATED: Old Document Overlay Service (Local File Storage)
+
+⚠️ WARNING: This module is deprecated. Use `app/services/unified_overlay_manager.py` instead.
+
+This service stores overlays in local files (logs/document_overlays/records.json),
+which violates Semptify's statelessness principle.
+
+The unified overlay system:
+- Stores all overlays in user's cloud storage
+- No local file storage
+- Cloud-only, stateless operation
+
+This file will be removed in a future release.
+"""
+
 import json
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -13,6 +30,8 @@ from app.models.document_overlay_models import (
     DocumentOverlaySummary,
 )
 
+logger = logging.getLogger(__name__)
+
 
 @dataclass
 class _OverlayRecord:
@@ -26,6 +45,13 @@ class _OverlayRecord:
     created_at: datetime
     updated_at: datetime
     applied_at: datetime | None = None
+
+
+# Log deprecation warning on module load
+logger.warning(
+    "DEPRECATED: document_overlay_service is deprecated. "
+    "Use unified_overlay_manager for cloud-only overlay storage."
+)
 
 
 class DocumentOverlayService:

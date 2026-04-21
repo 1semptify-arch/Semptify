@@ -110,10 +110,11 @@ async def generate_form(
 ):
     """
     Generate a court form with auto-filled data.
-    
+
     Form will be populated from FormDataHub + any provided case_data.
+    Creates a FORM_FILL overlay in user's vault for tracking.
     For Answer forms, include defense types to add defense paragraphs.
-    
+
     Example:
     ```json
     {
@@ -125,7 +126,7 @@ async def generate_form(
     """
     # Get case data from FormDataHub
     case_data = {}
-    
+
     try:
         from app.services.form_data import get_form_data_service
         form_service = get_form_data_service(user.user_id)
@@ -134,14 +135,14 @@ async def generate_form(
             case_data.update(hub_data)
     except Exception as e:
         logger.warning(f"Could not load FormDataHub: {e}")
-    
+
     # Override with provided case_data
     if request.case_data:
         case_data.update(request.case_data)
-    
+
     # Add user info
     case_data.setdefault("defendant_name", user.user_id)
-    
+
     # Generate form
     result = await form_generator.generate_form(
         form_type=request.form_type,
@@ -149,16 +150,60 @@ async def generate_form(
         defenses=request.defenses,
         output_format=request.output_format,
     )
-    
+
     if "error" in result:
         raise HTTPException(status_code=400, detail=result["error"])
-    
+
     # Convert bytes to base64 for PDF
     content = result["content"]
     if isinstance(content, bytes):
         import base64
         content = base64.b64encode(content).decode('utf-8')
-    
+
+    # Create FORM_FILL overlay in user's vault
+    try:
+        from app.core.overlay_types import OverlayType
+        from app.models.unified_overlay_models import CreateOverlayRequest
+        from app.services.unified_overlay_manager import UnifiedOverlayManager
+        from app.core.storage_factory import get_storage_provider
+
+        storage_provider = await get_storage_provider(user.user_id)
+        if storage_provider:
+            overlay_manager = UnifiedOverlayManager(storage_provider, user.user_id)
+
+            # Build checklist from form fields
+            checklist = result.get("fields_used", [])
+
+            # Determine jurisdiction from case data
+            jurisdiction = case_data.get("county", case_data.get("court_county", "Unknown"))
+
+            overlay_request = CreateOverlayRequest(
+                overlay_type=OverlayType.FORM_FILL,
+                document_id=f"form_{request.form_type}",
+                vault_path=f"Semptify5.0/Vault/forms/{request.form_type}",
+                payload={
+                    "form_type": request.form_type,
+                    "form_title": result["title"],
+                    "jurisdiction": jurisdiction,
+                    "generated_at": result["generated_at"],
+                    "checklist": checklist,
+                    "defenses_selected": request.defenses or [],
+                    "output_format": request.output_format,
+                },
+                metadata={
+                    "source": "court_forms_api",
+                    "form_description": result["description"],
+                },
+            )
+
+            overlay_response = await overlay_manager.create_overlay(overlay_request)
+            if overlay_response.success:
+                logger.info(f"Created FORM_FILL overlay {overlay_response.overlay_id} for {request.form_type}")
+            else:
+                logger.warning(f"Failed to create FORM_FILL overlay: {overlay_response.message}")
+    except Exception as e:
+        logger.warning(f"Could not create FORM_FILL overlay: {e}")
+
     # Publish event to brain/event bus (non-blocking)
     try:
         await event_bus.publish(BusEventType.COURT_FORM_GENERATED, {
@@ -169,7 +214,7 @@ async def generate_form(
         })
     except Exception:
         pass  # Event publishing is optional
-    
+
     return FormResponse(
         form_type=result["form_type"],
         title=result["title"],
