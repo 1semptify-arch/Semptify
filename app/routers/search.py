@@ -229,50 +229,95 @@ async def global_search(
 ):
     """
     Search across all Semptify data sources.
-    
+
     Returns results grouped by type:
-    - documents: Files in document vault
+    - documents: Files in document vault (BM25 relevance scored)
     - timeline: Timeline events
     - contacts: Contact entries
     - law_library: Minnesota tenant law references
     """
     response = SearchResponse(query=q, total_results=0)
-    
-    async with get_db_session() as session:
-        # Search Documents
+
+    # =========================================================================
+    # SEARCH DOCUMENTS (Advanced BM25 Search Engine)
+    # =========================================================================
+    try:
+        search_engine = get_search_engine()
+
+        # Build search query with filters
+        from app.core.search_engine import SearchQuery as EngineSearchQuery, SearchType
+
+        search_q = EngineSearchQuery(
+            query=q,
+            search_type=SearchType.HYBRID,
+            user_id=user.user_id,
+            limit=limit
+        )
+
+        # Execute BM25 search
+        results = search_engine.search(search_q)
+
+        # Convert results to API format
+        for result in results:
+            doc = result.document
+            response.documents.append(SearchResult(
+                id=doc.document_id,
+                type="document",
+                title=doc.title,
+                snippet=result.highlights[0] if result.highlights else doc.content[:150] + "...",
+                url=f"/static/documents.html?id={doc.document_id}",
+                score=result.score,
+                metadata={
+                    "document_type": doc.metadata.get("doc_type", "unknown"),
+                    "file_type": doc.file_type,
+                    "tags": doc.tags,
+                    "created_at": doc.created_at.isoformat() if doc.created_at else None,
+                    "highlights": result.highlights,
+                }
+            ))
+
+        logger.info(f"🔍 BM25 search found {len(results)} documents for query: {q}")
+
+    except Exception as e:
+        logger.warning(f"Advanced document search error: {e}")
+        # Fallback to SQL search if advanced search fails
         try:
-            doc_query = select(DocumentModel).where(
-                DocumentModel.user_id == user.user_id,
-                or_(
-                    DocumentModel.filename.ilike(f"%{q}%"),
-                    DocumentModel.document_type.ilike(f"%{q}%"),
-                    DocumentModel.extracted_text.ilike(f"%{q}%"),
-                )
-            ).limit(limit)
-            
-            result = await session.execute(doc_query)
-            docs = result.scalars().all()
-            
-            for doc in docs:
-                searchable = f"{doc.filename or ''} {doc.extracted_text or ''}"
-                score = _score_match(searchable, q)
-                
-                response.documents.append(SearchResult(
-                    id=doc.id,
-                    type="document",
-                    title=doc.filename or "Untitled Document",
-                    snippet=_snippet(doc.extracted_text or doc.filename or "", q),
-                    url=f"/static/documents.html?id={doc.id}",
-                    score=score,
-                    metadata={
-                        "document_type": doc.document_type,
-                        "created_at": doc.created_at.isoformat() if doc.created_at else None,
-                    }
-                ))
-        except Exception as e:
-            logger.warning(f"Document search error: {e}")
-        
-        # Search Timeline
+            async with get_db_session() as session:
+                doc_query = select(DocumentModel).where(
+                    DocumentModel.user_id == user.user_id,
+                    or_(
+                        DocumentModel.filename.ilike(f"%{q}%"),
+                        DocumentModel.document_type.ilike(f"%{q}%"),
+                        DocumentModel.extracted_text.ilike(f"%{q}%"),
+                    )
+                ).limit(limit)
+
+                result = await session.execute(doc_query)
+                docs = result.scalars().all()
+
+                for doc in docs:
+                    searchable = f"{doc.filename or ''} {doc.extracted_text or ''}"
+                    score = _score_match(searchable, q)
+
+                    response.documents.append(SearchResult(
+                        id=doc.id,
+                        type="document",
+                        title=doc.filename or "Untitled Document",
+                        snippet=_snippet(doc.extracted_text or doc.filename or "", q),
+                        url=f"/static/documents.html?id={doc.id}",
+                        score=score,
+                        metadata={
+                            "document_type": doc.document_type,
+                            "created_at": doc.created_at.isoformat() if doc.created_at else None,
+                        }
+                    ))
+        except Exception as e2:
+            logger.warning(f"Fallback document search error: {e2}")
+
+    # =========================================================================
+    # SEARCH TIMELINE (SQL fallback for events)
+    # =========================================================================
+    async with get_db_session() as session:
         try:
             timeline_query = select(TimelineEventModel).where(
                 TimelineEventModel.user_id == user.user_id,
@@ -281,14 +326,14 @@ async def global_search(
                     TimelineEventModel.description.ilike(f"%{q}%"),
                 )
             ).limit(limit)
-            
+
             result = await session.execute(timeline_query)
             events = result.scalars().all()
-            
+
             for event in events:
                 searchable = f"{event.title or ''} {event.description or ''}"
                 score = _score_match(searchable, q)
-                
+
                 response.timeline.append(SearchResult(
                     id=event.id,
                     type="timeline",
@@ -304,7 +349,7 @@ async def global_search(
                 ))
         except Exception as e:
             logger.warning(f"Timeline search error: {e}")
-        
+
         # Search Contacts
         try:
             contact_query = select(ContactModel).where(
@@ -316,14 +361,14 @@ async def global_search(
                     ContactModel.notes.ilike(f"%{q}%"),
                 )
             ).limit(limit)
-            
+
             result = await session.execute(contact_query)
             contacts = result.scalars().all()
-            
+
             for contact in contacts:
                 searchable = f"{contact.name or ''} {contact.role or ''} {contact.organization or ''}"
                 score = _score_match(searchable, q)
-                
+
                 response.contacts.append(SearchResult(
                     id=contact.id,
                     type="contact",
@@ -339,7 +384,7 @@ async def global_search(
                 ))
         except Exception as e:
             logger.warning(f"Contact search error: {e}")
-    
+
     # Search Law Library (no DB, just local data)
     response.law_library = _search_law_library(q)
     

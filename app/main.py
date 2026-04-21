@@ -94,6 +94,7 @@ form_data_router = _safe_router_import("app.routers.form_data")
 setup_router = _safe_router_import("app.routers.setup")
 websocket_router = _safe_router_import("app.routers.websocket")
 brain_router = _safe_router_import("app.routers.brain")
+vault_all_in_one_router = _safe_router_import("app.routers.vault_all_in_one")
 
 from app.routers import health
 cloud_sync_router = _safe_router_import("app.routers.cloud_sync")
@@ -105,6 +106,7 @@ location_router = _safe_router_import("app.routers.location")
 hud_funding_router = _safe_router_import("app.routers.hud_funding")
 fraud_exposure_router = _safe_router_import("app.routers.fraud_exposure")
 public_exposure_router = _safe_router_import("app.routers.public_exposure")
+plan_maker_router = _safe_router_import("app.routers.plan_maker")
 research_router = _safe_router_import("app.routers.research")
 campaign_router = _safe_router_import("app.routers.campaign")
 research_module_router = _safe_router_import("app.modules.research_module")
@@ -132,16 +134,23 @@ crawler_router = _safe_router_import("app.routers.crawler")
 role_ui_router = _safe_router_import("app.routers.role_ui")
 role_upgrade_router = _safe_router_import("app.routers.role_upgrade")
 guided_intake_router = _safe_router_import("app.routers.guided_intake")
-case_builder_router = _safe_router_import("app.routers.case_builder")
 overlays_router = _safe_router_import("app.routers.overlays")
 document_converter_router = _safe_router_import("app.routers.document_converter")
 page_index_router = _safe_router_import("app.routers.page_index")
 documents_router = _safe_router_import("app.routers.documents")
 vault_router = _safe_router_import("app.routers.vault")
 workflow_router = _safe_router_import("app.routers.workflow")
+case_builder_router = _safe_router_import("app.routers.case_builder")
+preview_router = _safe_router_import("app.routers.preview")
+batch_router = _safe_router_import("app.routers.batch")
+analytics_router = _safe_router_import("app.routers.analytics")
 functionx_router = _safe_router_import("app.routers.functionx")
 document_overlays_router = _safe_router_import("app.routers.document_overlays")
+unified_overlays_router = _safe_router_import("app.routers.unified_overlays")
+document_delivery_router = _safe_router_import("app.routers.document_delivery")
+communication_router = _safe_router_import("app.routers.communication")
 free_api_router = _safe_router_import("app.routers.free_api")
+advocate_invite_router = _safe_router_import("app.routers.advocate_invite")
 from app.routers import storage
 from app.routers import onboarding
 from app.routers import plugins
@@ -1496,10 +1505,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Rate Limiting
     # =========================================================================
     from slowapi import _rate_limit_exceeded_handler
+    from slowapi.middleware import SlowAPIMiddleware
     from slowapi.errors import RateLimitExceeded
     from app.core.rate_limit import limiter, rate_limit_exceeded_handler
-    
+
     fastapi_app.state.limiter = limiter
+    fastapi_app.add_middleware(SlowAPIMiddleware)
     fastapi_app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
     
     # Initialize OAuth token manager
@@ -1623,10 +1634,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     from app.core.timeout import TimeoutMiddleware
     fastapi_app.add_middleware(TimeoutMiddleware)
     
-    # Request logging (for debugging/monitoring in dev mode)
+    # Request logging (all modes — audit trail is required for evidence integrity)
     from app.core.logging_middleware import RequestLoggingMiddleware
-    if app_settings.log_level.upper() == "DEBUG" and not is_production:
-        fastapi_app.add_middleware(RequestLoggingMiddleware)
+    fastapi_app.add_middleware(RequestLoggingMiddleware)
     
     # CORS (with stricter config in production)
     cors_config = {
@@ -1721,7 +1731,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     include_if(setup_router, prefix="/api/setup", tags=["Setup Wizard"])  # Initial setup wizard
     include_if(auto_mode_router, tags=["Auto Mode"])  # Auto mode analysis & summaries
     include_if(functionx_router, tags=["FunctionX"])  # Action-set planning and execution scaffold
-    include_if(document_overlays_router, tags=["Document Overlays v2"])  # Overlay-first document state
+    include_if(document_overlays_router, tags=["Document Overlays v2"])  # Overlay-first document state (DEPRECATED)
+    include_if(unified_overlays_router, tags=["Unified Overlays"])  # New unified overlay system (cloud-only)
+    include_if(document_delivery_router, tags=["Document Delivery"])  # Send/receive/sign documents
+    include_if(communication_router, tags=["Communications"])  # Messaging and document collaboration
     include_if(websocket_router, prefix="/ws", tags=["WebSocket Events"])  # Real-time events
     include_if(module_hub_router, prefix="/api", tags=["Module Hub"])  # Central module communication
     include_if(positronic_mesh_router, prefix="/api", tags=["Positronic Mesh"])  # Workflow orchestration
@@ -1734,6 +1747,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(fraud_exposure_router, tags=["Fraud Exposure"])  # Fraud analysis and detection
     if public_exposure_router:
         fastapi_app.include_router(public_exposure_router, tags=["Public Exposure"])  # Press releases and media campaigns
+    if plan_maker_router:
+        fastapi_app.include_router(plan_maker_router, tags=["Plan Maker"])  # Accountability plan builder
     if campaign_router:
         fastapi_app.include_router(campaign_router, tags=["Campaign Orchestration"])  # Combined complaint, fraud, press campaigns
     if funding_search_router:
@@ -1785,8 +1800,25 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(dashboard_router, tags=["Unified Dashboard"])  # Combined dashboard data
     if enterprise_dashboard_router:
         fastapi_app.include_router(enterprise_dashboard_router, tags=["Enterprise Dashboard"])  # Premium enterprise UI & API
+    if advocate_invite_router:
+        fastapi_app.include_router(advocate_invite_router, tags=["Advocate Invitation"])  # Tenant invites personal advocates
     if crawler_router:
         fastapi_app.include_router(crawler_router, tags=["Public Data Crawler"])  # Ethical web crawler for MN public data
+
+    # Document Preview - Multi-format preview generation
+    if preview_router:
+        fastapi_app.include_router(preview_router, prefix="/api/preview", tags=["Document Preview"])
+        logging.getLogger(__name__).info("📄 Document Preview router connected - Multi-format preview generation active")
+
+    # Batch Operations - Bulk document management
+    if batch_router:
+        fastapi_app.include_router(batch_router, prefix="/api/batch", tags=["Batch Operations"])
+        logging.getLogger(__name__).info("📦 Batch Operations router connected - Bulk document management active")
+
+    # Analytics Systems - Usage and performance tracking
+    if analytics_router:
+        fastapi_app.include_router(analytics_router, prefix="/api/analytics", tags=["Analytics"])
+        logging.getLogger(__name__).info("📊 Analytics router connected - Usage and performance tracking active")
 
     # Tenant Defense Module - Evidence collection, sealing petitions, demand letters
     if tenant_defense_router:
@@ -1822,11 +1854,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if brain_router:
         fastapi_app.include_router(brain_router, prefix="/brain", tags=["Positronic Brain"])
         logging.getLogger(__name__).info("🧠 Positronic Brain connected - Central intelligence hub active")
-    
+
     # Cloud Sync - User-Controlled Persistent Storage
     if cloud_sync_router:
         fastapi_app.include_router(cloud_sync_router, tags=["Cloud Sync"])
         logging.getLogger(__name__).info("☁️ Cloud Sync router connected - User-controlled data persistence active")
+
+    # ALL-IN-ONE Unified Evidence Vault - Three-timestamp model with comprehensive metadata
+    if vault_all_in_one_router:
+        fastapi_app.include_router(vault_all_in_one_router, tags=["ALL-IN-ONE Vault"])
+        logging.getLogger(__name__).info("🏛️ ALL-IN-ONE Vault router connected - Unified evidence vault with three-timestamp model active")
 
     # Document Overlays - Non-destructive annotations and processing
     if overlays_router:
@@ -1838,7 +1875,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if components.router:
         fastapi_app.include_router(components.router, tags=["Modular Components"])
         logging.getLogger(__name__).info("🧩 Modular Components router connected - Component system integration active")
-    
+
     # Litigation Intelligence System (LIS) - Justice-Grade Legal Intelligence
     try:
         from app.routers import litigation_intelligence
@@ -1847,7 +1884,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logging.getLogger(__name__).info("?? Litigation Intelligence System router connected - Justice-grade legal intelligence active")
     except ImportError as e:
         logging.getLogger(__name__).warning(f"Litigation Intelligence System not available: {e}")
-    
+
     # Core System - System Infrastructure and Services
     try:
         from app.routers import core_system
@@ -1855,7 +1892,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logging.getLogger(__name__).info("?? Core System router connected - System infrastructure active")
     except ImportError as e:
         logging.getLogger(__name__).warning(f"Core System not available: {e}")
-    
+
     # Housing Accountability - Regulatory Compliance & Oversight
     try:
         from app.routers import housing_accountability
@@ -1863,10 +1900,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logging.getLogger(__name__).info("?? Housing Accountability router connected - Regulatory compliance active")
     except ImportError as e:
         logging.getLogger(__name__).warning(f"Housing Accountability not available: {e}")
-    
+
     # Phase 2 Advanced Features Integration
     # =========================================================================
-    
+
     # Document Preview System - Multi-format preview generation
     try:
         from app.routers import preview
@@ -1874,7 +1911,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logging.getLogger(__name__).info("📄 Document Preview router connected - Multi-format preview generation active")
     except ImportError as e:
         logging.getLogger(__name__).warning(f"Document Preview router not available: {e}")
-    
+
     # Batch Operations - Bulk document management
     try:
         from app.routers import batch
@@ -1882,7 +1919,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logging.getLogger(__name__).info("📦 Batch Operations router connected - Bulk document management active")
     except ImportError as e:
         logging.getLogger(__name__).warning(f"Batch Operations router not available: {e}")
-    
+
     # Data Export/Import - GDPR-compliant data management
     try:
         from app.routers import export_import
@@ -1890,7 +1927,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logging.getLogger(__name__).info("📊 Data Export/Import router connected - GDPR-compliant data management active")
     except ImportError as e:
         logging.getLogger(__name__).warning(f"Data Export/Import router not available: {e}")
-    
+
     # Advanced Security - 2FA and session management
     try:
         from app.routers import security
@@ -1898,7 +1935,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logging.getLogger(__name__).info("🔒 Advanced Security router connected - 2FA and session management active")
     except ImportError as e:
         logging.getLogger(__name__).warning(f"Advanced Security router not available: {e}")
-    
+
     # Automated Testing - Comprehensive testing framework
     try:
         from app.routers import testing
@@ -1906,7 +1943,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logging.getLogger(__name__).info("🧪 Automated Testing router connected - Comprehensive testing framework active")
     except ImportError as e:
         logging.getLogger(__name__).warning(f"Automated Testing router not available: {e}")
-    
+
     # API Documentation - Developer portal and API docs
     try:
         from app.routers import documentation
@@ -1914,12 +1951,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logging.getLogger(__name__).info("📚 API Documentation router connected - Developer portal active")
     except ImportError as e:
         logging.getLogger(__name__).warning(f"API Documentation router not available: {e}")
-    
+
     # Free API Pack - Minnesota tenant rights APIs
     if free_api_router:
         fastapi_app.include_router(free_api_router)
         logging.getLogger(__name__).info("📈 Free API Pack connected - Minnesota tenant rights APIs active")
-    
     logging.getLogger(__name__).info("🚀 Phase 2 Advanced Features Integration Complete")
     logging.getLogger(__name__).info("   - Document Preview: Multi-format preview generation")
     logging.getLogger(__name__).info("   - Batch Operations: Bulk document management")
@@ -1927,14 +1963,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     logging.getLogger(__name__).info("   - Advanced Security: 2FA and session management")
     logging.getLogger(__name__).info("   - Automated Testing: Comprehensive testing framework")
     logging.getLogger(__name__).info("   - API Documentation: Developer portal and API docs")
-    
-    # Vault - Persistent document storage
-    try:
-        from app.routers import vault
-        fastapi_app.include_router(vault.router, prefix="/api/vault", tags=["Vault"])
-        logging.getLogger(__name__).info("🔐 Vault router connected - Persistent document storage active")
-    except ImportError as e:
-        logging.getLogger(__name__).warning(f"Vault router not available: {e}")
 
     # Complaint Filing Wizard - Regulatory Accountability
     if complaints_router:
@@ -2053,6 +2081,41 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 logger.warning("Admin dashboard template error, falling back to static: %s", e)
 
         return HTMLResponse(content="<h1>Admin Dashboard not found</h1>", status_code=404)
+
+    @fastapi_app.get("/manager", response_class=HTMLResponse)
+    async def manager_portal_page(request: Request):
+        """Serve the manager portal for case workers and counselors."""
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import COOKIE_USER_ID
+        from app.core.user_context import get_role_from_user_id, UserRole
+
+        user_id = request.cookies.get(COOKIE_USER_ID)
+        if not is_valid_storage_user(user_id):
+            return RedirectResponse(url="/storage/providers", status_code=302)
+
+        # Verify MANAGER role
+        role = get_role_from_user_id(user_id)
+        if role != UserRole.MANAGER:
+            return RedirectResponse(url="/", status_code=302)
+
+        # Telemetry
+        try:
+            from app.core.telemetry_hooks import EMITTER
+            EMITTER.emit("manager_portal_load", "manager", user_id)
+        except Exception:
+            pass
+
+        manager_path = BASE_PATH / "static" / "manager" / "index.html"
+        manager_fallback = _render_static_page(manager_path)
+        if manager_fallback:
+            return manager_fallback
+
+        return HTMLResponse(content="<h1>Manager Portal not found</h1>", status_code=404)
+
+    @fastapi_app.get("/manager/dashboard", response_class=HTMLResponse)
+    async def manager_dashboard_page(request: Request):
+        """Serve the manager dashboard (redirects to portal)."""
+        return RedirectResponse(url="/manager", status_code=302)
 
     @fastapi_app.get("/dashboard", response_class=HTMLResponse)
     async def dashboard_page(request: Request):
@@ -2479,6 +2542,22 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return tenancy_fallback
         return HTMLResponse(
             content="<h1>My Tenancy page not found</h1>",
+            status_code=404
+        )
+
+    # =========================================================================
+    # Invite Advocate Page (Tenant-facing)
+    # =========================================================================
+
+    @fastapi_app.get("/invite-advocate", response_class=HTMLResponse)
+    async def invite_advocate_page():
+        """Serve the invite advocate page for tenants."""
+        invite_path = BASE_PATH / "static" / "invite-advocate.html"
+        invite_fallback = _render_static_page(invite_path)
+        if invite_fallback:
+            return invite_fallback
+        return HTMLResponse(
+            content="<h1>Invite Advocate page not found</h1>",
             status_code=404
         )
 

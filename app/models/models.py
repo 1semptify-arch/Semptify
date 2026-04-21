@@ -12,6 +12,8 @@ from typing import Optional
 
 try:
     from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, Boolean, Float, Enum
+    from sqlalchemy.types import JSON
+    JSONB = JSON  # Use generic JSON that works with both SQLite and PostgreSQL
     from sqlalchemy.orm import Mapped, mapped_column, relationship
     from app.core.database import Base
     SQLALCHEMY_AVAILABLE = True
@@ -26,6 +28,11 @@ except ImportError:
             pass
 
     String = Text = Integer = ForeignKey = Boolean = Float = Enum = DummyColumnType
+    
+    # JSONB fallback for SQLite/non-PostgreSQL environments
+    class JSONB(DummyColumnType):
+        pass
+    
     class Mapped:
         pass
     def mapped_column(*args, **kwargs):
@@ -856,3 +863,252 @@ class DocumentAnnotation(Base):
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
+
+
+# =============================================================================
+# ALL-IN-ONE UNIFIED EVIDENCE VAULT (Semptify 5.0)
+# =============================================================================
+# Following the ALL-IN-ONE specification for unified evidence vault architecture
+# with three-timestamp model and comprehensive metadata preservation.
+# =============================================================================
+
+class VaultItem(Base):
+    """
+    Unified evidence vault item following ALL-IN-ONE specification.
+    
+    Three-Timestamp Model (NON-NEGOTIABLE):
+    - event_time: Factual time of event occurrence
+    - record_time: When evidence was created/recorded
+    - semptify_entry_time: When added to Semptify system
+    
+    Data Contract Rules:
+    - Never discard metadata
+    - Never flatten metadata
+    - Never overwrite timestamps
+    - Preserve nested JSON
+    - If unknown → set null
+    """
+    __tablename__ = "vault_items"
+    
+    # Primary key
+    item_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    
+    # ==========================================================================
+    # THREE TIMESTAMPS (NON-NEGOTIABLE)
+    # ==========================================================================
+    event_time: Mapped[datetime] = mapped_column(
+        DateTimeTZ, 
+        nullable=False, 
+        index=True,
+        comment="Factual time of event occurrence"
+    )
+    record_time: Mapped[datetime] = mapped_column(
+        DateTimeTZ, 
+        nullable=False, 
+        index=True,
+        comment="When evidence was created/recorded"
+    )
+    semptify_entry_time: Mapped[datetime] = mapped_column(
+        DateTimeTZ, 
+        nullable=False, 
+        default=utc_now,
+        index=True,
+        comment="When added to Semptify system"
+    )
+    
+    # ==========================================================================
+    # CLASSIFICATION & ORGANIZATION
+    # ==========================================================================
+    item_type: Mapped[str] = mapped_column(
+        String(50), 
+        nullable=False,
+        index=True,
+        comment="Document type: lease, notice, photo, email, audio, etc."
+    )
+    folder: Mapped[Optional[str]] = mapped_column(
+        String(255), 
+        nullable=True,
+        comment="Virtual folder path within vault"
+    )
+    tags: Mapped[Optional[list[str]]] = mapped_column(
+        JSONB,  # Will use JSONB type from PostgreSQL
+        nullable=True,
+        comment="Array of searchable tags"
+    )
+    
+    # ==========================================================================
+    # RELATIONSHIPS & CONTEXT
+    # ==========================================================================
+    related_incident_id: Mapped[Optional[int]] = mapped_column(
+        Integer, 
+        ForeignKey("incidents.incident_id"), 
+        nullable=True,
+        index=True
+    )
+    source: Mapped[Optional[str]] = mapped_column(
+        String(100), 
+        nullable=True,
+        comment="Source of evidence: upload, email, portal, extraction, etc."
+    )
+    severity: Mapped[Optional[str]] = mapped_column(
+        String(20), 
+        nullable=True,
+        comment="critical, high, normal, low"
+    )
+    status: Mapped[Optional[str]] = mapped_column(
+        String(20), 
+        nullable=True,
+        comment="pending, verified, disputed, archived"
+    )
+    
+    # ==========================================================================
+    # RICH METADATA (JSONB - Deep Searchable)
+    # ==========================================================================
+    location_data: Mapped[Optional[dict]] = mapped_column(
+        JSONB,
+        nullable=True,
+        comment="GPS, address, coordinates, location context"
+    )
+    item_metadata: Mapped[dict] = mapped_column(
+        JSONB,
+        nullable=False,
+        default=dict,
+        comment="Complete preserved metadata (EXIF, headers, extracted fields)"
+    )
+    
+    # ==========================================================================
+    # CONTENT REFERENCES
+    # ==========================================================================
+    file_path: Mapped[Optional[str]] = mapped_column(
+        String(500), 
+        nullable=True,
+        comment="Path to stored file in cloud storage"
+    )
+    title: Mapped[Optional[str]] = mapped_column(
+        String(255), 
+        nullable=True
+    )
+    summary: Mapped[Optional[str]] = mapped_column(
+        Text, 
+        nullable=True,
+        comment="AI-generated or user-provided summary"
+    )
+    
+    # ==========================================================================
+    # RELATIONSHIPS
+    # ==========================================================================
+    user: Mapped["User"] = relationship(back_populates="vault_items")
+    incident: Mapped[Optional["Incident"]] = relationship(back_populates="vault_items")
+    audit_logs: Mapped[list["VaultAuditLog"]] = relationship(
+        back_populates="vault_item", 
+        cascade="all, delete-orphan"
+    )
+    
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
+
+
+class Incident(Base):
+    """
+    Incident/Case grouping for organizing related vault items.
+    
+    Incidents group related evidence, timeline events, and activities
+    into coherent case narratives.
+    """
+    __tablename__ = "incidents"
+    
+    incident_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    
+    # Incident details
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    # Time boundaries
+    start_date: Mapped[Optional[datetime]] = mapped_column(DateTimeTZ, nullable=True)
+    end_date: Mapped[Optional[datetime]] = mapped_column(DateTimeTZ, nullable=True)
+    
+    # Status
+    status: Mapped[str] = mapped_column(
+        String(20), 
+        default="active",
+        comment="active, resolved, closed, archived"
+    )
+    
+    # Classification
+    incident_type: Mapped[Optional[str]] = mapped_column(
+        String(50), 
+        nullable=True,
+        comment="habitability, discrimination, eviction, retaliation, etc."
+    )
+    severity: Mapped[Optional[str]] = mapped_column(
+        String(20), 
+        nullable=True,
+        comment="critical, high, normal, low"
+    )
+    
+    # Metadata
+    incident_metadata: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    
+    # Relationships
+    user: Mapped["User"] = relationship(back_populates="incidents")
+    vault_items: Mapped[list["VaultItem"]] = relationship(back_populates="incident")
+    
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
+
+
+class VaultAuditLog(Base):
+    """
+    Comprehensive audit trail for all vault item operations.
+    
+    Records before/after states for complete change tracking.
+    """
+    __tablename__ = "vault_audit_logs"
+    
+    log_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    item_id: Mapped[int] = mapped_column(
+        Integer, 
+        ForeignKey("vault_items.item_id"), 
+        nullable=False,
+        index=True
+    )
+    user_id: Mapped[Optional[str]] = mapped_column(String(24), nullable=True, index=True)
+    
+    # Action details
+    action: Mapped[str] = mapped_column(
+        String(50), 
+        nullable=False,
+        comment="create, update, delete, view, export, verify"
+    )
+    action_context: Mapped[Optional[str]] = mapped_column(
+        String(100), 
+        nullable=True,
+        comment="API endpoint, background job, etc."
+    )
+    
+    # Change tracking (JSONB for flexibility)
+    before_state: Mapped[Optional[dict]] = mapped_column(
+        JSONB, 
+        nullable=True,
+        comment="Complete state before change"
+    )
+    after_state: Mapped[Optional[dict]] = mapped_column(
+        JSONB, 
+        nullable=True,
+        comment="Complete state after change"
+    )
+    
+    # Timestamp
+    timestamp: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, index=True)
+    
+    # Relationship
+    vault_item: Mapped["VaultItem"] = relationship(back_populates="audit_logs")
+
+
+# Update User model to include new relationships
+User.vault_items = relationship("VaultItem", back_populates="user", cascade="all, delete-orphan")
+User.incidents = relationship("Incident", back_populates="user", cascade="all, delete-orphan")
