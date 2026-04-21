@@ -1,18 +1,18 @@
 """
-Semptify Document Overlay System
+DEPRECATED: Old Document Overlay System
 
-Core Principle: Original documents NEVER get modified.
+⚠️ WARNING: This module is deprecated. Use `app/services/unified_overlay_manager.py` instead.
 
-Workflow:
-1. User uploads document → stored in Vault/documents/ (original, untouchable)
-2. Semptify needs to process → creates overlay in Vault/.overlay/
-3. All processing happens on overlay copy
-4. Original preserved for legal integrity
+The unified overlay system provides:
+- Cloud-only storage (no local files)
+- Single source of truth for all overlay types
+- Better integration with vault paths
 
-This ensures:
-- Evidence integrity: Original hash never changes
-- Safe processing: Can't corrupt user's documents
-- Audit trail: Always know what was original vs processed
+Migration:
+- Old: OverlayManager(storage, token) → creates overlays in Vault/.overlay/
+- New: UnifiedOverlayManager(storage, user_id) → creates overlays in Vault/overlays/
+
+This file will be removed in a future release.
 """
 
 import hashlib

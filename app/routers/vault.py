@@ -17,7 +17,8 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional, List
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status, Query
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status, Query, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from app.core.config import Settings, get_settings
@@ -40,7 +41,7 @@ except ImportError:
 # Import preview generation
 try:
     from app.core.preview_generator import generate_document_thumbnail, generate_document_preview
-    from app.core.job_processor import submit_thumbnail_generation_job
+    from app.core.job_processor import submit_thumbnail_generation_job, submit_document_analysis_job
     HAS_PREVIEW_GENERATOR = True
 except ImportError:
     HAS_PREVIEW_GENERATOR = False
@@ -250,7 +251,7 @@ async def upload_document(
     except Exception as e:
         # Certificate upload failed, but file was already uploaded
         # Log this but don't fail the request
-        pass
+        logger.warning(f"Certificate upload failed for {document_id}: {e}")
 
     # Create overlay for safe processing (original never touched)
     overlay = None
@@ -299,7 +300,6 @@ async def upload_document(
     if HAS_PREVIEW_GENERATOR:
         try:
             # Submit thumbnail generation job
-            from app.core.job_processor import submit_thumbnail_generation_job
             job_id = submit_thumbnail_generation_job(
                 document_id=document_id,
                 page_numbers=[1],  # Generate first page thumbnail
@@ -308,7 +308,6 @@ async def upload_document(
             logger.info(f"Submitted thumbnail generation job {job_id} for document {document_id}")
             
             # Also submit document analysis job
-            from app.core.job_processor import submit_document_analysis_job
             analysis_job_id = submit_document_analysis_job(
                 document_id=document_id,
                 analysis_type="basic",
@@ -525,8 +524,87 @@ async def copy_from_sync_to_vault(
             filename=f"{certificate_id}.json",
             mime_type="application/json",
         )
-    except Exception:
-        pass  # Certificate upload failed but file was uploaded
+    except Exception as e:
+        logger.warning(f"Certificate upload failed for {document_id}: {e}")
+
+    # Create overlay for safe processing (original never touched)
+    overlay = None
+    try:
+        from app.services.document_overlay import OverlayManager
+        overlay_manager = OverlayManager(storage, access_token)
+        overlay = await overlay_manager.create_overlay(
+            original_id=document_id,
+            original_path=storage_path,
+        )
+        certificate["overlay_id"] = overlay.overlay_id
+
+        try:
+            from app.services.timeline_extraction import extract_timeline_from_upload
+            provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
+            timeline_events = await extract_timeline_from_upload(
+                document_id=document_id,
+                overlay_id=overlay.overlay_id,
+                provider=provider_name,
+                access_token=access_token,
+            )
+            certificate["timeline_events_extracted"] = len(timeline_events)
+        except Exception as e:
+            logger.warning(f"Timeline extraction failed for {document_id} (copy-from-sync): {e}")
+            certificate["timeline_events_extracted"] = 0
+
+    except Exception as e:
+        logger.warning(f"Overlay creation failed for {document_id} (copy-from-sync): {e}")
+
+    # Trigger mesh workflow based on document type (mirrors main upload path)
+    try:
+        from app.core.positronic_mesh import positronic_mesh, WorkflowType
+        import asyncio
+
+        workflow_type = None
+        trigger_context = {
+            "document_id": document_id,
+            "certificate_id": certificate_id,
+            "filename": filename,
+            "mime_type": mime_type,
+            "document_type": document_type,
+            "overlay_id": overlay.overlay_id if overlay else None,
+            "timeline_events_count": certificate.get("timeline_events_extracted", 0),
+            "source": "copy-from-sync",
+        }
+
+        if document_type in ("eviction_notice", "summons", "court_order"):
+            workflow_type = WorkflowType.EVICTION_DEFENSE
+        elif document_type in ("lease", "rental_agreement"):
+            workflow_type = WorkflowType.LEASE_ANALYSIS
+        elif document_type in ("hearing_notice", "motion", "evidence_list"):
+            workflow_type = WorkflowType.COURT_PREP
+
+        if not workflow_type and filename:
+            fname_lower = filename.lower()
+            if any(word in fname_lower for word in ("evict", "notice", "summons", "quit")):
+                workflow_type = WorkflowType.EVICTION_DEFENSE
+            elif any(word in fname_lower for word in ("lease", "rental", "agreement")):
+                workflow_type = WorkflowType.LEASE_ANALYSIS
+            elif any(word in fname_lower for word in ("hearing", "court", "motion")):
+                workflow_type = WorkflowType.COURT_PREP
+
+        if workflow_type:
+            asyncio.create_task(
+                positronic_mesh.start_workflow(
+                    workflow_type=workflow_type,
+                    user_id=user.user_id,
+                    trigger="copy_from_sync",
+                    initial_context=trigger_context,
+                )
+            )
+            logger.info(f"Triggered {workflow_type.value} workflow for {document_id} (copy-from-sync)")
+            certificate["mesh_workflow_triggered"] = workflow_type.value
+        else:
+            certificate["mesh_workflow_triggered"] = None
+
+    except Exception as e:
+        logger.warning(f"Mesh workflow trigger failed for {document_id} (copy-from-sync): {e}")
+        certificate["mesh_workflow_triggered"] = "error"
 
     function_token = issue_function_access_token(
         user.user_id,
@@ -871,12 +949,14 @@ async def mark_vault_document_processed(
     vault_id: str,
     extracted_data: Optional[dict] = None,
     document_type: Optional[str] = None,
+    access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(require_user),
 ):
     """
     Mark a vault document as processed by a module.
     
     Modules call this after processing to update vault metadata.
+    Creates unified overlay records in user's cloud storage.
     """
     if not HAS_VAULT_SERVICE:
         raise HTTPException(status_code=404, detail="Vault service not available")
@@ -887,10 +967,22 @@ async def mark_vault_document_processed(
     if not doc or doc.user_id != user.user_id:
         raise HTTPException(status_code=404, detail="Document not found")
     
-    vault_service.mark_processed(vault_id, extracted_data)
+    storage_provider = user.provider if hasattr(user, 'provider') else 'google_drive'
+    
+    await vault_service.mark_processed(
+        vault_id,
+        extracted_data,
+        access_token=access_token,
+        storage_provider=storage_provider,
+    )
     
     if document_type:
-        vault_service.update_document_type(vault_id, document_type)
+        await vault_service.update_document_type(
+            vault_id,
+            document_type,
+            access_token=access_token,
+            storage_provider=storage_provider,
+        )
     
     return {"success": True, "vault_id": vault_id, "processed": True}
 
@@ -938,6 +1030,7 @@ async def get_sidebar_files(
 
 @router.post("/sidebar/upload")
 async def sidebar_upload(
+    request: Request,
     files: List[UploadFile] = File(...),
     metadata: str = Form(...),
     user: StorageUser = Depends(require_user),
@@ -987,57 +1080,56 @@ async def sidebar_upload(
                     })
                     continue
                 
-                # Create vault document
-                vault_id = f"vault_{datetime.utcnow().timestamp()}_{i}"
-                
-                # Store via vault service
-                vault_service = get_vault_service()
-                doc = VaultDocument(
-                    vault_id=vault_id,
-                    filename=uploaded_file.filename,
-                    size=uploaded_file.size,
-                    mime_type=validation_result.mime_type or uploaded_file.content_type or 'application/octet-stream',
-                    user_id=user.user_id,
-                    provider=vault_service.get_user_provider(user.user_id),
-                    vault_path=f"/vault/{uploaded_file.filename}",
-                    tags=[],
-                    created_at=datetime.utcnow()
+                # Route through certified upload path so SHA-256, cert,
+                # overlay, timeline extraction, and mesh workflow all fire.
+                access_token_val = metadata_dict.get("access_token") or getattr(user, "access_token", None)
+                if not access_token_val:
+                    raise ValueError("access_token required in sidebar metadata for certified upload")
+
+                certified_response = await upload_document(
+                    file=uploaded_file,
+                    document_type=metadata_dict.get("document_type"),
+                    description=metadata_dict.get("description"),
+                    tags=metadata_dict.get("tags"),
+                    access_token=access_token_val,
+                    user=user,
+                    settings=get_settings(),
                 )
-                
-                # Store document
-                vault_service.store_document(doc, file_content)
-                
+
+                vault_id = certified_response.id
+
                 # Log successful upload
                 from app.core.audit_logger import log_document_upload
                 log_document_upload(
                     user_id=user.user_id,
                     document_id=vault_id,
                     filename=uploaded_file.filename,
-                    file_size=uploaded_file.size,
+                    file_size=len(file_content),
                     file_type=validation_result.file_type,
-                    ip_address=request.client.host if hasattr(request, 'client') else "unknown",
+                    ip_address=request.client.host if request.client else "unknown",
                     user_agent=request.headers.get("user-agent", "unknown")
                 )
-                
+
                 uploaded_files.append({
                     "id": vault_id,
                     "name": uploaded_file.filename,
-                    "size": uploaded_file.size,
-                    "type": doc.mime_type,
+                    "size": len(file_content),
+                    "type": certified_response.mime_type,
                     "category": _get_file_category(uploaded_file.filename),
-                    "uploaded_at": datetime.utcnow().isoformat(),
-                    "provider": vault_service.get_user_provider(user.user_id),
+                    "uploaded_at": certified_response.uploaded_at,
+                    "certificate_id": certified_response.certificate_id,
+                    "sha256": certified_response.sha256_hash,
                     "user_id": user.user_id,
-                    "path": f"/vault/{uploaded_file.filename}",
+                    "path": certified_response.storage_path,
                     "tags": [],
                     "metadata": {
                         "source": source,
                         "original_filename": uploaded_file.filename,
-                        "upload_timestamp": datetime.utcnow().isoformat()
+                        "upload_timestamp": certified_response.uploaded_at,
                     }
                 })
-                
-                logger.info(f"Vault sidebar upload: {vault_id} for user {user.user_id}")
+
+                logger.info(f"Vault sidebar upload (certified): {vault_id} for user {user.user_id}")
                 
             except Exception as e:
                 error_msg = f"Failed to process {uploaded_file.filename}: {str(e)}"

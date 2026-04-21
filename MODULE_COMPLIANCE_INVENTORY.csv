@@ -1,4 +1,10 @@
 name,file_path,type,status,privacy_scope,evidence_role,security_notes,next_action
+unified_overlay_manager,app/services/unified_overlay_manager.py,service,implemented,cloud,overlay_management,cloud-only stateless,
+unified_overlays_router,app/routers/unified_overlays.py,router,implemented,cloud,overlay_api,cloud-only overlay endpoints,
+vault_all_in_one_router,app/routers/vault_all_in_one.py,router,implemented,cloud,evidence_vault,three-timestamp model,
+timeline_chronology_service,app/services/timeline_chronology.py,service,implemented,cloud,timeline_builder,function-group service,
+vault_paths,app/core/vault_paths.py,core,implemented,internal,path_constants,canonical path definitions,
+workflow_engine,app/core/workflow_engine.py,core,implemented,internal,routing_ssot,route_user() single source of truth,
 tenant_defense,app/modules/tenant_defense.py,module,unknown,internal,, ,review
 research_module,app/modules/research_module.py,module,unknown,internal,, ,review
 legal_filing_module,app/modules/legal_filing_module.py,module,unknown,internal,, ,review
@@ -29,7 +35,7 @@ progress_router,app/routers/progress.py,router,unknown,internal,, ,review
 positronic_mesh_router,app/routers/positronic_mesh.py,router,unknown,internal,, ,review
 pdf_tools_router,app/routers/pdf_tools.py,router,unknown,internal,, ,review
 page_index_router,app/routers/page_index.py,router,unknown,internal,, ,review
-overlays_router,app/routers/overlays.py,router,unknown,internal,, ,review
+overlays_router_legacy,app/routers/overlays.py,router,deprecated,internal,overlay_api,legacy annotation system,migrate_to_unified_overlays
 module_hub_router,app/routers/module_hub.py,router,unknown,internal,, ,review
 mesh_network_router,app/routers/mesh_network.py,router,unknown,internal,, ,review
 mesh_router,app/routers/mesh.py,router,unknown,internal,, ,review
@@ -55,7 +61,7 @@ eviction_flows_router,app/routers/eviction/flows.py,router,unknown,internal,, ,r
 eviction_case_router,app/routers/eviction/case.py,router,unknown,internal,, ,review
 enterprise_dashboard_router,app/routers/enterprise_dashboard.py,router,unknown,internal,, ,review
 emotion_router,app/routers/emotion.py,router,unknown,internal,, ,review
-document_overlays_router,app/routers/document_overlays.py,router,unknown,internal,, ,review
+document_overlays_router_legacy,app/routers/document_overlays.py,router,deprecated,internal,overlay_api,superseded by unified_overlays,migrate_to_unified
 document_converter_router,app/routers/document_converter.py,router,unknown,internal,, ,review
 documents_router,app/routers/documents.py,router,unknown,internal,, ,review
 dashboard_router,app/routers/dashboard.py,router,unknown,internal,, ,review
@@ -118,7 +124,7 @@ document_training,app/services/document_training.py,service,unknown,internal,, ,
 document_registry,app/services/document_registry.py,service,unknown,internal,, ,review
 document_recognition,app/services/document_recognition.py,service,unknown,internal,, ,review
 document_pipeline,app/services/document_pipeline.py,service,unknown,internal,, ,review
-document_overlay_service,app/services/document_overlay_service.py,service,unknown,internal,, ,review
+document_overlay_service,app/services/document_overlay_service.py,service,deprecated,internal,overlay_management,superseded by unified_overlay_manager,migrate_to_unified
 document_notarization,app/services/document_notarization.py,service,unknown,internal,, ,review
 document_intelligence,app/services/document_intelligence.py,service,unknown,internal,, ,review
 proactive_tactics,app/services/proactive_tactics.py,service,unknown,internal,, ,review
