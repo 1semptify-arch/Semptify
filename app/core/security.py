@@ -275,10 +275,97 @@ def consume_breakglass() -> None:
 
 
 # =============================================================================
-# Session Store (In-memory, use Redis in production)
+# Session Store (Redis-backed, in-memory fallback for dev)
 # =============================================================================
 
+import json as _json
+
+_REDIS_SESSION_PREFIX = "semptify:session:"
+_REDIS_CLIENT = None
+
+
+def _get_redis():
+    global _REDIS_CLIENT
+    if _REDIS_CLIENT is not None:
+        return _REDIS_CLIENT
+    try:
+        import redis as _redis
+        import os as _os
+        url = _os.getenv("REDIS_URL", "")
+        if not url:
+            return None
+        _REDIS_CLIENT = _redis.from_url(url, decode_responses=True, socket_connect_timeout=2)
+        _REDIS_CLIENT.ping()
+        logger.info("Redis session store connected: %s", url.split("@")[-1])
+        return _REDIS_CLIENT
+    except Exception as _e:
+        logger.warning("Redis unavailable - using in-memory session store: %s", _e)
+        return None
+
+
+def _session_to_dict(session: "StoredSession") -> dict:
+    d = session.__dict__.copy()
+    for key in ("created_at", "expires_at", "last_seen"):
+        if key in d and d[key] is not None:
+            d[key] = d[key].isoformat()
+    return d
+
+
+def _session_from_dict(data: dict) -> "StoredSession":
+    for key in ("created_at", "expires_at", "last_seen"):
+        if key in data and data[key] is not None:
+            data[key] = datetime.fromisoformat(data[key])
+    return StoredSession(**data)
+
+
+# In-memory fallback (used when Redis is not configured)
 ACTIVE_SESSIONS: dict[str, StoredSession] = {}
+
+
+def _store_session(session_id: str, session: "StoredSession") -> None:
+    r = _get_redis()
+    if r:
+        try:
+            ttl = None
+            if session.expires_at:
+                ttl = int((session.expires_at - datetime.now(timezone.utc)).total_seconds())
+            payload = _json.dumps(_session_to_dict(session))
+            key = _REDIS_SESSION_PREFIX + session_id
+            if ttl and ttl > 0:
+                r.setex(key, ttl, payload)
+            else:
+                r.set(key, payload)
+            return
+        except Exception as _e:
+            logger.warning("Redis session write failed, falling back to memory: %s", _e)
+    ACTIVE_SESSIONS[session_id] = session
+
+
+def _load_session(session_id: str) -> Optional["StoredSession"]:
+    r = _get_redis()
+    if r:
+        try:
+            raw = r.get(_REDIS_SESSION_PREFIX + session_id)
+            if raw:
+                return _session_from_dict(_json.loads(raw))
+            return None
+        except Exception as _e:
+            logger.warning("Redis session read failed, falling back to memory: %s", _e)
+    return ACTIVE_SESSIONS.get(session_id)
+
+
+def _delete_session(session_id: str) -> bool:
+    r = _get_redis()
+    if r:
+        try:
+            deleted = r.delete(_REDIS_SESSION_PREFIX + session_id)
+            return bool(deleted)
+        except Exception as _e:
+            logger.warning("Redis session delete failed, falling back to memory: %s", _e)
+    if session_id in ACTIVE_SESSIONS:
+        del ACTIVE_SESSIONS[session_id]
+        return True
+    return False
 
 # Short-lived function access tokens (used for overlay/function vault access checks)
 FUNCTION_ACCESS_TOKENS: dict[str, dict] = {}
@@ -480,13 +567,13 @@ def invalidate_function_access_tokens(user_id: str) -> int:
 
 def get_session(session_id: str) -> Optional[StoredSession]:
     """Get session by ID."""
-    session = ACTIVE_SESSIONS.get(session_id)
+    session = _load_session(session_id)
     if not session:
         return None
 
-    # Check expiry
+    # Check expiry (belt-and-suspenders: Redis TTL handles it, but check locally too)
     if session.expires_at and session.expires_at < datetime.now(timezone.utc):
-        del ACTIVE_SESSIONS[session_id]
+        _delete_session(session_id)
         return None
 
     return session
@@ -521,34 +608,33 @@ def create_session(
         expires_at=now + timedelta(hours=ttl_hours),
     )
     
-    ACTIVE_SESSIONS[session_id] = session
+    _store_session(session_id, session)
     return session
 
 
 def update_session_role(session_id: str, role: str) -> Optional[StoredSession]:
     """Update the role for an existing session."""
-    session = ACTIVE_SESSIONS.get(session_id)
+    session = _load_session(session_id)
     if session:
         session.role = role
+        _store_session(session_id, session)
         return session
     return None
 
 
 def update_session_token(session_id: str, access_token: str) -> Optional[StoredSession]:
     """Update the access token for an existing session."""
-    session = ACTIVE_SESSIONS.get(session_id)
+    session = _load_session(session_id)
     if session:
         session.access_token = access_token
+        _store_session(session_id, session)
         return session
     return None
 
 
 def invalidate_session(session_id: str) -> bool:
     """Invalidate/logout a session."""
-    if session_id in ACTIVE_SESSIONS:
-        del ACTIVE_SESSIONS[session_id]
-        return True
-    return False
+    return _delete_session(session_id)
 
 
 # =============================================================================

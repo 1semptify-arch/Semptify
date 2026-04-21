@@ -27,7 +27,10 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 
 from app.core.config import get_settings
-from app.core.vault_paths import VAULT_ROOT, VAULT_DOCUMENTS, VAULT_CERTIFICATES
+from app.core.vault_paths import SEMPTIFY_ROOT, VAULT_ROOT, VAULT_DOCUMENTS, VAULT_CERTIFICATES
+from app.core.overlay_types import OverlayType
+from app.models.unified_overlay_models import CreateOverlayRequest
+from app.services.unified_overlay_manager import get_unified_overlay_manager
 
 logger = logging.getLogger(__name__)
 
@@ -236,23 +239,45 @@ class VaultUploadService:
         if not mime_type:
             raise ValueError("mime_type is required")
 
-    def _create_overlay_record(self, doc: VaultDocument, overlay_type: str, payload: dict, metadata: dict | None = None) -> None:
-        """Create non-blocking overlay records that reference immutable vault artifacts."""
+    async def _create_unified_overlay(
+        self,
+        doc: VaultDocument,
+        overlay_type: OverlayType,
+        payload: dict,
+        metadata: dict | None = None,
+        access_token: str | None = None,
+        storage_provider: str = "google_drive",
+    ) -> None:
+        """
+        Create cloud-only overlay record using unified overlay manager.
+        
+        All overlays are stored in user's cloud storage, not locally.
+        """
         try:
-            from app.models.document_overlay_models import DocumentOverlayCreate
-            from app.services.document_overlay_service import document_overlay_service
+            if not HAS_STORAGE or not access_token:
+                logger.debug("Storage unavailable, skipping overlay creation for %s", doc.vault_id)
+                return
 
-            document_overlay_service.create_overlay(
-                DocumentOverlayCreate(
-                    document_id=doc.safe_filename,
-                    overlay_type=overlay_type,
-                    payload=payload,
-                    vault_id=doc.vault_id,
-                    metadata=metadata,
-                )
+            storage = get_provider(storage_provider, access_token=access_token)
+            manager = await get_unified_overlay_manager(storage, doc.user_id)
+
+            request = CreateOverlayRequest(
+                overlay_type=overlay_type,
+                document_id=doc.safe_filename,
+                vault_path=doc.storage_path,
+                payload=payload,
+                metadata=metadata or {},
+                ephemeral=False,
             )
+
+            result = await manager.create_overlay(request)
+            if result.success:
+                logger.debug("Created %s overlay for %s: %s", overlay_type.value, doc.vault_id, result.overlay_id)
+            else:
+                logger.warning("Failed to create overlay for %s: %s", doc.vault_id, result.message)
+
         except Exception as ex:
-            logger.debug("Overlay record creation skipped for %s: %s", doc.vault_id, ex)
+            logger.debug("Overlay creation skipped for %s: %s", doc.vault_id, ex)
     
     async def _ensure_folders(self, storage) -> None:
         """Ensure vault folders exist in storage."""
@@ -360,9 +385,9 @@ class VaultUploadService:
         # Add to index
         self.index.add(doc)
 
-        self._create_overlay_record(
+        await self._create_unified_overlay(
             doc,
-            overlay_type="vault_upload_manifest",
+            overlay_type=OverlayType.VAULT_UPLOAD_MANIFEST,
             payload={
                 "sha256_hash": doc.sha256_hash,
                 "file_size": doc.file_size,
@@ -372,6 +397,8 @@ class VaultUploadService:
                 "source_module": doc.source_module,
             },
             metadata={"stage": "upload"},
+            access_token=access_token,
+            storage_provider=storage_provider,
         )
         
         logger.info("📁 Document uploaded to vault: %s (%s) via %s", vault_id, filename, source_module)
@@ -522,10 +549,12 @@ class VaultUploadService:
 
         return None
     
-    def mark_processed(
+    async def mark_processed(
         self,
         vault_id: str,
-        extracted_data: Optional[dict] = None
+        extracted_data: Optional[dict] = None,
+        access_token: Optional[str] = None,
+        storage_provider: str = "google_drive",
     ) -> Optional[VaultDocument]:
         """Mark document as processed and store extracted data."""
         doc = self.index.update(
@@ -534,27 +563,33 @@ class VaultUploadService:
             extracted_data=extracted_data
         )
         if doc and extracted_data is not None:
-            self._create_overlay_record(
+            await self._create_unified_overlay(
                 doc,
-                overlay_type="document_extraction",
+                overlay_type=OverlayType.DOCUMENT_EXTRACTION,
                 payload={"extracted_data": extracted_data},
                 metadata={"stage": "extraction"},
+                access_token=access_token,
+                storage_provider=storage_provider,
             )
         return doc
     
-    def update_document_type(
+    async def update_document_type(
         self,
         vault_id: str,
-        document_type: str
+        document_type: str,
+        access_token: Optional[str] = None,
+        storage_provider: str = "google_drive",
     ) -> Optional[VaultDocument]:
         """Update document type after classification."""
         doc = self.index.update(vault_id, document_type=document_type)
         if doc:
-            self._create_overlay_record(
+            await self._create_unified_overlay(
                 doc,
-                overlay_type="document_classification",
+                overlay_type=OverlayType.DOCUMENT_CLASSIFICATION,
                 payload={"document_type": document_type},
                 metadata={"stage": "classification"},
+                access_token=access_token,
+                storage_provider=storage_provider,
             )
         return doc
 

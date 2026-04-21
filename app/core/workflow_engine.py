@@ -59,11 +59,12 @@ PROCESS_ROUTES: dict[ProcessCode, str] = {
     ProcessCode.B4: "/advocate",
 }
 
-# Legal role has a dedicated route at the B4 tier
+# Role-specific portal routes
 ROLE_SPECIFIC_ROUTES: dict[UserRole, str] = {
     UserRole.LEGAL: "/legal",
     UserRole.ADMIN: "/admin",
-    UserRole.MANAGER: "/admin",
+    UserRole.MANAGER: "/manager",
+    UserRole.ADVOCATE: "/advocate",
 }
 
 

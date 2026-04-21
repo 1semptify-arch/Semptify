@@ -48,6 +48,7 @@
 | `law_engine.py` | Legal analysis | ⚠️ Needs integration |
 | `azure_ai.py` | Azure AI services | ⚠️ Needs API keys |
 | `user_service.py` | User management | ⚠️ Needs integration |
+| `unified_overlay_system` | Document overlay engine | 🅿️ PARKED (Design in `docs/OVERLAY_SYSTEM_DESIGN.md`) |
 
 ### STATIC PAGES (GUI)
 | Page | Purpose | Status |
