@@ -88,6 +88,24 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 "duration_ms": round(duration_ms, 2),
             })
             
+            # Track analytics for API requests
+            try:
+                from app.core.analytics_engine import track_api_request
+                user_id = None
+                if hasattr(request.state, 'user'):
+                    user_id = getattr(request.state.user, 'user_id', None)
+                
+                track_api_request(
+                    endpoint=path,
+                    method=request.method,
+                    user_id=user_id,
+                    status_code=response.status_code,
+                    duration_ms=duration_ms
+                )
+            except Exception:
+                # Analytics tracking should not break requests
+                pass
+            
             # Determine log level based on status
             if response.status_code >= 500:
                 logger.error(

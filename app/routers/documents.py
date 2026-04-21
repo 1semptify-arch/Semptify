@@ -306,46 +306,56 @@ async def upload_document(
     # =========================================================================
     # STEP 0: UPLOAD TO VAULT FIRST (All documents go to user's vault)
     # =========================================================================
+    if not HAS_VAULT_SERVICE:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "vault_unavailable",
+                "message": "Vault service is not available. All documents must go to vault first.",
+            },
+        )
+
     vault_id = None
     vault_doc = None
-    if HAS_VAULT_SERVICE:
-        try:
-            vault_service = get_vault_service()
-            # Get access token from session (not form) - user is authenticated
-            session_token = getattr(user, 'access_token', None) or access_token
-            session_provider = getattr(user, 'provider', storage_provider)
-            
-            vault_doc = await vault_service.upload(
-                user_id=user_id,
-                filename=file.filename,
-                content=content,
-                mime_type=mime_type,
-                document_type=document_type,
-                source_module="documents",
-                access_token=session_token,
-                storage_provider=session_provider.value if hasattr(session_provider, 'value') else str(session_provider),
-            )
-            vault_id = vault_doc.vault_id
-            logger.info(f"📁 Document stored in vault: {vault_id}")
-            
-            # =========================================================================
-            # CLIENT ACTIVATION GATE: First vault upload activates the user as a client
-            # =========================================================================
-            # This is the final gate in the serial gating sequence:
-            # storage_connected → vault_initialized → client_activated
-            # Once this gate is passed, the user has full access to all Semptify tools
-            await _mark_group_complete(db, user_id, "client_activated")
-            logger.info(f"🎉 User {user_id} activated as client after first vault upload")
-            
-        except Exception as e:
-            logger.error("Vault upload failed: %s", e)
-            raise HTTPException(
-                status_code=502,
-                detail={
-                    "error": "vault_upload_failed",
-                    "message": "Document was not saved to your vault. Reconnect storage and try again.",
-                },
-            )
+    try:
+        vault_service = get_vault_service()
+        # Get access token from session (not form) - user is authenticated
+        session_token = getattr(user, 'access_token', None) or access_token
+        session_provider = getattr(user, 'provider', storage_provider)
+
+        vault_doc = await vault_service.upload(
+            user_id=user_id,
+            filename=file.filename,
+            content=content,
+            mime_type=mime_type,
+            document_type=document_type,
+            source_module="documents",
+            access_token=session_token,
+            storage_provider=session_provider.value if hasattr(session_provider, 'value') else str(session_provider),
+        )
+        vault_id = vault_doc.vault_id
+        logger.info(f"📁 Document stored in vault: {vault_id}")
+
+        # =========================================================================
+        # CLIENT ACTIVATION GATE: First vault upload activates the user as a client
+        # =========================================================================
+        # This is the final gate in the serial gating sequence:
+        # storage_connected → vault_initialized → client_activated
+        # Once this gate is passed, the user has full access to all Semptify tools
+        await _mark_group_complete(db, user_id, "client_activated")
+        logger.info(f"🎉 User {user_id} activated as client after first vault upload")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("Vault upload failed: %s", e)
+        raise HTTPException(
+            status_code=502,
+            detail={
+                "error": "vault_upload_failed",
+                "message": "Document was not saved to your vault. Reconnect storage and try again.",
+            },
+        )
     
     # Initialize response data
     registry_id = None
@@ -531,9 +541,46 @@ async def upload_document(
             },
             user_id=user_id
         ))
-    except Exception:
-        pass  # Brain integration is optional
-    
+    except Exception as e:
+        logger.debug("Brain event emission failed (non-critical): %s", e)
+
+    # =========================================================================
+    # STEP 8: INDEX FOR SEARCH (Add to inverted index for fast full-text search)
+    # =========================================================================
+    try:
+        from app.core.search_engine import get_search_engine, DocumentIndex
+        from datetime import datetime
+
+        search_engine = get_search_engine()
+
+        # Build document index entry
+        doc_index = DocumentIndex(
+            document_id=doc.id,
+            user_id=user_id,
+            title=doc.title or doc.filename,
+            content=doc.full_text or doc.extracted_text or doc.summary or "",
+            metadata={
+                "filename": doc.filename,
+                "doc_type": doc.doc_type.value if doc.doc_type else "unknown",
+                "mime_type": mime_type,
+                "content_hash": content_hash,
+                "vault_id": vault_id,
+                "registry_id": registry_id,
+                "urgency_level": urgency_level,
+                "law_references": doc.law_references if hasattr(doc, 'law_references') else [],
+                "is_duplicate": is_duplicate,
+            },
+            created_at=getattr(doc, 'created_at', datetime.now()),
+            updated_at=getattr(doc, 'updated_at', datetime.now()),
+            file_type=doc.doc_type.value if doc.doc_type else mime_type.split('/')[-1] if mime_type else "unknown",
+            tags=doc.key_terms if hasattr(doc, 'key_terms') and doc.key_terms else []
+        )
+
+        search_engine.add_document(doc_index)
+        logger.info(f"🔍 Document indexed for search: {doc.id}")
+    except Exception as e:
+        logger.warning(f"Search indexing failed (non-critical): %s", e)
+
     # =========================================================================
     # BUILD COMPREHENSIVE RESPONSE
     # =========================================================================
@@ -596,6 +643,15 @@ async def upload_document_simple(
     """
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename required")
+
+    if not HAS_VAULT_SERVICE:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "vault_unavailable",
+                "message": "Use POST /api/documents/upload — all documents must go to vault first.",
+            },
+        )
 
     content = await file.read()
     if len(content) > 50 * 1024 * 1024:  # 50MB limit
