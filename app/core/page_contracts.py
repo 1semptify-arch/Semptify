@@ -51,6 +51,14 @@ except ImportError:
 # PageContract Schema
 # =============================================================================
 
+# Status values for page contracts
+STATUS_ACTIVE = "active"
+STATUS_COMING_SOON = "coming_soon"
+STATUS_BETA = "beta"
+STATUS_DEPRECATED = "deprecated"
+VALID_STATUSES = {STATUS_ACTIVE, STATUS_COMING_SOON, STATUS_BETA, STATUS_DEPRECATED}
+
+
 @dataclass
 class PageContract:
     """
@@ -70,6 +78,7 @@ class PageContract:
     entry_criteria: list[str]                 # what must be true before page loads
     exit_criteria: list[str]                  # what must be true for a "clean exit"
     telemetry_events: list[str]               # event names emitted by this page
+    status: str = STATUS_ACTIVE               # "active", "coming_soon", "beta", "deprecated"
 
     def validate(self) -> list[str]:
         """
@@ -106,7 +115,26 @@ class PageContract:
         if not self.telemetry_events:
             errors.append(f"[{self.page_id}] telemetry_events is empty")
 
+        # Status must be valid
+        if self.status not in VALID_STATUSES:
+            errors.append(
+                f"[{self.page_id}] Invalid status '{self.status}'. "
+                f"Must be one of {sorted(VALID_STATUSES)}"
+            )
+
         return errors
+
+    def is_coming_soon(self) -> bool:
+        """Check if this contract is marked as coming soon."""
+        return self.status == STATUS_COMING_SOON
+
+    def is_active(self) -> bool:
+        """Check if this contract is active and usable."""
+        return self.status == STATUS_ACTIVE
+
+    def is_beta(self) -> bool:
+        """Check if this contract is in beta."""
+        return self.status == STATUS_BETA
 
 
 def _full_coverage(**overrides: str) -> dict[str, str]:
@@ -421,45 +449,6 @@ CONTRACT_LEGAL = PageContract(
     ],
 )
 
-
-# --- FunctionX Action Set Workspace ---
-# NOT IN USE — AI-generated contract that does not reflect a real feature.
-# Flagged for deletion. Review and remove if still unused after 2 weeks from Apr 19 2026.
-CONTRACT_FUNCTIONX = PageContract(
-    page_id="functionx_workspace",
-    title="FunctionX Workspace [NOT IN USE — PENDING DELETION]",
-    route="/functionx",
-    roles_supported=[UserRole.ADVOCATE, UserRole.MANAGER, UserRole.LEGAL, UserRole.ADMIN],
-    primary_groups=["functions_actions"],
-    secondary_groups=["documentation", "research_knowledge", "output_delivery"],
-    group_coverage=_full_coverage(
-        welcome=COVERAGE_LINKED,
-        security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_LINKED,
-        research_knowledge=COVERAGE_LINKED,
-        functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_LINKED,
-        help_contacts=COVERAGE_NA,
-        system_admin_monitoring=COVERAGE_GUARDED,
-    ),
-    qualification="Advocate, Manager, Legal, or Admin role required.",
-    expectations="User can define, inspect, and execute backend action sets safely.",
-    scope_of_use="Professional workflow for deterministic action-set planning and execution.",
-    entry_criteria=[
-        "Role in (advocate, manager, legal, admin)",
-        "Session is active",
-    ],
-    exit_criteria=[
-        "Action set created, reviewed, or executed",
-        "Or user returns to professional/legal workspace",
-    ],
-    telemetry_events=[
-        "functionx_workspace_load",
-        "functionx_set_created",
-        "functionx_set_viewed",
-        "functionx_set_executed",
-    ],
-)
 
 
 # =============================================================================
@@ -826,23 +815,38 @@ CONTRACT_CRISIS_INTAKE = PageContract(
         help_contacts=COVERAGE_ACTIVE,
         system_admin_monitoring=COVERAGE_NA,
     ),
-    qualification="Urgent housing crisis. Fast-tracked intake.",
-    expectations="Rapid assessment of crisis situation and immediate resource connection.",
-    scope_of_use="Emergency intake path. Bypasses standard flow for urgent cases.",
+    qualification="Urgent housing crisis. Fast-tracked intake. No case created, no tracking initiated.",
+    expectations=(
+        "Rapid 5-step guided assessment of crisis situation: 1) What's happening, 2) How urgent, "
+        "3) Court date (if applicable), 4) Documents available, 5) Personalized plan. "
+        "Immediate resources displayed (211 hotline, legal aid). No case file opened. "
+        "No tracking initiated. Pure triage and direction to appropriate tool."
+    ),
+    scope_of_use=(
+        "Emergency triage only. Stateless — intake data saved to localStorage only, not server. "
+        "Routes user to appropriate next step based on situation. No retention of crisis details."
+    ),
     entry_criteria=[
-        "User self-identifies crisis OR advocate flags urgency",
+        "User clicks crisis/emergency help button",
+        "Or advocate directs user to crisis intake",
+        "Or system detects high-urgency context",
     ],
     exit_criteria=[
-        "Immediate resources provided",
-        "Hotline connections made",
-        "Or escalated to advocate",
+        "User has immediate resources (hotlines, next steps)",
+        "User directed to appropriate tool based on responses",
+        "No case created, no server-side data retained",
     ],
     telemetry_events=[
         "crisis_intake_load",
-        "crisis_type_selected",
-        "emergency_resource_accessed",
-        "hotline_connected",
-        "advocate_escalation",
+        "situation_type_selected",
+        "urgency_level_selected",
+        "has_docs_selected",
+        "emergency_alert_shown",
+        "crisis_intake_completed",
+        "outflow_to_documents",
+        "outflow_to_journey",
+        "outflow_to_library",
+        "outflow_to_help",
     ],
 )
 
@@ -868,19 +872,33 @@ CONTRACT_TIMELINE = PageContract(
         help_contacts=COVERAGE_LINKED,
         system_admin_monitoring=COVERAGE_NA,
     ),
-    qualification="Any authenticated role with case access.",
-    expectations="Visual timeline of case events, deadlines, and document uploads.",
-    scope_of_use="Case chronology visualization. Auto-populated from documents.",
+    qualification="Any authenticated role with case access. Documents present in vault.",
+    expectations=(
+        "Read-only view of case chronology. Timeline is a query layer on media objects — "
+        "documents, events, and extracted dates from vault. No separate timeline data store. "
+        "Three sort views available: by event date (when it happened), by document date "
+        "(when created), by ingestion date (when Semptify received it). "
+        "Visual presentation only — all data lives in vault documents and overlay events.json."
+    ),
+    scope_of_use=(
+        "Case chronology visualization. Stateless query view on vault data. "
+        "Renders overlay of document metadata + extracted timeline events. "
+        "Tenant: view only. Advocate/Legal: view only — all data comes from document processing."
+    ),
     entry_criteria=[
         "Authenticated session",
-        "Case context available",
+        "Documents present in vault",
     ],
     exit_criteria=[
-        "User navigates to detail view",
-        "Or exports timeline",
+        "User navigates to document detail",
+        "Or changes sort/filter view",
+        "Or exports timeline view (PDF)",
     ],
     telemetry_events=[
         "timeline_load",
+        "sort_by_event_date",
+        "sort_by_document_date",
+        "sort_by_ingestion_date",
         "event_expanded",
         "timeline_filtered",
         "timeline_exported",
@@ -1101,7 +1119,7 @@ CONTRACT_ADVOCATE_PORTAL = PageContract(
     page_id="advocate",
     title="Advocate Portal",
     route="/advocate",
-    roles_supported=[UserRole.ADVOCATE, UserRole.MANAGER, UserRole.LEGAL],
+    roles_supported=[UserRole.ADVOCATE],
     primary_groups=["functions_actions", "output_delivery"],
     secondary_groups=["documentation", "help_contacts"],
     group_coverage=_full_coverage(
@@ -1114,19 +1132,42 @@ CONTRACT_ADVOCATE_PORTAL = PageContract(
         help_contacts=COVERAGE_ACTIVE,
         system_admin_monitoring=COVERAGE_NA,
     ),
-    qualification="Role in (advocate, manager, legal).",
-    expectations="Advocate reviews assigned cases, coordinates with tenants.",
-    scope_of_use="Advocate-facing case management and tenant coordination.",
-    entry_criteria=["Advocate authenticated", "At least one assigned case"],
-    exit_criteria=["Case reviewed", "Action taken or deferred"],
-    telemetry_events=["advocate_portal_load", "case_assigned", "tenant_contacted", "advocacy_action_taken"],
+    qualification="Tenant-invited support person (friend, family, volunteer). Not a professional credential.",
+    expectations=(
+        "Personal advocate supports a specific tenant who invited them. "
+        "Cannot self-register — access granted only by tenant invitation. "
+        "Sees only the inviting tenant's case, no multi-tenant access. "
+        "Can view documents, leave notes, coordinate on tenant's behalf."
+    ),
+    scope_of_use=(
+        "Trust-based support role. Tenant controls access — can revoke at any time. "
+        "No case assignment from orgs or agencies. Purely tenant-directed support."
+    ),
+    entry_criteria=[
+        "Valid tenant invitation accepted",
+        "Advocate role assigned via invitation flow",
+        "Storage connected",
+    ],
+    exit_criteria=[
+        "Support action completed",
+        "Tenant revokes access",
+        "Session ended",
+    ],
+    telemetry_events=[
+        "advocate_portal_load",
+        "invitation_accepted",
+        "tenant_case_viewed",
+        "support_note_added",
+        "advocacy_action_taken",
+        "access_revoked_by_tenant",
+    ],
 )
 
 CONTRACT_ADMIN_PORTAL = PageContract(
     page_id="admin",
     title="Admin Portal",
     route="/admin",
-    roles_supported=[UserRole.ADMIN, UserRole.MANAGER],
+    roles_supported=[UserRole.ADMIN],
     primary_groups=["system_admin_monitoring"],
     secondary_groups=["security_validation", "functions_actions"],
     group_coverage=_full_coverage(
@@ -1139,19 +1180,81 @@ CONTRACT_ADMIN_PORTAL = PageContract(
         help_contacts=COVERAGE_LINKED,
         system_admin_monitoring=COVERAGE_ACTIVE,
     ),
-    qualification="Role in (admin, manager).",
-    expectations="Admin manages users, reviews system status, configures settings.",
-    scope_of_use="System administration and monitoring.",
-    entry_criteria=["Admin authenticated"],
-    exit_criteria=["Admin action completed"],
-    telemetry_events=["admin_portal_load", "user_managed", "system_config_changed", "audit_log_viewed"],
+    qualification="Platform administrator. Full system access.",
+    expectations=(
+        "System-level operations: user management, platform configuration, health monitoring. "
+        "Can invite MANAGER and LEGAL roles. Can manage ADVOCATE invitations."
+    ),
+    scope_of_use="Platform administration only. No direct case access.",
+    entry_criteria=[
+        "Admin role authenticated",
+        "Internal/platform operations access",
+    ],
+    exit_criteria=[
+        "Admin action completed",
+        "Configuration saved",
+    ],
+    telemetry_events=[
+        "admin_portal_load",
+        "user_managed",
+        "system_config_changed",
+        "audit_log_viewed",
+        "manager_invited",
+        "legal_invited",
+    ],
+)
+
+CONTRACT_MANAGER_PORTAL = PageContract(
+    page_id="manager",
+    title="Manager Portal",
+    route="/manager",
+    roles_supported=[UserRole.MANAGER],
+    primary_groups=["documentation", "functions_actions", "help_contacts"],
+    secondary_groups=["output_delivery", "security_validation"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_ACTIVE,
+        research_knowledge=COVERAGE_LINKED,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_ACTIVE,
+        help_contacts=COVERAGE_ACTIVE,
+        system_admin_monitoring=COVERAGE_LINKED,
+    ),
+    qualification="Professional case manager, counselor, or housing worker. Multi-tenant access.",
+    expectations=(
+        "Manages multiple tenant cases. Caseload dashboard, coordination tools. "
+        "Can send documents to tenants (review/signature required). "
+        "Cannot access case without tenant assignment or org relationship."
+    ),
+    scope_of_use=(
+        "Housing professionals: case workers, counselors, tenant advocates. "
+        "Org-verified or admin-invited. Multi-tenant caseload view."
+    ),
+    entry_criteria=[
+        "Manager role authenticated",
+        "Org verification or admin invitation complete",
+        "At least one assigned tenant or caseload",
+    ],
+    exit_criteria=[
+        "Caseload reviewed",
+        "Tenant coordination completed",
+        "Document delivered to tenant",
+    ],
+    telemetry_events=[
+        "manager_portal_load",
+        "caseload_viewed",
+        "tenant_coordinated",
+        "document_sent_to_tenant",
+        "case_note_added",
+    ],
 )
 
 CONTRACT_LEGAL_PORTAL = PageContract(
     page_id="legal",
     title="Legal Portal",
     route="/legal",
-    roles_supported=[UserRole.LEGAL, UserRole.MANAGER, UserRole.ADMIN],
+    roles_supported=[UserRole.LEGAL],
     primary_groups=["research_knowledge", "output_delivery"],
     secondary_groups=["documentation", "functions_actions"],
     group_coverage=_full_coverage(
@@ -1164,12 +1267,34 @@ CONTRACT_LEGAL_PORTAL = PageContract(
         help_contacts=COVERAGE_LINKED,
         system_admin_monitoring=COVERAGE_NA,
     ),
-    qualification="Role in (legal, manager, admin).",
-    expectations="Legal professional reviews cases, prepares strategy, exports documents.",
-    scope_of_use="Legal-facing case review and strategy.",
-    entry_criteria=["Legal role authenticated"],
-    exit_criteria=["Legal review completed", "Strategy or memo generated"],
-    telemetry_events=["legal_portal_load", "case_reviewed", "strategy_drafted", "legal_memo_exported"],
+    qualification="Legal professional (attorney, clerk). Invitation-only case access.",
+    expectations=(
+        "Full legal toolkit: research, privileged notes, court filings. "
+        "Can only access tenant documents via explicit tenant invitation. "
+        "Can send documents to tenants for signature."
+    ),
+    scope_of_use=(
+        "Legal professionals. Bar verification or org affiliation. "
+        "Invitation-gated: tenant must invite attorney before case access."
+    ),
+    entry_criteria=[
+        "Legal role authenticated",
+        "Bar verification or org invitation complete",
+        "Tenant invitation accepted (per-case)",
+    ],
+    exit_criteria=[
+        "Legal review completed",
+        "Strategy or memo generated",
+        "Document sent to tenant",
+    ],
+    telemetry_events=[
+        "legal_portal_load",
+        "case_reviewed",
+        "strategy_drafted",
+        "legal_memo_exported",
+        "tenant_invitation_verified",
+        "privileged_note_created",
+    ],
 )
 
 
@@ -1515,6 +1640,213 @@ CONTRACT_LETTER_BUILDER = PageContract(
     entry_criteria=["User authenticated"],
     exit_criteria=["Letter drafted and saved or sent"],
     telemetry_events=["letter_builder_load", "template_selected", "letter_drafted", "letter_finalized"],
+)
+
+
+# =============================================================================
+# Document Delivery Process Group
+# =============================================================================
+
+CONTRACT_DOCUMENT_DELIVERY_INBOX = PageContract(
+    page_id="document_delivery_inbox",
+    title="Document Delivery Inbox",
+    route="/delivery/inbox",
+    roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER, UserRole.ADMIN],
+    primary_groups=["documentation", "output_delivery"],
+    secondary_groups=["functions_actions", "security_validation"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_ACTIVE,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_LINKED,
+        output_delivery=COVERAGE_ACTIVE,
+        help_contacts=COVERAGE_LINKED,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
+    qualification="Tenant receiving documents, or sender checking status.",
+    expectations=(
+        "Tenant views PENDING documents sent by advocates, legal, or managers. "
+        "Each item shows: sender identity, role, timestamp, delivery type (review/sign). "
+        "Tenant must accept/sign or reject each document. Documents never auto-merge into vault. "
+        "Read receipts recorded only if sender required them."
+    ),
+    scope_of_use=(
+        "Inbound document delivery only. Stateless — documents stored in vault as PENDING items, "
+        "not server-side. Tenant owns accept/reject decision. Signature overlays stored in tenant vault."
+    ),
+    entry_criteria=[
+        "Tenant: has PENDING documents in vault",
+        "Sender: checking delivery status of sent documents",
+    ],
+    exit_criteria=[
+        "Tenant reviewed all pending items",
+        "Tenant accepted/signed or rejected document(s)",
+        "Sender verified delivery status",
+    ],
+    telemetry_events=[
+        "delivery_inbox_load",
+        "pending_document_viewed",
+        "document_accepted",
+        "document_rejected",
+        "signature_required_shown",
+        "read_receipt_recorded",
+        "all_pending_cleared",
+    ],
+)
+
+CONTRACT_DOCUMENT_DELIVERY_SEND = PageContract(
+    page_id="document_delivery_send",
+    title="Send Document",
+    route="/delivery/send",
+    roles_supported=[UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER, UserRole.ADMIN],
+    primary_groups=["output_delivery", "functions_actions"],
+    secondary_groups=["documentation", "security_validation"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_LINKED,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_ACTIVE,
+        help_contacts=COVERAGE_NA,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
+    qualification="Advocate, Legal, Manager, or Admin sending documents to tenant.",
+    expectations=(
+        "Sender selects document from vault, chooses tenant recipient, sets delivery type. "
+        "Three delivery types: REVIEW REQUIRED (optional read receipt), "
+        "SIGNATURE REQUIRED (always tracked, tenant must sign or reject), "
+        "PROCESS SERVER (future: formal legal service). "
+        "Document appears in tenant inbox as PENDING. Sender identity and timestamp recorded."
+    ),
+    scope_of_use=(
+        "Outbound document delivery only. Legal professionals sending to tenants. "
+        "Attorney access is invite-only for tenant documents but can send. "
+        "All delivery metadata stored in sender and recipient vaults (stateless)."
+    ),
+    entry_criteria=[
+        "Sender authenticated with advocate/legal/manager/admin role",
+        "Document exists in sender vault",
+        "Tenant recipient identified",
+    ],
+    exit_criteria=[
+        "Document queued for delivery to tenant inbox",
+        "Delivery record created in both vaults",
+        "Tenant notified of pending document",
+    ],
+    telemetry_events=[
+        "delivery_send_load",
+        "recipient_selected",
+        "document_selected",
+        "delivery_type_set",
+        "read_receipt_enabled",
+        "document_sent",
+        "delivery_confirmed",
+    ],
+)
+
+CONTRACT_DOCUMENT_SIGNATURE = PageContract(
+    page_id="document_signature",
+    title="Document Signature",
+    route="/delivery/sign",
+    roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL],
+    primary_groups=["functions_actions", "output_delivery"],
+    secondary_groups=["documentation", "security_validation"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_ACTIVE,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_ACTIVE,
+        help_contacts=COVERAGE_LINKED,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
+    qualification="Tenant signing document sent by advocate/legal, or witness/co-signer.",
+    expectations=(
+        "Tenant reviews document in full. Chooses to sign or reject. "
+        "Signature captured via browser fill-and-sign or typed name. "
+        "Signature overlay created in tenant vault with timestamp, signer identity, hash. "
+        "Rejection also recorded with optional reason. "
+        "Signed document becomes tenant-owned copy in vault; original PENDING cleared."
+    ),
+    scope_of_use=(
+        "Signature capture only. Stateless — signature overlay stored in tenant vault, "
+        "not server-side. Signed document is new document owned by tenant. "
+        "Rejection recorded as overlay without creating new document."
+    ),
+    entry_criteria=[
+        "Tenant has SIGNATURE REQUIRED document in inbox",
+        "Document preview loaded",
+    ],
+    exit_criteria=[
+        "Document signed and saved to vault",
+        "Signature overlay created",
+        "Or: document rejected with optional reason",
+        "Pending item cleared from inbox",
+    ],
+    telemetry_events=[
+        "signature_page_load",
+        "document_reviewed",
+        "signature_captured",
+        "signature_type_selected",
+        "document_signed",
+        "signature_overlay_created",
+        "document_rejected",
+        "rejection_reason_recorded",
+    ],
+)
+
+CONTRACT_DOCUMENT_REJECTION = PageContract(
+    page_id="document_rejection",
+    title="Document Rejection Flow",
+    route="/delivery/reject",
+    roles_supported=[UserRole.USER],
+    primary_groups=["documentation", "functions_actions"],
+    secondary_groups=["help_contacts"],
+    group_coverage=_full_coverage(
+        welcome=COVERAGE_LINKED,
+        security_validation=COVERAGE_ACTIVE,
+        documentation=COVERAGE_ACTIVE,
+        research_knowledge=COVERAGE_NA,
+        functions_actions=COVERAGE_ACTIVE,
+        output_delivery=COVERAGE_NA,
+        help_contacts=COVERAGE_LINKED,
+        system_admin_monitoring=COVERAGE_NA,
+    ),
+    qualification="Tenant declining a SIGNATURE REQUIRED document from inbox.",
+    expectations=(
+        "Tenant declines to sign/receive a document with optional reason. "
+        "Rejection is final and recorded: timestamp + reason (if provided) + tenant identity. "
+        "Uploader (professional) is notified of rejection. "
+        "Document remains in vault as REJECTED overlay — cannot be re-sent without new upload."
+    ),
+    scope_of_use=(
+        "Explicit rejection pathway via Communication System. Tenant control over what they accept. "
+        "Rejection is a valid, final action — no penalty to tenant. "
+        "Stateless — rejection record stored as COMMUNICATION overlay in tenant vault at "
+        "Semptify5.0/Vault/communications/rejections/ with 'DOCUMENT REJECTED' watermark."
+    ),
+    entry_criteria=[
+        "Authenticated tenant",
+        "SIGNATURE REQUIRED document selected from inbox",
+        "Document in PENDING state",
+    ],
+    exit_criteria=[
+        "Rejection submitted with optional reason",
+        "Rejection recorded in vault as COMMUNICATION overlay with watermark",
+        "Conversation message sent to uploader",
+        "Pending item cleared from inbox",
+    ],
+    telemetry_events=[
+        "rejection_flow_load",
+        "rejection_reason_entered",
+        "document_rejected_confirmed",
+        "uploader_notified_via_conversation",
+        "rejection_overlay_created",
+    ],
+    status=STATUS_ACTIVE,  # IMPLEMENTED 2026-04-21 via Communication System
 )
 
 
@@ -2676,6 +3008,7 @@ PAGE_CONTRACTS: dict[str, PageContract] = {
         CONTRACT_TENANCY,
         CONTRACT_ADVOCATE_PORTAL,
         CONTRACT_ADMIN_PORTAL,
+        CONTRACT_MANAGER_PORTAL,
         CONTRACT_LEGAL_PORTAL,
         # Legal / research
         CONTRACT_LAW_LIBRARY,
@@ -2694,6 +3027,11 @@ PAGE_CONTRACTS: dict[str, PageContract] = {
         CONTRACT_CONTACTS,
         CONTRACT_CORRESPONDENCE,
         CONTRACT_LETTER_BUILDER,
+        # Document Delivery Process Group
+        CONTRACT_DOCUMENT_DELIVERY_INBOX,
+        CONTRACT_DOCUMENT_DELIVERY_SEND,
+        CONTRACT_DOCUMENT_SIGNATURE,
+        CONTRACT_DOCUMENT_REJECTION,  # status=active via Communication System
         # Settings / setup
         CONTRACT_SETTINGS,
         CONTRACT_SETUP_WIZARD,
@@ -2779,3 +3117,136 @@ def validate_all_contracts() -> dict[str, list[str]]:
         if violations:
             results[page_id] = violations
     return results
+
+
+# =============================================================================
+# COMING SOON REGISTRY - Planned Features & Todo Tracking
+# =============================================================================
+
+@dataclass
+class ComingSoonFeature:
+    """A planned feature with tracking for completion."""
+    feature_id: str
+    description: str
+    page_id: str | None = None          # Links to PageContract if applicable
+    depends_on: list[str] = None        # List of feature_ids that must complete first
+    eta: str | None = None              # Expected completion (e.g., "Q2 2026")
+    todo_items: list[str] = None        # Checklist of items to complete
+    completed_items: list[str] = None   # Items already done
+    notes: str = ""                     # Additional context
+
+    def __post_init__(self):
+        if self.depends_on is None:
+            self.depends_on = []
+        if self.todo_items is None:
+            self.todo_items = []
+        if self.completed_items is None:
+            self.completed_items = []
+
+    @property
+    def is_ready(self) -> bool:
+        """Check if all dependencies are completed."""
+        return len(self.completed_items) >= len(self.todo_items)
+
+    @property
+    def progress_pct(self) -> float:
+        """Return completion percentage."""
+        if not self.todo_items:
+            return 0.0
+        return len(self.completed_items) / len(self.todo_items) * 100
+
+
+# Global coming soon registry
+COMING_SOON_REGISTRY: dict[str, ComingSoonFeature] = {}
+
+
+def register_coming_soon(feature: ComingSoonFeature) -> ComingSoonFeature:
+    """Register a planned feature."""
+    COMING_SOON_REGISTRY[feature.feature_id] = feature
+    return feature
+
+
+def mark_todo_complete(feature_id: str, todo_item: str) -> bool:
+    """
+    Mark a todo item as complete for a coming soon feature.
+    Returns True if item was found and marked, False otherwise.
+    """
+    if feature_id not in COMING_SOON_REGISTRY:
+        return False
+
+    feature = COMING_SOON_REGISTRY[feature_id]
+    if todo_item in feature.todo_items and todo_item not in feature.completed_items:
+        feature.completed_items.append(todo_item)
+
+        # Auto-promote to active if all todos done and linked to contract
+        if feature.is_ready and feature.page_id:
+            contract = PAGE_CONTRACTS.get(feature.page_id)
+            if contract and contract.status == STATUS_COMING_SOON:
+                # Note: This doesn't auto-change the contract status
+                # That requires explicit user decision
+                pass
+
+        return True
+    return False
+
+
+def get_coming_soon_status() -> dict:
+    """Get status report of all coming soon features."""
+    return {
+        feature_id: {
+            "description": f.description,
+            "progress": f"{f.progress_pct:.0f}%",
+            "completed": len(f.completed_items),
+            "total": len(f.todo_items),
+            "ready": f.is_ready,
+            "page_id": f.page_id,
+        }
+        for feature_id, f in COMING_SOON_REGISTRY.items()
+    }
+
+
+# =============================================================================
+# PRE-REGISTERED COMING SOON FEATURES
+# =============================================================================
+
+# Document Rejection Flow - IMPLEMENTED via Communication System
+DOCUMENT_REJECTION_COMING_SOON = register_coming_soon(
+    ComingSoonFeature(
+        feature_id="document_rejection_flow",
+        description="Tenant can reject signature-required documents with optional reason - STORED IN VAULT",
+        page_id="document_rejection",  # Links to CONTRACT_DOCUMENT_REJECTION (status=active via comms)
+        eta="COMPLETE - 2026-04-21",
+        depends_on=["document_delivery_send", "document_signature"],
+        todo_items=[
+            "Create CONTRACT_DOCUMENT_REJECTION page contract",
+            "Add rejection flow to delivery router",
+            "Implement rejection overlay in vault",
+            "Add uploader notification on rejection",
+            "Create rejection UI in static HTML",
+        ],
+        completed_items=[
+            "Create CONTRACT_DOCUMENT_REJECTION page contract",  # ✅ Done 2026-04-21
+            "Add rejection flow to delivery router",  # ✅ /api/delivery/{id}/reject
+            "Implement rejection overlay in vault",  # ✅ COMMUNICATION type overlay with watermark
+            "Create rejection UI in static HTML",  # ✅ document_signer.html modal
+        ],
+        notes="COMPLETE: Rejection records saved as COMMUNICATION overlays with 'DOCUMENT REJECTED' watermark in Semptify5.0/Vault/communications/rejections/",
+    )
+)
+
+# Process Server - Future legal service feature
+PROCESS_SERVER_COMING_SOON = register_coming_soon(
+    ComingSoonFeature(
+        feature_id="process_server",
+        description="Formal legal service of process with full legal service record",
+        eta="Future - legal integration required",
+        depends_on=["document_delivery_system"],
+        todo_items=[
+            "Legal compliance review",
+            "Process server integration",
+            "Service of process record format",
+            "Court acceptance verification",
+        ],
+        notes="Future feature for formal legal document service. Not in current scope.",
+    )
+)

@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify - Document Signer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+        }
+
+        .document-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .document-header {
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+
+        .document-header h2 {
+            color: #667eea;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .document-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .document-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-signed { background: #d4edda; color: #155724; }
+        .status-rejected { background: #f8d7da; color: #721c24; }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            font-size: 18px;
+            color: #444;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="tel"],
+        .form-group input[type="date"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+        }
+
+        .checkbox-group label {
+            font-weight: normal;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        /* Signature Section */
+        .signature-section {
+            background: #f9f9f9;
+            border: 2px dashed #ddd;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .signature-tabs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .signature-tab {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .signature-tab:hover {
+            border-color: #667eea;
+        }
+
+        .signature-tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .signature-panel {
+            display: none;
+        }
+
+        .signature-panel.active {
+            display: block;
+        }
+
+        /* Typed Signature */
+        .typed-signature input {
+            font-size: 32px;
+            font-family: 'Brush Script MT', cursive;
+            text-align: center;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .signature-preview {
+            margin-top: 15px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Brush Script MT', cursive;
+            font-size: 48px;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        /* Drawn Signature */
+        .signature-pad {
+            background: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .signature-pad-buttons {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        /* Terms Section */
+        .terms-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .terms-section h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .terms-content {
+            max-height: 150px;
+            overflow-y: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: white;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        /* Success/Error Messages */
+        .message {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.active {
+            display: block;
+        }
+
+        .message-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Communication Panel */
+        .communication-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .communication-panel h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .chat-messages {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: #f9f9f9;
+        }
+
+        .chat-message {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .chat-message.sent {
+            background: #667eea;
+            color: white;
+            margin-left: 20%;
+        }
+
+        .chat-message.received {
+            background: #e9ecef;
+            margin-right: 20%;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            header {
+                padding: 20px 15px;
+            }
+
+            header h1 {
+                font-size: 22px;
+            }
+
+            .document-card {
+                padding: 20px;
+            }
+
+            .document-meta {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📄 Document Signer</h1>
+            <p>Review, fill out, and sign your documents securely</p>
+        </header>
+
+        <div id="successMessage" class="message message-success"></div>
+        <div id="errorMessage" class="message message-error"></div>
+
+        <div class="document-card">
+            <div class="document-header">
+                <h2 id="documentName">Loading document...</h2>
+                <div class="document-meta">
+                    <span id="senderInfo">👤 From: Loading...</span>
+                    <span id="sentDate">📅 Sent: Loading...</span>
+                    <span id="statusBadge" class="status-badge status-pending">PENDING</span>
+                </div>
+            </div>
+
+            <div id="documentMessage" class="terms-section" style="display: none;">
+                <h4>📨 Message from Sender</h4>
+                <p id="messageContent"></p>
+            </div>
+
+            <!-- Document Form Fields -->
+            <div class="form-section" id="formFieldsSection">
+                <h3>📝 Form Fields</h3>
+                <div id="formFields">
+                    <!-- Dynamic form fields will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Document Preview -->
+            <div class="form-section">
+                <h3>📄 Document Preview</h3>
+                <div id="documentPreview" style="border: 1px solid #ddd; padding: 20px; min-height: 300px; background: #fafafa;">
+                    <p style="text-align: center; color: #999;">Document preview will appear here</p>
+                </div>
+            </div>
+
+            <!-- Terms and Conditions -->
+            <div class="terms-section">
+                <h4>📋 Terms and Conditions</h4>
+                <div class="terms-content">
+                    By signing this document, you agree to the terms and conditions outlined herein. 
+                    This electronic signature is legally binding and equivalent to a handwritten signature. 
+                    You confirm that you have read and understood all provisions of this document.
+                </div>
+                <div class="checkbox-group" style="margin-top: 15px;">
+                    <input type="checkbox" id="agreeTerms" required>
+                    <label for="agreeTerms">I have read and agree to the terms and conditions</label>
+                </div>
+            </div>
+
+            <!-- Signature Section -->
+            <div class="form-section">
+                <h3>✍️ Your Signature</h3>
+                <div class="signature-section">
+                    <div class="signature-tabs">
+                        <button class="signature-tab active" onclick="switchTab('typed')">Type Signature</button>
+                        <button class="signature-tab" onclick="switchTab('drawn')">Draw Signature</button>
+                    </div>
+
+                    <!-- Typed Signature -->
+                    <div id="typedPanel" class="signature-panel active">
+                        <div class="typed-signature">
+                            <input type="text" id="typedSignature" placeholder="Type your full name" 
+                                   oninput="updateSignaturePreview()" style="font-family: inherit;">
+                        </div>
+                        <div class="signature-preview" id="signaturePreview">
+                            Your signature will appear here
+                        </div>
+                    </div>
+
+                    <!-- Drawn Signature -->
+                    <div id="drawnPanel" class="signature-panel">
+                        <canvas id="signaturePad" class="signature-pad" width="600" height="200"></canvas>
+                        <div class="signature-pad-buttons">
+                            <button class="btn btn-secondary" onclick="clearSignature()">Clear</button>
+                            <button class="btn btn-secondary" onclick="saveSignature()">Save Signature</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="btn btn-danger" onclick="rejectDocument()">❌ Reject Document</button>
+                <button class="btn btn-primary" onclick="fillAndSignDocument()">✅ Fill & Sign Document</button>
+            </div>
+        </div>
+
+        <!-- Communication Panel -->
+        <div class="communication-panel">
+            <h3>💬 Discussion</h3>
+            <div class="chat-messages" id="chatMessages">
+                <div class="chat-message received">
+                    <strong>System:</strong> Start a conversation about this document.
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Type a message...">
+                <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Processing your document...</div>
+    </div>
+
+    <!-- Rejection Modal -->
+    <div id="rejectionModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 30px; border-radius: 12px; max-width: 500px; width: 90%;">
+            <h3 style="margin-bottom: 15px;">Reject Document</h3>
+            <p style="margin-bottom: 15px; color: #666;">Please provide a reason for rejecting this document. This will be shared with the sender.</p>
+            <textarea id="rejectionReason" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; min-height: 100px; margin-bottom: 20px;" placeholder="Enter your reason here..."></textarea>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeRejectionModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmReject()">Confirm Rejection</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let deliveryId = null;
+        let accessToken = null;
+        let conversationId = null;
+        let signatureCanvas = null;
+        let signatureCtx = null;
+        let isDrawing = false;
+        let savedSignature = null;
+        let currentDelivery = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            deliveryId = urlParams.get('delivery_id');
+            accessToken = urlParams.get('access_token');
+            conversationId = urlParams.get('conversation_id');
+
+            if (!deliveryId || !accessToken) {
+                showError('Missing required parameters: delivery_id and access_token');
+                return;
+            }
+
+            // Initialize signature pad
+            initSignaturePad();
+
+            // Load document
+            loadDocument();
+
+            // Load messages if conversation exists
+            if (conversationId) {
+                loadMessages();
+            }
+        });
+
+        // Signature Pad Functions
+        function initSignaturePad() {
+            signatureCanvas = document.getElementById('signaturePad');
+            if (!signatureCanvas) return;
+
+            signatureCtx = signatureCanvas.getContext('2d');
+            signatureCtx.strokeStyle = '#000';
+            signatureCtx.lineWidth = 2;
+            signatureCtx.lineCap = 'round';
+
+            // Mouse events
+            signatureCanvas.addEventListener('mousedown', startDrawing);
+            signatureCanvas.addEventListener('mousemove', draw);
+            signatureCanvas.addEventListener('mouseup', stopDrawing);
+            signatureCanvas.addEventListener('mouseout', stopDrawing);
+
+            // Touch events
+            signatureCanvas.addEventListener('touchstart', handleTouch);
+            signatureCanvas.addEventListener('touchmove', handleTouch);
+            signatureCanvas.addEventListener('touchend', stopDrawing);
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = signatureCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            signatureCtx.beginPath();
+            signatureCtx.moveTo(x, y);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = signatureCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            signatureCtx.lineTo(x, y);
+            signatureCtx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            signatureCtx.beginPath();
+        }
+
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 'mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            signatureCanvas.dispatchEvent(mouseEvent);
+        }
+
+        function clearSignature() {
+            if (!signatureCtx) return;
+            signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+            savedSignature = null;
+        }
+
+        function saveSignature() {
+            if (!signatureCanvas) return;
+            savedSignature = signatureCanvas.toDataURL('image/png');
+            showSuccess('Signature saved!');
+        }
+
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.signature-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.signature-panel').forEach(p => p.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Panel').classList.add('active');
+        }
+
+        function updateSignaturePreview() {
+            const input = document.getElementById('typedSignature');
+            const preview = document.getElementById('signaturePreview');
+            preview.textContent = input.value || 'Your signature will appear here';
+        }
+
+        // API Functions
+        async function loadDocument() {
+            showLoading(true);
+
+            try {
+                const formData = new FormData();
+                formData.append('access_token', accessToken);
+
+                const response = await fetch(`/api/delivery/${deliveryId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load document');
+                }
+
+                const data = await response.json();
+                currentDelivery = data.delivery;
+
+                // Update UI
+                document.getElementById('documentName').textContent = currentDelivery.document_filename;
+                document.getElementById('senderInfo').textContent = `👤 From: ${currentDelivery.sender_name} (${currentDelivery.sender_role})`;
+                document.getElementById('sentDate').textContent = `📅 Sent: ${new Date(currentDelivery.sent_at).toLocaleDateString()}`;
+
+                const statusBadge = document.getElementById('statusBadge');
+                statusBadge.textContent = currentDelivery.status.toUpperCase();
+                statusBadge.className = `status-badge status-${currentDelivery.status}`;
+
+                if (currentDelivery.message) {
+                    document.getElementById('documentMessage').style.display = 'block';
+                    document.getElementById('messageContent').textContent = currentDelivery.message;
+                }
+
+                // Load document preview (placeholder)
+                loadDocumentPreview(currentDelivery.document_id);
+
+            } catch (error) {
+                showError('Error loading document: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function loadDocumentPreview(documentId) {
+            // This would load the actual document preview
+            // For now, show a placeholder
+            const preview = document.getElementById('documentPreview');
+            preview.innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <p style="font-size: 18px; color: #667eea; margin-bottom: 10px;">Document Ready for Review</p>
+                    <p style="color: #666;">Document ID: ${documentId}</p>
+                    <p style="color: #999; margin-top: 20px;">Use the form fields below to fill out required information before signing.</p>
+                </div>
+            `;
+
+            // Generate some example form fields
+            const formFields = document.getElementById('formFields');
+            formFields.innerHTML = `
+                <div class="form-group">
+                    <label for="fullName">Full Name *</label>
+                    <input type="text" id="fullName" name="fullName" placeholder="Enter your full legal name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="date">Date *</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+            `;
+
+            // Set today's date as default
+            document.getElementById('date').valueAsDate = new Date();
+        }
+
+        async function fillAndSignDocument() {
+            // Validate
+            const agreeTerms = document.getElementById('agreeTerms').checked;
+            if (!agreeTerms) {
+                showError('You must agree to the terms and conditions');
+                return;
+            }
+
+            const fullName = document.getElementById('fullName')?.value;
+            if (!fullName) {
+                showError('Please fill in all required fields');
+                return;
+            }
+
+            // Get signature
+            let signatureValue = '';
+            const typedSig = document.getElementById('typedSignature').value;
+            
+            if (typedSig) {
+                signatureValue = typedSig;
+            } else if (savedSignature) {
+                signatureValue = savedSignature;
+            } else {
+                showError('Please provide your signature');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const formData = new FormData();
+                formData.append('access_token', accessToken);
+                formData.append('signature_type', typedSig ? 'typed' : 'drawn');
+                formData.append('signature_value', signatureValue);
+                formData.append('agree_to_terms', 'true');
+                formData.append('field_1', fullName);
+                formData.append('field_2', document.getElementById('email')?.value || '');
+                formData.append('field_3', document.getElementById('date')?.value || '');
+
+                const response = await fetch(`/api/communications/documents/${deliveryId}/fill-and-sign`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to sign document');
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess('Document signed successfully! Document ID: ' + data.document_id);
+                    
+                    // Update status badge
+                    const statusBadge = document.getElementById('statusBadge');
+                    statusBadge.textContent = 'SIGNED';
+                    statusBadge.className = 'status-badge status-signed';
+
+                    // Disable buttons
+                    document.querySelectorAll('.action-buttons button').forEach(btn => {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                    });
+
+                    // Send success message to chat
+                    if (conversationId) {
+                        sendSystemMessage('Document has been signed and saved to vault.');
+                    }
+                } else {
+                    throw new Error(data.error || 'Failed to sign document');
+                }
+
+            } catch (error) {
+                showError('Error signing document: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function rejectDocument() {
+            document.getElementById('rejectionModal').style.display = 'flex';
+        }
+
+        function closeRejectionModal() {
+            document.getElementById('rejectionModal').style.display = 'none';
+        }
+
+        async function confirmReject() {
+            const reason = document.getElementById('rejectionReason').value.trim();
+            if (!reason) {
+                alert('Please provide a reason for rejection');
+                return;
+            }
+
+            showLoading(true);
+
+            try {
+                const formData = new FormData();
+                formData.append('access_token', accessToken);
+                formData.append('reason', reason);
+
+                const response = await fetch(`/api/communications/documents/${deliveryId}/reject`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to reject document');
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess('Document rejected. Reason recorded.');
+                    
+                    // Update status badge
+                    const statusBadge = document.getElementById('statusBadge');
+                    statusBadge.textContent = 'REJECTED';
+                    statusBadge.className = 'status-badge status-rejected';
+
+                    // Disable buttons
+                    document.querySelectorAll('.action-buttons button').forEach(btn => {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                    });
+
+                    closeRejectionModal();
+
+                    // Send message to chat
+                    if (conversationId) {
+                        sendSystemMessage(`Document rejected. Reason: ${reason}`);
+                    }
+                } else {
+                    throw new Error(data.message || 'Failed to reject document');
+                }
+
+            } catch (error) {
+                showError('Error rejecting document: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Communication Functions
+        async function loadMessages() {
+            // This would load existing messages
+            // For now, just a placeholder
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const content = input.value.trim();
+
+            if (!content) return;
+
+            // Add to chat immediately
+            addMessageToChat(content, 'sent');
+            input.value = '';
+
+            // If no conversation exists, create one
+            if (!conversationId && currentDelivery) {
+                try {
+                    const response = await fetch('/api/communications/conversations', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            access_token: accessToken,
+                            title: `Document: ${currentDelivery.document_filename}`,
+                            recipient_ids: [currentDelivery.sender_id],
+                            initial_message: content
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        conversationId = data.conversation_id;
+                    }
+                } catch (error) {
+                    console.error('Failed to create conversation:', error);
+                }
+            }
+        }
+
+        function addMessageToChat(content, type) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${type}`;
+            messageDiv.innerHTML = `<strong>${type === 'sent' ? 'You' : 'Them'}:</strong> ${escapeHtml(content)}`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function sendSystemMessage(content) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message received';
+            messageDiv.style.background = '#d4edda';
+            messageDiv.style.color = '#155724';
+            messageDiv.innerHTML = `<strong>System:</strong> ${escapeHtml(content)}`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Utility Functions
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').classList.toggle('active', show);
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.classList.add('active');
+            setTimeout(() => el.classList.remove('active'), 5000);
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.classList.add('active');
+            setTimeout(() => el.classList.remove('active'), 5000);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

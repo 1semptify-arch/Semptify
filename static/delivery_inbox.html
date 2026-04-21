@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify - Document Delivery Inbox</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+        header h1 { font-size: 28px; margin-bottom: 10px; }
+        .inbox-stats {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+        .stat-box strong { display: block; font-size: 24px; }
+        .document-list {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .document-item {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+        .document-item:hover { background: #f9f9f9; }
+        .document-item:last-child { border-bottom: none; }
+        .document-info { flex: 1; }
+        .document-info h3 { color: #667eea; margin-bottom: 5px; }
+        .document-meta { color: #666; font-size: 14px; }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-signed { background: #d4edda; color: #155724; }
+        .status-rejected { background: #f8d7da; color: #721c24; }
+        .status-viewed { background: #d1ecf1; color: #0c5460; }
+        .document-actions { display: flex; gap: 10px; }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .btn-secondary:hover { background: #e0e0e0; }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            fill: #ddd;
+        }
+        .filter-bar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filter-bar select, .filter-bar input {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .delivery-type {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .type-signature { background: #ffeaa7; color: #d63031; }
+        .type-review { background: #74b9ff; color: #0984e3; }
+        @media (max-width: 768px) {
+            .document-item { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .document-actions { width: 100%; }
+            .btn { flex: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📬 Document Delivery Inbox</h1>
+            <p>Documents sent to you for review or signature</p>
+            <div class="inbox-stats">
+                <div class="stat-box">
+                    <strong id="pendingCount">0</strong>
+                    <span>Pending</span>
+                </div>
+                <div class="stat-box">
+                    <strong id="signatureCount">0</strong>
+                    <span>Need Signature</span>
+                </div>
+                <div class="stat-box">
+                    <strong id="totalCount">0</strong>
+                    <span>Total</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="filter-bar">
+            <label>Filter:</label>
+            <select id="statusFilter">
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="viewed">Viewed</option>
+                <option value="signed">Signed</option>
+                <option value="rejected">Rejected</option>
+            </select>
+            <select id="typeFilter">
+                <option value="all">All Types</option>
+                <option value="signature_required">Signature Required</option>
+                <option value="review_required">Review Required</option>
+            </select>
+            <input type="text" id="searchInput" placeholder="Search documents...">
+        </div>
+
+        <div class="document-list" id="documentList">
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 7h10v2H7V7zm0 4h10v2H7v-2zm0 4h7v2H7v-2z"/></svg>
+                <h3>No documents in your inbox</h3>
+                <p>When someone sends you a document, it will appear here.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const accessToken = urlParams.get('access_token');
+
+        async function loadInbox() {
+            if (!accessToken) {
+                alert('Missing access token');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('access_token', accessToken);
+
+                const response = await fetch('/api/delivery/inbox', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) throw new Error('Failed to load inbox');
+
+                const data = await response.json();
+                
+                document.getElementById('pendingCount').textContent = data.pending_signature_count || 0;
+                document.getElementById('signatureCount').textContent = data.pending_signature_count || 0;
+                document.getElementById('totalCount').textContent = data.count || 0;
+
+                renderDocuments(data.deliveries || []);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function renderDocuments(deliveries) {
+            const list = document.getElementById('documentList');
+            
+            if (deliveries.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 7h10v2H7V7zm0 4h10v2H7v-2zm0 4h7v2H7v-2z"/></svg>
+                        <h3>No documents in your inbox</h3>
+                        <p>When someone sends you a document, it will appear here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = deliveries.map(d => `
+                <div class="document-item" data-id="${d.delivery_id}">
+                    <div class="document-info">
+                        <h3>
+                            ${d.document_filename}
+                            <span class="delivery-type ${d.delivery_type === 'signature_required' ? 'type-signature' : 'type-review'}">
+                                ${d.delivery_type === 'signature_required' ? 'SIGNATURE REQUIRED' : 'REVIEW REQUIRED'}
+                            </span>
+                        </h3>
+                        <div class="document-meta">
+                            From: <strong>${d.sender_name}</strong> (${d.sender_role}) 
+                            ${d.sender_organization ? `- ${d.sender_organization}` : ''} • 
+                            Sent: ${new Date(d.sent_at).toLocaleDateString()}
+                            ${d.deadline ? `• Deadline: ${new Date(d.deadline).toLocaleDateString()}` : ''}
+                            ${d.has_message ? '• 📨 Has message' : ''}
+                        </div>
+                    </div>
+                    <span class="status-badge status-${d.status}">${d.status}</span>
+                    <div class="document-actions">
+                        ${d.delivery_type === 'signature_required' && d.status === 'pending' ? `
+                            <button class="btn btn-primary" onclick="openDocument('${d.delivery_id}')">Sign Document</button>
+                        ` : `
+                            <button class="btn btn-secondary" onclick="viewDocument('${d.delivery_id}')">View</button>
+                        `}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openDocument(deliveryId) {
+            window.location.href = `/document_signer.html?delivery_id=${deliveryId}&access_token=${accessToken}`;
+        }
+
+        function viewDocument(deliveryId) {
+            window.location.href = `/document_signer.html?delivery_id=${deliveryId}&access_token=${accessToken}&mode=view`;
+        }
+
+        // Filter handlers
+        document.getElementById('statusFilter').addEventListener('change', loadInbox);
+        document.getElementById('typeFilter').addEventListener('change', loadInbox);
+        document.getElementById('searchInput').addEventListener('input', loadInbox);
+
+        // Load on page load
+        loadInbox();
+    </script>
+</body>
+</html>
