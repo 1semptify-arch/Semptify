@@ -123,6 +123,7 @@ search_router = _safe_router_import("app.routers.search")
 court_forms_router = _safe_router_import("app.routers.court_forms")
 zoom_court_prep_router = _safe_router_import("app.routers.zoom_court_prep")
 pdf_tools_router = _safe_router_import("app.routers.pdf_tools")
+tools_api_router = _safe_router_import("app.routers.tools_api")
 briefcase_router = _safe_router_import("app.routers.briefcase")
 emotion_router = _safe_router_import("app.routers.emotion")
 court_packet_router = _safe_router_import("app.routers.court_packet")
@@ -1778,6 +1779,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(zoom_court_prep_router, tags=["Zoom Court Prep"])  # Hearing preparation and tech checks
     if pdf_tools_router:
         fastapi_app.include_router(pdf_tools_router, tags=["PDF Tools"])  # PDF reader, viewer, page extractor
+    if tools_api_router:
+        fastapi_app.include_router(tools_api_router, tags=["Tools"])  # Calculators, generators, checklists wiring
     if briefcase_router:
         fastapi_app.include_router(briefcase_router, tags=["Briefcase"])  # Document & folder organization system
     if emotion_router:
