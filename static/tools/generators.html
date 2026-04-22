@@ -342,7 +342,7 @@
       const date = document.getElementById('rr-date').valueAsDate?.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) || new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
       const issue = document.getElementById('rr-issue').value.trim() || '[Describe the repair issue here]';
       const deadline = document.getElementById('rr-deadline').value;
-      const dlStr = deadline ? `Please complete the repair by ${new Date(deadline+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric')}.` : 'Please complete the repair within a reasonable time, not to exceed the timeframe required by state and local law.';
+      const dlStr = deadline ? `Please complete the repair by ${(new Date(deadline+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}))}.` : 'Please complete the repair within a reasonable time, not to exceed the timeframe required by state and local law.';
       const tpl = templates.repair;
       let urgency = '';
       if (tpl === 'urgent') urgency = 'This is an urgent habitability issue that affects the health and safety of the occupants. ';
@@ -383,7 +383,7 @@ ${addr}`;
       const type = document.getElementById('nr-type');
       const noticeName = type.options[type.selectedIndex].text;
       const noticeDate = document.getElementById('nr-notice-date').value;
-      const ndStr = noticeDate ? ` dated ${new Date(noticeDate+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric')}` : '';
+      const ndStr = noticeDate ? ` dated ${(new Date(noticeDate+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}))}` : '';
       const defense = document.getElementById('nr-defense').value.trim() || '[Your response or defense]';
       const tpl = templates.notice;
       let tone = '';
@@ -473,9 +473,31 @@ ${addr}`;
       navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
     }
 
-    function saveToVault(id) {
+    async function saveToVault(id) {
       const text = document.getElementById(id).querySelector('pre')?.textContent || '';
-      alert('This would save the generated letter to your vault. Vault upload coming soon.');
+      if (!text.trim()) { alert('Generate a letter first.'); return; }
+      const typeMap = { 'rr-preview': 'repair', 'nr-preview': 'notice', 'sd-preview': 'deposit_demand' };
+      const type = typeMap[id] || 'letter';
+      const btn = document.getElementById(id.replace('preview','actions'))?.querySelector('[onclick*="saveToVault"]') || {textContent:''};
+      const originalText = btn.textContent;
+      try {
+        btn.textContent = 'Saving...';
+        const resp = await fetch('/api/tools/save-letter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ letter_text: text, letter_type: type, title: type + '-letter' })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          alert('Saved to vault: ' + (data.filename || ''));
+        } else {
+          alert('Save failed: ' + (data.message || resp.statusText));
+        }
+      } catch (e) {
+        alert('Save failed: ' + e.message);
+      } finally {
+        if (originalText) btn.textContent = originalText;
+      }
     }
   </script>
 </body>

@@ -280,16 +280,30 @@
       document.getElementById('total-progress').textContent = totalItems ? Math.round((totalChecked / totalItems) * 100) + '%' : '0%';
     }
 
-    function saveList(listId) {
+    async function saveList(listId) {
       const container = document.getElementById('list-' + listId);
       const items = container.querySelectorAll('.checklist-item');
-      const data = [];
-      items.forEach(item => {
+      const data = {};
+      items.forEach((item, idx) => {
         const cb = item.querySelector('input');
         const label = item.querySelector('label');
-        data.push({ text: label.childNodes[0].textContent.trim(), checked: cb.checked });
+        data[idx] = { text: label.childNodes[0].textContent.trim(), checked: cb.checked };
       });
-      alert('This would save the checklist state to your vault. Coming soon.\n\nChecked: ' + data.filter(d => d.checked).length + ' / ' + data.length);
+      try {
+        const resp = await fetch('/api/tools/save-checklist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ checklist_data: data, checklist_type: listId })
+        });
+        const result = await resp.json();
+        if (result.success) {
+          alert('Saved to vault: ' + (result.filename || '') + '\n\nChecked: ' + Object.values(data).filter(d => d.checked).length + ' / ' + items.length);
+        } else {
+          alert('Save failed: ' + (result.message || resp.statusText));
+        }
+      } catch (e) {
+        alert('Save failed: ' + e.message);
+      }
     }
 
     function printList(listId) {

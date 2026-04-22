@@ -272,13 +272,27 @@ async function uploadToVault(fileCount) {
   };
   
   console.log('Vault upload prepared:', uploadData);
-  
-  // TODO: Send to backend
-  // POST /api/vault/upload with FormData containing actual files + metadata JSON
-  
-  // Simulate success
-  alert(`${fileCount} document(s) uploaded to your vault.\n\nOverlay processing started.\nBlockchain timestamp applied.\nSaved to your Google Drive.`);
-  
+
+  const formData = new FormData();
+  files.forEach(file => formData.append('files', file));
+  formData.append('metadata', JSON.stringify(uploadData));
+
+  try {
+    const resp = await fetch('/api/vault/sidebar/upload', {
+      method: 'POST',
+      body: formData
+    });
+    const result = await resp.json();
+    if (resp.ok) {
+      alert(`${fileCount} document(s) uploaded to your vault.\n\nOverlay processing started.\nBlockchain timestamp applied.\nSaved to your cloud storage.`);
+    } else {
+      const detail = result.detail || result.message || resp.statusText;
+      alert('Upload failed: ' + detail + '\n\nPlease sign in and connect your cloud storage to use the vault.');
+    }
+  } catch (e) {
+    alert('Upload failed: ' + e.message + '\n\nPlease check your connection and try again.');
+  }
+
   closeVaultCapture();
 }
 
