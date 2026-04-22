@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard – Semptify</title>
+  <style>
+    :root{--hdr1:#0c4a6e;--hdr2:#075985;--accent:#0369a1;--accent2:#38bdf8;--light:#f0f9ff}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f9ff;color:#1a1a2e}
+    header{background:linear-gradient(135deg,var(--hdr1),var(--hdr2));color:#fff;position:sticky;top:0;z-index:100}
+    .header-inner{max-width:1200px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;height:64px;gap:1rem}
+    .logo{font-weight:800;font-size:1.3rem;margin-right:0.5rem;white-space:nowrap;text-decoration:none;color:#fff}
+    nav.core-nav{display:flex;gap:0.25rem;flex:1}
+    nav.core-nav a{color:rgba(255,255,255,0.8);text-decoration:none;padding:0.4rem 0.75rem;border-radius:6px;font-size:0.9rem;white-space:nowrap}
+    nav.core-nav a:hover,nav.core-nav a.active{background:rgba(255,255,255,0.15);color:#fff}
+    .header-actions{display:flex;gap:0.5rem;margin-left:auto}
+    .vault-btn{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;padding:0.45rem 1rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem}
+    .user-btn{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3);padding:0.45rem 0.9rem;border-radius:8px;cursor:pointer;font-size:0.85rem}
+    .hamburger{display:none;background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer}
+    .role-banner{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;padding:0.45rem 0;font-size:0.82rem;text-align:center}
+    .main{max-width:1200px;margin:0 auto;padding:1.5rem;display:grid;grid-template-columns:1fr 300px;gap:1.5rem}
+    .hero{background:linear-gradient(135deg,var(--hdr1),var(--accent2));color:#fff;border-radius:14px;padding:1.75rem 2rem;margin-bottom:1.25rem}
+    .hero h1{font-size:1.5rem;font-weight:800;margin-bottom:0.35rem}
+    .hero p{opacity:0.9;font-size:0.95rem}
+    .grid-2{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:1.25rem}
+    .card{background:#fff;border:1px solid #e0e0e0;border-radius:12px;padding:1.25rem;transition:all 0.15s}
+    .card:hover{border-color:var(--accent);box-shadow:0 2px 8px rgba(3,105,161,0.08)}
+    .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem}
+    .card-title{font-weight:700;font-size:0.95rem;color:#1a1a2e}
+    .card-icon{font-size:1.4rem}
+    .card-body{font-size:0.88rem;color:#555;line-height:1.6}
+    .card-action{display:inline-block;margin-top:0.75rem;color:var(--accent);font-weight:600;font-size:0.85rem;text-decoration:none}
+    .metric-row{display:flex;align-items:center;gap:0.75rem;padding:0.65rem 0;border-bottom:1px solid #f0f0f0;font-size:0.88rem}
+    .metric-row:last-child{border-bottom:none}
+    .metric-stat{font-size:1.5rem;font-weight:800;color:var(--accent);flex-shrink:0;min-width:48px;text-align:right}
+    .metric-info{flex:1}
+    .metric-name{font-weight:600}
+    .metric-meta{font-size:0.75rem;color:#888}
+    .badge{font-size:0.68rem;font-weight:600;padding:0.12rem 0.4rem;border-radius:6px;white-space:nowrap}
+    .badge-up{background:#d1fae5;color:#065f46}
+    .badge-down{background:#fee2e2;color:#991b1b}
+    .badge-new{background:#dbeafe;color:#1e40af}
+    .activity-item{display:flex;gap:0.75rem;padding:0.65rem 0;border-bottom:1px solid #f0f0f0;font-size:0.85rem}
+    .activity-item:last-child{border-bottom:none}
+    .activity-icon{font-size:1.1rem;flex-shrink:0}
+    .activity-text{flex:1;color:#444}
+    .activity-time{font-size:0.72rem;color:#888;white-space:nowrap}
+    .stat-row{display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;border-bottom:1px solid #f0f0f0;font-size:0.88rem}
+    .stat-row:last-child{border-bottom:none}
+    .stat-val{font-weight:700;color:var(--accent)}
+    .btn-block{display:block;text-align:center;background:var(--light);color:var(--accent);border:1px solid #bae6fd;padding:0.6rem;border-radius:10px;font-weight:700;font-size:0.9rem;text-decoration:none;margin-bottom:0.5rem;transition:all 0.15s}
+    .btn-block:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+    .btn-block.vault{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none}
+    .btn-block.vault:hover{filter:brightness(1.1)}
+    footer{background:linear-gradient(135deg,var(--hdr1),var(--hdr2));color:rgba(255,255,255,0.8);text-align:center;padding:1.25rem;font-size:0.82rem;margin-top:2rem}
+    footer a{color:rgba(255,255,255,0.7);margin:0 0.5rem;text-decoration:none}
+    .nav-drawer{display:none;position:fixed;top:0;left:0;width:280px;height:100vh;background:var(--hdr1);z-index:999;padding:1.5rem;flex-direction:column;gap:0.5rem}
+    .nav-drawer.open{display:flex}
+    .nav-drawer a{color:rgba(255,255,255,0.85);text-decoration:none;padding:0.75rem 1rem;border-radius:8px;font-size:1rem;display:flex;align-items:center;gap:0.75rem}
+    .nav-drawer a:hover{background:rgba(255,255,255,0.1)}
+    .drawer-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:998}
+    .drawer-backdrop.open{display:block}
+    @media(max-width:900px){.main{grid-template-columns:1fr}}
+    @media(max-width:768px){nav.core-nav{display:none}.hamburger{display:block}.grid-2{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+      <strong style="color:#fff">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer">✕</button>
+    </div>
+    <a href="/admin/dashboard.html" style="color:#fbbf24;font-weight:700">🏠 Dashboard</a>
+    <a href="/library.html">📚 Library</a>
+    <a href="/office.html">🏢 Office</a>
+    <a href="/tools.html">🔧 Tools</a>
+    <a href="/help.html">🆘 Help</a>
+    <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0">
+    <a href="/admin/function-browser.html">⚙️ Function Browser</a>
+    <a href="/admin/theme-preview.html">🎨 Theme Preview</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <a href="/home.html" class="logo">Semptify</a>
+      <nav class="core-nav">
+        <a href="/admin/dashboard.html" class="active">🏠 Home</a>
+        <a href="/library.html">📚 Library</a>
+        <a href="/office.html">🏢 Office</a>
+        <a href="/tools.html">🔧 Tools</a>
+        <a href="/help.html">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">🔒 Vault</button>
+        <button class="user-btn">🔧 Admin</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="role-banner">🔧 Admin View — System overview and operations</div>
+
+  <div class="main">
+    <div>
+      <div class="hero">
+        <h1>System Overview</h1>
+        <p><strong>1,247 users</strong>, <strong>342 active cases</strong>, <strong>98 documents uploaded today</strong>, <strong>99.9% uptime</strong>.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📊 Platform Metrics</span>
+            <span class="card-icon">📈</span>
+          </div>
+          <div class="card-body">
+            <div class="metric-row">
+              <span class="metric-stat">1,247</span>
+              <div class="metric-info">
+                <div class="metric-name">Total Users</div>
+                <div class="metric-meta">+34 this week <span class="badge badge-up">+2.8%</span></div>
+              </div>
+            </div>
+            <div class="metric-row">
+              <span class="metric-stat">342</span>
+              <div class="metric-info">
+                <div class="metric-name">Active Cases</div>
+                <div class="metric-meta">+12 this week <span class="badge badge-up">+3.6%</span></div>
+              </div>
+            </div>
+            <div class="metric-row">
+              <span class="metric-stat">4,821</span>
+              <div class="metric-info">
+                <div class="metric-name">Documents in Vaults</div>
+                <div class="metric-meta">+156 today <span class="badge badge-up">+3.3%</span></div>
+              </div>
+            </div>
+            <div class="metric-row">
+              <span class="metric-stat">89</span>
+              <div class="metric-info">
+                <div class="metric-name">Pending Signatures</div>
+                <div class="metric-meta">-5 this week <span class="badge badge-down">-5.3%</span></div>
+              </div>
+            </div>
+          </div>
+          <a href="#" class="card-action">Full analytics →</a>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">👥 User Breakdown</span>
+            <span class="card-icon">🌐</span>
+          </div>
+          <div class="card-body">
+            <div class="metric-row">
+              <span class="metric-stat" style="color:#7c3aed">842</span>
+              <div class="metric-info">
+                <div class="metric-name">Tenants</div>
+                <div class="metric-meta">67.5% of users</div>
+              </div>
+            </div>
+            <div class="metric-row">
+              <span class="metric-stat" style="color:#15803d">267</span>
+              <div class="metric-info">
+                <div class="metric-name">Advocates</div>
+                <div class="metric-meta">21.4% of users</div>
+              </div>
+            </div>
+            <div class="metric-row">
+              <span class="metric-stat" style="color:#b91c1c">89</span>
+              <div class="metric-info">
+                <div class="metric-name">Legal Professionals</div>
+                <div class="metric-meta">7.1% of users</div>
+              </div>
+            </div>
+            <div class="metric-row">
+              <span class="metric-stat" style="color:#64748b">49</span>
+              <div class="metric-info">
+                <div class="metric-name">Property Managers</div>
+                <div class="metric-meta">3.9% of users</div>
+              </div>
+            </div>
+          </div>
+          <a href="#" class="card-action">User management →</a>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">⚡ Recent Activity</span>
+            <span class="card-icon">🔔</span>
+          </div>
+          <div class="card-body">
+            <div class="activity-item">
+              <span class="activity-icon">📤</span>
+              <span class="activity-text">New user registered — Tenant</span>
+              <span class="activity-time">2m ago</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-icon">✍️</span>
+              <span class="activity-text">Document signed — Taylor v. Harborview</span>
+              <span class="activity-time">14m ago</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-icon">📎</span>
+              <span class="activity-text">12 documents uploaded across vaults</span>
+              <span class="activity-time">1h ago</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-icon">🌿</span>
+              <span class="activity-text">New advocate onboarded — Maria G.</span>
+              <span class="activity-time">3h ago</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-icon">⚙️</span>
+              <span class="activity-text">System maintenance completed</span>
+              <span class="activity-time">6h ago</span>
+            </div>
+          </div>
+          <a href="#" class="card-action">Activity log →</a>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🛡️ Security</span>
+            <span class="card-icon">🔒</span>
+          </div>
+          <div class="card-body">
+            <div class="metric-row">
+              <span class="metric-stat" style="color:#22c55e">99.9%</span>
+              <div class="metric-info">
+                <div class="metric-name">Uptime</div>
+                <div class="metric-meta">Last 30 days</div>
+              </div>
+            </div>
+            <div class="metric-row">
+              <span class="metric-stat" style="color:#22c55e">0</span>
+              <div class="metric-info">
+                <div class="metric-name">Security Incidents</div>
+                <div class="metric-meta">Last 30 days</div>
+              </div>
+            </div>
+            <div class="metric-row">
+              <span class="metric-stat" style="color:#f59e0b">3</span>
+              <div class="metric-info">
+                <div class="metric-name">Rate Limit Violations</div>
+                <div class="metric-meta">Today · All blocked automatically</div>
+              </div>
+            </div>
+            <div class="metric-row">
+              <span class="metric-stat" style="color:#22c55e">8,421</span>
+              <div class="metric-info">
+                <div class="metric-name">Blockchain Timestamps</div>
+                <div class="metric-meta">All verified successfully</div>
+              </div>
+            </div>
+          </div>
+          <a href="#" class="card-action">Security dashboard →</a>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="card">
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">⚡ Quick Actions</div>
+        <a href="/admin/function-browser.html" class="btn-block">⚙️ Function Browser</a>
+        <a href="/admin/theme-preview.html" class="btn-block">🎨 Theme Preview</a>
+        <a href="/docs/component-inventory.html" class="btn-block">📦 Component Inventory</a>
+        <a href="/docs/navigation-structure.html" class="btn-block">🧭 Navigation Structure</a>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">📊 Today</div>
+        <div class="stat-row"><span>New signups</span><span class="stat-val">12</span></div>
+        <div class="stat-row"><span>Documents uploaded</span><span class="stat-val">98</span></div>
+        <div class="stat-row"><span>Signatures completed</span><span class="stat-val">23</span></div>
+        <div class="stat-row"><span>Messages sent</span><span class="stat-val">156</span></div>
+        <div class="stat-row"><span>API requests</span><span class="stat-val">42.3K</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">🚀 System Status</div>
+        <div style="font-size:0.85rem;color:#555;line-height:1.6">
+          <p style="margin-bottom:0.5rem"><span style="color:#22c55e;font-weight:700">●</span> All systems operational</p>
+          <p style="margin-bottom:0.5rem"><span style="color:#22c55e;font-weight:700">●</span> Database: Healthy</p>
+          <p style="margin-bottom:0.5rem"><span style="color:#22c55e;font-weight:700">●</span> Cloud storage: Connected</p>
+          <p><span style="color:#22c55e;font-weight:700">●</span> Blockchain timestamping: Active</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <div><a href="/home.html">Home</a><a href="/office.html">Office</a><a href="/public/privacy.html">Privacy</a><a href="/help.html">Help</a></div>
+    <div style="margin-top:0.5rem">Admin view · Ocean theme · System-wide oversight · Not legal advice</div>
+  </footer>
+
+  <script src="/js/core/vault-portal.js"></script>
+  <script>
+    function openDrawer(){document.getElementById('nav-drawer').classList.add('open');document.getElementById('drawer-backdrop').classList.add('open')}
+    function closeDrawer(){document.getElementById('nav-drawer').classList.remove('open');document.getElementById('drawer-backdrop').classList.remove('open')}
+  </script>
+</body>
+</html>

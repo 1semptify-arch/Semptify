@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advocate Dashboard – Semptify</title>
+  <style>
+    :root { --hdr1: #14532d; --hdr2: #166534; --accent: #15803d; --accent2: #22c55e; --light: #f0fdf4; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f6fff9; color: #1a1a2e; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: #fff; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .vault-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+    .role-banner { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; padding: 0.45rem 0; font-size: 0.82rem; text-align: center; }
+
+    .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+
+    .hero { background: linear-gradient(135deg, var(--hdr1), var(--accent2)); color: #fff; border-radius: 14px; padding: 1.75rem 2rem; margin-bottom: 1.25rem; }
+    .hero h1 { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.35rem; }
+    .hero p { opacity: 0.9; font-size: 0.95rem; }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+    .card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; transition: all 0.15s; }
+    .card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(21,128,61,0.08); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+    .card-title { font-weight: 700; font-size: 0.95rem; color: #1a1a2e; }
+    .card-icon { font-size: 1.4rem; }
+    .card-body { font-size: 0.88rem; color: #555; line-height: 1.6; }
+    .card-action { display: inline-block; margin-top: 0.75rem; color: var(--accent); font-weight: 600; font-size: 0.85rem; text-decoration: none; }
+    .card-action:hover { text-decoration: underline; }
+
+    .client-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0; border-bottom: 1px solid #f0f0f0; font-size: 0.88rem; }
+    .client-row:last-child { border-bottom: none; }
+    .client-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+    .client-info { flex: 1; }
+    .client-name { font-weight: 600; }
+    .client-meta { font-size: 0.75rem; color: #888; }
+    .client-badge { font-size: 0.68rem; font-weight: 600; padding: 0.12rem 0.4rem; border-radius: 6px; white-space: nowrap; }
+    .badge-urgent { background: #fee2e2; color: #dc2626; }
+    .badge-active { background: #dcfce7; color: #15803d; }
+    .badge-review { background: #fef3c7; color: #92400e; }
+
+    .activity-item { display: flex; gap: 0.75rem; padding: 0.65rem 0; border-bottom: 1px solid #f0f0f0; font-size: 0.85rem; }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .activity-text { flex: 1; color: #444; }
+    .activity-time { font-size: 0.72rem; color: #888; white-space: nowrap; }
+
+    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #f0f0f0; font-size: 0.88rem; }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-val { font-weight: 700; color: var(--accent); }
+
+    .btn-block { display: block; text-align: center; background: var(--light); color: var(--accent); border: 1px solid #bbf7d0; padding: 0.6rem; border-radius: 10px; font-weight: 700; font-size: 0.9rem; text-decoration: none; margin-bottom: 0.5rem; transition: all 0.15s; }
+    .btn-block:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-block.vault { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; }
+    .btn-block.vault:hover { filter: brightness(1.1); }
+
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
+
+    @media (max-width: 900px) { .main { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) { nav.core-nav { display: none; } .hamburger { display: block; } .grid-2 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/advocate/dashboard.html" style="color:#fbbf24;font-weight:700;">🏠 Dashboard</a>
+    <a href="/library.html">📚 Library</a>
+    <a href="/office.html">🏢 Office</a>
+    <a href="/tools.html">🔧 Tools</a>
+    <a href="/help.html">🆘 Help</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <a href="/home.html" class="logo">Semptify</a>
+      <nav class="core-nav">
+        <a href="/advocate/dashboard.html" class="active">🏠 Home</a>
+        <a href="/library.html">📚 Library</a>
+        <a href="/office.html">🏢 Office</a>
+        <a href="/tools.html">🔧 Tools</a>
+        <a href="/help.html">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">🔒 Vault</button>
+        <button class="user-btn">🌿 Advocate</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="role-banner">
+    🌿 Advocate View — Housing rights advocacy dashboard
+  </div>
+
+  <div class="main">
+    <div>
+      <div class="hero">
+        <h1>Welcome, Maria</h1>
+        <p>You have <strong>4 active clients</strong>, <strong>2 documents pending review</strong>, and <strong>1 urgent case</strong>.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">👥 Active Clients</span>
+            <span class="card-icon">🌿</span>
+          </div>
+          <div class="card-body">
+            <div class="client-row">
+              <div class="client-avatar">JT</div>
+              <div class="client-info">
+                <div class="client-name">James Taylor</div>
+                <div class="client-meta">Eviction defense · Repair dispute</div>
+              </div>
+              <span class="client-badge badge-urgent">Urgent</span>
+            </div>
+            <div class="client-row">
+              <div class="client-avatar">SR</div>
+              <div class="client-info">
+                <div class="client-name">Sofia Rodriguez</div>
+                <div class="client-meta">Lease renewal · Rent increase fight</div>
+              </div>
+              <span class="client-badge badge-active">Active</span>
+            </div>
+            <div class="client-row">
+              <div class="client-avatar">KM</div>
+              <div class="client-info">
+                <div class="client-name">Kwame Mensah</div>
+                <div class="client-meta">Habitability · Mold · No heat</div>
+              </div>
+              <span class="client-badge badge-review">Review</span>
+            </div>
+            <div class="client-row">
+              <div class="client-avatar">LC</div>
+              <div class="client-info">
+                <div class="client-name">Ling Chen</div>
+                <div class="client-meta">Retaliation · Documented</div>
+              </div>
+              <span class="client-badge badge-active">Active</span>
+            </div>
+          </div>
+          <a href="#" class="card-action">View all clients →</a>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📨 Inbox</span>
+            <span class="card-icon">📬</span>
+          </div>
+          <div class="card-body">
+            <div class="activity-item">
+              <span class="activity-icon">✍️</span>
+              <span class="activity-text">James Taylor signed Settlement Agreement</span>
+              <span class="activity-time">Today</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-icon">📎</span>
+              <span class="activity-text">Kwame uploaded 3 new photos to vault</span>
+              <span class="activity-time">Yesterday</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-icon">💬</span>
+              <span class="activity-text">Sofia asked about lease renewal options</span>
+              <span class="activity-time">Apr 20</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-icon">📋</span>
+              <span class="activity-text">Ling added court hearing to timeline</span>
+              <span class="activity-time">Apr 19</span>
+            </div>
+          </div>
+          <a href="/office/inbox.html" class="card-action">Open inbox →</a>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📁 Review Queue</span>
+            <span class="card-icon">👁</span>
+          </div>
+          <div class="card-body">
+            <div class="client-row">
+              <div class="client-avatar">KM</div>
+              <div class="client-info">
+                <div class="client-name">Repair photos — Kwame Mensah</div>
+                <div class="client-meta">3 images · Uploaded yesterday</div>
+              </div>
+              <span class="client-badge badge-urgent">Review</span>
+            </div>
+            <div class="client-row">
+              <div class="client-avatar">SR</div>
+              <div class="client-info">
+                <div class="client-name">Lease Renewal Notice — Sofia</div>
+                <div class="client-meta">PDF · 2 pages · Uploaded Apr 18</div>
+              </div>
+              <span class="client-badge badge-review">Review</span>
+            </div>
+          </div>
+          <a href="/office/vault.html" class="card-action">Open vault →</a>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📅 This Week</span>
+            <span class="card-icon">🗓</span>
+          </div>
+          <div class="card-body">
+            <div class="activity-item">
+              <span class="activity-icon">⚖️</span>
+              <span class="activity-text">Court prep call — James Taylor</span>
+              <span class="activity-time">Wed 2pm</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-icon">🏠</span>
+              <span class="activity-text">Site visit — Kwame Mensah unit</span>
+              <span class="activity-time">Thu 10am</span>
+            </div>
+            <div class="activity-item">
+              <span class="activity-icon">📝</span>
+              <span class="activity-text">Draft response letter — Sofia</span>
+              <span class="activity-time">Fri</span>
+            </div>
+          </div>
+          <a href="#" class="card-action">Full calendar →</a>
+        </div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="card">
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem;">⚡ Quick Actions</div>
+        <a href="/office/delivery.html" class="btn-block vault">📤 Send Document</a>
+        <a href="/office/vault.html" class="btn-block">🔒 Review Vault</a>
+        <a href="/tools/generators.html" class="btn-block">📄 Generate Letter</a>
+        <a href="#" class="btn-block">➕ New Client Intake</a>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem;">📊 Advocate Stats</div>
+        <div class="stat-row"><span>Active clients</span><span class="stat-val">4</span></div>
+        <div class="stat-row"><span>Cases this month</span><span class="stat-val">7</span></div>
+        <div class="stat-row"><span>Documents reviewed</span><span class="stat-val">23</span></div>
+        <div class="stat-row"><span>Messages sent</span><span class="stat-val">47</span></div>
+        <div class="stat-row"><span>Success rate</span><span class="stat-val">82%</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem;">🚨 Urgent</div>
+        <div style="font-size:0.85rem;color:#555;line-height:1.6;">
+          <p style="margin-bottom:0.5rem;"><strong>James Taylor</strong> settlement deadline is <strong>April 25</strong>. He still needs to sign or we lose negotiated terms.</p>
+          <a href="/office/delivery.html" style="color:var(--accent);font-weight:600;font-size:0.85rem;">Send reminder →</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <div>
+      <a href="/home.html">Home</a>
+      <a href="/office.html">Office</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/help.html">Help</a>
+    </div>
+    <div style="margin-top:0.5rem;">Advocate view · Forest theme · Client data stays in their cloud</div>
+  </footer>
+
+  <script src="/js/core/vault-portal.js"></script>
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+  </script>
+</body>
+</html>
