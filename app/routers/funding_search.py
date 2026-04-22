@@ -8,7 +8,6 @@ from datetime import datetime
 from pydantic import BaseModel
 from enum import Enum
 import logging
-import uuid
 
 from app.core.security import require_user, StorageUser
 

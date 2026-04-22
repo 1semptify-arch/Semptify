@@ -18,7 +18,7 @@ import shutil
 import hashlib
 import base64
 import zipfile
-import uuid
+from app.core.id_gen import make_id
 
 logger = logging.getLogger(__name__)
 
@@ -729,7 +729,7 @@ async def save_converted_document(data: ConvertedDocumentSave):
             raise HTTPException(status_code=404, detail=f"Could not find converted file: {data.filename}")
         
         # Create document entry
-        doc_id = str(uuid.uuid4())
+        doc_id = make_id("doc")
         
         # Determine MIME type
         mime_types = {
@@ -820,7 +820,7 @@ async def save_extraction(
     """Save extracted pages from PDF tools."""
     import json
     
-    extraction_id = str(uuid.uuid4())
+    extraction_id = make_id("ext")
     page_list = json.loads(pages)
     
     extraction = {
@@ -922,7 +922,7 @@ async def save_highlight(
     """Save a highlight/annotation from PDF tools."""
     import json
     
-    highlight_id = str(uuid.uuid4())
+    highlight_id = make_id("hlt")
     
     highlight = {
         "id": highlight_id,
@@ -951,7 +951,7 @@ async def save_highlights_batch(request: Request):
     
     saved = []
     for h in highlights:
-        highlight_id = str(uuid.uuid4())
+        highlight_id = make_id("hlt")
         highlight = {
             "id": highlight_id,
             "pdf_name": pdf_name,
@@ -1052,7 +1052,7 @@ async def create_annotation(annotation: AnnotationCreate):
     Create a new document annotation with auto-numbered footnotes.
     Returns both global footnote number and category-specific number.
     """
-    annotation_id = str(uuid.uuid4())
+    annotation_id = make_id("ann")
     
     # Increment global counter
     annotation_data["global_counter"] += 1
@@ -1256,7 +1256,7 @@ class TimelineEventUpdate(BaseModel):
 @router.post("/timeline-event")
 async def create_timeline_event(event: TimelineEventCreate):
     """Create a timeline event that can be linked to annotations."""
-    event_id = str(uuid.uuid4())
+    event_id = make_id("evt")
     
     # Determine sequence number if part of event chain
     sequence = 0
@@ -1445,7 +1445,7 @@ async def create_event_from_annotation(annotation_id: str):
     is_deadline = annotation["extraction_code"] in ["DL", "DT"]
     urgency = "high" if annotation["extraction_code"] == "DL" else "normal"
     
-    event_id = str(uuid.uuid4())
+    event_id = make_id("evt")
     
     new_event = {
         "id": event_id,

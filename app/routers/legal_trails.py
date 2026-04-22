@@ -233,8 +233,8 @@ async def get_legal_trails_overview():
 @router.post("/violations")
 async def add_violation(violation: Violation):
     """Log a new violation"""
-    import uuid
-    violation.id = str(uuid.uuid4())[:8]
+    from app.core.id_gen import make_id
+    violation.id = make_id("vio")
     violation.created_at = datetime.now()
     violations_db[violation.id] = violation.dict()
     return {
@@ -271,8 +271,8 @@ async def get_violation(violation_id: str):
 @router.post("/eviction-threats")
 async def add_eviction_threat(threat: EvictionThreat):
     """Log an eviction threat"""
-    import uuid
-    threat.id = str(uuid.uuid4())[:8]
+    from app.core.id_gen import make_id
+    threat.id = make_id("thr")
     threat.created_at = datetime.now()
     eviction_threats_db[threat.id] = threat.dict()
     return {
@@ -298,8 +298,8 @@ async def list_eviction_threats():
 @router.post("/late-fees")
 async def add_late_fee_violation(fee: LateFeeViolation):
     """Log a late fee violation"""
-    import uuid
-    fee.id = str(uuid.uuid4())[:8]
+    from app.core.id_gen import make_id
+    fee.id = make_id("fee")
     fee.created_at = datetime.now()
     
     # Calculate legal max (8% of rent per MN 504B.177)
@@ -403,8 +403,8 @@ async def link_violation_to_broker(broker_name: str, violation_id: str):
 @router.post("/claims")
 async def create_legal_claim(claim: LegalClaim):
     """Create a formal legal claim"""
-    import uuid
-    claim.id = str(uuid.uuid4())[:8]
+    from app.core.id_gen import make_id
+    claim.id = make_id("clm")
     claim.created_at = datetime.now()
     legal_claims_db[claim.id] = claim.dict()
     return {

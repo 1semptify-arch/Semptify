@@ -7,7 +7,7 @@ Supports JSON format for log aggregation systems.
 
 import logging
 import time
-import uuid
+from app.core.id_gen import make_id
 from typing import Callable
 
 from fastapi import Request, Response
@@ -55,7 +55,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         
         # Generate or extract request ID
-        request_id = request.headers.get("X-Request-Id", str(uuid.uuid4())[:8])
+        request_id = request.headers.get("X-Request-Id", make_id("req"))
         
         # Record start time
         start_time = time.perf_counter()

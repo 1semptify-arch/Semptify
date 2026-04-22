@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Office – Semptify</title>
+  <style>
+    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fff; color: #1a1a2e; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 1rem; white-space: nowrap; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .vault-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+    .hero { background: linear-gradient(160deg, #e8eaf6 0%, #fff 60%); padding: 2rem 1.5rem 1.5rem; text-align: center; }
+    .hero h1 { font-size: 1.8rem; font-weight: 800; color: var(--hdr1); margin-bottom: 0.5rem; }
+    .hero p { color: #555; max-width: 560px; margin: 0 auto; line-height: 1.6; font-size: 0.95rem; }
+
+    .section { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .section-title { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+
+    /* PRIMARY ACTIONS */
+    .primary-actions { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
+    .primary-card { background: #fff; border: 2px solid #e0e0e0; border-radius: 16px; padding: 1.5rem; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 0.5rem; transition: all 0.2s; position: relative; overflow: hidden; }
+    .primary-card:hover { border-color: var(--accent); box-shadow: 0 6px 24px rgba(57,73,171,0.15); transform: translateY(-3px); }
+    .primary-card.featured { border-color: #f59e0b; background: linear-gradient(135deg, #fffbeb, #fff); }
+    .primary-card.featured:hover { border-color: #d97706; }
+    .primary-icon { font-size: 2.5rem; }
+    .primary-title { font-weight: 700; font-size: 1.05rem; }
+    .primary-desc { font-size: 0.85rem; color: #666; line-height: 1.4; }
+    .primary-badge { position: absolute; top: 0.75rem; right: 0.75rem; background: #f59e0b; color: #fff; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.7rem; font-weight: 700; }
+
+    /* SUB-NAV GRID */
+    .sub-nav { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 2rem; }
+    .sub-nav-item { background: #f8f9ff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 1rem; text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; font-weight: 500; transition: all 0.15s; }
+    .sub-nav-item:hover { border-color: var(--accent); background: #e8eaf6; color: var(--accent); }
+
+    /* VAULT UPLOAD CTA */
+    .vault-cta { background: linear-gradient(135deg, #fffbeb, #fff8e1); border: 2px dashed #f59e0b; border-radius: 16px; padding: 2rem; text-align: center; margin-bottom: 2rem; }
+    .vault-cta h3 { font-size: 1.2rem; color: #92400e; margin-bottom: 0.5rem; }
+    .vault-cta p { color: #78350f; font-size: 0.9rem; max-width: 500px; margin: 0 auto 1.25rem; line-height: 1.5; }
+    .vault-cta button { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 0.75rem 2rem; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; }
+
+    /* NOTICE BOX */
+    .notice { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 0 10px 10px 0; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: #1e3a5f; line-height: 1.5; }
+
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.5rem; font-size: 0.85rem; margin-top: 3rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
+
+    @media (max-width: 768px) {
+      nav.core-nav { display: none; }
+      .hamburger { display: block; }
+      .hero h1 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/home.html">🏠 Home</a>
+    <a href="/library.html">📚 Library</a>
+    <a href="/office.html">🏢 Office</a>
+    <a href="/tools.html">🔧 Tools</a>
+    <a href="/help.html">🆘 Help</a>
+    <hr style="border-color:rgba(255,255,255,0.2); margin: 0.5rem 0;">
+    <a href="#" onclick="openVaultUpload()" style="color:#f59e0b; font-weight:700;">🔒 Vault Door</a>
+    <a href="/onboarding/select-role.html">👤 My Account</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <div class="logo">Semptify</div>
+      <nav class="core-nav">
+        <a href="/home.html">🏠 Home</a>
+        <a href="/library.html">📚 Library</a>
+        <a href="/office.html" class="active">🏢 Office</a>
+        <a href="/tools.html">🔧 Tools</a>
+        <a href="/help.html">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button class="vault-btn" onclick="openVaultUpload()">🔒 Vault</button>
+        <button class="user-btn">👤 User</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h1>🏢 Your Office</h1>
+    <p>Documents, communication, timeline, and paperwork — your complete case management center.</p>
+  </div>
+
+  <div class="section">
+
+    <div class="vault-cta">
+      <h3>🔒 Upload to Your Vault</h3>
+      <p>All documents go through the Vault Door. One entry point. Your files go directly to your cloud storage — Semptify creates an overlay for search and timeline. We never hold your full documents.</p>
+      <button onclick="openVaultUpload()">📤 Open Vault Door</button>
+    </div>
+
+    <div class="notice">
+      🔒 <strong>Privacy note:</strong> Your documents are stored in <em>your</em> Google Drive or Dropbox. Semptify processes only a metadata overlay (key dates, parties, document type). Full documents never touch our servers.
+    </div>
+
+    <div class="section-title">📁 Office Services</div>
+    <div class="primary-actions">
+
+      <a href="/office/vault.html" class="primary-card featured">
+        <span class="primary-badge">ONE WAY IN</span>
+        <span class="primary-icon">🔒</span>
+        <span class="primary-title">Document Vault</span>
+        <span class="primary-desc">Upload, organize, and search all your case documents. Blockchain timestamped. Stored in your cloud.</span>
+      </a>
+
+      <a href="/office/inbox.html" class="primary-card">
+        <span class="primary-icon">📨</span>
+        <span class="primary-title">Communication Center</span>
+        <span class="primary-desc">Secure messaging with advocates, attorneys, and notifications from landlord contacts.</span>
+      </a>
+
+      <a href="/office/timeline.html" class="primary-card">
+        <span class="primary-icon">📅</span>
+        <span class="primary-title">Timeline / Journal</span>
+        <span class="primary-desc">Chronological record of all events in your tenancy. Links to documents and evidence.</span>
+      </a>
+
+      <a href="/office/delivery.html" class="primary-card">
+        <span class="primary-icon">📬</span>
+        <span class="primary-title">Document Delivery</span>
+        <span class="primary-desc">Send documents to attorneys, advocates, courts. Tracked delivery with read receipts.</span>
+      </a>
+
+      <a href="/office/signer.html" class="primary-card">
+        <span class="primary-icon">✍️</span>
+        <span class="primary-title">Document Signer</span>
+        <span class="primary-desc">Sign or counter-sign documents electronically. Desktop only. Signature timestamped.</span>
+      </a>
+
+      <a href="/tools/generators.html" class="primary-card">
+        <span class="primary-icon">📋</span>
+        <span class="primary-title">Packet Builder</span>
+        <span class="primary-desc">Assemble complaint packets, evidence bundles, and response packages for court or agencies.</span>
+      </a>
+
+    </div>
+
+    <div class="section-title">⚡ Quick Office Tasks</div>
+    <div class="sub-nav">
+      <a href="/office/vault.html" class="sub-nav-item">🔒 View My Vault</a>
+      <a href="/office/inbox.html" class="sub-nav-item">📥 Check Inbox</a>
+      <a href="/office/timeline.html" class="sub-nav-item">➕ Add Event</a>
+      <a href="/office/delivery.html" class="sub-nav-item">📤 Send Document</a>
+      <a href="/office/signer.html" class="sub-nav-item">✍️ Sign Document</a>
+      <a href="/tools/generators.html#complaint" class="sub-nav-item">📋 File Complaint</a>
+      <a href="/tools/generators.html#notice" class="sub-nav-item">📄 Write Notice</a>
+      <a href="/library/forms.html" class="sub-nav-item">📝 Find a Form</a>
+    </div>
+
+  </div>
+
+  <footer>
+    <div>
+      <a href="/home.html">Home</a>
+      <a href="/public/about.html">About</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/help.html">Help</a>
+    </div>
+    <div style="margin-top:0.5rem;">Semptify is free forever · Your data stays yours · Not a law firm</div>
+    <div style="margin-top:0.25rem; opacity:0.5;">© 2025 Semptify</div>
+  </footer>
+
+  <script src="/js/core/vault-portal.js"></script>
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+  </script>
+</body>
+</html>

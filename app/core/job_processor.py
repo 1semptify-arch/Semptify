@@ -7,7 +7,7 @@ Handles asynchronous background jobs for document analysis and processing.
 
 import logging
 import asyncio
-import uuid
+from app.core.id_gen import make_id
 import json
 import time
 from typing import Dict, Any, List, Optional, Callable, Union
@@ -158,7 +158,7 @@ class JobProcessor:
                   priority: JobPriority = JobPriority.NORMAL,
                   user_id: str = None, **kwargs) -> str:
         """Submit a new job."""
-        job_id = str(uuid.uuid4())
+        job_id = make_id("job")
         
         job = Job(
             id=job_id,
@@ -554,7 +554,7 @@ def submit_document_analysis_job(document_id: str, analysis_type: str = "basic",
         payload={
             "document_id": document_id,
             "analysis_type": analysis_type,
-            "job_id": str(uuid.uuid4())  # Will be overridden
+            "job_id": make_id("job")  # Will be overridden
         },
         priority=JobPriority.NORMAL,
         user_id=user_id

@@ -14,35 +14,13 @@ router = APIRouter(prefix="/api/legal-filing", tags=["Legal Filing"])
 
 
 def _resolve_overlay_context(evidence: EvidenceItem) -> EvidenceItem:
-    """Prefer overlay-linked vault and extraction context, fallback to legacy evidence fields."""
-    if not evidence.overlay_record_ids:
-        return evidence
+    """Prefer overlay-linked vault and extraction context, fallback to legacy evidence fields.
 
-    if evidence.vault_id and evidence.extracted_data:
-        return evidence
-
-    try:
-        from app.services.document_overlay_service import document_overlay_service
-    except Exception:
-        return evidence
-
-    for overlay_id in evidence.overlay_record_ids:
-        overlay = document_overlay_service.get_overlay(overlay_id)
-        if not overlay:
-            continue
-
-        if not evidence.vault_id and overlay.vault_id:
-            evidence.vault_id = overlay.vault_id
-
-        if not evidence.extracted_data:
-            if isinstance(overlay.payload, dict) and "extracted_data" in overlay.payload:
-                evidence.extracted_data = overlay.payload.get("extracted_data")
-            elif isinstance(overlay.payload, dict):
-                evidence.extracted_data = overlay.payload
-
-        if evidence.vault_id and evidence.extracted_data:
-            break
-
+    Overlay records now live in user cloud storage via the unified overlay
+    manager (async, requires storage context).  This sync helper returns
+    evidence unchanged; callers that need enriched overlay context should
+    query the unified overlay manager from an async endpoint.
+    """
     return evidence
 
 

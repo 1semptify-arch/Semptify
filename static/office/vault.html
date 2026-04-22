@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Vault – Semptify Office</title>
+  <style>
+    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; --vault: #f59e0b; --vault2: #d97706; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9ff; color: #1a1a2e; }
+
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: #fff; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .vault-btn { background: linear-gradient(135deg, var(--vault), var(--vault2)); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+    /* BREADCRUMB */
+    .breadcrumb { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0.6rem 0; }
+    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    /* MAIN LAYOUT */
+    .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 1fr 320px; gap: 1.5rem; }
+
+    /* VAULT UPLOAD ZONE */
+    .upload-zone { background: linear-gradient(135deg, #fffbeb, #fff8e1); border: 2px dashed var(--vault); border-radius: 16px; padding: 2.5rem; text-align: center; cursor: pointer; transition: all 0.2s; margin-bottom: 1.5rem; }
+    .upload-zone:hover, .upload-zone.drag-over { background: linear-gradient(135deg, #fef3c7, #fde68a); border-color: var(--vault2); }
+    .upload-zone h2 { font-size: 1.3rem; color: #92400e; margin: 0.75rem 0 0.5rem; }
+    .upload-zone p { color: #78350f; font-size: 0.9rem; max-width: 400px; margin: 0 auto 1.25rem; line-height: 1.5; }
+    .upload-icon { font-size: 3rem; }
+    .upload-zone button { background: linear-gradient(135deg, var(--vault), var(--vault2)); color: #fff; border: none; padding: 0.75rem 2rem; border-radius: 10px; font-weight: 700; font-size: 1rem; cursor: pointer; }
+    .upload-zone small { display: block; margin-top: 0.75rem; color: #92400e; font-size: 0.78rem; opacity: 0.8; }
+
+    /* FILTERS */
+    .filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center; }
+    .filter-bar input { flex: 1; min-width: 200px; padding: 0.5rem 0.75rem; border: 1px solid #c5cae9; border-radius: 8px; font-size: 0.9rem; outline: none; background: #fff; }
+    .filter-bar input:focus { border-color: var(--accent); }
+    .filter-btn { padding: 0.4rem 0.85rem; border: 1px solid #c5cae9; border-radius: 20px; background: #fff; font-size: 0.82rem; cursor: pointer; color: #555; white-space: nowrap; }
+    .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* DOCUMENT TABLE */
+    .doc-section-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #888; padding: 0.5rem 0; border-top: 1px solid #e0e0e0; margin-top: 0.5rem; margin-bottom: 0.25rem; }
+    .doc-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 0.9rem 1rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem; transition: all 0.15s; cursor: pointer; }
+    .doc-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(57,73,171,0.1); }
+    .doc-icon { font-size: 1.75rem; flex-shrink: 0; }
+    .doc-info { flex: 1; min-width: 0; }
+    .doc-name { font-weight: 600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .doc-meta { font-size: 0.78rem; color: #888; margin-top: 0.15rem; }
+    .doc-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.3rem; }
+    .doc-tag { background: #e8eaf6; color: var(--accent); padding: 0.1rem 0.45rem; border-radius: 8px; font-size: 0.7rem; font-weight: 600; }
+    .doc-tag.verified { background: #d1fae5; color: #065f46; }
+    .doc-tag.pending { background: #fef3c7; color: #92400e; }
+    .doc-actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
+    .doc-action-btn { background: #f0f0f0; border: none; padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.78rem; cursor: pointer; color: #555; }
+    .doc-action-btn:hover { background: #e8eaf6; color: var(--accent); }
+
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 3rem 1rem; color: #888; }
+    .empty-state p { font-size: 0.9rem; margin-top: 0.5rem; }
+
+    /* SIDEBAR */
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; }
+    .sidebar-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 1rem; color: #1a1a2e; }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 0.45rem 0; border-bottom: 1px solid #f0f0f0; font-size: 0.88rem; }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-value { font-weight: 700; color: var(--accent); }
+    .privacy-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 1rem; font-size: 0.82rem; color: #1e3a5f; line-height: 1.5; }
+    .privacy-box strong { display: block; margin-bottom: 0.25rem; }
+
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
+
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+      .sidebar { order: -1; }
+    }
+    @media (max-width: 768px) {
+      nav.core-nav { display: none; }
+      .hamburger { display: block; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/home.html">🏠 Home</a>
+    <a href="/library.html">📚 Library</a>
+    <a href="/office.html">🏢 Office</a>
+    <a href="/tools.html">🔧 Tools</a>
+    <a href="/help.html">🆘 Help</a>
+    <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0;">
+    <a href="/office/vault.html" style="color:#f59e0b;font-weight:700;">🔒 Document Vault</a>
+    <a href="/office/inbox.html">📨 Inbox</a>
+    <a href="/office/timeline.html">📅 Timeline</a>
+    <a href="/office/delivery.html">📬 Delivery</a>
+    <a href="/office/signer.html">✍️ Signer</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <a href="/home.html" class="logo">Semptify</a>
+      <nav class="core-nav">
+        <a href="/home.html">🏠 Home</a>
+        <a href="/library.html">📚 Library</a>
+        <a href="/office.html" class="active">🏢 Office</a>
+        <a href="/tools.html">🔧 Tools</a>
+        <a href="/help.html">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button class="vault-btn" onclick="triggerUpload()">🔒 Upload to Vault</button>
+        <button class="user-btn">👤 User</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="breadcrumb">
+    <div class="breadcrumb-inner">
+      <a href="/home.html">Home</a> ›
+      <a href="/office.html">Office</a> ›
+      <strong>Document Vault</strong>
+    </div>
+  </div>
+
+  <div class="main">
+    <div>
+      <!-- UPLOAD ZONE -->
+      <div class="upload-zone" id="upload-zone"
+           ondragover="event.preventDefault(); this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="handleDrop(event)">
+        <div class="upload-icon">🔒</div>
+        <h2>Vault Door</h2>
+        <p>Drag &amp; drop files here, or click to select. All documents go directly to your connected cloud storage.</p>
+        <button onclick="triggerUpload()">📤 Choose Files to Upload</button>
+        <input type="file" id="file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt,.heic" style="display:none" onchange="handleFileSelect(event)">
+        <small>PDF, Images, Word, Text · Max 50MB per file · Stored in your Google Drive or Dropbox</small>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="filter-bar">
+        <input type="text" id="doc-search" placeholder="Search documents..." oninput="filterDocs()" aria-label="Search documents">
+        <button class="filter-btn active" onclick="setFilter(this,'all')">All</button>
+        <button class="filter-btn" onclick="setFilter(this,'lease')">Lease</button>
+        <button class="filter-btn" onclick="setFilter(this,'notice')">Notices</button>
+        <button class="filter-btn" onclick="setFilter(this,'photo')">Photos</button>
+        <button class="filter-btn" onclick="setFilter(this,'correspondence')">Correspondence</button>
+        <button class="filter-btn" onclick="setFilter(this,'legal')">Legal</button>
+        <button class="filter-btn" onclick="setFilter(this,'financial')">Financial</button>
+      </div>
+
+      <!-- DOCUMENT LIST -->
+      <div id="doc-list">
+        <div class="empty-state">
+          <div style="font-size:3rem;">📂</div>
+          <strong>Your vault is empty</strong>
+          <p>Upload your first document using the Vault Door above.<br>Your files go to your cloud — we keep a searchable metadata overlay.</p>
+        </div>
+      </div>
+
+      <!-- SAMPLE DOCUMENTS (shown as demo — JS-removable) -->
+      <div id="sample-docs">
+        <div class="doc-section-title">Recent Uploads</div>
+
+        <div class="doc-card" data-category="notice" data-name="eviction-notice.pdf">
+          <span class="doc-icon">📄</span>
+          <div class="doc-info">
+            <div class="doc-name">3-Day Notice to Pay or Quit.pdf</div>
+            <div class="doc-meta">Uploaded Apr 19, 2025 · 182 KB · Google Drive</div>
+            <div class="doc-tags">
+              <span class="doc-tag">Notice</span>
+              <span class="doc-tag verified">✓ Timestamped</span>
+            </div>
+          </div>
+          <div class="doc-actions">
+            <button class="doc-action-btn" title="View">👁 View</button>
+            <button class="doc-action-btn" title="Add to Timeline">📅</button>
+            <button class="doc-action-btn" title="Send">📤</button>
+          </div>
+        </div>
+
+        <div class="doc-card" data-category="lease" data-name="lease-agreement.pdf">
+          <span class="doc-icon">📋</span>
+          <div class="doc-info">
+            <div class="doc-name">Lease Agreement — 2024.pdf</div>
+            <div class="doc-meta">Uploaded Mar 1, 2024 · 1.2 MB · Google Drive</div>
+            <div class="doc-tags">
+              <span class="doc-tag">Lease</span>
+              <span class="doc-tag verified">✓ Timestamped</span>
+            </div>
+          </div>
+          <div class="doc-actions">
+            <button class="doc-action-btn">👁 View</button>
+            <button class="doc-action-btn">📅</button>
+            <button class="doc-action-btn">📤</button>
+          </div>
+        </div>
+
+        <div class="doc-card" data-category="correspondence" data-name="repair-request.pdf">
+          <span class="doc-icon">✉️</span>
+          <div class="doc-info">
+            <div class="doc-name">Repair Request Letter — Heater.pdf</div>
+            <div class="doc-meta">Uploaded Jan 14, 2025 · 89 KB · Google Drive</div>
+            <div class="doc-tags">
+              <span class="doc-tag">Correspondence</span>
+              <span class="doc-tag pending">⏳ Pending</span>
+            </div>
+          </div>
+          <div class="doc-actions">
+            <button class="doc-action-btn">👁 View</button>
+            <button class="doc-action-btn">📅</button>
+            <button class="doc-action-btn">📤</button>
+          </div>
+        </div>
+
+        <div class="doc-card" data-category="photo" data-name="mold-photo.jpg">
+          <span class="doc-icon">📷</span>
+          <div class="doc-info">
+            <div class="doc-name">Mold — Bathroom Ceiling — Jan 2025.jpg</div>
+            <div class="doc-meta">Uploaded Jan 13, 2025 · 3.4 MB · Google Drive</div>
+            <div class="doc-tags">
+              <span class="doc-tag">Photo</span>
+              <span class="doc-tag verified">✓ Timestamped</span>
+            </div>
+          </div>
+          <div class="doc-actions">
+            <button class="doc-action-btn">👁 View</button>
+            <button class="doc-action-btn">📅</button>
+            <button class="doc-action-btn">📤</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-title">📊 Vault Summary</div>
+        <div class="stat-row"><span>Total Documents</span><span class="stat-value">4</span></div>
+        <div class="stat-row"><span>Timestamped</span><span class="stat-value">3</span></div>
+        <div class="stat-row"><span>Pending</span><span class="stat-value">1</span></div>
+        <div class="stat-row"><span>Storage Used</span><span class="stat-value">4.9 MB</span></div>
+        <div class="stat-row"><span>Storage Location</span><span class="stat-value">Google Drive</span></div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">⚡ Quick Actions</div>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+          <button onclick="triggerUpload()" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;padding:0.6rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem;">📤 Upload Document</button>
+          <a href="/office/timeline.html" style="background:#e8eaf6;color:#3949ab;border:none;padding:0.6rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">📅 Add Timeline Event</a>
+          <a href="/office/delivery.html" style="background:#f0f0f0;color:#444;border:none;padding:0.6rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">📬 Send Document</a>
+        </div>
+      </div>
+
+      <div class="privacy-box">
+        <strong>🔒 Privacy Commitment</strong>
+        Your documents are stored in <em>your</em> Google Drive or Dropbox. Semptify stores only a metadata overlay (document type, key dates, parties). We never access, read, or store your full documents.
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">🏢 Office Navigation</div>
+        <div style="display:flex;flex-direction:column;gap:0.25rem;">
+          <a href="/office/vault.html" style="color:#f59e0b;font-weight:700;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">🔒 Document Vault ←</a>
+          <a href="/office/inbox.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📨 Inbox</a>
+          <a href="/office/timeline.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📅 Timeline</a>
+          <a href="/office/delivery.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📬 Document Delivery</a>
+          <a href="/office/signer.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">✍️ Document Signer</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <div>
+      <a href="/home.html">Home</a>
+      <a href="/office.html">Office</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/help.html">Help</a>
+    </div>
+    <div style="margin-top:0.5rem;">Your documents stay in your cloud · Semptify never holds your files</div>
+  </footer>
+
+  <script src="/js/core/vault-portal.js"></script>
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+
+    function triggerUpload() {
+      if (typeof openVaultUpload === 'function') { openVaultUpload(); return; }
+      document.getElementById('file-input').click();
+    }
+
+    function handleFileSelect(e) {
+      const files = Array.from(e.target.files);
+      if (files.length) showUploadPreview(files);
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('upload-zone').classList.remove('drag-over');
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length) showUploadPreview(files);
+    }
+
+    function showUploadPreview(files) {
+      alert(`Ready to upload ${files.length} file(s):\n${files.map(f => f.name).join('\n')}\n\n(Connect your cloud storage to complete upload)`);
+    }
+
+    let currentFilter = 'all';
+
+    function setFilter(btn, cat) {
+      currentFilter = cat;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterDocs();
+    }
+
+    function filterDocs() {
+      const q = document.getElementById('doc-search').value.toLowerCase();
+      document.querySelectorAll('.doc-card').forEach(card => {
+        const matchCat = currentFilter === 'all' || (card.dataset.category || '').includes(currentFilter);
+        const matchQ = !q || card.dataset.name.toLowerCase().includes(q) || card.textContent.toLowerCase().includes(q);
+        card.style.display = (matchCat && matchQ) ? '' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>

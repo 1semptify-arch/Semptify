@@ -19,13 +19,13 @@ This ensures:
 
 import hashlib
 import json
-import uuid
 import logging
 from datetime import datetime, timezone
 from typing import Optional
 from dataclasses import dataclass, asdict
 from pathlib import Path
 
+from app.core.id_gen import make_id
 from app.core.config import get_settings
 from app.core.vault_paths import SEMPTIFY_ROOT, VAULT_ROOT, VAULT_DOCUMENTS, VAULT_CERTIFICATES
 from app.core.overlay_types import OverlayType
@@ -334,7 +334,7 @@ class VaultUploadService:
             return existing
         
         # Generate IDs
-        vault_id = str(uuid.uuid4())
+        vault_id = make_id("doc")
         safe_filename = self._get_safe_filename(vault_id, filename)
         file_size = len(content)
         now = datetime.now(timezone.utc).isoformat()
@@ -450,7 +450,7 @@ class VaultUploadService:
         access_token: Optional[str],
     ) -> Optional[str]:
         """Create certification record for document."""
-        certificate_id = f"cert_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{vault_id[:8]}"
+        certificate_id = make_id("cert")
         
         certificate = {
             "certificate_id": certificate_id,

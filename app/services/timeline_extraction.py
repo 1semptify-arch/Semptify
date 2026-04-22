@@ -16,6 +16,7 @@ from dataclasses import dataclass, asdict
 from typing import List, Optional, Dict, Any
 from enum import Enum
 
+from app.core.id_gen import make_id
 from app.core.vault_paths import VAULT_TIMELINE, VAULT_TIMELINE_EVENTS_FILE, VAULT_TIMELINE_EVENTS_FILENAME
 
 
@@ -114,12 +115,12 @@ class TimelineExtractor:
         if not overlay:
             return []
         
-        # Get document content (from overlay, never original)
+        # Read document content from vault path (read-only, original stays immutable)
         try:
-            content_bytes = await self.overlay_manager.get_processing_copy(overlay)
+            content_bytes = await self.overlay_manager.storage.download_file(overlay.vault_path)
             content_text = self._extract_text_from_pdf(content_bytes)
         except Exception:
-            # If we can't read the overlay, return empty
+            # If we can't read the document, return empty
             return []
         
         events = []
@@ -134,7 +135,7 @@ class TimelineExtractor:
             
             # Create event
             event = TimelineEvent(
-                event_id=f"evt_{original_id}_{len(events)}_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}",
+                event_id=make_id("evt"),
                 date=date_str,
                 event_type=event_type.value,
                 title=self._generate_title(event_type, context),
@@ -147,9 +148,11 @@ class TimelineExtractor:
             )
             events.append(event)
         
-        # Update overlay with extracted events
-        overlay.extracted_dates = [e.date for e in events]
-        await self.overlay_manager.update_overlay(overlay)
+        # Update overlay metadata with extracted events
+        await self.overlay_manager.update_overlay(
+            overlay_id,
+            metadata={"extracted_dates": [e.date for e in events]},
+        )
         
         return events
     
@@ -335,12 +338,12 @@ async def extract_timeline_from_upload(document_id: str, overlay_id: str,
         )
         # Events are auto-saved to user's timeline
     """
-    from app.services.document_overlay import OverlayManager
+    from app.services.unified_overlay_manager import UnifiedOverlayManager
     from app.services.storage import get_provider
 
     storage = get_provider(provider, access_token=access_token)
     
-    overlay_manager = OverlayManager(storage, access_token)
+    overlay_manager = UnifiedOverlayManager(storage, "system")
     extractor = TimelineExtractor(overlay_manager)
     
     # Extract events

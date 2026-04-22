@@ -42,7 +42,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Optional
-from uuid import uuid4
+from app.core.id_gen import make_id
 
 from app.services.document_recognition import (
     DocumentCategory,
@@ -387,7 +387,7 @@ class DocumentIntelligenceService:
             IntelligenceResult with comprehensive analysis
         """
         self.analysis_count += 1
-        doc_id = document_id or str(uuid4())
+        doc_id = document_id or make_id("doc")
         
         # Step 1: Run recognition engine
         recognition = recognize_document(text, filename)
@@ -544,7 +544,7 @@ class DocumentIntelligenceService:
                 is_critical = event_type in ["deadline", "hearing"] and 0 <= days_until <= 7
                 
                 events.append(TimelineEvent(
-                    id=str(uuid4()),
+                    id=make_id("evt"),
                     event_type=event_type,
                     title=entity.context_label or "Date",
                     description=f"From document: {entity.source_text[:100]}..." if len(entity.source_text) > 100 else f"From document: {entity.source_text}",
@@ -611,7 +611,7 @@ class DocumentIntelligenceService:
         if recognition.category == DocumentCategory.COURT:
             if recognition.doc_type == DocumentType.SUMMONS:
                 actions.append(ActionItem(
-                    id=str(uuid4()),
+                    id=make_id("act"),
                     priority=priority,
                     title="Respond to Summons",
                     description="You must file a written Answer with the court within the time specified (usually 7-14 days).",
@@ -623,7 +623,7 @@ class DocumentIntelligenceService:
                 
             if recognition.doc_type == DocumentType.WRIT:
                 actions.append(ActionItem(
-                    id=str(uuid4()),
+                    id=make_id("act"),
                     priority=1,  # Always highest for writ
                     title="CRITICAL: Writ of Restitution",
                     description="The sheriff may remove you from the property. Gather belongings immediately and contact legal aid.",
@@ -634,7 +634,7 @@ class DocumentIntelligenceService:
                 
             if recognition.doc_type in [DocumentType.COMPLAINT, DocumentType.EVICTION_FILING]:
                 actions.append(ActionItem(
-                    id=str(uuid4()),
+                    id=make_id("act"),
                     priority=priority,
                     title="Review Complaint Allegations",
                     description="Read each allegation carefully. You will need to admit, deny, or state you lack information for each one.",
@@ -647,7 +647,7 @@ class DocumentIntelligenceService:
         if recognition.category == DocumentCategory.LANDLORD:
             if recognition.doc_type == DocumentType.EVICTION_NOTICE:
                 actions.append(ActionItem(
-                    id=str(uuid4()),
+                    id=make_id("act"),
                     priority=priority,
                     title="Review Eviction Notice",
                     description="Check if the notice is proper: correct days, proper service, valid reason.",
@@ -659,7 +659,7 @@ class DocumentIntelligenceService:
                 
             if recognition.doc_type == DocumentType.RENT_INCREASE:
                 actions.append(ActionItem(
-                    id=str(uuid4()),
+                    id=make_id("act"),
                     priority=priority,
                     title="Review Rent Increase",
                     description="Verify proper notice period given. Month-to-month requires 30 days. Fixed-term requires notice before renewal.",
@@ -671,7 +671,7 @@ class DocumentIntelligenceService:
         # Add legal consultation recommendation for serious documents
         if recognition.category == DocumentCategory.COURT or recognition.urgency_level in ["critical", "high"]:
             actions.append(ActionItem(
-                id=str(uuid4()),
+                id=make_id("act"),
                 priority=priority,
                 title="Seek Legal Help",
                 description="Contact Legal Aid, Volunteer Lawyers Network, or a tenant rights organization for assistance.",

@@ -21,7 +21,7 @@ from datetime import datetime, timezone, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Optional, Any
-from uuid import uuid4
+from app.core.id_gen import make_id
 
 
 # =============================================================================
@@ -775,7 +775,7 @@ class IssueDetector:
                 for match in re.finditer(pattern, text, re.IGNORECASE):
                     if issue_def["check"](match, text):
                         issues.append(DetectedIssue(
-                            issue_id=f"{issue_key}_{uuid4().hex[:8]}",
+                            issue_id=make_id("iss"),
                             severity=issue_def["severity"],
                             title=issue_def["title"],
                             description=issue_def["description"],
@@ -791,7 +791,7 @@ class IssueDetector:
                 imminent_dates = [d for d in dates if d.is_deadline and d.days_until is not None and 0 <= d.days_until <= 7]
                 for d in imminent_dates:
                     issues.append(DetectedIssue(
-                        issue_id=f"deadline_imminent_{uuid4().hex[:8]}",
+                        issue_id=make_id("iss"),
                         severity=IssueSeverity.CRITICAL,
                         title=f"Deadline in {d.days_until} days: {d.label}",
                         description=f"The {d.label} deadline on {d.date.strftime('%B %d, %Y')} is approaching. Take action immediately.",
@@ -803,7 +803,7 @@ class IssueDetector:
                 missed_dates = [d for d in dates if d.is_deadline and d.days_until is not None and d.days_until < 0]
                 for d in missed_dates:
                     issues.append(DetectedIssue(
-                        issue_id=f"deadline_missed_{uuid4().hex[:8]}",
+                        issue_id=make_id("iss"),
                         severity=IssueSeverity.HIGH,
                         title=f"Deadline may have passed: {d.label}",
                         description=f"The {d.label} deadline of {d.date.strftime('%B %d, %Y')} appears to have passed ({abs(d.days_until)} days ago). Check if this affects your case.",
@@ -960,7 +960,7 @@ class DocumentIntakeEngine:
                 return existing
         
         # Create document record
-        doc_id = f"doc_{uuid4().hex[:12]}"
+        doc_id = make_id("doc")
         
         doc = IntakeDocument(
             id=doc_id,

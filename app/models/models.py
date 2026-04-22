@@ -191,7 +191,7 @@ class Document(Base):
     __tablename__ = "documents"
     
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
     
     # File info
     filename: Mapped[str] = mapped_column(String(255))
@@ -245,7 +245,7 @@ class DocumentPipelineIndex(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     doc_id: Mapped[str] = mapped_column(String(36), unique=True, index=True)
-    user_id: Mapped[str] = mapped_column(String(36), index=True)
+    user_id: Mapped[str] = mapped_column(String(24), index=True)
     payload_json: Mapped[str] = mapped_column(Text)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
 
@@ -262,7 +262,7 @@ class TimelineEvent(Base):
     __tablename__ = "timeline_events"
     
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
     
     # Event details
     event_type: Mapped[str] = mapped_column(String(50))  # notice, payment, maintenance, communication, court
@@ -313,7 +313,7 @@ class RentPayment(Base):
     __tablename__ = "rent_payments"
     
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
     
     # Payment details
     amount: Mapped[int] = mapped_column(Integer)  # Store in cents to avoid float issues
@@ -351,7 +351,7 @@ class CalendarEvent(Base):
     __tablename__ = "calendar_events"
     
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
     
     # Event details
     title: Mapped[str] = mapped_column(String(255))
@@ -385,7 +385,7 @@ class Complaint(Base):
     __tablename__ = "complaints"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
 
     # Agency info
     agency_id: Mapped[str] = mapped_column(String(50), index=True)  # e.g., mn_ag_consumer, hud_fair_housing
@@ -438,7 +438,7 @@ class WitnessStatement(Base):
     __tablename__ = "witness_statements"
     
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
     
     # Witness info
     witness_name: Mapped[str] = mapped_column(String(255))
@@ -468,7 +468,7 @@ class CertifiedMail(Base):
     __tablename__ = "certified_mail"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
 
     # Mail details
     tracking_number: Mapped[str] = mapped_column(String(50))
@@ -610,7 +610,7 @@ class FraudAnalysisResult(Base):
     __tablename__ = "fraud_analysis_results"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
     
     # Analysis target
     analysis_type: Mapped[str] = mapped_column(String(50))  # hud, mortgage, habitability, eviction
@@ -647,7 +647,7 @@ class PressReleaseRecord(Base):
     __tablename__ = "press_release_records"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
     
     # Content
     release_type: Mapped[str] = mapped_column(String(50))  # discrimination, code_violations, fraud, etc.
@@ -684,7 +684,7 @@ class ResearchProfile(Base):
     __tablename__ = "research_profiles"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
     
     # Entity identification
     entity_type: Mapped[str] = mapped_column(String(50))  # landlord, llc, property_manager
@@ -730,7 +730,7 @@ class Contact(Base):
     __tablename__ = "contacts"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
 
     # Contact Type
     contact_type: Mapped[str] = mapped_column(String(50), index=True)
@@ -791,7 +791,7 @@ class ContactInteraction(Base):
     __tablename__ = "contact_interactions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
     contact_id: Mapped[str] = mapped_column(String(36), ForeignKey("contacts.id"), index=True)
 
     # Interaction details
@@ -835,7 +835,7 @@ class DocumentAnnotation(Base):
     
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     document_id: Mapped[str] = mapped_column(String(36), index=True)  # Briefcase document ID
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
     
     # Footnote numbering (dual system)
     footnote_number: Mapped[int] = mapped_column(Integer)           # Global: 1, 2, 3...

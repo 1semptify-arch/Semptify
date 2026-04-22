@@ -1,0 +1,65 @@
+/* ========================================
+   RESPONSIVE BREAKPOINTS
+   Mobile → Tablet → Desktop → TV
+   ======================================== */
+
+/* ----- MOBILE (default, no media query needed) ----- */
+:root {
+  --content-padding: var(--space-sm);
+  --header-height: 3.5rem;
+}
+
+/* ----- TABLET (481px+) ----- */
+@media (min-width: 481px) {
+  :root {
+    --content-padding: var(--space-md);
+  }
+  
+  .grid-cols-2-sm { grid-template-columns: repeat(2, 1fr); }
+  .grid-cols-3-sm { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ----- DESKTOP (769px+) ----- */
+@media (min-width: 769px) {
+  :root {
+    --content-padding: var(--space-lg);
+    --header-height: 4rem;
+  }
+  
+  .grid-cols-2-md { grid-template-columns: repeat(2, 1fr); }
+  .grid-cols-3-md { grid-template-columns: repeat(3, 1fr); }
+  .grid-cols-4-md { grid-template-columns: repeat(4, 1fr); }
+  
+  .hide-desktop { display: none !important; }
+}
+
+/* ----- LARGE DESKTOP (1201px+) ----- */
+@media (min-width: 1201px) {
+  :root {
+    --content-padding: var(--space-xl);
+  }
+  
+  .grid-cols-4-lg { grid-template-columns: repeat(4, 1fr); }
+  .grid-cols-5-lg { grid-template-columns: repeat(5, 1fr); }
+  .grid-cols-6-lg { grid-template-columns: repeat(6, 1fr); }
+}
+
+/* ----- TV / PRESENTATION (1601px+) ----- */
+@media (min-width: 1601px) {
+  :root {
+    --content-padding: var(--space-2xl);
+    font-size: 18px;
+  }
+  
+  .grid-cols-4-xl { grid-template-columns: repeat(4, 1fr); }
+  .grid-cols-6-xl { grid-template-columns: repeat(6, 1fr); }
+}
+
+/* ----- HIDE/SHOW UTILITIES ----- */
+@media (max-width: 768px) {
+  .hide-mobile { display: none !important; }
+}
+
+@media (min-width: 769px) {
+  .show-mobile { display: none !important; }
+}

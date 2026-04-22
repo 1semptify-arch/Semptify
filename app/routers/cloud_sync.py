@@ -373,12 +373,12 @@ async def add_timeline_event(
     """
     ➕ Add timeline event to cloud storage.
     """
-    import uuid
+    from app.core.id_gen import make_id
 
     sync = await get_sync_service(user, db, settings)
     
     event_data = {
-        "id": str(uuid.uuid4()),
+        "id": make_id("evt"),
         "event_type": event.event_type,
         "title": event.title,
         "description": event.description,
@@ -419,13 +419,13 @@ async def add_calendar_event(
     """
     ➕ Add calendar event to cloud storage.
     """
-    import uuid
+    from app.core.id_gen import make_id
 
     sync = await get_sync_service(user, db, settings)
     events = await sync.load_calendar()
 
     event_data = {
-        "id": str(uuid.uuid4()),
+        "id": make_id("cal"),
         "title": event.title,
         "event_type": event.event_type,
         "start_datetime": event.start_datetime,
@@ -718,7 +718,7 @@ async def upload_document_to_cloud(
     All uploads go to .semptify/vault/ with document ID and user ID.
     This is the single source of truth for all documents.
     """
-    import uuid
+    from app.core.id_gen import make_id
     import hashlib
     import json
     from datetime import datetime, timezone
@@ -739,7 +739,7 @@ async def upload_document_to_cloud(
         )
     
     # Generate document ID and compute hash
-    document_id = str(uuid.uuid4())
+    document_id = make_id("doc")
     sha256_hash = hashlib.sha256(content).hexdigest()
     
     # Determine extension and safe filename
@@ -797,7 +797,7 @@ async def upload_document_to_cloud(
         "tags": tag_list,
         "folder": folder,
         "certified_at": datetime.now(timezone.utc).isoformat(),
-        "request_id": str(uuid.uuid4()),
+        "request_id": make_id("req"),
         "storage_path": storage_path,
         "storage_provider": user.provider,
         "version": "5.0",

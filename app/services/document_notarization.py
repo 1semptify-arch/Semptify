@@ -15,11 +15,12 @@ Uses the document registry for integrity verification.
 import hashlib
 import json
 import logging
-import uuid
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, asdict
 from pathlib import Path
+
+from app.core.id_gen import make_id
 
 logger = logging.getLogger(__name__)
 
@@ -198,7 +199,7 @@ class DocumentNotarizationService:
         """
         # Generate unique identifiers
         notarization_id = self._generate_notarization_id()
-        document_id = f"DOC-{uuid.uuid4().hex[:12].upper()}"
+        document_id = make_id("doc")
         
         # Calculate file hash
         file_hash = hashlib.sha256(file_content).hexdigest()
@@ -381,9 +382,7 @@ class DocumentNotarizationService:
     
     def _generate_notarization_id(self) -> str:
         """Generate unique notarization ID."""
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d")
-        random_suffix = uuid.uuid4().hex[:8].upper()
-        return f"SEM-NOT-{timestamp}-{random_suffix}"
+        return make_id("not")
     
     def _detect_mime_type(self, filename: str) -> str:
         """Detect MIME type from filename."""

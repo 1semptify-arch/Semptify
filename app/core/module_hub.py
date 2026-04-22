@@ -31,7 +31,7 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
-from uuid import uuid4
+from app.core.id_gen import make_id
 import json
 
 from app.core.event_bus import event_bus, EventType as BusEventType
@@ -574,7 +574,7 @@ class ModuleHub:
     ) -> InfoPack:
         """Create an Info Pack from extracted document data"""
         
-        pack_id = f"pack_{uuid4().hex[:12]}"
+        pack_id = make_id("pack")
         
         # Separate auto-filled from user-required
         auto_filled = {}
@@ -681,7 +681,7 @@ class ModuleHub:
         Modules call this to get data they need from the hub.
         """
         request = DataRequest(
-            id=f"req_{uuid4().hex[:12]}",
+            id=make_id("req"),
             request_type=request_type,
             requesting_module=requesting_module,
             user_id=user_id,
@@ -880,7 +880,7 @@ class ModuleHub:
         Modules call this to share new data or state changes.
         """
         update = ModuleUpdate(
-            id=f"upd_{uuid4().hex[:12]}",
+            id=make_id("upd"),
             source_module=source_module,
             user_id=user_id,
             update_type=update_type,

@@ -28,7 +28,7 @@ from enum import Enum
 from functools import wraps
 from pathlib import Path
 from typing import Any, Callable, TypeVar
-from uuid import uuid4
+from app.core.id_gen import make_id
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +105,7 @@ class AuditEntry:
         success: bool = True,
         error_message: str | None = None,
     ):
-        self.id = str(uuid4())
+        self.id = make_id("aud")
         self.timestamp = datetime.utcnow()
         self.action = action
         self.user_id = user_id

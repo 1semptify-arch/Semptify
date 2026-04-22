@@ -153,7 +153,7 @@ VAULT_DOCUMENT_ACTIONS: Dict[str, QuickAction] = {
         label="View Certificate",
         icon="shield",
         action_type=ActionType.OPEN,
-        target="document_overlay",
+        target="unified_overlay",
         telemetry_event="overlay_viewed",
     ),
     "download": QuickAction(

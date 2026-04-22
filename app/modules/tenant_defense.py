@@ -14,8 +14,8 @@ workflow orchestration and inter-module communication.
 """
 
 import logging
-import uuid
 from datetime import datetime, timedelta
+from app.core.id_gen import make_id
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
@@ -104,7 +104,7 @@ sdk = ModuleSDK(module_definition)
 
 class EvidenceItem(BaseModel):
     """A single piece of evidence"""
-    id: str = Field(default_factory=lambda: f"evid_{uuid.uuid4().hex[:12]}")
+    id: str = Field(default_factory=lambda: make_id("evid"))
     type: str  # document, photo, communication, witness, payment
     title: str
     description: Optional[str] = None
@@ -239,7 +239,7 @@ class ActionResponse(BaseModel):
 
 def _make_id(prefix: str = "id") -> str:
     """Generate a unique ID with prefix"""
-    return f"{prefix}_{uuid.uuid4().hex[:12]}"
+    return make_id(prefix)
 
 
 def _calculate_case_strength(

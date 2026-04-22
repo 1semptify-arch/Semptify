@@ -145,7 +145,6 @@ preview_router = _safe_router_import("app.routers.preview")
 batch_router = _safe_router_import("app.routers.batch")
 analytics_router = _safe_router_import("app.routers.analytics")
 functionx_router = _safe_router_import("app.routers.functionx")
-document_overlays_router = _safe_router_import("app.routers.document_overlays")
 unified_overlays_router = _safe_router_import("app.routers.unified_overlays")
 document_delivery_router = _safe_router_import("app.routers.document_delivery")
 communication_router = _safe_router_import("app.routers.communication")
@@ -1651,8 +1650,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Request ID middleware
     @fastapi_app.middleware("http")
     async def add_request_id(request: Request, call_next):
-        import uuid
-        request_id = request.headers.get("X-Request-Id", str(uuid.uuid4()))
+        from app.core.id_gen import make_id
+        request_id = request.headers.get("X-Request-Id", make_id("req"))
         response = await call_next(request)
         response.headers["X-Request-Id"] = request_id
         return response
@@ -1731,8 +1730,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     include_if(setup_router, prefix="/api/setup", tags=["Setup Wizard"])  # Initial setup wizard
     include_if(auto_mode_router, tags=["Auto Mode"])  # Auto mode analysis & summaries
     include_if(functionx_router, tags=["FunctionX"])  # Action-set planning and execution scaffold
-    include_if(document_overlays_router, tags=["Document Overlays v2"])  # Overlay-first document state (DEPRECATED)
-    include_if(unified_overlays_router, tags=["Unified Overlays"])  # New unified overlay system (cloud-only)
+    include_if(unified_overlays_router, tags=["Unified Overlays"])  # Unified overlay system (cloud-only)
     include_if(document_delivery_router, tags=["Document Delivery"])  # Send/receive/sign documents
     include_if(communication_router, tags=["Communications"])  # Messaging and document collaboration
     include_if(websocket_router, prefix="/ws", tags=["WebSocket Events"])  # Real-time events
@@ -2558,6 +2556,36 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return invite_fallback
         return HTMLResponse(
             content="<h1>Invite Advocate page not found</h1>",
+            status_code=404
+        )
+
+    # =========================================================================
+    # Document Delivery Pages (Professional Send Flow)
+    # =========================================================================
+
+    PROFESSIONAL_ROLES = {"advocate", "manager", "legal", "admin"}
+
+    @fastapi_app.get("/delivery/send", response_class=HTMLResponse)
+    async def delivery_send_page(request: Request):
+        """Serve the document send page for professionals (Advocate, Manager, Legal, Admin)."""
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import COOKIE_USER_ID, get_role_from_user_id
+
+        user_id = request.cookies.get(COOKIE_USER_ID)
+        if not is_valid_storage_user(user_id):
+            return RedirectResponse(url="/storage/providers", status_code=302)
+
+        # Verify professional role
+        role = get_role_from_user_id(user_id)
+        if role not in PROFESSIONAL_ROLES:
+            return RedirectResponse(url="/", status_code=302)
+
+        send_path = BASE_PATH / "static" / "delivery_send.html"
+        send_fallback = _render_static_page(send_path)
+        if send_fallback:
+            return send_fallback
+        return HTMLResponse(
+            content="<h1>Document Send page not found</h1>",
             status_code=404
         )
 

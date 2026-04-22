@@ -21,7 +21,7 @@ from datetime import datetime, date, timedelta
 from typing import Optional, List, Dict, Any, Tuple
 from dataclasses import dataclass, field, asdict
 from enum import Enum
-from uuid import uuid4
+from app.core.id_gen import make_id
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +46,7 @@ class TimelineEventType(str, Enum):
 @dataclass
 class ExtractedTimelineEvent:
     """An event extracted from a document for the timeline."""
-    id: str = field(default_factory=lambda: str(uuid4()))
+    id: str = field(default_factory=lambda: make_id("evt"))
     event_type: TimelineEventType = TimelineEventType.OTHER
     title: str = ""
     description: str = ""

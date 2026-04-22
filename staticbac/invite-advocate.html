@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invite an Advocate - Semptify</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2C5F2D;
+            --secondary: #3498DB;
+            --accent: #E67E22;
+            --background: #F8F9FA;
+            --text: #2D3436;
+            --success: #27AE60;
+            --warning: #F39C12;
+            --danger: #E74C3C;
+        }
+        
+        body {
+            background: var(--background);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, var(--primary), #1a4a1b);
+            color: white;
+            padding: 2rem;
+        }
+        
+        .page-header h1 {
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .page-header p {
+            opacity: 0.9;
+            margin: 0.5rem 0 0;
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-radius: 12px;
+        }
+        
+        .card-header {
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            padding: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background: #1a4a1b;
+            border-color: #1a4a1b;
+        }
+        
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid var(--secondary);
+            padding: 1rem;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 1.5rem;
+        }
+        
+        .info-box i {
+            color: var(--secondary);
+            margin-right: 0.5rem;
+        }
+        
+        .relationship-option {
+            cursor: pointer;
+            padding: 1rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        
+        .relationship-option:hover {
+            border-color: var(--primary);
+            background: #f8f9fa;
+        }
+        
+        .relationship-option.selected {
+            border-color: var(--primary);
+            background: #e8f5e9;
+        }
+        
+        .relationship-option i {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+        
+        .advocate-card {
+            border-left: 4px solid var(--primary);
+            margin-bottom: 1rem;
+        }
+        
+        .advocate-card.active { border-left-color: var(--success); }
+        .advocate-card.pending { border-left-color: var(--warning); }
+        .advocate-card.revoked { border-left-color: var(--danger); opacity: 0.7; }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-active { background: #d4edda; color: #155724; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-revoked { background: #f8d7da; color: #721c24; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="container">
+            <h1><i class="bi bi-heart-fill me-2"></i>Invite an Advocate</h1>
+            <p>Get help from someone you trust — a friend, family member, or volunteer</p>
+        </div>
+    </div>
+
+    <div class="container py-4">
+        <div class="row">
+            <!-- Invite Form -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-plus-circle me-2"></i>Send New Invitation
+                    </div>
+                    <div class="card-body">
+                        <div class="info-box">
+                            <i class="bi bi-info-circle-fill"></i>
+                            <strong>What is an advocate?</strong> An advocate is someone you trust who can view your case, help you organize documents, and support you through the process. <strong>You control their access</strong> and can remove them at any time.
+                        </div>
+
+                        <form id="inviteForm">
+                            <div class="mb-3">
+                                <label class="form-label">Their Name</label>
+                                <input type="text" class="form-control" id="advocateName" required placeholder="Full name">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Their Email</label>
+                                <input type="email" class="form-control" id="advocateEmail" required placeholder="email@example.com">
+                                <div class="form-text">They'll receive an invitation email with a secure link</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Your Relationship</label>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="relationship-option" data-value="friend" onclick="selectRelationship(this)">
+                                            <i class="bi bi-people"></i>
+                                            Friend
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="relationship-option" data-value="family" onclick="selectRelationship(this)">
+                                            <i class="bi bi-house-heart"></i>
+                                            Family
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="relationship-option" data-value="volunteer" onclick="selectRelationship(this)">
+                                            <i class="bi bi-hand-thumbs-up"></i>
+                                            Volunteer
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="relationship-option" data-value="other" onclick="selectRelationship(this)">
+                                            <i class="bi bi-person"></i>
+                                            Other
+                                        </div>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="relationship" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Personal Message (optional)</label>
+                                <textarea class="form-control" id="personalMessage" rows="3" placeholder="Hi! I'm using Semptify to organize my housing case. Would you help me by being my advocate?"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-send me-2"></i>Send Invitation
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Your Advocates -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-people-fill me-2"></i>Your Advocates
+                    </div>
+                    <div class="card-body">
+                        <div id="advocatesContainer">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <h5>No Advocates Yet</h5>
+                                <p>Your invited advocates will appear here.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>Invitation Sent</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Your invitation has been sent! They will receive an email with instructions to accept.</p>
+                    <p class="text-muted mb-0">The invitation expires in 7 days if not accepted.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal" onclick="resetForm()">Got it</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function selectRelationship(element) {
+            document.querySelectorAll('.relationship-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            document.getElementById('relationship').value = element.dataset.value;
+        }
+
+        document.getElementById('inviteForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const relationship = document.getElementById('relationship').value;
+            if (!relationship) {
+                alert('Please select a relationship');
+                return;
+            }
+
+            const data = {
+                name: document.getElementById('advocateName').value,
+                email: document.getElementById('advocateEmail').value,
+                relationship: relationship,
+                message: document.getElementById('personalMessage').value
+            };
+
+            try {
+                const response = await fetch('/api/advocate/invite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (response.ok) {
+                    new bootstrap.Modal(document.getElementById('successModal')).show();
+                    loadAdvocates();
+                } else {
+                    alert('Error: ' + (result.message || 'Failed to send invitation'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to send invitation. Please try again.');
+            }
+        });
+
+        function resetForm() {
+            document.getElementById('inviteForm').reset();
+            document.querySelectorAll('.relationship-option').forEach(el => el.classList.remove('selected'));
+            document.getElementById('relationship').value = '';
+        }
+
+        async function loadAdvocates() {
+            try {
+                const response = await fetch('/api/advocate/invites');
+                const data = await response.json();
+                
+                const container = document.getElementById('advocatesContainer');
+                const all = [...(data.active || []), ...(data.pending || [])];
+                
+                if (all.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <h5>No Advocates Yet</h5>
+                            <p>Your invited advocates will appear here.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = all.map(advocate => `
+                    <div class="card advocate-card ${advocate.status}">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1">${advocate.advocate_name}</h6>
+                                    <p class="text-muted mb-1 small">${advocate.advocate_email}</p>
+                                    <span class="badge bg-secondary">${advocate.relationship}</span>
+                                </div>
+                                <span class="status-badge status-${advocate.status}">${advocate.status}</span>
+                            </div>
+                            ${advocate.status === 'active' || advocate.status === 'pending' ? `
+                                <div class="mt-2 text-end">
+                                    <button class="btn btn-sm btn-outline-danger" onclick="revoke('${advocate.invite_id}')">
+                                        <i class="bi bi-x-circle"></i> Revoke Access
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading advocates:', error);
+            }
+        }
+
+        async function revoke(inviteId) {
+            if (!confirm('Are you sure? This will immediately remove their access to your case.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/advocate/revoke', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ invite_id: inviteId })
+                });
+
+                if (response.ok) {
+                    loadAdvocates();
+                } else {
+                    alert('Failed to revoke access');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to revoke access');
+            }
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', loadAdvocates);
+    </script>
+</body>
+</html>

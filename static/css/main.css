@@ -1,0 +1,27 @@
+/* ========================================
+   SEMPTIFY CSS MAIN ENTRY
+   Import all stylesheets in correct order
+   ======================================== */
+
+/* 1. Base */
+@import url('base/reset.css');
+@import url('base/variables.css');
+@import url('base/utilities.css');
+
+/* 2. Themes (pick one per page via data-theme attribute) */
+@import url('themes/ocean.css');
+@import url('themes/forest.css');
+@import url('themes/royal.css');
+@import url('themes/slate.css');
+@import url('themes/crimson.css');
+
+/* 3. Layouts */
+@import url('layouts/page.css');
+
+/* 4. Components */
+@import url('components/buttons.css');
+@import url('components/cards.css');
+@import url('components/forms.css');
+
+/* 5. Responsive (last to override) */
+@import url('responsive/breakpoints.css');

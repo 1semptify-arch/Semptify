@@ -89,16 +89,21 @@
 
 **Storage:** Messages stored as COMMUNICATION overlays in `Semptify5.0/Vault/communications/`
 
-### ⚠️ Partial / Placeholder (622-856 bytes)
+### ✅ Recently Upgraded from Placeholder
 
 | Contract ID | Route | Static HTML | Size | Status |
 |-------------|-------|-------------|------|--------|
-| `tenancy` | `/tenancy` | `my_tenancy.html` | 622b | ⚠️ Placeholder |
-| `journey` | `/journey` | `journey.html` | 622b | ⚠️ Placeholder |
-| `complete_journey` | `/complete-journey` | `complete-journey.html` | 622b | ⚠️ Placeholder |
-| `interactive_timeline` | `/interactive-timeline` | `interactive-timeline.html` | 622b | ⚠️ Placeholder |
-| `timeline_builder` | `/timeline-builder` | `timeline-builder.html` | 622b | ⚠️ Placeholder |
-| `zoom_court` | `/zoom-court` | `zoom_court.html` | 856b | ⚠️ Placeholder |
+| `tenancy` | `/tenancy` | `my_tenancy.html` | ~15KB | ✅ Full tenancy dashboard |
+| `zoom_court` | `/zoom-court` | `zoom_court.html` | ~12KB | ✅ Zoom prep with checklist |
+| `journey` | `/journey` | `journey.html` | ~35KB | ✅ 4-phase tenant journey guide |
+| `complete_journey` | `/complete-journey` | `complete-journey.html` | ~18KB | ✅ Post-case completion guide |
+| `interactive_timeline` | `/interactive-timeline` | `interactive-timeline.html` | ~22KB | ✅ Visual timeline with filters |
+| `timeline_builder` | `/timeline-builder` | `timeline-builder.html` | ~25KB | ✅ Manual timeline construction |
+
+### ⚠️ Remaining Placeholder Pages
+
+| Contract ID | Route | Static HTML | Size | Status |
+|-------------|-------|-------------|------|--------|
 | `document_calendar` | `/document-calendar` | `document_calendar.html` | 45KB | ✅ Verify |
 
 ### 📁 Directory-Based (Role Portals)
@@ -107,6 +112,7 @@
 |-------------|-------|-----------|--------|
 | `tenant` | `/tenant` | `static/tenant/` | ✅ |
 | `advocate_portal` | `/advocate` | `static/advocate/` | ✅ |
+| `manager_portal` | `/manager` | `static/manager/` | ✅ New - caseload dashboard |
 | `admin_portal` | `/admin` | `static/admin/` | ✅ |
 | `legal_portal` | `/legal` | `static/legal/` | ✅ |
 
@@ -116,12 +122,13 @@
 |-------------|-------|-------------|--------|
 | `document_delivery_inbox` | `/delivery/inbox` | `delivery_inbox.html` | ✅ Wired to `/api/delivery/inbox` |
 | `document_signature` | `/delivery/sign` | `document_signer.html` | ✅ Sign + view modes, linked from inbox |
+| `document_delivery_send` | `/delivery/send` | `delivery_send.html` | ✅ Professional send flow with vault integration |
+| `invite_advocate` | `/invite-advocate` | `invite-advocate.html` | ✅ Tenant invite page built |
 
 ### ❌ Missing GUI (No HTML Found)
 
 | Contract ID | Route | Priority | Notes |
 |-------------|-------|----------|-------|
-| `document_delivery_send` | `/delivery/send` | Medium | Advocate send UI — needs build |
 | `storage_reconnect` | `/storage-reconnect` | Low | PARKED — awaiting identity format decision |
 
 ---

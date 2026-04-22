@@ -25,7 +25,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Optional, TypeVar
-from uuid import uuid4
+from app.core.id_gen import make_id
 import hashlib
 import json
 import logging
@@ -156,7 +156,7 @@ class AccessResult:
     scope: Optional[ResourceScope] = None
     
     # Audit trail
-    request_id: str = field(default_factory=lambda: str(uuid4())[:8])
+    request_id: str = field(default_factory=lambda: make_id("acr"))
     checked_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -658,7 +658,7 @@ class VaultAccessEngine:
     ):
         """Create an immutable audit log entry."""
         entry = AuditEntry(
-            id=str(uuid4())[:12],
+            id=make_id("aud"),
             timestamp=datetime.now(timezone.utc),
             user_id=user_id,
             action=action,
