@@ -7,7 +7,7 @@ Now with DATABASE PERSISTENCE for drafts.
 
 import json
 import logging
-import uuid
+from app.core.id_gen import make_id
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel
@@ -479,7 +479,7 @@ class ComplaintWizardService:
         """Create a new complaint draft and persist to database."""
         from app.models.models import Complaint as ComplaintModel
 
-        draft_id = str(uuid.uuid4())
+        draft_id = make_id("cmp")
         now = datetime.utcnow()
 
         # Create database record
@@ -711,7 +711,7 @@ class ComplaintWizardService:
         subject: str = ""
     ) -> ComplaintDraft:
         """Create a new complaint draft (in-memory, use create_draft_db for persistence)."""
-        draft_id = str(uuid.uuid4())
+        draft_id = make_id("cmp")
         now = datetime.utcnow()
 
         draft = ComplaintDraft(

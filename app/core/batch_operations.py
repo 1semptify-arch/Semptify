@@ -7,7 +7,7 @@ Handles batch operations for document management with progress tracking.
 
 import logging
 import asyncio
-import uuid
+from app.core.id_gen import make_id
 from typing import Dict, Any, List, Optional, Callable, Union
 from datetime import datetime, timezone
 from dataclasses import dataclass, asdict
@@ -139,13 +139,13 @@ class BatchProcessor:
     def create_batch_operation(self, operation_type: BatchOperationType, user_id: str,
                            items: List[Dict[str, Any]], settings: Dict[str, Any] = None) -> str:
         """Create a new batch operation."""
-        operation_id = str(uuid.uuid4())
+        operation_id = make_id("batch")
         
         # Create batch items
         batch_items = []
         for i, item_data in enumerate(items):
             batch_item = BatchItem(
-                item_id=str(uuid.uuid4()),
+                item_id=make_id("item"),
                 item_type=item_data.get("type", "unknown"),
                 data=item_data
             )
@@ -460,7 +460,7 @@ async def batch_export_handler(items: List[BatchItem], settings: Dict[str, Any])
             zip_data = zip_buffer.getvalue()
             
             # Store export data (in real system, would save to storage)
-            export_id = str(uuid.uuid4())
+            export_id = make_id("exp")
             
             for item in items:
                 results.append({

@@ -1,915 +1,305 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Help & Resources - Semptify</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/css/accessibility.css">
-    <style>
-        :root {
-            --bg: #0f172a;
-            --bg-card: #1e293b;
-            --bg-hover: #334155;
-            --primary: #3b82f6;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help – Semptify</title>
+  <style>
+    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fff; color: #1a1a2e; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 1rem; white-space: nowrap; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .vault-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-        }
+    /* EMERGENCY BANNER */
+    .emergency-banner { background: #dc2626; color: #fff; text-align: center; padding: 0.75rem 1.5rem; font-weight: 600; font-size: 0.95rem; }
+    .emergency-banner a { color: #fde68a; text-decoration: none; margin-left: 1rem; }
 
-        .header {
-            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg) 100%);
-            padding: 2rem;
-            text-align: center;
-            border-bottom: 1px solid var(--border);
-        }
+    .hero { background: linear-gradient(160deg, #e8eaf6 0%, #fff 60%); padding: 2rem 1.5rem 1.5rem; text-align: center; }
+    .hero h1 { font-size: 1.8rem; font-weight: 800; color: var(--hdr1); margin-bottom: 0.5rem; }
+    .hero p { color: #555; max-width: 560px; margin: 0 auto 1.25rem; line-height: 1.6; font-size: 0.95rem; }
+    .hero-search { max-width: 500px; margin: 0 auto; display: flex; gap: 0.5rem; }
+    .hero-search input { flex: 1; padding: 0.65rem 1rem; border: 2px solid #c5cae9; border-radius: 10px; font-size: 0.95rem; outline: none; }
+    .hero-search input:focus { border-color: var(--accent); }
+    .hero-search button { background: var(--accent); color: #fff; border: none; padding: 0.65rem 1.25rem; border-radius: 10px; cursor: pointer; font-weight: 600; }
 
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
+    .section { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .section-title { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
 
-        .header p {
-            color: var(--text-muted);
-            font-size: 1.1rem;
-        }
+    /* CRISIS CARDS */
+    .crisis-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
+    .crisis-card { border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; text-decoration: none; color: inherit; transition: all 0.2s; }
+    .crisis-card:hover { transform: translateY(-2px); }
+    .crisis-card.urgent { background: #fff1f2; border: 2px solid #f43f5e; }
+    .crisis-card.warning { background: #fffbeb; border: 2px solid #f59e0b; }
+    .crisis-card.info { background: #eff6ff; border: 2px solid #3b82f6; }
+    .crisis-card.green { background: #f0fdf4; border: 2px solid #22c55e; }
+    .crisis-title { font-weight: 700; font-size: 1rem; }
+    .crisis-desc { font-size: 0.85rem; line-height: 1.4; }
+    .crisis-link { font-weight: 600; font-size: 0.85rem; margin-top: 0.25rem; }
+    .urgent .crisis-link { color: #dc2626; }
+    .warning .crisis-link { color: #92400e; }
+    .info .crisis-link { color: #1e40af; }
+    .green .crisis-link { color: #15803d; }
 
-        .emergency-banner {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
+    /* FAQ */
+    .faq-list { max-width: 800px; }
+    .faq-item { border: 1px solid #e0e0e0; border-radius: 10px; margin-bottom: 0.5rem; overflow: hidden; }
+    .faq-question { padding: 1rem 1.25rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: space-between; background: #fafafa; font-size: 0.95rem; }
+    .faq-question:hover { background: #f0f0ff; }
+    .faq-arrow { transition: transform 0.2s; font-size: 0.8rem; }
+    .faq-item.open .faq-arrow { transform: rotate(180deg); }
+    .faq-answer { display: none; padding: 0 1.25rem 1rem; font-size: 0.9rem; line-height: 1.6; color: #444; }
+    .faq-item.open .faq-answer { display: block; }
 
-        .emergency-banner a {
-            color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            background: rgba(255,255,255,0.2);
-            border-radius: 8px;
-            font-weight: 600;
-        }
+    /* CONTACT */
+    .contact-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .contact-card { background: #f8f9ff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; text-align: center; text-decoration: none; color: inherit; transition: all 0.2s; }
+    .contact-card:hover { border-color: var(--accent); background: #e8eaf6; }
+    .contact-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+    .contact-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; }
+    .contact-desc { font-size: 0.82rem; color: #666; }
 
-        .emergency-banner a:hover {
-            background: rgba(255,255,255,0.3);
-        }
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.5rem; font-size: 0.85rem; margin-top: 3rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
 
-        .search-box {
-            background: var(--bg-card);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-
-        .search-box input {
-            width: 100%;
-            max-width: 600px;
-            padding: 1rem 1.5rem;
-            font-size: 1.1rem;
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            background: var(--bg);
-            color: var(--text);
-        }
-
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .section {
-            margin-bottom: 3rem;
-        }
-
-        .section-title {
-            font-size: 1.5rem;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            transition: all 0.2s;
-        }
-
-        .card:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .card-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .card h3 {
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .card p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-            line-height: 1.5;
-        }
-
-        .card-link {
-            display: inline-block;
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .card-link:hover {
-            text-decoration: underline;
-        }
-
-        /* Journey Steps */
-        .journey-steps {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1rem;
-        }
-
-        .journey-step {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.25rem;
-            text-decoration: none;
-            color: var(--text);
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .journey-step:hover {
-            border-color: var(--success);
-            background: var(--bg-hover);
-        }
-
-        .step-number {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-
-        .step-content h4 {
-            font-size: 1rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .step-content p {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        /* FAQ */
-        .faq-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .faq-item {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .faq-question {
-            padding: 1.25rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 500;
-        }
-
-        .faq-question:hover {
-            background: var(--bg-hover);
-        }
-
-        .faq-answer {
-            padding: 0 1.25rem 1.25rem;
-            color: var(--text-muted);
-            line-height: 1.6;
-            display: none;
-        }
-
-        .faq-item.open .faq-answer {
-            display: block;
-        }
-
-        .faq-item.open .faq-question i {
-            transform: rotate(180deg);
-        }
-
-        /* Contact Cards */
-        .contact-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .contact-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-        }
-
-        .contact-card h3 {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .contact-card .phone {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--success);
-            margin-bottom: 0.5rem;
-        }
-
-        .contact-card .hours {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        /* Legal Resources */
-        .resource-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .resource-link {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem 1.25rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-
-        .resource-link:hover {
-            border-color: var(--primary);
-            background: var(--bg-hover);
-        }
-
-        .resource-link i {
-            font-size: 1.25rem;
-            color: var(--primary);
-            width: 24px;
-        }
-
-        .resource-link-copy {
-            margin: 0;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-        }
-
-        .resource-link.featured {
-            border-color: var(--primary);
-            background: rgba(59, 130, 246, 0.1);
-        }
-
-        .resource-link.featured i {
-            color: var(--primary);
-        }
-
-        /* Back to top */
-        .back-to-top {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--primary);
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 1.25rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .back-to-top.visible {
-            opacity: 1;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header h1 { font-size: 1.75rem; }
-            .container { padding: 1rem; }
-            .cards-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+    @media (max-width: 768px) {
+      nav.core-nav { display: none; }
+      .hamburger { display: block; }
+      .hero h1 { font-size: 1.4rem; }
+    }
+  </style>
 </head>
 <body>
-    <!-- Site-wide header -->
-    <script src="/js/header.js"></script>
 
-    <!-- Emergency Banner -->
-    <div class="emergency-banner">
-        <span>🚨 <strong>EMERGENCY?</strong></span>
-        <a href="tel:988">📞 Call or Text 988</a>
-        <a href="tel:211">📞 Call 211</a>
-        <a href="tel:18007456686">📞 HOME Line: 1-800-745-6686</a>
-        <a href="/eviction/">🆘 Legal Help Now</a>
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/home.html">🏠 Home</a>
+    <a href="/library.html">📚 Library</a>
+    <a href="/office.html">🏢 Office</a>
+    <a href="/tools.html">🔧 Tools</a>
+    <a href="/help.html">🆘 Help</a>
+    <hr style="border-color:rgba(255,255,255,0.2); margin: 0.5rem 0;">
+    <a href="#" onclick="openVaultUpload()" style="color:#f59e0b; font-weight:700;">🔒 Vault Door</a>
+    <a href="/onboarding/select-role.html">👤 My Account</a>
+  </nav>
+
+  <div class="emergency-banner">
+    🚨 Facing eviction? Don't wait.
+    <a href="/help/crisis.html">Get Emergency Resources →</a>
+    <a href="tel:211">Call 211</a>
+  </div>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <div class="logo">Semptify</div>
+      <nav class="core-nav">
+        <a href="/home.html">🏠 Home</a>
+        <a href="/library.html">📚 Library</a>
+        <a href="/office.html">🏢 Office</a>
+        <a href="/tools.html">🔧 Tools</a>
+        <a href="/help.html" class="active">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button class="vault-btn" onclick="openVaultUpload()">🔒 Vault</button>
+        <button class="user-btn">👤 User</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h1>🆘 Help &amp; Support</h1>
+    <p>Find answers, crisis resources, and contact information. You are not alone.</p>
+    <div class="hero-search">
+      <input type="text" id="faq-search" placeholder="Search FAQs..." onkeyup="searchFaq()">
+      <button onclick="searchFaq()">Search</button>
+    </div>
+  </div>
+
+  <div class="section">
+
+    <div class="section-title">🚨 Crisis &amp; Emergency Resources</div>
+    <div class="crisis-grid">
+
+      <a href="/help/crisis.html" class="crisis-card urgent">
+        <span style="font-size:1.75rem;">🚪</span>
+        <span class="crisis-title">Facing Eviction</span>
+        <span class="crisis-desc">Received an eviction notice? Emergency steps to take immediately — deadlines matter.</span>
+        <span class="crisis-link">→ Emergency Eviction Guide</span>
+      </a>
+
+      <a href="tel:211" class="crisis-card warning">
+        <span style="font-size:1.75rem;">📞</span>
+        <span class="crisis-title">Call 211</span>
+        <span class="crisis-desc">Free hotline for local rent assistance, shelters, legal aid, and housing resources.</span>
+        <span class="crisis-link">→ Dial 2-1-1</span>
+      </a>
+
+      <a href="https://www.lawhelp.org/" target="_blank" rel="noopener" class="crisis-card info">
+        <span style="font-size:1.75rem;">⚖️</span>
+        <span class="crisis-title">Free Legal Aid</span>
+        <span class="crisis-desc">Find free and low-cost legal help in your area from LawHelp.org.</span>
+        <span class="crisis-link">→ Find Legal Aid</span>
+      </a>
+
+      <a href="https://www.hud.gov/topics/rental_assistance" target="_blank" rel="noopener" class="crisis-card green">
+        <span style="font-size:1.75rem;">🏛️</span>
+        <span class="crisis-title">Rent Assistance</span>
+        <span class="crisis-desc">HUD emergency rental assistance programs and how to apply.</span>
+        <span class="crisis-link">→ HUD Rental Help</span>
+      </a>
+
     </div>
 
-    <!-- Header -->
-    <header class="header">
-        <h1>🆘 Help & Resources Center</h1>
-        <p>Everything you need to protect your housing rights</p>
-    </header>
+    <div class="section-title">❓ Frequently Asked Questions</div>
+    <div class="faq-list" id="faq-list">
 
-    <div class="container">
-        <!-- Search -->
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="🔍 Search for help... (e.g., 'eviction notice', 'pay rent', 'court date')" onkeyup="filterContent()">
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          What is Semptify? <span class="faq-arrow">▼</span>
         </div>
+        <div class="faq-answer">
+          Semptify is a free housing rights platform that helps tenants, advocates, and housing professionals organize documents, track timelines, and understand their rights. We are not a law firm and do not provide legal advice — we provide education and organization tools.
+        </div>
+      </div>
 
-        <!-- Quick Start Journey -->
-        <section class="section" id="journey">
-            <h2 class="section-title">🗺️ Your Tenant Journey - Step by Step</h2>
-            <div class="journey-steps">
-                <a href="/document_intake.html?type=lease" class="journey-step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h4>📝 Lease & Move-In</h4>
-                        <p>Upload your lease and deposit receipts</p>
-                    </div>
-                </a>
-                <a href="/document_intake.html?type=payment" class="journey-step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h4>💰 Rent Payments</h4>
-                        <p>Track all payments you've made</p>
-                    </div>
-                </a>
-                <a href="/document_intake.html?type=maintenance" class="journey-step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h4>🔧 Maintenance Issues</h4>
-                        <p>Document repair requests and problems</p>
-                    </div>
-                </a>
-                <a href="/document_intake.html?type=notice" class="journey-step">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <h4>⚠️ Notices Received</h4>
-                        <p>Upload any notices from landlord</p>
-                    </div>
-                </a>
-                <a href="/timeline.html" class="journey-step">
-                    <div class="step-number">5</div>
-                    <div class="step-content">
-                        <h4>📅 Build Timeline</h4>
-                        <p>Organize events chronologically</p>
-                    </div>
-                </a>
-                <a href="/law-library" class="journey-step">
-                    <div class="step-number">6</div>
-                    <div class="step-content">
-                        <h4>📖 Know Your Rights</h4>
-                        <p>Research tenant protection laws</p>
-                    </div>
-                </a>
-                <a href="/eviction/answer" class="journey-step">
-                    <div class="step-number">7</div>
-                    <div class="step-content">
-                        <h4>📝 Answer Summons</h4>
-                        <p>Respond to court complaint</p>
-                    </div>
-                </a>
-                <a href="/eviction/counterclaim" class="journey-step">
-                    <div class="step-number">8</div>
-                    <div class="step-content">
-                        <h4>⚔️ Fight Back</h4>
-                        <p>Counterclaims and motions</p>
-                    </div>
-                </a>
-                <a href="/eviction/zoom" class="journey-step">
-                    <div class="step-number">9</div>
-                    <div class="step-content">
-                        <h4>💻 Court Prep</h4>
-                        <p>Get ready for your hearing</p>
-                    </div>
-                </a>
-            </div>
-        </section>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Is Semptify free? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          Yes. Semptify is free forever for all users. There is no advertising, no premium tier, and no monetization of user data. Our mission is to help people who cannot afford a legal team protect their housing rights.
+        </div>
+      </div>
 
-        <!-- Semptify Tools -->
-        <section class="section" id="tools">
-            <h2 class="section-title">🛠️ Semptify Tools</h2>
-            <div class="cards-grid">
-                <div class="card">
-                    <div class="card-icon">📤</div>
-                    <h3>Document Intake</h3>
-                    <p>Upload and organize all your evidence - leases, receipts, photos, notices. AI automatically classifies and timestamps everything.</p>
-                    <a href="/document_intake.html" class="card-link">Upload Documents →</a>
-                </div>
-                <div class="card">
-                    <div class="card-icon">📅</div>
-                    <h3>Timeline Builder</h3>
-                    <p>Create a chronological record of events. Essential for court - judges need to see what happened and when.</p>
-                    <a href="/timeline.html" class="card-link">Build Timeline →</a>
-                </div>
-                <div class="card">
-                    <div class="card-icon">📁</div>
-                    <h3>Document Vault</h3>
-                    <p>Secure storage for all your documents. Court-ready certificates prove authenticity and timestamps.</p>
-                    <a href="/documents.html" class="card-link">View Vault →</a>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🗓️</div>
-                    <h3>Calendar & Deadlines</h3>
-                    <p>Never miss a deadline. Track court dates, filing deadlines, and response windows.</p>
-                    <a href="/calendar.html" class="card-link">View Calendar →</a>
-                </div>
-                <div class="card">
-                    <div class="card-icon">📖</div>
-                    <h3>Law Library</h3>
-                    <p>Research tenant rights, Minnesota statutes, and legal defenses that apply to your case.</p>
-                    <a href="/law-library" class="card-link">Research Laws →</a>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🧠</div>
-                    <h3>AI Assistant</h3>
-                    <p>Ask questions about your case, get guidance on next steps, and understand legal concepts.</p>
-                    <a href="/brain.html" class="card-link">Ask AI →</a>
-                </div>
-                <div class="card">
-                    <div class="card-icon">📝</div>
-                    <h3>Answer Generator</h3>
-                    <p>Create your legal answer to the eviction complaint. Step-by-step guided process.</p>
-                    <a href="/eviction/answer" class="card-link">Create Answer →</a>
-                </div>
-                <div class="card">
-                    <div class="card-icon">⚔️</div>
-                    <h3>Counterclaim Builder</h3>
-                    <p>Sue your landlord back for violations. Habitability issues, retaliation, discrimination.</p>
-                    <a href="/eviction/counterclaim" class="card-link">File Counterclaim →</a>
-                </div>
-                <div class="card">
-                    <div class="card-icon">📋</div>
-                    <h3>Motion Generator</h3>
-                    <p>File motions to dismiss, continue, or stay your case. Pre-built templates for common motions.</p>
-                    <a href="/eviction/motions" class="card-link">File Motion →</a>
-                </div>
-                <div class="card">
-                    <div class="card-icon">💻</div>
-                    <h3>Zoom Court Prep</h3>
-                    <p>Complete checklist for virtual hearings. Test your setup, prepare your presentation.</p>
-                    <a href="/eviction/zoom" class="card-link">Prep for Court →</a>
-                </div>
-                <div class="card">
-                    <div class="card-icon">📄</div>
-                    <h3>Court Forms Library</h3>
-                    <p>Official Minnesota court forms with instructions. Download, fill, and file.</p>
-                    <a href="/eviction/forms/library" class="card-link">Get Forms →</a>
-                </div>
-                <div class="card">
-                    <div class="card-icon">🕵️</div>
-                    <h3>Landlord Research</h3>
-                    <p>Research your landlord's history - past lawsuits, code violations, complaints.</p>
-                    <a href="/research_module.html" class="card-link">Research →</a>
-                </div>
-            </div>
-        </section>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Where are my documents stored? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          Your documents are stored in <strong>your own cloud storage</strong> (Google Drive or Dropbox). Semptify never holds your full documents on our servers. We only store a metadata "overlay" — key dates, document type, parties — for search and timeline features. You own and control your files entirely.
+        </div>
+      </div>
 
-        <!-- Emergency Contacts -->
-        <section class="section" id="emergency">
-            <h2 class="section-title">🚨 Emergency & Crisis Help</h2>
-            <div class="contact-grid">
-                <div class="contact-card">
-                    <h3>📞 988 Crisis Lifeline</h3>
-                    <div class="phone">Call or Text 988</div>
-                    <p>Mental health crisis support, emotional distress, and suicide prevention help.</p>
-                    <div class="hours">24/7 Available</div>
-                </div>
-                <div class="contact-card">
-                    <h3>📞 HOME Line</h3>
-                    <div class="phone">1-800-745-6686</div>
-                    <p>Free tenant hotline. Legal advice, counseling, and assistance.</p>
-                    <div class="hours">Mon-Thu 9am-5pm, Fri 9am-12pm</div>
-                </div>
-                <div class="contact-card">
-                    <h3>📞 211 United Way</h3>
-                    <div class="phone">Dial 2-1-1</div>
-                    <p>Emergency assistance, rental help, food, shelter resources.</p>
-                    <div class="hours">24/7 Available</div>
-                </div>
-                <div class="contact-card">
-                    <h3>📞 Domestic Violence Hotline</h3>
-                    <div class="phone">1-800-799-7233</div>
-                    <p>Confidential help with safety planning, shelter options, and urgent support.</p>
-                    <div class="hours">24/7 Available</div>
-                </div>
-                <div class="contact-card">
-                    <h3>📞 Legal Aid</h3>
-                    <div class="phone">1-888-354-5522</div>
-                    <p>Free legal help for low-income tenants. May represent you in court.</p>
-                    <div class="hours">Mon-Fri 8am-4:30pm</div>
-                </div>
-                <div class="contact-card">
-                    <h3>📞 Hennepin County</h3>
-                    <div class="phone">612-348-3000</div>
-                    <p>Emergency rental assistance, homeless prevention programs.</p>
-                    <div class="hours">Mon-Fri 8am-4:30pm</div>
-                </div>
-                <div class="contact-card">
-                    <h3>📞 Ramsey County</h3>
-                    <div class="phone">651-266-4444</div>
-                    <p>Financial assistance services, emergency housing help.</p>
-                    <div class="hours">Mon-Fri 8am-4:30pm</div>
-                </div>
-                <div class="contact-card">
-                    <h3>📞 Dakota County</h3>
-                    <div class="phone">651-554-5611</div>
-                    <p>Community services, housing assistance programs.</p>
-                    <div class="hours">Mon-Fri 8am-4:30pm</div>
-                </div>
-            </div>
-        </section>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          What is the Vault Door? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          The Vault Door (🔒 button in the header) is the single entry point for uploading all documents to your case. Click it, select files, choose the document type, and fill in metadata. Your files go directly to your cloud storage with a blockchain timestamp for proof of authenticity.
+        </div>
+      </div>
 
-        <section class="section" id="rental-help">
-            <h2 class="section-title">🏘️ Rent & Housing Help</h2>
-            <div class="resource-list">
-                <a href="https://www.211.org" target="_blank" rel="noopener noreferrer" class="resource-link">
-                    <i class="fas fa-phone"></i>
-                    <div>
-                        <strong>United Way 211</strong>
-                        <p class="resource-link-copy">Local rent assistance, shelter referrals, food, transportation, and crisis support</p>
-                    </div>
-                </a>
-                <a href="https://www.housinglink.org" target="_blank" rel="noopener noreferrer" class="resource-link">
-                    <i class="fas fa-house-user"></i>
-                    <div>
-                        <strong>HousingLink</strong>
-                        <p class="resource-link-copy">Minnesota housing search, subsidized housing, and rental assistance information</p>
-                    </div>
-                </a>
-                <a href="https://www.hud.gov/topics/rental_assistance" target="_blank" rel="noopener noreferrer" class="resource-link">
-                    <i class="fas fa-building"></i>
-                    <div>
-                        <strong>HUD Rental Assistance</strong>
-                        <p class="resource-link-copy">Federal renter assistance resources and housing counseling information</p>
-                    </div>
-                </a>
-            </div>
-        </section>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          Can Semptify give me legal advice? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          No. Semptify provides legal education, rights information, and organizational tools — not legal advice. For legal advice, contact a licensed attorney or free legal aid organization in your area. The Library and Help pages link to free resources.
+        </div>
+      </div>
 
-        <section class="section" id="county-help">
-            <h2 class="section-title">🗺️ Minnesota County Contact Points</h2>
-            <div class="contact-grid">
-                <div class="contact-card">
-                    <h3>Hennepin County</h3>
-                    <div class="phone">612-348-3000</div>
-                    <p>Emergency assistance and housing stability programs.</p>
-                    <div class="hours">Mon-Fri 8am-4:30pm</div>
-                </div>
-                <div class="contact-card">
-                    <h3>Ramsey County</h3>
-                    <div class="phone">651-266-4444</div>
-                    <p>Financial assistance and emergency housing support.</p>
-                    <div class="hours">Mon-Fri 8am-4:30pm</div>
-                </div>
-                <div class="contact-card">
-                    <h3>Dakota County</h3>
-                    <div class="phone">651-554-5611</div>
-                    <p>Community services and rental support pathways.</p>
-                    <div class="hours">Mon-Fri 8am-4:30pm</div>
-                </div>
-                <div class="contact-card">
-                    <h3>Anoka County</h3>
-                    <div class="phone">763-324-1300</div>
-                    <p>Housing support, emergency aid screening, and referrals.</p>
-                    <div class="hours">Mon-Fri 8am-4:30pm</div>
-                </div>
-                <div class="contact-card">
-                    <h3>Washington County</h3>
-                    <div class="phone">651-430-6459</div>
-                    <p>Housing assistance and family support services.</p>
-                    <div class="hours">Mon-Fri 8am-4:30pm</div>
-                </div>
-                <div class="contact-card">
-                    <h3>St. Louis County</h3>
-                    <div class="phone">218-726-2000</div>
-                    <p>Northeast Minnesota entry point for housing support and referrals.</p>
-                    <div class="hours">Mon-Fri 8am-4:30pm</div>
-                </div>
-            </div>
-        </section>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          I received an eviction notice. What do I do? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          Act immediately — deadlines are strict. First: upload the notice to your vault using the Vault Door. Second: use the Deadline Calculator to find your response deadline. Third: read the Eviction Process Guide in the Library. Fourth: contact legal aid or an advocate through the Help page. Do not ignore the notice.
+        </div>
+      </div>
 
-        <!-- Legal Resources -->
-        <section class="section" id="legal">
-            <h2 class="section-title">⚖️ Legal Resources</h2>
-            <div class="resource-list">
-                <a href="/letter_builder.html" class="resource-link featured">
-                    <i class="fas fa-envelope"></i>
-                    <div>
-                        <strong>✨ Letter Builder</strong>
-                        <p class="resource-link-copy">Generate professional repair requests & response letters to your landlord</p>
-                    </div>
-                </a>
-                <a href="https://www.lawhelpmn.org" target="_blank" rel="noopener noreferrer" class="resource-link">
-                    <i class="fas fa-external-link-alt"></i>
-                    <div>
-                        <strong>LawHelpMN.org</strong>
-                        <p class="resource-link-copy">Free legal information and lawyer referrals</p>
-                    </div>
-                </a>
-                <a href="https://www.mncourts.gov/Help-Topics/Eviction-Landlord-and-Tenant-Cases.aspx" target="_blank" rel="noopener noreferrer" class="resource-link">
-                    <i class="fas fa-gavel"></i>
-                    <div>
-                        <strong>Minnesota Courts - Eviction Info</strong>
-                        <p class="resource-link-copy">Official court procedures and forms</p>
-                    </div>
-                </a>
-                <a href="https://www.ag.state.mn.us/Consumer/Handbooks/LT/default.asp" target="_blank" rel="noopener noreferrer" class="resource-link">
-                    <i class="fas fa-book"></i>
-                    <div>
-                        <strong>MN Attorney General - Tenant Rights</strong>
-                        <p class="resource-link-copy">Official handbook on landlord-tenant law</p>
-                    </div>
-                </a>
-                <a href="https://homelinemn.org" target="_blank" rel="noopener noreferrer" class="resource-link">
-                    <i class="fas fa-home"></i>
-                    <div>
-                        <strong>HOME Line</strong>
-                        <p class="resource-link-copy">Minnesota's tenant advocacy organization</p>
-                    </div>
-                </a>
-                <a href="https://www.revisor.mn.gov/statutes/cite/504B" target="_blank" rel="noopener noreferrer" class="resource-link">
-                    <i class="fas fa-scroll"></i>
-                    <div>
-                        <strong>MN Statutes Chapter 504B</strong>
-                        <p class="resource-link-copy">Full text of Minnesota landlord-tenant law</p>
-                    </div>
-                </a>
-                <a href="https://www.hud.gov/states/minnesota/renting" target="_blank" rel="noopener noreferrer" class="resource-link">
-                    <i class="fas fa-building"></i>
-                    <div>
-                        <strong>HUD Minnesota</strong>
-                        <p class="resource-link-copy">Federal housing resources and fair housing</p>
-                    </div>
-                </a>
-            </div>
-        </section>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          How do I find an advocate or attorney? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          Use the Crisis Resources section to find free legal aid by location. You can also call 211, visit LawHelp.org, or contact your local legal aid society. Semptify does not provide referrals directly — we link to established organizations.
+        </div>
+      </div>
 
-        <!-- FAQ Section -->
-        <section class="section" id="faq">
-            <h2 class="section-title">❓ Frequently Asked Questions</h2>
-            <div class="faq-list">
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFaq(this)">
-                        <span>How long do I have to respond to an eviction notice?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        In Minnesota, after being served with an eviction summons and complaint, you typically have <strong>7 days</strong> to file an answer with the court. If you don't respond, you may receive a default judgment against you. Use Semptify's Answer Generator to create your response quickly.
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFaq(this)">
-                        <span>Can I be evicted in winter in Minnesota?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        Yes, evictions can proceed in winter. However, sheriffs will typically not execute a physical removal if temperatures are dangerously cold and there's no shelter available. This is discretionary. Always attend your court hearing regardless of the season.
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFaq(this)">
-                        <span>What if my landlord won't make repairs?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        Minnesota law requires landlords to maintain habitable conditions. Document everything with photos and written requests. You may have remedies including: rent escrow (paying rent to the court), repair-and-deduct, or using habitability as a defense. Upload all documentation to Semptify to build your case.
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFaq(this)">
-                        <span>Can I sue my landlord back?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        Yes! A counterclaim allows you to sue your landlord in the same case. Common counterclaims include: habitability violations, illegal lockouts, retaliation, security deposit violations, and discrimination. Use Semptify's Counterclaim Builder to identify what claims apply.
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFaq(this)">
-                        <span>Do I need a lawyer?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        You can represent yourself (pro se), and Semptify is designed to help you do so. However, a lawyer can significantly improve your chances. Contact Legal Aid (1-888-354-5522) to see if you qualify for free representation. HOME Line (1-800-745-6686) offers free counseling.
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFaq(this)">
-                        <span>What should I bring to court?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        <strong>Essential items:</strong> Your answer/response, all evidence documents (organized chronologically), rent receipts, lease, photos, any communication with landlord, timeline of events, and your ID. Semptify's Document Vault provides court-ready certificates for all your evidence.
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFaq(this)">
-                        <span>How do I use Semptify?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        Follow the numbered steps at the top of this page! Start by uploading your lease and documents, then build your timeline, research your rights, and use our generators to create your legal responses. Your data stays in YOUR cloud storage - we never store your personal information.
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFaq(this)">
-                        <span>Is Semptify free?</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="faq-answer">
-                        <strong>Yes! Semptify is 100% free.</strong> No subscription, no premium tiers, no hidden costs. We accept donations to support development but they're never required. We have no ads and don't sell your data.
-                    </div>
-                </div>
-            </div>
-        </section>
+      <div class="faq-item">
+        <div class="faq-question" onclick="toggleFaq(this)">
+          What is the Timeline / Journal? <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-answer">
+          The Timeline is a chronological record of every event in your tenancy — communications, payments, repairs, notices, violations. It links to documents in your vault and can be exported as evidence for court or advocates. Keeping it updated is one of the most powerful things you can do to protect your rights.
+        </div>
+      </div>
 
-        <!-- Quick Links -->
-        <section class="section" id="quick">
-            <h2 class="section-title">🔗 Quick Links</h2>
-            <div class="cards-grid">
-                <div class="card">
-                    <div class="card-icon">🏠</div>
-                    <h3>Command Center</h3>
-                    <p>Your main dashboard - see everything at a glance.</p>
-                    <a href="/command_center.html" class="card-link">Go to Dashboard →</a>
-                </div>
-                <div class="card">
-                    <div class="card-icon">☁️</div>
-                    <h3>Cloud Storage Setup</h3>
-                    <p>Connect Google Drive, Dropbox, or OneDrive to sync your data.</p>
-                    <a href="/storage_setup.html" class="card-link">Setup Storage →</a>
-                </div>
-                <div class="card">
-                    <div class="card-icon">📊</div>
-                    <h3>Defense Analysis</h3>
-                    <p>See what legal defenses apply to your specific situation.</p>
-                    <a href="/eviction/" class="card-link">Analyze Defenses →</a>
-                </div>
-                <div class="card">
-                    <div class="card-icon">📜</div>
-                    <h3>Privacy Policy</h3>
-                    <p>How we protect your privacy - we don't store personal data.</p>
-                    <a href="/privacy.html" class="card-link">Read Policy →</a>
-                </div>
-            </div>
-        </section>
     </div>
 
-    <!-- Back to Top -->
-    <button class="back-to-top" id="backToTop" onclick="scrollToTop()" title="Back to top" aria-label="Back to top">
-        <i class="fas fa-arrow-up"></i>
-    </button>
+    <div class="section-title" style="margin-top:2rem;">📬 Contact &amp; Support</div>
+    <div class="contact-grid">
+      <a href="/help/contact.html" class="contact-card">
+        <span class="contact-icon">✉️</span>
+        <span class="contact-title">Contact Semptify</span>
+        <span class="contact-desc">Send us a message — bugs, questions, feedback</span>
+      </a>
+      <a href="/help/faq.html" class="contact-card">
+        <span class="contact-icon">📖</span>
+        <span class="contact-title">Full FAQ</span>
+        <span class="contact-desc">Browse all help articles and guides</span>
+      </a>
+      <a href="/public/about.html" class="contact-card">
+        <span class="contact-icon">ℹ️</span>
+        <span class="contact-title">About Semptify</span>
+        <span class="contact-desc">Our mission, values, and who we are</span>
+      </a>
+      <a href="/public/privacy.html" class="contact-card">
+        <span class="contact-icon">🔒</span>
+        <span class="contact-title">Privacy Policy</span>
+        <span class="contact-desc">How we protect your data and privacy</span>
+      </a>
+    </div>
 
-    <script>
-        async function trackHelpInteraction(action, meta = {}) {
-            const payload = {
-                event_type: 'user.action',
-                source_module: 'ui',
-                data: {
-                    page: 'public_help',
-                    action,
-                    ts: new Date().toISOString(),
-                    ...meta,
-                },
-            };
+  </div>
 
-            try {
-                await fetch('/brain/events', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    keepalive: true,
-                    body: JSON.stringify(payload),
-                });
-            } catch (_) {
-                // Ignore telemetry delivery failure.
-            }
-        }
+  <footer>
+    <div>
+      <a href="/home.html">Home</a>
+      <a href="/public/about.html">About</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/help/contact.html">Contact</a>
+    </div>
+    <div style="margin-top:0.5rem;">Semptify is free forever · Not a law firm · Educational use only</div>
+    <div style="margin-top:0.25rem; opacity:0.5;">© 2025 Semptify</div>
+  </footer>
 
-        // FAQ toggle
-        function toggleFaq(element) {
-            const item = element.parentElement;
-            item.classList.toggle('open');
-        }
+  <script src="/js/core/vault-portal.js"></script>
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
 
-        // Search filter
-        function filterContent() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('.card, .journey-step, .faq-item, .resource-link, .contact-card');
-            
-            cards.forEach(card => {
-                const text = card.textContent.toLowerCase();
-                if (text.includes(query) || query === '') {
-                    card.style.display = '';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        }
+    function toggleFaq(el) {
+      el.parentElement.classList.toggle('open');
+    }
 
-        // Back to top button
-        window.addEventListener('scroll', () => {
-            const btn = document.getElementById('backToTop');
-            if (window.scrollY > 300) {
-                btn.classList.add('visible');
-            } else {
-                btn.classList.remove('visible');
-            }
-        });
-
-        function scrollToTop() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // Expand all FAQs if search matches
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            if (query.length > 2) {
-                document.querySelectorAll('.faq-item').forEach(item => {
-                    if (item.textContent.toLowerCase().includes(query)) {
-                        item.classList.add('open');
-                    }
-                });
-            }
-        });
-
-        document.addEventListener('click', (event) => {
-            const target = event.target.closest('a, button');
-            if (!target) return;
-
-            const href = target.getAttribute('href') || '';
-            if (!href && !target.id) return;
-
-            const action = target.dataset.helpTrack || target.id || 'help_click';
-            trackHelpInteraction(action, { href, text: (target.textContent || '').trim().slice(0, 120) });
-        });
-    </script>
+    function searchFaq() {
+      const q = document.getElementById('faq-search').value.toLowerCase();
+      document.querySelectorAll('.faq-item').forEach(item => {
+        item.style.display = (!q || item.textContent.toLowerCase().includes(q)) ? '' : 'none';
+      });
+    }
+  </script>
 </body>
 </html>

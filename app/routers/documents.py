@@ -69,16 +69,14 @@ router = APIRouter(prefix="/api/documents", tags=["Documents"])
 
 
 def _get_overlay_record_ids(vault_id: Optional[str]) -> list[str]:
-    """Resolve overlay records associated with a vault document for adapter consumers."""
-    if not vault_id:
-        return []
-    try:
-        from app.services.document_overlay_service import document_overlay_service
+    """Resolve overlay records associated with a vault document.
 
-        overlays = document_overlay_service.list_overlays(vault_id=vault_id)
-        return [record.overlay_id for record in overlays]
-    except Exception:
-        return []
+    Overlay records now live in user cloud storage via the unified overlay
+    manager (async, requires storage context).  This sync helper returns an
+    empty list; callers that need real overlay IDs should query the unified
+    overlay manager directly from an async endpoint with storage context.
+    """
+    return []
 
 
 # =============================================================================
@@ -1383,7 +1381,7 @@ async def auto_populate_timeline(
     Use this after uploading a document to automatically build your
     case timeline with minimal interaction.
     """
-    import uuid
+    from app.core.id_gen import make_id
     from datetime import datetime
     from app.core.utc import utc_now
     from app.services.event_extractor import get_event_extractor
@@ -1439,7 +1437,7 @@ async def auto_populate_timeline(
             
             # Create timeline event
             db_event = TimelineEventModel(
-                id=str(uuid.uuid4()),
+                id=make_id("evt"),
                 user_id=user.user_id,
                 event_type=event.event_type,
                 title=f"{event.title} ({doc.filename})",
@@ -1483,7 +1481,7 @@ async def auto_timeline_all_documents(
     Processes every analyzed document and creates timeline events.
     Useful for building a complete case timeline in one action.
     """
-    import uuid
+    from app.core.id_gen import make_id
     from datetime import datetime
     from app.core.utc import utc_now
     from app.services.event_extractor import get_event_extractor
@@ -1533,7 +1531,7 @@ async def auto_timeline_all_documents(
                     continue
                 
                 db_event = TimelineEventModel(
-                    id=str(uuid.uuid4()),
+                    id=make_id("evt"),
                     user_id=user.user_id,
                     event_type=event.event_type,
                     title=f"{event.title} ({doc.filename})",

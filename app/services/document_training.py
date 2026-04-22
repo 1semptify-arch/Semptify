@@ -9,13 +9,13 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
-from uuid import uuid4
+from app.core.id_gen import make_id
 
 
 @dataclass
 class TrainingExample:
     """A single training example from user feedback."""
-    id: str = field(default_factory=lambda: str(uuid4()))
+    id: str = field(default_factory=lambda: make_id("trn"))
     
     # Document info
     document_text: str = ""

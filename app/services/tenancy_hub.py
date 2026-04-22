@@ -1352,8 +1352,8 @@ class TenancyHubService:
     
     def _generate_id(self, prefix: str) -> str:
         """Generate a unique ID."""
-        import uuid
-        return f"{prefix}_{uuid.uuid4().hex[:12]}"
+        from app.core.id_gen import make_id
+        return make_id(prefix)
     
     def _tokenize(self, text: str) -> List[str]:
         """Tokenize text for searching."""

@@ -53,7 +53,7 @@ from enum import Enum
 from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, Set, Union
 import asyncio
-import uuid
+from app.core.id_gen import make_id
 
 logger = logging.getLogger(__name__)
 
@@ -319,7 +319,7 @@ class ModuleSDK:
     ) -> InfoPack:
         """Create and send an info pack to another module or broadcast"""
         pack = InfoPack(
-            id=f"pack_{uuid.uuid4().hex[:12]}",
+            id=make_id("pack"),
             pack_type=pack_type,
             source_module=self.definition.name,
             target_module=target_module,

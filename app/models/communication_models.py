@@ -13,7 +13,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
-from uuid import uuid4
+from app.core.id_gen import make_id
 
 
 class MessageType(str, Enum):
@@ -65,7 +65,7 @@ class Participant(BaseModel):
 
 class MessageAttachment(BaseModel):
     """An attachment to a message (document, image, etc.)."""
-    attachment_id: str = Field(default_factory=lambda: f"att_{uuid4().hex[:16]}")
+    attachment_id: str = Field(default_factory=lambda: make_id("att"))
     filename: str
     document_id: Optional[str] = None  # Reference to vault document
     file_size: Optional[int] = None
@@ -75,7 +75,7 @@ class MessageAttachment(BaseModel):
 
 class DocumentSignatureRequest(BaseModel):
     """Embedded signature request within a message."""
-    request_id: str = Field(default_factory=lambda: f"sig_req_{uuid4().hex[:16]}")
+    request_id: str = Field(default_factory=lambda: make_id("sigreq"))
     document_id: str                 # Document to sign
     document_name: str
     signature_type: str = "typed"    # typed, drawn, digital
@@ -87,7 +87,7 @@ class DocumentSignatureRequest(BaseModel):
 
 class Message(BaseModel):
     """A message in a conversation."""
-    message_id: str = Field(default_factory=lambda: f"msg_{uuid4().hex[:16]}")
+    message_id: str = Field(default_factory=lambda: make_id("msg"))
     conversation_id: str
     
     # Sender info
@@ -123,7 +123,7 @@ class Message(BaseModel):
 
 class Conversation(BaseModel):
     """A conversation between participants."""
-    conversation_id: str = Field(default_factory=lambda: f"conv_{uuid4().hex[:16]}")
+    conversation_id: str = Field(default_factory=lambda: make_id("conv"))
     
     # Conversation metadata
     title: Optional[str] = None

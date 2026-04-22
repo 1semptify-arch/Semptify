@@ -1,0 +1,313 @@
+<!-- 
+  Semptify Standard Footer Component
+  Include this in all pages for consistency
+  
+  Usage:
+  1. Copy the <footer> block below into your HTML
+  2. Or use JavaScript: document.getElementById('footer-container').innerHTML = footerHTML;
+-->
+
+<!-- Footer Template -->
+<footer class="semptify-footer" role="contentinfo">
+  <div class="footer-container">
+    
+    <!-- Main Footer Content -->
+    <div class="footer-main">
+      
+      <!-- Brand Column -->
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <span class="logo-icon">⚖️</span>
+          <span class="logo-text">Semptify</span>
+        </div>
+        <p class="footer-tagline">The Tenant's Journal</p>
+        <p class="footer-description">
+          Helping tenants organize documents, build timelines, and understand their housing situation.
+        </p>
+      </div>
+      
+      <!-- Links Columns -->
+      <div class="footer-links">
+        <div class="footer-column">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="/welcome.html">Welcome</a></li>
+            <li><a href="/about.html">About</a></li>
+            <li><a href="/features.html">Features</a></li>
+            <li><a href="/help.html">Help Center</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-column">
+          <h4>Legal</h4>
+          <ul>
+            <li><a href="/privacy.html">Privacy Policy</a></li>
+            <li><a href="/terms.html">Terms of Use</a></li>
+            <li><a href="/disclaimer.html">Legal Disclaimer</a></li>
+            <li><a href="/data-policy.html">Data Policy</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-column">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="/find-help.html">Find Help</a></li>
+            <li><a href="/legal-aid.html">Legal Aid Directory</a></li>
+            <li><a href="/know-your-rights.html">Know Your Rights</a></li>
+            <li><a href="/emergency.html">Emergency Housing</a></li>
+          </ul>
+        </div>
+        
+        <div class="footer-column">
+          <h4>Connect</h4>
+          <ul>
+            <li><a href="/contact.html">Contact Us</a></li>
+            <li><a href="/feedback.html">Feedback</a></li>
+            <li><a href="/github.html" target="_blank">GitHub</a></li>
+            <li><a href="/donate.html">Donate</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Legal Disclaimer Banner -->
+    <div class="footer-disclaimer">
+      <div class="disclaimer-icon">⚠️</div>
+      <div class="disclaimer-text">
+        <strong>Important Legal Notice:</strong> 
+        Semptify is a tool for organizing information and documents. We are not lawyers and this is not legal advice. 
+        Always consult with a qualified attorney for legal guidance specific to your situation. 
+        Information on this site may not reflect current laws in your jurisdiction.
+      </div>
+    </div>
+    
+    <!-- Bottom Bar -->
+    <div class="footer-bottom">
+      <div class="footer-copyright">
+        © 2024-2026 Semptify. All rights reserved.
+      </div>
+      <div class="footer-meta">
+        <span class="footer-version">Version 5.0</span>
+        <span class="footer-separator">•</span>
+        <span class="footer-status">Free Forever • No Ads • Open Source</span>
+        <span class="footer-separator">•</span>
+        <span class="footer-license">Licensed under AGPL-3.0</span>
+      </div>
+      <div class="footer-privacy-note">
+        Your documents stay in your cloud storage. We never see your data.
+      </div>
+    </div>
+    
+  </div>
+</footer>
+
+<!-- Footer Styles -->
+<style>
+  /* ===== Semptify Footer Styles ===== */
+  
+  .semptify-footer {
+    background: linear-gradient(135deg, #1e3a5f 0%, #0f1f35 100%);
+    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-top: auto;
+    width: 100%;
+  }
+  
+  .footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  /* Main Footer Content */
+  .footer-main {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 60px;
+    padding: 50px 0 40px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  @media (max-width: 768px) {
+    .footer-main {
+      grid-template-columns: 1fr;
+      gap: 40px;
+      padding: 40px 0 30px;
+    }
+  }
+  
+  /* Brand Column */
+  .footer-brand {
+    max-width: 280px;
+  }
+  
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .footer-logo .logo-icon {
+    font-size: 24px;
+  }
+  
+  .footer-logo .logo-text {
+    font-size: 24px;
+    font-weight: 600;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+  }
+  
+  .footer-tagline {
+    font-size: 14px;
+    color: #94a3b8;
+    font-style: italic;
+    margin-bottom: 16px;
+  }
+  
+  .footer-description {
+    font-size: 14px;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+  
+  /* Links Grid */
+  .footer-links {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+  }
+  
+  @media (max-width: 768px) {
+    .footer-links {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .footer-links {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .footer-column h4 {
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .footer-column ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .footer-column li {
+    margin-bottom: 10px;
+  }
+  
+  .footer-column a {
+    color: #94a3b8;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    font-size: 14px;
+  }
+  
+  .footer-column a:hover {
+    color: #60a5fa;
+    text-decoration: underline;
+  }
+  
+  /* Legal Disclaimer Banner */
+  .footer-disclaimer {
+    display: flex;
+    gap: 16px;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.2);
+    margin: 0 -20px;
+    padding: 20px;
+  }
+  
+  .disclaimer-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  
+  .disclaimer-text {
+    font-size: 13px;
+    color: #cbd5e1;
+    line-height: 1.6;
+  }
+  
+  .disclaimer-text strong {
+    color: #fbbf24;
+    display: block;
+    margin-bottom: 4px;
+  }
+  
+  /* Bottom Bar */
+  .footer-bottom {
+    padding: 24px 0;
+    text-align: center;
+  }
+  
+  .footer-copyright {
+    font-size: 14px;
+    color: #ffffff;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  
+  .footer-meta {
+    font-size: 12px;
+    color: #64748b;
+    margin-bottom: 8px;
+  }
+  
+  .footer-separator {
+    margin: 0 8px;
+    color: #475569;
+  }
+  
+  .footer-privacy-note {
+    font-size: 12px;
+    color: #22c55e;
+    font-weight: 500;
+  }
+  
+  /* Ensure footer stays at bottom */
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  main, .main-content, #app, #root {
+    flex: 1;
+  }
+</style>
+
+<!-- Auto-insert footer script (optional) -->
+<script>
+  // Auto-insert footer into any page with data-include-footer attribute
+  document.addEventListener('DOMContentLoaded', function() {
+    const footerContainers = document.querySelectorAll('[data-include-footer]');
+    if (footerContainers.length > 0) {
+      const footerTemplate = document.querySelector('.semptify-footer');
+      if (footerTemplate) {
+        const footerHTML = footerTemplate.outerHTML;
+        footerContainers.forEach(container => {
+          container.innerHTML = footerHTML;
+        });
+      }
+    }
+  });
+</script>

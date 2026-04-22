@@ -1,0 +1,300 @@
+<!-- 
+  Semptify Vault Portal Component
+  Single entry point for ALL document uploads
+  Files go through here → User's cloud storage (Drive/Dropbox)
+  
+  Usage: Include this modal and trigger with data-vault-open
+-->
+
+<!-- Vault Door Button (Place in header or nav) -->
+<button class="vault-door-btn" onclick="openVaultPortal()" title="Open Vault - Upload Documents">
+  <span class="vault-icon">🔒</span>
+  <span class="vault-label">Vault</span>
+</button>
+
+<!-- Vault Portal Modal -->
+<div id="vault-portal" class="vault-modal" role="dialog" aria-modal="true" aria-labelledby="vault-title">
+  <div class="vault-modal-backdrop" onclick="closeVaultPortal()"></div>
+  
+  <div class="vault-modal-content">
+    <!-- Header -->
+    <div class="vault-header">
+      <div class="vault-title">
+        <span class="vault-icon-large">🔒</span>
+        <div>
+          <h2 id="vault-title">Document Vault Portal</h2>
+          <p class="vault-subtitle">Secure upload to your cloud storage</p>
+        </div>
+      </div>
+      <button class="vault-close" onclick="closeVaultPortal()" aria-label="Close vault">&times;</button>
+    </div>
+    
+    <!-- Upload Zone -->
+    <div class="vault-upload-zone" id="vault-dropzone">
+      <div class="vault-upload-icon">📁</div>
+      <p class="vault-upload-text">Drop files here or click to browse</p>
+      <p class="vault-upload-hint">PDF, JPG, PNG, DOC, DOCX, TXT up to 25MB</p>
+      <input type="file" id="vault-file-input" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt" hidden>
+    </div>
+    
+    <!-- Metadata Form -->
+    <div class="vault-form">
+      <div class="form-group">
+        <label class="form-label">Document Type</label>
+        <select class="form-input" id="vault-doc-type">
+          <option value="">Select type...</option>
+          <option value="lease">Lease Agreement</option>
+          <option value="receipt">Rent Receipt</option>
+          <option value="notice">Notice/Communication</option>
+          <option value="repair">Repair Request</option>
+          <option value="photo">Photo Evidence</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Description (optional)</label>
+        <textarea class="form-input" id="vault-description" rows="2" placeholder="Brief description of this document..."></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">
+          <input type="checkbox" id="vault-timestamp"> Add blockchain timestamp (proof of existence)
+        </label>
+      </div>
+    </div>
+    
+    <!-- Storage Info -->
+    <div class="vault-storage-info">
+      <div class="storage-provider">
+        <span class="storage-icon">☁️</span>
+        <span>Connected: <strong id="vault-storage-name">Google Drive</strong></span>
+      </div>
+      <p class="storage-privacy">✓ Your documents stay in YOUR storage. Semptify never stores or sees your files.</p>
+    </div>
+    
+    <!-- File List (populated when files selected) -->
+    <div class="vault-file-list" id="vault-file-list"></div>
+    
+    <!-- Actions -->
+    <div class="vault-actions">
+      <button class="btn btn-secondary" onclick="closeVaultPortal()">Cancel</button>
+      <button class="btn btn-primary" id="vault-upload-btn" onclick="uploadToVault()">
+        <span>Upload to Vault</span>
+        <span class="upload-arrow">→</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Vault Portal Styles (move to CSS file) -->
+<style>
+  .vault-door-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .vault-door-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+  }
+  
+  .vault-icon { font-size: 1.2rem; }
+  
+  .vault-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .vault-modal.active { display: flex; }
+  
+  .vault-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+  }
+  
+  .vault-modal-content {
+    position: relative;
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  
+  .vault-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .vault-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .vault-icon-large { font-size: 2rem; }
+  
+  .vault-subtitle {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin: 0;
+  }
+  
+  .vault-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0.25rem;
+  }
+  
+  .vault-upload-zone {
+    margin: 1.5rem;
+    padding: 2rem;
+    border: 2px dashed #d1d5db;
+    border-radius: 12px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .vault-upload-zone:hover, .vault-upload-zone.dragover {
+    border-color: var(--accent-primary, #10b981);
+    background: #f9fafb;
+  }
+  
+  .vault-upload-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+  .vault-upload-text { font-weight: 500; color: #374151; }
+  .vault-upload-hint { font-size: 0.8rem; color: #9ca3af; margin-top: 0.25rem; }
+  
+  .vault-form { padding: 0 1.5rem; }
+  .vault-storage-info {
+    margin: 1rem 1.5rem;
+    padding: 1rem;
+    background: #f0fdf4;
+    border-radius: 8px;
+    border: 1px solid #bbf7d0;
+  }
+  
+  .storage-provider { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .storage-icon { font-size: 1.2rem; }
+  .storage-privacy { font-size: 0.8rem; color: #065f46; margin: 0; }
+  
+  .vault-file-list { padding: 0 1.5rem; }
+  .vault-file-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .vault-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+  }
+  
+  .upload-arrow { margin-left: 0.5rem; }
+</style>
+
+<!-- Vault Portal JavaScript (move to JS file) -->
+<script>
+  function openVaultPortal() {
+    document.getElementById('vault-portal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  
+  function closeVaultPortal() {
+    document.getElementById('vault-portal').classList.remove('active');
+    document.body.style.overflow = '';
+    resetVaultForm();
+  }
+  
+  function resetVaultForm() {
+    document.getElementById('vault-file-list').innerHTML = '';
+    document.getElementById('vault-doc-type').value = '';
+    document.getElementById('vault-description').value = '';
+    document.getElementById('vault-timestamp').checked = false;
+  }
+  
+  // Drag and drop
+  const dropzone = document.getElementById('vault-dropzone');
+  const fileInput = document.getElementById('vault-file-input');
+  
+  dropzone.addEventListener('click', () => fileInput.click());
+  
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('dragover');
+  });
+  
+  dropzone.addEventListener('dragleave', () => {
+    dropzone.classList.remove('dragover');
+  });
+  
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+  });
+  
+  fileInput.addEventListener('change', (e) => {
+    handleFiles(e.target.files);
+  });
+  
+  function handleFiles(files) {
+    const fileList = document.getElementById('vault-file-list');
+    Array.from(files).forEach(file => {
+      const item = document.createElement('div');
+      item.className = 'vault-file-item';
+      item.innerHTML = `
+        <span>📄</span>
+        <div style="flex: 1;">
+          <div style="font-weight: 500;">${file.name}</div>
+          <div style="font-size: 0.8rem; color: #9ca3af;">${(file.size/1024/1024).toFixed(2)} MB</div>
+        </div>
+        <button onclick="this.parentElement.remove()" style="background: none; border: none; cursor: pointer;">✕</button>
+      `;
+      fileList.appendChild(item);
+    });
+  }
+  
+  function uploadToVault() {
+    // TODO: Connect to backend upload API
+    console.log('Uploading to vault...');
+    alert('Files queued for upload to your cloud storage');
+    closeVaultPortal();
+  }
+  
+  // Escape key closes modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeVaultPortal();
+  });
+</script>

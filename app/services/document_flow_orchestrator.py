@@ -231,7 +231,7 @@ class DocumentFlowOrchestrator:
         
         try:
             from app.models.models import Contact
-            import uuid
+            from app.core.id_gen import make_id
             
             # Extract landlord if present
             landlord_name = form_data.get("landlord_name") or form_data.get("plaintiff_name")
@@ -242,7 +242,7 @@ class DocumentFlowOrchestrator:
                 )
                 if not existing.scalar_one_or_none():
                     contact = Contact(
-                        id=str(uuid.uuid4()),
+                        id=make_id("con"),
                         user_id=user_id,
                         contact_type="landlord",
                         role="opposing_party",
@@ -264,7 +264,7 @@ class DocumentFlowOrchestrator:
                 )
                 if not existing.scalar_one_or_none():
                     contact = Contact(
-                        id=str(uuid.uuid4()),
+                        id=make_id("con"),
                         user_id=user_id,
                         contact_type="attorney",
                         role="opposing_counsel",
@@ -296,14 +296,14 @@ class DocumentFlowOrchestrator:
         
         try:
             from app.models.models import TimelineEvent
-            import uuid
+            from app.core.id_gen import make_id
             
             for event in events:
                 if not event.date:
                     continue
                     
                 timeline_event = TimelineEvent(
-                    id=str(uuid.uuid4()),
+                    id=make_id("evt"),
                     user_id=user_id,
                     title=event.title or event.event_type,
                     description=event.description,

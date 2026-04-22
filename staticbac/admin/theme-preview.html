@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semptify Theme Preview</title>
+  
+  <!-- Base styles -->
+  <link rel="stylesheet" href="/css/semptify-base.css">
+  <link rel="stylesheet" href="/css/semptify-components.css">
+  <link rel="stylesheet" href="/css/semptify-themes.css">
+  
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f1f5f9;
+      padding: 2rem;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: #0f172a;
+    }
+    
+    .themes-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+    
+    /* Each theme preview box */
+    .theme-box {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    
+    .theme-label {
+      background: #0f172a;
+      color: white;
+      padding: 0.75rem 1rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    /* Mini page preview */
+    .mini-page {
+      height: 400px;
+      display: grid;
+      grid-template-rows: 50px 1fr 80px;
+    }
+    
+    /* Header area */
+    .mini-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1rem;
+    }
+    
+    .mini-logo {
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .mini-nav {
+      display: flex;
+      gap: 1rem;
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+    
+    /* Body area */
+    .mini-body {
+      padding: 1rem;
+      overflow: hidden;
+    }
+    
+    .mini-card {
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .mini-card h4 {
+      font-size: 0.95rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .mini-card p {
+      font-size: 0.8rem;
+      line-height: 1.4;
+      opacity: 0.8;
+    }
+    
+    .mini-button {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-top: 0.5rem;
+    }
+    
+    /* Footer area */
+    .mini-footer {
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.25rem;
+    }
+    
+    .mini-footer-links {
+      display: flex;
+      gap: 1rem;
+      opacity: 0.8;
+    }
+    
+    /* Theme-specific styling */
+    
+    /* OCEAN */
+    [data-theme="ocean"] .mini-header {
+      background: linear-gradient(135deg, #0a1628 0%, #1e3a5f 100%);
+      color: #f1f5f9;
+    }
+    [data-theme="ocean"] .mini-body {
+      background: #ffffff;
+    }
+    [data-theme="ocean"] .mini-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+    }
+    [data-theme="ocean"] .mini-card h4 { color: #0f172a; }
+    [data-theme="ocean"] .mini-card p { color: #475569; }
+    [data-theme="ocean"] .mini-button {
+      background: #10b981;
+      color: white;
+    }
+    [data-theme="ocean"] .mini-footer {
+      background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+      color: #e2e8f0;
+    }
+    
+    /* FOREST */
+    [data-theme="forest"] .mini-header {
+      background: linear-gradient(135deg, #064e3b 0%, #065f46 60%, #047857 100%);
+      color: #ecfdf5;
+    }
+    [data-theme="forest"] .mini-body {
+      background: #ffffff;
+    }
+    [data-theme="forest"] .mini-card {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+    }
+    [data-theme="forest"] .mini-card h4 { color: #064e3b; }
+    [data-theme="forest"] .mini-card p { color: #065f46; }
+    [data-theme="forest"] .mini-button {
+      background: #10b981;
+      color: white;
+    }
+    [data-theme="forest"] .mini-footer {
+      background: linear-gradient(180deg, #022c22 0%, #064e3b 100%);
+      color: #d1fae5;
+    }
+    
+    /* ROYAL */
+    [data-theme="royal"] .mini-header {
+      background: linear-gradient(135deg, #2e1065 0%, #4c1d95 70%, #6d28d9 100%);
+      color: #faf5ff;
+    }
+    [data-theme="royal"] .mini-body {
+      background: #ffffff;
+    }
+    [data-theme="royal"] .mini-card {
+      background: #faf5ff;
+      border: 1px solid #e9d5ff;
+    }
+    [data-theme="royal"] .mini-card h4 { color: #2e1065; }
+    [data-theme="royal"] .mini-card p { color: #6b21a8; }
+    [data-theme="royal"] .mini-button {
+      background: #8b5cf6;
+      color: white;
+    }
+    [data-theme="royal"] .mini-footer {
+      background: linear-gradient(180deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+      color: #e0e7ff;
+    }
+    
+    /* SLATE */
+    [data-theme="slate"] .mini-header {
+      background: linear-gradient(135deg, #1c1917 0%, #292524 60%, #44403c 100%);
+      color: #fafaf9;
+    }
+    [data-theme="slate"] .mini-body {
+      background: #ffffff;
+    }
+    [data-theme="slate"] .mini-card {
+      background: #fafaf9;
+      border: 1px solid #e7e5e4;
+    }
+    [data-theme="slate"] .mini-card h4 { color: #1c1917; }
+    [data-theme="slate"] .mini-card p { color: #44403c; }
+    [data-theme="slate"] .mini-button {
+      background: #f97316;
+      color: white;
+    }
+    [data-theme="slate"] .mini-footer {
+      background: linear-gradient(180deg, #0c0a09 0%, #1c1917 70%, #292524 100%);
+      color: #e7e5e4;
+    }
+    
+    /* CRIMSON */
+    [data-theme="crimson"] .mini-header {
+      background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 70%, #991b1b 100%);
+      color: #fef2f2;
+    }
+    [data-theme="crimson"] .mini-body {
+      background: #ffffff;
+    }
+    [data-theme="crimson"] .mini-card {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+    }
+    [data-theme="crimson"] .mini-card h4 { color: #450a0a; }
+    [data-theme="crimson"] .mini-card p { color: #991b1b; }
+    [data-theme="crimson"] .mini-button {
+      background: #ef4444;
+      color: white;
+    }
+    [data-theme="crimson"] .mini-footer {
+      background: linear-gradient(180deg, #280505 0%, #450a0a 60%, #7f1d1d 100%);
+      color: #fecaca;
+    }
+    
+    /* Assignment section */
+    .assignment-section {
+      max-width: 1800px;
+      margin: 3rem auto 0;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .assignment-section h2 {
+      margin-bottom: 1.5rem;
+      color: #0f172a;
+    }
+    
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .role-box {
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    
+    .role-box h3 {
+      margin-bottom: 0.5rem;
+      color: #0f172a;
+    }
+    
+    .role-box .current-theme {
+      font-size: 0.9rem;
+      color: #64748b;
+      margin-bottom: 1rem;
+    }
+    
+    .theme-options {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .theme-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    
+    .theme-dot:hover {
+      transform: scale(1.1);
+    }
+    
+    .theme-dot.selected {
+      border-color: #0f172a;
+      transform: scale(1.15);
+    }
+    
+    .theme-dot.ocean { background: linear-gradient(135deg, #0a1628, #1e3a5f); }
+    .theme-dot.forest { background: linear-gradient(135deg, #064e3b, #065f46); }
+    .theme-dot.royal { background: linear-gradient(135deg, #2e1065, #4c1d95); }
+    .theme-dot.slate { background: linear-gradient(135deg, #1c1917, #292524); }
+    .theme-dot.crimson { background: linear-gradient(135deg, #450a0a, #7f1d1d); }
+    
+    @media (max-width: 768px) {
+      body { padding: 1rem; }
+      .themes-container { grid-template-columns: 1fr; }
+      .mini-page { height: 350px; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎨 Semptify Theme Preview</h1>
+  
+  <div class="themes-container">
+    
+    <!-- OCEAN -->
+    <div class="theme-box">
+      <div class="theme-label">🌊 Deep Ocean</div>
+      <div class="mini-page" data-theme="ocean">
+        <div class="mini-header">
+          <div class="mini-logo">⚖️ Semptify</div>
+          <div class="mini-nav">About | Help</div>
+        </div>
+        <div class="mini-body">
+          <div class="mini-card">
+            <h4>📓 Your Tenant Journal</h4>
+            <p>Document your tenancy with timestamps and evidence.</p>
+            <div class="mini-button">Get Started</div>
+          </div>
+          <div class="mini-card">
+            <h4>📚 Know Your Rights</h4>
+            <p>Understand what you owe and what you're owed.</p>
+          </div>
+        </div>
+        <div class="mini-footer">
+          <div class="mini-footer-links">Privacy | Terms | Contact</div>
+          <div>© 2026 Semptify</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- FOREST -->
+    <div class="theme-box">
+      <div class="theme-label">🌲 Forest Green</div>
+      <div class="mini-page" data-theme="forest">
+        <div class="mini-header">
+          <div class="mini-logo">⚖️ Semptify</div>
+          <div class="mini-nav">About | Help</div>
+        </div>
+        <div class="mini-body">
+          <div class="mini-card">
+            <h4>📓 Your Tenant Journal</h4>
+            <p>Document your tenancy with timestamps and evidence.</p>
+            <div class="mini-button">Get Started</div>
+          </div>
+          <div class="mini-card">
+            <h4>📚 Know Your Rights</h4>
+            <p>Understand what you owe and what you're owed.</p>
+          </div>
+        </div>
+        <div class="mini-footer">
+          <div class="mini-footer-links">Privacy | Terms | Contact</div>
+          <div>© 2026 Semptify</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ROYAL -->
+    <div class="theme-box">
+      <div class="theme-label">👑 Royal Purple</div>
+      <div class="mini-page" data-theme="royal">
+        <div class="mini-header">
+          <div class="mini-logo">⚖️ Semptify</div>
+          <div class="mini-nav">About | Help</div>
+        </div>
+        <div class="mini-body">
+          <div class="mini-card">
+            <h4>📓 Your Tenant Journal</h4>
+            <p>Document your tenancy with timestamps and evidence.</p>
+            <div class="mini-button">Get Started</div>
+          </div>
+          <div class="mini-card">
+            <h4>📚 Know Your Rights</h4>
+            <p>Understand what you owe and what you're owed.</p>
+          </div>
+        </div>
+        <div class="mini-footer">
+          <div class="mini-footer-links">Privacy | Terms | Contact</div>
+          <div>© 2026 Semptify</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- SLATE -->
+    <div class="theme-box">
+      <div class="theme-label">🪨 Warm Slate</div>
+      <div class="mini-page" data-theme="slate">
+        <div class="mini-header">
+          <div class="mini-logo">⚖️ Semptify</div>
+          <div class="mini-nav">About | Help</div>
+        </div>
+        <div class="mini-body">
+          <div class="mini-card">
+            <h4>📓 Your Tenant Journal</h4>
+            <p>Document your tenancy with timestamps and evidence.</p>
+            <div class="mini-button">Get Started</div>
+          </div>
+          <div class="mini-card">
+            <h4>📚 Know Your Rights</h4>
+            <p>Understand what you owe and what you're owed.</p>
+          </div>
+        </div>
+        <div class="mini-footer">
+          <div class="mini-footer-links">Privacy | Terms | Contact</div>
+          <div>© 2026 Semptify</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- CRIMSON -->
+    <div class="theme-box">
+      <div class="theme-label">🩸 Crimson Dark</div>
+      <div class="mini-page" data-theme="crimson">
+        <div class="mini-header">
+          <div class="mini-logo">⚖️ Semptify</div>
+          <div class="mini-nav">About | Help</div>
+        </div>
+        <div class="mini-body">
+          <div class="mini-card">
+            <h4>📓 Your Tenant Journal</h4>
+            <p>Document your tenancy with timestamps and evidence.</p>
+            <div class="mini-button">Get Started</div>
+          </div>
+          <div class="mini-card">
+            <h4>📚 Know Your Rights</h4>
+            <p>Understand what you owe and what you're owed.</p>
+          </div>
+        </div>
+        <div class="mini-footer">
+          <div class="mini-footer-links">Privacy | Terms | Contact</div>
+          <div>© 2026 Semptify</div>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+  
+  <!-- Role Assignment Section -->
+  <div class="assignment-section">
+    <h2>👤 Assign Themes to Roles</h2>
+    <p style="margin-bottom: 1.5rem; color: #64748b;">Click a color circle to assign a theme to each role</p>
+    
+    <div class="role-grid">
+      
+      <div class="role-box" data-role="tenant">
+        <h3>🏠 Tenant</h3>
+        <div class="current-theme">Current: Royal</div>
+        <div class="theme-options">
+          <div class="theme-dot ocean" onclick="assignTheme('tenant', 'ocean', this)"></div>
+          <div class="theme-dot forest" onclick="assignTheme('tenant', 'forest', this)"></div>
+          <div class="theme-dot royal selected" onclick="assignTheme('tenant', 'royal', this)"></div>
+          <div class="theme-dot slate" onclick="assignTheme('tenant', 'slate', this)"></div>
+          <div class="theme-dot crimson" onclick="assignTheme('tenant', 'crimson', this)"></div>
+        </div>
+      </div>
+      
+      <div class="role-box" data-role="advocate">
+        <h3>🤝 Advocate</h3>
+        <div class="current-theme">Current: Forest</div>
+        <div class="theme-options">
+          <div class="theme-dot ocean" onclick="assignTheme('advocate', 'ocean', this)"></div>
+          <div class="theme-dot forest selected" onclick="assignTheme('advocate', 'forest', this)"></div>
+          <div class="theme-dot royal" onclick="assignTheme('advocate', 'royal', this)"></div>
+          <div class="theme-dot slate" onclick="assignTheme('advocate', 'slate', this)"></div>
+          <div class="theme-dot crimson" onclick="assignTheme('advocate', 'crimson', this)"></div>
+        </div>
+      </div>
+      
+      <div class="role-box" data-role="legal">
+        <h3>⚖️ Legal</h3>
+        <div class="current-theme">Current: Crimson</div>
+        <div class="theme-options">
+          <div class="theme-dot ocean" onclick="assignTheme('legal', 'ocean', this)"></div>
+          <div class="theme-dot forest" onclick="assignTheme('legal', 'forest', this)"></div>
+          <div class="theme-dot royal" onclick="assignTheme('legal', 'royal', this)"></div>
+          <div class="theme-dot slate" onclick="assignTheme('legal', 'slate', this)"></div>
+          <div class="theme-dot crimson selected" onclick="assignTheme('legal', 'crimson', this)"></div>
+        </div>
+      </div>
+      
+      <div class="role-box" data-role="public">
+        <h3>🌐 Public Pages</h3>
+        <div class="current-theme">Current: Ocean</div>
+        <div class="theme-options">
+          <div class="theme-dot ocean selected" onclick="assignTheme('public', 'ocean', this)"></div>
+          <div class="theme-dot forest" onclick="assignTheme('public', 'forest', this)"></div>
+          <div class="theme-dot royal" onclick="assignTheme('public', 'royal', this)"></div>
+          <div class="theme-dot slate" onclick="assignTheme('public', 'slate', this)"></div>
+          <div class="theme-dot crimson" onclick="assignTheme('public', 'crimson', this)"></div>
+        </div>
+      </div>
+      
+      <div class="role-box" data-role="manager">
+        <h3>� Manager</h3>
+        <div class="current-theme">Current: Slate</div>
+        <div class="theme-options">
+          <div class="theme-dot ocean" onclick="assignTheme('manager', 'ocean', this)"></div>
+          <div class="theme-dot forest" onclick="assignTheme('manager', 'forest', this)"></div>
+          <div class="theme-dot royal" onclick="assignTheme('manager', 'royal', this)"></div>
+          <div class="theme-dot slate selected" onclick="assignTheme('manager', 'slate', this)"></div>
+          <div class="theme-dot crimson" onclick="assignTheme('manager', 'crimson', this)"></div>
+        </div>
+      </div>
+      
+      <div class="role-box" data-role="admin">
+        <h3>🔧 Admin</h3>
+        <div class="current-theme">Current: Ocean</div>
+        <div class="theme-options">
+          <div class="theme-dot ocean selected" onclick="assignTheme('admin', 'ocean', this)"></div>
+          <div class="theme-dot forest" onclick="assignTheme('admin', 'forest', this)"></div>
+          <div class="theme-dot royal" onclick="assignTheme('admin', 'royal', this)"></div>
+          <div class="theme-dot slate" onclick="assignTheme('admin', 'slate', this)"></div>
+          <div class="theme-dot crimson" onclick="assignTheme('admin', 'crimson', this)"></div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+  
+  <script>
+    function assignTheme(role, theme, element) {
+      // Remove selected from all dots in this role box
+      const roleBox = element.closest('.role-box');
+      roleBox.querySelectorAll('.theme-dot').forEach(dot => {
+        dot.classList.remove('selected');
+      });
+      
+      // Add selected to clicked dot
+      element.classList.add('selected');
+      
+      // Update text
+      roleBox.querySelector('.current-theme').textContent = 'Current: ' + theme.charAt(0).toUpperCase() + theme.slice(1);
+      
+      // Log for developer to implement
+      console.log(`Theme assigned: ${role} = ${theme}`);
+    }
+  </script>
+
+</body>
+</html>

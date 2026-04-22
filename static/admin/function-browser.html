@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semptify Function Browser - Interactive Documentation</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    * { box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .browser-header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid #334155;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .browser-header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .browser-header p {
+      margin: 0.5rem 0 0 0;
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+    
+    .filters {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem 2rem;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      flex-wrap: wrap;
+    }
+    
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .filter-group label {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+    
+    .filter-btn {
+      padding: 0.4rem 0.8rem;
+      border: 1px solid #475569;
+      background: #334155;
+      color: #e2e8f0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+    
+    .filter-btn:hover, .filter-btn.active {
+      background: #10b981;
+      border-color: #10b981;
+      color: white;
+    }
+    
+    .main-content {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: calc(100vh - 140px);
+    }
+    
+    .sidebar {
+      background: #1e293b;
+      border-right: 1px solid #334155;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+    
+    .nav-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .nav-group h3 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #64748b;
+      margin: 0 0 0.75rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #334155;
+    }
+    
+    .nav-item {
+      padding: 0.6rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      margin-bottom: 0.25rem;
+    }
+    
+    .nav-item:hover {
+      background: #334155;
+    }
+    
+    .nav-item.active {
+      background: #10b981;
+      color: white;
+    }
+    
+    .nav-icon {
+      font-size: 1.1rem;
+    }
+    
+    .content-area {
+      padding: 2rem;
+      overflow-y: auto;
+    }
+    
+    .group-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #334155;
+    }
+    
+    .group-header h2 {
+      margin: 0;
+      font-size: 1.75rem;
+    }
+    
+    .group-desc {
+      color: #94a3b8;
+      margin: 0;
+    }
+    
+    .function-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1rem;
+    }
+    
+    .function-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.2s;
+    }
+    
+    .function-card:hover {
+      border-color: #10b981;
+      transform: translateY(-2px);
+    }
+    
+    .function-header {
+      padding: 1rem;
+      background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .function-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .function-icon {
+      font-size: 1.5rem;
+    }
+    
+    .function-name {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    
+    .function-roles {
+      display: flex;
+      gap: 0.25rem;
+    }
+    
+    .role-badge {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+    
+    .role-public { background: #1e3a5f; color: #60a5fa; }
+    .role-tenant { background: #581c87; color: #c084fc; }
+    .role-advocate { background: #14532d; color: #4ade80; }
+    .role-legal { background: #7f1d1d; color: #fca5a5; }
+    .role-manager { background: #451a03; color: #fdba74; }
+    
+    .function-details {
+      display: none;
+      padding: 1rem;
+      border-top: 1px solid #334155;
+    }
+    
+    .function-card.expanded .function-details {
+      display: block;
+    }
+    
+    .function-card.expanded .expand-icon {
+      transform: rotate(180deg);
+    }
+    
+    .expand-icon {
+      transition: transform 0.2s;
+    }
+    
+    .detail-section {
+      margin-bottom: 1rem;
+    }
+    
+    .detail-section:last-child {
+      margin-bottom: 0;
+    }
+    
+    .detail-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    
+    .detail-content {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+    
+    .detail-content ul {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+    
+    .detail-content li {
+      margin-bottom: 0.25rem;
+    }
+    
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #334155;
+    }
+    
+    .setting-row:last-child {
+      border-bottom: none;
+    }
+    
+    .setting-name {
+      font-size: 0.85rem;
+    }
+    
+    .setting-control {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .setting-input {
+      background: #0f172a;
+      border: 1px solid #475569;
+      color: #e2e8f0;
+      padding: 0.3rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+    
+    .page-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.3rem 0.75rem;
+      background: #0f172a;
+      border: 1px solid #475569;
+      border-radius: 4px;
+      color: #60a5fa;
+      font-size: 0.8rem;
+      text-decoration: none;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .page-link:hover {
+      background: #1e3a5f;
+      border-color: #60a5fa;
+    }
+    
+    .input-spec {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0;
+      font-size: 0.85rem;
+    }
+    
+    .input-type {
+      background: #7c3aed;
+      color: white;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+    
+    .input-required {
+      color: #ef4444;
+      font-size: 0.7rem;
+    }
+    
+    .input-optional {
+      color: #64748b;
+      font-size: 0.7rem;
+    }
+    
+    @media (max-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+      
+      .sidebar {
+        display: none;
+      }
+      
+      .function-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  
+  <div class="browser-header">
+    <nav style="margin-bottom: 1rem; font-size: 0.9rem;">
+      <a href="/docs/navigation-structure.html" style="color: #94a3b8; text-decoration: none; margin-right: 1.5rem;">🧭 Navigation</a>
+      <a href="/docs/component-inventory.html" style="color: #94a3b8; text-decoration: none; margin-right: 1.5rem;">📦 Components</a>
+      <a href="/admin/function-browser.html" style="color: #10b981; text-decoration: none; margin-right: 1.5rem; font-weight: bold;">⚙️ Functions</a>
+      <a href="/docs/core-navigation-functions.md" style="color: #94a3b8; text-decoration: none;">📝 Reference</a>
+    </nav>
+    <h1>⚙️ Semptify Function Browser</h1>
+    <p>Interactive documentation - Click any function to see details, settings, and related pages</p>
+  </div>
+  
+  <div class="filters">
+    <div class="filter-group">
+      <label>View:</label>
+      <button class="filter-btn active" onclick="showGroup('all')">All</button>
+      <button class="filter-btn" onclick="showGroup('home')">Home</button>
+      <button class="filter-btn" onclick="showGroup('library')">Library</button>
+      <button class="filter-btn" onclick="showGroup('office')">Office</button>
+      <button class="filter-btn" onclick="showGroup('tools')">Tools</button>
+      <button class="filter-btn" onclick="showGroup('help')">Help</button>
+    </div>
+    <div class="filter-group">
+      <label>Role:</label>
+      <button class="filter-btn" onclick="filterRole('tenant')">Tenant</button>
+      <button class="filter-btn" onclick="filterRole('advocate')">Advocate</button>
+      <button class="filter-btn" onclick="filterRole('legal')">Legal</button>
+      <button class="filter-btn" onclick="filterRole('manager')">Manager</button>
+    </div>
+  </div>
+  
+  <div class="main-content">
+    <aside class="sidebar">
+      <div class="nav-group">
+        <h3>🏠 Home Functions</h3>
+        <div class="nav-item" onclick="showGroup('home')">
+          <span class="nav-icon">📊</span>
+          Dashboard
+        </div>
+        <div class="nav-item" onclick="showGroup('home')">
+          <span class="nav-icon">📓</span>
+          Quick Journal
+        </div>
+        <div class="nav-item" onclick="showGroup('home')">
+          <span class="nav-icon">🔔</span>
+          Notifications
+        </div>
+      </div>
+      
+      <div class="nav-group">
+        <h3>📚 Library Functions</h3>
+        <div class="nav-item" onclick="showGroup('library')">
+          <span class="nav-icon">📖</span>
+          Rights Guides
+        </div>
+        <div class="nav-item" onclick="showGroup('library')">
+          <span class="nav-icon">⚖️</span>
+          Law Database
+        </div>
+        <div class="nav-item" onclick="showGroup('library')">
+          <span class="nav-icon">📝</span>
+          Form Templates
+        </div>
+      </div>
+      
+      <div class="nav-group">
+        <h3>🏢 Office Functions</h3>
+        <div class="nav-item" onclick="showGroup('office')">
+          <span class="nav-icon">🔒</span>
+          Document Vault
+        </div>
+        <div class="nav-item" onclick="showGroup('office')">
+          <span class="nav-icon">📨</span>
+          Communication
+        </div>
+        <div class="nav-item" onclick="showGroup('office')">
+          <span class="nav-icon">📅</span>
+          Timeline
+        </div>
+      </div>
+      
+      <div class="nav-group">
+        <h3>🔧 Tool Functions</h3>
+        <div class="nav-item" onclick="showGroup('tools')">
+          <span class="nav-icon">🧮</span>
+          Calculators
+        </div>
+        <div class="nav-item" onclick="showGroup('tools')">
+          <span class="nav-icon">📄</span>
+          Generators
+        </div>
+      </div>
+      
+      <div class="nav-group">
+        <h3>🆘 Help Functions</h3>
+        <div class="nav-item" onclick="showGroup('help')">
+          <span class="nav-icon">❓</span>
+          FAQ
+        </div>
+        <div class="nav-item" onclick="showGroup('help')">
+          <span class="nav-icon">🚨</span>
+          Crisis Resources
+        </div>
+      </div>
+    </aside>
+    
+    <main class="content-area" id="content-area">
+      <!-- Content loaded dynamically -->
+    </main>
+  </div>
+  
+  <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; padding: 1rem; border-radius: 8px; margin: 1rem 2rem;">
+    <strong>🔗 Quick Links:</strong>
+    <a href="/docs/navigation-structure.html" style="color: #10b981; margin-left: 1rem;">Where to place functions →</a>
+    <a href="/docs/component-inventory.html" style="color: #10b981; margin-left: 1rem;">What implements them →</a>
+  </div>
+
+  <script>
+    // Function database
+    const functions = {
+      home: [
+        {
+          id: 'dashboard',
+          name: 'Role Dashboard',
+          icon: '📊',
+          roles: ['tenant', 'advocate', 'legal', 'manager'],
+          description: 'Central hub showing role-specific overview, stats, and quick actions.',
+          inputs: [
+            { name: 'role', type: 'enum', required: true, options: ['tenant', 'advocate', 'legal', 'manager'] },
+            { name: 'user_id', type: 'uuid', required: true },
+            { name: 'time_range', type: 'enum', required: false, options: ['7d', '30d', '90d', '1y'], default: '30d' }
+          ],
+          settings: [
+            { name: 'show_emergency_banner', type: 'boolean', default: true },
+            { name: 'widget_order', type: 'array', default: ['stats', 'timeline', 'inbox', 'deadlines'] },
+            { name: 'refresh_interval', type: 'number', default: 300, unit: 'seconds' }
+          ],
+          pages: ['/home.html', '/tenant/index.html', '/advocate/index.html', '/legal/index.html', '/manager/index.html'],
+          help: '/help/dashboard-guide.html',
+          context: 'First page after login. Shows personalized overview based on role.'
+        },
+        {
+          id: 'quick-journal',
+          name: 'Quick Journal Entry',
+          icon: '📓',
+          roles: ['tenant'],
+          description: 'Fast way to log a tenancy event without navigating to full timeline.',
+          inputs: [
+            { name: 'event_type', type: 'enum', required: true, options: ['payment', 'repair', 'communication', 'notice', 'other'] },
+            { name: 'description', type: 'text', required: true, maxLength: 500 },
+            { name: 'event_date', type: 'date', required: false, default: 'today' },
+            { name: 'attach_files', type: 'file[]', required: false }
+          ],
+          settings: [
+            { name: 'auto_timestamp', type: 'boolean', default: true },
+            { name: 'require_photo', type: 'boolean', default: false },
+            { name: 'reminder_frequency', type: 'enum', default: 'weekly', options: ['daily', 'weekly', 'monthly', 'never'] }
+          ],
+          pages: ['/home.html', '/office/timeline.html'],
+          help: '/help/journaling.html',
+          context: 'One-click entry from dashboard for rapid documentation.'
+        },
+        {
+          id: 'emergency-status',
+          name: 'Emergency Status',
+          icon: '🚨',
+          roles: ['tenant'],
+          description: 'Flags urgent situations and provides emergency resource links.',
+          inputs: [
+            { name: 'eviction_notice_received', type: 'boolean', required: false },
+            { name: 'days_to_deadline', type: 'number', required: false },
+            { name: 'emergency_type', type: 'enum', required: false, options: ['eviction', 'habitability', 'harassment', 'retaliation', 'other'] }
+          ],
+          settings: [
+            { name: 'auto_detect_emergency', type: 'boolean', default: true },
+            { name: 'emergency_hotline', type: 'string', default: '1-800-XXX-XXXX' },
+            { name: 'show_crisis_chat', type: 'boolean', default: true }
+          ],
+          pages: ['/home.html', '/help/crisis.html'],
+          help: '/help/emergency-guide.html',
+          context: 'Activates when uploaded documents contain keywords like "eviction", "3-day notice", etc.'
+        },
+        {
+          id: 'notifications',
+          name: 'Notification Center',
+          icon: '🔔',
+          roles: ['tenant', 'advocate', 'legal', 'manager'],
+          description: 'Alerts for deadlines, messages, document processing completion.',
+          inputs: [
+            { name: 'notification_types', type: 'enum[]', required: false, options: ['deadline', 'message', 'document', 'system'] },
+            { name: 'mark_read', type: 'boolean', required: false }
+          ],
+          settings: [
+            { name: 'email_notifications', type: 'boolean', default: true },
+            { name: 'sms_notifications', type: 'boolean', default: false },
+            { name: 'browser_notifications', type: 'boolean', default: true },
+            { name: 'digest_frequency', type: 'enum', default: 'immediate', options: ['immediate', 'hourly', 'daily'] }
+          ],
+          pages: ['/home.html', '/office/inbox.html'],
+          help: '/help/notifications.html',
+          context: 'Cross-page notification system. Badges appear on all pages when new notifications exist.'
+        }
+      ],
+      library: [
+        {
+          id: 'rights-guides',
+          name: 'Rights & Responsibilities Guides',
+          icon: '📖',
+          roles: ['public', 'tenant', 'advocate', 'legal', 'manager'],
+          description: 'Plain-language guides to tenant rights and responsibilities by state.',
+          inputs: [
+            { name: 'state', type: 'enum', required: true, options: ['CA', 'NY', 'TX', 'FL', '...'] },
+            { name: 'topic', type: 'enum', required: false, options: ['habitability', 'privacy', 'deposit', 'eviction', 'discrimination'] },
+            { name: 'format', type: 'enum', required: false, default: 'web', options: ['web', 'pdf', 'audio'] }
+          ],
+          settings: [
+            { name: 'default_state', type: 'string', default: 'auto-detect from IP' },
+            { name: 'accessibility_mode', type: 'boolean', default: false },
+            { name: 'language', type: 'enum', default: 'en', options: ['en', 'es', 'zh', 'ar', 'vi'] }
+          ],
+          pages: ['/library.html', '/library/rights.html'],
+          help: '/help/rights-guide.html',
+          context: 'Educational content explaining what tenants AND landlords owe each other.'
+        },
+        {
+          id: 'law-database',
+          name: 'State Law Database',
+          icon: '⚖️',
+          roles: ['public', 'tenant', 'advocate', 'legal', 'manager'],
+          description: 'Searchable database of state and local housing laws, ordinances, regulations.',
+          inputs: [
+            { name: 'jurisdiction', type: 'enum', required: true },
+            { name: 'query', type: 'text', required: true },
+            { name: 'law_type', type: 'enum', required: false, options: ['statute', 'case_law', 'ordinance', 'regulation'] },
+            { name: 'date_range', type: 'date-range', required: false }
+          ],
+          settings: [
+            { name: 'search_fuzziness', type: 'number', default: 0.8, min: 0, max: 1 },
+            { name: 'include_repealed', type: 'boolean', default: false },
+            { name: 'citation_format', type: 'enum', default: 'bluebook', options: ['bluebook', 'apa', 'mla'] }
+          ],
+          pages: ['/library.html', '/library/laws.html'],
+          help: '/help/law-search.html',
+          context: 'Legal research tool. For Legal role: includes case law. For others: statutes and ordinances only.'
+        },
+        {
+          id: 'form-templates',
+          name: 'Form Templates',
+          icon: '📝',
+          roles: ['public', 'tenant', 'advocate', 'legal', 'manager'],
+          description: 'Downloadable and auto-fillable forms: letters, notices, complaints.',
+          inputs: [
+            { name: 'form_type', type: 'enum', required: true, options: ['letter', 'notice', 'complaint', 'motion', 'petition'] },
+            { name: 'jurisdiction', type: 'enum', required: true },
+            { name: 'auto_fill', type: 'boolean', required: false, default: true }
+          ],
+          settings: [
+            { name: 'default_format', type: 'enum', default: 'pdf', options: ['pdf', 'docx', 'txt'] },
+            { name: 'include_letterhead', type: 'boolean', default: false },
+            { name: 'watermark', type: 'enum', default: 'none', options: ['none', 'draft', 'confidential'] }
+          ],
+          pages: ['/library.html', '/library/forms.html'],
+          help: '/help/forms.html',
+          context: 'Template library with jurisdiction-specific forms. Auto-populates from user profile.'
+        }
+      ],
+      office: [
+        {
+          id: 'document-vault',
+          name: 'Document Vault',
+          icon: '🔒',
+          roles: ['tenant', 'advocate', 'legal', 'manager'],
+          description: 'Secure document storage. Upload → Overlay extraction → Your cloud storage.',
+          inputs: [
+            { name: 'files', type: 'file[]', required: true, maxSize: '25MB', types: ['pdf', 'jpg', 'png', 'doc', 'docx'] },
+            { name: 'document_type', type: 'enum', required: true, options: ['lease', 'notice', 'receipt', 'repair', 'photo', 'legal', 'communication', 'insurance', 'financial', 'medical', 'other'] },
+            { name: 'description', type: 'text', required: false, maxLength: 1000 },
+            { name: 'emergency_flag', type: 'boolean', required: false, default: false }
+          ],
+          settings: [
+            { name: 'auto_ocr', type: 'boolean', default: true },
+            { name: 'blockchain_timestamp', type: 'boolean', default: true },
+            { name: 'storage_provider', type: 'enum', default: 'google_drive', options: ['google_drive', 'dropbox', 'onedrive'] },
+            { name: 'organize_by', type: 'enum', default: 'date', options: ['date', 'type', 'case'] },
+            { name: 'retention_policy', type: 'enum', default: 'forever', options: ['1y', '3y', '7y', 'forever'] }
+          ],
+          pages: ['/office.html', '/office/vault.html', '/home.html'],
+          help: '/help/vault-guide.html',
+          context: 'ONE WAY IN for all documents. Overlay system extracts metadata. Full document goes to user cloud storage only.'
+        },
+        {
+          id: 'communication-center',
+          name: 'Communication Center',
+          icon: '📨',
+          roles: ['tenant', 'advocate', 'legal', 'manager'],
+          description: 'Secure messaging between tenant, advocates, and legal.',
+          inputs: [
+            { name: 'recipient_type', type: 'enum', required: true, options: ['advocate', 'legal', 'landlord', 'court', 'other'] },
+            { name: 'subject', type: 'text', required: true, maxLength: 200 },
+            { name: 'message', type: 'text', required: true, maxLength: 5000 },
+            { name: 'attach_from_vault', type: 'uuid[]', required: false },
+            { name: 'priority', type: 'enum', required: false, default: 'normal', options: ['low', 'normal', 'high', 'urgent'] }
+          ],
+          settings: [
+            { name: 'auto_encrypt', type: 'boolean', default: true },
+            { name: 'read_receipts', type: 'boolean', default: true },
+            { name: 'retention_days', type: 'number', default: 365 },
+            { name: 'auto_forward_legal', type: 'boolean', default: false, roles: ['advocate'] }
+          ],
+          pages: ['/office.html', '/office/inbox.html'],
+          help: '/help/messaging.html',
+          context: 'All communications logged with timestamps. Can attach vault documents. Privileged for attorney communications.'
+        },
+        {
+          id: 'timeline',
+          name: 'Timeline / Journal',
+          icon: '📅',
+          roles: ['tenant', 'advocate', 'legal'],
+          description: 'Chronological record of all tenancy events with evidence links.',
+          inputs: [
+            { name: 'event_date', type: 'datetime', required: true },
+            { name: 'event_type', type: 'enum', required: true },
+            { name: 'description', type: 'text', required: true },
+            { name: 'linked_documents', type: 'uuid[]', required: false },
+            { name: 'parties_involved', type: 'text[]', required: false }
+          ],
+          settings: [
+            { name: 'default_view', type: 'enum', default: 'chronological', options: ['chronological', 'by_type', 'by_tag'] },
+            { name: 'show_gaps', type: 'boolean', default: true },
+            { name: 'export_format', type: 'enum', default: 'pdf', options: ['pdf', 'csv', 'timeline_json'] },
+            { name: 'auto_suggest_events', type: 'boolean', default: true }
+          ],
+          pages: ['/office.html', '/office/timeline.html'],
+          help: '/help/timeline-guide.html',
+          context: 'The heart of Semptify. Creates chronological evidence record. Can export for court/advocates.'
+        },
+        {
+          id: 'document-delivery',
+          name: 'Document Delivery',
+          icon: '📬',
+          roles: ['tenant', 'advocate', 'legal', 'manager'],
+          description: 'Send documents to attorneys, advocates, courts, or landlords.',
+          inputs: [
+            { name: 'recipient_type', type: 'enum', required: true, options: ['attorney', 'advocate', 'court', 'landlord', 'other'] },
+            { name: 'recipient_email', type: 'email', required: true },
+            { name: 'documents', type: 'uuid[]', required: true },
+            { name: 'delivery_method', type: 'enum', required: true, options: ['email', 'secure_portal', 'physical_mail', 'process_server'] },
+            { name: 'require_signature', type: 'boolean', required: false, default: false }
+          ],
+          settings: [
+            { name: 'auto_certify', type: 'boolean', default: true },
+            { name: 'delivery_tracking', type: 'boolean', default: true },
+            { name: 'expiration_days', type: 'number', default: 30 },
+            { name: 'watermark_delivered', type: 'boolean', default: true }
+          ],
+          pages: ['/office.html', '/office/delivery.html'],
+          help: '/help/document-delivery.html',
+          context: 'Secure delivery with tracking. Can require signature. Logs delivery for evidence.'
+        }
+      ],
+      tools: [
+        {
+          id: 'rent-calculator',
+          name: 'Rent Calculator',
+          icon: '🧮',
+          roles: ['public', 'tenant', 'advocate', 'legal', 'manager'],
+          description: 'Calculate prorated rent, late fees, interest, deposits.',
+          inputs: [
+            { name: 'rent_amount', type: 'currency', required: true },
+            { name: 'calculation_type', type: 'enum', required: true, options: ['proration', 'late_fee', 'interest', 'deposit'] },
+            { name: 'start_date', type: 'date', required: false },
+            { name: 'end_date', type: 'date', required: false },
+            { name: 'jurisdiction', type: 'enum', required: true }
+          ],
+          settings: [
+            { name: 'include_receipt', type: 'boolean', default: true },
+            { name: 'show_formula', type: 'boolean', default: true },
+            { name: 'currency_format', type: 'enum', default: 'USD', options: ['USD', 'EUR', 'GBP'] }
+          ],
+          pages: ['/tools.html', '/tools/calculators.html'],
+          help: '/help/rent-calculator.html',
+          context: 'Accurate calculations using jurisdiction-specific rules for late fees, interest, etc.'
+        },
+        {
+          id: 'deadline-calculator',
+          name: 'Deadline Calculator',
+          icon: '⏰',
+          roles: ['public', 'tenant', 'advocate', 'legal', 'manager'],
+          description: 'Calculate notice periods, court deadlines, appeal windows.',
+          inputs: [
+            { name: 'event_date', type: 'date', required: true },
+            { name: 'deadline_type', type: 'enum', required: true, options: ['notice_period', 'court_deadline', 'appeal_deadline', 'answer_deadline'] },
+            { name: 'jurisdiction', type: 'enum', required: true },
+            { name: 'court_holidays', type: 'boolean', required: false, default: true }
+          ],
+          settings: [
+            { name: 'calendar_integration', type: 'boolean', default: false },
+            { name: 'reminder_days', type: 'number[]', default: [7, 3, 1] },
+            { name: 'exclude_weekends', type: 'boolean', default: true }
+          ],
+          pages: ['/tools.html', '/tools/calculators.html'],
+          help: '/help/deadline-calculator.html',
+          context: 'Critical for tenants facing deadlines. Accounts for court holidays and weekends.'
+        },
+        {
+          id: 'notice-generator',
+          name: 'Notice Generator',
+          icon: '📄',
+          roles: ['tenant', 'advocate', 'legal', 'manager'],
+          description: 'Generate legally compliant notices: repair requests, lease violations.',
+          inputs: [
+            { name: 'notice_type', type: 'enum', required: true, options: ['repair_request', 'rent_withholding', 'lease_violation', 'termination'] },
+            { name: 'recipient_name', type: 'text', required: true },
+            { name: 'property_address', type: 'text', required: true },
+            { name: 'issue_description', type: 'text', required: true },
+            { name: 'remedy_sought', type: 'text', required: true }
+          ],
+          settings: [
+            { name: 'delivery_method', type: 'enum', default: 'certified_mail', options: ['certified_mail', 'email', 'hand_delivery', 'process_server'] },
+            { name: 'cc_attorney', type: 'boolean', default: false },
+            { name: 'require_response', type: 'boolean', default: true }
+          ],
+          pages: ['/tools.html', '/tools/generators.html'],
+          help: '/help/notice-generator.html',
+          context: 'Generates jurisdiction-specific notices with proper legal language.'
+        }
+      ],
+      help: [
+        {
+          id: 'faq',
+          name: 'FAQ & Knowledge Base',
+          icon: '❓',
+          roles: ['public', 'tenant', 'advocate', 'legal', 'manager'],
+          description: 'Searchable answers to common questions.',
+          inputs: [
+            { name: 'query', type: 'text', required: false },
+            { name: 'category', type: 'enum', required: false, options: ['getting_started', 'features', 'billing', 'technical', 'legal'] },
+            { name: 'role_context', type: 'enum', required: false }
+          ],
+          settings: [
+            { name: 'show_related', type: 'boolean', default: true },
+            { name: 'include_videos', type: 'boolean', default: true }
+          ],
+          pages: ['/help.html', '/help/faq.html'],
+          help: '/help/faq.html',
+          context: 'Self-service support. AI-suggested answers based on user context.'
+        },
+        {
+          id: 'crisis-resources',
+          name: 'Crisis Resources',
+          icon: '🚨',
+          roles: ['tenant', 'advocate'],
+          description: 'Emergency housing resources: hotlines, shelters, legal aid.',
+          inputs: [
+            { name: 'location', type: 'geo', required: true },
+            { name: 'crisis_type', type: 'enum', required: true, options: ['eviction', 'homeless', 'utility_shutoff', 'domestic_violence'] },
+            { name: 'urgency', type: 'enum', required: true, options: ['immediate', '24h', '72h'] }
+          ],
+          settings: [
+            { name: 'show_map', type: 'boolean', default: true },
+            { name: 'include_national', type: 'boolean', default: true },
+            { name: 'filter_eligibility', type: 'boolean', default: true }
+          ],
+          pages: ['/help.html', '/help/crisis.html'],
+          help: '/help/crisis-resources.html',
+          context: 'Emergency tenant support. Local and national resources by location and need.'
+        }
+      ]
+    };
+    
+    // Render functions
+    function showGroup(group) {
+      const content = document.getElementById('content-area');
+      const items = group === 'all' ? Object.values(functions).flat() : functions[group] || [];
+      
+      const groupInfo = {
+        home: { icon: '🏠', title: 'Home', desc: 'Dashboard, overview, quick actions' },
+        library: { icon: '📚', title: 'Library', desc: 'Research, law, rights, guides, resources' },
+        office: { icon: '🏢', title: 'Office', desc: 'Documents, files, communication, paperwork' },
+        tools: { icon: '🔧', title: 'Tools', desc: 'Utilities, calculators, generators' },
+        help: { icon: '🆘', title: 'Help', desc: 'Support, contacts, crisis resources, FAQ' }
+      };
+      
+      const info = group === 'all' ? { icon: '⚙️', title: 'All Functions', desc: 'Complete Semptify function browser' } : groupInfo[group];
+      
+      content.innerHTML = `
+        <div class="group-header">
+          <span style="font-size: 2rem;">${info.icon}</span>
+          <div>
+            <h2>${info.title}</h2>
+            <p class="group-desc">${info.desc}</p>
+          </div>
+        </div>
+        
+        <div class="function-grid">
+          ${items.map(fn => renderFunctionCard(fn)).join('')}
+        </div>
+      `;
+    }
+    
+    function renderFunctionCard(fn) {
+      const roleBadges = fn.roles.map(role => {
+        const roleClass = `role-${role}`;
+        const roleLabel = role.charAt(0).toUpperCase();
+        return `<span class="role-badge ${roleClass}" title="${role}">${roleLabel}</span>`;
+      }).join('');
+      
+      const inputsHtml = fn.inputs.map(input => `
+        <div class="input-spec">
+          <span class="input-type">${input.type}</span>
+          <span>${input.name.replace(/_/g, ' ')}</span>
+          ${input.required ? '<span class="input-required">required</span>' : '<span class="input-optional">optional</span>'}
+        </div>
+      `).join('');
+      
+      const settingsHtml = fn.settings.map(setting => `
+        <div class="setting-row">
+          <span class="setting-name">${setting.name.replace(/_/g, ' ')}</span>
+          <div class="setting-control">
+            <input type="text" class="setting-input" value="${setting.default}" readonly>
+            <span style="font-size: 0.75rem; color: #64748b;">${setting.type}</span>
+          </div>
+        </div>
+      `).join('');
+      
+      const pagesHtml = fn.pages.map(page => `
+        <a href="${page}" class="page-link" target="_blank">📄 ${page}</a>
+      `).join('');
+      
+      return `
+        <div class="function-card" id="fn-${fn.id}" onclick="toggleFunction('${fn.id}')">
+          <div class="function-header">
+            <div class="function-title">
+              <span class="function-icon">${fn.icon}</span>
+              <span class="function-name">${fn.name}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <div class="function-roles">${roleBadges}</div>
+              <span class="expand-icon">▼</span>
+            </div>
+          </div>
+          
+          <div class="function-details">
+            <div class="detail-section">
+              <div class="detail-label">Description</div>
+              <div class="detail-content">${fn.description}</div>
+            </div>
+            
+            <div class="detail-section">
+              <div class="detail-label">Context & Usage</div>
+              <div class="detail-content">${fn.context}</div>
+            </div>
+            
+            <div class="detail-section">
+              <div class="detail-label">Input Parameters</div>
+              <div class="detail-content">
+                ${inputsHtml}
+              </div>
+            </div>
+            
+            <div class="detail-section">
+              <div class="detail-label">Settings & Defaults</div>
+              <div class="detail-content">
+                ${settingsHtml}
+              </div>
+            </div>
+            
+            <div class="detail-section">
+              <div class="detail-label">Related Pages</div>
+              <div class="detail-content">
+                ${pagesHtml}
+                <a href="${fn.help}" class="page-link" target="_blank" style="background: #10b981; border-color: #10b981;">❓ Help</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function toggleFunction(id) {
+      const card = document.getElementById(`fn-${id}`);
+      card.classList.toggle('expanded');
+    }
+    
+    function filterRole(role) {
+      const allFunctions = Object.values(functions).flat();
+      const filtered = allFunctions.filter(fn => fn.roles.includes(role));
+      
+      const content = document.getElementById('content-area');
+      content.innerHTML = `
+        <div class="group-header">
+          <span style="font-size: 2rem;">👤</span>
+          <div>
+            <h2>${role.charAt(0).toUpperCase() + role.slice(1)} Functions</h2>
+            <p class="group-desc">Functions available to ${role} role</p>
+          </div>
+        </div>
+        
+        <div class="function-grid">
+          ${filtered.map(fn => renderFunctionCard(fn)).join('')}
+        </div>
+      `;
+    }
+    
+    // Initialize
+    showGroup('all');
+  </script>
+  
+</body>
+</html>

@@ -28,7 +28,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Optional, Any
-from uuid import uuid4
+import secrets
 import base64
 
 from app.core.config import get_settings
@@ -269,7 +269,7 @@ class DocumentIDGenerator:
         cls._counter += 1
         
         # Random suffix for additional uniqueness
-        random_suffix = uuid4().hex[:4].upper()
+        random_suffix = secrets.token_hex(2).upper()
         
         return f"SEM-{date_part}-{cls._counter:06d}-{random_suffix}"
     

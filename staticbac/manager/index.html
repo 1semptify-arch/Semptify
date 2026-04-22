@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Portal - Semptify</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2C5F2D;
+            --secondary: #3498DB;
+            --accent: #E67E22;
+            --background: #F8F9FA;
+            --text: #2D3436;
+            --success: #27AE60;
+            --warning: #F39C12;
+            --danger: #E74C3C;
+        }
+        
+        body {
+            background: var(--background);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+        
+        .manager-header {
+            background: linear-gradient(135deg, var(--primary), #1a4a1b);
+            color: white;
+            padding: 1rem 2rem;
+            border-bottom: 4px solid var(--accent);
+        }
+        
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .header-subtitle {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin: 0;
+        }
+        
+        .role-badge {
+            background: var(--accent);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--text);
+            font-weight: 500;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 1rem 1.5rem;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: transparent;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .stat-card.warning { border-left-color: var(--warning); }
+        .stat-card.danger { border-left-color: var(--danger); }
+        .stat-card.success { border-left-color: var(--success); }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .case-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .case-card.urgent { border-left-color: var(--danger); }
+        .case-card.pending { border-left-color: var(--warning); }
+        
+        .tenant-name {
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .case-meta {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-active { background: #d4edda; color: #155724; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-urgent { background: #f8d7da; color: #721c24; }
+        
+        .btn-primary {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .btn-primary:hover {
+            background: #1a4a1b;
+            border-color: #1a4a1b;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <header class="manager-header">
+        <div class="container-fluid">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="header-title"><i class="bi bi-people-fill me-2"></i>Manager Portal</h1>
+                    <p class="header-subtitle">Caseload Dashboard & Tenant Coordination</p>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="role-badge">Manager</span>
+                    <button class="btn btn-light btn-sm" onclick="logout()">
+                        <i class="bi bi-box-arrow-right"></i> Sign Out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid py-4">
+        <!-- Stats Row -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="stat-card">
+                    <div class="stat-value" id="activeCases">0</div>
+                    <div class="stat-label">Active Cases</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card warning">
+                    <div class="stat-value" id="pendingDocs">0</div>
+                    <div class="stat-label">Pending Signatures</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card danger">
+                    <div class="stat-value" id="urgentCases">0</div>
+                    <div class="stat-label">Urgent (7 Days)</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card success">
+                    <div class="stat-value" id="newThisWeek">0</div>
+                    <div class="stat-label">New This Week</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Caseload -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="bi bi-folder-fill me-2"></i>My Caseload</h5>
+                        <button class="btn btn-primary btn-sm" onclick="showInviteModal()">
+                            <i class="bi bi-plus-lg"></i> Add Tenant
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="caseloadContainer">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <h5>No Cases Assigned</h5>
+                                <p>Your caseload will appear here once tenants are assigned to you.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="col-lg-4">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-lightning-fill me-2"></i>Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-outline-primary w-100 mb-2" onclick="sendDocument()">
+                            <i class="bi bi-send me-2"></i>Send Document to Tenant
+                        </button>
+                        <button class="btn btn-outline-primary w-100 mb-2" onclick="viewCalendar()">
+                            <i class="bi bi-calendar me-2"></i>View Deadlines
+                        </button>
+                        <button class="btn btn-outline-primary w-100" onclick="generateReport()">
+                            <i class="bi bi-file-earmark-text me-2"></i>Caseload Report
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-bell-fill me-2"></i>Notifications</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="notificationsContainer">
+                            <p class="text-muted text-center mb-0">No new notifications</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Tenant Modal -->
+    <div class="modal fade" id="inviteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Tenant to Caseload</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="inviteForm">
+                        <div class="mb-3">
+                            <label class="form-label">Tenant Email</label>
+                            <input type="email" class="form-control" id="tenantEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tenant Name</label>
+                            <input type="text" class="form-control" id="tenantName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Case Type</label>
+                            <select class="form-select" id="caseType">
+                                <option>Eviction Defense</option>
+                                <option>Repairs/Maintenance</option>
+                                <option>Deposit Dispute</option>
+                                <option>Lease Review</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="addTenant()">Send Invitation</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCaseload();
+        });
+
+        function loadCaseload() {
+            // TODO: Load from API
+            console.log('Loading caseload...');
+        }
+
+        function showInviteModal() {
+            new bootstrap.Modal(document.getElementById('inviteModal')).show();
+        }
+
+        function addTenant() {
+            const email = document.getElementById('tenantEmail').value;
+            const name = document.getElementById('tenantName').value;
+            
+            if (!email || !name) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            // TODO: API call to invite tenant
+            console.log('Inviting tenant:', { email, name });
+            bootstrap.Modal.getInstance(document.getElementById('inviteModal')).hide();
+        }
+
+        function sendDocument() {
+            // TODO: Navigate to document delivery
+            console.log('Send document');
+        }
+
+        function viewCalendar() {
+            window.location.href = '/calendar';
+        }
+
+        function generateReport() {
+            // TODO: Generate caseload report
+            console.log('Generate report');
+        }
+
+        function logout() {
+            // TODO: Proper logout
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

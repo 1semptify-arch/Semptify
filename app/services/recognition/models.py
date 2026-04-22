@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, date
 from enum import Enum
 from typing import Optional, List, Dict, Any, Set, Tuple
-from uuid import uuid4
+from app.core.id_gen import make_id
 
 
 # ============================================================================
@@ -228,7 +228,7 @@ class ExtractedEntity:
     """
     An entity extracted from the document.
     """
-    id: str = field(default_factory=lambda: str(uuid4())[:8])
+    id: str = field(default_factory=lambda: make_id("ent"))
     entity_type: EntityType = EntityType.PERSON
     value: str = ""
     normalized_value: Optional[str] = None  # Standardized form
@@ -288,7 +288,7 @@ class ReasoningChain:
     Complete chain of reasoning for an analysis.
     Enables transparency and debugging.
     """
-    chain_id: str = field(default_factory=lambda: str(uuid4())[:8])
+    chain_id: str = field(default_factory=lambda: make_id("chain"))
     started_at: datetime = field(default_factory=datetime.now)
     completed_at: Optional[datetime] = None
     
@@ -349,7 +349,7 @@ class ReasoningChain:
 @dataclass
 class DocumentSection:
     """A recognized section within a document"""
-    id: str = field(default_factory=lambda: str(uuid4())[:8])
+    id: str = field(default_factory=lambda: make_id("sec"))
     section_type: str = ""  # header, body, footer, signature, etc.
     title: Optional[str] = None
     content: str = ""
@@ -451,7 +451,7 @@ class LegalIssue:
     """
     A legal issue detected in the document.
     """
-    id: str = field(default_factory=lambda: str(uuid4())[:8])
+    id: str = field(default_factory=lambda: make_id("iss"))
     
     # Issue details
     issue_type: str = ""
@@ -512,7 +512,7 @@ class LegalIssue:
 @dataclass
 class TimelineEntry:
     """An event extracted for timeline"""
-    id: str = field(default_factory=lambda: str(uuid4())[:8])
+    id: str = field(default_factory=lambda: make_id("tle"))
     
     event_date: Optional[date] = None
     event_date_end: Optional[date] = None  # For ranges
@@ -560,7 +560,7 @@ class TimelineEntry:
 @dataclass 
 class PartyRelationship:
     """Relationship between parties"""
-    id: str = field(default_factory=lambda: str(uuid4())[:8])
+    id: str = field(default_factory=lambda: make_id("rel"))
     
     party_a_id: str = ""
     party_a_role: PartyRole = PartyRole.UNKNOWN
@@ -584,7 +584,7 @@ class PartyRelationship:
 @dataclass
 class AmountRelationship:
     """Financial amount with context"""
-    id: str = field(default_factory=lambda: str(uuid4())[:8])
+    id: str = field(default_factory=lambda: make_id("amt"))
     
     amount: float = 0.0
     currency: str = "USD"
@@ -790,7 +790,7 @@ class RecognitionResult:
     This is the primary output of the analysis.
     """
     # Identification
-    analysis_id: str = field(default_factory=lambda: str(uuid4()))
+    analysis_id: str = field(default_factory=lambda: make_id("anl"))
     analyzed_at: datetime = field(default_factory=datetime.now)
     engine_version: str = "1.0.0"
     

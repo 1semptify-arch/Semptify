@@ -25,8 +25,8 @@ Architecture:
 
 import asyncio
 import logging
-import uuid
 import time
+from app.core.id_gen import make_id
 from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, TypeVar, Generic
@@ -189,7 +189,7 @@ class MeshNode:
         node_id: Optional[str] = None,
     ):
         self.identity = NodeIdentity(
-            node_id=node_id or f"{node_type}_{uuid.uuid4().hex[:8]}",
+            node_id=node_id or make_id(node_type),
             node_type=node_type,
             capabilities=capabilities or set(),
         )
@@ -327,9 +327,9 @@ class MeshNode:
         # Round-robin or first available
         peer = peers[0]
         
-        correlation_id = f"req_{uuid.uuid4().hex[:12]}"
+        correlation_id = make_id("req")
         message = MeshMessage(
-            id=f"msg_{uuid.uuid4().hex[:12]}",
+            id=make_id("msg"),
             type=MessageType.REQUEST,
             source_node=self.identity.node_id,
             target_node=peer.identity.node_id,
@@ -361,7 +361,7 @@ class MeshNode:
     async def emit_event(self, event_type: str, data: Dict[str, Any]):
         """Emit an event to all interested peers"""
         message = MeshMessage(
-            id=f"evt_{uuid.uuid4().hex[:12]}",
+            id=make_id("evt"),
             type=MessageType.EVENT,
             source_node=self.identity.node_id,
             target_node=None,
@@ -423,7 +423,7 @@ class MeshNode:
         if capability not in self._handlers:
             # Send error response
             response = MeshMessage(
-                id=f"msg_{uuid.uuid4().hex[:12]}",
+                id=make_id("msg"),
                 type=MessageType.RESPONSE,
                 source_node=self.identity.node_id,
                 target_node=message.source_node,
@@ -440,7 +440,7 @@ class MeshNode:
                     result = handler(message.payload)
                 
                 response = MeshMessage(
-                    id=f"msg_{uuid.uuid4().hex[:12]}",
+                    id=make_id("msg"),
                     type=MessageType.RESPONSE,
                     source_node=self.identity.node_id,
                     target_node=message.source_node,
@@ -450,7 +450,7 @@ class MeshNode:
                 self.metrics["requests_handled"] += 1
             except Exception as e:
                 response = MeshMessage(
-                    id=f"msg_{uuid.uuid4().hex[:12]}",
+                    id=make_id("msg"),
                     type=MessageType.RESPONSE,
                     source_node=self.identity.node_id,
                     target_node=message.source_node,

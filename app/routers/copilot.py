@@ -432,7 +432,7 @@ async def ask_copilot(
     
     **Note**: This provides information, not legal advice.
     """
-    import uuid
+    from app.core.id_gen import make_id
     
     provider = settings.ai_provider
     
@@ -462,7 +462,7 @@ async def ask_copilot(
         )
     
     # Generate or reuse conversation ID
-    conversation_id = request.conversation_id or str(uuid.uuid4())
+    conversation_id = request.conversation_id or make_id("chat")
     
     return CopilotResponse(
         response=response_text,
@@ -1032,7 +1032,7 @@ async def ask_with_document_context(
     - Relevant statutes
     - Urgency level
     """
-    import uuid
+    from app.core.id_gen import make_id
     
     hub = get_document_hub()
     user_id = getattr(user, 'user_id', 'open-mode-user')
@@ -1091,7 +1091,7 @@ async def ask_with_document_context(
     
     # Call AI with context
     provider = settings.ai_provider
-    conversation_id = str(uuid.uuid4())
+    conversation_id = make_id("chat")
     
     try:
         if provider == "openai":

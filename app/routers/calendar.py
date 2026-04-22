@@ -5,8 +5,8 @@ Scheduling, deadlines, and reminders.
 Now integrated with DocumentHub for auto-syncing dates from uploaded documents.
 """
 
-import uuid
 from datetime import datetime, timedelta, timezone
+from app.core.id_gen import make_id
 from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -143,7 +143,7 @@ async def create_event(
 
     async with get_db_session() as session:
         db_event = CalendarEventModel(
-            id=str(uuid.uuid4()),
+            id=make_id("cal"),
             user_id=user.user_id,
             title=event.title,
             description=event.description,
@@ -477,7 +477,7 @@ async def sync_document_events(
                     continue
             
             # Create event
-            event_id = str(uuid.uuid4())
+            event_id = make_id("cal")
             db_event = CalendarEventModel(
                 id=event_id,
                 user_id=user.user_id,

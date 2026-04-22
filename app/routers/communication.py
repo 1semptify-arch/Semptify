@@ -9,7 +9,7 @@ API endpoints for the Semptify communication system:
 """
 
 from typing import Optional, List
-from uuid import uuid4
+from app.core.id_gen import make_id
 from fastapi import APIRouter, Depends, HTTPException, Form, status, File, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -357,7 +357,7 @@ async def upload_attachment(
         content = await file.read()
         
         # Generate unique filename
-        safe_filename = f"att_{uuid4().hex[:16]}_{file.filename}"
+        safe_filename = f"{make_id('att')}_{file.filename}"
         
         # Upload to storage
         storage = await get_storage_client(user, db, settings)

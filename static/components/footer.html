@@ -1,99 +1,70 @@
-<!-- Footer Component -->
-<div class="footer-inner">
-  <div class="footer-content">
-    <!-- Copyright -->
-    <p class="footer-copyright">
-      &copy; <span id="footer-year">2024</span> Semptify. All rights reserved.
-    </p>
+<!-- 
+  Semptify Standard Footer Component
+  Copy into your page's <footer class="page-footer">
+  Theme is applied via data-theme on body element
+-->
+
+<div class="footer-content">
+  <div class="footer-grid">
+    <!-- Brand Column -->
+    <div class="footer-brand">
+      <div class="footer-logo">
+        <span>⚖️ Semptify</span>
+      </div>
+      <p class="footer-description">
+        The Tenant's Journal. Helping renters document their tenancy, 
+        understand rights AND responsibilities, and stay organized.
+      </p>
+    </div>
     
     <!-- Links -->
-    <nav class="footer-links" aria-label="Footer navigation">
-      <a href="/privacy.html" class="footer-link">Privacy Policy</a>
-      <a href="/privacy.html#terms" class="footer-link">Terms of Service</a>
-      <a href="/help.html" class="footer-link">Help</a>
-    </nav>
-
-    <!-- Version -->
-    <p class="footer-version">
-      <span class="version-label">Version</span>
-      <span class="version-number" id="app-version">5.0.0</span>
+    <div class="footer-column">
+      <h4>Product</h4>
+      <ul>
+        <li><a href="/welcome.html">Welcome</a></li>
+        <li><a href="/features.html">Features</a></li>
+        <li><a href="/about.html">About</a></li>
+        <li><a href="/help.html">Help Center</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-column">
+      <h4>Legal</h4>
+      <ul>
+        <li><a href="/privacy.html">Privacy Policy</a></li>
+        <li><a href="/terms.html">Terms of Use</a></li>
+        <li><a href="/disclaimer.html">Disclaimer</a></li>
+      </ul>
+    </div>
+    
+    <div class="footer-column">
+      <h4>Connect</h4>
+      <ul>
+        <li><a href="/contact.html">Contact</a></li>
+        <li><a href="/feedback.html">Feedback</a></li>
+        <li><a href="/donate.html">Donate</a></li>
+      </ul>
+    </div>
+  </div>
+  
+  <!-- Legal Disclaimer -->
+  <div class="footer-legal">
+    <p>
+      <strong>Important Legal Notice:</strong> Semptify is an organizational tool, not legal advice. 
+      We are not lawyers. Always consult a qualified attorney for legal guidance specific to your situation.
+    </p>
+  </div>
+  
+  <!-- Bottom -->
+  <div class="footer-bottom">
+    <p class="footer-copyright">
+      © 2024-2026 Semptify. All rights reserved.
+    </p>
+    <p class="footer-meta">
+      Version 5.0 • Free Forever • No Ads • Open Source • AGPL-3.0
+    </p>
+    <p class="footer-meta" style="color: var(--accent-primary);">
+      Your documents stay in your cloud storage. We never see your data.
     </p>
   </div>
 </div>
-
-<style>
-.footer {
-  padding: var(--space-4) var(--space-6);
-  border-top: 1px solid var(--color-border);
-  background-color: var(--color-bg-secondary);
-  margin-top: auto;
-}
-
-.footer-inner {
-  max-width: var(--container-max-width);
-  margin: 0 auto;
-}
-
-.footer-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-}
-
-.footer-copyright {
-  margin: 0;
-}
-
-.footer-links {
-  display: flex;
-  gap: var(--space-6);
-}
-
-.footer-link {
-  color: var(--color-text-secondary);
-  transition: color var(--transition-fast);
-}
-
-.footer-link:hover {
-  color: var(--color-primary-600);
-}
-
-.footer-version {
-  margin: 0;
-  display: flex;
-  gap: var(--space-2);
-}
-
-.version-label {
-  color: var(--color-text-muted);
-}
-
-.version-number {
-  font-family: var(--font-family-mono);
-}
-
-@media (max-width: 767px) {
-  .footer-content {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .footer-links {
-    gap: var(--space-4);
-  }
-}
-</style>
-
-<script>
-(function() {
-  // Update year
-  const yearEl = document.getElementById('footer-year');
-  if (yearEl) {
-    yearEl.textContent = new Date().getFullYear();
-  }
-})();
-</script>

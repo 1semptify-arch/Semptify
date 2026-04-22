@@ -1,501 +1,255 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Semptify Home</title>
-    <link rel="stylesheet" href="/css/shared-nav.css">
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home – Semptify</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    :root {
+      --hdr1: #1a237e; --hdr2: #283593;
+      --accent: #3949ab; --badge: #e8eaf6; --badge-text: #1a237e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fff; color: #1a1a2e; }
 
-        :root {
-            --bg: #081625;
-            --panel: #10243a;
-            --panel-alt: #15304d;
-            --text: #e6eef9;
-            --muted: #9ab1cc;
-            --accent: #19c37d;
-            --accent-2: #4aa3ff;
-            --border: #284768;
-            --danger: #ff6b6b;
-            --warning: #ffcc66;
-        }
+    /* HEADER */
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.3rem; letter-spacing: -0.5px; white-space: nowrap; margin-right: 1rem; }
+    .logo span { opacity: 0.7; font-weight: 400; font-size: 0.85rem; display: block; line-height: 1; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; transition: all 0.15s; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .vault-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem; }
+    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
 
-        body {
-            font-family: "Segoe UI", system-ui, sans-serif;
-            background:
-                radial-gradient(circle at 90% 10%, #1d3e63 0%, transparent 35%),
-                radial-gradient(circle at 8% 20%, #102a44 0%, transparent 42%),
-                var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-        }
+    /* ROLE BANNER */
+    .role-banner { background: var(--badge); border-bottom: 1px solid #c5cae9; }
+    .role-banner-inner { max-width: 1200px; margin: 0 auto; padding: 0.6rem 1.5rem; display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem; }
+    .role-tag { background: var(--accent); color: #fff; padding: 0.2rem 0.75rem; border-radius: 20px; font-weight: 600; font-size: 0.8rem; }
+    .switch-role { color: var(--accent); text-decoration: none; font-size: 0.8rem; }
 
-        .page-content {
-            margin-left: 260px;
-            padding: 2rem;
-        }
+    /* HERO */
+    .hero { background: linear-gradient(160deg, #e8eaf6 0%, #fff 60%); padding: 3rem 1.5rem 2rem; text-align: center; }
+    .hero h1 { font-size: 2rem; font-weight: 800; color: var(--hdr1); margin-bottom: 0.5rem; }
+    .hero p { color: #555; max-width: 560px; margin: 0 auto 1.5rem; line-height: 1.6; }
+    .hero-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+    .btn-primary { background: var(--accent); color: #fff; border: none; padding: 0.65rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem; text-decoration: none; }
+    .btn-secondary { background: #fff; color: var(--accent); border: 2px solid var(--accent); padding: 0.6rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.95rem; text-decoration: none; }
 
-        @media (max-width: 768px) {
-            .page-content {
-                margin-left: 0;
-                padding: 1rem;
-            }
-        }
+    /* QUICK ACCESS GRID */
+    .section { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .section-title { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+    .quick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; }
+    .quick-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; text-decoration: none; color: inherit; transition: all 0.2s; display: flex; flex-direction: column; gap: 0.5rem; }
+    .quick-card:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(57,73,171,0.12); transform: translateY(-2px); }
+    .quick-icon { font-size: 1.75rem; }
+    .quick-label { font-weight: 600; font-size: 0.95rem; }
+    .quick-desc { font-size: 0.8rem; color: #666; line-height: 1.4; }
 
-        .hero {
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            background: linear-gradient(145deg, #13304b, #0f2237);
-            margin-bottom: 1rem;
-        }
+    /* STATS */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: #f8f9ff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 1rem; text-align: center; }
+    .stat-num { font-size: 1.75rem; font-weight: 800; color: var(--accent); }
+    .stat-label { font-size: 0.8rem; color: #666; margin-top: 0.25rem; }
 
-        .hero h1 { font-size: 1.8rem; margin-bottom: 0.4rem; }
-        .hero p { color: var(--muted); }
+    /* RECENT ACTIVITY */
+    .activity-list { list-style: none; }
+    .activity-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid #f0f0f0; }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); margin-top: 5px; flex-shrink: 0; }
+    .activity-text { font-size: 0.9rem; flex: 1; }
+    .activity-time { font-size: 0.8rem; color: #888; white-space: nowrap; }
 
-        .status-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 0.8rem;
-            margin: 1rem 0 1.4rem;
-        }
+    /* DEADLINES */
+    .deadline-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #fff8e1; border-left: 3px solid #f59e0b; border-radius: 0 8px 8px 0; margin-bottom: 0.5rem; font-size: 0.9rem; }
+    .deadline-urgent { background: #fff1f1; border-left-color: #ef4444; }
+    .deadline-days { font-weight: 700; color: #f59e0b; min-width: 40px; }
+    .deadline-days.urgent { color: #ef4444; }
 
-        .status-card {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 0.9rem;
-        }
+    /* TWO COLUMN */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 
-        .status-card .label {
-            font-size: 0.8rem;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+    /* FOOTER */
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.5rem; font-size: 0.85rem; margin-top: 3rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
 
-        .status-card .value {
-            font-size: 1.4rem;
-            margin-top: 0.3rem;
-            font-weight: 700;
-        }
+    /* MOBILE NAV DRAWER */
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
 
-        .next-steps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .step-card {
-            background: var(--panel-alt);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1rem;
-            transition: border-color 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
-        }
-
-        .step-card h3 { margin-bottom: 0.4rem; font-size: 1.05rem; }
-        .step-card p { color: var(--muted); font-size: 0.92rem; margin-bottom: 0.8rem; }
-
-        .step-card.is-complete {
-            border-color: #1f5c45;
-            box-shadow: 0 0 0 1px rgba(25, 195, 125, 0.18) inset;
-        }
-
-        .step-card.is-current {
-            border-color: #4aa3ff;
-            box-shadow: 0 0 0 1px rgba(74, 163, 255, 0.35) inset;
-        }
-
-        .step-card.is-upcoming {
-            opacity: 0.82;
-        }
-
-        .step-card.is-available {
-            border-color: #3f5f82;
-        }
-
-        .step-card.recommended {
-            border-color: #4aa3ff;
-            box-shadow: 0 0 0 1px rgba(74, 163, 255, 0.35) inset;
-        }
-
-        .step-chip {
-            display: inline-block;
-            font-size: 0.72rem;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            color: #8ec7ff;
-            margin-bottom: 0.45rem;
-        }
-
-        .step-state {
-            display: inline-block;
-            font-size: 0.68rem;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-bottom: 0.45rem;
-        }
-
-        .btn {
-            display: inline-block;
-            text-decoration: none;
-            background: var(--accent-2);
-            color: #041021;
-            font-weight: 700;
-            padding: 0.55rem 0.8rem;
-            border-radius: 8px;
-        }
-
-        .btn.secondary {
-            background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text);
-        }
-
-        .alerts {
-            margin-top: 1rem;
-            display: grid;
-            gap: 0.6rem;
-        }
-
-        .alert {
-            border-radius: 10px;
-            padding: 0.8rem 0.9rem;
-            border: 1px solid var(--border);
-            background: #0c1f31;
-        }
-
-        .alert.warning { border-color: #7c6525; color: var(--warning); }
-        .alert.danger { border-color: #6a3333; color: var(--danger); }
-        .alert.good { border-color: #1f5c45; color: var(--accent); }
-    </style>
+    @media (max-width: 768px) {
+      nav.core-nav { display: none; }
+      .hamburger { display: block; }
+      .hero h1 { font-size: 1.5rem; }
+      .two-col { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
-    <div id="semptify-nav"></div>
 
-    <main class="page-content">
-        <section class="hero">
-            <h1>Semptify Home</h1>
-            <p>Your case command center. Continue where you left off and move through the filing workflow.</p>
-        </section>
+  <!-- MOBILE NAV DRAWER -->
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+      <strong style="color:#fff; font-size:1.1rem;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/home.html">🏠 Home</a>
+    <a href="/library.html">📚 Library</a>
+    <a href="/office.html">🏢 Office</a>
+    <a href="/tools.html">🔧 Tools</a>
+    <a href="/help.html">🆘 Help</a>
+    <hr style="border-color:rgba(255,255,255,0.2); margin: 0.5rem 0;">
+    <a href="#" onclick="openVaultUpload()" style="color:#f59e0b; font-weight:700;">🔒 Vault Door</a>
+    <a href="/onboarding/select-role.html">👤 My Account</a>
+  </nav>
 
-        <section class="status-grid">
-            <article class="status-card">
-                <div class="label">Case Stage</div>
-                <div class="value" id="caseStageValue">Loading...</div>
-            </article>
-            <article class="status-card">
-                <div class="label">Documents</div>
-                <div class="value" id="docCount">0</div>
-            </article>
-            <article class="status-card">
-                <div class="label">Timeline Events</div>
-                <div class="value" id="timelineCount">0</div>
-            </article>
-            <article class="status-card">
-                <div class="label">Urgency</div>
-                <div class="value" id="urgencyValue">Loading...</div>
-            </article>
-        </section>
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <div class="logo">Semptify<span>Housing Rights Platform</span></div>
+      <nav class="core-nav">
+        <a href="/home.html" class="active">🏠 Home</a>
+        <a href="/library.html">📚 Library</a>
+        <a href="/office.html">🏢 Office</a>
+        <a href="/tools.html">🔧 Tools</a>
+        <a href="/help.html">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button class="vault-btn" onclick="openVaultUpload()">🔒 Vault</button>
+        <button class="user-btn">👤 User</button>
+      </div>
+    </div>
+  </header>
 
-        <section class="next-steps">
-            <article class="step-card recommended">
-                <span class="step-chip">Recommended Next Step</span>
-                <h3 id="nextStepTitle">Loading your next step...</h3>
-                <p id="nextStepReason">Analyzing current case state to determine the best deterministic route.</p>
-                <a class="btn" id="nextStepLink" href="/tenant/documents">Continue</a>
-            </article>
-            <div id="workflowStageCards"></div>
-        </section>
+  <div class="role-banner">
+    <div class="role-banner-inner">
+      <span>Dashboard — showing your tenant overview</span>
+      <div style="display:flex; gap:1rem; align-items:center;">
+        <span class="role-tag">Tenant</span>
+        <a href="/onboarding/select-role.html" class="switch-role">Switch role</a>
+      </div>
+    </div>
+  </div>
 
-        <section class="alerts" id="alertsContainer">
-            <div class="alert warning">Loading alerts...</div>
-        </section>
-    </main>
+  <div class="hero">
+    <h1>Welcome back, your case is being tracked.</h1>
+    <p>Everything you need to protect your housing rights — organized, documented, and ready when you need it.</p>
+    <div class="hero-actions">
+      <a href="/office/vault.html" class="btn-primary">📤 Upload Document</a>
+      <a href="/office/timeline.html" class="btn-secondary">📅 Add Timeline Entry</a>
+    </div>
+  </div>
 
-    <script src="/js/semptify-auth.js"></script>
-    <script src="/js/entry-flow.js"></script>
-    <script>
-        if (window.SemptifyEntryFlow && !window.SemptifyEntryFlow.hasValidStorageUser()) {
-            window.location.replace('/welcome.html');
-        }
+  <div class="section">
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num">0</div>
+        <div class="stat-label">Documents Vaulted</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">0</div>
+        <div class="stat-label">Timeline Events</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">0</div>
+        <div class="stat-label">Unread Messages</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">0</div>
+        <div class="stat-label">Open Deadlines</div>
+      </div>
+    </div>
 
-        function applyNextStep(payload) {
-            const titleEl = document.getElementById('nextStepTitle');
-            const reasonEl = document.getElementById('nextStepReason');
-            const linkEl = document.getElementById('nextStepLink');
-            if (!titleEl || !reasonEl || !linkEl) return;
+    <!-- QUICK ACCESS -->
+    <div class="section-title">⚡ Quick Access</div>
+    <div class="quick-grid" style="margin-bottom:2rem;">
+      <a href="/office/vault.html" class="quick-card">
+        <span class="quick-icon">🔒</span>
+        <span class="quick-label">Document Vault</span>
+        <span class="quick-desc">Upload and manage your documents</span>
+      </a>
+      <a href="/office/timeline.html" class="quick-card">
+        <span class="quick-icon">📅</span>
+        <span class="quick-label">Timeline</span>
+        <span class="quick-desc">Chronological event journal</span>
+      </a>
+      <a href="/office/inbox.html" class="quick-card">
+        <span class="quick-icon">📨</span>
+        <span class="quick-label">Inbox</span>
+        <span class="quick-desc">Messages from advocates &amp; legal</span>
+      </a>
+      <a href="/tools/calculators.html" class="quick-card">
+        <span class="quick-icon">🧮</span>
+        <span class="quick-label">Rent Calculator</span>
+        <span class="quick-desc">Proration, late fees, deposits</span>
+      </a>
+      <a href="/tools/generators.html" class="quick-card">
+        <span class="quick-icon">📄</span>
+        <span class="quick-label">Notice Generator</span>
+        <span class="quick-desc">Generate repair requests &amp; letters</span>
+      </a>
+      <a href="/help/crisis.html" class="quick-card" style="border-color:#fca5a5;">
+        <span class="quick-icon">🚨</span>
+        <span class="quick-label">Crisis Resources</span>
+        <span class="quick-desc">Emergency hotlines &amp; legal aid</span>
+      </a>
+    </div>
 
-            const actionLabels = {
-                connect_storage: 'Connect Storage',
-                upload_documents: 'Upload Documents',
-                review_timeline: 'Review Timeline',
-                start_defense: 'Start Defense Filing',
-                build_court_packet: 'Build Court Packet',
-                hearing_prep: 'Open Hearing Prep',
-                run_zoom_court_prep: 'Open Zoom Court Prep',
-                open_case_queue: 'Open Case Workspace',
-                collect_case_documents: 'Collect Case Documents',
-                build_timeline: 'Build Timeline',
-                prepare_court_packet: 'Prepare Court Packet',
-            };
+    <!-- TWO COLUMN: ACTIVITY + DEADLINES -->
+    <div class="two-col">
+      <div>
+        <div class="section-title">🕐 Recent Activity</div>
+        <ul class="activity-list">
+          <li class="activity-item">
+            <span class="activity-dot"></span>
+            <span class="activity-text">No activity yet. Upload your first document to get started.</span>
+            <span class="activity-time">—</span>
+          </li>
+        </ul>
+      </div>
 
-            titleEl.textContent = actionLabels[payload.next_action] || 'Continue Workflow';
-            reasonEl.textContent = payload.deterministic_reason || 'Continue with the recommended next workflow step.';
-            linkEl.href = payload.next_route || '/tenant';
-            linkEl.textContent = actionLabels[payload.next_action] || 'Continue';
-        }
+      <div>
+        <div class="section-title">⏰ Upcoming Deadlines</div>
+        <div class="deadline-item deadline-urgent">
+          <span class="deadline-days urgent">—</span>
+          <span>No deadlines yet. Use the Deadline Calculator to track key dates.</span>
+        </div>
+        <a href="/tools/calculators.html" style="font-size:0.85rem; color:#3949ab; text-decoration:none;">→ Open Deadline Calculator</a>
+      </div>
+    </div>
+  </div>
 
-        function applyCurrentStage(payload) {
-            const stageEl = document.getElementById('caseStageValue');
-            if (!stageEl) return;
-            stageEl.textContent = payload.current_stage_title || 'B1 - Documents';
-        }
+  <footer>
+    <div>
+      <a href="/public/about.html">About</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/help.html">Help</a>
+      <a href="/help/contact.html">Contact</a>
+    </div>
+    <div style="margin-top:0.5rem;">Semptify is free forever · No advertising · Your data stays yours</div>
+    <div style="margin-top:0.25rem; opacity:0.5;">© 2025 Semptify. Not a law firm. Educational use only.</div>
+  </footer>
 
-        function applyUrgency(payload) {
-            const urgencyEl = document.getElementById('urgencyValue');
-            if (!urgencyEl) return;
-            urgencyEl.textContent = payload.urgency_level || 'Moderate';
-            if (payload.urgency_reason) {
-                urgencyEl.title = payload.urgency_reason;
-            }
-        }
-
-        function applyStageCards(payload) {
-            const container = document.getElementById('workflowStageCards');
-            if (!container) return;
-
-            const cards = Array.isArray(payload.stage_cards) ? payload.stage_cards : [];
-            if (!cards.length) {
-                container.innerHTML = '';
-                return;
-            }
-
-            container.innerHTML = cards.map((card) => {
-                const state = String(card.state || 'Upcoming').toLowerCase();
-                const buttonClass = card.button_variant === 'secondary' ? 'btn secondary' : 'btn';
-                return `
-                    <article class="step-card is-${state}">
-                        <span class="step-state">${card.state || 'Upcoming'}</span>
-                        <h3>${card.title || 'Workflow Stage'}</h3>
-                        <p>${card.description || ''}</p>
-                        <a class="${buttonClass}" href="${card.route || '/tenant'}">${card.button_label || 'Open'}</a>
-                    </article>
-                `;
-            }).join('');
-        }
-
-        function applyAlerts(payload) {
-            const container = document.getElementById('alertsContainer');
-            if (!container) return;
-
-            const alerts = Array.isArray(payload.alerts) ? payload.alerts : [];
-            if (!alerts.length) {
-                container.innerHTML = '<div class="alert good">No urgent issues detected.</div>';
-                return;
-            }
-
-            container.innerHTML = alerts.map((alert) => `
-                <div class="alert ${alert.level || 'good'}">${alert.message || ''}</div>
-            `).join('');
-        }
-
-        async function updateNextStep(caseState) {
-            const role = (window.SemptifyEntryFlow && window.SemptifyEntryFlow.getRoleFromUserId()) || 'user';
-            let requestBody;
-
-            try {
-                // Fetch real case-state signals from persisted artifacts
-                const stateResp = await fetch('/api/workflow/case-state');
-                if (stateResp.ok) {
-                    const realState = await stateResp.json();
-                    applyCurrentStage(realState);
-                    applyUrgency(realState);
-                    applyStageCards(realState);
-                    applyAlerts(realState);
-                    requestBody = {
-                        role: realState.role || role,
-                        storage_state: realState.storage_connected ? 'already_connected' : 'need_connect',
-                        documents_present: realState.documents_present,
-                        has_active_case: realState.documents_present || realState.timeline_events > 0,
-                        timeline_events: realState.timeline_events,
-                        defense_started: realState.defense_started,
-                        court_packet_ready: realState.court_packet_ready,
-                        hearing_scheduled: realState.hearing_scheduled,
-                    };
-                } else {
-                    applyCurrentStage({ current_stage_title: caseState.documentsPresent ? 'B2 - Timeline' : 'B1 - Documents' });
-                    applyUrgency({ urgency_level: caseState.documentsPresent ? 'Moderate' : 'Low' });
-                    applyStageCards({
-                        stage_cards: [
-                            {
-                                title: '1. Upload Documents',
-                                description: 'Add lease, notices, receipts, and communications to establish the case record.',
-                                route: '/tenant/documents',
-                                state: caseState.documentsPresent ? 'Complete' : 'Current',
-                                button_label: caseState.documentsPresent ? 'Review' : 'Continue',
-                            },
-                            {
-                                title: '2. Review Timeline',
-                                description: 'Confirm extracted dates and events before moving into filings and hearing prep.',
-                                route: '/tenant/timeline',
-                                state: caseState.documentsPresent ? 'Current' : 'Upcoming',
-                                button_label: caseState.documentsPresent ? 'Continue' : 'Open',
-                            },
-                            {
-                                title: '3. Research & Knowledge',
-                                description: 'Open legal analysis to review statutes and evidence framing before filing.',
-                                route: '/legal-analysis',
-                                state: caseState.documentsPresent ? 'Available' : 'Upcoming',
-                                button_label: 'Open',
-                                button_variant: 'secondary',
-                            },
-                            {
-                                title: '4. Filing & Packet Prep',
-                                description: 'Build the eviction answer and assemble the packet for hearing readiness.',
-                                route: '/eviction_answer.html',
-                                state: 'Upcoming',
-                                button_label: 'Open',
-                            },
-                            {
-                                title: '5. Help & Contacts',
-                                description: 'Reach legal aid, emergency housing contacts, and support resources when needed.',
-                                route: '/tenant/help',
-                                state: 'Available',
-                                button_label: 'Open',
-                                button_variant: 'secondary',
-                            }
-                        ]
-                    });
-                    applyAlerts({
-                        alerts: [
-                            { level: caseState.documentsPresent ? 'good' : 'warning', message: caseState.documentsPresent ? 'Case work is active, but no immediate critical event is scheduled.' : 'No case documents found. Upload notices and lease records first.' },
-                            { level: 'good', message: 'Help & Contacts stays available if you need advocate or legal-aid escalation.' }
-                        ]
-                    });
-                    // case-state endpoint not yet available — fall back to heuristics
-                    requestBody = {
-                        role,
-                        storage_state: 'already_connected',
-                        documents_present: caseState.documentsPresent,
-                        has_active_case: caseState.documentsPresent || caseState.timelineEvents > 0,
-                        timeline_events: caseState.timelineEvents,
-                        defense_started: caseState.timelineEvents > 0,
-                        court_packet_ready: false,
-                        hearing_scheduled: false,
-                    };
-                }
-
-                const resp = await fetch('/api/workflow/next-step', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestBody),
-                });
-                if (!resp.ok) {
-                    throw new Error('next-step API unavailable');
-                }
-                const payload = await resp.json();
-                applyNextStep(payload);
-            } catch (_) {
-                applyCurrentStage({ current_stage_title: caseState.documentsPresent ? 'B2 - Timeline' : 'B1 - Documents' });
-                applyUrgency({ urgency_level: caseState.documentsPresent ? 'Moderate' : 'Low' });
-                applyStageCards({
-                    stage_cards: [
-                        {
-                            title: '1. Upload Documents',
-                            description: 'Add lease, notices, receipts, and communications to establish the case record.',
-                            route: '/tenant/documents',
-                            state: caseState.documentsPresent ? 'Complete' : 'Current',
-                            button_label: caseState.documentsPresent ? 'Review' : 'Continue',
-                        },
-                        {
-                            title: '2. Review Timeline',
-                            description: 'Confirm extracted dates and events before moving into filings and hearing prep.',
-                            route: '/tenant/timeline',
-                            state: caseState.documentsPresent ? 'Current' : 'Upcoming',
-                            button_label: caseState.documentsPresent ? 'Continue' : 'Open',
-                        },
-                        {
-                            title: '3. Research & Knowledge',
-                            description: 'Open legal analysis to review statutes and evidence framing before filing.',
-                            route: '/legal-analysis',
-                            state: caseState.documentsPresent ? 'Available' : 'Upcoming',
-                            button_label: 'Open',
-                            button_variant: 'secondary',
-                        },
-                        {
-                            title: '4. Filing & Packet Prep',
-                            description: 'Build the eviction answer and assemble the packet for hearing readiness.',
-                            route: '/eviction_answer.html',
-                            state: 'Upcoming',
-                            button_label: 'Open',
-                        },
-                        {
-                            title: '5. Help & Contacts',
-                            description: 'Reach legal aid, emergency housing contacts, and support resources when needed.',
-                            route: '/tenant/help',
-                            state: 'Available',
-                            button_label: 'Open',
-                            button_variant: 'secondary',
-                        }
-                    ]
-                });
-                applyAlerts({
-                    alerts: [
-                        { level: caseState.documentsPresent ? 'good' : 'warning', message: caseState.documentsPresent ? 'Case work is active, but no immediate critical event is scheduled.' : 'No case documents found. Upload notices and lease records first.' },
-                        { level: 'good', message: 'Help & Contacts stays available if you need advocate or legal-aid escalation.' }
-                    ]
-                });
-                applyNextStep({
-                    next_action: caseState.documentsPresent ? 'review_timeline' : 'upload_documents',
-                    next_route: caseState.documentsPresent ? '/tenant/timeline' : '/tenant/documents',
-                    deterministic_reason: 'Fallback route applied while workflow service is unavailable.',
-                });
-            }
-        }
-
-        async function updateHomeCounts() {
-            const caseState = {
-                documentsPresent: false,
-                timelineEvents: 0,
-            };
-
-            try {
-                const docsResp = await fetch('/api/documents/');
-                if (docsResp.ok) {
-                    const docs = await docsResp.json();
-                    const count = Array.isArray(docs) ? docs.length : (docs.total || 0);
-                    caseState.documentsPresent = count > 0;
-                    const docEl = document.getElementById('docCount');
-                    if (docEl) docEl.textContent = String(count);
-                }
-            } catch (_) {
-                // Keep static fallback values when API calls are unavailable.
-            }
-
-            try {
-                const tlResp = await fetch('/api/timeline/');
-                if (tlResp.ok) {
-                    const payload = await tlResp.json();
-                    const events = Array.isArray(payload) ? payload : (payload.events || []);
-                    const count = Array.isArray(events) ? events.length : 0;
-                    caseState.timelineEvents = count;
-                    const tlEl = document.getElementById('timelineCount');
-                    if (tlEl) tlEl.textContent = String(count);
-                }
-            } catch (_) {
-                // Keep static fallback values when API calls are unavailable.
-            }
-
-            await updateNextStep(caseState);
-        }
-
-        updateHomeCounts();
-    </script>
-    <script src="/js/shared-nav.js"></script>
+  <script src="/js/core/vault-portal.js"></script>
+  <script>
+    function openDrawer() {
+      document.getElementById('nav-drawer').classList.add('open');
+      document.getElementById('drawer-backdrop').classList.add('open');
+    }
+    function closeDrawer() {
+      document.getElementById('nav-drawer').classList.remove('open');
+      document.getElementById('drawer-backdrop').classList.remove('open');
+    }
+  </script>
 </body>
 </html>

@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from dataclasses import dataclass, asdict
 from enum import Enum
 from collections import defaultdict
-import uuid
+from app.core.id_gen import make_id
 import weakref
 
 logger = logging.getLogger(__name__)
@@ -95,9 +95,9 @@ class WebSocketManager:
     async def connect(self, websocket: Any, user_id: str, session_id: str = None) -> str:
         """Register a new WebSocket connection."""
         if session_id is None:
-            session_id = str(uuid.uuid4())
+            session_id = make_id("sess")
         
-        connection_id = str(uuid.uuid4())
+        connection_id = make_id("ws")
         
         # Create connection info
         connection_info = ConnectionInfo(

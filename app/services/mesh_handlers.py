@@ -838,10 +838,10 @@ def register_all_mesh_handlers():
         """Log a violation through the mesh."""
         try:
             from app.routers.legal_trails import violations_db, Violation
-            import uuid
+            from app.core.id_gen import make_id
             from datetime import datetime
             
-            violation_id = str(uuid.uuid4())[:8]
+            violation_id = make_id("vio")
             violation_data = {
                 "id": violation_id,
                 "violation_type": payload.get("violation_type"),

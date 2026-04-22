@@ -273,9 +273,9 @@ class UserCloudSync:
         """Get existing case or create new one."""
         case = await self.load_case()
         if not case:
-            import uuid
+            from app.core.id_gen import make_id
             case = CaseData(
-                case_id=str(uuid.uuid4()),
+                case_id=make_id("case"),
                 created_at=datetime.now(timezone.utc).isoformat(),
             )
             await self.save_case(case)

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manager Dashboard - Semptify</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body data-theme="slate">
+  
+  <div class="page-wrapper">
+    
+    <header class="page-header">
+      <div class="header-content">
+        <div class="header-brand">
+          <a href="/manager/" class="header-logo">
+            <span class="header-logo-icon">⚖️</span>
+            <span>Semptify</span>
+          </a>
+          <span class="header-tagline">Property Manager / Worker / Counselor</span>
+        </div>
+        <nav class="header-nav hide-mobile">
+          <a href="/home.html" title="Dashboard/Home">Home</a>
+          <a href="/library.html" title="Rights, Guides, Resources">Library</a>
+          <a href="/office.html" title="Documents, Files, Vault">Office</a>
+          <a href="/tools.html" title="Utilities, Calculators, Forms">Tools</a>
+          <a href="/help.html" title="Help & Contacts">Help</a>
+        </nav>
+        <div class="header-actions">
+          <button class="btn vault-door-btn btn-sm" onclick="openVaultPortal()" title="Upload to Your Vault">
+            <span>🔒</span>
+            <span class="hide-mobile">Vault</span>
+          </button>
+          <span class="text-sm hide-mobile">Manager</span>
+          <a href="/" class="btn btn-ghost btn-sm">Sign Out</a>
+        </div>
+      </div>
+    </header>
+    
+    <main class="page-body">
+      <div class="body-content">
+        
+        <h1 class="text-3xl font-bold mb-lg">Manager Dashboard</h1>
+        <p class="text-secondary mb-lg">Multi-tenant role: Property Manager, Worker, or Housing Counselor</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-md mb-lg">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-icon">🏢</span>
+              <h3 class="card-title">Properties</h3>
+            </div>
+            <div class="card-body">
+              <p class="text-2xl font-bold">6</p>
+              <p class="text-sm text-muted">Managed properties</p>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-header">
+              <span class="card-icon">👥</span>
+              <h3 class="card-title">Tenants</h3>
+            </div>
+            <div class="card-body">
+              <p class="text-2xl font-bold">48</p>
+              <p class="text-sm text-muted">Active tenancies</p>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-header">
+              <span class="card-icon">🔧</span>
+              <h3 class="card-title">Maintenance</h3>
+            </div>
+            <div class="card-body">
+              <p class="text-2xl font-bold">7</p>
+              <p class="text-sm text-muted">Open requests</p>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="card-header">
+              <span class="card-icon">📅</span>
+              <h3 class="card-title">Due Soon</h3>
+            </div>
+            <div class="card-body">
+              <p class="text-2xl font-bold">12</p>
+              <p class="text-sm text-muted">Rent due this week</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div class="card-header">
+            <span class="card-icon">👔</span>
+            <h3 class="card-title">Management Tools</h3>
+          </div>
+          <div class="card-body">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+              <a href="/manager/properties.html" class="card card-hover card-interactive">
+                <div class="card-header">
+                  <span class="card-icon">🏢</span>
+                  <h3 class="card-title">Properties</h3>
+                </div>
+                <p class="text-sm text-muted">Manage buildings and units</p>
+              </a>
+              <a href="/manager/tenants.html" class="card card-hover card-interactive">
+                <div class="card-header">
+                  <span class="card-icon">👤</span>
+                  <h3 class="card-title">Tenant Directory</h3>
+                </div>
+                <p class="text-sm text-muted">View tenant records</p>
+              </a>
+              <a href="/manager/maintenance.html" class="card card-hover card-interactive">
+                <div class="card-header">
+                  <span class="card-icon">🔨</span>
+                  <h3 class="card-title">Maintenance</h3>
+                </div>
+                <p class="text-sm text-muted">Track repair requests</p>
+              </a>
+              <a href="/manager/payments.html" class="card card-hover card-interactive">
+                <div class="card-header">
+                  <span class="card-icon">💰</span>
+                  <h3 class="card-title">Payments</h3>
+                </div>
+                <p class="text-sm text-muted">Rent tracking & receipts</p>
+              </a>
+              <a href="/manager/compliance.html" class="card card-hover card-interactive">
+                <div class="card-header">
+                  <span class="card-icon">📋</span>
+                  <h3 class="card-title">Compliance</h3>
+                </div>
+                <p class="text-sm text-muted">Regulations & inspections</p>
+              </a>
+              <a href="/manager/reports.html" class="card card-hover card-interactive">
+                <div class="card-header">
+                  <span class="card-icon">📊</span>
+                  <h3 class="card-title">Reports</h3>
+                </div>
+                <p class="text-sm text-muted">Analytics & summaries</p>
+              </a>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </main>
+    
+    <footer class="page-footer">
+      <div class="footer-content">
+        <div class="footer-bottom">
+          <p class="footer-copyright">© 2024-2026 Semptify</p>
+          <p class="footer-meta">Manager Dashboard • Slate Theme • Professional Operations</p>
+        </div>
+      </div>
+    </footer>
+    
+  </div>
+  
+  <script src="/js/core/app.js"></script>
+</body>
+</html>

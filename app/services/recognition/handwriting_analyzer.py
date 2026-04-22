@@ -18,6 +18,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any, Tuple
 from enum import Enum
+
+from app.core.id_gen import make_id
 import math
 
 
@@ -495,10 +497,9 @@ class HandwritingAnalyzer:
         Returns:
             Complete handwriting analysis result
         """
-        from uuid import uuid4
         
         result = HandwritingAnalysisResult(
-            analysis_id=str(uuid4())[:8],
+            analysis_id=make_id("hwa"),
         )
         
         # Extract signatures
@@ -548,7 +549,6 @@ class HandwritingAnalyzer:
     
     def _extract_signatures(self, text: str) -> List[SignatureProfile]:
         """Extract all signatures from document."""
-        from uuid import uuid4
         
         signatures = []
         text_lower = text.lower()
@@ -570,7 +570,7 @@ class HandwritingAnalyzer:
                 
                 # Analyze signature characteristics
                 sig = SignatureProfile(
-                    id=str(uuid4())[:8],
+                    id=make_id("fri"),
                     signer_name=signer_name,
                     signature_text=match.group(0)[:100],
                     location_in_doc=location,
@@ -598,7 +598,6 @@ class HandwritingAnalyzer:
     
     def _extract_handwritten_elements(self, text: str) -> List[HandwrittenElement]:
         """Extract handwritten dates, amounts, initials, annotations."""
-        from uuid import uuid4
         
         elements = []
         
@@ -606,7 +605,7 @@ class HandwritingAnalyzer:
         for pattern, pattern_type in self.handwritten_date_patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
                 elements.append(HandwrittenElement(
-                    id=str(uuid4())[:8],
+                    id=make_id("fri"),
                     element_type=HandwritingType.DATE,
                     content=match.group(0),
                     location=self._determine_location(text, match.start()),
@@ -619,7 +618,7 @@ class HandwritingAnalyzer:
         for pattern, pattern_type in self.handwritten_amount_patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
                 elements.append(HandwrittenElement(
-                    id=str(uuid4())[:8],
+                    id=make_id("fri"),
                     element_type=HandwritingType.AMOUNT,
                     content=match.group(0),
                     location=self._determine_location(text, match.start()),
@@ -632,7 +631,7 @@ class HandwritingAnalyzer:
         for pattern, pattern_type in self.initials_patterns:
             for match in re.finditer(pattern, text):
                 elements.append(HandwrittenElement(
-                    id=str(uuid4())[:8],
+                    id=make_id("fri"),
                     element_type=HandwritingType.INITIALS,
                     content=match.group(0),
                     location=self._determine_location(text, match.start()),
@@ -644,7 +643,7 @@ class HandwritingAnalyzer:
         for pattern, pattern_type in self.annotation_patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
                 elements.append(HandwrittenElement(
-                    id=str(uuid4())[:8],
+                    id=make_id("fri"),
                     element_type=HandwritingType.ANNOTATION,
                     content=match.group(0)[:200],
                     location=self._determine_location(text, match.start()),
@@ -662,14 +661,13 @@ class HandwritingAnalyzer:
         document_type: Optional[str],
     ) -> List[ForgeryIndicator]:
         """Detect potential forgery indicators."""
-        from uuid import uuid4
         
         indicators = []
         
         # Check for missing signatures on legal documents
         if self._requires_signature(document_type) and not signatures:
             indicators.append(ForgeryIndicator(
-                id=str(uuid4())[:8],
+                id=make_id("fri"),
                 forgery_type=ForgeryType.SIGNATURE_MISMATCH,
                 description="Required signature is missing from document",
                 location="document",
@@ -705,7 +703,6 @@ class HandwritingAnalyzer:
     
     def _check_date_issues(self, text: str, elements: List[HandwrittenElement]) -> List[ForgeryIndicator]:
         """Check for date-related forgery indicators."""
-        from uuid import uuid4
         
         indicators = []
         dates = [e for e in elements if e.element_type == HandwritingType.DATE]
@@ -716,7 +713,7 @@ class HandwritingAnalyzer:
             parsed_date = self._parse_date(date_elem.content)
             if parsed_date and parsed_date > today:
                 indicators.append(ForgeryIndicator(
-                    id=str(uuid4())[:8],
+                    id=make_id("fri"),
                     forgery_type=ForgeryType.DATE_ALTERATION,
                     description=f"Document contains future date: {date_elem.content}",
                     location=date_elem.location,
@@ -736,7 +733,7 @@ class HandwritingAnalyzer:
                 date_range = (max(parsed_dates) - min(parsed_dates)).days
                 if date_range > 30:  # Dates more than 30 days apart
                     indicators.append(ForgeryIndicator(
-                        id=str(uuid4())[:8],
+                        id=make_id("fri"),
                         forgery_type=ForgeryType.DATE_ALTERATION,
                         description=f"Document contains dates {date_range} days apart",
                         location="multiple",
@@ -751,7 +748,6 @@ class HandwritingAnalyzer:
     
     def _check_amount_issues(self, text: str, elements: List[HandwrittenElement]) -> List[ForgeryIndicator]:
         """Check for amount-related forgery indicators."""
-        from uuid import uuid4
         
         indicators = []
         amounts = [e for e in elements if e.element_type == HandwritingType.AMOUNT]
@@ -782,7 +778,7 @@ class HandwritingAnalyzer:
                         # Allow for small rounding differences
                         if abs(calculated_sum - stated_total) > 1.0 and stated_total > 0:
                             indicators.append(ForgeryIndicator(
-                                id=str(uuid4())[:8],
+                                id=make_id("fri"),
                                 forgery_type=ForgeryType.AMOUNT_MODIFICATION,
                                 description=f"Amounts don't add up: stated ${stated_total:.2f}, calculated ${calculated_sum:.2f}",
                                 location="financial section",
@@ -803,7 +799,6 @@ class HandwritingAnalyzer:
     
     def _check_signature_copying(self, signatures: List[SignatureProfile]) -> List[ForgeryIndicator]:
         """Check for copied/pasted signatures."""
-        from uuid import uuid4
         
         indicators = []
         
@@ -812,7 +807,7 @@ class HandwritingAnalyzer:
         for sig in signatures:
             if sig.signature_hash in seen_hashes:
                 indicators.append(ForgeryIndicator(
-                    id=str(uuid4())[:8],
+                    id=make_id("fri"),
                     forgery_type=ForgeryType.COPY_PASTE_SIGNATURE,
                     description=f"Identical signature detected in multiple locations",
                     location=f"{seen_hashes[sig.signature_hash]} and {sig.location_in_doc}",
@@ -832,7 +827,6 @@ class HandwritingAnalyzer:
     
     def _check_text_alterations(self, text: str) -> List[ForgeryIndicator]:
         """Check for signs of text alteration."""
-        from uuid import uuid4
         
         indicators = []
         
@@ -853,7 +847,7 @@ class HandwritingAnalyzer:
         for pattern, description in correction_patterns:
             if re.search(pattern, text, re.IGNORECASE):
                 indicators.append(ForgeryIndicator(
-                    id=str(uuid4())[:8],
+                    id=make_id("fri"),
                     forgery_type=ForgeryType.WHITEOUT_DETECTED,
                     description=description,
                     location="document body",
@@ -868,7 +862,6 @@ class HandwritingAnalyzer:
     
     def _check_mn_notice_issues(self, text: str, elements: List[HandwrittenElement]) -> List[ForgeryIndicator]:
         """Check Minnesota-specific notice issues."""
-        from uuid import uuid4
         
         indicators = []
         
@@ -889,7 +882,7 @@ class HandwritingAnalyzer:
                     # Check if date is suspiciously close to current requirements
                     if -2 <= days_from_now <= 0:
                         indicators.append(ForgeryIndicator(
-                            id=str(uuid4())[:8],
+                            id=make_id("fri"),
                             forgery_type=ForgeryType.DATE_ALTERATION,
                             description="Notice date appears to be backdated to meet statutory requirements",
                             location=date_elem.location,
@@ -1099,7 +1092,6 @@ class HandwritingAnalyzer:
     
     def _detect_electronic_signatures(self, text: str) -> List[SignatureProfile]:
         """Detect electronic/digital signatures."""
-        from uuid import uuid4
         
         signatures = []
         
@@ -1114,7 +1106,7 @@ class HandwritingAnalyzer:
         for pattern in e_sig_patterns:
             for match in re.finditer(pattern, text, re.IGNORECASE):
                 signatures.append(SignatureProfile(
-                    id=str(uuid4())[:8],
+                    id=make_id("fri"),
                     signer_name=match.group(1).strip(),
                     signature_text=match.group(0),
                     location_in_doc="electronic",
