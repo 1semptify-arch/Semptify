@@ -345,5 +345,15 @@
       });
     }
   </script>
+  <script src="/js/core/websocket-client.js"></script>
+  <script>
+    // Listen for document upload notifications
+    if (window.SemptifyWebSocket) {
+      window.SemptifyWebSocket.on('document_upload', (data) => {
+        console.log('Document uploaded:', data);
+        // Could refresh document list here
+      });
+    }
+  </script>
 </body>
 </html>

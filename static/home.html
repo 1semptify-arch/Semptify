@@ -327,6 +327,7 @@
   </footer>
 
   <script src="/js/core/vault-portal.js"></script>
+  <script src="/js/core/websocket-client.js"></script>
   <script>
     function openDrawer() {
       document.getElementById('nav-drawer').classList.add('open');
@@ -335,6 +336,16 @@
     function closeDrawer() {
       document.getElementById('nav-drawer').classList.remove('open');
       document.getElementById('drawer-backdrop').classList.remove('open');
+    }
+
+    // Example: Listen for WebSocket notifications
+    if (window.SemptifyWebSocket) {
+      window.SemptifyWebSocket.on('job_status', (data) => {
+        console.log('Job update:', data);
+      });
+      window.SemptifyWebSocket.on('document_upload', (data) => {
+        console.log('Document processed:', data);
+      });
     }
   </script>
 </body>
