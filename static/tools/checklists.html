@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checklists – Semptify Tools</title>
+  <style>
+    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; --done: #22c55e; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9ff; color: #1a1a2e; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: #fff; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .vault-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+    .breadcrumb { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0.6rem 0; }
+    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+
+    .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+
+    .hero { background: linear-gradient(135deg, var(--hdr1), var(--accent)); color: #fff; border-radius: 14px; padding: 1.5rem 2rem; margin-bottom: 1.25rem; }
+    .hero h1 { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.3rem; }
+    .hero p { opacity: 0.9; font-size: 0.92rem; }
+
+    .checklist-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem; }
+    .checklist-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; color: #1a1a2e; display: flex; align-items: center; gap: 0.5rem; }
+    .checklist-progress { height: 6px; background: #f0f0f0; border-radius: 3px; margin-bottom: 1rem; overflow: hidden; }
+    .checklist-progress-bar { height: 100%; background: var(--done); border-radius: 3px; transition: width 0.3s; width: 0%; }
+    .checklist-item { display: flex; align-items: flex-start; gap: 0.6rem; padding: 0.5rem 0; border-bottom: 1px solid #f5f5f5; cursor: pointer; }
+    .checklist-item:last-child { border-bottom: none; }
+    .checklist-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; margin-top: 0.1rem; cursor: pointer; }
+    .checklist-item label { font-size: 0.88rem; color: #444; cursor: pointer; flex: 1; line-height: 1.4; }
+    .checklist-item.checked label { text-decoration: line-through; color: #999; }
+    .checklist-item .cl-note { font-size: 0.78rem; color: #888; display: block; margin-top: 0.15rem; }
+
+    .btn-bar { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
+    .btn-sm { padding: 0.4rem 0.9rem; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: none; }
+    .btn-reset { background: #f0f0f0; color: #444; }
+    .btn-vault-sm { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+    .btn-print { background: #e8eaf6; color: var(--accent); }
+
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; }
+    .sidebar-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.75rem; color: #1a1a2e; }
+    .sidebar-link { display: block; color: var(--accent); text-decoration: none; padding: 0.4rem 0; font-size: 0.88rem; }
+    .sidebar-link:hover { text-decoration: underline; }
+    .notice-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 1rem; font-size: 0.82rem; color: #1e3a5f; line-height: 1.5; }
+    .notice-box strong { display: block; margin-bottom: 0.25rem; }
+    .overall-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
+    .stat-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 1rem; text-align: center; }
+    .stat-card .stat-num { font-size: 1.6rem; font-weight: 800; color: var(--accent); }
+    .stat-card .stat-label { font-size: 0.78rem; color: #888; margin-top: 0.15rem; }
+
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
+
+    @media (max-width: 900px) { .main { grid-template-columns: 1fr; } .sidebar { order: -1; } }
+    @media (max-width: 768px) { nav.core-nav { display: none; } .hamburger { display: block; } }
+  </style>
+</head>
+<body>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/home.html">🏠 Home</a>
+    <a href="/library.html">📚 Library</a>
+    <a href="/office.html">🏢 Office</a>
+    <a href="/tools.html" style="color:#f59e0b;font-weight:700;">🔧 Tools</a>
+    <a href="/help.html">🆘 Help</a>
+    <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0;">
+    <a href="/tools/calculators.html">🧮 Calculators</a>
+    <a href="/tools/generators.html">📝 Generators</a>
+    <a href="/tools/checklists.html" style="color:#f59e0b;font-weight:700;">☑️ Checklists</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <a href="/home.html" class="logo">Semptify</a>
+      <nav class="core-nav">
+        <a href="/home.html">🏠 Home</a>
+        <a href="/library.html">📚 Library</a>
+        <a href="/office.html">🏢 Office</a>
+        <a href="/tools.html" class="active">🔧 Tools</a>
+        <a href="/help.html">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">🔒 Vault</button>
+        <button class="user-btn">👤 User</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="breadcrumb">
+    <div class="breadcrumb-inner">
+      <a href="/home.html">Home</a> ›
+      <a href="/tools.html">Tools</a> ›
+      <strong>Checklists</strong>
+    </div>
+  </div>
+
+  <div class="main">
+    <div>
+      <div class="hero">
+        <h1>☑️ Checklists</h1>
+        <p>Track what matters. Check off items, save progress, and generate evidence you can use.</p>
+      </div>
+
+      <div class="overall-stats">
+        <div class="stat-card"><div class="stat-num" id="total-checked">0</div><div class="stat-label">Checked</div></div>
+        <div class="stat-card"><div class="stat-num" id="total-total">0</div><div class="stat-label">Total Items</div></div>
+        <div class="stat-card"><div class="stat-num" id="total-progress">0%</div><div class="stat-label">Progress</div></div>
+      </div>
+
+      <!-- MOVE-IN CHECKLIST -->
+      <div class="checklist-card" data-list="movein">
+        <h3>📦 Move-In Inspection Checklist</h3>
+        <div class="checklist-progress"><div class="checklist-progress-bar" id="bar-movein"></div></div>
+        <div class="checklist-body" id="list-movein">
+          <div class="checklist-item"><input type="checkbox" id="mi1" onchange="updateList('movein')"><label for="mi1">Document the date and time of move-in <span class="cl-note">Take a photo of your phone showing the date</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="mi2" onchange="updateList('movein')"><label for="mi2">Photograph every wall, floor, and ceiling in every room <span class="cl-note">Wide shot + close-up of any damage</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="mi3" onchange="updateList('movein')"><label for="mi3">Test all electrical outlets with a phone charger or lamp</label></div>
+          <div class="checklist-item"><input type="checkbox" id="mi4" onchange="updateList('movein')"><label for="mi4">Test all light switches</label></div>
+          <div class="checklist-item"><input type="checkbox" id="mi5" onchange="updateList('movein')"><label for="mi5">Run water in all sinks, check for leaks under cabinets <span class="cl-note">Photo any drips, stains, or water damage</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="mi6" onchange="updateList('movein')"><label for="mi6">Flush all toilets, check for running water / weak flush</label></div>
+          <div class="checklist-item"><input type="checkbox" id="mi7" onchange="updateList('movein')"><label for="mi7">Test shower / tub water pressure and drainage</label></div>
+          <div class="checklist-item"><input type="checkbox" id="mi8" onchange="updateList('movein')"><label for="mi8">Check heater / AC — turn on and run for 10 minutes <span class="cl-note">Photo thermostat reading and vents</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="mi9" onchange="updateList('movein')"><label for="mi9">Open and close all windows and doors — check locks</label></div>
+          <div class="checklist-item"><input type="checkbox" id="mi10" onchange="updateList('movein')"><label for="mi10">Test smoke detectors and carbon monoxide detectors</label></div>
+          <div class="checklist-item"><input type="checkbox" id="mi11" onchange="updateList('movein')"><label for="mi11">Check appliances: stove, oven, refrigerator, dishwasher, microwave <span class="cl-note">Run each briefly, photo model/serial numbers</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="mi12" onchange="updateList('movein')"><label for="mi12">Look for pests: droppings, traps, holes, chewed areas</label></div>
+          <div class="checklist-item"><input type="checkbox" id="mi13" onchange="updateList('movein')"><label for="mi13">Check for mold: bathroom, under sinks, around windows, ceiling <span class="cl-note">Photo any discoloration — even small spots</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="mi14" onchange="updateList('movein')"><label for="mi14">Document keys received and how many <span class="cl-note">Photo keys, note mailbox/key-fob numbers</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="mi15" onchange="updateList('movein')"><label for="mi15">Send inspection photos to your vault <span class="cl-note">Upload everything to Semptify Vault with today's date</span></label></div>
+        </div>
+        <div class="btn-bar">
+          <button class="btn-sm btn-reset" onclick="resetList('movein')">Reset</button>
+          <button class="btn-sm btn-vault-sm" onclick="saveList('movein')">🔒 Save to Vault</button>
+          <button class="btn-sm btn-print" onclick="printList('movein')">🖨 Print</button>
+        </div>
+      </div>
+
+      <!-- MOVE-OUT CHECKLIST -->
+      <div class="checklist-card" data-list="moveout">
+        <h3>📦 Move-Out Inspection Checklist</h3>
+        <div class="checklist-progress"><div class="checklist-progress-bar" id="bar-moveout"></div></div>
+        <div class="checklist-body" id="list-moveout">
+          <div class="checklist-item"><input type="checkbox" id="mo1" onchange="updateList('moveout')"><label for="mo1">Document the date and time of move-out <span class="cl-note">Photo your phone showing date, or newspaper front page</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="mo2" onchange="updateList('moveout')"><label for="mo2">Photograph every room after cleaning — walls, floors, ceilings, appliances</label></div>
+          <div class="checklist-item"><input type="checkbox" id="mo3" onchange="updateList('moveout')"><label for="mo3">Clean all appliances inside and out; photo before and after</label></div>
+          <div class="checklist-item"><input type="checkbox" id="mo4" onchange="updateList('moveout')"><label for="mo4">Remove all personal belongings and trash; photo empty rooms</label></div>
+          <div class="checklist-item"><input type="checkbox" id="mo5" onchange="updateList('moveout')"><label for="mo5">Repair any damage you caused (nail holes, scuffs) <span class="cl-note">Document pre-existing damage separately</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="mo6" onchange="updateList('moveout')"><label for="mo6">Return all keys, fobs, garage openers, mailbox keys <span class="cl-note">Photo each item before handing over; get receipt</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="mo7" onchange="updateList('moveout')"><label for="mo7">Schedule and attend final walk-through with landlord <span class="cl-note">Request a signed walk-through checklist from landlord</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="mo8" onchange="updateList('moveout')"><label for="mo8">Provide forwarding address in writing <span class="cl-note">Email and certified mail; save proof of delivery</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="mo9" onchange="updateList('moveout')"><label for="mo9">Take photos of move-in inspection (if you have them) to compare <span class="cl-note">Side-by-side comparison is strong evidence</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="mo10" onchange="updateList('moveout')"><label for="mo10">Know your state's deposit return deadline <span class="cl-note">Use the deadline calculator in Tools › Calculators</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="mo11" onchange="updateList('moveout')"><label for="mo11">Upload all move-out photos to your vault <span class="cl-note">Do this immediately — before anything changes</span></label></div>
+        </div>
+        <div class="btn-bar">
+          <button class="btn-sm btn-reset" onclick="resetList('moveout')">Reset</button>
+          <button class="btn-sm btn-vault-sm" onclick="saveList('moveout')">🔒 Save to Vault</button>
+          <button class="btn-sm btn-print" onclick="printList('moveout')">🖨 Print</button>
+        </div>
+      </div>
+
+      <!-- EVIDENCE PRESERVATION CHECKLIST -->
+      <div class="checklist-card" data-list="evidence">
+        <h3>🔒 Evidence Preservation Checklist</h3>
+        <div class="checklist-progress"><div class="checklist-progress-bar" id="bar-evidence"></div></div>
+        <div class="checklist-body" id="list-evidence">
+          <div class="checklist-item"><input type="checkbox" id="ev1" onchange="updateList('evidence')"><label for="ev1">Start a timeline in Semptify Office › Timeline <span class="cl-note">Every event needs a date, description, and supporting document</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="ev2" onchange="updateList('evidence')"><label for="ev2">Screenshot all text messages with your landlord / manager <span class="cl-note">Include full phone numbers and timestamps</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="ev3" onchange="updateList('evidence')"><label for="ev3">Save all emails as PDF or forward to a dedicated email <span class="cl-note">Preserve headers (From, To, Date, Subject)</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="ev4" onchange="updateList('evidence')"><label for="ev4">Photograph the issue every day it persists <span class="cl-note">Same angle, same lighting when possible; photo date visible</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="ev5" onchange="updateList('evidence')"><label for="ev5">Record video walkthroughs with narration <span class="cl-note">State date, time, and what you are showing</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="ev6" onchange="updateList('evidence')"><label for="ev6">Keep copies of all notices, letters, and receipts <span class="cl-note">Upload to Vault; originals stay in a safe place</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="ev7" onchange="updateList('evidence')"><label for="ev7">Log every repair request — written, verbal, email, text <span class="cl-note">Note date, method, and landlord response (or non-response)</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="ev8" onchange="updateList('evidence')"><label for="ev8">Document weather conditions if relevant (no heat, leaks, flooding) <span class="cl-note">Screenshot weather app or news report for that date</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="ev9" onchange="updateList('evidence')"><label for="ev9">Get witness statements from neighbors or roommates <span class="cl-note">Written, dated, signed; include contact information</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="ev10" onchange="updateList('evidence')"><label for="ev10">Request public records: code violations, inspection reports <span class="cl-note">Contact city housing authority or code enforcement</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="ev11" onchange="updateList('evidence')"><label for="ev11">Call 311 or local housing hotline and document the call <span class="cl-note">Note date, time, who you spoke with, and reference number</span></label></div>
+          <div class="checklist-item"><input type="checkbox" id="ev12" onchange="updateList('evidence')"><label for="ev12">Upload everything to your Semptify Vault with metadata <span class="cl-note">Use the Vault Portal to tag each file with event, date, and type</span></label></div>
+        </div>
+        <div class="btn-bar">
+          <button class="btn-sm btn-reset" onclick="resetList('evidence')">Reset</button>
+          <button class="btn-sm btn-vault-sm" onclick="saveList('evidence')">🔒 Save to Vault</button>
+          <button class="btn-sm btn-print" onclick="printList('evidence')">🖨 Print</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-title">🔧 Tools Menu</div>
+        <a href="/tools/calculators.html" class="sidebar-link">🧮 Calculators</a>
+        <a href="/tools/generators.html" class="sidebar-link">📝 Document Generators</a>
+        <a href="/tools/checklists.html" class="sidebar-link" style="font-weight:700;color:#1a1a2e;">☑️ Checklists ←</a>
+        <a href="/office/timeline.html" class="sidebar-link">📅 Timeline</a>
+      </div>
+
+      <div class="notice-box">
+        <strong>⚠️ Not Legal Advice</strong>
+        These checklists help organize evidence. They do not create attorney-client privilege. Consult a housing advocate or attorney for legal strategy.
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">📚 Related Resources</div>
+        <a href="/library.html" class="sidebar-link">Research Center →</a>
+        <a href="/office/vault.html" class="sidebar-link">Save checklists to Vault →</a>
+        <a href="/help.html" class="sidebar-link">Find Legal Aid →</a>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <div>
+      <a href="/home.html">Home</a>
+      <a href="/tools.html">Tools</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/help.html">Help</a>
+    </div>
+    <div style="margin-top:0.5rem;">Checklists are educational tools · Not legal advice · Preserve evidence early</div>
+  </footer>
+
+  <script src="/js/core/vault-portal.js"></script>
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+
+    const lists = ['movein', 'moveout', 'evidence'];
+
+    function updateList(listId) {
+      const container = document.getElementById('list-' + listId);
+      const items = container.querySelectorAll('.checklist-item');
+      let checked = 0;
+      items.forEach(item => {
+        const cb = item.querySelector('input[type="checkbox"]');
+        item.classList.toggle('checked', cb.checked);
+        if (cb.checked) checked++;
+      });
+      const pct = items.length ? Math.round((checked / items.length) * 100) : 0;
+      document.getElementById('bar-' + listId).style.width = pct + '%';
+      updateOverall();
+    }
+
+    function resetList(listId) {
+      document.getElementById('list-' + listId).querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+      updateList(listId);
+    }
+
+    function updateOverall() {
+      let totalChecked = 0, totalItems = 0;
+      lists.forEach(id => {
+        const container = document.getElementById('list-' + id);
+        const items = container.querySelectorAll('.checklist-item');
+        totalItems += items.length;
+        items.forEach(item => { if (item.querySelector('input').checked) totalChecked++; });
+      });
+      document.getElementById('total-checked').textContent = totalChecked;
+      document.getElementById('total-total').textContent = totalItems;
+      document.getElementById('total-progress').textContent = totalItems ? Math.round((totalChecked / totalItems) * 100) + '%' : '0%';
+    }
+
+    function saveList(listId) {
+      const container = document.getElementById('list-' + listId);
+      const items = container.querySelectorAll('.checklist-item');
+      const data = [];
+      items.forEach(item => {
+        const cb = item.querySelector('input');
+        const label = item.querySelector('label');
+        data.push({ text: label.childNodes[0].textContent.trim(), checked: cb.checked });
+      });
+      alert('This would save the checklist state to your vault. Coming soon.\n\nChecked: ' + data.filter(d => d.checked).length + ' / ' + data.length);
+    }
+
+    function printList(listId) {
+      window.print();
+    }
+
+    lists.forEach(id => updateList(id));
+  </script>
+</body>
+</html>
