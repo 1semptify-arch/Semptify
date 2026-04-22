@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculators – Semptify Tools</title>
+  <style>
+    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9ff; color: #1a1a2e; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: #fff; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .vault-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+    .breadcrumb { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0.6rem 0; }
+    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+
+    .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+
+    .hero { background: linear-gradient(135deg, var(--hdr1), var(--accent)); color: #fff; border-radius: 14px; padding: 1.5rem 2rem; margin-bottom: 1.25rem; }
+    .hero h1 { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.3rem; }
+    .hero p { opacity: 0.9; font-size: 0.92rem; }
+
+    .calc-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem; }
+    .calc-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: #1a1a2e; }
+    .calc-card h3 .emoji { font-size: 1.2rem; margin-right: 0.3rem; }
+
+    .form-group { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.9rem; }
+    .form-group label { font-size: 0.82rem; font-weight: 600; color: #444; }
+    .form-group input, .form-group select { padding: 0.55rem 0.75rem; border: 1px solid #c5cae9; border-radius: 8px; font-size: 0.9rem; font-family: inherit; outline: none; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+    .form-row { display: flex; gap: 1rem; }
+    .form-row .form-group { flex: 1; }
+
+    .calc-btn { background: var(--accent); color: #fff; border: none; padding: 0.6rem 1.5rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .calc-btn:hover { background: #283593; }
+
+    .result-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 1rem; margin-top: 0.75rem; font-size: 0.9rem; display: none; }
+    .result-box.visible { display: block; }
+    .result-box strong { color: #15803d; font-size: 1.1rem; }
+    .result-box.error { background: #fef2f2; border-color: #fecaca; }
+    .result-box.error strong { color: #dc2626; }
+
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; }
+    .sidebar-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.75rem; color: #1a1a2e; }
+    .sidebar-link { display: block; color: var(--accent); text-decoration: none; padding: 0.4rem 0; font-size: 0.88rem; }
+    .sidebar-link:hover { text-decoration: underline; }
+    .notice-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 1rem; font-size: 0.82rem; color: #1e3a5f; line-height: 1.5; }
+    .notice-box strong { display: block; margin-bottom: 0.25rem; }
+
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
+
+    @media (max-width: 900px) { .main { grid-template-columns: 1fr; } .sidebar { order: -1; } }
+    @media (max-width: 768px) { nav.core-nav { display: none; } .hamburger { display: block; } .form-row { flex-direction: column; gap: 0; } }
+  </style>
+</head>
+<body>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/home.html">🏠 Home</a>
+    <a href="/library.html">📚 Library</a>
+    <a href="/office.html">🏢 Office</a>
+    <a href="/tools.html" style="color:#f59e0b;font-weight:700;">🔧 Tools</a>
+    <a href="/help.html">🆘 Help</a>
+    <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0;">
+    <a href="/tools/calculators.html" style="color:#f59e0b;font-weight:700;">🧮 Calculators</a>
+    <a href="/tools/generators.html">📝 Generators</a>
+    <a href="/tools/checklists.html">☑️ Checklists</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <a href="/home.html" class="logo">Semptify</a>
+      <nav class="core-nav">
+        <a href="/home.html">🏠 Home</a>
+        <a href="/library.html">📚 Library</a>
+        <a href="/office.html">🏢 Office</a>
+        <a href="/tools.html" class="active">🔧 Tools</a>
+        <a href="/help.html">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">🔒 Vault</button>
+        <button class="user-btn">👤 User</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="breadcrumb">
+    <div class="breadcrumb-inner">
+      <a href="/home.html">Home</a> ›
+      <a href="/tools.html">Tools</a> ›
+      <strong>Calculators</strong>
+    </div>
+  </div>
+
+  <div class="main">
+    <div>
+      <div class="hero">
+        <h1>🧮 Calculators</h1>
+        <p>Quick math for rent, deadlines, and fees. Results are estimates — verify with local law.</p>
+      </div>
+
+      <!-- RENT PRORATION -->
+      <div class="calc-card">
+        <h3><span class="emoji">💰</span> Rent Proration Calculator</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="rent-monthly">Monthly Rent ($)</label>
+            <input type="number" id="rent-monthly" placeholder="1200" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label for="rent-days">Days in Month</label>
+            <input type="number" id="rent-days" value="30" min="1" max="31">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="rent-start">Move-In Date</label>
+            <input type="date" id="rent-start">
+          </div>
+          <div class="form-group">
+            <label for="rent-end">Move-Out Date (optional)</label>
+            <input type="date" id="rent-end">
+          </div>
+        </div>
+        <button class="calc-btn" onclick="calcProration()">Calculate Prorated Rent</button>
+        <div class="result-box" id="rent-result"></div>
+      </div>
+
+      <!-- DEADLINE -->
+      <div class="calc-card">
+        <h3><span class="emoji">⏰</span> Deadline Calculator</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="dl-start">Start Date</label>
+            <input type="date" id="dl-start">
+          </div>
+          <div class="form-group">
+            <label for="dl-days">Days to Add</label>
+            <input type="number" id="dl-days" placeholder="3" min="0">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="dl-business" style="accent-color:var(--accent);margin-right:0.3rem;">
+            Count only business days (Mon–Fri, excluding federal holidays)
+          </label>
+        </div>
+        <button class="calc-btn" onclick="calcDeadline()">Calculate Deadline</button>
+        <div class="result-box" id="dl-result"></div>
+      </div>
+
+      <!-- LATE FEE -->
+      <div class="calc-card">
+        <h3><span class="emoji">⚠️</span> Late Fee Calculator</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="lf-rent">Monthly Rent ($)</label>
+            <input type="number" id="lf-rent" placeholder="1200" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label for="lf-late">Days Late</label>
+            <input type="number" id="lf-late" placeholder="5" min="0">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="lf-type">Fee Type</label>
+            <select id="lf-type">
+              <option value="flat">Flat fee (e.g., $50 after day 5)</option>
+              <option value="daily">Daily fee (e.g., $10/day)</option>
+              <option value="percent">Percentage of rent (e.g., 5%)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="lf-amount">Fee Amount</label>
+            <input type="number" id="lf-amount" placeholder="50" min="0" step="0.01">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="lf-grace">Grace Period (days)</label>
+            <input type="number" id="lf-grace" value="5" min="0">
+          </div>
+          <div class="form-group">
+            <label for="lf-max">Maximum Fee ($)</label>
+            <input type="number" id="lf-max" placeholder="Leave blank for no cap" min="0" step="0.01">
+          </div>
+        </div>
+        <button class="calc-btn" onclick="calcLateFee()">Calculate Late Fee</button>
+        <div class="result-box" id="lf-result"></div>
+      </div>
+
+      <!-- SECURITY DEPOSIT INTEREST -->
+      <div class="calc-card">
+        <h3><span class="emoji">🏦</span> Security Deposit Interest Calculator</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="sd-amount">Deposit Amount ($)</label>
+            <input type="number" id="sd-amount" placeholder="1200" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label for="sd-rate">Annual Interest Rate (%)</label>
+            <input type="number" id="sd-rate" placeholder="0.5" min="0" step="0.01">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="sd-start">Deposit Date</label>
+            <input type="date" id="sd-start">
+          </div>
+          <div class="form-group">
+            <label for="sd-end">Return Date (or today)</label>
+            <input type="date" id="sd-end">
+          </div>
+        </div>
+        <button class="calc-btn" onclick="calcDepositInterest()">Calculate Interest</button>
+        <div class="result-box" id="sd-result"></div>
+      </div>
+    </div>
+
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-title">🔧 Tools Menu</div>
+        <a href="/tools/calculators.html" class="sidebar-link" style="font-weight:700;color:#1a1a2e;">🧮 Calculators ←</a>
+        <a href="/tools/generators.html" class="sidebar-link">📝 Document Generators</a>
+        <a href="/tools/checklists.html" class="sidebar-link">☑️ Checklists</a>
+        <a href="/office/timeline.html" class="sidebar-link">📅 Timeline</a>
+      </div>
+
+      <div class="notice-box">
+        <strong>⚠️ Not Legal Advice</strong>
+        These calculators provide estimates only. Laws vary by city, county, and state. Always verify results against your local housing code and consult an attorney for legal matters.
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">📚 Related Resources</div>
+        <a href="/library.html" class="sidebar-link">Research Center →</a>
+        <a href="/help.html" class="sidebar-link">Crisis Resources →</a>
+        <a href="/office/vault.html" class="sidebar-link">Save results to Vault →</a>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <div>
+      <a href="/home.html">Home</a>
+      <a href="/tools.html">Tools</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/help.html">Help</a>
+    </div>
+    <div style="margin-top:0.5rem;">Results are estimates only · Not legal advice · Verify with local law</div>
+  </footer>
+
+  <script src="/js/core/vault-portal.js"></script>
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+
+    function showResult(id, html, isError) {
+      const el = document.getElementById(id);
+      el.innerHTML = html;
+      el.classList.add('visible');
+      el.classList.toggle('error', !!isError);
+    }
+
+    function calcProration() {
+      const monthly = parseFloat(document.getElementById('rent-monthly').value);
+      const daysInMonth = parseInt(document.getElementById('rent-days').value) || 30;
+      const start = document.getElementById('rent-start').value;
+      const end = document.getElementById('rent-end').value;
+      if (!monthly || monthly <= 0) { showResult('rent-result', 'Please enter a valid monthly rent.', true); return; }
+      if (!start) { showResult('rent-result', 'Please select a move-in date.', true); return; }
+
+      const daily = monthly / daysInMonth;
+      let days, label;
+      if (end) {
+        const s = new Date(start + 'T00:00:00');
+        const e = new Date(end + 'T00:00:00');
+        days = Math.round((e - s) / (1000 * 60 * 60 * 24));
+        if (days < 0) { showResult('rent-result', 'Move-out date must be after move-in date.', true); return; }
+        label = days + ' days';
+      } else {
+        const s = new Date(start + 'T00:00:00');
+        const lastDay = new Date(s.getFullYear(), s.getMonth() + 1, 0).getDate();
+        days = lastDay - s.getDate() + 1;
+        label = 'from move-in through month-end (' + days + ' days)';
+      }
+      const prorated = (daily * days).toFixed(2);
+      showResult('rent-result', `<strong>$${prorated}</strong> prorated rent for ${label}<br><span style="color:#888;font-size:0.82rem;">Daily rate: $${daily.toFixed(2)} × ${days} days</span>`);
+    }
+
+    function calcDeadline() {
+      const start = document.getElementById('dl-start').value;
+      const days = parseInt(document.getElementById('dl-days').value);
+      const businessOnly = document.getElementById('dl-business').checked;
+      if (!start) { showResult('dl-result', 'Please select a start date.', true); return; }
+      if (isNaN(days) || days < 0) { showResult('dl-result', 'Please enter a valid number of days.', true); return; }
+
+      let d = new Date(start + 'T00:00:00');
+      let added = 0;
+      while (added < days) {
+        d.setDate(d.getDate() + 1);
+        if (!businessOnly || (d.getDay() !== 0 && d.getDay() !== 6)) {
+          added++;
+        }
+      }
+      const result = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+      const label = businessOnly ? 'business days' : 'calendar days';
+      showResult('dl-result', `<strong>${result}</strong><br><span style="color:#888;font-size:0.82rem;">${days} ${label} from ${new Date(start + 'T00:00:00').toLocaleDateString('en-US')}</span>`);
+    }
+
+    function calcLateFee() {
+      const rent = parseFloat(document.getElementById('lf-rent').value);
+      const lateDays = parseInt(document.getElementById('lf-late').value);
+      const type = document.getElementById('lf-type').value;
+      const amount = parseFloat(document.getElementById('lf-amount').value);
+      const grace = parseInt(document.getElementById('lf-grace').value) || 0;
+      const maxCap = parseFloat(document.getElementById('lf-max').value) || Infinity;
+      if (!rent || rent <= 0) { showResult('lf-result', 'Please enter valid rent amount.', true); return; }
+      if (isNaN(lateDays) || lateDays < 0) { showResult('lf-result', 'Please enter valid days late.', true); return; }
+      if (isNaN(amount) || amount < 0) { showResult('lf-result', 'Please enter valid fee amount.', true); return; }
+
+      const chargeableDays = Math.max(0, lateDays - grace);
+      let fee = 0;
+      if (chargeableDays > 0) {
+        if (type === 'flat') { fee = amount; }
+        else if (type === 'daily') { fee = amount * chargeableDays; }
+        else if (type === 'percent') { fee = rent * (amount / 100) * chargeableDays; }
+      }
+      fee = Math.min(fee, maxCap);
+      const total = (rent + fee).toFixed(2);
+      const graceMsg = grace > 0 ? ` (${grace}-day grace period applied)` : '';
+      showResult('lf-result', `<strong>Late fee: $${fee.toFixed(2)}${graceMsg}</strong><br>Total due: <strong>$${total}</strong> (rent $${rent.toFixed(2)} + fee $${fee.toFixed(2)})<br><span style="color:#888;font-size:0.82rem;">Verify against your state's maximum late fee law.</span>`);
+    }
+
+    function calcDepositInterest() {
+      const amount = parseFloat(document.getElementById('sd-amount').value);
+      const rate = parseFloat(document.getElementById('sd-rate').value);
+      const start = document.getElementById('sd-start').value;
+      const endInput = document.getElementById('sd-end').value;
+      const end = endInput || new Date().toISOString().split('T')[0];
+      if (!amount || amount <= 0) { showResult('sd-result', 'Please enter a valid deposit amount.', true); return; }
+      if (!start) { showResult('sd-result', 'Please select a deposit date.', true); return; }
+      if (isNaN(rate) || rate < 0) { showResult('sd-result', 'Please enter a valid interest rate.', true); return; }
+
+      const s = new Date(start + 'T00:00:00');
+      const e = new Date(end + 'T00:00:00');
+      const days = Math.round((e - s) / (1000 * 60 * 60 * 24));
+      if (days < 0) { showResult('sd-result', 'Return date must be after deposit date.', true); return; }
+      const years = days / 365.25;
+      const interest = amount * (rate / 100) * years;
+      const total = amount + interest;
+      showResult('sd-result', `<strong>Interest earned: $${interest.toFixed(2)}</strong><br>Total return: <strong>$${total.toFixed(2)}</strong> (deposit $${amount.toFixed(2)} + interest)<br><span style="color:#888;font-size:0.82rem;">${days} days at ${rate}% annual · Simple interest formula used</span>`);
+    }
+
+    document.getElementById('rent-start').valueAsDate = new Date();
+    document.getElementById('dl-start').valueAsDate = new Date();
+    document.getElementById('sd-start').valueAsDate = new Date(new Date().setFullYear(new Date().getFullYear() - 1));
+    document.getElementById('sd-end').valueAsDate = new Date();
+  </script>
+</body>
+</html>
