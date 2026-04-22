@@ -263,10 +263,206 @@
   </footer>
 
   <script src="/js/core/vault-portal.js"></script>
+  <script src="/js/core/websocket-client.js"></script>
   <script>
     function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
     function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
 
+    // API Integration
+    let currentDeliveries = [];
+    let currentDeliveryId = null;
+
+    async function loadInbox() {
+      try {
+        const resp = await fetch('/api/delivery/inbox');
+        if (!resp.ok) throw new Error('Failed to load inbox');
+        const data = await resp.json();
+        currentDeliveries = data.deliveries || [];
+        renderInbox();
+        updateBadgeCounts();
+      } catch (e) {
+        console.error('Inbox load failed:', e);
+        document.getElementById('msg-list').innerHTML = `<div class="empty-inbox"><div style="font-size:3rem;">⚠️</div><strong>Could not load inbox</strong><p>${e.message}</p><button onclick="loadInbox()" style="margin-top:1rem;padding:0.5rem 1rem;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;">Retry</button></div>`;
+      }
+    }
+
+    function renderInbox() {
+      const list = document.getElementById('msg-list');
+      if (!currentDeliveries.length) {
+        list.innerHTML = `<div class="empty-inbox"><div style="font-size:3rem;">📭</div><strong>No messages</strong><p>Your inbox is empty.</p></div>`;
+        return;
+      }
+
+      list.innerHTML = currentDeliveries.map(d => `
+        <div class="msg-item ${d.status === 'unread' ? 'unread' : ''}" data-folder="${d.folder || 'inbox'}" data-id="${d.delivery_id}" onclick="openDelivery('${d.delivery_id}')">
+          <div class="msg-avatar avatar-${d.sender_role}">${getAvatarIcon(d.sender_role)}</div>
+          <div class="msg-content">
+            <div class="msg-from">${escapeHtml(d.sender_name)}</div>
+            <div class="msg-subject">${escapeHtml(d.subject)}</div>
+            <div class="msg-preview">${escapeHtml(d.preview || '')}</div>
+          </div>
+          <div class="msg-meta">
+            <span class="msg-time">${formatTime(d.sent_at)}</span>
+            <span class="msg-type-badge badge-${d.delivery_type}">${getTypeLabel(d.delivery_type)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function getAvatarIcon(role) {
+      const icons = { legal: '⚖', advocate: '🌿', manager: '🏢', admin: '⚙', system: '⚙', tenant: '🏠' };
+      return icons[role] || '👤';
+    }
+
+    function getTypeLabel(type) {
+      const labels = { signature: '✍️ Signature', review: '👁 Review', message: '💬 Message', system: '🔔 System', pending: '⏳ Pending' };
+      return labels[type] || type;
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatTime(isoString) {
+      if (!isoString) return '';
+      const d = new Date(isoString);
+      const now = new Date();
+      const diff = (now - d) / (1000 * 60 * 60 * 24);
+      if (diff < 1) return 'Today ' + d.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'});
+      if (diff < 2) return 'Yesterday';
+      return d.toLocaleDateString('en-US', {month:'short',day:'numeric'});
+    }
+
+    function updateBadgeCounts() {
+      const unread = currentDeliveries.filter(d => d.status === 'unread').length;
+      const pending = currentDeliveries.filter(d => d.requires_action).length;
+      document.querySelectorAll('.inbox-badge')[0].textContent = unread || '';
+      document.querySelectorAll('.inbox-badge')[0].style.display = unread ? 'inline' : 'none';
+    }
+
+    async function openDelivery(id) {
+      currentDeliveryId = id;
+      document.querySelectorAll('.msg-item').forEach(el => el.classList.remove('selected'));
+      document.querySelector(`[data-id="${id}"]`)?.classList.add('selected');
+      document.querySelector(`[data-id="${id}"]`)?.classList.remove('unread');
+
+      const d = currentDeliveries.find(x => x.delivery_id === id);
+      if (!d) return;
+
+      // Mark as viewed
+      if (d.status === 'unread') {
+        fetch(`/api/delivery/${id}/viewed`, { method: 'POST' }).catch(console.error);
+        d.status = 'read';
+        updateBadgeCounts();
+      }
+
+      const actionMap = {
+        sign: `<button class="msg-action primary" onclick="signDelivery('${id}')">✍️ Sign Document</button>`,
+        reject: `<button class="msg-action danger" onclick="rejectDelivery('${id}')">✕ Reject</button>`,
+        acknowledge: `<button class="msg-action primary" onclick="acknowledgeDelivery('${id}')">✓ Acknowledge</button>`,
+        vault: `<a href="/office/vault.html" class="msg-action secondary" style="text-decoration:none;">🔒 Save to Vault</a>`,
+        reply: `<button class="msg-action secondary" onclick="alert('Reply — coming soon')">↩ Reply</button>`,
+        message: `<button class="msg-action secondary" onclick="alert('Message advocate')">💬 Message Advocate</button>`
+      };
+
+      const notice = d.requires_action ? `<div class="delivery-notice"><strong>${getTypeLabel(d.delivery_type)} Required</strong>${d.notice_text || 'Action required by deadline.'} Uploader: ${escapeHtml(d.sender_name)} · Sent ${formatTime(d.sent_at)}</div><br>` : '';
+
+      const viewer = document.getElementById('msg-viewer');
+      viewer.innerHTML = `
+        <div class="msg-viewer-header">
+          <div class="msg-viewer-subject">${escapeHtml(d.subject)}</div>
+          <div class="msg-viewer-meta">
+            <span>From: <strong>${escapeHtml(d.sender_name)}</strong></span>
+            <span>${formatTime(d.sent_at)}</span>
+            <span>ID: ${id}</span>
+          </div>
+        </div>
+        <div class="msg-viewer-body">${notice}${d.body || d.preview || ''}</div>
+        <div class="msg-viewer-actions">${(d.available_actions || []).map(a => actionMap[a] || '').join('')}</div>
+      `;
+      viewer.classList.add('open');
+      document.getElementById('msg-list').style.display = 'none';
+    }
+
+    async function signDelivery(id) {
+      if (!confirm('By signing, you acknowledge you have read and agree to this document. Proceed?')) return;
+      try {
+        const resp = await fetch(`/api/delivery/${id}/sign`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ signature_method: 'clickwrap', signed_at: new Date().toISOString() })
+        });
+        if (resp.ok) {
+          alert('Document signed successfully. Record saved to your vault.');
+          loadInbox();
+        } else {
+          alert('Sign failed: ' + (await resp.json()).detail || resp.statusText);
+        }
+      } catch (e) {
+        alert('Sign failed: ' + e.message);
+      }
+    }
+
+    async function rejectDelivery(id) {
+      const reason = prompt('Please provide a reason for rejection (optional):') || '';
+      try {
+        const resp = await fetch(`/api/delivery/${id}/reject`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ rejection_reason: reason })
+        });
+        if (resp.ok) {
+          alert('Document rejected. Sender has been notified.');
+          loadInbox();
+        } else {
+          alert('Reject failed: ' + (await resp.json()).detail || resp.statusText);
+        }
+      } catch (e) {
+        alert('Reject failed: ' + e.message);
+      }
+    }
+
+    async function acknowledgeDelivery(id) {
+      try {
+        const resp = await fetch(`/api/delivery/${id}/viewed`, { method: 'POST' });
+        if (resp.ok) {
+          alert('Acknowledged. Record saved to your vault.');
+          const d = currentDeliveries.find(x => x.delivery_id === id);
+          if (d) d.status = 'acknowledged';
+          renderInbox();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // WebSocket integration
+    if (window.SemptifyWebSocket) {
+      window.SemptifyWebSocket.on('document_delivery', (data) => {
+        console.log('New delivery:', data);
+        loadInbox(); // Refresh inbox
+        showNotification(data);
+      });
+    }
+
+    function showNotification(data) {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('New Document Delivery', { body: data.subject || 'You have a new delivery', icon: '/assets/favicon.ico' });
+      }
+    }
+
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    // Load on startup
+    loadInbox();
+
+    // Legacy static data (fallback)
     const messages = {
       1: {
         subject: 'Settlement Agreement — Signature Required',
@@ -310,12 +506,21 @@
       }
     };
 
+    // Legacy openMessage function (fallback for static data)
     function openMessage(id) {
+      // Use new API-driven flow if we have deliveries loaded
+      if (currentDeliveries.length > 0 && currentDeliveries.find(x => x.delivery_id === id)) {
+        return openDelivery(id);
+      }
+
+      // Fallback to static mock data display
       document.querySelectorAll('.msg-item').forEach(el => el.classList.remove('selected'));
-      document.querySelector(`[data-id="${id}"]`).classList.add('selected');
-      document.querySelector(`[data-id="${id}"]`).classList.remove('unread');
+      document.querySelector(`[data-id="${id}"]`)?.classList.add('selected');
+      document.querySelector(`[data-id="${id}"]`)?.classList.remove('unread');
 
       const m = messages[id];
+      if (!m) return;
+
       const actionMap = {
         sign: `<button class="msg-action primary" onclick="alert('Signature flow — coming soon')">✍️ Sign Document</button>`,
         reject: `<button class="msg-action danger" onclick="alert('Rejection recorded')">✕ Reject</button>`,
