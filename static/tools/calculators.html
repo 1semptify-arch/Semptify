@@ -48,6 +48,9 @@
     .result-box strong { color: #15803d; font-size: 1.1rem; }
     .result-box.error { background: #fef2f2; border-color: #fecaca; }
     .result-box.error strong { color: #dc2626; }
+    .save-btn { background: #f59e0b; color: #fff; border: none; padding: 0.4rem 0.9rem; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.82rem; margin-top: 0.75rem; }
+    .save-btn:hover { background: #d97706; }
+    .save-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
     .sidebar { display: flex; flex-direction: column; gap: 1rem; }
     .sidebar-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; }
@@ -280,11 +283,43 @@
     function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
     function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
 
-    function showResult(id, html, isError) {
+    const calcResults = {};
+    function showResult(id, html, isError, saveData) {
       const el = document.getElementById(id);
-      el.innerHTML = html;
+      let content = html;
+      if (saveData && !isError) {
+        calcResults[id] = saveData;
+        content += `<br><button class="save-btn" id="btn-save-${id}" onclick="saveCalculation('${id}')">💾 Save to Vault</button>`;
+      }
+      el.innerHTML = content;
       el.classList.add('visible');
       el.classList.toggle('error', !!isError);
+    }
+    async function saveCalculation(id) {
+      const data = calcResults[id];
+      if (!data) { alert('No calculation result to save.'); return; }
+      const btn = document.getElementById('btn-save-' + id);
+      const originalText = btn.textContent;
+      try {
+        btn.textContent = 'Saving...';
+        btn.disabled = true;
+        const resp = await fetch('/api/tools/save-calculation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await resp.json();
+        if (result.success) {
+          alert('Saved to vault: ' + (result.filename || ''));
+        } else {
+          alert('Save failed: ' + (result.message || resp.statusText));
+        }
+      } catch (e) {
+        alert('Save failed: ' + e.message);
+      } finally {
+        btn.textContent = originalText;
+        btn.disabled = false;
+      }
     }
 
     function calcProration() {
@@ -310,7 +345,8 @@
         label = 'from move-in through month-end (' + days + ' days)';
       }
       const prorated = (daily * days).toFixed(2);
-      showResult('rent-result', `<strong>$${prorated}</strong> prorated rent for ${label}<br><span style="color:#888;font-size:0.82rem;">Daily rate: $${daily.toFixed(2)} × ${days} days</span>`);
+      const saveData = { calculation_type: 'rent_proration', monthly_rent: monthly, days_in_month: daysInMonth, move_in_date: start, move_out_date: end || null, prorated_amount: parseFloat(prorated), daily_rate: parseFloat(daily.toFixed(2)), days_count: days, result_text: `$${prorated} prorated rent for ${label}` };
+      showResult('rent-result', `<strong>$${prorated}</strong> prorated rent for ${label}<br><span style="color:#888;font-size:0.82rem;">Daily rate: $${daily.toFixed(2)} × ${days} days</span>`, false, saveData);
     }
 
     function calcDeadline() {
@@ -330,7 +366,8 @@
       }
       const result = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
       const label = businessOnly ? 'business days' : 'calendar days';
-      showResult('dl-result', `<strong>${result}</strong><br><span style="color:#888;font-size:0.82rem;">${days} ${label} from ${new Date(start + 'T00:00:00').toLocaleDateString('en-US')}</span>`);
+      const saveData = { calculation_type: 'deadline', start_date: start, days_added: days, business_days_only: businessOnly, result_date: d.toISOString().split('T')[0], result_text: result };
+      showResult('dl-result', `<strong>${result}</strong><br><span style="color:#888;font-size:0.82rem;">${days} ${label} from ${new Date(start + 'T00:00:00').toLocaleDateString('en-US')}</span>`, false, saveData);
     }
 
     function calcLateFee() {
@@ -354,7 +391,8 @@
       fee = Math.min(fee, maxCap);
       const total = (rent + fee).toFixed(2);
       const graceMsg = grace > 0 ? ` (${grace}-day grace period applied)` : '';
-      showResult('lf-result', `<strong>Late fee: $${fee.toFixed(2)}${graceMsg}</strong><br>Total due: <strong>$${total}</strong> (rent $${rent.toFixed(2)} + fee $${fee.toFixed(2)})<br><span style="color:#888;font-size:0.82rem;">Verify against your state's maximum late fee law.</span>`);
+      const saveData = { calculation_type: 'late_fee', monthly_rent: rent, days_late: lateDays, fee_type: type, fee_amount: amount, grace_period_days: grace, max_fee_cap: maxCap === Infinity ? null : maxCap, calculated_fee: parseFloat(fee.toFixed(2)), total_due: parseFloat(total), result_text: `Late fee: $${fee.toFixed(2)}, Total: $${total}` };
+      showResult('lf-result', `<strong>Late fee: $${fee.toFixed(2)}${graceMsg}</strong><br>Total due: <strong>$${total}</strong> (rent $${rent.toFixed(2)} + fee $${fee.toFixed(2)})<br><span style="color:#888;font-size:0.82rem;">Verify against your state's maximum late fee law.</span>`, false, saveData);
     }
 
     function calcDepositInterest() {
@@ -374,7 +412,8 @@
       const years = days / 365.25;
       const interest = amount * (rate / 100) * years;
       const total = amount + interest;
-      showResult('sd-result', `<strong>Interest earned: $${interest.toFixed(2)}</strong><br>Total return: <strong>$${total.toFixed(2)}</strong> (deposit $${amount.toFixed(2)} + interest)<br><span style="color:#888;font-size:0.82rem;">${days} days at ${rate}% annual · Simple interest formula used</span>`);
+      const saveData = { calculation_type: 'deposit_interest', deposit_amount: amount, annual_rate_percent: rate, deposit_date: start, return_date: end, days_held: days, interest_earned: parseFloat(interest.toFixed(2)), total_return: parseFloat(total.toFixed(2)), result_text: `Interest: $${interest.toFixed(2)}, Total: $${total.toFixed(2)}` };
+      showResult('sd-result', `<strong>Interest earned: $${interest.toFixed(2)}</strong><br>Total return: <strong>$${total.toFixed(2)}</strong> (deposit $${amount.toFixed(2)} + interest)<br><span style="color:#888;font-size:0.82rem;">${days} days at ${rate}% annual · Simple interest formula used</span>`, false, saveData);
     }
 
     document.getElementById('rent-start').valueAsDate = new Date();
