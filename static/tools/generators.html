@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Generators – Semptify Tools</title>
+  <style>
+    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9ff; color: #1a1a2e; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: #fff; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .vault-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+    .breadcrumb { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0.6rem 0; }
+    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+
+    .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+
+    .hero { background: linear-gradient(135deg, var(--hdr1), var(--accent)); color: #fff; border-radius: 14px; padding: 1.5rem 2rem; margin-bottom: 1.25rem; }
+    .hero h1 { font-size: 1.4rem; font-weight: 800; margin-bottom: 0.3rem; }
+    .hero p { opacity: 0.9; font-size: 0.92rem; }
+
+    .gen-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem; }
+    .gen-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: #1a1a2e; }
+    .gen-card h3 .emoji { font-size: 1.2rem; margin-right: 0.3rem; }
+
+    .template-select { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .template-chip { padding: 0.35rem 0.75rem; border: 1px solid #c5cae9; border-radius: 20px; background: #fff; font-size: 0.82rem; cursor: pointer; color: #555; transition: all 0.1s; }
+    .template-chip:hover { border-color: var(--accent); color: var(--accent); }
+    .template-chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .form-group { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.9rem; }
+    .form-group label { font-size: 0.82rem; font-weight: 600; color: #444; }
+    .form-group input, .form-group select, .form-group textarea { padding: 0.55rem 0.75rem; border: 1px solid #c5cae9; border-radius: 8px; font-size: 0.9rem; font-family: inherit; outline: none; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    .form-row { display: flex; gap: 1rem; }
+    .form-row .form-group { flex: 1; }
+
+    .gen-btn { background: var(--accent); color: #fff; border: none; padding: 0.6rem 1.5rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .gen-btn:hover { background: #283593; }
+
+    .preview-box { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 10px; padding: 1.25rem; margin-top: 0.75rem; font-family: Georgia, 'Times New Roman', serif; font-size: 0.92rem; line-height: 1.7; color: #333; display: none; }
+    .preview-box.visible { display: block; }
+    .preview-box .preview-header { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 0.78rem; color: #888; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px dashed #ccc; }
+    .preview-box .signature-line { margin-top: 2rem; border-top: 1px solid #999; width: 240px; padding-top: 0.25rem; font-size: 0.85rem; color: #555; }
+
+    .action-bar { display: flex; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap; }
+    .btn-download { background: #166534; color: #fff; border: none; padding: 0.55rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.88rem; }
+    .btn-vault { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 0.55rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.88rem; }
+    .btn-copy { background: #e8eaf6; color: var(--accent); border: none; padding: 0.55rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.88rem; }
+
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; }
+    .sidebar-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.75rem; color: #1a1a2e; }
+    .sidebar-link { display: block; color: var(--accent); text-decoration: none; padding: 0.4rem 0; font-size: 0.88rem; }
+    .sidebar-link:hover { text-decoration: underline; }
+    .notice-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 1rem; font-size: 0.82rem; color: #1e3a5f; line-height: 1.5; }
+    .notice-box strong { display: block; margin-bottom: 0.25rem; }
+
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
+
+    @media (max-width: 900px) { .main { grid-template-columns: 1fr; } .sidebar { order: -1; } }
+    @media (max-width: 768px) { nav.core-nav { display: none; } .hamburger { display: block; } .form-row { flex-direction: column; gap: 0; } }
+  </style>
+</head>
+<body>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/home.html">🏠 Home</a>
+    <a href="/library.html">📚 Library</a>
+    <a href="/office.html">🏢 Office</a>
+    <a href="/tools.html" style="color:#f59e0b;font-weight:700;">🔧 Tools</a>
+    <a href="/help.html">🆘 Help</a>
+    <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0;">
+    <a href="/tools/calculators.html">🧮 Calculators</a>
+    <a href="/tools/generators.html" style="color:#f59e0b;font-weight:700;">📝 Generators</a>
+    <a href="/tools/checklists.html">☑️ Checklists</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <a href="/home.html" class="logo">Semptify</a>
+      <nav class="core-nav">
+        <a href="/home.html">🏠 Home</a>
+        <a href="/library.html">📚 Library</a>
+        <a href="/office.html">🏢 Office</a>
+        <a href="/tools.html" class="active">🔧 Tools</a>
+        <a href="/help.html">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">🔒 Vault</button>
+        <button class="user-btn">👤 User</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="breadcrumb">
+    <div class="breadcrumb-inner">
+      <a href="/home.html">Home</a> ›
+      <a href="/tools.html">Tools</a> ›
+      <strong>Document Generators</strong>
+    </div>
+  </div>
+
+  <div class="main">
+    <div>
+      <div class="hero">
+        <h1>📝 Document Generators</h1>
+        <p>Generate standard housing letters. Fill in the blanks, preview, download, or save to your vault. Not a substitute for legal advice.</p>
+      </div>
+
+      <!-- REPAIR REQUEST -->
+      <div class="gen-card" id="card-repair">
+        <h3><span class="emoji">🔧</span> Repair Request Letter</h3>
+        <div class="template-select">
+          <button class="template-chip active" onclick="setTemplate('repair','standard')">Standard</button>
+          <button class="template-chip" onclick="setTemplate('repair','urgent')">Urgent / Habitability</button>
+          <button class="template-chip" onclick="setTemplate('repair','second')">Second Request</button>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" id="rr-name" placeholder="James Taylor">
+          </div>
+          <div class="form-group">
+            <label>Your Address / Unit</label>
+            <input type="text" id="rr-address" placeholder="Unit 12B, 123 Harborview Drive">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Landlord / Manager Name</label>
+            <input type="text" id="rr-landlord" placeholder="Harborview Properties">
+          </div>
+          <div class="form-group">
+            <label for="rr-date">Date</label>
+            <input type="date" id="rr-date">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Issue Description</label>
+          <textarea id="rr-issue" placeholder="The heater in my unit has not worked since January 10, 2025. Temperatures in the unit have dropped below 55°F..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="rr-deadline">Requested Repair Deadline (optional)</label>
+          <input type="date" id="rr-deadline">
+        </div>
+        <button class="gen-btn" onclick="generateRepair()">Generate Letter</button>
+        <div class="preview-box" id="rr-preview"></div>
+        <div class="action-bar" id="rr-actions" style="display:none;">
+          <button class="btn-download" onclick="downloadLetter('rr-preview','repair-request.txt')">📥 Download</button>
+          <button class="btn-vault" onclick="saveToVault('rr-preview')">🔒 Save to Vault</button>
+          <button class="btn-copy" onclick="copyLetter('rr-preview')">📋 Copy Text</button>
+        </div>
+      </div>
+
+      <!-- NOTICE RESPONSE -->
+      <div class="gen-card" id="card-notice">
+        <h3><span class="emoji">📋</span> Notice Response Letter</h3>
+        <div class="template-select">
+          <button class="template-chip active" onclick="setTemplate('notice','dispute')">Dispute Amount</button>
+          <button class="template-chip" onclick="setTemplate('notice','payment-plan')">Request Payment Plan</button>
+          <button class="template-chip" onclick="setTemplate('notice','repair-defense')">Repair Defense</button>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" id="nr-name" placeholder="James Taylor">
+          </div>
+          <div class="form-group">
+            <label>Your Address / Unit</label>
+            <input type="text" id="nr-address" placeholder="Unit 12B, 123 Harborview Drive">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Landlord / Manager Name</label>
+            <input type="text" id="nr-landlord" placeholder="Harborview Properties">
+          </div>
+          <div class="form-group">
+            <label for="nr-date">Date</label>
+            <input type="date" id="nr-date">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nr-type">Notice Type</label>
+            <select id="nr-type">
+              <option value="pay-or-quit">3-Day Notice to Pay or Quit</option>
+              <option value="cure-or-quit">3-Day Notice to Cure or Quit</option>
+              <option value="unconditional-quit">Unconditional Quit Notice</option>
+              <option value="rent-increase">Rent Increase Notice</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="nr-notice-date">Notice Date</label>
+            <input type="date" id="nr-notice-date">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Your Response / Defense</label>
+          <textarea id="nr-defense" placeholder="I dispute the amount owed. The landlord has failed to repair the heater since January 10, 2025, making the unit uninhabitable..."></textarea>
+        </div>
+        <button class="gen-btn" onclick="generateNoticeResponse()">Generate Response</button>
+        <div class="preview-box" id="nr-preview"></div>
+        <div class="action-bar" id="nr-actions" style="display:none;">
+          <button class="btn-download" onclick="downloadLetter('nr-preview','notice-response.txt')">📥 Download</button>
+          <button class="btn-vault" onclick="saveToVault('nr-preview')">🔒 Save to Vault</button>
+          <button class="btn-copy" onclick="copyLetter('nr-preview')">📋 Copy Text</button>
+        </div>
+      </div>
+
+      <!-- SECURITY DEPOSIT DEMAND -->
+      <div class="gen-card" id="card-deposit">
+        <h3><span class="emoji">🏦</span> Security Deposit Demand Letter</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" id="sd-name" placeholder="James Taylor">
+          </div>
+          <div class="form-group">
+            <label>Your Forwarding Address</label>
+            <input type="text" id="sd-address" placeholder="456 New Street, City, State ZIP">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Former Landlord Name</label>
+            <input type="text" id="sd-landlord" placeholder="Harborview Properties">
+          </div>
+          <div class="form-group">
+            <label>Former Address / Unit</label>
+            <input type="text" id="sd-former" placeholder="Unit 12B, 123 Harborview Drive">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="sd-moveout">Move-Out Date</label>
+            <input type="date" id="sd-moveout">
+          </div>
+          <div class="form-group">
+            <label>Deposit Amount ($)</label>
+            <input type="number" id="sd-amount" placeholder="1200" min="0" step="0.01">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Days Since Move-Out (state law deadline)</label>
+            <input type="number" id="sd-days" placeholder="21" min="1">
+          </div>
+          <div class="form-group">
+            <label>State (for citation)</label>
+            <input type="text" id="sd-state" placeholder="California">
+          </div>
+        </div>
+        <button class="gen-btn" onclick="generateDepositDemand()">Generate Demand</button>
+        <div class="preview-box" id="sd-preview"></div>
+        <div class="action-bar" id="sd-actions" style="display:none;">
+          <button class="btn-download" onclick="downloadLetter('sd-preview','deposit-demand.txt')">📥 Download</button>
+          <button class="btn-vault" onclick="saveToVault('sd-preview')">🔒 Save to Vault</button>
+          <button class="btn-copy" onclick="copyLetter('sd-preview')">📋 Copy Text</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-title">🔧 Tools Menu</div>
+        <a href="/tools/calculators.html" class="sidebar-link">🧮 Calculators</a>
+        <a href="/tools/generators.html" class="sidebar-link" style="font-weight:700;color:#1a1a2e;">📝 Document Generators ←</a>
+        <a href="/tools/checklists.html" class="sidebar-link">☑️ Checklists</a>
+        <a href="/office/timeline.html" class="sidebar-link">📅 Timeline</a>
+      </div>
+
+      <div class="notice-box">
+        <strong>⚠️ Not Legal Advice</strong>
+        These letters are templates only. Review with a housing advocate or attorney before sending. Semptify does not provide legal representation.
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">📚 Related Resources</div>
+        <a href="/library.html" class="sidebar-link">Research Center →</a>
+        <a href="/office/vault.html" class="sidebar-link">Save generated docs to Vault →</a>
+        <a href="/help.html" class="sidebar-link">Find Legal Aid →</a>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <div>
+      <a href="/home.html">Home</a>
+      <a href="/tools.html">Tools</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/help.html">Help</a>
+    </div>
+    <div style="margin-top:0.5rem;">Generated letters are templates · Review before sending · Not legal advice</div>
+  </footer>
+
+  <script src="/js/core/vault-portal.js"></script>
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+
+    const templates = { repair: 'standard', notice: 'dispute' };
+    function setTemplate(type, tpl) {
+      templates[type] = tpl;
+      document.querySelectorAll('#card-' + type + ' .template-chip').forEach(c => c.classList.toggle('active', c.textContent.toLowerCase().includes(tpl.replace('-',' '))));
+    }
+
+    document.getElementById('rr-date').valueAsDate = new Date();
+    document.getElementById('nr-date').valueAsDate = new Date();
+    document.getElementById('sd-moveout').valueAsDate = new Date(new Date().setMonth(new Date().getMonth() - 1));
+
+    function generateRepair() {
+      const name = document.getElementById('rr-name').value.trim() || '[Your Name]';
+      const addr = document.getElementById('rr-address').value.trim() || '[Your Address]';
+      const landlord = document.getElementById('rr-landlord').value.trim() || '[Landlord Name]';
+      const date = document.getElementById('rr-date').valueAsDate?.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) || new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+      const issue = document.getElementById('rr-issue').value.trim() || '[Describe the repair issue here]';
+      const deadline = document.getElementById('rr-deadline').value;
+      const dlStr = deadline ? `Please complete the repair by ${new Date(deadline+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric')}.` : 'Please complete the repair within a reasonable time, not to exceed the timeframe required by state and local law.';
+      const tpl = templates.repair;
+      let urgency = '';
+      if (tpl === 'urgent') urgency = 'This is an urgent habitability issue that affects the health and safety of the occupants. ';
+      if (tpl === 'second') urgency = 'This is my second written request regarding this issue. Despite my previous request dated [previous date], no repair has been made. ';
+
+      const text = `${date}
+
+${landlord}
+${addr}
+
+Re: Repair Request — ${addr}
+
+Dear ${landlord},
+
+${urgency}I am writing to formally request repair of the following issue at my rental unit:
+
+${issue}
+
+${dlStr}
+
+Under state and local law, landlords are required to maintain rental units in a habitable condition. Failure to make necessary repairs may entitle tenants to remedies including repair-and-deduct, rent withholding, or termination of the lease.
+
+Please contact me at your earliest convenience to schedule access for repair work.
+
+Sincerely,
+
+${name}
+${addr}`;
+
+      showPreview('rr-preview', text, 'rr-actions');
+    }
+
+    function generateNoticeResponse() {
+      const name = document.getElementById('nr-name').value.trim() || '[Your Name]';
+      const addr = document.getElementById('nr-address').value.trim() || '[Your Address]';
+      const landlord = document.getElementById('nr-landlord').value.trim() || '[Landlord Name]';
+      const date = document.getElementById('nr-date').valueAsDate?.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) || new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+      const type = document.getElementById('nr-type');
+      const noticeName = type.options[type.selectedIndex].text;
+      const noticeDate = document.getElementById('nr-notice-date').value;
+      const ndStr = noticeDate ? ` dated ${new Date(noticeDate+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric')}` : '';
+      const defense = document.getElementById('nr-defense').value.trim() || '[Your response or defense]';
+      const tpl = templates.notice;
+      let tone = '';
+      if (tpl === 'payment-plan') tone = 'I am unable to pay the full amount at this time due to [reason]. I propose a payment plan of $[amount] per month until the balance is paid in full.';
+      else if (tpl === 'repair-defense') tone = 'I dispute the validity of this notice because the landlord has failed to maintain the premises in a habitable condition. Under the doctrine of constructive eviction / implied warranty of habitability, I am entitled to withhold rent or make repairs and deduct the cost.';
+      else tone = defense;
+
+      const text = `${date}
+
+${landlord}
+${addr}
+
+Re: Response to ${noticeName}${ndStr}
+
+Dear ${landlord},
+
+I am writing in response to the ${noticeName} I received${ndStr} regarding my tenancy at ${addr}.
+
+${tone}
+
+I request that you withdraw this notice and work with me to resolve this matter in good faith. If this notice is not withdrawn, I will pursue all legal remedies available to me under state and local law.
+
+Sincerely,
+
+${name}
+${addr}`;
+
+      showPreview('nr-preview', text, 'nr-actions');
+    }
+
+    function generateDepositDemand() {
+      const name = document.getElementById('sd-name').value.trim() || '[Your Name]';
+      const addr = document.getElementById('sd-address').value.trim() || '[Your Forwarding Address]';
+      const landlord = document.getElementById('sd-landlord').value.trim() || '[Former Landlord]';
+      const former = document.getElementById('sd-former').value.trim() || '[Former Address]';
+      const moveout = document.getElementById('sd-moveout').value;
+      const moStr = moveout ? new Date(moveout+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '[Move-Out Date]';
+      const amount = document.getElementById('sd-amount').value || '[Deposit Amount]';
+      const days = document.getElementById('sd-days').value || '[Deadlin]';
+      const state = document.getElementById('sd-state').value.trim() || '[State]';
+
+      const text = `${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}
+
+${landlord}
+${former}
+
+Re: Demand for Return of Security Deposit — ${former}
+
+Dear ${landlord},
+
+I vacated the premises at ${former} on ${moStr}. My forwarding address is:
+
+${addr}
+
+Pursuant to ${state} law, landlords must return security deposits within ${days} days of move-out, less lawful deductions, along with an itemized statement of any deductions.
+
+To date, I have not received my security deposit of $${amount}, nor have I received an itemized statement of deductions.
+
+I demand the full return of my security deposit in the amount of $${amount} within seven (7) days of this letter. Failure to comply will result in legal action to recover the deposit, plus any statutory penalties, interest, and attorneys' fees permitted by ${state} law.
+
+Sincerely,
+
+${name}
+${addr}`;
+
+      showPreview('sd-preview', text, 'sd-actions');
+    }
+
+    function showPreview(id, text, actionsId) {
+      const el = document.getElementById(id);
+      el.innerHTML = `<div class="preview-header">Preview — ${new Date().toLocaleDateString()}</div><pre style="white-space:pre-wrap;font-family:inherit;margin:0;font-size:inherit">${text.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</pre>`;
+      el.classList.add('visible');
+      if (actionsId) document.getElementById(actionsId).style.display = 'flex';
+    }
+
+    function downloadLetter(id, filename) {
+      const text = document.getElementById(id).querySelector('pre')?.textContent || '';
+      const blob = new Blob([text], {type: 'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename; a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function copyLetter(id) {
+      const text = document.getElementById(id).querySelector('pre')?.textContent || '';
+      navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
+    }
+
+    function saveToVault(id) {
+      const text = document.getElementById(id).querySelector('pre')?.textContent || '';
+      alert('This would save the generated letter to your vault. Vault upload coming soon.');
+    }
+  </script>
+</body>
+</html>
