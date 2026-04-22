@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Delivery – Semptify Office</title>
+  <style>
+    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; --vault: #f59e0b; --vault2: #d97706; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9ff; color: #1a1a2e; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: #fff; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .vault-btn { background: linear-gradient(135deg, var(--vault), var(--vault2)); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+    .breadcrumb { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0.6rem 0; }
+    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+
+    .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+
+    /* FORM CARDS */
+    .form-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem; }
+    .form-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: #1a1a2e; }
+    .form-group { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
+    .form-group label { font-size: 0.8rem; font-weight: 600; color: #444; }
+    .form-group input, .form-group select, .form-group textarea { padding: 0.55rem 0.75rem; border: 1px solid #c5cae9; border-radius: 8px; font-size: 0.9rem; font-family: inherit; outline: none; background: #fff; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    .form-row { display: flex; gap: 1rem; }
+    .form-row .form-group { flex: 1; }
+
+    /* DOC SELECT */
+    .doc-select { display: flex; flex-direction: column; gap: 0.5rem; }
+    .doc-select-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 10px; cursor: pointer; transition: all 0.15s; }
+    .doc-select-item:hover { border-color: var(--accent); background: #f8f9ff; }
+    .doc-select-item.selected { border-color: var(--accent); background: #e8eaf6; }
+    .doc-select-item input[type="radio"] { cursor: pointer; width: 18px; height: 18px; accent-color: var(--accent); }
+    .doc-select-info { flex: 1; }
+    .doc-select-name { font-weight: 600; font-size: 0.88rem; }
+    .doc-select-meta { font-size: 0.75rem; color: #888; margin-top: 0.1rem; }
+    .doc-tag-inline { display: inline-block; padding: 0.1rem 0.4rem; border-radius: 6px; font-size: 0.68rem; font-weight: 600; margin-left: 0.4rem; }
+    .tag-timestamped { background: #d1fae5; color: #065f46; }
+
+    /* DELIVERY TYPE */
+    .delivery-type-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; }
+    .delivery-type-card { border: 2px solid #e0e0e0; border-radius: 10px; padding: 1rem; cursor: pointer; transition: all 0.15s; }
+    .delivery-type-card:hover { border-color: var(--accent); }
+    .delivery-type-card.selected { border-color: var(--accent); background: #e8eaf6; }
+    .delivery-type-card .dt-title { font-weight: 700; font-size: 0.92rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.4rem; }
+    .delivery-type-card .dt-desc { font-size: 0.8rem; color: #666; line-height: 1.4; }
+    .delivery-type-card .dt-badge { display: inline-block; font-size: 0.7rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 6px; margin-top: 0.5rem; }
+
+    /* RECIPIENT */
+    .recipient-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem; }
+    .recipient-card { border: 1px solid #e0e0e0; border-radius: 10px; padding: 0.75rem 1rem; cursor: pointer; text-align: center; transition: all 0.15s; }
+    .recipient-card:hover { border-color: var(--accent); }
+    .recipient-card.selected { border-color: var(--accent); background: #e8eaf6; }
+    .recipient-card .rc-icon { font-size: 1.5rem; display: block; margin-bottom: 0.3rem; }
+    .recipient-card .rc-name { font-size: 0.82rem; font-weight: 600; }
+    .recipient-card .rc-role { font-size: 0.7rem; color: #888; }
+
+    /* SEND BUTTON */
+    .send-bar { display: flex; gap: 0.75rem; justify-content: flex-end; padding-top: 0.5rem; }
+    .btn-send { background: linear-gradient(135deg, var(--accent), #283593); color: #fff; border: none; padding: 0.7rem 2rem; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; }
+    .btn-cancel { background: #f0f0f0; color: #444; border: none; padding: 0.7rem 1.5rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+
+    /* SENT ITEMS */
+    .sent-list-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .sent-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 0.9rem 1rem; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+    .sent-status { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .status-pending { background: #f59e0b; }
+    .status-delivered { background: #22c55e; }
+    .status-read { background: #3b82f6; }
+    .status-signed { background: #15803d; }
+    .sent-info { flex: 1; min-width: 0; }
+    .sent-doc { font-weight: 600; font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sent-meta { font-size: 0.78rem; color: #888; margin-top: 0.1rem; }
+    .sent-badge { font-size: 0.7rem; font-weight: 600; padding: 0.12rem 0.5rem; border-radius: 8px; white-space: nowrap; }
+    .badge-review { background: #dbeafe; color: #1e40af; }
+    .badge-signature { background: #fef3c7; color: #92400e; }
+
+    /* SIDEBAR */
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; }
+    .sidebar-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.75rem; color: #1a1a2e; }
+    .sidebar-stat { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid #f0f0f0; font-size: 0.88rem; }
+    .sidebar-stat:last-child { border-bottom: none; }
+    .sidebar-stat strong { color: var(--accent); }
+    .notice-box { background: #fffbeb; border: 1px solid #f59e0b; border-radius: 10px; padding: 1rem; font-size: 0.82rem; color: #78350f; line-height: 1.5; }
+    .notice-box strong { display: block; margin-bottom: 0.25rem; }
+
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
+
+    @media (max-width: 900px) { .main { grid-template-columns: 1fr; } .sidebar { order: -1; } }
+    @media (max-width: 768px) { nav.core-nav { display: none; } .hamburger { display: block; } }
+  </style>
+</head>
+<body>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/home.html">🏠 Home</a>
+    <a href="/library.html">📚 Library</a>
+    <a href="/office.html">🏢 Office</a>
+    <a href="/tools.html">🔧 Tools</a>
+    <a href="/help.html">🆘 Help</a>
+    <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0;">
+    <a href="/office/vault.html">🔒 Vault</a>
+    <a href="/office/inbox.html">📨 Inbox</a>
+    <a href="/office/timeline.html">📅 Timeline</a>
+    <a href="/office/delivery.html" style="color:#f59e0b;font-weight:700;">📬 Delivery</a>
+    <a href="/office/signer.html">✍️ Signer</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <a href="/home.html" class="logo">Semptify</a>
+      <nav class="core-nav">
+        <a href="/home.html">🏠 Home</a>
+        <a href="/library.html">📚 Library</a>
+        <a href="/office.html" class="active">🏢 Office</a>
+        <a href="/tools.html">🔧 Tools</a>
+        <a href="/help.html">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">🔒 Vault</button>
+        <button class="user-btn">👤 User</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="breadcrumb">
+    <div class="breadcrumb-inner">
+      <a href="/home.html">Home</a> ›
+      <a href="/office.html">Office</a> ›
+      <strong>Document Delivery</strong>
+    </div>
+  </div>
+
+  <div class="main">
+    <div>
+      <!-- SEND FORM -->
+      <div class="form-card">
+        <h3>📤 Send a Document</h3>
+
+        <div class="form-group">
+          <label>Select Document from Vault</label>
+          <div class="doc-select" id="doc-select">
+            <label class="doc-select-item selected">
+              <input type="radio" name="doc" value="eviction-notice.pdf" checked>
+              <span class="doc-select-info">
+                <span class="doc-select-name">3-Day Notice to Pay or Quit.pdf</span>
+                <span class="doc-select-meta">182 KB · Uploaded Apr 19, 2025 <span class="doc-tag-inline tag-timestamped">✓ Timestamped</span></span>
+              </span>
+            </label>
+            <label class="doc-select-item">
+              <input type="radio" name="doc" value="lease-agreement.pdf">
+              <span class="doc-select-info">
+                <span class="doc-select-name">Lease Agreement — 2024.pdf</span>
+                <span class="doc-select-meta">1.2 MB · Uploaded Mar 1, 2025 <span class="doc-tag-inline tag-timestamped">✓ Timestamped</span></span>
+              </span>
+            </label>
+            <label class="doc-select-item">
+              <input type="radio" name="doc" value="repair-request.pdf">
+              <span class="doc-select-info">
+                <span class="doc-select-name">Repair Request Letter — Heater.pdf</span>
+                <span class="doc-select-meta">89 KB · Uploaded Jan 14, 2025 <span class="doc-tag-inline" style="background:#fef3c7;color:#92400e;">⏳ Pending</span></span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Select Recipient</label>
+          <div class="recipient-grid" id="recipient-grid">
+            <div class="recipient-card selected" data-recipient="advocate" onclick="selectRecipient(this)">
+              <span class="rc-icon">🌿</span>
+              <span class="rc-name">Maria Gonzalez</span>
+              <span class="rc-role">Housing Advocate</span>
+            </div>
+            <div class="recipient-card" data-recipient="legal" onclick="selectRecipient(this)">
+              <span class="rc-icon">⚖️</span>
+              <span class="rc-name">Legal Aid Society</span>
+              <span class="rc-role">Attorney</span>
+            </div>
+            <div class="recipient-card" data-recipient="court" onclick="selectRecipient(this)">
+              <span class="rc-icon">🏛️</span>
+              <span class="rc-name">Small Claims Court</span>
+              <span class="rc-role">Court Clerk</span>
+            </div>
+            <div class="recipient-card" data-recipient="landlord" onclick="selectRecipient(this)">
+              <span class="rc-icon">🏠</span>
+              <span class="rc-name">Harborview Properties</span>
+              <span class="rc-role">Landlord / Manager</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Delivery Type</label>
+          <div class="delivery-type-grid" id="delivery-type-grid">
+            <div class="delivery-type-card selected" data-type="review" onclick="selectDeliveryType(this)">
+              <div class="dt-title">👁 Review Required</div>
+              <div class="dt-desc">Recipient reviews your document. You can request a read receipt to prove they opened it.</div>
+              <span class="dt-badge" style="background:#dbeafe;color:#1e40af;">Read receipt optional</span>
+            </div>
+            <div class="delivery-type-card" data-type="signature" onclick="selectDeliveryType(this)">
+              <div class="dt-title">✍️ Signature Required</div>
+              <div class="dt-desc">Recipient must sign or reject the document. Signature, timestamp, and identity are stored in your vault.</div>
+              <span class="dt-badge" style="background:#fef3c7;color:#92400e;">Always tracked</span>
+            </div>
+            <div class="delivery-type-card" data-type="process" style="opacity:0.5;cursor:default;" onclick="return">
+              <div class="dt-title">📨 Process Server</div>
+              <div class="dt-desc">Formal legal service of process. Full legal service record for court proceedings.</div>
+              <span class="dt-badge" style="background:#f3f4f6;color:#6b7280;">Coming soon</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="msg-body">Message (optional)</label>
+          <textarea id="msg-body" placeholder="Add a note for the recipient..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="read-receipt" checked style="accent-color:var(--accent);margin-right:0.4rem;">
+            Request read receipt
+          </label>
+        </div>
+
+        <div class="send-bar">
+          <button class="btn-cancel" onclick="clearForm()">Clear</button>
+          <button class="btn-send" onclick="sendDocument()">📤 Send Document</button>
+        </div>
+      </div>
+
+      <!-- SENT ITEMS -->
+      <div class="form-card" style="padding-top:1rem;">
+        <div class="sent-list-title">📬 Previously Sent</div>
+
+        <div class="sent-card">
+          <span class="sent-status status-read"></span>
+          <div class="sent-info">
+            <div class="sent-doc">Repair Request Letter — Heater.pdf</div>
+            <div class="sent-meta">To: Maria Gonzalez · Sent Apr 14, 2025 · Read Apr 14, 2025 2:47pm</div>
+          </div>
+          <span class="sent-badge badge-review">👁 Review</span>
+        </div>
+
+        <div class="sent-card">
+          <span class="sent-status status-pending"></span>
+          <div class="sent-info">
+            <div class="sent-doc">Lease Agreement — 2024.pdf</div>
+            <div class="sent-meta">To: Legal Aid Society · Sent Apr 10, 2025 · Pending</div>
+          </div>
+          <span class="sent-badge badge-signature">✍️ Signature</span>
+        </div>
+
+        <div class="sent-card">
+          <span class="sent-status status-signed"></span>
+          <div class="sent-info">
+            <div class="sent-doc">Move-In Inspection Checklist</div>
+            <div class="sent-meta">To: Harborview Properties · Sent Mar 1, 2024 · Signed Mar 2, 2024</div>
+          </div>
+          <span class="sent-badge badge-signature">✍️ Signed</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-title">📊 Delivery Stats</div>
+        <div class="sidebar-stat"><span>Sent</span><strong>3</strong></div>
+        <div class="sidebar-stat"><span>Pending</span><strong>1</strong></div>
+        <div class="sidebar-stat"><span>Read</span><strong>1</strong></div>
+        <div class="sidebar-stat"><span>Signed</span><strong>1</strong></div>
+        <div class="sidebar-stat"><span>Awaiting Signature</span><strong>1</strong></div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">⚡ Quick Actions</div>
+        <div style="display:flex;flex-direction:column;gap:0.4rem;">
+          <a href="/office/vault.html" style="background:#e8eaf6;color:#3949ab;border:none;padding:0.55rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">🔒 Open Vault</a>
+          <a href="/office/inbox.html" style="background:#f0f0f0;color:#444;border:none;padding:0.55rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">📨 Check Inbox</a>
+          <a href="/office/signer.html" style="background:#f0f0f0;color:#444;border:none;padding:0.55rem;border-radius:8px;font-weight:600;cursor:pointer;font-size:0.9rem;text-align:center;text-decoration:none;display:block;">✍️ Sign Document</a>
+        </div>
+      </div>
+
+      <div class="notice-box">
+        <strong>🔒 Privacy</strong>
+        When you send a document, a delivery receipt is created in your vault. For signature-required deliveries, the recipient's signature, timestamp, and identity are recorded as tamper-evident evidence. You always keep the original in your cloud storage.
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">🏢 Office Navigation</div>
+        <div style="display:flex;flex-direction:column;gap:0.25rem;">
+          <a href="/office/vault.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">🔒 Document Vault</a>
+          <a href="/office/inbox.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📨 Inbox</a>
+          <a href="/office/timeline.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📅 Timeline</a>
+          <a href="/office/delivery.html" style="color:#3949ab;font-weight:700;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📬 Document Delivery ←</a>
+          <a href="/office/signer.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">✍️ Document Signer</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <div>
+      <a href="/home.html">Home</a>
+      <a href="/office.html">Office</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/help.html">Help</a>
+    </div>
+    <div style="margin-top:0.5rem;">Delivery receipts stored in your vault · Tamper-evident timestamps · Not legal advice</div>
+  </footer>
+
+  <script src="/js/core/vault-portal.js"></script>
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+
+    function selectRecipient(el) {
+      document.querySelectorAll('.recipient-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    function selectDeliveryType(el) {
+      if (el.dataset.type === 'process') return;
+      document.querySelectorAll('.delivery-type-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      const receipt = document.getElementById('read-receipt');
+      if (receipt) receipt.disabled = el.dataset.type === 'signature';
+    }
+
+    document.querySelectorAll('.doc-select-item input').forEach(r => {
+      r.addEventListener('change', function() {
+        document.querySelectorAll('.doc-select-item').forEach(l => l.classList.toggle('selected', l.querySelector('input').checked));
+      });
+    });
+
+    function clearForm() {
+      document.getElementById('msg-body').value = '';
+      document.getElementById('read-receipt').checked = true;
+    }
+
+    function sendDocument() {
+      const doc = document.querySelector('.doc-select-item.selected input').value;
+      const recipient = document.querySelector('.recipient-card.selected .rc-name').textContent;
+      const type = document.querySelector('.delivery-type-card.selected').dataset.type;
+      const msg = document.getElementById('msg-body').value.trim();
+      const readReceipt = document.getElementById('read-receipt').checked;
+      const typeLabel = type === 'signature' ? 'Signature Required' : 'Review Required';
+      const receiptNote = readReceipt && type !== 'signature' ? ' with read receipt' : '';
+      alert(`📤 Document sent!\n\nDocument: ${doc}\nTo: ${recipient}\nType: ${typeLabel}${receiptNote}\n\nA delivery receipt has been added to your vault.`);
+    }
+  </script>
+</body>
+</html>
