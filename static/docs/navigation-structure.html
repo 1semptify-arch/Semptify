@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Semptify Navigation Structure & Positioning</title>
+  <style>
+    body { font-family: system-ui; background: #0f172a; color: #e2e8f0; padding: 2rem; }
+    .section { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+    h2 { color: #10b981; margin-top: 0; }
+    h3 { color: #60a5fa; }
+    .position-demo { background: #0f172a; padding: 1rem; border-radius: 4px; margin: 1rem 0; font-family: monospace; }
+    .nav-row { display: flex; align-items: center; padding: 0.5rem; border: 1px dashed #475569; margin-bottom: 0.5rem; }
+    .nav-left { flex: 1; display: flex; gap: 1rem; }
+    .nav-center { flex: 2; text-align: center; }
+    .nav-right { flex: 1; display: flex; justify-content: flex-end; gap: 0.5rem; }
+    .item { background: #334155; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.85rem; }
+    .item-logo { background: #10b981; color: white; }
+    .item-vault { background: #f59e0b; color: white; }
+    .item-user { background: #6366f1; color: white; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { padding: 0.75rem; text-align: left; border: 1px solid #334155; }
+    th { background: #1e293b; }
+    .role-pub { color: #60a5fa; }
+    .role-ten { color: #c084fc; }
+    .role-adv { color: #4ade80; }
+    .role-leg { color: #fca5a5; }
+    .role-man { color: #fdba74; }
+  </style>
+</head>
+<body>
+  <nav style="background: #1e293b; padding: 1rem; margin: -2rem -2rem 2rem -2rem; border-bottom: 1px solid #334155;">
+    <a href="/docs/navigation-structure.html" style="color: #10b981; text-decoration: none; margin-right: 1.5rem; font-weight: bold;">🧭 Navigation Structure</a>
+    <a href="/docs/component-inventory.html" style="color: #60a5fa; text-decoration: none; margin-right: 1.5rem;">📦 Component Inventory</a>
+    <a href="/admin/function-browser.html" style="color: #60a5fa; text-decoration: none; margin-right: 1.5rem;">⚙️ Function Browser</a>
+    <a href="/docs/core-navigation-functions.md" style="color: #60a5fa; text-decoration: none;">📝 Markdown Reference</a>
+  </nav>
+  
+  <h1>🧭 Semptify Navigation Structure</h1>
+  <p>Standardized navigation positioning across all role pages. 
+     <a href="/docs/component-inventory.html" style="color: #10b981;">See available components →</a></p>
+
+  <!-- GLOBAL HEADER STRUCTURE -->
+  <div class="section">
+    <h2>Global Header Layout</h2>
+    
+    <h3>Public Pages (Not Logged In):</h3>
+    <div class="position-demo">
+      <div class="nav-row" style="background: #1e293b;">
+        <div class="nav-left">
+          <span class="item item-logo">🏠 LOGO</span>
+          <span class="item">Home</span>
+          <span class="item">Library</span>
+          <span class="item">Office</span>
+          <span class="item">Tools</span>
+          <span class="item">Help</span>
+        </div>
+        <div class="nav-right">
+          <span class="item" style="background: transparent; border: 1px solid #475569;">Sign In</span>
+          <span class="item" style="background: #10b981;">Get Started</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>Logged-In Pages (Tenant/Advocate/Legal/Manager):</h3>
+    <div class="position-demo">
+      <div class="nav-row" style="background: #1e293b;">
+        <div class="nav-left">
+          <span class="item item-logo">🏠 LOGO</span>
+          <span class="item">Home</span>
+          <span class="item">Library</span>
+          <span class="item">Office</span>
+          <span class="item">Tools</span>
+          <span class="item">Help</span>
+        </div>
+        <div class="nav-right">
+          <span class="item item-vault">🔒 Vault</span>
+          <span class="item item-user">👤 User</span>
+        </div>
+      </div>
+    </div>
+
+    <h3>Position Breakdown:</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Position</th>
+          <th>Public</th>
+          <th>Logged-In</th>
+          <th>Mobile</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Left edge</td>
+          <td>Logo</td>
+          <td>Logo + Home</td>
+          <td>Always visible</td>
+        </tr>
+        <tr>
+          <td>Left-center</td>
+          <td>5 Core Nav</td>
+          <td>5 Core Nav</td>
+          <td>Hamburger menu</td>
+        </tr>
+        <tr>
+          <td>Right edge</td>
+          <td>Sign In / Get Started</td>
+          <td>User menu</td>
+          <td>Buttons or icon</td>
+        </tr>
+        <tr>
+          <td>Right (before user)</td>
+          <td>—</td>
+          <td>Vault Door button</td>
+          <td>Always visible</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p><strong>Note:</strong> Public pages have <strong>no user account</strong> - only Sign In / Get Started buttons to initiate onboarding.</p>
+  </div>
+
+  <div style="background: #1e3a5f; padding: 1rem; border-radius: 8px; margin: 2rem 0;">
+  <h3 style="margin-top: 0;">🔗 Related Documentation</h3>
+  <p>
+    <a href="/docs/component-inventory.html" style="color: #60a5fa; display: inline-block; margin-right: 1rem;">📦 What components to place →</a><br><br>
+    <a href="/admin/function-browser.html" style="color: #60a5fa; display: inline-block; margin-right: 1rem;">⚙️ What functions go where →</a><br><br>
+    <a href="/admin/theme-preview.html" style="color: #60a5fa; display: inline-block;">🎨 Which theme per role →</a>
+  </p>
+</div>
+
+<!-- 5 CORE NAVIGATION LINKS -->
+  <div class="section">
+    <h2>5 Core Navigation Links</h2>
+    <p>Every page must have these 5 links in this order:</p>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Label</th>
+          <th>URL</th>
+          <th>Purpose</th>
+          <th>Mobile Icon</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><strong>Home</strong></td>
+          <td><code>/home.html</code></td>
+          <td>Role dashboard, overview</td>
+          <td>🏠</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><strong>Library</strong></td>
+          <td><code>/library.html</code></td>
+          <td>Rights, laws, research</td>
+          <td>📚</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><strong>Office</strong></td>
+          <td><code>/office.html</code></td>
+          <td>Documents, vault, communication</td>
+          <td>🏢</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><strong>Tools</strong></td>
+          <td><code>/tools.html</code></td>
+          <td>Calculators, generators</td>
+          <td>🔧</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><strong>Help</strong></td>
+          <td><code>/help.html</code></td>
+          <td>Support, FAQ, crisis resources</td>
+          <td>🆘</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Active State:</h3>
+    <p>The current page's nav link gets <code>class="active"</code> styling (highlighted)</p>
+  </div>
+
+  <!-- ROLE-SPECIFIC VARIATIONS -->
+  <div class="section">
+    <h2>Role-Specific Navigation</h2>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>Role</th>
+          <th>Theme</th>
+          <th>Home URL</th>
+          <th>Special Nav Items</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="role-pub">
+          <td><strong>Public</strong></td>
+          <td>🌊 Ocean</td>
+          <td><code>/public/welcome.html</code></td>
+          <td>Sign In / Get Started (buttons)</td>
+        </tr>
+        <tr class="role-ten">
+          <td><strong>Tenant</strong></td>
+          <td>👑 Royal</td>
+          <td><code>/tenant/index.html</code></td>
+          <td>Emergency banner (when active)</td>
+        </tr>
+        <tr class="role-adv">
+          <td><strong>Advocate</strong></td>
+          <td>🌲 Forest</td>
+          <td><code>/advocate/index.html</code></td>
+          <td>Case load counter, quick message</td>
+        </tr>
+        <tr class="role-leg">
+          <td><strong>Legal</strong></td>
+          <td>🩸 Crimson</td>
+          <td><code>/legal/index.html</code></td>
+          <td>Privileged mode indicator</td>
+        </tr>
+        <tr class="role-man">
+          <td><strong>Manager</strong></td>
+          <td>🪨 Slate</td>
+          <td><code>/manager/index.html</code></td>
+          <td>Property switcher</td>
+        </tr>
+        <tr class="role-pub">
+          <td><strong>Admin</strong></td>
+          <td>🌊 Ocean</td>
+          <td><code>/admin/dashboard.html</code></td>
+          <td>System health, user mgmt</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SUB-PAGE NAVIGATION -->
+  <div class="section">
+    <h2>Sub-Page Navigation Patterns</h2>
+    
+    <h3>Office Sub-Pages (all under /office/):</h3>
+    <ul>
+      <li><code>/office/vault.html</code> - Document upload & management</li>
+      <li><code>/office/inbox.html</code> - Communication center</li>
+      <li><code>/office/timeline.html</code> - Journal/timeline view</li>
+      <li><code>/office/delivery.html</code> - Send documents out</li>
+      <li><code>/office/signer.html</code> - Sign PDFs (desktop only)</li>
+    </ul>
+
+    <h3>Library Sub-Pages:</h3>
+    <ul>
+      <li><code>/library/rights.html</code> - Rights guides</li>
+      <li><code>/library/laws.html</code> - Law database search</li>
+      <li><code>/library/forms.html</code> - Form templates</li>
+    </ul>
+
+    <h3>Tools Sub-Pages:</h3>
+    <ul>
+      <li><code>/tools/calculators.html</code> - Rent/deadline calculators</li>
+      <li><code>/tools/generators.html</code> - Notice/letter generators</li>
+    </ul>
+
+    <h3>Help Sub-Pages:</h3>
+    <ul>
+      <li><code>/help/faq.html</code> - Knowledge base</li>
+      <li><code>/help/crisis.html</code> - Emergency resources (tenant)</li>
+      <li><code>/help/contact.html</code> - Contact forms</li>
+    </ul>
+  </div>
+
+  <!-- BREADCRUMB PATTERN -->
+  <div class="section">
+    <h2>Breadcrumb Navigation (Desktop Only)</h2>
+    <div class="position-demo">
+      <div style="font-size: 0.85rem; color: #94a3b8;">
+        Home > Office > Vault > Upload
+      </div>
+    </div>
+    <p><strong>Mobile:</strong> Hidden (use back button instead)</p>
+    <p><strong>Depth:</strong> Show when 2+ levels deep</p>
+  </div>
+
+  <!-- MOBILE NAVIGATION -->
+  <div class="section">
+    <h2>Mobile Navigation Pattern</h2>
+    
+    <div class="position-demo">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem;">
+        <span class="item">☰ Menu</span>
+        <span class="item item-logo">🏠 LOGO</span>
+        <span class="item item-vault">🔒</span>
+      </div>
+    </div>
+
+    <h3>Drawer Panel (slides from left):</h3>
+    <ul>
+      <li>🏠 Home</li>
+      <li>📚 Library</li>
+      <li>🏢 Office</li>
+      <li>🔧 Tools</li>
+      <li>🆘 Help</li>
+      <li style="border-top: 1px solid #475569; margin-top: 0.5rem; padding-top: 0.5rem;">
+        🔒 <strong>Vault Door</strong> (prominent)
+      </li>
+      <li>👤 My Account</li>
+      <li>⚙️ Settings</li>
+    </ul>
+  </div>
+
+  <!-- URL STRUCTURE -->
+  <div class="section">
+    <h2>Complete URL Structure</h2>
+    
+    <pre style="background: #0f172a; padding: 1rem; border-radius: 4px; overflow-x: auto;">
+/
+├── public/
+│   ├── welcome.html          (Public landing)
+│   ├── about.html
+│   └── help.html             (Public help)
+├── tenant/
+│   ├── index.html            (Tenant dashboard - ROYAL theme)
+│   └── help.html             (Tenant-specific help)
+├── advocate/
+│   ├── index.html            (Advocate dashboard - FOREST theme)
+│   └── help.html
+├── legal/
+│   ├── index.html            (Legal dashboard - CRIMSON theme)
+│   └── help.html
+├── manager/
+│   ├── index.html            (Manager dashboard - SLATE theme)
+│   └── help.html
+├── admin/
+│   ├── dashboard.html        (Admin - OCEAN theme)
+│   ├── theme-preview.html
+│   ├── function-browser.html
+│   └── page-builder.html
+├── home.html                 (Role-aware redirect)
+├── library.html              (Main library landing)
+│   ├── rights.html
+│   ├── laws.html
+│   └── forms.html
+├── office.html               (Office main)
+│   ├── vault.html
+│   ├── inbox.html
+│   ├── timeline.html
+│   ├── delivery.html
+│   └── signer.html
+├── tools.html                (Tools main)
+│   ├── calculators.html
+│   └── generators.html
+└── help.html                 (Help main)
+    ├── faq.html
+    ├── crisis.html
+    └── contact.html
+    </pre>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="section">
+    <h2>Footer (All Pages)</h2>
+    <p>Standard footer with:</p>
+    <ul>
+      <li>Legal disclaimer</li>
+      <li>Privacy Policy link</li>
+      <li>Terms of Service link</li>
+      <li>Copyright</li>
+      <li>Version number</li>
+    </ul>
+    <p><strong>Position:</strong> Bottom of page, full width, themed color</p>
+  </div>
+
+  <!-- IMPLEMENTATION CHECKLIST -->
+  <div class="section">
+    <h2>Implementation Checklist</h2>
+    
+    <h3>Every Page Must Have:</h3>
+    <ul style="line-height: 1.8;">
+      <li>☐ <code>data-theme="X"</code> on body (ocean, royal, forest, crimson, slate)</li>
+      <li>☐ 5 core nav links in header (Home, Library, Office, Tools, Help)</li>
+      <li>☐ Vault Door button in header</li>
+      <li>☐ User menu in header</li>
+      <li>☐ Correct role-based home link</li>
+      <li>☐ Active state on current nav item</li>
+      <li>☐ Standard footer</li>
+      <li>☐ Responsive meta viewport tag</li>
+      <li>☐ Main CSS file linked</li>
+    </ul>
+  </div>
+
+</body>
+</html>

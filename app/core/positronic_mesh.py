@@ -17,7 +17,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 from dataclasses import dataclass, field
-import uuid
+from app.core.id_gen import make_id
 
 from app.core.mesh_config import get_mesh_config
 from app.core.mesh_deferral import deferral_queue
@@ -389,7 +389,7 @@ class PositronicMesh:
             raise ValueError(f"Unknown workflow type: {workflow_type}")
         
         # Create workflow from template
-        workflow_id = f"wf_{uuid.uuid4().hex[:12]}"
+        workflow_id = make_id("wf")
         template = self.workflow_templates[workflow_type]
         
         steps = []
@@ -863,7 +863,7 @@ def mesh_trigger_workflow(
             return Workflow(
                 workflow_type=workflow_type,
                 user_id=user_id,
-                workflow_id=f"pending-{uuid.uuid4().hex[:8]}",
+                workflow_id=make_id("wf"),
                 stage=WorkflowStage.PENDING,
                 context=payload,
             )

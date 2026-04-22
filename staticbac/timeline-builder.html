@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timeline Builder - Semptify</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2C5F2D;
+            --secondary: #3498DB;
+            --accent: #E67E22;
+            --background: #F8F9FA;
+            --text: #2D3436;
+            --success: #27AE60;
+            --danger: #E74C3C;
+        }
+        body {
+            background: var(--background);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .builder-header {
+            background: linear-gradient(135deg, var(--secondary), #1a5276);
+            color: white;
+            padding: 2rem;
+            border-bottom: 4px solid var(--accent);
+        }
+        .event-form-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .preview-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .preview-item {
+            padding: 1rem;
+            border-left: 4px solid var(--secondary);
+            background: #f8f9fa;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 1rem;
+        }
+        .preview-item.deadline { border-left-color: var(--danger); }
+        .preview-item.document { border-left-color: var(--success); }
+        .preview-item.communication { border-left-color: var(--accent); }
+        .type-selector {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .type-option {
+            padding: 0.5rem 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+        .type-option:hover { border-color: var(--secondary); }
+        .type-option.selected {
+            border-color: var(--secondary);
+            background: #e3f2fd;
+            color: var(--secondary);
+        }
+        .btn-primary-custom {
+            background: var(--secondary);
+            border-color: var(--secondary);
+            color: white;
+        }
+        .btn-primary-custom:hover {
+            background: #1a5276;
+            border-color: #1a5276;
+            color: white;
+        }
+        .helper-card {
+            background: #e3f2fd;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .helper-card i {
+            color: var(--secondary);
+            margin-right: 0.5rem;
+        }
+        .delete-btn {
+            color: var(--danger);
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+        .delete-btn:hover { color: #c0392b; }
+        .action-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .action-btn:hover { background: #1a5276; color: white; }
+    </style>
+</head>
+<body>
+    <div class="builder-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1><i class="bi bi-tools me-2"></i>Timeline Builder</h1>
+                    <p class="mb-0">Manually add events to your case timeline</p>
+                </div>
+                <a href="/timeline" class="action-btn"><i class="bi bi-arrow-left me-2"></i>Back to Timeline</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container py-4">
+        <div class="row g-4">
+            <!-- Form Column -->
+            <div class="col-lg-5">
+                <div class="event-form-card">
+                    <h5 class="mb-4"><i class="bi bi-plus-circle me-2"></i>Add New Event</h5>
+                    
+                    <!-- Helper Tips -->
+                    <div class="helper-card">
+                        <small><i class="bi bi-lightbulb"></i><strong>Tip:</strong> Add every important date: lease signing, rent payments, repairs requested, notices received, court dates.</small>
+                    </div>
+
+                    <form id="eventForm">
+                        <div class="mb-3">
+                            <label class="form-label">Event Title</label>
+                            <input type="text" class="form-control" id="eventTitle" required placeholder="e.g., 'Received eviction notice'">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-control" id="eventDate" required aria-label="Event date">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Event Type</label>
+                            <div class="type-selector">
+                                <div class="type-option selected" data-type="event">Event</div>
+                                <div class="type-option" data-type="deadline">Deadline</div>
+                                <div class="type-option" data-type="document">Document</div>
+                                <div class="type-option" data-type="communication">Communication</div>
+                                <div class="type-option" data-type="payment">Payment</div>
+                                <div class="type-option" data-type="repair">Repair</div>
+                            </div>
+                            <input type="hidden" id="eventType" value="event">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="eventDescription" rows="3" placeholder="Add details about what happened..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Associated Document (optional)</label>
+                            <select class="form-select" id="linkedDocument" aria-label="Associated document">
+                                <option value="">No document</option>
+                            </select>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="isCritical">
+                            <label class="form-check-label" for="isCritical">
+                                Mark as critical/urgent
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary-custom w-100">
+                            <i class="bi bi-plus-lg me-2"></i>Add to Timeline
+                        </button>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success" onclick="saveAllEvents()">
+                            <i class="bi bi-check-lg me-2"></i>Save All Events
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="clearAllEvents()">
+                            <i class="bi bi-trash me-2"></i>Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Column -->
+            <div class="col-lg-7">
+                <div class="preview-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="mb-0"><i class="bi bi-eye me-2"></i>Timeline Preview</h5>
+                        <span class="badge bg-secondary" id="eventCount">0 events</span>
+                    </div>
+
+                    <div id="previewContainer">
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-calendar-plus fs-1 mb-3"></i>
+                            <p>No events added yet. Use the form to start building your timeline.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let events = [];
+
+        // Type selector
+        document.querySelectorAll('.type-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                document.getElementById('eventType').value = option.dataset.type;
+            });
+        });
+
+        // Form submission
+        document.getElementById('eventForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const event = {
+                id: Date.now(),
+                title: document.getElementById('eventTitle').value,
+                date: document.getElementById('eventDate').value,
+                type: document.getElementById('eventType').value,
+                description: document.getElementById('eventDescription').value,
+                documentId: document.getElementById('linkedDocument').value,
+                critical: document.getElementById('isCritical').checked
+            };
+            
+            events.push(event);
+            events.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            renderPreview();
+            document.getElementById('eventForm').reset();
+            document.getElementById('eventType').value = 'event';
+            document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
+            document.querySelector('[data-type="event"]').classList.add('selected');
+        });
+
+        function renderPreview() {
+            const container = document.getElementById('previewContainer');
+            document.getElementById('eventCount').textContent = `${events.length} event${events.length !== 1 ? 's' : ''}`;
+            
+            if (events.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-calendar-plus fs-1 mb-3"></i>
+                        <p>No events added yet. Use the form to start building your timeline.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = events.map(event => `
+                <div class="preview-item ${event.type}">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-${event.critical ? 'danger' : 'secondary'}">${event.type}</span>
+                                ${event.critical ? '<i class="bi bi-exclamation-triangle-fill text-danger"></i>' : ''}
+                            </div>
+                            <h6 class="mb-1">${event.title}</h6>
+                            <small class="text-muted">${new Date(event.date).toLocaleDateString()}</small>
+                            ${event.description ? `<p class="small text-muted mt-1 mb-0">${event.description}</p>` : ''}
+                        </div>
+                        <i class="bi bi-trash delete-btn" onclick="deleteEvent(${event.id})"></i>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteEvent(id) {
+            events = events.filter(e => e.id !== id);
+            renderPreview();
+        }
+
+        function clearAllEvents() {
+            if (events.length === 0) return;
+            if (confirm('Clear all events? This cannot be undone.')) {
+                events = [];
+                renderPreview();
+            }
+        }
+
+        async function saveAllEvents() {
+            if (events.length === 0) {
+                alert('No events to save');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/timeline/bulk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ events })
+                });
+                
+                if (response.ok) {
+                    alert(`${events.length} events saved to your timeline!`);
+                    window.location.href = '/timeline';
+                } else {
+                    throw new Error('Save failed');
+                }
+            } catch (error) {
+                alert('Error saving events. Please try again.');
+                console.error(error);
+            }
+        }
+
+        // Load documents for dropdown
+        async function loadDocuments() {
+            try {
+                const response = await fetch('/api/vault/documents');
+                if (response.ok) {
+                    const docs = await response.json();
+                    const select = document.getElementById('linkedDocument');
+                    docs.forEach(doc => {
+                        const option = document.createElement('option');
+                        option.value = doc.id;
+                        option.textContent = doc.filename;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading documents:', error);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadDocuments);
+    </script>
+</body>
+</html>

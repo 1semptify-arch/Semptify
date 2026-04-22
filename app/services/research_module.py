@@ -12,12 +12,13 @@ Multilingual-ready (labels), checkpointing, and ZIP bundling included.
 import os
 import io
 import json
-import uuid
 import logging
 import asyncio
 import zipfile
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+
+from app.core.id_gen import make_id
 from dataclasses import dataclass, field
 
 import httpx
@@ -420,7 +421,7 @@ class ResearchService:
         
         # Create checkpoint
         checkpoint = ResearchCheckpoint(
-            id=f"checkpoint_{uuid.uuid4().hex[:12]}",
+            id=make_id("chk"),
             user_id=user_id,
             property_id=property_id,
             profile=profile,
@@ -434,7 +435,7 @@ class ResearchService:
             f"{property_id}/summary.txt": self._generate_summary(profile),
         }
         zip_bytes = _mk_zip_bytes(files)
-        zip_token = f"zip_{uuid.uuid4().hex[:10]}"
+        zip_token = make_id("zip")
         
         # Cache
         self._profiles[property_id] = profile

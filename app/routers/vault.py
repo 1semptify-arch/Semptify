@@ -12,7 +12,6 @@ Semptify 5.0 Architecture:
 
 import hashlib
 import json
-import uuid
 import logging
 from datetime import datetime, timezone
 from typing import Optional, List
@@ -21,6 +20,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from app.core.id_gen import make_id
 from app.core.config import Settings, get_settings
 from app.core.security import (
     require_user,
@@ -183,7 +183,7 @@ async def upload_document(
         )
 
     # Generate IDs and hash
-    document_id = str(uuid.uuid4())
+    document_id = make_id("doc")
     sha256_hash = compute_sha256(content)
 
     # Determine safe filename
@@ -219,7 +219,7 @@ async def upload_document(
             raise HTTPException(status_code=500, detail=f"Storage error: {error_msg}")
 
     # Create certificate
-    certificate_id = f"cert_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{document_id[:8]}"
+    certificate_id = make_id("cert")
     certificate = {
         "certificate_id": certificate_id,
         "document_id": document_id,
@@ -231,7 +231,7 @@ async def upload_document(
         "description": description,
         "tags": tags.split(",") if tags else [],
         "certified_at": datetime.now(timezone.utc).isoformat(),
-        "request_id": str(uuid.uuid4()),
+        "request_id": make_id("req"),
         "storage_path": storage_path,
         "storage_provider": user.provider,
         "user_id": user.user_id,
@@ -254,16 +254,28 @@ async def upload_document(
         logger.warning(f"Certificate upload failed for {document_id}: {e}")
 
     # Create overlay for safe processing (original never touched)
-    overlay = None
+    overlay_id = None
     try:
-        from app.services.document_overlay import OverlayManager
-        overlay_manager = OverlayManager(storage, access_token)
-        overlay = await overlay_manager.create_overlay(
-            original_id=document_id,
-            original_path=storage_path
-        )
+        from app.services.unified_overlay_manager import UnifiedOverlayManager
+        from app.models.unified_overlay_models import CreateOverlayRequest
+        from app.core.overlay_types import OverlayType
+        overlay_mgr = UnifiedOverlayManager(storage, user.user_id)
+        overlay_resp = await overlay_mgr.create_overlay(CreateOverlayRequest(
+            overlay_type=OverlayType.VAULT_UPLOAD_MANIFEST,
+            document_id=document_id,
+            vault_path=storage_path,
+            payload={
+                "original_filename": file.filename,
+                "mime_type": file.content_type or "application/octet-stream",
+                "file_size_bytes": file_size,
+                "content_hash": sha256_hash,
+                "storage_provider": user.provider,
+            },
+        ))
+        if overlay_resp.success:
+            overlay_id = overlay_resp.overlay_id
         # Store overlay ID in certificate for reference
-        certificate["overlay_id"] = overlay.overlay_id
+        certificate["overlay_id"] = overlay_id
         
         # Auto-extract timeline events from document and persist to user's timeline storage
         try:
@@ -271,7 +283,7 @@ async def upload_document(
             provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
             timeline_events = await extract_timeline_from_upload(
                 document_id=document_id,
-                overlay_id=overlay.overlay_id,
+                overlay_id=overlay_id,
                 provider=provider_name,
                 access_token=access_token,
             )
@@ -284,7 +296,7 @@ async def upload_document(
     except Exception as e:
         # Overlay creation failed, but document is safely stored
         # Log and continue - overlay can be created later
-        overlay = None
+        logger.warning(f"Overlay creation failed for {document_id}: {e}")
 
     function_token = issue_function_access_token(
         user.user_id,
@@ -451,7 +463,7 @@ async def copy_from_sync_to_vault(
         )
 
     # Generate IDs and hash
-    document_id = str(uuid.uuid4())
+    document_id = make_id("doc")
     sha256_hash = compute_sha256(content)
 
     # Determine safe filename
@@ -493,7 +505,7 @@ async def copy_from_sync_to_vault(
             raise HTTPException(status_code=500, detail=f"Storage error: {error_msg}")
 
     # Create certificate
-    certificate_id = f"cert_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{document_id[:8]}"
+    certificate_id = make_id("cert")
     certificate = {
         "certificate_id": certificate_id,
         "document_id": document_id,
@@ -505,7 +517,7 @@ async def copy_from_sync_to_vault(
         "description": description,
         "tags": tags.split(",") if tags else [],
         "certified_at": datetime.now(timezone.utc).isoformat(),
-        "request_id": str(uuid.uuid4()),
+        "request_id": make_id("req"),
         "storage_path": storage_path,
         "storage_provider": user.provider,
         "user_id": user.user_id,
@@ -528,22 +540,35 @@ async def copy_from_sync_to_vault(
         logger.warning(f"Certificate upload failed for {document_id}: {e}")
 
     # Create overlay for safe processing (original never touched)
-    overlay = None
+    overlay_id = None
     try:
-        from app.services.document_overlay import OverlayManager
-        overlay_manager = OverlayManager(storage, access_token)
-        overlay = await overlay_manager.create_overlay(
-            original_id=document_id,
-            original_path=storage_path,
-        )
-        certificate["overlay_id"] = overlay.overlay_id
+        from app.services.unified_overlay_manager import UnifiedOverlayManager
+        from app.models.unified_overlay_models import CreateOverlayRequest
+        from app.core.overlay_types import OverlayType
+        overlay_mgr = UnifiedOverlayManager(storage, user.user_id)
+        overlay_resp = await overlay_mgr.create_overlay(CreateOverlayRequest(
+            overlay_type=OverlayType.VAULT_UPLOAD_MANIFEST,
+            document_id=document_id,
+            vault_path=storage_path,
+            payload={
+                "original_filename": original_filename,
+                "mime_type": mime_type,
+                "file_size_bytes": file_size,
+                "content_hash": sha256_hash,
+                "storage_provider": user.provider,
+                "source_path": sync_path,
+            },
+        ))
+        if overlay_resp.success:
+            overlay_id = overlay_resp.overlay_id
+        certificate["overlay_id"] = overlay_id
 
         try:
             from app.services.timeline_extraction import extract_timeline_from_upload
             provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
             timeline_events = await extract_timeline_from_upload(
                 document_id=document_id,
-                overlay_id=overlay.overlay_id,
+                overlay_id=overlay_id,
                 provider=provider_name,
                 access_token=access_token,
             )

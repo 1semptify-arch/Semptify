@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timeline – Semptify Office</title>
+  <style>
+    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9ff; color: #1a1a2e; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: #fff; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .vault-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+    .breadcrumb { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0.6rem 0; }
+    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+
+    .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+
+    /* ADD EVENT FORM */
+    .add-event-bar { background: #fff; border: 1px solid #c5cae9; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; }
+    .add-event-bar h3 { width: 100%; font-size: 0.95rem; font-weight: 700; color: #1a1a2e; margin-bottom: 0.25rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+    .form-group label { font-size: 0.78rem; font-weight: 600; color: #555; }
+    .form-group input, .form-group select, .form-group textarea { padding: 0.5rem 0.7rem; border: 1px solid #c5cae9; border-radius: 8px; font-size: 0.88rem; font-family: inherit; outline: none; background: #fff; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+    .form-group.grow { flex: 1; min-width: 200px; }
+    .form-group.date-field { min-width: 160px; }
+    .form-group.type-field { min-width: 160px; }
+    .add-btn { background: var(--accent); color: #fff; border: none; padding: 0.6rem 1.25rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; white-space: nowrap; align-self: flex-end; }
+
+    /* FILTER BAR */
+    .filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .filter-btn { padding: 0.35rem 0.85rem; border: 1px solid #c5cae9; border-radius: 20px; background: #fff; font-size: 0.82rem; cursor: pointer; color: #555; }
+    .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* TIMELINE */
+    .timeline { position: relative; }
+    .timeline::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 2px; background: #e0e0e0; }
+
+    .tl-year { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #888; padding: 0.75rem 0 0.5rem 52px; }
+
+    .tl-event { position: relative; padding: 0 0 1rem 52px; }
+    .tl-dot { position: absolute; left: 12px; top: 4px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 2px #ccc; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; }
+    .dot-notice { background: #ef4444; box-shadow: 0 0 0 2px #ef4444; }
+    .dot-payment { background: #22c55e; box-shadow: 0 0 0 2px #22c55e; }
+    .dot-communication { background: #3949ab; box-shadow: 0 0 0 2px #3949ab; }
+    .dot-repair { background: #f59e0b; box-shadow: 0 0 0 2px #f59e0b; }
+    .dot-court { background: #9333ea; box-shadow: 0 0 0 2px #9333ea; }
+    .dot-general { background: #6b7280; box-shadow: 0 0 0 2px #6b7280; }
+
+    .tl-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1rem 1.1rem; transition: all 0.15s; }
+    .tl-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(57,73,171,0.1); }
+    .tl-card-top { display: flex; align-items: flex-start; gap: 0.75rem; }
+    .tl-card-info { flex: 1; }
+    .tl-date { font-size: 0.8rem; font-weight: 700; color: #888; margin-bottom: 0.15rem; }
+    .tl-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; }
+    .tl-desc { font-size: 0.85rem; color: #555; line-height: 1.5; }
+    .tl-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .tl-tag { padding: 0.12rem 0.45rem; border-radius: 8px; font-size: 0.72rem; font-weight: 600; }
+    .tag-notice { background: #fee2e2; color: #dc2626; }
+    .tag-payment { background: #dcfce7; color: #15803d; }
+    .tag-communication { background: #e8eaf6; color: #3949ab; }
+    .tag-repair { background: #fef3c7; color: #92400e; }
+    .tag-court { background: #f3e8ff; color: #7e22ce; }
+    .tag-general { background: #f3f4f6; color: #374151; }
+    .tl-doc-link { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8rem; color: var(--accent); text-decoration: none; margin-top: 0.4rem; background: #e8eaf6; padding: 0.2rem 0.5rem; border-radius: 6px; }
+    .tl-card-actions { display: flex; gap: 0.25rem; }
+    .tl-action-btn { background: #f0f0f0; border: none; padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.75rem; cursor: pointer; color: #666; }
+    .tl-action-btn:hover { background: #e8eaf6; color: var(--accent); }
+
+    /* SIDEBAR */
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; }
+    .sidebar-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.75rem; }
+    .legend-item { display: flex; align-items: center; gap: 0.6rem; font-size: 0.85rem; padding: 0.3rem 0; }
+    .legend-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+    .stat-row { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid #f0f0f0; font-size: 0.88rem; }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-val { font-weight: 700; color: var(--accent); }
+
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
+
+    @media (max-width: 900px) { .main { grid-template-columns: 1fr; } .sidebar { order: -1; } }
+    @media (max-width: 768px) { nav.core-nav { display: none; } .hamburger { display: block; } }
+  </style>
+</head>
+<body>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/home.html">🏠 Home</a>
+    <a href="/library.html">📚 Library</a>
+    <a href="/office.html">🏢 Office</a>
+    <a href="/tools.html">🔧 Tools</a>
+    <a href="/help.html">🆘 Help</a>
+    <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0;">
+    <a href="/office/vault.html">🔒 Vault</a>
+    <a href="/office/inbox.html">📨 Inbox</a>
+    <a href="/office/timeline.html" style="color:#f59e0b;font-weight:700;">📅 Timeline</a>
+    <a href="/office/delivery.html">📬 Delivery</a>
+    <a href="/office/signer.html">✍️ Signer</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <a href="/home.html" class="logo">Semptify</a>
+      <nav class="core-nav">
+        <a href="/home.html">🏠 Home</a>
+        <a href="/library.html">📚 Library</a>
+        <a href="/office.html" class="active">🏢 Office</a>
+        <a href="/tools.html">🔧 Tools</a>
+        <a href="/help.html">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">🔒 Vault</button>
+        <button class="user-btn">👤 User</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="breadcrumb">
+    <div class="breadcrumb-inner">
+      <a href="/home.html">Home</a> ›
+      <a href="/office.html">Office</a> ›
+      <strong>Timeline</strong>
+    </div>
+  </div>
+
+  <div class="main">
+    <div>
+      <!-- ADD EVENT -->
+      <div class="add-event-bar" id="add-event-form">
+        <h3>➕ Add Timeline Event</h3>
+        <div class="form-group date-field">
+          <label for="evt-date">Date</label>
+          <input type="date" id="evt-date">
+        </div>
+        <div class="form-group type-field">
+          <label for="evt-type">Event Type</label>
+          <select id="evt-type" aria-label="Event type">
+            <option value="general">General</option>
+            <option value="notice">📋 Notice Received</option>
+            <option value="payment">💰 Payment</option>
+            <option value="communication">💬 Communication</option>
+            <option value="repair">🔧 Repair Request</option>
+            <option value="court">⚖️ Court / Legal</option>
+          </select>
+        </div>
+        <div class="form-group grow">
+          <label for="evt-title">Title</label>
+          <input type="text" id="evt-title" placeholder="What happened?">
+        </div>
+        <div class="form-group grow" style="min-width:100%;">
+          <label for="evt-desc">Notes (optional)</label>
+          <textarea id="evt-desc" rows="2" placeholder="Additional details..."></textarea>
+        </div>
+        <button class="add-btn" onclick="addEvent()">Add to Timeline</button>
+      </div>
+
+      <!-- FILTERS -->
+      <div class="filter-bar">
+        <button class="filter-btn active" onclick="filterTimeline(this,'all')">All</button>
+        <button class="filter-btn" onclick="filterTimeline(this,'notice')">📋 Notices</button>
+        <button class="filter-btn" onclick="filterTimeline(this,'payment')">💰 Payments</button>
+        <button class="filter-btn" onclick="filterTimeline(this,'communication')">💬 Communications</button>
+        <button class="filter-btn" onclick="filterTimeline(this,'repair')">🔧 Repairs</button>
+        <button class="filter-btn" onclick="filterTimeline(this,'court')">⚖️ Legal</button>
+      </div>
+
+      <!-- TIMELINE EVENTS -->
+      <div class="timeline" id="timeline">
+
+        <div class="tl-year">April 2025</div>
+
+        <div class="tl-event" data-type="notice">
+          <div class="tl-dot dot-notice"></div>
+          <div class="tl-card">
+            <div class="tl-card-top">
+              <div class="tl-card-info">
+                <div class="tl-date">April 19, 2025</div>
+                <div class="tl-title">Received 3-Day Notice to Pay or Quit</div>
+                <div class="tl-desc">Notice posted on door. Demands $1,200 past due rent by April 22. Photographed immediately on receipt.</div>
+                <div class="tl-tags"><span class="tl-tag tag-notice">Notice</span><span class="tl-tag tag-communication">📷 Documented</span></div>
+                <a href="/office/vault.html" class="tl-doc-link">🔒 3-Day Notice to Pay or Quit.pdf</a>
+              </div>
+              <div class="tl-card-actions">
+                <button class="tl-action-btn" title="Edit">✏️</button>
+                <button class="tl-action-btn" title="Link document">📎</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tl-event" data-type="communication">
+          <div class="tl-dot dot-communication"></div>
+          <div class="tl-card">
+            <div class="tl-card-top">
+              <div class="tl-card-info">
+                <div class="tl-date">April 14, 2025</div>
+                <div class="tl-title">Sent Repair Request Letter — Heater</div>
+                <div class="tl-desc">Sent certified mail to landlord requesting repair of broken heater. No response as of today.</div>
+                <div class="tl-tags"><span class="tl-tag tag-repair">Repair</span><span class="tl-tag tag-communication">Certified Mail</span></div>
+                <a href="/office/vault.html" class="tl-doc-link">🔒 Repair Request Letter — Heater.pdf</a>
+              </div>
+              <div class="tl-card-actions">
+                <button class="tl-action-btn">✏️</button>
+                <button class="tl-action-btn">📎</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tl-year">January 2025</div>
+
+        <div class="tl-event" data-type="repair">
+          <div class="tl-dot dot-repair"></div>
+          <div class="tl-card">
+            <div class="tl-card-top">
+              <div class="tl-card-info">
+                <div class="tl-date">January 13, 2025</div>
+                <div class="tl-title">Discovered Mold — Bathroom Ceiling</div>
+                <div class="tl-desc">Found significant black mold on bathroom ceiling and behind toilet. Photographed with phone. Called landlord — no answer. Left voicemail.</div>
+                <div class="tl-tags"><span class="tl-tag tag-repair">Habitability</span><span class="tl-tag tag-communication">Voicemail</span></div>
+                <a href="/office/vault.html" class="tl-doc-link">🔒 Mold — Bathroom Ceiling — Jan 2025.jpg</a>
+              </div>
+              <div class="tl-card-actions">
+                <button class="tl-action-btn">✏️</button>
+                <button class="tl-action-btn">📎</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tl-year">March 2024</div>
+
+        <div class="tl-event" data-type="general">
+          <div class="tl-dot dot-general"></div>
+          <div class="tl-card">
+            <div class="tl-card-top">
+              <div class="tl-card-info">
+                <div class="tl-date">March 1, 2024</div>
+                <div class="tl-title">Lease Signed — Move-In</div>
+                <div class="tl-desc">Signed 12-month lease. Paid first month + $1,200 security deposit. Completed move-in inspection checklist.</div>
+                <div class="tl-tags"><span class="tl-tag tag-payment">Deposit Paid</span><span class="tl-tag tag-communication">Lease Signed</span></div>
+                <a href="/office/vault.html" class="tl-doc-link">🔒 Lease Agreement — 2024.pdf</a>
+              </div>
+              <div class="tl-card-actions">
+                <button class="tl-action-btn">✏️</button>
+                <button class="tl-action-btn">📎</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-title">📊 Timeline Summary</div>
+        <div class="stat-row"><span>Total Events</span><span class="stat-val" id="total-count">4</span></div>
+        <div class="stat-row"><span>Notices</span><span class="stat-val">1</span></div>
+        <div class="stat-row"><span>Repair Issues</span><span class="stat-val">2</span></div>
+        <div class="stat-row"><span>Linked Documents</span><span class="stat-val">4</span></div>
+        <div class="stat-row"><span>Earliest Event</span><span class="stat-val">Mar 2024</span></div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">🔑 Event Legend</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#ef4444;"></span>Notice / Legal</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#22c55e;"></span>Payment</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#3949ab;"></span>Communication</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span>Repair / Habitability</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#9333ea;"></span>Court / Legal Proceeding</div>
+        <div class="legend-item"><span class="legend-dot" style="background:#6b7280;"></span>General</div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">⚡ Quick Links</div>
+        <div style="display:flex;flex-direction:column;gap:0.25rem;">
+          <a href="/office/vault.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">🔒 Document Vault</a>
+          <a href="/office/inbox.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📨 Inbox</a>
+          <a href="/tools/calculators.html#deadline" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">⏰ Deadline Calculator</a>
+          <a href="/tools/generators.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📄 Generate Notice</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <div>
+      <a href="/home.html">Home</a>
+      <a href="/office.html">Office</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/help.html">Help</a>
+    </div>
+    <div style="margin-top:0.5rem;">Your timeline is stored in your cloud · Chronological evidence · Not legal advice</div>
+  </footer>
+
+  <script src="/js/core/vault-portal.js"></script>
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+
+    const typeConfig = {
+      general:       { dot: 'dot-general',       tag: 'tag-general',       label: 'General' },
+      notice:        { dot: 'dot-notice',         tag: 'tag-notice',        label: 'Notice' },
+      payment:       { dot: 'dot-payment',        tag: 'tag-payment',       label: 'Payment' },
+      communication: { dot: 'dot-communication',  tag: 'tag-communication', label: 'Communication' },
+      repair:        { dot: 'dot-repair',         tag: 'tag-repair',        label: 'Repair' },
+      court:         { dot: 'dot-court',          tag: 'tag-court',         label: 'Court' }
+    };
+
+    function addEvent() {
+      const date  = document.getElementById('evt-date').value;
+      const type  = document.getElementById('evt-type').value;
+      const title = document.getElementById('evt-title').value.trim();
+      const desc  = document.getElementById('evt-desc').value.trim();
+      if (!date || !title) { alert('Please enter a date and title.'); return; }
+
+      const cfg = typeConfig[type] || typeConfig.general;
+      const formatted = new Date(date + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+      const el = document.createElement('div');
+      el.className = 'tl-event';
+      el.dataset.type = type;
+      el.innerHTML = `
+        <div class="tl-dot ${cfg.dot}"></div>
+        <div class="tl-card">
+          <div class="tl-card-top">
+            <div class="tl-card-info">
+              <div class="tl-date">${formatted}</div>
+              <div class="tl-title">${title}</div>
+              ${desc ? `<div class="tl-desc">${desc}</div>` : ''}
+              <div class="tl-tags"><span class="tl-tag ${cfg.tag}">${cfg.label}</span></div>
+            </div>
+            <div class="tl-card-actions">
+              <button class="tl-action-btn" onclick="this.closest('.tl-event').remove(); updateCount()">🗑</button>
+            </div>
+          </div>
+        </div>`;
+
+      const timeline = document.getElementById('timeline');
+      timeline.insertBefore(el, timeline.firstChild);
+
+      document.getElementById('evt-date').value = '';
+      document.getElementById('evt-title').value = '';
+      document.getElementById('evt-desc').value = '';
+      document.getElementById('evt-type').value = 'general';
+      updateCount();
+    }
+
+    function filterTimeline(btn, type) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tl-event').forEach(el => {
+        el.style.display = (type === 'all' || el.dataset.type === type) ? '' : 'none';
+      });
+    }
+
+    function updateCount() {
+      document.getElementById('total-count').textContent = document.querySelectorAll('.tl-event').length;
+    }
+
+    document.getElementById('evt-date').valueAsDate = new Date();
+  </script>
+</body>
+</html>

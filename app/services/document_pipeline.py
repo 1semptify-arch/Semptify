@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Optional
-from uuid import uuid4
+from app.core.id_gen import make_id
 
 from app.services.azure_ai import get_azure_ai, DocumentType, ExtractedDocument
 
@@ -268,7 +268,7 @@ class DocumentPipeline:
             return existing
         
         # Generate IDs
-        doc_id = str(uuid4())
+        doc_id = make_id("doc")
 
         # Store file
         user_dir = self.data_dir / user_id

@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 from pathlib import Path
 from threading import Lock
-from uuid import uuid4
+from app.core.id_gen import make_id
 
 from app.core.utc import utc_now
 from app.models.functionx_models import (
@@ -86,7 +86,7 @@ class FunctionXService:
 
     def create_action_set(self, payload: FunctionXActionSetCreate) -> FunctionXActionSetDetail:
         now = utc_now()
-        set_id = f"fx_{uuid4().hex[:10]}"
+        set_id = make_id("fx")
         record = _ActionSetRecord(
             set_id=set_id,
             name=payload.name.strip(),

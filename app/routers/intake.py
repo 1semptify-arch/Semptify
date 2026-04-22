@@ -59,16 +59,14 @@ router = APIRouter(prefix="/api/intake", tags=["Document Intake"])
 
 
 def _get_overlay_record_ids(vault_id: Optional[str]) -> list[str]:
-    """Resolve overlay records linked to a vault artifact."""
-    if not vault_id:
-        return []
-    try:
-        from app.services.document_overlay_service import document_overlay_service
+    """Resolve overlay records linked to a vault artifact.
 
-        overlays = document_overlay_service.list_overlays(vault_id=vault_id)
-        return [record.overlay_id for record in overlays]
-    except Exception:
-        return []
+    Overlay records now live in user cloud storage via the unified overlay
+    manager (async, requires storage context).  This sync helper returns an
+    empty list; callers that need real overlay IDs should query the unified
+    overlay manager directly from an async endpoint with storage context.
+    """
+    return []
 
 
 # =============================================================================

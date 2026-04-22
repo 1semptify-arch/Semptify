@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Journey - Semptify</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2C5F2D;
+            --secondary: #3498DB;
+            --accent: #E67E22;
+            --background: #F8F9FA;
+            --text: #2D3436;
+            --success: #27AE60;
+            --warning: #F39C12;
+        }
+        body {
+            background: var(--background);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .journey-header {
+            background: linear-gradient(135deg, var(--primary), #1a4a1b);
+            color: white;
+            padding: 3rem 2rem;
+            border-bottom: 4px solid var(--accent);
+        }
+        .journey-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        .journey-header p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+        .phase-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-left: 5px solid var(--primary);
+        }
+        .phase-card.phase-1 { border-left-color: var(--secondary); }
+        .phase-card.phase-2 { border-left-color: var(--primary); }
+        .phase-card.phase-3 { border-left-color: var(--accent); }
+        .phase-card.phase-4 { border-left-color: var(--success); }
+        .phase-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-right: 1rem;
+        }
+        .phase-1 .phase-number { background: var(--secondary); }
+        .phase-2 .phase-number { background: var(--primary); }
+        .phase-3 .phase-number { background: var(--accent); }
+        .phase-4 .phase-number { background: var(--success); }
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .step-item:last-child { border-bottom: none; }
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #e8f5e9;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        .step-content h6 {
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+        .step-content p {
+            color: #6c757d;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+        .step-link {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .step-link:hover { text-decoration: underline; }
+        .progress-tracker {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 20px;
+        }
+        .milestone {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0;
+            color: #6c757d;
+        }
+        .milestone.completed { color: var(--success); }
+        .milestone.active { color: var(--primary); font-weight: 600; }
+        .milestone i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+        .milestone.completed i { color: var(--success); }
+        .milestone.active i { color: var(--primary); }
+    </style>
+</head>
+<body>
+    <div class="journey-header">
+        <div class="container">
+            <h1><i class="bi bi-signpost-split-fill me-3"></i>Your Journey</h1>
+            <p class="mb-0">A step-by-step guide through your tenant rights process</p>
+        </div>
+    </div>
+
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <!-- Phase 1: Discovery -->
+                <div class="phase-card phase-1">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="phase-number">1</div>
+                        <div>
+                            <h3 class="mb-0">Discovery & Documentation</h3>
+                            <p class="text-muted mb-0">Understanding your situation and gathering evidence</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="bi bi-cloud-upload"></i></div>
+                        <div class="step-content">
+                            <h6>Upload Your Documents</h6>
+                            <p>Lease, notices, photos, emails, texts - everything related to your housing situation</p>
+                            <a href="/vault" class="step-link"><i class="bi bi-arrow-right me-1"></i>Go to Vault</a>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="bi bi-calendar-plus"></i></div>
+                        <div class="step-content">
+                            <h6>Build Your Timeline</h6>
+                            <p>Semptify extracts dates and events automatically, but you can add more details</p>
+                            <a href="/timeline" class="step-link"><i class="bi bi-arrow-right me-1"></i>View Timeline</a>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="bi bi-house-check"></i></div>
+                        <div class="step-content">
+                            <h6>Review Your Tenancy Facts</h6>
+                            <p>Verify your lease terms, rent amount, and key dates</p>
+                            <a href="/my_tenancy.html" class="step-link"><i class="bi bi-arrow-right me-1"></i>View My Tenancy</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 2: Understanding -->
+                <div class="phase-card phase-2">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="phase-number">2</div>
+                        <div>
+                            <h3 class="mb-0">Understanding Your Rights</h3>
+                            <p class="text-muted mb-0">Learn what the law says about your situation</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="bi bi-book"></i></div>
+                        <div class="step-content">
+                            <h6>Explore the Law Library</h6>
+                            <p>Minnesota tenant rights, eviction procedures, and housing laws</p>
+                            <a href="/law_library.html" class="step-link"><i class="bi bi-arrow-right me-1"></i>Open Law Library</a>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="bi bi-robot"></i></div>
+                        <div class="step-content">
+                            <h6>Get Legal Analysis</h6>
+                            <p>Semptify analyzes your documents and explains your legal position</p>
+                            <a href="/legal_analysis.html" class="step-link"><i class="bi bi-arrow-right me-1"></i>Request Analysis</a>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="bi bi-lightbulb"></i></div>
+                        <div class="step-content">
+                            <h6>Know Your Options</h6>
+                            <p>Understand all possible paths: negotiation, mediation, court defense</p>
+                            <a href="/help" class="step-link"><i class="bi bi-arrow-right me-1"></i>Get Help</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 3: Action -->
+                <div class="phase-card phase-3">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="phase-number">3</div>
+                        <div>
+                            <h3 class="mb-0">Taking Action</h3>
+                            <p class="text-muted mb-0">Respond, communicate, and defend your rights</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="bi bi-heart-fill"></i></div>
+                        <div class="step-content">
+                            <h6>Invite an Advocate</h6>
+                            <p>Get help from someone you trust - friend, family, or volunteer</p>
+                            <a href="/invite-advocate" class="step-link"><i class="bi bi-arrow-right me-1"></i>Invite Advocate</a>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="bi bi-file-earmark-text"></i></div>
+                        <div class="step-content">
+                            <h6>Generate Court Forms</h6>
+                            <p>If facing eviction, create your Answer and other required documents</p>
+                            <a href="/eviction_answer.html" class="step-link"><i class="bi bi-arrow-right me-1"></i>Create Forms</a>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="bi bi-inbox"></i></div>
+                        <div class="step-content">
+                            <h6>Check Your Document Inbox</h6>
+                            <p>Review documents sent by your advocate, attorney, or caseworker</p>
+                            <a href="/delivery/inbox" class="step-link"><i class="bi bi-arrow-right me-1"></i>Open Inbox</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phase 4: Resolution -->
+                <div class="phase-card phase-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="phase-number">4</div>
+                        <div>
+                            <h3 class="mb-0">Resolution & Moving Forward</h3>
+                            <p class="text-muted mb-0">Court preparation and next steps</p>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="bi bi-camera-video"></i></div>
+                        <div class="step-content">
+                            <h6>Prepare for Zoom Court</h6>
+                            <p>Test your tech, learn etiquette, and get ready for your hearing</p>
+                            <a href="/zoom_court.html" class="step-link"><i class="bi bi-arrow-right me-1"></i>Zoom Court Prep</a>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="bi bi-folder-check"></i></div>
+                        <div class="step-content">
+                            <h6>Organize Court Packet</h6>
+                            <p>Compile all documents needed for your hearing</p>
+                            <a href="/court_packet.html" class="step-link"><i class="bi bi-arrow-right me-1"></i>Build Packet</a>
+                        </div>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-icon"><i class="bi bi-check-circle"></i></div>
+                        <div class="step-content">
+                            <h6>Complete Your Journey</h6>
+                            <p>Final steps after your case concludes</p>
+                            <a href="/complete-journey" class="step-link"><i class="bi bi-arrow-right me-1"></i>View Next Steps</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Progress -->
+            <div class="col-lg-4">
+                <div class="progress-tracker">
+                    <h5><i class="bi bi-compass-fill me-2"></i>Your Progress</h5>
+                    <hr>
+                    <div class="milestone completed">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Connected Storage</span>
+                    </div>
+                    <div class="milestone active">
+                        <i class="bi bi-circle"></i>
+                        <span>Building Timeline</span>
+                    </div>
+                    <div class="milestone">
+                        <i class="bi bi-circle"></i>
+                        <span>Understanding Rights</span>
+                    </div>
+                    <div class="milestone">
+                        <i class="bi bi-circle"></i>
+                        <span>Invited Advocate</span>
+                    </div>
+                    <div class="milestone">
+                        <i class="bi bi-circle"></i>
+                        <span>Court Ready</span>
+                    </div>
+                    <div class="milestone">
+                        <i class="bi bi-circle"></i>
+                        <span>Case Resolved</span>
+                    </div>
+                </div>
+
+                <div class="progress-tracker mt-3">
+                    <h6 class="text-muted">Need Help?</h6>
+                    <p class="small text-muted mb-2">Every journey is different. Semptify adapts to your specific situation.</p>
+                    <a href="/crisis_intake.html" class="btn btn-outline-danger btn-sm w-100">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Urgent Help
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

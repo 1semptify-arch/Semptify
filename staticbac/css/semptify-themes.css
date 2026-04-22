@@ -1,0 +1,321 @@
+/* ========================================
+   SEMPTIFY THEME SYSTEM
+   5 Color Schemes for Header/Footer
+   ======================================== */
+
+/* ========================================
+   THEME 1: DEEP OCEAN (Default)
+   Primary: Dark Navy → Midnight Blue
+   Secondary: Teal → Deep Cyan
+   ======================================== */
+[data-theme="ocean"],
+:root {
+  /* Header Colors */
+  --header-bg-start: #0a1628;
+  --header-bg-end: #1e3a5f;
+  --header-text: #f1f5f9;
+  --header-accent: #38bdf8;
+  
+  /* Footer Colors */
+  --footer-bg-start: #0f172a;
+  --footer-bg-end: #1e293b;
+  --footer-text: #e2e8f0;
+  --footer-accent: #22d3ee;
+  
+  /* Body/Content Colors */
+  --body-bg: #ffffff;
+  --card-bg: #f8fafc;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --accent-primary: #10b981;
+  --accent-secondary: #3b82f6;
+}
+
+/* Header Gradient - Ocean */
+[data-theme="ocean"] .page-header,
+:root .page-header {
+  background: linear-gradient(135deg, var(--header-bg-start) 0%, var(--header-bg-end) 100%);
+}
+
+/* Footer Gradient - Ocean */
+[data-theme="ocean"] .page-footer,
+:root .page-footer {
+  background: linear-gradient(180deg, var(--footer-bg-start) 0%, var(--footer-bg-end) 100%);
+}
+
+
+/* ========================================
+   THEME 2: FOREST GREEN
+   Primary: Deep Forest → Hunter Green
+   Secondary: Sage → Mint
+   ======================================== */
+[data-theme="forest"] {
+  /* Header Colors */
+  --header-bg-start: #064e3b;
+  --header-bg-end: #065f46;
+  --header-text: #ecfdf5;
+  --header-accent: #34d399;
+  
+  /* Footer Colors */
+  --footer-bg-start: #022c22;
+  --footer-bg-end: #064e3b;
+  --footer-text: #d1fae5;
+  --footer-accent: #6ee7b7;
+  
+  /* Body/Content Colors */
+  --body-bg: #ffffff;
+  --card-bg: #f0fdf4;
+  --text-primary: #064e3b;
+  --text-secondary: #065f46;
+  --accent-primary: #10b981;
+  --accent-secondary: #f59e0b;
+}
+
+/* Header Gradient - Forest */
+[data-theme="forest"] .page-header {
+  background: linear-gradient(135deg, var(--header-bg-start) 0%, var(--header-bg-end) 60%, #047857 100%);
+}
+
+/* Footer Gradient - Forest */
+[data-theme="forest"] .page-footer {
+  background: linear-gradient(180deg, var(--footer-bg-start) 0%, var(--footer-bg-end) 100%);
+}
+
+
+/* ========================================
+   THEME 3: ROYAL PURPLE
+   Primary: Deep Purple → Violet
+   Secondary: Lavender → Soft Pink
+   ======================================== */
+[data-theme="royal"] {
+  /* Header Colors */
+  --header-bg-start: #2e1065;
+  --header-bg-end: #4c1d95;
+  --header-text: #faf5ff;
+  --header-accent: #a78bfa;
+  
+  /* Footer Colors */
+  --footer-bg-start: #1e1b4b;
+  --footer-bg-end: #312e81;
+  --footer-text: #e0e7ff;
+  --footer-accent: #c4b5fd;
+  
+  /* Body/Content Colors */
+  --body-bg: #ffffff;
+  --card-bg: #faf5ff;
+  --text-primary: #2e1065;
+  --text-secondary: #6b21a8;
+  --accent-primary: #8b5cf6;
+  --accent-secondary: #ec4899;
+}
+
+/* Header Gradient - Royal */
+[data-theme="royal"] .page-header {
+  background: linear-gradient(135deg, var(--header-bg-start) 0%, var(--header-bg-end) 70%, #6d28d9 100%);
+}
+
+/* Footer Gradient - Royal */
+[data-theme="royal"] .page-footer {
+  background: linear-gradient(180deg, var(--footer-bg-start) 0%, var(--footer-bg-end) 50%, #4338ca 100%);
+}
+
+
+/* ========================================
+   THEME 4: WARM SLATE
+   Primary: Charcoal → Warm Gray
+   Secondary: Copper → Amber
+   ======================================== */
+[data-theme="slate"] {
+  /* Header Colors */
+  --header-bg-start: #1c1917;
+  --header-bg-end: #292524;
+  --header-text: #fafaf9;
+  --header-accent: #fb923c;
+  
+  /* Footer Colors */
+  --footer-bg-start: #0c0a09;
+  --footer-bg-end: #1c1917;
+  --footer-text: #e7e5e4;
+  --footer-accent: #fdba74;
+  
+  /* Body/Content Colors */
+  --body-bg: #ffffff;
+  --card-bg: #fafaf9;
+  --text-primary: #1c1917;
+  --text-secondary: #44403c;
+  --accent-primary: #f97316;
+  --accent-secondary: #eab308;
+}
+
+/* Header Gradient - Slate */
+[data-theme="slate"] .page-header {
+  background: linear-gradient(135deg, var(--header-bg-start) 0%, var(--header-bg-end) 60%, #44403c 100%);
+}
+
+/* Footer Gradient - Slate */
+[data-theme="slate"] .page-footer {
+  background: linear-gradient(180deg, var(--footer-bg-start) 0%, var(--footer-bg-end) 70%, #292524 100%);
+}
+
+
+/* ========================================
+   THEME 5: CRIMSON DARK
+   Primary: Deep Burgundy → Crimson
+   Secondary: Rose → Coral
+   ======================================== */
+[data-theme="crimson"] {
+  /* Header Colors */
+  --header-bg-start: #450a0a;
+  --header-bg-end: #7f1d1d;
+  --header-text: #fef2f2;
+  --header-accent: #f87171;
+  
+  /* Footer Colors */
+  --footer-bg-start: #280505;
+  --footer-bg-end: #450a0a;
+  --footer-text: #fecaca;
+  --footer-accent: #fca5a5;
+  
+  /* Body/Content Colors */
+  --body-bg: #ffffff;
+  --card-bg: #fef2f2;
+  --text-primary: #450a0a;
+  --text-secondary: #991b1b;
+  --accent-primary: #ef4444;
+  --accent-secondary: #f97316;
+}
+
+/* Header Gradient - Crimson */
+[data-theme="crimson"] .page-header {
+  background: linear-gradient(135deg, var(--header-bg-start) 0%, var(--header-bg-end) 70%, #991b1b 100%);
+}
+
+/* Footer Gradient - Crimson */
+[data-theme="crimson"] .page-footer {
+  background: linear-gradient(180deg, var(--footer-bg-start) 0%, var(--footer-bg-end) 60%, #7f1d1d 100%);
+}
+
+
+/* ========================================
+   THEME APPLICATION
+   ======================================== */
+
+/* Body background applies to all themes */
+[data-theme] .page-body,
+[data-theme="ocean"] .page-body,
+[data-theme="forest"] .page-body,
+[data-theme="royal"] .page-body,
+[data-theme="slate"] .page-body,
+[data-theme="crimson"] .page-body {
+  background: var(--body-bg);
+  color: var(--text-primary);
+}
+
+/* Card backgrounds */
+[data-theme] .card,
+[data-theme="ocean"] .card,
+[data-theme="forest"] .card,
+[data-theme="royal"] .card,
+[data-theme="slate"] .card,
+[data-theme="crimson"] .card {
+  background: var(--card-bg);
+}
+
+/* Text colors */
+[data-theme] .text-primary,
+[data-theme="ocean"] .text-primary,
+[data-theme="forest"] .text-primary,
+[data-theme="royal"] .text-primary,
+[data-theme="slate"] .text-primary,
+[data-theme="crimson"] .text-primary {
+  color: var(--text-primary);
+}
+
+[data-theme] .text-secondary,
+[data-theme="ocean"] .text-secondary,
+[data-theme="forest"] .text-secondary,
+[data-theme="royal"] .text-secondary,
+[data-theme="slate"] .text-secondary,
+[data-theme="crimson"] .text-secondary {
+  color: var(--text-secondary);
+}
+
+/* Button accent colors */
+[data-theme] .btn-primary,
+[data-theme="ocean"] .btn-primary,
+[data-theme="forest"] .btn-primary,
+[data-theme="royal"] .btn-primary,
+[data-theme="slate"] .btn-primary,
+[data-theme="crimson"] .btn-primary {
+  background: var(--accent-primary);
+}
+
+[data-theme] .text-accent,
+[data-theme="ocean"] .text-accent,
+[data-theme="forest"] .text-accent,
+[data-theme="royal"] .text-accent,
+[data-theme="slate"] .text-accent,
+[data-theme="crimson"] .text-accent {
+  color: var(--accent-primary);
+}
+
+
+/* ========================================
+   THEME PREVIEW/SWITCHER (Optional)
+   ======================================== */
+.theme-preview {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem;
+}
+
+.theme-swatch {
+  width: 120px;
+  height: 80px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+  border: 2px solid transparent;
+}
+
+.theme-swatch:hover {
+  transform: scale(1.05);
+  border-color: white;
+}
+
+.theme-swatch.active {
+  border-color: var(--accent-primary);
+}
+
+.theme-swatch span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Swatch backgrounds showing header gradient */
+.theme-swatch.ocean {
+  background: linear-gradient(135deg, #0a1628 0%, #1e3a5f 100%);
+}
+
+.theme-swatch.forest {
+  background: linear-gradient(135deg, #064e3b 0%, #065f46 60%, #047857 100%);
+}
+
+.theme-swatch.royal {
+  background: linear-gradient(135deg, #2e1065 0%, #4c1d95 70%, #6d28d9 100%);
+}
+
+.theme-swatch.slate {
+  background: linear-gradient(135deg, #1c1917 0%, #292524 60%, #44403c 100%);
+}
+
+.theme-swatch.crimson {
+  background: linear-gradient(135deg, #450a0a 0%, #7f1d1d 70%, #991b1b 100%);
+}

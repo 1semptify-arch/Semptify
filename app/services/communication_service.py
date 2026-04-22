@@ -12,7 +12,7 @@ Full-featured communication system for Semptify supporting:
 import logging
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from uuid import uuid4
+from app.core.id_gen import make_id
 
 from app.models.communication_models import (
     Conversation, ConversationSummary, ConversationListResponse,
@@ -437,7 +437,7 @@ class CommunicationService:
                 )
             
             # Create a completed document in vault
-            completed_doc_id = f"signed_doc_{uuid4().hex[:16]}"
+            completed_doc_id = make_id("doc")
             
             # Store the signed document reference
             manager = await self._get_manager()

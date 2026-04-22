@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journey Complete - Semptify</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2C5F2D;
+            --secondary: #3498DB;
+            --accent: #E67E22;
+            --background: #F8F9FA;
+            --text: #2D3436;
+            --success: #27AE60;
+        }
+        body {
+            background: var(--background);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .completion-header {
+            background: linear-gradient(135deg, var(--success), #1e8449);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        .completion-header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .completion-header i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        .next-step-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border-left: 5px solid var(--success);
+        }
+        .next-step-card.action-needed { border-left-color: var(--accent); }
+        .next-step-card.optional { border-left-color: var(--secondary); }
+        .action-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: #d4edda;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-right: 1rem;
+        }
+        .next-step-card.action-needed .action-icon { background: #fff3cd; color: var(--accent); }
+        .next-step-card.optional .action-icon { background: #e8f4f8; color: var(--secondary); }
+        .resource-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        .resource-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .resource-card i {
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+        .action-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .action-btn:hover { background: #1a4a1b; color: white; }
+        .action-btn.accent { background: var(--accent); }
+        .action-btn.accent:hover { background: #d35400; }
+    </style>
+</head>
+<body>
+    <div class="completion-header">
+        <i class="bi bi-trophy-fill"></i>
+        <h1>Journey Complete</h1>
+        <p class="lead">You've navigated your housing challenge. Here's what comes next.</p>
+    </div>
+
+    <div class="container py-5">
+        <!-- Immediate Next Steps -->
+        <h3 class="mb-4"><i class="bi bi-stars me-2"></i>Immediate Next Steps</h3>
+        
+        <div class="next-step-card action-needed">
+            <div class="d-flex">
+                <div class="action-icon"><i class="bi bi-folder-check"></i></div>
+                <div class="flex-grow-1">
+                    <h5>Secure Your Records</h5>
+                    <p>Download and save copies of all documents, forms, and evidence from your case. Keep them in a safe place for future reference.</p>
+                    <a href="/vault" class="action-btn accent"><i class="bi bi-download me-2"></i>Export Vault</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="next-step-card">
+            <div class="d-flex">
+                <div class="action-icon"><i class="bi bi-calendar-check"></i></div>
+                <div class="flex-grow-1">
+                    <h5>Note Important Dates</h5>
+                    <p>Record any follow-up dates: payment deadlines, inspection schedules, or lease renewal periods in your personal calendar.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staying Informed -->
+        <h3 class="mb-4 mt-5"><i class="bi bi-book-half me-2"></i>Stay Informed</h3>
+        <div class="resource-grid">
+            <div class="resource-card">
+                <i class="bi bi-shield-check"></i>
+                <h6>Know Your Rights</h6>
+                <p class="small text-muted">Keep your knowledge current on tenant protections</p>
+                <a href="/law_library.html" class="action-btn btn-sm">Law Library</a>
+            </div>
+            <div class="resource-card">
+                <i class="bi bi-people"></i>
+                <h6>Stay Connected</h6>
+                <p class="small text-muted">Your advocate can remain a resource</p>
+                <a href="/contacts" class="action-btn btn-sm">Contacts</a>
+            </div>
+            <div class="resource-card">
+                <i class="bi bi-house-door"></i>
+                <h6>Housing Resources</h6>
+                <p class="small text-muted">Explore local housing assistance programs</p>
+                <a href="/help" class="action-btn btn-sm">Get Help</a>
+            </div>
+        </div>
+
+        <!-- If Issues Arise -->
+        <h3 class="mb-4 mt-5"><i class="bi bi-exclamation-circle me-2"></i>If Issues Arise</h3>
+        <div class="next-step-card optional">
+            <div class="d-flex">
+                <div class="action-icon"><i class="bi bi-arrow-counterclockwise"></i></div>
+                <div class="flex-grow-1">
+                    <h5>Starting a New Case</h5>
+                    <p>If you face new housing issues, you can start a fresh journey. Your previous case information remains in your vault for reference.</p>
+                    <a href="/crisis_intake.html" class="action-btn"><i class="bi bi-plus-circle me-2"></i>New Intake</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback -->
+        <div class="text-center mt-5 py-4">
+            <h5>How did we do?</h5>
+            <p class="text-muted">Your feedback helps us improve Semptify for others facing housing challenges.</p>
+            <div class="d-flex justify-content-center gap-2 mt-3">
+                <button class="btn btn-outline-success"><i class="bi bi-hand-thumbs-up me-2"></i>Helpful</button>
+                <button class="btn btn-outline-secondary"><i class="bi bi-hand-thumbs-down me-2"></i>Could improve</button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-5 pt-4 border-top">
+            <p class="text-muted">Thank you for using Semptify. You stood up for your rights.</p>
+            <a href="/" class="action-btn"><i class="bi bi-house me-2"></i>Return Home</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

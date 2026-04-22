@@ -7,8 +7,8 @@ from typing import Dict, Any, Optional, List
 from datetime import datetime
 from pydantic import BaseModel
 import logging
-import uuid
 
+from app.core.id_gen import make_id
 from app.core.security import require_user, StorageUser
 
 logger = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ _campaigns: Dict[str, Dict[str, Any]] = {}
 async def file_complaint_internal(user_id: str, params: Dict[str, Any]) -> Dict[str, Any]:
     """Internal complaint filing"""
     record = {
-        "id": f"cmp_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:6]}",
+        "id": make_id("cmp"),
         "user_id": user_id,
         "target_agency": params.get("target_agency"),
         "violation_type": params.get("violation_type"),
@@ -117,7 +117,7 @@ async def analyze_fraud_internal(user_id: str, params: Dict[str, Any]) -> Dict[s
     risk_level = "low" if risk_score < 25 else "medium" if risk_score < 75 else "high"
     
     report = {
-        "id": f"fraud_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:6]}",
+        "id": make_id("frd"),
         "landlord_id": params.get("landlord_id"),
         "findings": findings,
         "risk_score": min(risk_score, 100),
@@ -142,7 +142,7 @@ async def generate_press_internal(user_id: str, params: Dict[str, Any]) -> Dict[
     }
     
     release = {
-        "id": f"press_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:6]}",
+        "id": make_id("prs"),
         "headline": headlines.get(language, headlines["en"]),
         "lede": f"Residents of {property_name} have documented serious issues including: {violations}",
         "body": f"""
@@ -199,7 +199,7 @@ async def launch_campaign(
     - Evidence bundle export
     """
     user_id = user.user_id if hasattr(user, 'user_id') else "anonymous"
-    campaign_id = f"camp_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:6]}"
+    campaign_id = make_id("camp")
     
     results = {
         "campaign_id": campaign_id,

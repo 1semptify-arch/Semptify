@@ -21,7 +21,7 @@ from dataclasses import dataclass, asdict
 from collections import defaultdict
 from enum import Enum
 import hashlib
-import uuid
+from app.core.id_gen import make_id
 
 logger = logging.getLogger(__name__)
 
@@ -145,7 +145,7 @@ class AnalyticsEngine:
         metadata: Optional[Dict[str, Any]] = None
     ) -> str:
         """Track a new analytics event."""
-        event_id = str(uuid.uuid4())
+        event_id = make_id("anl")
         
         event = AnalyticsEvent(
             event_id=event_id,

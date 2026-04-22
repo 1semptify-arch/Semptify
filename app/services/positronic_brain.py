@@ -372,8 +372,8 @@ class PositronicBrain:
     
     async def trigger_workflow(self, workflow_name: str, data: dict, user_id: str = None) -> str:
         """Trigger a cross-module workflow."""
-        import uuid
-        workflow_id = str(uuid.uuid4())[:8]
+        from app.core.id_gen import make_id
+        workflow_id = make_id("wf")
         
         self.active_workflows[workflow_id] = {
             "name": workflow_name,

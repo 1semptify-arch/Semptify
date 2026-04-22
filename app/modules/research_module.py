@@ -19,8 +19,8 @@ Quick start (standalone mode):
 import os
 import io
 import json
-import uuid
 import hmac
+from app.core.id_gen import make_id
 import hashlib
 import logging
 import asyncio
@@ -386,7 +386,7 @@ def _safe(data: Optional[Dict[str, Any]], key: str, default: Any = None) -> Any:
 
 def _mk_checkpoint(user_id: str, property_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     return {
-        "id": f"checkpoint_{uuid.uuid4().hex[:12]}",
+        "id": make_id("chk"),
         "user_id": user_id,
         "property_id": property_id,
         "created_at": now_iso(),

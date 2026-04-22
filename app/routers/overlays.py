@@ -23,8 +23,8 @@ from fastapi import APIRouter, Depends, HTTPException, status, Header, Cookie, R
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 import json
-import uuid
 import logging
+from app.core.id_gen import make_id
 
 from app.core.database import get_db
 from app.core.config import get_settings, Settings
@@ -95,7 +95,7 @@ class TextRange(BaseModel):
 
 class Highlight(BaseModel):
     """Text highlight."""
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    id: str = Field(default_factory=lambda: make_id("ovl"))
     range: TextRange
     color: str = "yellow"  # yellow, green, blue, pink, red
     note: Optional[str] = None
@@ -105,7 +105,7 @@ class Highlight(BaseModel):
 
 class Note(BaseModel):
     """Standalone note attached to position."""
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    id: str = Field(default_factory=lambda: make_id("ovl"))
     range: Optional[TextRange] = None  # Position in document
     content: str
     note_type: str = "user"  # user, ai, system, legal
@@ -118,7 +118,7 @@ class Note(BaseModel):
 
 class Footnote(BaseModel):
     """Numbered footnote annotation."""
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    id: str = Field(default_factory=lambda: make_id("ovl"))
     number: int
     range: TextRange  # Where footnote marker appears
     content: str
@@ -129,7 +129,7 @@ class Footnote(BaseModel):
 
 class Edit(BaseModel):
     """Tracked edit/change."""
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    id: str = Field(default_factory=lambda: make_id("ovl"))
     range: TextRange
     original_text: str
     new_text: str
@@ -142,7 +142,7 @@ class Edit(BaseModel):
 
 class ProcessingResult(BaseModel):
     """AI processing results stored in overlay."""
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    id: str = Field(default_factory=lambda: make_id("ovl"))
     module_name: str
     module_version: Optional[str] = None
     results: dict = {}  # Module-specific results

@@ -19,7 +19,7 @@ from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
-import uuid
+from app.core.id_gen import make_id
 import json
 
 logger = logging.getLogger(__name__)
@@ -194,7 +194,7 @@ class MeshNetwork:
             )
         """
         request = MeshRequest(
-            id=f"req_{uuid.uuid4().hex[:12]}",
+            id=make_id("req"),
             source_module=source,
             target_modules=[target],
             request_type=RequestType.QUERY,
@@ -234,7 +234,7 @@ class MeshNetwork:
             # response.data contains merged data from all 3 modules
         """
         request = MeshRequest(
-            id=f"req_{uuid.uuid4().hex[:12]}",
+            id=make_id("req"),
             source_module=source,
             target_modules=targets,
             request_type=RequestType.QUERY,
@@ -276,7 +276,7 @@ class MeshNetwork:
             )
             # Each module adds their analysis, final result is complete defense package
         """
-        collaboration_id = f"collab_{uuid.uuid4().hex[:12]}"
+        collaboration_id = make_id("collab")
         
         self._collaborations[collaboration_id] = {
             "id": collaboration_id,
@@ -610,7 +610,7 @@ class MeshNetwork:
         
         if not relevant_modules:
             return MeshResponse(
-                request_id=f"ask_{uuid.uuid4().hex[:8]}",
+                request_id=make_id("ask"),
                 source_modules=[],
                 success=False,
                 data={},

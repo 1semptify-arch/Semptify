@@ -5,8 +5,7 @@ Event tracking and history for tenant journey.
 Now integrated with DocumentHub for auto-syncing timeline events from documents.
 """
 
-import uuid
-from datetime import datetime
+import datetime
 from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status, UploadFile, File, Form
@@ -14,6 +13,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.id_gen import make_id
 from app.core.database import get_db_session
 from app.core.security import require_user, StorageUser
 from app.core.utc import utc_now
@@ -101,34 +101,22 @@ def _model_to_response(event: TimelineEventModel) -> TimelineEventResponse:
 
 
 def _resolve_document_id_from_overlay_ids(overlay_record_ids: Optional[List[str]], fallback_document_id: Optional[str]) -> Optional[str]:
-    """Resolve vault document reference from overlay IDs, fallback to provided document_id."""
-    if fallback_document_id:
-        return fallback_document_id
-    if not overlay_record_ids:
-        return None
+    """Resolve vault document reference from overlay IDs, fallback to provided document_id.
 
-    try:
-        from app.services.document_overlay_service import document_overlay_service
-    except Exception:
-        return None
-
-    for overlay_id in overlay_record_ids:
-        overlay = document_overlay_service.get_overlay(overlay_id)
-        if overlay and overlay.vault_id:
-            return overlay.vault_id
-    return None
+    Overlay records now live in user cloud storage via the unified overlay
+    manager (async, requires storage context).  This sync helper returns the
+    fallback document_id directly.
+    """
+    return fallback_document_id
 
 
 def _get_overlay_record_ids(document_id: Optional[str]) -> list[str]:
-    if not document_id:
-        return []
-    try:
-        from app.services.document_overlay_service import document_overlay_service
+    """Overlay records now live in user cloud via unified overlay manager.
 
-        overlays = document_overlay_service.list_overlays(vault_id=document_id)
-        return [record.overlay_id for record in overlays]
-    except Exception:
-        return []
+    This sync stub returns an empty list; callers that need real overlay IDs
+    should query the unified overlay manager from an async endpoint.
+    """
+    return []
 
 
 # =============================================================================
@@ -165,7 +153,7 @@ async def create_event(
 
     async with get_db_session() as session:
         db_event = TimelineEventModel(
-            id=str(uuid.uuid4()),
+            id=make_id("evt"),
             user_id=user.user_id,
             event_type=event.event_type,
             title=event.title,
@@ -831,7 +819,7 @@ async def sync_timeline_from_documents(
             event_type = event_type_map.get(category, "other")
             
             # Create event
-            event_id = str(uuid.uuid4())
+            event_id = make_id("evt")
             db_event = TimelineEventModel(
                 id=event_id,
                 user_id=user.user_id,
@@ -906,7 +894,7 @@ async def get_combined_timeline(
     for event in doc_events:
         if event.get("title") not in db_titles:
             combined.append({
-                "id": event.get("id", f"doc_{uuid.uuid4().hex[:8]}"),
+                "id": event.get("id", make_id("evt")),
                 "date": event.get("date", ""),
                 "title": event.get("title", "Event"),
                 "description": event.get("description", ""),

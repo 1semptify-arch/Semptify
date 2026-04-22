@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tools – Semptify</title>
+  <style>
+    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #fff; color: #1a1a2e; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 1rem; white-space: nowrap; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .vault-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+    .hero { background: linear-gradient(160deg, #e8eaf6 0%, #fff 60%); padding: 2rem 1.5rem 1.5rem; text-align: center; }
+    .hero h1 { font-size: 1.8rem; font-weight: 800; color: var(--hdr1); margin-bottom: 0.5rem; }
+    .hero p { color: #555; max-width: 560px; margin: 0 auto; line-height: 1.6; font-size: 0.95rem; }
+
+    .section { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .section-title { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+
+    .tool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+
+    .tool-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 16px; overflow: hidden; transition: all 0.2s; }
+    .tool-card:hover { border-color: var(--accent); box-shadow: 0 6px 24px rgba(57,73,171,0.12); transform: translateY(-3px); }
+    .tool-header { background: linear-gradient(135deg, #e8eaf6, #f0f0ff); padding: 1.25rem; display: flex; align-items: center; gap: 1rem; }
+    .tool-icon { font-size: 2rem; }
+    .tool-info { flex: 1; }
+    .tool-title { font-weight: 700; font-size: 1rem; }
+    .tool-subtitle { font-size: 0.8rem; color: #666; margin-top: 0.15rem; }
+    .tool-body { padding: 1rem 1.25rem; }
+    .tool-desc { font-size: 0.88rem; color: #444; line-height: 1.5; margin-bottom: 1rem; }
+    .tool-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .tool-link { background: var(--accent); color: #fff; padding: 0.45rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; text-decoration: none; display: inline-block; }
+    .tool-link.secondary { background: #e8eaf6; color: var(--accent); }
+
+    /* INLINE MINI CALCULATOR */
+    .mini-calc { background: #f8f9ff; border: 1px solid #c5cae9; border-radius: 10px; padding: 1rem; margin-top: 0.75rem; }
+    .calc-row { display: flex; gap: 0.5rem; align-items: flex-end; flex-wrap: wrap; }
+    .calc-group { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; min-width: 100px; }
+    .calc-group label { font-size: 0.75rem; font-weight: 600; color: #555; }
+    .calc-group input, .calc-group select { padding: 0.4rem 0.6rem; border: 1px solid #c5cae9; border-radius: 6px; font-size: 0.88rem; background: #fff; }
+    .calc-btn { background: var(--accent); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+    .calc-result { margin-top: 0.75rem; padding: 0.75rem; background: #fff; border: 1px solid #c5cae9; border-radius: 8px; font-size: 0.9rem; display: none; }
+    .calc-result.show { display: block; }
+    .calc-result strong { color: var(--accent); font-size: 1.1rem; }
+
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.5rem; font-size: 0.85rem; margin-top: 3rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
+
+    @media (max-width: 768px) {
+      nav.core-nav { display: none; }
+      .hamburger { display: block; }
+      .hero h1 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/home.html">🏠 Home</a>
+    <a href="/library.html">📚 Library</a>
+    <a href="/office.html">🏢 Office</a>
+    <a href="/tools.html">🔧 Tools</a>
+    <a href="/help.html">🆘 Help</a>
+    <hr style="border-color:rgba(255,255,255,0.2); margin: 0.5rem 0;">
+    <a href="#" onclick="openVaultUpload()" style="color:#f59e0b; font-weight:700;">🔒 Vault Door</a>
+    <a href="/onboarding/select-role.html">👤 My Account</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <div class="logo">Semptify</div>
+      <nav class="core-nav">
+        <a href="/home.html">🏠 Home</a>
+        <a href="/library.html">📚 Library</a>
+        <a href="/office.html">🏢 Office</a>
+        <a href="/tools.html" class="active">🔧 Tools</a>
+        <a href="/help.html">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button class="vault-btn" onclick="openVaultUpload()">🔒 Vault</button>
+        <button class="user-btn">👤 User</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h1>🔧 Tools &amp; Utilities</h1>
+    <p>Calculators, generators, checklists — practical tools to build your case and understand your rights.</p>
+  </div>
+
+  <div class="section">
+
+    <div class="section-title">🧮 Calculators</div>
+    <div class="tool-grid">
+
+      <div class="tool-card">
+        <div class="tool-header">
+          <span class="tool-icon">💰</span>
+          <div class="tool-info">
+            <div class="tool-title">Rent Calculator</div>
+            <div class="tool-subtitle">Proration, late fees, interest</div>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="tool-desc">Calculate prorated rent, late fees by jurisdiction, and security deposit interest.</div>
+          <div class="mini-calc">
+            <div class="calc-row">
+              <div class="calc-group">
+                <label>Monthly Rent ($)</label>
+                <input type="number" id="rent-amount" placeholder="1200">
+              </div>
+              <div class="calc-group">
+                <label>Move-in Day</label>
+                <input type="number" id="move-in-day" placeholder="15" min="1" max="31">
+              </div>
+              <button class="calc-btn" onclick="calcProration()">Calculate</button>
+            </div>
+            <div class="calc-result" id="proration-result"></div>
+          </div>
+          <div class="tool-actions" style="margin-top:0.75rem;">
+            <a href="/tools/calculators.html" class="tool-link">Full Calculator</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-header">
+          <span class="tool-icon">⏰</span>
+          <div class="tool-info">
+            <div class="tool-title">Deadline Calculator</div>
+            <div class="tool-subtitle">Notices, court dates, appeals</div>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="tool-desc">Calculate legal deadlines from a date — notice periods, response windows, appeal cutoffs.</div>
+          <div class="mini-calc">
+            <div class="calc-row">
+              <div class="calc-group">
+                <label>Notice Date</label>
+                <input type="date" id="notice-date">
+              </div>
+              <div class="calc-group">
+                <label>Notice Type</label>
+                <select id="notice-type">
+                  <option value="3">3-Day Pay or Quit</option>
+                  <option value="30">30-Day Termination</option>
+                  <option value="60">60-Day Termination</option>
+                  <option value="5">5-Day Eviction Answer</option>
+                </select>
+              </div>
+              <button class="calc-btn" onclick="calcDeadline()">Calculate</button>
+            </div>
+            <div class="calc-result" id="deadline-result"></div>
+          </div>
+          <div class="tool-actions" style="margin-top:0.75rem;">
+            <a href="/tools/calculators.html#deadline" class="tool-link">Full Calculator</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-header">
+          <span class="tool-icon">🏦</span>
+          <div class="tool-info">
+            <div class="tool-title">Security Deposit Calculator</div>
+            <div class="tool-subtitle">Interest, deductions, return dates</div>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="tool-desc">Calculate deposit interest, allowable deductions, and how long a landlord has to return it.</div>
+          <div class="tool-actions">
+            <a href="/tools/calculators.html#deposit" class="tool-link">Open Calculator</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="section-title">📄 Generators</div>
+    <div class="tool-grid">
+
+      <div class="tool-card">
+        <div class="tool-header">
+          <span class="tool-icon">🔧</span>
+          <div class="tool-info">
+            <div class="tool-title">Repair Request Generator</div>
+            <div class="tool-subtitle">Creates written repair demand</div>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="tool-desc">Generate a formal repair request letter with correct legal language. Creates a paper trail from day one.</div>
+          <div class="tool-actions">
+            <a href="/tools/generators.html#repair" class="tool-link">Generate Letter</a>
+            <a href="/library/rights.html#repair" class="tool-link secondary">Know Your Rights</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-header">
+          <span class="tool-icon">📨</span>
+          <div class="tool-info">
+            <div class="tool-title">Notice Generator</div>
+            <div class="tool-subtitle">Termination, violations, responses</div>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="tool-desc">Generate legally compliant notices: lease termination, violation responses, rent withholding notices.</div>
+          <div class="tool-actions">
+            <a href="/tools/generators.html" class="tool-link">Generate Notice</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-header">
+          <span class="tool-icon">📋</span>
+          <div class="tool-info">
+            <div class="tool-title">Complaint Packet Builder</div>
+            <div class="tool-subtitle">HUD, local housing authority, court</div>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="tool-desc">Step-by-step guide to building a complaint packet for housing authorities, HUD, or small claims court.</div>
+          <div class="tool-actions">
+            <a href="/tools/generators.html#complaint" class="tool-link">Build Packet</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="section-title">✅ Checklists</div>
+    <div class="tool-grid">
+
+      <div class="tool-card">
+        <div class="tool-header">
+          <span class="tool-icon">🏠</span>
+          <div class="tool-info">
+            <div class="tool-title">Move-In Inspection Checklist</div>
+            <div class="tool-subtitle">Document unit condition on day 1</div>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="tool-desc">Thorough room-by-room checklist. Complete it, photograph it, sign it — protects your security deposit.</div>
+          <div class="tool-actions">
+            <a href="/tools/calculators.html#checklist" class="tool-link">Open Checklist</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-header">
+          <span class="tool-icon">📦</span>
+          <div class="tool-info">
+            <div class="tool-title">Move-Out Checklist</div>
+            <div class="tool-subtitle">Protect your deposit on the way out</div>
+          </div>
+        </div>
+        <div class="tool-body">
+          <div class="tool-desc">What to do before you leave — cleaning, repairs, documentation, forwarding address, key return.</div>
+          <div class="tool-actions">
+            <a href="/tools/calculators.html#moveout" class="tool-link">Open Checklist</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <footer>
+    <div>
+      <a href="/home.html">Home</a>
+      <a href="/public/about.html">About</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/help.html">Help</a>
+    </div>
+    <div style="margin-top:0.5rem;">Calculators are estimates only · Verify with local law · Not legal advice</div>
+    <div style="margin-top:0.25rem; opacity:0.5;">© 2025 Semptify</div>
+  </footer>
+
+  <script src="/js/core/vault-portal.js"></script>
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+
+    function calcProration() {
+      const rent = parseFloat(document.getElementById('rent-amount').value);
+      const day = parseInt(document.getElementById('move-in-day').value);
+      const result = document.getElementById('proration-result');
+      if (!rent || !day || day < 1 || day > 31) { result.innerHTML = 'Please enter valid rent and move-in day.'; result.className = 'calc-result show'; return; }
+      const daysInMonth = 30;
+      const daysOccupied = daysInMonth - day + 1;
+      const dailyRate = rent / daysInMonth;
+      const prorated = dailyRate * daysOccupied;
+      result.innerHTML = `Daily rate: <strong>$${dailyRate.toFixed(2)}</strong> &nbsp;|&nbsp; Days occupied: <strong>${daysOccupied}</strong> &nbsp;|&nbsp; Prorated rent: <strong>$${prorated.toFixed(2)}</strong>`;
+      result.className = 'calc-result show';
+    }
+
+    function calcDeadline() {
+      const dateVal = document.getElementById('notice-date').value;
+      const days = parseInt(document.getElementById('notice-type').value);
+      const result = document.getElementById('deadline-result');
+      if (!dateVal) { result.innerHTML = 'Please enter a notice date.'; result.className = 'calc-result show'; return; }
+      const noticeDate = new Date(dateVal);
+      const deadline = new Date(noticeDate);
+      deadline.setDate(deadline.getDate() + days);
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      const today = new Date();
+      const daysLeft = Math.ceil((deadline - today) / (1000 * 60 * 60 * 24));
+      const urgency = daysLeft <= 3 ? ' ⚠️ URGENT' : daysLeft <= 7 ? ' ⚡ Soon' : '';
+      result.innerHTML = `Deadline: <strong>${deadline.toLocaleDateString('en-US', options)}</strong><br>Days remaining: <strong>${daysLeft > 0 ? daysLeft : 0} days${urgency}</strong>`;
+      result.className = 'calc-result show';
+    }
+  </script>
+</body>
+</html>

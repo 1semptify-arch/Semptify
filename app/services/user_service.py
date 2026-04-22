@@ -9,7 +9,8 @@ Solves the "returning user" problem:
 
 from datetime import datetime
 from typing import Optional
-import uuid
+
+from app.core.id_gen import make_id
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -155,7 +156,7 @@ async def link_provider(
     """Link an additional storage provider to user's account."""
     async with get_db_session() as session:
         linked = LinkedProvider(
-            id=str(uuid.uuid4()),
+            id=make_id("lnk"),
             user_id=user_id,
             provider=provider,
             storage_user_id=storage_user_id,

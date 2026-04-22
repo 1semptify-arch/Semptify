@@ -14,8 +14,8 @@ Integrates with:
 - Timeline (log interactions)
 """
 
-import uuid
 from datetime import datetime
+from app.core.id_gen import make_id
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from pydantic import BaseModel, EmailStr
@@ -295,7 +295,7 @@ async def create_contact(
 ):
     """Create a new contact."""
     contact = Contact(
-        id=str(uuid.uuid4()),
+        id=make_id("con"),
         user_id=user.user_id,
         contact_type=data.contact_type,
         role=data.role,
@@ -494,7 +494,7 @@ async def log_interaction(
     import json
     
     interaction = ContactInteraction(
-        id=str(uuid.uuid4()),
+        id=make_id("con"),
         user_id=user.user_id,
         contact_id=contact_id,
         interaction_type=data.interaction_type,
@@ -557,7 +557,7 @@ async def import_from_extraction(
         addr = parse_address(data.landlord_address) if data.landlord_address else {}
         
         landlord = Contact(
-            id=str(uuid.uuid4()),
+            id=make_id("con"),
             user_id=user.user_id,
             contact_type="landlord",
             role="opposing_party",
@@ -579,7 +579,7 @@ async def import_from_extraction(
         addr = parse_address(data.attorney_address) if data.attorney_address else {}
         
         attorney = Contact(
-            id=str(uuid.uuid4()),
+            id=make_id("con"),
             user_id=user.user_id,
             contact_type="attorney",
             role="opposing_counsel",
@@ -622,7 +622,7 @@ async def quick_add_landlord(
     addr = parse_address(address) if address else {}
     
     contact = Contact(
-        id=str(uuid.uuid4()),
+        id=make_id("con"),
         user_id=user.user_id,
         contact_type="landlord",
         role="opposing_party",
@@ -655,7 +655,7 @@ async def quick_add_witness(
 ):
     """Quick add a witness contact."""
     contact = Contact(
-        id=str(uuid.uuid4()),
+        id=make_id("con"),
         user_id=user.user_id,
         contact_type="witness",
         role="my_witness",

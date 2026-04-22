@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inbox – Semptify Office</title>
+  <style>
+    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9ff; color: #1a1a2e; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: #fff; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .vault-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+    .breadcrumb { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0.6rem 0; }
+    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+
+    .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 260px 1fr; gap: 1.5rem; min-height: calc(100vh - 200px); }
+
+    /* SIDEBAR NAV */
+    .inbox-nav { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1rem; height: fit-content; }
+    .inbox-nav-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #888; margin-bottom: 0.5rem; padding: 0 0.5rem; }
+    .inbox-nav-item { display: flex; align-items: center; justify-content: space-between; padding: 0.55rem 0.75rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; margin-bottom: 0.15rem; text-decoration: none; color: #1a1a2e; }
+    .inbox-nav-item:hover { background: #f0f0ff; }
+    .inbox-nav-item.active { background: var(--accent); color: #fff; font-weight: 600; }
+    .inbox-badge { background: #ef4444; color: #fff; border-radius: 10px; padding: 0.1rem 0.45rem; font-size: 0.7rem; font-weight: 700; }
+    .inbox-nav-item.active .inbox-badge { background: rgba(255,255,255,0.3); }
+    .inbox-nav-divider { border: none; border-top: 1px solid #e0e0e0; margin: 0.75rem 0; }
+
+    /* MESSAGE AREA */
+    .message-area { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+    .message-toolbar { padding: 0.75rem 1rem; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; gap: 0.75rem; background: #fafafa; }
+    .message-toolbar input { flex: 1; padding: 0.45rem 0.75rem; border: 1px solid #c5cae9; border-radius: 8px; font-size: 0.88rem; outline: none; }
+    .message-toolbar input:focus { border-color: var(--accent); }
+
+    .msg-list { flex: 1; overflow-y: auto; }
+    .msg-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 1rem 1.25rem; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: background 0.1s; }
+    .msg-item:hover { background: #f8f9ff; }
+    .msg-item.unread { background: #f0f4ff; }
+    .msg-item.unread .msg-subject { font-weight: 700; }
+    .msg-item.selected { background: #e8eaf6; }
+    .msg-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; color: #fff; }
+    .avatar-advocate { background: #166534; }
+    .avatar-legal { background: #9f1239; }
+    .avatar-system { background: #374151; }
+    .avatar-delivery { background: #b45309; }
+    .msg-content { flex: 1; min-width: 0; }
+    .msg-from { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.1rem; }
+    .msg-subject { font-size: 0.9rem; margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .msg-preview { font-size: 0.8rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .msg-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; flex-shrink: 0; }
+    .msg-time { font-size: 0.75rem; color: #888; }
+    .msg-type-badge { font-size: 0.68rem; padding: 0.1rem 0.4rem; border-radius: 6px; font-weight: 600; }
+    .badge-review { background: #dbeafe; color: #1e40af; }
+    .badge-signature { background: #fef3c7; color: #92400e; }
+    .badge-message { background: #e8eaf6; color: #3949ab; }
+    .badge-system { background: #f3f4f6; color: #374151; }
+
+    /* MESSAGE VIEWER */
+    .msg-viewer { display: none; padding: 1.5rem; flex-direction: column; gap: 1rem; }
+    .msg-viewer.open { display: flex; }
+    .msg-viewer-header { border-bottom: 1px solid #f0f0f0; padding-bottom: 1rem; }
+    .msg-viewer-subject { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .msg-viewer-meta { font-size: 0.85rem; color: #666; display: flex; gap: 1rem; flex-wrap: wrap; }
+    .msg-viewer-body { font-size: 0.92rem; line-height: 1.7; color: #333; }
+    .msg-viewer-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; padding-top: 0.75rem; border-top: 1px solid #f0f0f0; }
+    .msg-action { padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.88rem; font-weight: 600; cursor: pointer; border: none; }
+    .msg-action.primary { background: var(--accent); color: #fff; }
+    .msg-action.secondary { background: #e8eaf6; color: var(--accent); }
+    .msg-action.danger { background: #fee2e2; color: #dc2626; }
+    .delivery-notice { background: #fffbeb; border: 1px solid #f59e0b; border-radius: 10px; padding: 1rem; font-size: 0.88rem; }
+    .delivery-notice strong { display: block; margin-bottom: 0.25rem; color: #92400e; }
+
+    .empty-inbox { text-align: center; padding: 4rem 1rem; color: #888; }
+
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
+
+    @media (max-width: 768px) {
+      nav.core-nav { display: none; }
+      .hamburger { display: block; }
+      .main { grid-template-columns: 1fr; }
+      .inbox-nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/home.html">🏠 Home</a>
+    <a href="/library.html">📚 Library</a>
+    <a href="/office.html">🏢 Office</a>
+    <a href="/tools.html">🔧 Tools</a>
+    <a href="/help.html">🆘 Help</a>
+    <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0;">
+    <a href="/office/vault.html">🔒 Vault</a>
+    <a href="/office/inbox.html" style="color:#f59e0b;font-weight:700;">📨 Inbox</a>
+    <a href="/office/timeline.html">📅 Timeline</a>
+    <a href="/office/delivery.html">📬 Delivery</a>
+    <a href="/office/signer.html">✍️ Signer</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <a href="/home.html" class="logo">Semptify</a>
+      <nav class="core-nav">
+        <a href="/home.html">🏠 Home</a>
+        <a href="/library.html">📚 Library</a>
+        <a href="/office.html" class="active">🏢 Office</a>
+        <a href="/tools.html">🔧 Tools</a>
+        <a href="/help.html">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button class="vault-btn" onclick="openVaultUpload ? openVaultUpload() : null">🔒 Vault</button>
+        <button class="user-btn">👤 User</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="breadcrumb">
+    <div class="breadcrumb-inner">
+      <a href="/home.html">Home</a> ›
+      <a href="/office.html">Office</a> ›
+      <strong>Inbox</strong>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- INBOX SIDEBAR -->
+    <nav class="inbox-nav" aria-label="Inbox folders">
+      <div class="inbox-nav-title">Folders</div>
+      <a href="#" class="inbox-nav-item active" onclick="switchFolder(event,'inbox')">
+        📥 Inbox <span class="inbox-badge">2</span>
+      </a>
+      <a href="#" class="inbox-nav-item" onclick="switchFolder(event,'pending')">
+        ⏳ Pending Action <span class="inbox-badge" style="background:#f59e0b;">1</span>
+      </a>
+      <a href="#" class="inbox-nav-item" onclick="switchFolder(event,'sent')">📤 Sent</a>
+      <a href="#" class="inbox-nav-item" onclick="switchFolder(event,'archived')">🗄 Archived</a>
+
+      <hr class="inbox-nav-divider">
+      <div class="inbox-nav-title">Office</div>
+      <a href="/office/vault.html" class="inbox-nav-item">🔒 Vault</a>
+      <a href="/office/timeline.html" class="inbox-nav-item">📅 Timeline</a>
+      <a href="/office/delivery.html" class="inbox-nav-item">📬 Delivery</a>
+      <a href="/office/signer.html" class="inbox-nav-item">✍️ Signer</a>
+    </nav>
+
+    <!-- MESSAGE PANE -->
+    <div class="message-area">
+      <div class="message-toolbar">
+        <input type="text" placeholder="Search messages..." id="msg-search" oninput="filterMessages()" aria-label="Search messages">
+      </div>
+
+      <div class="msg-list" id="msg-list">
+
+        <!-- UNREAD: SIGNATURE REQUIRED -->
+        <div class="msg-item unread" data-folder="inbox" data-id="1" onclick="openMessage(1)">
+          <div class="msg-avatar avatar-legal">⚖</div>
+          <div class="msg-content">
+            <div class="msg-from">Legal Aid Society</div>
+            <div class="msg-subject">Settlement Agreement — Signature Required</div>
+            <div class="msg-preview">Please review and sign the attached settlement agreement before the deadline...</div>
+          </div>
+          <div class="msg-meta">
+            <span class="msg-time">Today 9:14am</span>
+            <span class="msg-type-badge badge-signature">✍️ Signature</span>
+          </div>
+        </div>
+
+        <!-- UNREAD: REVIEW -->
+        <div class="msg-item unread" data-folder="inbox" data-id="2" onclick="openMessage(2)">
+          <div class="msg-avatar avatar-advocate">🌿</div>
+          <div class="msg-content">
+            <div class="msg-from">Maria Gonzalez — Housing Advocate</div>
+            <div class="msg-subject">Review: Repair Request Response from Landlord</div>
+            <div class="msg-preview">Your landlord has responded to the repair request. Please review the attached document...</div>
+          </div>
+          <div class="msg-meta">
+            <span class="msg-time">Yesterday</span>
+            <span class="msg-type-badge badge-review">👁 Review</span>
+          </div>
+        </div>
+
+        <!-- READ: MESSAGE -->
+        <div class="msg-item" data-folder="inbox" data-id="3" onclick="openMessage(3)">
+          <div class="msg-avatar avatar-advocate">🌿</div>
+          <div class="msg-content">
+            <div class="msg-from">Maria Gonzalez — Housing Advocate</div>
+            <div class="msg-subject">Next steps for your case</div>
+            <div class="msg-preview">I've reviewed your documents. Here are the next steps we should take together...</div>
+          </div>
+          <div class="msg-meta">
+            <span class="msg-time">Apr 18</span>
+            <span class="msg-type-badge badge-message">💬 Message</span>
+          </div>
+        </div>
+
+        <!-- READ: SYSTEM -->
+        <div class="msg-item" data-folder="inbox" data-id="4" onclick="openMessage(4)">
+          <div class="msg-avatar avatar-system">⚙</div>
+          <div class="msg-content">
+            <div class="msg-from">Semptify System</div>
+            <div class="msg-subject">Your vault document was timestamped</div>
+            <div class="msg-preview">3-Day Notice to Pay or Quit.pdf has been blockchain timestamped successfully...</div>
+          </div>
+          <div class="msg-meta">
+            <span class="msg-time">Apr 19</span>
+            <span class="msg-type-badge badge-system">🔔 System</span>
+          </div>
+        </div>
+
+        <!-- PENDING ACTION -->
+        <div class="msg-item" data-folder="pending" data-id="5" style="display:none;" onclick="openMessage(5)">
+          <div class="msg-avatar avatar-delivery">📬</div>
+          <div class="msg-content">
+            <div class="msg-from">Manager · Harborview Properties</div>
+            <div class="msg-subject">Lease Renewal Notice — Action Required</div>
+            <div class="msg-preview">Your lease expires in 60 days. Please indicate your intent to renew or vacate by...</div>
+          </div>
+          <div class="msg-meta">
+            <span class="msg-time">Apr 15</span>
+            <span class="msg-type-badge badge-review">⏳ Pending</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- MESSAGE VIEWER (hidden until message selected) -->
+      <div class="msg-viewer" id="msg-viewer"></div>
+    </div>
+  </div>
+
+  <footer>
+    <div>
+      <a href="/home.html">Home</a>
+      <a href="/office.html">Office</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/help.html">Help</a>
+    </div>
+    <div style="margin-top:0.5rem;">Messages are end-to-end encrypted · Semptify does not read your messages</div>
+  </footer>
+
+  <script src="/js/core/vault-portal.js"></script>
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+
+    const messages = {
+      1: {
+        subject: 'Settlement Agreement — Signature Required',
+        from: 'Legal Aid Society',
+        time: 'Today at 9:14am',
+        type: 'signature',
+        body: `<div class="delivery-notice"><strong>✍️ Signature Required</strong>This document requires your signature. You must sign or reject it by <strong>April 25, 2025</strong>. Uploader: Legal Aid Society · Timestamped Apr 21, 2025.</div><br><p>Please review the attached settlement agreement carefully. This document outlines the terms negotiated on your behalf with your landlord.</p><br><p>Key points:</p><ul style="padding-left:1.25rem;line-height:2;"><li>Landlord agrees to complete repairs within 30 days</li><li>No eviction proceedings for 90 days</li><li>Back rent reduced by $450</li></ul><br><p>If you have questions, contact your advocate before signing.</p>`,
+        actions: ['sign','reject','vault','message']
+      },
+      2: {
+        subject: 'Review: Repair Request Response from Landlord',
+        from: 'Maria Gonzalez — Housing Advocate',
+        time: 'Yesterday at 2:31pm',
+        type: 'review',
+        body: `<div class="delivery-notice"><strong>👁 Review Required</strong>Your advocate has sent you a document to review. No signature required. Uploader: Maria Gonzalez · Timestamped Apr 20, 2025.</div><br><p>Your landlord has responded to the repair request letter we sent on January 14th. They are disputing the mold issue and claim it was caused by tenant negligence.</p><br><p>Please review the attached response and let me know:</p><ul style="padding-left:1.25rem;line-height:2;"><li>Is their account accurate?</li><li>Do you have photos from before you moved in?</li><li>Did they enter your unit to inspect?</li></ul>`,
+        actions: ['acknowledge','vault','reply']
+      },
+      3: {
+        subject: 'Next steps for your case',
+        from: 'Maria Gonzalez — Housing Advocate',
+        time: 'April 18 at 11:05am',
+        type: 'message',
+        body: `<p>I've reviewed all the documents you uploaded to your vault. Here are the next steps I recommend:</p><br><ol style="padding-left:1.25rem;line-height:2;"><li>Upload the original lease agreement if you haven't already</li><li>Add a timeline entry for every date mentioned in the eviction notice</li><li>Use the Repair Request Generator to create a formal record</li><li>We'll schedule a call once you've done those three things</li></ol><br><p>You're doing great — you have strong documentation already.</p>`,
+        actions: ['reply','vault']
+      },
+      4: {
+        subject: 'Your vault document was timestamped',
+        from: 'Semptify System',
+        time: 'April 19 at 8:02am',
+        type: 'system',
+        body: `<p><strong>3-Day Notice to Pay or Quit.pdf</strong> has been successfully blockchain timestamped.</p><br><p>This creates a tamper-evident record proving you possessed this document at this date and time. This timestamp can be used as evidence in court or housing authority proceedings.</p><br><p>Your document is stored in your Google Drive at: <code style="background:#f0f0f0;padding:0.15rem 0.4rem;border-radius:4px;">Semptify/notices/</code></p>`,
+        actions: ['vault']
+      },
+      5: {
+        subject: 'Lease Renewal Notice — Action Required',
+        from: 'Harborview Properties',
+        time: 'April 15 at 10:00am',
+        type: 'pending',
+        body: `<div class="delivery-notice"><strong>⏳ Action Required by May 15, 2025</strong>Sent by: Harborview Properties (Manager role) · You must respond before the deadline.</div><br><p>Your current lease expires on <strong>June 30, 2025</strong>. Please indicate your intent to renew or vacate by May 15, 2025.</p><br><p>Options:</p><ul style="padding-left:1.25rem;line-height:2;"><li>Renew at current rate + 3% increase</li><li>Month-to-month after June 30 (requires 60-day notice)</li><li>Vacate by June 30</li></ul>`,
+        actions: ['acknowledge','vault','reply']
+      }
+    };
+
+    function openMessage(id) {
+      document.querySelectorAll('.msg-item').forEach(el => el.classList.remove('selected'));
+      document.querySelector(`[data-id="${id}"]`).classList.add('selected');
+      document.querySelector(`[data-id="${id}"]`).classList.remove('unread');
+
+      const m = messages[id];
+      const actionMap = {
+        sign: `<button class="msg-action primary" onclick="alert('Signature flow — coming soon')">✍️ Sign Document</button>`,
+        reject: `<button class="msg-action danger" onclick="alert('Rejection recorded')">✕ Reject</button>`,
+        acknowledge: `<button class="msg-action primary" onclick="alert('Acknowledged')">✓ Acknowledge</button>`,
+        vault: `<a href="/office/vault.html" class="msg-action secondary" style="text-decoration:none;">🔒 Save to Vault</a>`,
+        reply: `<button class="msg-action secondary" onclick="alert('Reply — coming soon')">↩ Reply</button>`,
+        message: `<button class="msg-action secondary" onclick="alert('Message advocate')">💬 Message Advocate</button>`
+      };
+
+      const viewer = document.getElementById('msg-viewer');
+      viewer.innerHTML = `
+        <div class="msg-viewer-header">
+          <div class="msg-viewer-subject">${m.subject}</div>
+          <div class="msg-viewer-meta">
+            <span>From: <strong>${m.from}</strong></span>
+            <span>${m.time}</span>
+          </div>
+        </div>
+        <div class="msg-viewer-body">${m.body}</div>
+        <div class="msg-viewer-actions">${m.actions.map(a => actionMap[a] || '').join('')}</div>
+      `;
+      viewer.classList.add('open');
+      document.getElementById('msg-list').style.display = 'none';
+    }
+
+    function switchFolder(e, folder) {
+      e.preventDefault();
+      document.querySelectorAll('.inbox-nav-item').forEach(el => el.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      document.getElementById('msg-list').style.display = '';
+      document.getElementById('msg-viewer').classList.remove('open');
+      document.querySelectorAll('.msg-item').forEach(el => {
+        el.style.display = el.dataset.folder === folder ? '' : 'none';
+      });
+      if (folder === 'sent' || folder === 'archived') {
+        document.getElementById('msg-list').innerHTML = `<div class="empty-inbox"><div style="font-size:3rem;">📭</div><strong>No messages here</strong><p>This folder is empty.</p></div>`;
+      }
+    }
+
+    function filterMessages() {
+      const q = document.getElementById('msg-search').value.toLowerCase();
+      document.querySelectorAll('.msg-item').forEach(el => {
+        el.style.display = (!q || el.textContent.toLowerCase().includes(q)) ? '' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>

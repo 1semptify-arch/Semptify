@@ -1,0 +1,185 @@
+<!-- 
+  Vault Door Button Component
+  Place this in every header - opens file picker directly
+-->
+
+<button class="vault-door-btn" onclick="openVaultUpload()" title="Upload document to your vault">
+  <span class="vault-icon">🔒</span>
+  <span class="vault-label hide-mobile">Vault</span>
+</button>
+
+<!-- Include vault-portal.js for functionality -->
+<script src="/js/core/vault-portal.js"></script>
+
+<style>
+  .vault-door-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+  }
+  
+  .vault-door-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+  }
+  
+  .vault-door-btn:active {
+    transform: translateY(0);
+  }
+  
+  .vault-icon {
+    font-size: 1.1rem;
+  }
+  
+  /* Modal styles for vault capture */
+  .vault-capture-content {
+    max-width: 700px !important;
+  }
+  
+  .vault-capture-body {
+    padding: 1.5rem;
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  
+  .file-list {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .file-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .file-item:last-child {
+    margin-bottom: 0;
+  }
+  
+  .file-icon {
+    font-size: 1.5rem;
+  }
+  
+  .file-info {
+    flex: 1;
+  }
+  
+  .file-name {
+    font-weight: 500;
+    color: #111827;
+  }
+  
+  .file-size {
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+  
+  .capture-form {
+    margin-bottom: 1.5rem;
+  }
+  
+  .type-description {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+  
+  .auto-fields {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  @media (max-width: 640px) {
+    .auto-fields {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .metadata-preview {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .metadata-preview h4 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.9rem;
+    color: #1e40af;
+  }
+  
+  .metadata-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-size: 0.85rem;
+  }
+  
+  .metadata-list li {
+    padding: 0.25rem 0;
+    color: #374151;
+  }
+  
+  .checkbox-group {
+    margin-top: 1rem;
+  }
+  
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    color: #dc2626;
+  }
+  
+  .checkbox-label input[type="checkbox"] {
+    width: 1.2rem;
+    height: 1.2rem;
+    accent-color: #dc2626;
+  }
+  
+  .vault-storage-info {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 0 1.5rem 1.5rem;
+  }
+  
+  .storage-provider {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: #065f46;
+    margin-bottom: 0.5rem;
+  }
+  
+  .privacy-note {
+    font-size: 0.8rem;
+    color: #059669;
+    margin: 0;
+  }
+</style>

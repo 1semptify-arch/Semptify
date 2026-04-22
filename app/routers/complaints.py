@@ -496,7 +496,7 @@ async def analyze_case_for_complaints(
 # Wizard Session Endpoints (for guided complaint flow)
 # =============================================================================
 
-import uuid
+from app.core.id_gen import make_id
 
 # In-memory wizard sessions (for simplicity)
 _wizard_sessions: dict = {}
@@ -519,7 +519,7 @@ class WizardSession(BaseModel):
 @router.post("/wizard/start")
 async def start_wizard(request: WizardStartRequest) -> WizardSession:
     """Start a new complaint wizard session."""
-    session_id = str(uuid.uuid4())
+    session_id = make_id("wiz")
     session = WizardSession(
         session_id=session_id,
         complaint_type=request.complaint_type,
@@ -566,7 +566,7 @@ async def submit_complaint(
         raise HTTPException(status_code=422, detail="Invalid agency_id")
 
     # Create a draft and mark it ready for submission
-    draft_id = f"cmp_{datetime.utcnow().strftime('%Y%m%d%H%M%S')}_{uuid.uuid4().hex[:8]}"
+    draft_id = make_id("cmp")
     
     return {
         "status": "submitted",

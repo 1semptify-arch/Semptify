@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify Page Builder - Interactive Template Designer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #1e3a5f;
+            --primary-light: #2d5a87;
+            --accent: #3b82f6;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --panel: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-light: #64748b;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* ===== Header ===== */
+        .builder-header {
+            background: var(--primary);
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .builder-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .builder-header .logo-icon {
+            font-size: 24px;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* ===== Layout ===== */
+        .builder-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            height: calc(100vh - 53px);
+        }
+        
+        /* ===== Left Sidebar - Components ===== */
+        .components-panel {
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .panel-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-light);
+            margin-bottom: 16px;
+        }
+        
+        .component-category {
+            margin-bottom: 24px;
+        }
+        
+        .component-category h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .component-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: grab;
+            transition: all 0.2s;
+        }
+        
+        .component-item:hover {
+            border-color: var(--accent);
+            background: #eff6ff;
+        }
+        
+        .component-item:active {
+            cursor: grabbing;
+        }
+        
+        .component-icon {
+            font-size: 18px;
+        }
+        
+        .component-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        /* ===== Center - Canvas ===== */
+        .canvas-area {
+            background: #f1f5f9;
+            padding: 40px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .canvas-container {
+            background: white;
+            min-height: 800px;
+            max-width: 900px;
+            margin: 0 auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            position: relative;
+            padding: 40px;
+        }
+        
+        .canvas-header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px dashed var(--border);
+            margin-bottom: 30px;
+        }
+        
+        .canvas-header h2 {
+            font-size: 16px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        
+        .drop-zone {
+            min-height: 600px;
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            transition: all 0.2s;
+        }
+        
+        .drop-zone.drag-over {
+            border-color: var(--accent);
+            background: #eff6ff;
+        }
+        
+        .drop-zone.empty::before {
+            content: 'Drag components here or click to add';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-light);
+            font-size: 14px;
+        }
+        
+        /* ===== Canvas Elements ===== */
+        .canvas-element {
+            position: relative;
+            margin-bottom: 16px;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .canvas-element:hover {
+            border-color: var(--accent);
+        }
+        
+        .canvas-element.selected {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        
+        .element-toolbar {
+            display: none;
+            position: absolute;
+            top: -32px;
+            right: 0;
+            background: var(--primary);
+            border-radius: 6px;
+            padding: 4px;
+            gap: 4px;
+            z-index: 100;
+        }
+        
+        .canvas-element:hover .element-toolbar,
+        .canvas-element.selected .element-toolbar {
+            display: flex;
+        }
+        
+        .toolbar-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .toolbar-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* Element Types */
+        .el-text-box {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px;
+        }
+        
+        .el-text-box .editable {
+            min-height: 60px;
+            outline: none;
+        }
+        
+        .el-text-box .editable:focus {
+            background: #f8fafc;
+        }
+        
+        .el-heading {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary);
+            padding: 8px 0;
+        }
+        
+        .el-subheading {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text);
+            padding: 8px 0;
+        }
+        
+        .el-paragraph {
+            font-size: 15px;
+            line-height: 1.6;
+            color: var(--text-light);
+            padding: 8px 0;
+        }
+        
+        .el-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+        
+        .toggle-switch {
+            width: 44px;
+            height: 24px;
+            background: #cbd5e1;
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .toggle-switch.active {
+            background: var(--success);
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+        }
+        
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+        
+        .el-options {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 12px;
+        }
+        
+        .el-options label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            cursor: pointer;
+        }
+        
+        .el-button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        .el-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 15px;
+        }
+        
+        .el-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .el-alert {
+            padding: 16px;
+            background: #fef3c7;
+            border-left: 4px solid var(--warning);
+            border-radius: 6px;
+        }
+        
+        .el-alert.danger {
+            background: #fef2f2;
+            border-color: var(--danger);
+        }
+        
+        .el-alert.success {
+            background: #f0fdf4;
+            border-color: var(--success);
+        }
+        
+        /* ===== Right Sidebar - Properties ===== */
+        .properties-panel {
+            background: var(--panel);
+            border-left: 1px solid var(--border);
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .properties-empty {
+            text-align: center;
+            color: var(--text-light);
+            padding: 40px 20px;
+        }
+        
+        .properties-empty .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .properties-form {
+            display: none;
+        }
+        
+        .properties-form.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-light);
+            margin-bottom: 6px;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        /* Color picker */
+        .color-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .color-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .color-option:hover,
+        .color-option.selected {
+            border-color: var(--accent);
+            transform: scale(1.1);
+        }
+        
+        /* Toggle in properties */
+        .property-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        /* ===== Quick Actions ===== */
+        .quick-actions {
+            position: fixed;
+            bottom: 20px;
+            right: 340px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            gap: 8px;
+        }
+        
+        .quick-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: var(--bg);
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+        
+        .quick-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+        
+        /* ===== Code Output Modal ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: var(--bg);
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .code-output {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="builder-header">
+        <h1>
+            <span class="logo-icon">⚖️</span>
+            Semptify Page Builder
+        </h1>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="clearCanvas()">🗑️ Clear</button>
+            <button class="btn btn-secondary" onclick="loadTemplate()">📄 Load Template</button>
+            <button class="btn btn-primary" onclick="exportHTML()">💾 Export HTML</button>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="builder-layout">
+        
+        <!-- Left Sidebar - Components -->
+        <aside class="components-panel">
+            <div class="panel-title">Drag Components</div>
+            
+            <div class="component-category">
+                <h3>📃 Text Content</h3>
+                <div class="component-item" draggable="true" data-type="heading">
+                    <span class="component-icon">📌</span>
+                    <span class="component-name">Heading</span>
+                </div>
+                <div class="component-item" draggable="true" data-type="subheading">
+                    <span class="component-icon">📍</span>
+                    <span class="component-name">Subheading</span>
+                </div>
+                <div class="component-item" draggable="true" data-type="paragraph">
+                    <span class="component-icon">📝</span>
+                    <span class="component-name">Paragraph</span>
+                </div>
+                <div class="component-item" draggable="true" data-type="text-box">
+                    <span class="component-icon">📦</span>
+                    <span class="component-name">Text Box</span>
+                </div>
+            </div>
+            
+            <div class="component-category">
+                <h3>🎛️ Interactive</h3>
+                <div class="component-item" draggable="true" data-type="toggle">
+                    <span class="component-icon">🔄</span>
+                    <span class="component-name">Toggle Switch</span>
+                </div>
+                <div class="component-item" draggable="true" data-type="options">
+                    <span class="component-icon">☑️</span>
+                    <span class="component-name">Options/Radio</span>
+                </div>
+                <div class="component-item" draggable="true" data-type="button">
+                    <span class="component-icon">🔘</span>
+                    <span class="component-name">Button</span>
+                </div>
+                <div class="component-item" draggable="true" data-type="input">
+                    <span class="component-icon">⌨️</span>
+                    <span class="component-name">Text Input</span>
+                </div>
+            </div>
+            
+            <div class="component-category">
+                <h3>🎨 Layout</h3>
+                <div class="component-item" draggable="true" data-type="card">
+                    <span class="component-icon">🃏</span>
+                    <span class="component-name">Card</span>
+                </div>
+                <div class="component-item" draggable="true" data-type="alert">
+                    <span class="component-icon">⚠️</span>
+                    <span class="component-name">Alert Banner</span>
+                </div>
+            </div>
+            
+            <div class="component-category">
+                <h3>📄 Page Parts</h3>
+                <div class="component-item" draggable="true" data-type="footer">
+                    <span class="component-icon">🦶</span>
+                    <span class="component-name">Standard Footer</span>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Center - Canvas -->
+        <main class="canvas-area">
+            <div class="canvas-container">
+                <div class="canvas-header">
+                    <h2>✏️ Page Canvas - Click elements to edit, drag to reorder</h2>
+                </div>
+                <div class="drop-zone" id="dropZone">
+                    <!-- Elements will be dropped here -->
+                </div>
+            </div>
+        </main>
+        
+        <!-- Right Sidebar - Properties -->
+        <aside class="properties-panel">
+            <div class="panel-title">Properties</div>
+            
+            <div class="properties-empty" id="propertiesEmpty">
+                <div class="icon">🖱️</div>
+                <p>Select an element on the canvas to edit its properties</p>
+            </div>
+            
+            <div class="properties-form" id="propertiesForm">
+                <!-- Dynamic form content -->
+            </div>
+        </aside>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <button class="quick-btn" onclick="addElement('heading')" title="Add Heading">📌</button>
+        <button class="quick-btn" onclick="addElement('paragraph')" title="Add Paragraph">📝</button>
+        <button class="quick-btn" onclick="addElement('button')" title="Add Button">🔘</button>
+        <button class="quick-btn" onclick="addElement('card')" title="Add Card">🃏</button>
+        <button class="quick-btn" onclick="undo()" title="Undo">↩️</button>
+        <button class="quick-btn" onclick="redo()" title="Redo">↪️</button>
+    </div>
+    
+    <!-- Export Modal -->
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📄 Generated HTML</h2>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <pre class="code-output" id="codeOutput"></pre>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+                <button class="btn btn-primary" onclick="downloadHTML()">💾 Download .html</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let selectedElement = null;
+        let elementCounter = 0;
+        let history = [];
+        let historyIndex = -1;
+        
+        // Element Templates
+        const elementTemplates = {
+            heading: {
+                tag: 'h1',
+                className: 'el-heading',
+                defaultText: 'Main Heading',
+                placeholder: 'Enter heading text...',
+                properties: ['text', 'size', 'color', 'alignment']
+            },
+            subheading: {
+                tag: 'h2',
+                className: 'el-subheading',
+                defaultText: 'Subheading',
+                placeholder: 'Enter subheading text...',
+                properties: ['text', 'size', 'color', 'alignment']
+            },
+            paragraph: {
+                tag: 'p',
+                className: 'el-paragraph',
+                defaultText: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                placeholder: 'Enter paragraph text...',
+                properties: ['text', 'alignment', 'color']
+            },
+            'text-box': {
+                tag: 'div',
+                className: 'el-text-box',
+                defaultText: 'Text box content...',
+                placeholder: 'Enter content...',
+                properties: ['text', 'backgroundColor', 'borderColor', 'padding']
+            },
+            toggle: {
+                tag: 'div',
+                className: 'el-toggle',
+                defaultText: 'Toggle Label',
+                html: '<div class="toggle-switch" onclick="this.classList.toggle(\'active\')"></div><span class="toggle-label" contenteditable="true">Toggle Label</span>',
+                properties: ['label', 'defaultState']
+            },
+            options: {
+                tag: 'div',
+                className: 'el-options',
+                html: '<label><input type="radio" name="opt"> <span contenteditable="true">Option 1</span></label><label><input type="radio" name="opt"> <span contenteditable="true">Option 2</span></label>',
+                properties: ['options', 'type']
+            },
+            button: {
+                tag: 'button',
+                className: 'el-button',
+                defaultText: 'Click Me',
+                placeholder: 'Button text...',
+                properties: ['text', 'action', 'style']
+            },
+            input: {
+                tag: 'input',
+                className: 'el-input',
+                attributes: { type: 'text', placeholder: 'Enter text...' },
+                properties: ['placeholder', 'label', 'required']
+            },
+            card: {
+                tag: 'div',
+                className: 'el-card',
+                defaultText: 'Card Title',
+                html: '<h3 contenteditable="true">Card Title</h3><p contenteditable="true">Card content goes here...</p>',
+                properties: ['title', 'content', 'border', 'shadow']
+            },
+            alert: {
+                tag: 'div',
+                className: 'el-alert',
+                defaultText: 'Important notice goes here.',
+                placeholder: 'Alert message...',
+                properties: ['text', 'type', 'icon']
+            },
+            footer: {
+                tag: 'footer',
+                className: 'semptify-footer-container',
+                html: '<!-- Footer will be inserted from template -->',
+                isFooter: true,
+                properties: []
+            }
+        };
+        
+        // Drag and Drop
+        const dropZone = document.getElementById('dropZone');
+        let draggedType = null;
+        
+        document.querySelectorAll('.component-item').forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                draggedType = item.dataset.type;
+                e.dataTransfer.effectAllowed = 'copy';
+            });
+        });
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            if (draggedType) {
+                addElement(draggedType);
+                draggedType = null;
+            }
+        });
+        
+        // Add Element
+        function addElement(type) {
+            const template = elementTemplates[type];
+            if (!template) return;
+            
+            elementCounter++;
+            const el = document.createElement('div');
+            el.className = 'canvas-element';
+            el.dataset.id = `el-${elementCounter}`;
+            el.dataset.type = type;
+            
+            // Toolbar
+            const toolbar = document.createElement('div');
+            toolbar.className = 'element-toolbar';
+            toolbar.innerHTML = `
+                <button class="toolbar-btn" onclick="moveUp('${el.dataset.id}')">↑</button>
+                <button class="toolbar-btn" onclick="moveDown('${el.dataset.id}')">↓</button>
+                <button class="toolbar-btn" onclick="duplicateElement('${el.dataset.id}')">⧉</button>
+                <button class="toolbar-btn" onclick="deleteElement('${el.dataset.id}')">🗑️</button>
+            `;
+            el.appendChild(toolbar);
+            
+            // Content
+            const content = document.createElement(template.tag);
+            content.className = template.className;
+            content.contentEditable = true;
+            
+            if (template.html) {
+                content.innerHTML = template.html;
+            } else if (template.defaultText) {
+                content.textContent = template.defaultText;
+            }
+            
+            if (template.attributes) {
+                Object.assign(content, template.attributes);
+            }
+            
+            el.appendChild(content);
+            
+            // Click to select
+            el.addEventListener('click', (e) => {
+                if (!e.target.closest('.element-toolbar')) {
+                    selectElement(el);
+                }
+            });
+            
+            dropZone.appendChild(el);
+            dropZone.classList.remove('empty');
+            
+            selectElement(el);
+            saveState();
+        }
+        
+        // Select Element
+        function selectElement(el) {
+            document.querySelectorAll('.canvas-element').forEach(e => e.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedElement = el;
+            showProperties(el);
+        }
+        
+        // Show Properties
+        function showProperties(el) {
+            const type = el.dataset.type;
+            const template = elementTemplates[type];
+            const emptyDiv = document.getElementById('propertiesEmpty');
+            const formDiv = document.getElementById('propertiesForm');
+            
+            emptyDiv.style.display = 'none';
+            formDiv.classList.add('active');
+            
+            const content = el.querySelector(template.tag);
+            
+            let html = `<h3 style="font-size: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                <span>${getTypeIcon(type)}</span> ${capitalize(type)} Properties
+            </h3>`;
+            
+            // Text property
+            if (template.properties.includes('text') && content.contentEditable) {
+                const text = template.html ? content.innerHTML : content.textContent;
+                html += `
+                    <div class="form-group">
+                        <label>Text Content</label>
+                        <textarea id="prop-text" oninput="updateElementText(this.value)">${text}</textarea>
+                    </div>
+                `;
+            }
+            
+            // Alignment
+            if (template.properties.includes('alignment')) {
+                html += `
+                    <div class="form-group">
+                        <label>Alignment</label>
+                        <select id="prop-align" onchange="updateStyle('textAlign', this.value)">
+                            <option value="left">Left</option>
+                            <option value="center">Center</option>
+                            <option value="right">Right</option>
+                            <option value="justify">Justify</option>
+                        </select>
+                    </div>
+                `;
+            }
+            
+            // Colors
+            if (template.properties.includes('color')) {
+                html += `
+                    <div class="form-group">
+                        <label>Text Color</label>
+                        <div class="color-options">
+                            <div class="color-option selected" style="background: #1e293b" onclick="selectColor(this, 'color', '#1e293b')"></div>
+                            <div class="color-option" style="background: #475569" onclick="selectColor(this, 'color', '#475569')"></div>
+                            <div class="color-option" style="background: #1e3a5f" onclick="selectColor(this, 'color', '#1e3a5f')"></div>
+                            <div class="color-option" style="background: #dc2626" onclick="selectColor(this, 'color', '#dc2626')"></div>
+                            <div class="color-option" style="background: #16a34a" onclick="selectColor(this, 'color', '#16a34a')"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Background colors
+            if (template.properties.includes('backgroundColor')) {
+                html += `
+                    <div class="form-group">
+                        <label>Background Color</label>
+                        <div class="color-options">
+                            <div class="color-option selected" style="background: #ffffff; border: 2px solid #e2e8f0" onclick="selectColor(this, 'backgroundColor', '#ffffff')"></div>
+                            <div class="color-option" style="background: #f8fafc; border: 2px solid #e2e8f0" onclick="selectColor(this, 'backgroundColor', '#f8fafc')"></div>
+                            <div class="color-option" style="background: #fef3c7" onclick="selectColor(this, 'backgroundColor', '#fef3c7')"></div>
+                            <div class="color-option" style="background: #f0fdf4" onclick="selectColor(this, 'backgroundColor', '#f0fdf4')"></div>
+                            <div class="color-option" style="background: #eff6ff" onclick="selectColor(this, 'backgroundColor', '#eff6ff')"></div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Alert type
+            if (template.properties.includes('type') && type === 'alert') {
+                html += `
+                    <div class="form-group">
+                        <label>Alert Type</label>
+                        <select id="prop-type" onchange="updateAlertType(this.value)">
+                            <option value="warning">Warning (Yellow)</option>
+                            <option value="danger">Danger (Red)</option>
+                            <option value="success">Success (Green)</option>
+                        </select>
+                    </div>
+                `;
+            }
+            
+            // Button action
+            if (template.properties.includes('action')) {
+                html += `
+                    <div class="form-group">
+                        <label>Button Action</label>
+                        <input type="text" id="prop-action" placeholder="URL or javascript:..." onchange="updateAttribute('onclick', this.value)">
+                    </div>
+                `;
+            }
+            
+            formDiv.innerHTML = html;
+        }
+        
+        // Update Functions
+        function updateElementText(value) {
+            if (!selectedElement) return;
+            const type = selectedElement.dataset.type;
+            const template = elementTemplates[type];
+            const content = selectedElement.querySelector(template.tag);
+            
+            if (template.html) {
+                content.innerHTML = value;
+            } else {
+                content.textContent = value;
+            }
+        }
+        
+        function updateStyle(property, value) {
+            if (!selectedElement) return;
+            const type = selectedElement.dataset.type;
+            const template = elementTemplates[type];
+            const content = selectedElement.querySelector(template.tag);
+            content.style[property] = value;
+        }
+        
+        function selectColor(el, property, value) {
+            el.parentElement.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+            el.classList.add('selected');
+            updateStyle(property, value);
+        }
+        
+        function updateAlertType(type) {
+            if (!selectedElement) return;
+            const content = selectedElement.querySelector('.el-alert');
+            content.className = `el-alert ${type}`;
+        }
+        
+        function updateAttribute(attr, value) {
+            if (!selectedElement) return;
+            const type = selectedElement.dataset.type;
+            const template = elementTemplates[type];
+            const content = selectedElement.querySelector(template.tag);
+            content.setAttribute(attr, value);
+        }
+        
+        // Element Actions
+        function moveUp(id) {
+            const el = document.querySelector(`[data-id="${id}"]`);
+            if (el && el.previousElementSibling) {
+                el.parentElement.insertBefore(el, el.previousElementSibling);
+                saveState();
+            }
+        }
+        
+        function moveDown(id) {
+            const el = document.querySelector(`[data-id="${id}"]`);
+            if (el && el.nextElementSibling) {
+                el.parentElement.insertBefore(el.nextElementSibling, el);
+                saveState();
+            }
+        }
+        
+        function duplicateElement(id) {
+            const el = document.querySelector(`[data-id="${id}"]`);
+            if (el) {
+                const clone = el.cloneNode(true);
+                elementCounter++;
+                clone.dataset.id = `el-${elementCounter}`;
+                el.after(clone);
+                
+                // Re-attach event listeners
+                clone.addEventListener('click', (e) => {
+                    if (!e.target.closest('.element-toolbar')) {
+                        selectElement(clone);
+                    }
+                });
+                
+                // Update toolbar buttons
+                const toolbar = clone.querySelector('.element-toolbar');
+                toolbar.innerHTML = `
+                    <button class="toolbar-btn" onclick="moveUp('${clone.dataset.id}')">↑</button>
+                    <button class="toolbar-btn" onclick="moveDown('${clone.dataset.id}')">↓</button>
+                    <button class="toolbar-btn" onclick="duplicateElement('${clone.dataset.id}')">⧉</button>
+                    <button class="toolbar-btn" onclick="deleteElement('${clone.dataset.id}')">🗑️</button>
+                `;
+                
+                selectElement(clone);
+                saveState();
+            }
+        }
+        
+        function deleteElement(id) {
+            const el = document.querySelector(`[data-id="${id}"]`);
+            if (el) {
+                el.remove();
+                if (selectedElement === el) {
+                    selectedElement = null;
+                    document.getElementById('propertiesEmpty').style.display = 'block';
+                    document.getElementById('propertiesForm').classList.remove('active');
+                }
+                if (dropZone.children.length === 0) {
+                    dropZone.classList.add('empty');
+                }
+                saveState();
+            }
+        }
+        
+        // Global Actions
+        function clearCanvas() {
+            if (confirm('Clear all elements?')) {
+                dropZone.innerHTML = '';
+                dropZone.classList.add('empty');
+                selectedElement = null;
+                saveState();
+            }
+        }
+        
+        function loadTemplate() {
+            clearCanvas();
+            // Load welcome_new.html content as pre-built elements
+            loadWelcomeNewContent();
+        }
+        
+        function loadWelcomeNewContent() {
+            // Header Section
+            addPrebuiltElement('heading', '📓 Semptify');
+            addPrebuiltElement('subheading', 'The Tenant\'s Journal');
+            addPrebuiltElement('paragraph', 'Your proactive guide to a peaceful tenancy');
+            
+            // What is Semptify
+            addPrebuiltElement('heading', 'What is Semptify?');
+            addPrebuiltElement('paragraph', 'Semptify is your personal tenant journal — a place to document your rental life, understand your rights AND responsibilities, and stay organized. Think of it as a diary for your tenancy: recording what happens, when it happens, and keeping everything in one place.');
+            addPrebuiltElement('paragraph', 'We believe that most problems between tenants and landlords can be avoided with knowledge and preparation. By understanding what\'s expected of you — and what you can expect from your landlord — you can navigate your tenancy with confidence and hopefully avoid conflicts before they start.');
+            addPrebuiltElement('text-box', '"Everyone deserves a safe, clean place to live. Knowledge and documentation go further than confrontation."');
+            
+            // Two-Way Street
+            addPrebuiltElement('heading', '🚦 It\'s a Two-Way Street');
+            addPrebuiltElement('paragraph', 'Here\'s something important: being a good tenant isn\'t just about knowing your rights — it\'s also about knowing your responsibilities. A successful tenancy requires effort from both sides. We\'re not here to help anyone be difficult or find loopholes. We\'re here to help people be good tenants.');
+            
+            // Add card with rights/responsibilities
+            addPrebuiltElement('card', '<h4>✅ Your Rights</h4><ul><li>Safe, habitable living conditions</li><li>Privacy and proper notice before entry</li><li>Fair treatment without discrimination</li><li>Return of security deposit (with itemization)</li><li>Protection from retaliation</li></ul>');
+            addPrebuiltElement('paragraph', 'The world has enough conflict. Be respectful. Don\'t be the problem. If everyone — tenants and landlords alike — did what they\'re supposed to do, most housing disputes would never happen.');
+            
+            // Motto
+            addPrebuiltElement('alert', '📝 Document Everything. Avoid the Pitfalls. The best outcome is a peaceful tenancy where your documentation is never needed. But if something goes wrong, you\'ll be prepared.');
+            
+            // What We Believe
+            addPrebuiltElement('heading', 'What We Believe');
+            addPrebuiltElement('text-box', '🧠 Knowledge prevents problems. Understanding your rights AND responsibilities means fewer misunderstandings and fewer conflicts.');
+            addPrebuiltElement('text-box', '📋 Documentation protects everyone. When there\'s a record, there\'s less room for "he said, she said." Good records protect good tenants AND good landlords.');
+            addPrebuiltElement('text-box', '🕊️ Prevention beats confrontation. The goal is to avoid fights, not win them. But if a fight comes to you, you\'ll be ready.');
+            addPrebuiltElement('text-box', '⚖️ Right is right. We stand for what\'s fair — whether that means calling out a bad landlord OR a bad tenant. The truth is the truth.');
+            
+            // What Semptify Does
+            addPrebuiltElement('heading', 'What Semptify Does');
+            addPrebuiltElement('paragraph', '📓 Your Tenant Journal — Log rent payments, maintenance requests, communications with your landlord, and anything important that happens during your tenancy. Build a timeline of your rental life.');
+            addPrebuiltElement('paragraph', '📚 Know Your Rights & Responsibilities — Access plain-language guides to tenant law in your state. Understand what your landlord must do, and what you must do. Both matter equally.');
+            addPrebuiltElement('paragraph', '📁 Document Storage — Keep your lease, move-in photos, receipts, and communications organized in your own cloud storage. We never store your documents on our servers — they stay in your control.');
+            addPrebuiltElement('paragraph', '🛠️ Be Prepared (Just in Case) — If something does go wrong, Semptify has tools to help you respond: template letters, deadline trackers, and educational resources about court procedures. We hope you never need them.');
+            addPrebuiltElement('alert', 'Our goal is that your Semptify journal sits quietly, never needed for anything more than your own peace of mind. But if the day comes when you need it, everything will be there.');
+            
+            // Not Lawyers
+            addPrebuiltElement('heading', 'We\'re Not Lawyers');
+            addPrebuiltElement('paragraph', 'Semptify is an organizational tool and educational resource — not a law firm. We can\'t give you legal advice or tell you what to do in your specific situation. The information here is general and may not apply to you.');
+            addPrebuiltElement('paragraph', 'If you\'re facing a serious legal situation, please talk to an actual attorney. Many areas have free legal aid services for tenants. That\'s not us passing the buck — it\'s us being honest about what we are and aren\'t.');
+            addPrebuiltElement('alert', '⚖️ For legal advice about your specific situation, contact a licensed attorney or your local legal aid society.');
+            
+            // Bad Landlords
+            addPrebuiltElement('heading', 'A Word About Bad Landlords');
+            addPrebuiltElement('paragraph', 'Yes, bad landlords exist. Landlords who ignore repairs, who illegally enter your home, who retaliate when you complain, who try to keep security deposits they have no right to. When that happens, tenants deserve to know their options and have the documentation to prove what happened.');
+            addPrebuiltElement('paragraph', 'But we\'re not interested in fighting for the sake of fighting. We\'re not trying to "get" anyone. We\'re trying to help good people document the truth and understand their options. If that documentation exposes wrongdoing, so be it. The truth should speak for itself.');
+            addPrebuiltElement('paragraph', 'Semptify doesn\'t draw attention to itself. We draw attention to what\'s right. If you\'re a tenant doing what you\'re supposed to do and your landlord isn\'t, your journal will reflect that. If it\'s the other way around... well, that will be clear too.');
+            
+            // CTA
+            addPrebuiltElement('button', 'Start Your Tenant Journal');
+            addPrebuiltElement('paragraph', 'Free to use. Your documents stay in your control.');
+            
+            // Footer
+            addPrebuiltElement('footer', '');
+            
+            saveState();
+        }
+        
+        function addPrebuiltElement(type, content) {
+            const template = elementTemplates[type];
+            if (!template) return;
+            
+            elementCounter++;
+            const el = document.createElement('div');
+            el.className = 'canvas-element';
+            el.dataset.id = `el-${elementCounter}`;
+            el.dataset.type = type;
+            
+            // Toolbar
+            const toolbar = document.createElement('div');
+            toolbar.className = 'element-toolbar';
+            toolbar.innerHTML = `
+                <button class="toolbar-btn" onclick="moveUp('${el.dataset.id}')">↑</button>
+                <button class="toolbar-btn" onclick="moveDown('${el.dataset.id}')">↓</button>
+                <button class="toolbar-btn" onclick="duplicateElement('${el.dataset.id}')">⧉</button>
+                <button class="toolbar-btn" onclick="deleteElement('${el.dataset.id}')">🗑️</button>
+            `;
+            el.appendChild(toolbar);
+            
+            // Content
+            const contentEl = document.createElement(template.tag);
+            contentEl.className = template.className;
+            contentEl.contentEditable = true;
+            
+            if (type === 'footer') {
+                contentEl.innerHTML = '<!-- Footer component will be inserted here -->';
+            } else if (content) {
+                if (type === 'card' || type === 'text-box' || type === 'alert') {
+                    contentEl.innerHTML = content;
+                } else {
+                    contentEl.textContent = content;
+                }
+            } else if (template.defaultText) {
+                contentEl.textContent = template.defaultText;
+            }
+            
+            el.appendChild(contentEl);
+            
+            // Click to select
+            el.addEventListener('click', (e) => {
+                if (!e.target.closest('.element-toolbar')) {
+                    selectElement(el);
+                }
+            });
+            
+            dropZone.appendChild(el);
+            dropZone.classList.remove('empty');
+        }
+        
+        // History
+        function saveState() {
+            const state = dropZone.innerHTML;
+            history = history.slice(0, historyIndex + 1);
+            history.push(state);
+            historyIndex++;
+        }
+        
+        function undo() {
+            if (historyIndex > 0) {
+                historyIndex--;
+                dropZone.innerHTML = history[historyIndex];
+                reattachListeners();
+            }
+        }
+        
+        function redo() {
+            if (historyIndex < history.length - 1) {
+                historyIndex++;
+                dropZone.innerHTML = history[historyIndex];
+                reattachListeners();
+            }
+        }
+        
+        function reattachListeners() {
+            document.querySelectorAll('.canvas-element').forEach(el => {
+                el.addEventListener('click', (e) => {
+                    if (!e.target.closest('.element-toolbar')) {
+                        selectElement(el);
+                    }
+                });
+            });
+        }
+        
+        // Export
+        function exportHTML() {
+            const elements = dropZone.querySelectorAll('.canvas-element');
+            let bodyContent = '';
+            
+            elements.forEach(el => {
+                const toolbar = el.querySelector('.element-toolbar');
+                if (toolbar) toolbar.remove();
+                
+                let html = el.innerHTML;
+                
+                // Handle footer specially
+                if (el.dataset.type === 'footer') {
+                    html = '<!--#include virtual="/components/footer-template.html" -->';
+                }
+                
+                bodyContent += html + '\n';
+            });
+            
+            const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semptify Page</title>
+    <link rel="stylesheet" href="/css/semptify-base.css">
+</head>
+<body>
+    <main class="page-content">
+${bodyContent}
+    </main>
+</body>
+</html>`;
+            
+            document.getElementById('codeOutput').textContent = fullHTML;
+            document.getElementById('exportModal').classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('exportModal').classList.remove('active');
+        }
+        
+        function copyToClipboard() {
+            const code = document.getElementById('codeOutput').textContent;
+            navigator.clipboard.writeText(code);
+            alert('Copied to clipboard!');
+        }
+        
+        function downloadHTML() {
+            const code = document.getElementById('codeOutput').textContent;
+            const blob = new Blob([code], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'semptify-page.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Helpers
+        function getTypeIcon(type) {
+            const icons = {
+                heading: '📌',
+                subheading: '📍',
+                paragraph: '📝',
+                'text-box': '📦',
+                toggle: '🔄',
+                options: '☑️',
+                button: '🔘',
+                input: '⌨️',
+                card: '🃏',
+                alert: '⚠️',
+                footer: '🦶'
+            };
+            return icons[type] || '📄';
+        }
+        
+        function capitalize(str) {
+            return str.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+        
+        // Initialize
+        saveState();
+    </script>
+</body>
+</html>

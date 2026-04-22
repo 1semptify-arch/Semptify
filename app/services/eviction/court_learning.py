@@ -28,7 +28,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
-from uuid import uuid4
+from app.core.id_gen import make_id
 
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -78,7 +78,7 @@ class MotionOutcome(Enum):
 @dataclass
 class CaseOutcomeRecord:
     """Record of a completed case for learning."""
-    id: str = field(default_factory=lambda: str(uuid4()))
+    id: str = field(default_factory=lambda: make_id("cout"))
     user_id: str = ""
     case_number: str = ""
     
@@ -123,7 +123,7 @@ class CaseOutcomeRecord:
 @dataclass
 class DefenseOutcomeRecord:
     """Track effectiveness of specific defenses."""
-    id: str = field(default_factory=lambda: str(uuid4()))
+    id: str = field(default_factory=lambda: make_id("def"))
     case_outcome_id: str = ""
     defense_code: str = ""
     effectiveness: DefenseEffectiveness = DefenseEffectiveness.NOT_USED
@@ -134,7 +134,7 @@ class DefenseOutcomeRecord:
 @dataclass
 class MotionOutcomeRecord:
     """Track outcomes of specific motions."""
-    id: str = field(default_factory=lambda: str(uuid4()))
+    id: str = field(default_factory=lambda: make_id("mot"))
     case_outcome_id: str = ""
     motion_type: str = ""
     outcome: MotionOutcome = MotionOutcome.PENDING
