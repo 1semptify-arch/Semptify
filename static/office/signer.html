@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document Signer – Semptify Office</title>
+  <style>
+    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; --vault: #f59e0b; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9ff; color: #1a1a2e; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: #fff; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .vault-btn { background: linear-gradient(135deg, var(--vault), #d97706); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .user-btn { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); padding: 0.45rem 0.9rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+    .breadcrumb { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0.6rem 0; }
+    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+
+    .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+
+    /* DESKTOP WARNING */
+    .desktop-warning { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 0 10px 10px 0; padding: 1rem 1.25rem; margin-bottom: 1.25rem; font-size: 0.88rem; color: #78350f; line-height: 1.5; display: flex; align-items: flex-start; gap: 0.75rem; }
+    .desktop-warning strong { display: block; margin-bottom: 0.15rem; }
+
+    /* PENDING DOCUMENTS */
+    .pending-list { margin-bottom: 1.5rem; }
+    .pending-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 1rem; cursor: pointer; transition: all 0.15s; }
+    .pending-card:hover, .pending-card.selected { border-color: var(--accent); box-shadow: 0 2px 8px rgba(57,73,171,0.1); }
+    .pending-card.selected { border-color: var(--accent); background: #f8f9ff; }
+    .pending-icon { font-size: 2rem; }
+    .pending-info { flex: 1; min-width: 0; }
+    .pending-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.2rem; }
+    .pending-meta { font-size: 0.8rem; color: #888; }
+    .pending-urgent { background: #fef2f2; color: #dc2626; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.7rem; font-weight: 700; white-space: nowrap; }
+    .pending-action { background: var(--accent); color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap; }
+
+    /* SIGNATURE AREA */
+    .signature-area { background: #fff; border: 2px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.25rem; }
+    .signature-area h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; color: #1a1a2e; }
+    .doc-preview { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; min-height: 160px; }
+    .doc-preview-placeholder { text-align: center; color: #888; font-size: 0.9rem; }
+    .doc-preview-title { font-weight: 600; color: #1a1a2e; margin-bottom: 0.5rem; }
+    .doc-preview-body { font-size: 0.85rem; line-height: 1.6; color: #555; text-align: left; }
+
+    .signature-pad { border: 2px dashed #c5cae9; border-radius: 10px; background: #fff; height: 160px; display: flex; align-items: center; justify-content: center; color: #888; font-size: 0.9rem; cursor: crosshair; margin-bottom: 1rem; position: relative; }
+    .signature-pad canvas { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 10px; cursor: crosshair; }
+    .sig-placeholder { pointer-events: none; display: flex; align-items: center; gap: 0.5rem; }
+
+    .sign-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .btn-sign { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; border: none; padding: 0.75rem 2rem; border-radius: 10px; font-weight: 700; font-size: 0.95rem; cursor: pointer; }
+    .btn-clear { background: #f0f0f0; color: #444; border: none; padding: 0.75rem 1.25rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+    .btn-reject { background: #fee2e2; color: #dc2626; border: none; padding: 0.75rem 1.25rem; border-radius: 10px; font-weight: 600; font-size: 0.9rem; cursor: pointer; margin-left: auto; }
+
+    /* HISTORY */
+    .history-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem; margin-top: 1rem; }
+    .history-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 0.85rem 1rem; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+    .history-status { font-size: 1.25rem; }
+    .history-info { flex: 1; }
+    .history-doc { font-weight: 600; font-size: 0.88rem; }
+    .history-meta { font-size: 0.75rem; color: #888; margin-top: 0.1rem; }
+    .history-badge { font-size: 0.68rem; font-weight: 600; padding: 0.1rem 0.4rem; border-radius: 6px; white-space: nowrap; }
+    .badge-signed { background: #d1fae5; color: #065f46; }
+    .badge-rejected { background: #fee2e2; color: #991b1b; }
+
+    /* SIDEBAR */
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .sidebar-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; }
+    .sidebar-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.75rem; color: #1a1a2e; }
+    .sidebar-stat { display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid #f0f0f0; font-size: 0.88rem; }
+    .sidebar-stat:last-child { border-bottom: none; }
+    .sidebar-stat strong { color: var(--accent); }
+    .notice-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 1rem; font-size: 0.82rem; color: #1e3a5f; line-height: 1.5; }
+    .notice-box strong { display: block; margin-bottom: 0.25rem; }
+
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
+
+    @media (max-width: 900px) { .main { grid-template-columns: 1fr; } .sidebar { order: -1; } }
+    @media (max-width: 768px) {
+      nav.core-nav { display: none; }
+      .hamburger { display: block; }
+      .signature-area { padding: 1rem; }
+      .sign-actions { flex-direction: column; }
+      .btn-reject { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/home.html">🏠 Home</a>
+    <a href="/library.html">📚 Library</a>
+    <a href="/office.html">🏢 Office</a>
+    <a href="/tools.html">🔧 Tools</a>
+    <a href="/help.html">🆘 Help</a>
+    <hr style="border-color:rgba(255,255,255,0.2);margin:0.5rem 0;">
+    <a href="/office/vault.html">🔒 Vault</a>
+    <a href="/office/inbox.html">📨 Inbox</a>
+    <a href="/office/timeline.html">📅 Timeline</a>
+    <a href="/office/delivery.html">📬 Delivery</a>
+    <a href="/office/signer.html" style="color:#f59e0b;font-weight:700;">✍️ Signer</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <a href="/home.html" class="logo">Semptify</a>
+      <nav class="core-nav">
+        <a href="/home.html">🏠 Home</a>
+        <a href="/library.html">📚 Library</a>
+        <a href="/office.html" class="active">🏢 Office</a>
+        <a href="/tools.html">🔧 Tools</a>
+        <a href="/help.html">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">🔒 Vault</button>
+        <button class="user-btn">👤 User</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="breadcrumb">
+    <div class="breadcrumb-inner">
+      <a href="/home.html">Home</a> ›
+      <a href="/office.html">Office</a> ›
+      <strong>Document Signer</strong>
+    </div>
+  </div>
+
+  <div class="main">
+    <div>
+      <!-- DESKTOP WARNING -->
+      <div class="desktop-warning">
+        <span style="font-size:1.25rem;">💻</span>
+        <div>
+          <strong>Desktop Recommended</strong>
+          Electronic signatures require a larger screen and a mouse or stylus for accuracy. Use a phone only in emergencies.
+        </div>
+      </div>
+
+      <!-- PENDING TO SIGN -->
+      <div class="pending-list">
+        <h3 style="font-size:1rem;font-weight:700;margin-bottom:0.75rem;">📥 Pending Signature</h3>
+
+        <div class="pending-card selected" id="pending-1" onclick="selectDoc(1)">
+          <span class="pending-icon">📄</span>
+          <div class="pending-info">
+            <div class="pending-title">Settlement Agreement — Harborview Properties</div>
+            <div class="pending-meta">From: Legal Aid Society · Sent Apr 21, 2025 · Deadline: Apr 25, 2025</div>
+          </div>
+          <span class="pending-urgent">⚠️ 4 DAYS</span>
+          <button class="pending-action" onclick="event.stopPropagation();selectDoc(1)">Sign</button>
+        </div>
+
+        <div class="pending-card" id="pending-2" onclick="selectDoc(2)">
+          <span class="pending-icon">📋</span>
+          <div class="pending-info">
+            <div class="pending-title">Lease Renewal Acknowledgment</div>
+            <div class="pending-meta">From: Harborview Properties · Sent Apr 15, 2025 · Deadline: May 15, 2025</div>
+          </div>
+          <span class="pending-urgent" style="background:#fef3c7;color:#92400e;">24 DAYS</span>
+          <button class="pending-action" onclick="event.stopPropagation();selectDoc(2)">Sign</button>
+        </div>
+      </div>
+
+      <!-- SIGNATURE AREA -->
+      <div class="signature-area" id="sig-area">
+        <h3>✍️ Sign Document</h3>
+
+        <div class="doc-preview" id="doc-preview">
+          <div class="doc-preview-placeholder" id="doc-preview-content">
+            <div class="doc-preview-title">Settlement Agreement — Harborview Properties</div>
+            <div class="doc-preview-body">
+              <p><strong>Document summary:</strong></p>
+              <ul style="padding-left:1.25rem;line-height:1.8;margin-top:0.5rem;">
+                <li>Landlord agrees to complete repairs within 30 days</li>
+                <li>No eviction proceedings for 90 days</li>
+                <li>Back rent reduced by $450</li>
+                <li>Both parties waive claims related to heater repair dispute</li>
+              </ul>
+              <p style="margin-top:0.75rem;color:#666;">Review the full document in your vault before signing. This is a legally binding agreement.</p>
+            </div>
+          </div>
+        </div>
+
+        <label style="font-size:0.85rem;font-weight:600;color:#444;display:block;margin-bottom:0.5rem;">Your Signature</label>
+        <div class="signature-pad" id="sig-pad">
+          <canvas id="sig-canvas"></canvas>
+          <div class="sig-placeholder" id="sig-placeholder">
+            <span style="font-size:1.5rem;">✍️</span> Click and drag to sign
+          </div>
+        </div>
+
+        <div style="font-size:0.82rem;color:#666;margin-bottom:1rem;">
+          By signing, you agree this signature is legally binding. Your signature, timestamp, and identity will be stored in your vault as tamper-evident evidence.
+        </div>
+
+        <div class="sign-actions">
+          <button class="btn-sign" onclick="submitSignature()">✓ Sign Document</button>
+          <button class="btn-clear" onclick="clearSignature()">Clear Signature</button>
+          <button class="btn-reject" onclick="rejectDocument()">✕ Reject</button>
+        </div>
+      </div>
+
+      <!-- SIGNATURE HISTORY -->
+      <div class="history-title">📜 Signature History</div>
+
+      <div class="history-card">
+        <span class="history-status">✅</span>
+        <div class="history-info">
+          <div class="history-doc">Move-In Inspection Checklist</div>
+          <div class="history-meta">Signed Mar 2, 2024 · To: Harborview Properties · Timestamped in vault</div>
+        </div>
+        <span class="history-badge badge-signed">Signed</span>
+      </div>
+
+      <div class="history-card">
+        <span class="history-status">❌</span>
+        <div class="history-info">
+          <div class="history-doc">Unauthorized Entry Waiver</div>
+          <div class="history-meta">Rejected Feb 10, 2025 · Reason: "I do not agree to waive my right to privacy"</div>
+        </div>
+        <span class="history-badge badge-rejected">Rejected</span>
+      </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <div class="sidebar-title">📊 Signature Stats</div>
+        <div class="sidebar-stat"><span>Pending</span><strong>2</strong></div>
+        <div class="sidebar-stat"><span>Signed</span><strong>1</strong></div>
+        <div class="sidebar-stat"><span>Rejected</span><strong>1</strong></div>
+        <div class="sidebar-stat"><span>Total</span><strong>4</strong></div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">⏰ Next Deadline</div>
+        <div style="font-size:0.9rem;color:#92400e;font-weight:700;">April 25, 2025</div>
+        <div style="font-size:0.82rem;color:#666;margin-top:0.25rem;">Settlement Agreement — 4 days remaining</div>
+      </div>
+
+      <div class="notice-box">
+        <strong>🔒 Tamper-Evident Signing</strong>
+        When you sign, Semptify creates a blockchain timestamped record of your signature, identity, and the exact document version. This record is stored in your vault as evidence. The original document never leaves your cloud storage.
+      </div>
+
+      <div class="sidebar-card">
+        <div class="sidebar-title">🏢 Office Navigation</div>
+        <div style="display:flex;flex-direction:column;gap:0.25rem;">
+          <a href="/office/vault.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">🔒 Document Vault</a>
+          <a href="/office/inbox.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📨 Inbox</a>
+          <a href="/office/timeline.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📅 Timeline</a>
+          <a href="/office/delivery.html" style="color:#555;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">📬 Document Delivery</a>
+          <a href="/office/signer.html" style="color:#3949ab;font-weight:700;text-decoration:none;padding:0.4rem 0;font-size:0.9rem;">✍️ Document Signer ←</a>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    <div>
+      <a href="/home.html">Home</a>
+      <a href="/office.html">Office</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/help.html">Help</a>
+    </div>
+    <div style="margin-top:0.5rem;">Signatures are blockchain timestamped · Legally binding · Not legal advice</div>
+  </footer>
+
+  <script src="/js/core/vault-portal.js"></script>
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+
+    const docs = {
+      1: {
+        title: 'Settlement Agreement — Harborview Properties',
+        body: `<div class="doc-preview-title">Settlement Agreement — Harborview Properties</div>
+          <div class="doc-preview-body">
+            <p><strong>Document summary:</strong></p>
+            <ul style="padding-left:1.25rem;line-height:1.8;margin-top:0.5rem;">
+              <li>Landlord agrees to complete repairs within 30 days</li>
+              <li>No eviction proceedings for 90 days</li>
+              <li>Back rent reduced by $450</li>
+              <li>Both parties waive claims related to heater repair dispute</li>
+            </ul>
+            <p style="margin-top:0.75rem;color:#666;">Review the full document in your vault before signing. This is a legally binding agreement.</p>
+          </div>`
+      },
+      2: {
+        title: 'Lease Renewal Acknowledgment',
+        body: `<div class="doc-preview-title">Lease Renewal Acknowledgment</div>
+          <div class="doc-preview-body">
+            <p><strong>Document summary:</strong></p>
+            <ul style="padding-left:1.25rem;line-height:1.8;margin-top:0.5rem;">
+              <li>Current lease expires June 30, 2025</li>
+              <li>Renewal rate: current rent + 3% increase</li>
+              <li>Month-to-month option available with 60-day notice</li>
+              <li>Security deposit remains unchanged</li>
+            </ul>
+            <p style="margin-top:0.75rem;color:#666;">This is a standard renewal acknowledgment. No new terms beyond the stated increase.</p>
+          </div>`
+      }
+    };
+
+    let currentDoc = 1;
+
+    function selectDoc(id) {
+      currentDoc = id;
+      document.querySelectorAll('.pending-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById('pending-' + id).classList.add('selected');
+      document.getElementById('doc-preview-content').innerHTML = docs[id].body;
+      clearSignature();
+    }
+
+    // Canvas signature pad
+    const canvas = document.getElementById('sig-canvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    let hasSignature = false;
+
+    function resizeCanvas() {
+      const pad = document.getElementById('sig-pad');
+      canvas.width = pad.clientWidth;
+      canvas.height = pad.clientHeight;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#1a1a2e';
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return { x: clientX - rect.left, y: clientY - rect.top };
+    }
+
+    canvas.addEventListener('mousedown', function(e) { drawing = true; hasSignature = true; document.getElementById('sig-placeholder').style.display = 'none'; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+    canvas.addEventListener('mousemove', function(e) { if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+    canvas.addEventListener('mouseup', function() { drawing = false; });
+    canvas.addEventListener('mouseleave', function() { drawing = false; });
+    canvas.addEventListener('touchstart', function(e) { e.preventDefault(); drawing = true; hasSignature = true; document.getElementById('sig-placeholder').style.display = 'none'; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+    canvas.addEventListener('touchmove', function(e) { e.preventDefault(); if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+    canvas.addEventListener('touchend', function() { drawing = false; });
+
+    function clearSignature() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      hasSignature = false;
+      document.getElementById('sig-placeholder').style.display = 'flex';
+    }
+
+    function submitSignature() {
+      if (!hasSignature) { alert('Please draw your signature first.'); return; }
+      const doc = docs[currentDoc];
+      const timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      alert(`✅ Document signed!\n\n"${doc.title}"\nSigned at: ${timestamp}\n\nYour signature, timestamp, and identity have been recorded in your vault as tamper-evident evidence.`);
+      document.getElementById('pending-' + currentDoc).style.opacity = '0.5';
+      document.getElementById('pending-' + currentDoc).querySelector('.pending-action').textContent = 'Signed';
+      document.getElementById('pending-' + currentDoc).querySelector('.pending-action').disabled = true;
+      clearSignature();
+    }
+
+    function rejectDocument() {
+      const reason = prompt('Why are you rejecting this document? (optional)');
+      if (reason === null) return;
+      const doc = docs[currentDoc];
+      const timestamp = new Date().toLocaleString('en-US', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      alert(`❌ Document rejected.\n\n"${doc.title}"\nRejected at: ${timestamp}\n${reason ? 'Reason: ' + reason : ''}\n\nThe sender has been notified. A rejection record has been added to your vault.`);
+      document.getElementById('pending-' + currentDoc).style.opacity = '0.5';
+      const btn = document.getElementById('pending-' + currentDoc).querySelector('.pending-action');
+      btn.textContent = 'Rejected';
+      btn.disabled = true;
+      btn.style.background = '#dc2626';
+      clearSignature();
+    }
+  </script>
+</body>
+</html>
