@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Semptify</title>
+  <style>
+    :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8f9ff; color: #1a1a2e; line-height: 1.7; }
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.3rem; margin-right: 0.5rem; white-space: nowrap; text-decoration: none; color: #fff; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+    .vault-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+    .breadcrumb { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0.6rem 0; }
+    .breadcrumb-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 0.5rem; }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+
+    .main { max-width: 900px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+
+    h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--hdr1); }
+    h2 { font-size: 1.25rem; font-weight: 700; margin-top: 2.5rem; margin-bottom: 0.75rem; color: #1a1a2e; }
+    p { margin-bottom: 1rem; font-size: 0.98rem; color: #444; }
+    ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+    li { margin-bottom: 0.5rem; font-size: 0.95rem; color: #444; }
+    .hero { background: linear-gradient(135deg, var(--hdr1), var(--accent)); color: #fff; border-radius: 14px; padding: 2.5rem 2rem; margin-bottom: 2.5rem; text-align: center; }
+    .hero h1 { color: #fff; font-size: 2.25rem; margin-bottom: 0.75rem; }
+    .hero p { color: rgba(255,255,255,0.9); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+
+    .value-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem; }
+    .value-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; }
+    .value-card .emoji { font-size: 1.6rem; display: block; margin-bottom: 0.5rem; }
+    .value-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; color: #1a1a2e; }
+    .value-card p { font-size: 0.88rem; color: #555; margin-bottom: 0; }
+
+    .stat-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2.5rem; }
+    .stat-box { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; text-align: center; }
+    .stat-box .num { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
+    .stat-box .label { font-size: 0.82rem; color: #888; margin-top: 0.25rem; }
+
+    .team-note { background: #eff6ff; border-left: 4px solid var(--accent); padding: 1rem 1.25rem; border-radius: 0 8px 8px 0; margin: 1.5rem 0; font-size: 0.92rem; color: #1e3a5f; }
+    .team-note strong { display: block; margin-bottom: 0.35rem; color: var(--hdr1); }
+
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
+
+    @media (max-width: 768px) { nav.core-nav { display: none; } .hamburger { display: block; } .stat-bar { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/home.html">🏠 Home</a>
+    <a href="/library.html">📚 Library</a>
+    <a href="/office.html">🏢 Office</a>
+    <a href="/tools.html">🔧 Tools</a>
+    <a href="/help.html">🆘 Help</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <a href="/home.html" class="logo">Semptify</a>
+      <nav class="core-nav">
+        <a href="/home.html">🏠 Home</a>
+        <a href="/library.html">📚 Library</a>
+        <a href="/office.html">🏢 Office</a>
+        <a href="/tools.html">🔧 Tools</a>
+        <a href="/help.html">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">🔒 Vault</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="breadcrumb">
+    <div class="breadcrumb-inner">
+      <a href="/home.html">Home</a> ›
+      <strong>About</strong>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="hero">
+      <h1>About Semptify</h1>
+      <p>Built to protect the rights of people facing housing problems. Free forever. No ads. Privacy-first.</p>
+    </div>
+
+    <h2>Our Mission</h2>
+    <p>Housing is a human right. Yet millions of people face eviction, unsafe conditions, rent hikes, and retaliation every year — often without the resources to defend themselves. Semptify exists to level the playing field.</p>
+    <p>We build tools that help tenants, advocates, and legal professionals organize evidence, track deadlines, generate documents, and communicate securely. Everything we make is designed for people under stress, with limited time, limited money, and a lot at stake.</p>
+
+    <h2>What We Believe</h2>
+    <div class="value-grid">
+      <div class="value-card">
+        <span class="emoji">🛡️</span>
+        <h3>Privacy First</h3>
+        <p>Your documents stay in your cloud storage. We do not sell data, run ads, or train AI on your files. You control everything.</p>
+      </div>
+      <div class="value-card">
+        <span class="emoji">⚖️</span>
+        <h3>Truth From Both Sides</h3>
+        <p>We do not assume any party is automatically right. We build for facts, records, chronology, and evidence.</p>
+      </div>
+      <div class="value-card">
+        <span class="emoji">🆓</span>
+        <h3>Free Forever</h3>
+        <p>We will never charge tenants for core access. No paywalls, no subscriptions, no freemium traps.</p>
+      </div>
+      <div class="value-card">
+        <span class="emoji">📋</span>
+        <h3>Evidence Over Novelty</h3>
+        <p>Every feature is judged by whether it improves rights protection, evidence integrity, or user control.</p>
+      </div>
+      <div class="value-card">
+        <span class="emoji">🔒</span>
+        <h3>Transparent & Auditable</h3>
+        <p>Open-source by default. Deterministic workflows. No hidden state that weakens accountability.</p>
+      </div>
+      <div class="value-card">
+        <span class="emoji">🤝</span>
+        <h3>Built With, Not For</h3>
+        <p>We design with housing advocates, legal aid clinics, and tenants — not in isolation.</p>
+      </div>
+    </div>
+
+    <h2>Who We Serve</h2>
+    <ul>
+      <li><strong>Tenants</strong> — Organize documents, track deadlines, communicate with landlords, and preserve evidence</li>
+      <li><strong>Advocates</strong> — Manage multiple clients, review evidence, send documents, and coordinate cases</li>
+      <li><strong>Legal Professionals</strong> — Access organized case files, track signatures, and manage court deadlines</li>
+      <li><strong>Property Managers</strong> — Communicate transparently, send documents for signature, and maintain records</li>
+    </ul>
+
+    <h2>How It Works</h2>
+    <p>Semptify connects to your personal cloud storage (Google Drive, OneDrive). Your documents live there — not on our servers. We provide the organization layer: timeline tracking, document tagging, secure delivery, and evidence generation. When you leave, your documents stay with you.</p>
+
+    <div class="stat-bar">
+      <div class="stat-box"><div class="num">1,247</div><div class="label">Users</div></div>
+      <div class="stat-box"><div class="num">342</div><div class="label">Active Cases</div></div>
+      <div class="stat-box"><div class="num">4,821</div><div class="label">Documents in Vaults</div></div>
+    </div>
+
+    <h2>Open Source & Community</h2>
+    <p>Semptify is open-source software. Anyone can inspect the code, suggest improvements, or run their own instance. We believe housing justice tools should be public infrastructure, not proprietary products.</p>
+    <p>We welcome contributors — developers, designers, housing advocates, legal professionals, and tenants. If you want to help, reach out.</p>
+
+    <div class="team-note">
+      <strong>Semptify is a labor of conviction.</strong>
+      This project was built by people who believe that technology should serve those who need it most — not those who can pay the most. We are sustained by grants, donations, and volunteer effort. We do not have investors, we do not have a "growth team," and we do not optimize for engagement.
+    </div>
+
+    <h2>Contact</h2>
+    <p>General inquiries: <a href="mailto:hello@semptify.org">hello@semptify.org</a></p>
+    <p>Privacy questions: <a href="mailto:privacy@semptify.org">privacy@semptify.org</a></p>
+    <p>Legal questions about the platform: <a href="mailto:legal@semptify.org">legal@semptify.org</a></p>
+    <p>Contributors & code: <a href="https://github.com/Bradleycrowe/Semptify5.0" target="_blank" rel="noopener">github.com/Bradleycrowe/Semptify5.0</a></p>
+  </div>
+
+  <footer>
+    <div><a href="/home.html">Home</a><a href="/public/terms.html">Terms</a><a href="/public/privacy.html">Privacy</a><a href="/public/about.html">About</a><a href="/help.html">Help</a></div>
+    <div style="margin-top:0.5rem;">Free forever · No advertising · Privacy-respecting · Not legal advice</div>
+  </footer>
+
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+  </script>
+</body>
+</html>
