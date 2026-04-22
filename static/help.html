@@ -248,6 +248,188 @@
 
     </div>
 
+    <div class="section-title" style="margin-top:2.5rem;">⚖️ Find Legal Aid Near You</div>
+    <p style="font-size:0.9rem;color:#555;margin-bottom:1rem;max-width:800px;">Select your state to find free or low-cost legal aid organizations that handle housing cases. These organizations are independent of Semptify. We verify listings quarterly, but always confirm availability directly.</p>
+
+    <div style="margin-bottom:1rem;max-width:400px;">
+      <select id="state-select" aria-label="Select state to filter legal aid directory" title="Select state for legal aid directory" onchange="filterLegalAid()" style="padding:0.6rem 1rem;border:2px solid #c5cae9;border-radius:10px;font-size:0.95rem;width:100%;outline:none;cursor:pointer;font-family:inherit;">
+        <option value="">— Select a State —</option>
+        <option value="CA">California</option>
+        <option value="NY">New York</option>
+        <option value="TX">Texas</option>
+        <option value="FL">Florida</option>
+        <option value="IL">Illinois</option>
+        <option value="PA">Pennsylvania</option>
+        <option value="OH">Ohio</option>
+        <option value="GA">Georgia</option>
+        <option value="NC">North Carolina</option>
+        <option value="MI">Michigan</option>
+        <option value="WA">Washington</option>
+        <option value="AZ">Arizona</option>
+        <option value="MA">Massachusetts</option>
+        <option value="TN">Tennessee</option>
+        <option value="IN">Indiana</option>
+        <option value="MO">Missouri</option>
+        <option value="MD">Maryland</option>
+        <option value="WI">Wisconsin</option>
+        <option value="CO">Colorado</option>
+        <option value="MN">Minnesota</option>
+        <option value="SC">South Carolina</option>
+        <option value="AL">Alabama</option>
+        <option value="LA">Louisiana</option>
+        <option value="KY">Kentucky</option>
+        <option value="OR">Oregon</option>
+        <option value="OK">Oklahoma</option>
+        <option value="CT">Connecticut</option>
+        <option value="UT">Utah</option>
+        <option value="IA">Iowa</option>
+        <option value="NV">Nevada</option>
+        <option value="AR">Arkansas</option>
+        <option value="MS">Mississippi</option>
+        <option value="KS">Kansas</option>
+        <option value="NM">New Mexico</option>
+        <option value="NE">Nebraska</option>
+        <option value="WV">West Virginia</option>
+        <option value="ID">Idaho</option>
+        <option value="HI">Hawaii</option>
+        <option value="NH">New Hampshire</option>
+        <option value="ME">Maine</option>
+        <option value="RI">Rhode Island</option>
+        <option value="MT">Montana</option>
+        <option value="DE">Delaware</option>
+        <option value="SD">South Dakota</option>
+        <option value="ND">North Dakota</option>
+        <option value="AK">Alaska</option>
+        <option value="VT">Vermont</option>
+        <option value="WY">Wyoming</option>
+        <option value="DC">District of Columbia</option>
+      </select>
+    </div>
+
+    <div id="legal-aid-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:2.5rem;">
+      <div class="crisis-card info" data-states="CA" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Legal Aid Foundation of Los Angeles</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Housing, eviction defense, habitability. Serves Los Angeles County.</span>
+        <a href="https://lafla.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">lafla.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="CA" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Bay Area Legal Aid</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Housing, public benefits, domestic violence. Serves Alameda, Contra Costa, Marin, Napa, San Francisco, San Mateo, Santa Clara.</span>
+        <a href="https://baylegal.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">baylegal.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="NY" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Legal Services NYC</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Eviction defense, tenant rights, housing discrimination. Serves all five NYC boroughs.</span>
+        <a href="https://www.legalservicesnyc.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">legalservicesnyc.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="NY" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Housing Court Answers</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Hotline for NYC Housing Court questions. Not a law firm — information and referrals.</span>
+        <a href="https://www.housingcourtanswers.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">housingcourtanswers.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="TX" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Texas RioGrande Legal Aid</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Largest legal aid provider in Texas. Eviction, housing, domestic violence. Serves 68 counties.</span>
+        <a href="https://www.trla.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">trla.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="TX" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Lone Star Legal Aid</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Housing, disasters, veterans. Serves East Texas, Gulf Coast, Houston area.</span>
+        <a href="https://lonestarlegal.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">lonestarlegal.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="FL" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Legal Services of Greater Miami</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Housing, foreclosure, public benefits. Serves Miami-Dade and Monroe counties.</span>
+        <a href="https://www.lsgrm.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">lsgrm.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="IL" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">LAF (Legal Aid Chicago)</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Eviction, housing conditions, public benefits. Serves Cook County and surrounding areas.</span>
+        <a href="https://www.lafchicago.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">lafchicago.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="PA" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Community Legal Services (Philadelphia)</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Housing, benefits, employment. Serves Philadelphia residents.</span>
+        <a href="https://clsphila.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">clsphila.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="WA" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Northwest Justice Project</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Statewide legal aid in Washington. Housing, domestic violence, veterans.</span>
+        <a href="https://www.nwjustice.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">nwjustice.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="MA" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Greater Boston Legal Services</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Eviction defense, housing conditions, immigration. Serves Boston area.</span>
+        <a href="https://www.gbls.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">gbls.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="DC" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Legal Aid Society of the District of Columbia</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Housing, family, public benefits. Serves DC residents.</span>
+        <a href="https://www.legalaiddc.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">legalaiddc.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="OH" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Legal Aid Society of Cleveland</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Housing, consumer, employment. Serves Cuyahoga County.</span>
+        <a href="https://lasclev.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">lasclev.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="NC" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Legal Aid of North Carolina</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Statewide. Housing, domestic violence, seniors.</span>
+        <a href="https://www.legalaidnc.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">legalaidnc.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="GA" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Atlanta Legal Aid Society</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Housing, family, consumer. Serves metro Atlanta.</span>
+        <a href="https://atlantalegalaid.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">atlantalegalaid.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="MI" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Legal Aid & Defender Association (Detroit)</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Housing, criminal defense, family. Serves Wayne County.</span>
+        <a href="https://www.ladadetroit.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">ladadetroit.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="AZ" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Community Legal Services (Arizona)</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Housing, consumer, benefits. Serves central and northern Arizona.</span>
+        <a href="https://www.clsaz.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">clsaz.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="CO" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Colorado Legal Services</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Statewide. Housing, family, benefits, senior law.</span>
+        <a href="https://coloradolegalservices.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">coloradolegalservices.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="MN" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Legal Aid Service of Northeastern Minnesota</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Housing, benefits, family. Serves northeastern region.</span>
+        <a href="https://www.lasnem.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">lasnem.org →</a>
+      </div>
+      <div class="crisis-card info" data-states="OR" style="text-decoration:none;color:inherit;">
+        <span style="font-size:1.5rem;display:block;margin-bottom:0.25rem;">🏛️</span>
+        <span style="font-weight:700;font-size:0.95rem;display:block;margin-bottom:0.25rem;">Oregon Law Center</span>
+        <span style="font-size:0.82rem;color:#555;display:block;margin-bottom:0.5rem;">Housing, farmworker, immigrant. Serves statewide with regional offices.</span>
+        <a href="https://oregonlawcenter.org/" target="_blank" rel="noopener" style="font-weight:600;font-size:0.85rem;color:#1e40af;">oregonlawcenter.org →</a>
+      </div>
+    </div>
+    <p id="no-aid-msg" style="display:none;font-size:0.88rem;color:#666;text-align:center;margin-bottom:2rem;">No listings available for that state yet. Try <a href="https://www.lawhelp.org/" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;">LawHelp.org</a> for nationwide search.</p>
+
     <div class="section-title" style="margin-top:2rem;">📬 Contact &amp; Support</div>
     <div class="contact-grid">
       <a href="/help/contact.html" class="contact-card">
@@ -299,6 +481,18 @@
       document.querySelectorAll('.faq-item').forEach(item => {
         item.style.display = (!q || item.textContent.toLowerCase().includes(q)) ? '' : 'none';
       });
+    }
+
+    function filterLegalAid() {
+      const state = document.getElementById('state-select').value;
+      const cards = document.querySelectorAll('#legal-aid-results .crisis-card');
+      let visible = 0;
+      cards.forEach(card => {
+        const match = !state || card.dataset.states === state;
+        card.style.display = match ? '' : 'none';
+        if (match) visible++;
+      });
+      document.getElementById('no-aid-msg').style.display = (state && visible === 0) ? 'block' : 'none';
     }
   </script>
 </body>
