@@ -150,6 +150,7 @@ document_delivery_router = _safe_router_import("app.routers.document_delivery")
 communication_router = _safe_router_import("app.routers.communication")
 free_api_router = _safe_router_import("app.routers.free_api")
 advocate_invite_router = _safe_router_import("app.routers.advocate_invite")
+timeline_unified_router = _safe_router_import("app.routers.timeline_unified")
 from app.routers import storage
 from app.routers import onboarding
 from app.routers import plugins
@@ -1800,8 +1801,19 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(enterprise_dashboard_router, tags=["Enterprise Dashboard"])  # Premium enterprise UI & API
     if advocate_invite_router:
         fastapi_app.include_router(advocate_invite_router, tags=["Advocate Invitation"])  # Tenant invites personal advocates
-    if crawler_router:
-        fastapi_app.include_router(crawler_router, tags=["Public Data Crawler"])  # Ethical web crawler for MN public data
+    include_if(timeline_unified_router, prefix="/api/timeline", tags=["Unified Timeline"])  # Interactive timeline with date axis switching
+    
+    # Storage OAuth (handles authentication)
+    if storage.router:
+        fastapi_app.include_router(storage.router, tags=["Storage Auth"])
+    
+    # Plugin System (extensible module architecture)
+    if plugins.router:
+        fastapi_app.include_router(plugins.router, tags=["Plugin System"])
+    
+    # Development Tools (crawler, analysis, debugging)
+    if development.router:
+        fastapi_app.include_router(development.router, tags=["Development Tools"])
 
     # Document Preview - Multi-format preview generation
     if preview_router:
