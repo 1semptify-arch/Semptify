@@ -44,7 +44,7 @@ from app.models.models import (
 from app.services.unified_overlay_manager import UnifiedOverlayManager
 
 
-router = APIRouter(prefix="/api/timeline", tags=["Unified Timeline"])
+router = APIRouter(tags=["Unified Timeline"])
 
 
 # =============================================================================
