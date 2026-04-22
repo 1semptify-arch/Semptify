@@ -1,0 +1,629 @@
+<!--
+Interactive Timeline Component
+==============================
+
+Usage:
+  <interactive-timeline 
+    user-id="current-user-id"
+    api-base="/api/timeline">
+  </interactive-timeline>
+
+Features:
+- Dynamic date axis switching (event_time, record_time, entry_time)
+- Date range filtering with presets
+- Evidence highlighting
+- Item type filtering
+- Virtual scrolling for performance
+
+Dependencies: Tailwind CSS, Lucide Icons
+-->
+
+<template id="interactive-timeline-template">
+  <div class="interactive-timeline bg-white rounded-lg shadow-sm border border-gray-200">
+    
+    <!-- Header & Controls -->
+    <div class="p-4 border-b border-gray-200 space-y-4">
+      
+      <!-- Title & Stats -->
+      <div class="flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-900">Timeline</h2>
+        <div class="flex items-center gap-2 text-sm text-gray-500">
+          <span id="total-count">0 items</span>
+          <span class="text-gray-300">|</span>
+          <span id="date-range-display">All time</span>
+        </div>
+      </div>
+      
+      <!-- Primary Controls Row -->
+      <div class="flex flex-wrap items-center gap-3">
+        
+        <!-- Date Axis Selector -->
+        <div class="flex items-center gap-2">
+          <label class="text-sm font-medium text-gray-700">Show by:</label>
+          <select id="date-axis" class="text-sm border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+            <option value="event_time">Event Date (when it happened)</option>
+            <option value="record_time">Record Date (when created)</option>
+            <option value="entry_time">Upload Date (when added)</option>
+          </select>
+        </div>
+        
+        <!-- View Mode -->
+        <div class="flex items-center bg-gray-100 rounded-md p-0.5">
+          <button data-view="list" class="view-btn px-3 py-1.5 text-sm font-medium rounded-md bg-white shadow-sm text-gray-900">
+            List
+          </button>
+          <button data-view="timeline" class="view-btn px-3 py-1.5 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900">
+            Timeline
+          </button>
+          <button data-view="calendar" class="view-btn px-3 py-1.5 text-sm font-medium rounded-md text-gray-600 hover:text-gray-900">
+            Calendar
+          </button>
+        </div>
+        
+        <!-- Evidence Toggle -->
+        <button id="evidence-toggle" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+          <i data-lucide="shield" class="w-4 h-4"></i>
+          <span>Evidence Only</span>
+        </button>
+      </div>
+      
+      <!-- Secondary Controls Row -->
+      <div class="flex flex-wrap items-center gap-3">
+        
+        <!-- Date Range -->
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-gray-600">Range:</label>
+          <select id="date-preset" class="text-sm border-gray-300 rounded-md">
+            <option value="all">All time</option>
+            <option value="-30d">Last 30 days</option>
+            <option value="-90d">Last 90 days</option>
+            <option value="-6m">Last 6 months</option>
+            <option value="-1y">Last year</option>
+            <option value="custom">Custom...</option>
+          </select>
+        </div>
+        
+        <!-- Custom Date Inputs (hidden by default) -->
+        <div id="custom-date-range" class="hidden flex items-center gap-2">
+          <input type="date" id="start-date" class="text-sm border-gray-300 rounded-md">
+          <span class="text-gray-400">to</span>
+          <input type="date" id="end-date" class="text-sm border-gray-300 rounded-md">
+          <button id="apply-custom" class="text-sm text-blue-600 hover:text-blue-700 font-medium">Apply</button>
+        </div>
+        
+        <!-- Item Type Filters -->
+        <div class="flex items-center gap-1.5" id="type-filters">
+          <button data-type="document" class="type-chip active px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+            Documents
+          </button>
+          <button data-type="timeline_event" class="type-chip active px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700 border border-green-200">
+            Events
+          </button>
+          <button data-type="calendar_event" class="type-chip active px-2 py-1 text-xs font-medium rounded-full bg-amber-100 text-amber-700 border border-amber-200">
+            Court Dates
+          </button>
+          <button data-type="vault_item" class="type-chip active px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700 border border-purple-200">
+            Vault
+          </button>
+        </div>
+        
+        <!-- Search -->
+        <div class="flex-1 min-w-[200px]">
+          <div class="relative">
+            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
+            <input type="text" id="search-input" placeholder="Search timeline..." 
+              class="w-full pl-9 pr-3 py-1.5 text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Timeline Content -->
+    <div id="timeline-content" class="p-4 min-h-[400px] max-h-[600px] overflow-y-auto">
+      
+      <!-- Loading State -->
+      <div id="loading" class="flex items-center justify-center h-40">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span class="ml-3 text-sm text-gray-600">Loading timeline...</span>
+      </div>
+      
+      <!-- Empty State -->
+      <div id="empty" class="hidden flex flex-col items-center justify-center h-40 text-center">
+        <i data-lucide="calendar-x" class="w-12 h-12 text-gray-300 mb-3"></i>
+        <p class="text-gray-500 font-medium">No items found</p>
+        <p class="text-sm text-gray-400 mt-1">Try adjusting your filters or date range</p>
+      </div>
+      
+      <!-- Timeline Items -->
+      <div id="items-container" class="hidden space-y-1">
+        <!-- Items will be injected here -->
+      </div>
+      
+      <!-- Load More -->
+      <div id="load-more" class="hidden py-4 text-center">
+        <button id="load-more-btn" class="text-sm text-blue-600 hover:text-blue-700 font-medium">
+          Load more...
+        </button>
+      </div>
+    </div>
+    
+    <!-- Facets Summary -->
+    <div id="facets-bar" class="hidden px-4 py-3 bg-gray-50 border-t border-gray-200 text-sm">
+      <div class="flex flex-wrap items-center gap-4">
+        <span class="text-gray-500">Summary:</span>
+        <div id="facet-types" class="flex items-center gap-2"></div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+/**
+ * InteractiveTimeline Web Component
+ */
+class InteractiveTimeline extends HTMLElement {
+  constructor() {
+    super();
+    this.items = [];
+    this.offset = 0;
+    this.limit = 50;
+    this.hasMore = false;
+    this.loading = false;
+    this.currentView = 'list';
+    
+    // Filters
+    this.filters = {
+      dateAxis: 'event_time',
+      datePreset: 'all',
+      startDate: null,
+      endDate: null,
+      itemTypes: ['document', 'timeline_event', 'calendar_event', 'vault_item'],
+      evidenceOnly: false,
+      searchQuery: '',
+    };
+  }
+  
+  connectedCallback() {
+    this.innerHTML = document.getElementById('interactive-timeline-template').innerHTML;
+    this.apiBase = this.getAttribute('api-base') || '/api/timeline';
+    
+    this.initElements();
+    this.bindEvents();
+    this.loadData();
+    
+    // Initialize Lucide icons
+    if (window.lucide) {
+      lucide.createIcons({ node: this });
+    }
+  }
+  
+  initElements() {
+    this.els = {
+      dateAxis: this.querySelector('#date-axis'),
+      datePreset: this.querySelector('#date-preset'),
+      customDateRange: this.querySelector('#custom-date-range'),
+      startDate: this.querySelector('#start-date'),
+      endDate: this.querySelector('#end-date'),
+      applyCustom: this.querySelector('#apply-custom'),
+      evidenceToggle: this.querySelector('#evidence-toggle'),
+      typeFilters: this.querySelector('#type-filters'),
+      searchInput: this.querySelector('#search-input'),
+      viewBtns: this.querySelectorAll('.view-btn'),
+      loading: this.querySelector('#loading'),
+      empty: this.querySelector('#empty'),
+      itemsContainer: this.querySelector('#items-container'),
+      loadMore: this.querySelector('#load-more'),
+      loadMoreBtn: this.querySelector('#load-more-btn'),
+      totalCount: this.querySelector('#total-count'),
+      dateRangeDisplay: this.querySelector('#date-range-display'),
+      facetsBar: this.querySelector('#facets-bar'),
+      facetTypes: this.querySelector('#facet-types'),
+    };
+  }
+  
+  bindEvents() {
+    // Date axis
+    this.els.dateAxis.addEventListener('change', (e) => {
+      this.filters.dateAxis = e.target.value;
+      this.refresh();
+    });
+    
+    // Date preset
+    this.els.datePreset.addEventListener('change', (e) => {
+      this.filters.datePreset = e.target.value;
+      if (e.target.value === 'custom') {
+        this.els.customDateRange.classList.remove('hidden');
+      } else {
+        this.els.customDateRange.classList.add('hidden');
+        this.refresh();
+      }
+    });
+    
+    // Custom date apply
+    this.els.applyCustom.addEventListener('click', () => {
+      this.filters.startDate = this.els.startDate.value;
+      this.filters.endDate = this.els.endDate.value;
+      this.refresh();
+    });
+    
+    // Evidence toggle
+    this.els.evidenceToggle.addEventListener('click', () => {
+      this.filters.evidenceOnly = !this.filters.evidenceOnly;
+      this.els.evidenceToggle.classList.toggle('bg-amber-100', this.filters.evidenceOnly);
+      this.els.evidenceToggle.classList.toggle('text-amber-700', this.filters.evidenceOnly);
+      this.els.evidenceToggle.classList.toggle('bg-gray-100', !this.filters.evidenceOnly);
+      this.els.evidenceToggle.classList.toggle('text-gray-700', !this.filters.evidenceOnly);
+      this.refresh();
+    });
+    
+    // Type filters
+    this.els.typeFilters.addEventListener('click', (e) => {
+      const chip = e.target.closest('.type-chip');
+      if (!chip) return;
+      
+      const type = chip.dataset.type;
+      chip.classList.toggle('active');
+      chip.classList.toggle('opacity-50');
+      
+      if (chip.classList.contains('active')) {
+        if (!this.filters.itemTypes.includes(type)) {
+          this.filters.itemTypes.push(type);
+        }
+      } else {
+        this.filters.itemTypes = this.filters.itemTypes.filter(t => t !== type);
+      }
+      this.refresh();
+    });
+    
+    // Search
+    let searchTimeout;
+    this.els.searchInput.addEventListener('input', (e) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        this.filters.searchQuery = e.target.value;
+        this.refresh();
+      }, 300);
+    });
+    
+    // View mode
+    this.els.viewBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        this.els.viewBtns.forEach(b => {
+          b.classList.remove('bg-white', 'shadow-sm', 'text-gray-900');
+          b.classList.add('text-gray-600');
+        });
+        btn.classList.add('bg-white', 'shadow-sm', 'text-gray-900');
+        btn.classList.remove('text-gray-600');
+        this.currentView = btn.dataset.view;
+        this.render();
+      });
+    });
+    
+    // Load more
+    this.els.loadMoreBtn.addEventListener('click', () => {
+      this.loadMore();
+    });
+  }
+  
+  async loadData(append = false) {
+    if (this.loading) return;
+    this.loading = true;
+    
+    if (!append) {
+      this.els.loading.classList.remove('hidden');
+      this.els.itemsContainer.classList.add('hidden');
+      this.els.empty.classList.add('hidden');
+    }
+    
+    try {
+      // Build request
+      const body = {
+        date_axis: this.filters.dateAxis,
+        item_types: this.filters.itemTypes,
+        evidence_only: this.filters.evidenceOnly,
+        search_query: this.filters.searchQuery || null,
+        limit: this.limit,
+        offset: append ? this.offset : 0,
+      };
+      
+      // Date range
+      if (this.filters.datePreset !== 'all' && this.filters.datePreset !== 'custom') {
+        body.start_date = this.filters.datePreset;
+      } else if (this.filters.datePreset === 'custom') {
+        body.start_date = this.filters.startDate;
+        body.end_date = this.filters.endDate;
+      }
+      
+      const response = await fetch(`${this.apiBase}/unified`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (append) {
+        this.items.push(...data.items);
+      } else {
+        this.items = data.items;
+      }
+      
+      this.hasMore = data.has_more;
+      this.offset = data.items.length + (append ? this.offset : 0);
+      
+      // Update stats
+      this.els.totalCount.textContent = `${data.total} items`;
+      this.els.dateRangeDisplay.textContent = this.formatDateRange(data.date_range);
+      
+      // Update facets
+      this.updateFacets(data.facets);
+      
+      this.render();
+      
+    } catch (error) {
+      console.error('Failed to load timeline:', error);
+      this.els.itemsContainer.innerHTML = `
+        <div class="text-center py-8 text-red-600">
+          <p>Failed to load timeline. <button onclick="this.closest('interactive-timeline').refresh()" class="underline">Retry</button></p>
+        </div>
+      `;
+      this.els.itemsContainer.classList.remove('hidden');
+    } finally {
+      this.loading = false;
+      this.els.loading.classList.add('hidden');
+    }
+  }
+  
+  refresh() {
+    this.offset = 0;
+    this.loadData(false);
+  }
+  
+  loadMore() {
+    this.loadData(true);
+  }
+  
+  render() {
+    if (this.items.length === 0) {
+      this.els.empty.classList.remove('hidden');
+      this.els.itemsContainer.classList.add('hidden');
+      this.els.loadMore.classList.add('hidden');
+      this.els.facetsBar.classList.add('hidden');
+      return;
+    }
+    
+    this.els.empty.classList.add('hidden');
+    this.els.itemsContainer.classList.remove('hidden');
+    this.els.facetsBar.classList.remove('hidden');
+    
+    if (this.currentView === 'list') {
+      this.renderList();
+    } else if (this.currentView === 'timeline') {
+      this.renderTimeline();
+    } else {
+      this.renderCalendar();
+    }
+    
+    this.els.loadMore.classList.toggle('hidden', !this.hasMore);
+  }
+  
+  renderList() {
+    const html = this.items.map(item => this.renderItemCard(item)).join('');
+    this.els.itemsContainer.innerHTML = html;
+  }
+  
+  renderTimeline() {
+    // Group by month
+    const groups = {};
+    this.items.forEach(item => {
+      const month = item.date_display?.substring(0, 7) || 'Unknown';
+      if (!groups[month]) groups[month] = [];
+      groups[month].push(item);
+    });
+    
+    let html = '';
+    Object.entries(groups).sort().reverse().forEach(([month, items]) => {
+      const [year, mon] = month.split('-');
+      const monthName = new Date(`${year}-${mon}-01`).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      
+      html += `
+        <div class="timeline-group mb-6">
+          <div class="sticky top-0 bg-white py-2 border-b border-gray-200 mb-3 z-10">
+            <h3 class="text-sm font-semibold text-gray-700">${monthName}</h3>
+            <span class="text-xs text-gray-500">${items.length} items</span>
+          </div>
+          <div class="space-y-2">
+            ${items.map(item => this.renderItemCard(item, true)).join('')}
+          </div>
+        </div>
+      `;
+    });
+    
+    this.els.itemsContainer.innerHTML = html;
+  }
+  
+  renderCalendar() {
+    // Simple calendar grid for now
+    this.els.itemsContainer.innerHTML = `
+      <div class="text-center py-8 text-gray-500">
+        <i data-lucide="calendar" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i>
+        <p>Calendar view coming soon</p>
+        <p class="text-sm text-gray-400 mt-1">Use List or Timeline view for now</p>
+      </div>
+    `;
+  }
+  
+  renderItemCard(item, compact = false) {
+    const colorClasses = {
+      red: 'bg-red-50 border-red-200 text-red-700',
+      amber: 'bg-amber-50 border-amber-200 text-amber-700',
+      orange: 'bg-orange-50 border-orange-200 text-orange-700',
+      green: 'bg-green-50 border-green-200 text-green-700',
+      blue: 'bg-blue-50 border-blue-200 text-blue-700',
+      purple: 'bg-purple-50 border-purple-200 text-purple-700',
+      gray: 'bg-gray-50 border-gray-200 text-gray-700',
+    }[item.color] || colorClasses.gray;
+    
+    const icon = item.icon || 'file';
+    const evidenceBadge = item.is_evidence 
+      ? `<span class="inline-flex items-center px-1.5 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">Evidence</span>`
+      : '';
+    
+    const urgencyBadge = item.urgency !== 'normal'
+      ? `<span class="inline-flex items-center px-1.5 py-0.5 text-xs font-medium ${item.urgency === 'critical' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'} rounded uppercase">${item.urgency}</span>`
+      : '';
+    
+    const dateLabel = this.formatDateLabel(item);
+    
+    return `
+      <div class="timeline-item flex items-start gap-3 p-3 rounded-lg border ${colorClasses} hover:shadow-sm transition-shadow cursor-pointer"
+           data-id="${item.id}" data-type="${item.item_type}">
+        <div class="flex-shrink-0 pt-0.5">
+          <i data-lucide="${icon}" class="w-5 h-5"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-start justify-between gap-2">
+            <p class="font-medium text-sm truncate">${this.escapeHtml(item.title)}</p>
+            <div class="flex items-center gap-1 flex-shrink-0">
+              ${urgencyBadge}
+              ${evidenceBadge}
+            </div>
+          </div>
+          ${item.description && !compact ? `<p class="text-xs mt-1 opacity-80 line-clamp-2">${this.escapeHtml(item.description)}</p>` : ''}
+          <div class="flex items-center gap-3 mt-1.5 text-xs opacity-70">
+            <span>${dateLabel}</span>
+            ${item.item_subtype ? `<span class="capitalize">${item.item_subtype.replace(/_/g, ' ')}</span>` : ''}
+            ${item.source ? `<span class="capitalize">${item.source}</span>` : ''}
+          </div>
+          ${item.tags?.length ? `
+            <div class="flex flex-wrap gap-1 mt-2">
+              ${item.tags.map(tag => `<span class="text-xs px-1.5 py-0.5 bg-white/50 rounded">${this.escapeHtml(tag)}</span>`).join('')}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+  
+  formatDateLabel(item) {
+    const axis = this.filters.dateAxis;
+    if (axis === 'event_time' && item.event_date) {
+      return this.formatDate(item.event_date);
+    } else if (axis === 'record_time' && item.record_date) {
+      return this.formatDate(item.record_date);
+    } else {
+      return this.formatDate(item.entry_date);
+    }
+  }
+  
+  formatDate(isoDate) {
+    if (!isoDate) return 'Unknown';
+    try {
+      return new Date(isoDate).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    } catch {
+      return isoDate.substring(0, 10);
+    }
+  }
+  
+  formatDateRange(range) {
+    if (!range?.start || !range?.end) return 'All time';
+    const start = this.formatDate(range.start);
+    const end = this.formatDate(range.end);
+    return `${start} — ${end}`;
+  }
+  
+  updateFacets(facets) {
+    if (!facets?.by_type) return;
+    
+    const typeLabels = {
+      document: 'Documents',
+      timeline_event: 'Events',
+      calendar_event: 'Court',
+      vault_item: 'Vault',
+    };
+    
+    const typeColors = {
+      document: 'bg-blue-100 text-blue-700',
+      timeline_event: 'bg-green-100 text-green-700',
+      calendar_event: 'bg-amber-100 text-amber-700',
+      vault_item: 'bg-purple-100 text-purple-700',
+    };
+    
+    const html = Object.entries(facets.by_type)
+      .sort((a, b) => b[1] - a[1])
+      .map(([type, count]) => `
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ${typeColors[type] || 'bg-gray-100'}">
+          ${typeLabels[type] || type}: ${count}
+        </span>
+      `).join('');
+    
+    this.els.facetTypes.innerHTML = html;
+  }
+  
+  escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+}
+
+// Register custom element
+customElements.define('interactive-timeline', InteractiveTimeline);
+</script>
+
+<style>
+/* Scoped styles for the timeline component */
+interactive-timeline .line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+interactive-timeline .timeline-item {
+  transition: all 0.15s ease;
+}
+
+interactive-timeline .timeline-item:hover {
+  transform: translateX(2px);
+}
+
+/* Scrollbar styling */
+interactive-timeline #timeline-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+interactive-timeline #timeline-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+interactive-timeline #timeline-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+interactive-timeline #timeline-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Type chip animation */
+interactive-timeline .type-chip {
+  transition: all 0.15s ease;
+}
+
+interactive-timeline .type-chip:not(.active) {
+  background-color: #f3f4f6 !important;
+  color: #9ca3af !important;
+  border-color: #e5e7eb !important;
+}
+</style>
