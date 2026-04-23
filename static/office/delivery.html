@@ -337,13 +337,218 @@
   </footer>
 
   <script src="/js/core/vault-portal.js"></script>
+  <script src="/js/core/websocket-client.js"></script>
   <script>
     function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
     function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
 
+    // API Integration
+    let vaultDocuments = [];
+    let recipients = [];
+    let outboxItems = [];
+
+    async function loadVaultDocuments() {
+      try {
+        const resp = await fetch('/api/vault/documents?limit=20');
+        if (!resp.ok) throw new Error('Failed to load documents');
+        const data = await resp.json();
+        vaultDocuments = data.documents || data.items || [];
+        renderVaultDocuments();
+      } catch (e) {
+        console.error('Vault load failed:', e);
+        document.getElementById('doc-select').innerHTML = '<p style="padding:1rem;color:#888;">Could not load documents. <button onclick="loadVaultDocuments()" style="margin-left:0.5rem;">Retry</button></p>';
+      }
+    }
+
+    function renderVaultDocuments() {
+      const container = document.getElementById('doc-select');
+      if (!vaultDocuments.length) {
+        container.innerHTML = '<p style="padding:1rem;color:#888;">No documents in vault. <a href="/office/vault.html">Upload one</a>.</p>';
+        return;
+      }
+      container.innerHTML = vaultDocuments.map((doc, i) => `
+        <label class="doc-select-item ${i === 0 ? 'selected' : ''}">
+          <input type="radio" name="doc" value="${doc.id || doc.document_id}" ${i === 0 ? 'checked' : ''}>
+          <span class="doc-select-info">
+            <span class="doc-select-name">${escapeHtml(doc.filename || doc.name || 'Untitled')}</span>
+            <span class="doc-select-meta">${formatFileSize(doc.size)} · ${formatDate(doc.created_at || doc.uploaded_at)} ${doc.timestamped ? '<span class="doc-tag-inline tag-timestamped">✓ Timestamped</span>' : ''}</span>
+          </span>
+        </label>
+      `).join('');
+      // Re-attach event listeners
+      document.querySelectorAll('.doc-select-item input').forEach(r => {
+        r.addEventListener('change', function() {
+          document.querySelectorAll('.doc-select-item').forEach(l => l.classList.toggle('selected', l.querySelector('input').checked));
+        });
+      });
+    }
+
+    async function loadRecipients() {
+      try {
+        const resp = await fetch('/api/contacts/recipients');
+        if (!resp.ok) throw new Error('Failed to load recipients');
+        const data = await resp.json();
+        recipients = data.recipients || data.contacts || [];
+        renderRecipients();
+      } catch (e) {
+        console.error('Recipients load failed:', e);
+        // Keep static fallback
+      }
+    }
+
+    function renderRecipients() {
+      if (!recipients.length) return;
+      const container = document.getElementById('recipient-grid');
+      container.innerHTML = recipients.map((r, i) => `
+        <div class="recipient-card ${i === 0 ? 'selected' : ''}" data-recipient="${r.id || r.role}" onclick="selectRecipient(this)">
+          <span class="rc-icon">${r.avatar || getRoleIcon(r.role)}</span>
+          <span class="rc-name">${escapeHtml(r.name)}</span>
+          <span class="rc-role">${escapeHtml(r.role_label || r.role)}</span>
+        </div>
+      `).join('');
+    }
+
+    function getRoleIcon(role) {
+      const icons = { advocate: '🌿', legal: '⚖️', manager: '🏢', admin: '⚙️', court: '🏛️', landlord: '🏠' };
+      return icons[role] || '👤';
+    }
+
+    async function loadOutbox() {
+      try {
+        const resp = await fetch('/api/delivery/outbox');
+        if (!resp.ok) throw new Error('Failed to load outbox');
+        const data = await resp.json();
+        outboxItems = data.deliveries || [];
+        renderOutbox();
+        updateStats();
+      } catch (e) {
+        console.error('Outbox load failed:', e);
+        // Keep static fallback
+      }
+    }
+
+    function renderOutbox() {
+      const container = document.querySelector('.sent-list-title').parentElement;
+      if (!outboxItems.length) {
+        container.innerHTML = '<div class="sent-list-title">📬 Previously Sent</div><p style="padding:1rem;color:#888;">No sent documents yet.</p>';
+        return;
+      }
+      container.innerHTML = '<div class="sent-list-title">📬 Previously Sent</div>' +
+        outboxItems.map(item => `
+        <div class="sent-card">
+          <span class="sent-status status-${item.status}"></span>
+          <div class="sent-info">
+            <div class="sent-doc">${escapeHtml(item.document_name)}</div>
+            <div class="sent-meta">To: ${escapeHtml(item.recipient_name)} · Sent ${formatDate(item.sent_at)} · ${getStatusLabel(item.status, item)}</div>
+          </div>
+          <span class="sent-badge badge-${item.delivery_type}">${getTypeLabel(item.delivery_type)}</span>
+        </div>
+      `).join('');
+    }
+
+    function updateStats() {
+      const stats = {
+        sent: outboxItems.length,
+        pending: outboxItems.filter(i => i.status === 'pending').length,
+        read: outboxItems.filter(i => i.status === 'read' || i.status === 'viewed').length,
+        signed: outboxItems.filter(i => i.status === 'signed').length,
+        awaiting: outboxItems.filter(i => i.requires_action && i.status !== 'signed' && i.status !== 'rejected').length
+      };
+      document.querySelectorAll('.sidebar-stat strong').forEach((el, i) => {
+        const keys = ['sent', 'pending', 'read', 'signed', 'awaiting'];
+        el.textContent = stats[keys[i]] || 0;
+      });
+    }
+
+    function getStatusLabel(status, item) {
+      if (status === 'read' || status === 'viewed') return `Read ${formatDate(item.viewed_at)}`;
+      if (status === 'signed') return `Signed ${formatDate(item.signed_at)}`;
+      if (status === 'rejected') return 'Rejected';
+      return 'Pending';
+    }
+
+    function getTypeLabel(type) {
+      const labels = { signature: '✍️ Signature', review: '👁 Review' };
+      return labels[type] || type;
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function formatFileSize(bytes) {
+      if (!bytes) return '0 B';
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function formatDate(isoString) {
+      if (!isoString) return '';
+      const d = new Date(isoString);
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: d.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined });
+    }
+
     function selectRecipient(el) {
       document.querySelectorAll('.recipient-card').forEach(c => c.classList.remove('selected'));
       el.classList.add('selected');
+    }
+
+    async function sendDocument() {
+      const selectedDoc = document.querySelector('.doc-select-item.selected input');
+      const selectedRecipient = document.querySelector('.recipient-card.selected');
+      const selectedType = document.querySelector('.delivery-type-card.selected');
+
+      if (!selectedDoc) { alert('Please select a document'); return; }
+      if (!selectedRecipient) { alert('Please select a recipient'); return; }
+
+      const documentId = selectedDoc.value;
+      const recipientId = selectedRecipient.dataset.recipient;
+      const recipientName = selectedRecipient.querySelector('.rc-name').textContent;
+      const deliveryType = selectedType?.dataset.type || 'review';
+      const message = document.getElementById('msg-body').value.trim();
+      const readReceipt = document.getElementById('read-receipt').checked;
+
+      const payload = {
+        document_id: documentId,
+        recipient_id: recipientId,
+        recipient_name: recipientName,
+        delivery_type: deliveryType,
+        message: message,
+        require_read_receipt: readReceipt && deliveryType !== 'signature'
+      };
+
+      try {
+        const btn = document.querySelector('.btn-send');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = '📤 Sending...';
+
+        const resp = await fetch('/api/delivery/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (resp.ok) {
+          const result = await resp.json();
+          alert(`📤 Document sent successfully!\n\nDelivery ID: ${result.delivery_id}\nTo: ${recipientName}\nType: ${deliveryType === 'signature' ? 'Signature Required' : 'Review Required'}\n\nA delivery receipt has been added to your vault.`);
+          clearForm();
+          loadOutbox();
+        } else {
+          const err = await resp.json();
+          alert('Send failed: ' + (err.detail || resp.statusText));
+        }
+      } catch (e) {
+        alert('Send failed: ' + e.message);
+      } finally {
+        const btn = document.querySelector('.btn-send');
+        btn.disabled = false;
+        btn.textContent = '📤 Send Document';
+      }
     }
 
     function selectDeliveryType(el) {
@@ -365,16 +570,18 @@
       document.getElementById('read-receipt').checked = true;
     }
 
-    function sendDocument() {
-      const doc = document.querySelector('.doc-select-item.selected input').value;
-      const recipient = document.querySelector('.recipient-card.selected .rc-name').textContent;
-      const type = document.querySelector('.delivery-type-card.selected').dataset.type;
-      const msg = document.getElementById('msg-body').value.trim();
-      const readReceipt = document.getElementById('read-receipt').checked;
-      const typeLabel = type === 'signature' ? 'Signature Required' : 'Review Required';
-      const receiptNote = readReceipt && type !== 'signature' ? ' with read receipt' : '';
-      alert(`📤 Document sent!\n\nDocument: ${doc}\nTo: ${recipient}\nType: ${typeLabel}${receiptNote}\n\nA delivery receipt has been added to your vault.`);
+    // WebSocket integration for real-time updates
+    if (window.SemptifyWebSocket) {
+      window.SemptifyWebSocket.on('delivery_status', (data) => {
+        console.log('Delivery update:', data);
+        loadOutbox(); // Refresh when delivery status changes
+      });
     }
+
+    // Load data on startup
+    loadVaultDocuments();
+    loadRecipients();
+    loadOutbox();
   </script>
 </body>
 </html>
