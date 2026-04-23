@@ -238,24 +238,31 @@ All 5 high-priority tasks completed. 1 medium-priority task (WebSocket) in progr
 - **Integration**: Added to home.html and office/vault.html
 - **API**: `window.SemptifyWebSocket` for global access
 
-### Document Delivery Process Group (75% Complete) 🔄
-- **Status**: In Progress — **Updated April 22, 2026**
+### Document Delivery Process Group (90% Complete) 🔄
+- **Status**: Near Complete — **Updated April 23, 2026**
 - **Location**: `app/routers/document_delivery.py`, `static/office/inbox.html`, `static/office/delivery.html`, `static/office/signer.html`
 - **Backend**: API endpoints complete
   - `POST /api/delivery/send` — Send document to tenant
   - `GET /api/delivery/inbox` — Get tenant's received documents
+  - `GET /api/delivery/outbox` — Get sender's sent documents
   - `GET /api/delivery/{id}` — View delivery details
   - `POST /api/delivery/{id}/sign` — Sign a document
   - `POST /api/delivery/{id}/reject` — Reject a document
   - `POST /api/delivery/{id}/viewed` — Mark as viewed
-- **Frontend**: Inbox wired to backend ✅
+- **Frontend Inbox** (inbox.html) ✅ **Wired**
   - Real-time updates via WebSocket
   - Sign/Reject/Acknowledge actions integrated
   - Browser notifications for new deliveries
   - Loading states and error handling
+- **Frontend Sender** (delivery.html) ✅ **Wired**
+  - Dynamic vault document loading
+  - Dynamic recipient loading
+  - Send to /api/delivery/send with loading state
+  - Real-time outbox updates via WebSocket
+  - Dynamic stats calculation
 - **Delivery Types**: REVIEW REQUIRED, SIGNATURE REQUIRED, PROCESS SERVER (future)
 - **Sender Roles**: Advocate, Manager, Legal, Admin
-- **Pending**: delivery.html sender UI, signer.html detailed signature flow
+- **Pending**: signer.html detailed signature capture flow
 
 ## Pending Components (Medium Priority)
 
