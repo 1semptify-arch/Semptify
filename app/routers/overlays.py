@@ -5,8 +5,8 @@
 Non-destructive overlay system for document annotations, highlights,
 notes, footnotes, and edits. Original vault documents stay untouched.
 
-Overlay Structure:
-- .semptify/vault/overlays/{document_id}.json
+Overlay Structure (SSOT: app/core/vault_paths.py):
+- {VAULT_OVERLAY_DOCUMENTS}/{document_id}.json
 
 Each overlay contains:
 - highlights: Text selections with colors
@@ -29,6 +29,7 @@ from app.core.id_gen import make_id
 from app.core.database import get_db
 from app.core.config import get_settings, Settings
 from app.core.security import require_user, StorageUser, verify_function_token_for_operation
+from app.core.vault_paths import VAULT_OVERLAYS, VAULT_OVERLAY_DOCUMENTS
 
 logger = logging.getLogger(__name__)
 
@@ -251,7 +252,7 @@ async def ensure_document_access(storage, document_id: str) -> None:
 async def load_overlay(storage, document_id: str, user_id: str) -> DocumentOverlay:
     """Load overlay from storage, creating if doesn't exist."""
     await ensure_document_access(storage, document_id)
-    overlay_path = f".semptify/vault/overlays/{document_id}.json"
+    overlay_path = f"{VAULT_OVERLAY_DOCUMENTS}/{document_id}.json"
     
     try:
         content = await storage.download_file(overlay_path)
@@ -281,11 +282,12 @@ async def load_overlay(storage, document_id: str, user_id: str) -> DocumentOverl
 
 async def save_overlay(storage, overlay: DocumentOverlay) -> bool:
     """Save overlay to storage."""
-    overlay_path = f".semptify/vault/overlays/{overlay.document_id}.json"
+    overlay_path = f"{VAULT_OVERLAY_DOCUMENTS}/{overlay.document_id}.json"
     
     # Ensure folder exists
     try:
-        await storage.create_folder(".semptify/vault/overlays")
+        await storage.create_folder(VAULT_OVERLAYS)
+        await storage.create_folder(VAULT_OVERLAY_DOCUMENTS)
     except Exception:
         pass
     
@@ -344,7 +346,7 @@ async def delete_overlay(
     """
     storage = await get_storage_client(user, db, settings)
     await ensure_document_access(storage, document_id)
-    overlay_path = f".semptify/vault/overlays/{document_id}.json"
+    overlay_path = f"{VAULT_OVERLAY_DOCUMENTS}/{document_id}.json"
     
     try:
         await storage.delete_file(overlay_path)
