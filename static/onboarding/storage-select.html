@@ -460,8 +460,8 @@
                         providerNames[data.provider] || data.provider;
                     document.getElementById('reconnect-section').style.display = 'block';
                     
-                    // Optionally auto-redirect for returning users (uncomment to enable)
-                    // window.location.href = '/storage/auth/' + data.provider + '?mode=reconnect';
+                    // Auto-redirect returning users immediately to OAuth - skip provider selection
+                    window.location.href = '/storage/auth/' + data.provider + '?mode=reconnect';
                 }
             } catch (e) {
                 // No valid session - show provider selection
