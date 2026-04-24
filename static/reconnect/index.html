@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reconnect - Semptify</title>
+  <link rel="icon" type="image/svg+xml" href="/static/assets/semptify-favicon.svg">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #1e3a5f;
+      --primary-light: #2d5a87;
+      --accent: #3b82f6;
+      --warm: #f59e0b;
+      --text: #1e293b;
+      --text-light: #475569;
+      --bg: #fdfcfa;
+      --paper: #ffffff;
+    }
+
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 17px;
+    }
+
+    /* Header - matches welcome page */
+    .header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.25rem;
+      font-family: 'Georgia', serif;
+    }
+
+    .header .tagline {
+      font-size: 1.1rem;
+      font-weight: 300;
+      opacity: 0.9;
+      font-style: italic;
+    }
+
+    /* Main content */
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .card {
+      background: var(--paper);
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card h2 {
+      font-size: 1.5rem;
+      font-weight: 400;
+      margin-bottom: 0.5rem;
+      color: var(--primary);
+    }
+
+    .card .subtitle {
+      color: var(--text-light);
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Info box - philosophy style */
+    .info-box {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border-left: 4px solid var(--warm);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .info-box p {
+      margin: 0;
+      color: #78350f;
+      font-style: italic;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    /* Provider buttons */
+    .providers {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .provider-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1rem 0.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      background: #f8fafc;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .provider-btn:hover {
+      background: #f1f5f9;
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .provider-btn.selected {
+      border-color: var(--primary);
+      background: #e0e7ff;
+    }
+
+    .provider-btn svg {
+      width: 32px;
+      height: 32px;
+      margin-bottom: 0.5rem;
+    }
+
+    .provider-btn span {
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    /* Progress */
+    .progress {
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .progress-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid #e2e8f0;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .progress p {
+      color: var(--text-light);
+      font-size: 0.875rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Error message */
+    .error-message {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 0.875rem 1rem;
+      margin-bottom: 1rem;
+      color: #dc2626;
+      font-size: 0.875rem;
+      display: none;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .error-message.visible {
+      display: block;
+    }
+
+    /* Back link */
+    .back-link {
+      text-align: center;
+      margin: 1.5rem 0;
+    }
+
+    .back-link a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .back-link a:hover {
+      text-decoration: underline;
+    }
+
+    /* Footer - Site wide SSOT standard */
+    .footer {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      background: #f1f5f9;
+      color: var(--text-light);
+      font-size: 0.75rem;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      margin-top: 2rem;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      max-width: 600px;
+      margin: 0 auto 1rem;
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+    }
+
+    .footer-column h4 {
+      font-size: 0.7rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-align: center;
+    }
+
+    .footer-column ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      text-align: center;
+    }
+
+    .footer-column li {
+      margin-bottom: 0.25rem;
+    }
+
+    .footer-column a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .footer-column a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-disclaimer {
+      max-width: 600px;
+      margin: 0 auto 0.75rem;
+      padding: 0.5rem 0;
+      border-top: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .footer-bottom {
+      margin-top: 0.75rem;
+    }
+
+    .footer-bottom p {
+      margin: 0.15rem 0;
+      text-align: center;
+      font-size: 0.7rem;
+    }
+
+    .footer-meta {
+      color: var(--accent);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header - matches welcome page -->
+  <header class="header">
+    <h1>Semptify</h1>
+    <p class="tagline">Reconnect your journal</p>
+  </header>
+
+  <div class="container">
+    <!-- Error Message -->
+    <div id="error-message" class="error-message"></div>
+
+    <!-- Info -->
+    <div class="info-box">
+      <p>
+        <strong>Semptify doesn't have accounts.</strong> 
+        Your data lives in your own storage. We don't track or store personal information.
+      </p>
+    </div>
+
+    <!-- Input Form -->
+    <div id="input-form" class="card">
+      <h2>Access your journal</h2>
+      <p class="subtitle">Connect the storage where your Semptify data lives</p>
+
+      <div class="providers">
+        <button class="provider-btn" data-provider="google_drive" type="button">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          <span>Google Drive</span>
+        </button>
+        <button class="provider-btn" data-provider="dropbox" type="button">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M6 2l6 4-6 4-6-4zm12 0l6 4-6 4-6-4zm0 8.5l6 4-6 4-6-4zm-12 0l6 4-6 4-6-4zM12 17l6-4 6 4-6 4.5z"/>
+          </svg>
+          <span>Dropbox</span>
+        </button>
+        <button class="provider-btn" data-provider="onedrive" type="button">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+          </svg>
+          <span>OneDrive</span>
+        </button>
+      </div>
+
+      <p class="subtitle" style="text-align: center; margin-top: 1.5rem; font-size: 0.75rem;">
+        Your documents and data stay in your storage, not on our servers.
+      </p>
+    </div>
+
+    <!-- Progress State -->
+    <div id="progress-state" class="card hidden">
+      <div class="progress">
+        <div class="progress-spinner"></div>
+        <p id="progress-text">Connecting to your storage...</p>
+      </div>
+    </div>
+
+    <!-- Back Link -->
+    <div class="back-link">
+      <a href="/">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back to welcome page
+      </a>
+    </div>
+  </div>
+
+  <!-- Footer - Site wide SSOT standard -->
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-column">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="/public/privacy.html">Privacy</a></li>
+          <li><a href="/public/terms.html">Terms</a></li>
+          <li><a href="/public/disclaimer.html">Disclaimer</a></li>
+        </ul>
+      </div>
+      <div class="footer-column">
+        <h4>Connect</h4>
+        <ul>
+          <li><a href="/public/contact.html">Contact</a></li>
+          <li><a href="/public/feedback.html">Feedback</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer-disclaimer">
+      <strong>Important:</strong> Semptify is an organizational tool, not legal advice. 
+      Always consult a qualified attorney for legal guidance.
+    </div>
+    
+    <div class="footer-bottom">
+      <p>© 2024-2026 Semptify</p>
+      <p class="footer-meta">Free Forever • No Ads • Open Source</p>
+    </div>
+  </footer>
+
+  <script>
+    // Elements
+    const providerBtns = document.querySelectorAll('.provider-btn');
+    const errorMessage = document.getElementById('error-message');
+    const inputForm = document.getElementById('input-form');
+    const progressState = document.getElementById('progress-state');
+    const progressText = document.getElementById('progress-text');
+
+    function showError(message) {
+      errorMessage.textContent = message;
+      errorMessage.classList.add('visible');
+      setTimeout(() => {
+        errorMessage.classList.remove('visible');
+      }, 5000);
+    }
+
+    function showProgress(text) {
+      inputForm.classList.add('hidden');
+      progressState.classList.remove('hidden');
+      progressText.textContent = text;
+    }
+
+    // Provider selection - go directly to OAuth
+    providerBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const provider = btn.dataset.provider;
+        
+        // Visual feedback
+        providerBtns.forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        
+        showProgress('Connecting to ' + btn.querySelector('span').textContent + '...');
+        
+        // Redirect to OAuth - provider will identify user
+        const oauthUrl = '/storage/auth/' + provider + '?return_to=/storage/reconnect';
+        setTimeout(() => {
+          window.location.href = oauthUrl;
+        }, 500);
+      });
+    });
+  </script>
+</body>
+</html>
