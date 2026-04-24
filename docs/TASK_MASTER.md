@@ -93,19 +93,24 @@ Welcome Page → "Returning User" → /storage/reconnect
 
 ---
 
-#### Task 4: Storage Provider Selection Page ⏳ NOT STARTED
+#### Task 4: Storage Provider Selection Page ✅ COMPLETE
 **Objective**: Create UI for selecting Google Drive / Dropbox / OneDrive
 
 **Acceptance Criteria**:
-- [ ] Page exists (route TBD - `/onboarding/storage-select.html` or API-generated)
-- [ ] Shows 3 provider options with icons
-- [ ] Clicking provider initiates OAuth
-- [ ] After OAuth → vault initialization → dashboard
+- [x] Page exists at `/onboarding/storage-select.html`
+- [x] Shows 3 provider options with icons
+- [x] Clicking provider initiates OAuth
+- [x] After OAuth → vault initialization → dashboard
 
-**Files to Create**:
-- `static/onboarding/storage-select.html` (or API generates HTML)
+**Files Created**:
+- `static/onboarding/storage-select.html` - Provider selection UI
 
-**Status**: ⏳ NOT STARTED  
+**Flow**:
+```
+select-role.html → storage-select.html → OAuth → vault-init.html → dashboard
+```
+
+**Status**: ✅ COMPLETE (2026-04-23)  
 **Blocked By**: None  
 **Assigned**: Available
 
@@ -255,17 +260,29 @@ Welcome Page → "Returning User" → /storage/reconnect
 
 ## 🎯 NEXT RECOMMENDED TASK
 
-**For immediate work**: **Task 1 - Returning User Reconnect Flow**
+**For immediate work**: **Task 5 - Consolidate Dashboard Versions**
 
 Why:
-- Welcome page button already links to `/storage/reconnect`
-- No handler exists (404)
-- Critical for user experience
-- Can be built independently
+- 4+ dashboard versions exist, creating maintenance burden
+- Audit needed to pick canonical version
+- Straightforward consolidation work
+- No external dependencies
+
+**Alternative**: Build backend invite code system to unblock **Task 2** (Advocate Validation) if advocate onboarding is priority.
 
 ---
 
 ## 📝 CHANGE LOG
+
+### 2026-04-24 - Onboarding Design System Standardized
+- ✅ **Onboarding Template SSOT Created**
+  - `static/public/welcome.html` is now the canonical template for ALL onboarding pages
+  - Blue color scheme (#1e3a5f) for onboarding/public pages (vs green for authenticated app)
+  - Identical header/footer across onboarding; only body content changes
+  - Documented in `docs/SEMPTIFY_BASELINE_SSOT.md` Design System section
+- ✅ **select-role.html** — Converted to welcome.html template (blue theme, consistent header/footer)
+- ✅ **storage-select.html** — Converted to welcome.html template (blue theme, consistent header/footer)
+- ✅ **Footer Standard Applied** — 4-column grid, center-aligned, Legal/Connect/Disclaimer/Bottom sections
 
 ### 2026-04-23
 - Created Task Master document
