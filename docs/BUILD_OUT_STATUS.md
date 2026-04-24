@@ -424,13 +424,13 @@ All 5 high-priority tasks completed. 1 medium-priority task (WebSocket) in progr
 - **Estimated Effort**: Medium (design pending)
 - **Resume When**: User ready to define contract requirements
 
-#### Identity Recovery (rehome.html replacement)
+#### Identity Recovery (Reconnect Procedure)
 - **Status**: 🅿️ PARKED
 - **Priority**: Low
-- **Blocked By**: User researching encrypted file format alternative
-- **Description**: Encrypted identity anchor file for OAuth recovery
-- **Estimated Effort**: Low (pending format decision)
-- **Resume When**: Encryption format decided
+- **Blocked By**: Reconnect procedure rewritten - new solution in development
+- **Description**: OAuth identity recovery when cookies are corrupted
+- **Note**: rehome.html approach abandoned. New reconnect process under design.
+- **Resume When**: Reconnect procedure design finalized
 
 ## Build Quality
 
