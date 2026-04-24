@@ -409,12 +409,7 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        let role = urlParams.get("role") || localStorage.getItem("selectedRole") || "tenant";
-        
-        // Normalize legacy 'user' role to 'tenant' for backend compatibility
-        if (role === "user") {
-            role = "tenant";
-        }
+        const role = urlParams.get("role") || localStorage.getItem("selectedRole") || "user";
 
         if (urlParams.get("role")) {
             localStorage.setItem("selectedRole", role);
