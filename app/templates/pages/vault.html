@@ -80,6 +80,61 @@
         }
         .success { background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; }
         .error { background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; }
+
+        /* Empty state styles */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #64748b;
+        }
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        .empty-state-hint {
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+        .mt-sm {
+            margin-top: 0.5rem;
+        }
+        .mt-md {
+            margin-top: 1rem;
+        }
+        .p-lg {
+            padding: 2rem;
+        }
+        .text-secondary {
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-error {
+            color: #ef4444;
+        }
+
+        /* Button styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn--primary {
+            background: #3b82f6;
+            color: white;
+        }
+        .btn--primary:hover {
+            background: #2563eb;
+        }
     </style>
 </head>
 <body>
@@ -96,7 +151,7 @@
             <div class="upload-zone" id="upload-zone">
                 <div class="upload-icon">Upload</div>
                 <p>Drag & drop files here or click to browse</p>
-                <p style="color: #64748b; margin-top: 0.5rem; font-size: 0.875rem;">
+                <p class="text-secondary mt-sm">
                     Documents are stored securely in YOUR cloud storage
                 </p>
                 <input type="file" id="file-input" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt">
@@ -106,7 +161,7 @@
         <div class="card">
             <h2>Your Documents</h2>
             <div class="documents" id="documents-list">
-                <p style="color: #64748b; text-align: center; padding: 2rem;">
+                <p class="text-secondary text-center p-lg">
                     Loading documents...
                 </p>
             </div>
@@ -249,11 +304,18 @@
                         </div>
                     `).join('');
                 } else {
-                    list.innerHTML = '<p style="color: #64748b; text-align: center; padding: 2rem;">No documents yet. Upload your first document above!</p>';
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📁</div>
+                            <p>No documents yet.</p>
+                            <p class="empty-state-hint">Upload your first document to get started.</p>
+                            <button class="btn btn--primary mt-md" onclick="openVaultUpload()">📄 Upload Document</button>
+                        </div>
+                    `;
                 }
             } catch (e) {
                 document.getElementById('documents-list').innerHTML = 
-                    '<p style="color: #ef4444;">Failed to load documents</p>';
+                    '<p class="text-error text-center">Failed to load documents</p>';
             }
         }
 

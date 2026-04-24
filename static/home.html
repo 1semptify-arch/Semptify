@@ -329,13 +329,17 @@
   <script src="/js/core/vault-portal.js"></script>
   <script src="/js/core/websocket-client.js"></script>
   <script>
+    // Mobile drawer functions
     function openDrawer() {
-      document.getElementById('nav-drawer').classList.add('open');
-      document.getElementById('drawer-backdrop').classList.add('open');
+        document.getElementById('nav-drawer').classList.add('open');
+        document.getElementById('drawer-backdrop').classList.add('open');
+        document.body.style.overflow = 'hidden';
     }
+
     function closeDrawer() {
-      document.getElementById('nav-drawer').classList.remove('open');
-      document.getElementById('drawer-backdrop').classList.remove('open');
+        document.getElementById('nav-drawer').classList.remove('open');
+        document.getElementById('drawer-backdrop').classList.remove('open');
+        document.body.style.overflow = '';
     }
 
     // Example: Listen for WebSocket notifications
