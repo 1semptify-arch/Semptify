@@ -1,0 +1,494 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2025-04-23",
+    "complete_states": ["MN"],
+    "stub_states": 49
+  },
+  "states": {
+    "MN": {
+      "code": "MN",
+      "name": "Minnesota",
+      "nickname": "Land of 10,000 Lakes",
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Minnesota Statutes Chapter 504B",
+        "statute_url": "https://www.revisor.mn.gov/statutes/cite/504B",
+        "summary": "Minnesota has strong tenant protections including cold weather rule, statutory right to privacy, and limits on landlord entry."
+      },
+      "notice_requirements": {
+        "termination_month_to_month": "30 days written notice required",
+        "termination_lease_end": "No notice required if lease specifies end date",
+        "nonpayment": "14 days to pay or vacate (No notice for manufactured home parks)",
+        "lease_violation": "30 days to remedy or vacate",
+        "unauthorized_pets": "10 days to remove or vacate",
+        "illegal_activity": "24 hours notice for serious crimes",
+        "notes": "Written notice required. Email/text only valid if tenant agreed in writing."
+      },
+      "security_deposit": {
+        "limit": "No statutory limit",
+        "return_deadline": "21 days after lease ends (3 weeks)",
+        "itemized_required": true,
+        "interest_required": false,
+        "withholding_allowed": ["Unpaid rent", "Damage beyond normal wear", "Other lease violations"],
+        "notes": "Landlord must provide written statement of reasons for withholding any deposit."
+      },
+      "rent_control": {
+        "statewide": false,
+        "local_programs": "Minneapolis has some affordable housing programs but no broad rent control",
+        "notes": "State law preempts local rent control. Tenant can challenge unreasonable rent increases in court under 'unconscionable' standard."
+      },
+      "repairs": {
+        "landlord_duties": ["Maintain electrical/plumbing/heating", "Provide garbage removal", "Provide running water/hot water", "Keep unit weatherproof", "Exterminate pests in multi-unit buildings"],
+        "tenant_remedies": {
+          "repair_deduct": true,
+          "rent_withholding": true,
+          "termination": true,
+          "notes": "Tenant must give 14 days notice for repairs. Amount deducted cannot exceed $500 or one month's rent."
+        },
+        "emergency_repairs": "24-72 hours depending on severity",
+        "cold_weather_rule": "Nov 1 - Apr 15: Utility shutoffs prohibited for non-payment if tenant establishes payment plan with utility"
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "24 hours",
+        "allowed_reasons": ["Emergency", "Inspection (limited frequency)", "Repairs/maintenance", "Showing unit to prospective tenants/buyers"],
+        "tenant_rights": "Tenant can refuse entry without proper notice. Repeated unauthorized entry = landlord harassment."
+      },
+      "eviction": {
+        "court": "Housing Court (Hennepin/Ramsey) or County Court",
+        "timeline": "Typically 2-6 weeks from filing to hearing",
+        "tenant_defenses": ["Retaliation", "Discrimination", "Landlord failed to maintain unit", "Improper notice", "Rent paid but not credited"],
+        "expungement": "Eviction records can be expunged in certain circumstances",
+        "self_help_illegal": true,
+        "lockout_prohibited": true,
+        "utility_shutoff_prohibited": true
+      },
+      "discrimination": {
+        "protected_classes": ["Race", "Color", "Creed", "Religion", "National origin", "Sex", "Marital status", "Status with regard to public assistance", "Disability", "Familial status"],
+        "familial_status": "Cannot refuse to rent to families with children",
+        "disability_accommodations": "Reasonable accommodations/modifications required",
+        "complaint_agency": "Minnesota Department of Human Rights",
+        "complaint_url": "https://mn.gov/mdhr/"
+      },
+      "legal_aid": [
+        {
+          "name": "HOME Line",
+          "phone": "612-728-5767",
+          "toll_free": "866-866-3546",
+          "url": "https://www.homelinemn.org",
+          "services": "Free legal advice hotline for MN tenants",
+          "counties": "Statewide"
+        },
+        {
+          "name": "Legal Aid Service of Northeastern Minnesota (LASNEM)",
+          "phone": "218-623-7161",
+          "toll_free": "800-752-6675",
+          "url": "https://www.lasnem.org",
+          "counties": "Aitkin, Carlton, Cook, Itasca, Koochiching, Lake, St. Louis"
+        },
+        {
+          "name": "Legal Services of Northwest Minnesota",
+          "phone": "218-623-7161",
+          "toll_free": "800-450-1685",
+          "url": "https://www.legal-services.org",
+          "counties": "Northwest MN"
+        },
+        {
+          "name": "Southern Minnesota Regional Legal Services (SMRLS)",
+          "phone": "651-228-9823",
+          "toll_free": "877-696-6529",
+          "url": "https://www.smrls.org",
+          "counties": "Twin Cities metro and Southern MN"
+        },
+        {
+          "name": "Mid-Minnesota Legal Aid",
+          "phone": "612-334-5970",
+          "toll_free": "800-292-4150",
+          "url": "https://www.mllao.org",
+          "counties": "Central MN"
+        },
+        {
+          "name": "Volunteer Lawyers Network",
+          "phone": "612-752-6621",
+          "url": "https://www.vlnmn.org",
+          "services": "Pro bono legal services for low-income Minnesotans"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Minnesota Attorney General - Tenant Rights",
+          "url": "https://www.ag.state.mn.us/consumer/housing/landlordtenant.asp",
+          "phone": "651-296-3353"
+        },
+        {
+          "name": "Minnesota Housing Finance Agency",
+          "url": "https://www.mnhousing.gov",
+          "services": "Affordable housing programs, rental assistance"
+        },
+        {
+          "name": "Minnesota Department of Human Rights",
+          "url": "https://mn.gov/mdhr/",
+          "phone": "651-539-1100",
+          "services": "Discrimination complaints"
+        }
+      ],
+      "forms_templates": [
+        {
+          "name": "Repair Request Letter (MN)",
+          "url": "/library/forms/repair-request-mn.html",
+          "description": "MN-specific repair request with statutory citations"
+        },
+        {
+          "name": "Security Deposit Demand Letter",
+          "url": "/library/forms/deposit-demand-mn.html"
+        },
+        {
+          "name": "Privacy Violation Notice",
+          "url": "/library/forms/privacy-notice-mn.html"
+        }
+      ],
+      "special_programs": {
+        "covid_rental_assistance": "RentHelpMN ended but check county programs",
+        "energy_assistance": "Minnesota Energy Assistance Program - helps pay heating bills",
+        "homestead_credit_refund": "Property tax refund for renters with income under $64,000 (2024)"
+      }
+    },
+    "CA": {
+      "code": "CA",
+      "name": "California",
+      "status": "stub",
+      "stub_url": "https://www.lawhelpca.org/issues/housing",
+      "notes": "California housing laws vary by city. Check local rent control ordinances."
+    },
+    "NY": {
+      "code": "NY",
+      "name": "New York",
+      "status": "stub",
+      "stub_url": "https://www.lawhelpny.org/housing",
+      "notes": "NYC has rent stabilization and rent control. Upstate NY varies by locality."
+    },
+    "TX": {
+      "code": "TX",
+      "name": "Texas",
+      "status": "stub",
+      "stub_url": "https://texaslawhelp.org/housing",
+      "notes": "Texas has limited tenant protections. Most cities have no rent control."
+    },
+    "FL": {
+      "code": "FL",
+      "name": "Florida",
+      "status": "stub",
+      "stub_url": "https://www.floridalawhelp.org/find-legal-info/housing",
+      "notes": "Florida landlord-tenant law is landlord-friendly. No rent control statewide."
+    },
+    "IL": {
+      "code": "IL",
+      "name": "Illinois",
+      "status": "stub",
+      "stub_url": "https://www.illinoislegalaid.org/legal-information/housing",
+      "notes": "Cook County and Chicago have additional tenant protections."
+    },
+    "PA": {
+      "code": "PA",
+      "name": "Pennsylvania",
+      "status": "stub",
+      "stub_url": "https://www.palegalaid.net/housing",
+      "notes": "Philadelphia has stronger tenant protections than state law."
+    },
+    "WA": {
+      "code": "WA",
+      "name": "Washington",
+      "status": "stub",
+      "stub_url": "https://www.washingtonlawhelp.org/issues/housing",
+      "notes": "Washington recently strengthened tenant protections including just cause eviction."
+    },
+    "MA": {
+      "code": "MA",
+      "name": "Massachusetts",
+      "status": "stub",
+      "stub_url": "https://www.masslegalhelp.org/housing",
+      "notes": "Strong tenant protections including rent control in some cities."
+    },
+    "OR": {
+      "code": "OR",
+      "name": "Oregon",
+      "status": "stub",
+      "stub_url": "https://www.oregonlawhelp.org/issues/housing",
+      "notes": "Statewide rent control and just cause eviction protections."
+    },
+    "CO": {
+      "code": "CO",
+      "name": "Colorado",
+      "status": "stub",
+      "stub_url": "https://www.coloradolegalservices.org/issues/housing",
+      "notes": "Colorado recently enacted statewide just cause eviction and mobile home protections."
+    },
+    "MI": {
+      "code": "MI",
+      "name": "Michigan",
+      "status": "stub",
+      "stub_url": "https://michiganlegalhelp.org/housing",
+      "notes": "Detroit has additional local tenant protections."
+    },
+    "OH": {
+      "code": "OH",
+      "name": "Ohio",
+      "status": "stub",
+      "stub_url": "https://www.ohiolegalhelp.org/housing",
+      "notes": "Ohio landlord-tenant law varies by city. Cleveland has stronger protections."
+    },
+    "NC": {
+      "code": "NC",
+      "name": "North Carolina",
+      "status": "stub",
+      "stub_url": "https://www.lawhelpnc.org/issues/housing",
+      "notes": "North Carolina is generally landlord-friendly. No rent control."
+    },
+    "GA": {
+      "code": "GA",
+      "name": "Georgia",
+      "status": "stub",
+      "stub_url": "https://www.georgialegalaid.org/issues/housing",
+      "notes": "Georgia has weak tenant protections. Local ordinances vary."
+    },
+    "AZ": {
+      "code": "AZ",
+      "name": "Arizona",
+      "status": "stub",
+      "stub_url": "https://www.azlawhelp.org/issues/housing",
+      "notes": "Arizona prohibits rent control statewide. Landlord-friendly laws."
+    },
+    "VA": {
+      "code": "VA",
+      "name": "Virginia",
+      "status": "stub",
+      "stub_url": "https://www.valegalaid.org/issues/housing",
+      "notes": "Virginia made significant tenant protection updates in recent years."
+    },
+    "NJ": {
+      "code": "NJ",
+      "name": "New Jersey",
+      "status": "stub",
+      "stub_url": "https://www.lsnjlawhotline.org/housing",
+      "notes": "Many NJ cities have rent control. Strong anti-eviction protections."
+    },
+    "WI": {
+      "code": "WI",
+      "name": "Wisconsin",
+      "status": "stub",
+      "stub_url": "https://www.lawhelpwi.org/issues/housing",
+      "notes": "Wisconsin has statewide housing discrimination protections."
+    },
+    "MO": {
+      "code": "MO",
+      "name": "Missouri",
+      "status": "stub",
+      "stub_url": "https://www.lsmo.org/housing",
+      "notes": "Missouri is landlord-friendly. Kansas City and St. Louis have some local protections."
+    },
+    "AL": {
+      "code": "AL",
+      "name": "Alabama",
+      "status": "stub",
+      "stub_url": "https://www.alabamalegalhelp.org/housing",
+      "notes": "Alabama has limited tenant protections. Check local ordinances."
+    },
+    "AK": {
+      "code": "AK",
+      "name": "Alaska",
+      "status": "stub",
+      "stub_url": "https://alaskalegalhelp.org/housing",
+      "notes": "Alaska has unique landlord-tenant law due to remote locations."
+    },
+    "AR": {
+      "code": "AR",
+      "name": "Arkansas",
+      "status": "stub",
+      "stub_url": "https://arkansaslegal.org/housing",
+      "notes": "Arkansas is very landlord-friendly. Limited tenant protections."
+    },
+    "CT": {
+      "code": "CT",
+      "name": "Connecticut",
+      "status": "stub",
+      "stub_url": "https://www.ctlegal.org/housing",
+      "notes": "Connecticut has fair housing protections and some rent control."
+    },
+    "DE": {
+      "code": "DE",
+      "name": "Delaware",
+      "status": "stub",
+      "stub_url": "https://www.delegalhelp.org/housing",
+      "notes": "Delaware has anti-discrimination laws and some local tenant protections."
+    },
+    "HI": {
+      "code": "HI",
+      "name": "Hawaii",
+      "status": "stub",
+      "stub_url": "https://www.hawaiilegalhelp.org/housing",
+      "notes": "Hawaii has rent control in some counties and strong eviction protections."
+    },
+    "ID": {
+      "code": "ID",
+      "name": "Idaho",
+      "status": "stub",
+      "stub_url": "https://www.idaholegalaid.org/housing",
+      "notes": "Idaho is landlord-friendly. No rent control."
+    },
+    "IA": {
+      "code": "IA",
+      "name": "Iowa",
+      "status": "stub",
+      "stub_url": "https://www.iowalegalaid.org/housing",
+      "notes": "Iowa has fair housing protections but limited rent regulation."
+    },
+    "KS": {
+      "code": "KS",
+      "name": "Kansas",
+      "status": "stub",
+      "stub_url": "https://www.kansaslegalservices.org/housing",
+      "notes": "Kansas is generally landlord-friendly."
+    },
+    "KY": {
+      "code": "KY",
+      "name": "Kentucky",
+      "status": "stub",
+      "stub_url": "https://www.kyjustice.org/housing",
+      "notes": "Kentucky has fair housing laws and some local protections."
+    },
+    "LA": {
+      "code": "LA",
+      "name": "Louisiana",
+      "status": "stub",
+      "stub_url": "https://louisianalawhelp.org/housing",
+      "notes": "Louisiana follows civil law (not common law). Unique landlord-tenant rules."
+    },
+    "ME": {
+      "code": "ME",
+      "name": "Maine",
+      "status": "stub",
+      "stub_url": "https://www.pine Tree Legal Assistance (ptla.org) - Maine",
+      "notes": "Maine has strong tenant protections including notice requirements."
+    },
+    "MD": {
+      "code": "MD",
+      "name": "Maryland",
+      "status": "stub",
+      "stub_url": "https://www.mlsprogram.org/housing",
+      "notes": "Maryland has statewide eviction protections and some local rent control."
+    },
+    "MS": {
+      "code": "MS",
+      "name": "Mississippi",
+      "status": "stub",
+      "stub_url": "https://www.mslegalhelp.org/housing",
+      "notes": "Mississippi has limited tenant protections."
+    },
+    "MT": {
+      "code": "MT",
+      "name": "Montana",
+      "status": "stub",
+      "stub_url": "https://www.montanalegalhelp.org/housing",
+      "notes": "Montana is landlord-friendly. No rent control."
+    },
+    "NE": {
+      "code": "NE",
+      "name": "Nebraska",
+      "status": "stub",
+      "stub_url": "https://www.nelegalaid.org/housing",
+      "notes": "Nebraska has fair housing protections."
+    },
+    "NV": {
+      "code": "NV",
+      "name": "Nevada",
+      "status": "stub",
+      "stub_url": "https://www.nevadalegalhelp.org/housing",
+      "notes": "Nevada recently strengthened tenant protections."
+    },
+    "NH": {
+      "code": "NH",
+      "name": "New Hampshire",
+      "status": "stub",
+      "stub_url": "https://www.nhlegalaid.org/housing",
+      "notes": "New Hampshire has fair housing laws and some local protections."
+    },
+    "NM": {
+      "code": "NM",
+      "name": "New Mexico",
+      "status": "stub",
+      "stub_url": "https://www.nmlegalaid.org/housing",
+      "notes": "New Mexico has anti-discrimination and habitability protections."
+    },
+    "ND": {
+      "code": "ND",
+      "name": "North Dakota",
+      "status": "stub",
+      "stub_url": "https://www.legalassistnd.org/housing",
+      "notes": "North Dakota is landlord-friendly. Limited tenant protections."
+    },
+    "OK": {
+      "code": "OK",
+      "name": "Oklahoma",
+      "status": "stub",
+      "stub_url": "https://www.oklegalconnect.org/housing",
+      "notes": "Oklahoma is landlord-friendly. No rent control."
+    },
+    "RI": {
+      "code": "RI",
+      "name": "Rhode Island",
+      "status": "stub",
+      "stub_url": "https://www.rilegalservices.org/housing",
+      "notes": "Rhode Island has strong anti-discrimination laws."
+    },
+    "SC": {
+      "code": "SC",
+      "name": "South Carolina",
+      "status": "stub",
+      "stub_url": "https://www.sclegal.org/housing",
+      "notes": "South Carolina is landlord-friendly."
+    },
+    "SD": {
+      "code": "SD",
+      "name": "South Dakota",
+      "status": "stub",
+      "stub_url": "https://www.sdlegalhelp.org/housing",
+      "notes": "South Dakota is landlord-friendly. Limited protections."
+    },
+    "TN": {
+      "code": "TN",
+      "name": "Tennessee",
+      "status": "stub",
+      "stub_url": "https://www.tnlegalhelp.org/housing",
+      "notes": "Tennessee is landlord-friendly. No rent control."
+    },
+    "UT": {
+      "code": "UT",
+      "name": "Utah",
+      "status": "stub",
+      "stub_url": "https://www.utahlegalservices.org/housing",
+      "notes": "Utah is landlord-friendly. Salt Lake City has some protections."
+    },
+    "VT": {
+      "code": "VT",
+      "name": "Vermont",
+      "status": "stub",
+      "stub_url": "https://www.vtlegalaid.org/housing",
+      "notes": "Vermont has strong tenant protections and some rent control."
+    },
+    "WV": {
+      "code": "WV",
+      "name": "West Virginia",
+      "status": "stub",
+      "stub_url": "https://www.wvlegalhelp.org/housing",
+      "notes": "West Virginia is landlord-friendly."
+    },
+    "WY": {
+      "code": "WY",
+      "name": "Wyoming",
+      "status": "stub",
+      "stub_url": "https://www.wyominglegalaid.org/housing",
+      "notes": "Wyoming is landlord-friendly. No rent control."
+    }
+  }
+}
