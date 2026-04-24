@@ -1,0 +1,211 @@
+{# Manager / Agency Dashboard #}
+{# Purpose: Multi-tenant oversight for housing agencies, nonprofits, property managers #}
+{# Features: Staff management, case oversight, bulk operations, organization reporting #}
+
+{% extends "base.html" %}
+
+{% block title %}Manager Dashboard - Semptify{% endblock %}
+{% block description %}Multi-tenant case oversight and staff management dashboard for housing agencies and nonprofits.{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="/static/css/manager-dashboard.css">
+{% endblock %}
+
+{% block content %}
+<div class="manager-dashboard">
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-content">
+            <div>
+                <h1 class="header-title">🏢 Manager Dashboard</h1>
+                <p class="header-subtitle">Multi-tenant case oversight & staff management</p>
+            </div>
+            <div class="header-actions">
+                <a href="/office/delivery" class="header-btn primary">📤 Send Document</a>
+                <a href="/manager/reports" class="header-btn">📊 Reports</a>
+                <a href="/manager/staff" class="header-btn">👥 Staff</a>
+                <span class="header-btn">🏠 {{ organization_name|default('Agency') }}</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+        <!-- Stats Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ total_cases|default(0) }}</div>
+                <div class="stat-label">Active Cases</div>
+                <div class="stat-change positive">+{{ new_cases_this_week|default(0) }} this week</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ pending_documents|default(0) }}</div>
+                <div class="stat-label">Pending Signatures</div>
+                <div class="stat-change {% if urgent_documents > 0 %}negative{% else %}positive{% endif %}">
+                    {% if urgent_documents > 0 %}{{ urgent_documents }} urgent{% else %}All caught up{% endif %}
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ active_staff|default(0) }}</div>
+                <div class="stat-label">Staff Online</div>
+                <div class="stat-change positive">of {{ total_staff|default(0) }} total</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ overdue_tasks|default(0) }}</div>
+                <div class="stat-label">Overdue Tasks</div>
+                <div class="stat-change {% if overdue_tasks > 0 %}negative{% else %}positive{% endif %}">
+                    {% if overdue_tasks > 0 %}Needs attention{% else %}On track{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- Left Column -->
+            <div class="main-column">
+                <!-- Cases Section -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">📋 Recent Cases</h2>
+                        <a href="/manager/cases" class="section-action">View all →</a>
+                    </div>
+                    {% if recent_cases -%}
+                    <ul class="case-list">{%- for case in recent_cases %}
+                        <li class="case-item">
+                            <div class="case-avatar">{{ case.tenant_name|first|upper }}</div>
+                            <div class="case-info">
+                                <div class="case-name">{{ case.tenant_name }}</div>
+                                <div class="case-meta">{{ case.property|default('No property') }} • Assigned to {{ case.assigned_to|default('Unassigned') }}</div>
+                            </div>
+                            <span class="case-status status-{{ case.status|default('active') }}">{{ case.status|default('Active')|title }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <p>No active cases yet</p>
+                        <p class="empty-state-hint">Cases will appear when tenants connect</p>
+                    </div>
+                    {% endif %}
+                </section>
+
+                <!-- Activity Feed -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">📈 Recent Activity</h2>
+                        <a href="/manager/activity" class="section-action">View all →</a>
+                    </div>
+                    {% if recent_activity -%}
+                    <ul class="activity-feed">{%- for activity in recent_activity %}
+                        <li class="activity-item">
+                            <span class="activity-icon">{{ activity.icon|default('📝') }}</span>
+                            <span class="activity-text">{{ activity.description|safe }}</span>
+                            <span class="activity-time">{{ activity.time|default('Just now') }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📈</div>
+                        <p>No recent activity</p>
+                    </div>
+                    {% endif %}
+                </section>
+            </div>
+
+            <!-- Right Column -->
+            <aside class="sidebar">
+                <!-- Quick Actions -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">⚡ Quick Actions</h2>
+                    </div>
+                    <div class="quick-actions">
+                        <a href="/office/delivery" class="quick-action-btn">
+                            <span class="quick-action-icon">📤</span>
+                            <span class="quick-action-label">Send Doc</span>
+                        </a>
+                        <a href="/manager/bulk-upload" class="quick-action-btn">
+                            <span class="quick-action-icon">📁</span>
+                            <span class="quick-action-label">Bulk Upload</span>
+                        </a>
+                        <a href="/manager/staff" class="quick-action-btn">
+                            <span class="quick-action-icon">👥</span>
+                            <span class="quick-action-label">Manage Staff</span>
+                        </a>
+                        <a href="/manager/reports" class="quick-action-btn">
+                            <span class="quick-action-icon">📊</span>
+                            <span class="quick-action-label">Reports</span>
+                        </a>
+                    </div>
+                </section>
+
+                <!-- Staff Online -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">👥 Staff</h2>
+                        <a href="/manager/staff" class="section-action">Manage →</a>
+                    </div>
+                    {% if staff_list -%}
+                    <ul class="staff-list">{%- for staff in staff_list %}
+                        <li class="staff-item">
+                            <span class="staff-status {{ staff.status|default('offline') }}"></span>
+                            <span class="staff-name">{{ staff.name }}</span>
+                            <span class="staff-role">{{ staff.role|default('Staff') }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="empty-state empty-state-compact">
+                        <p class="empty-state-text-small">No staff members yet</p>
+                    </div>
+                    {% endif %}
+                </section>
+
+                <!-- Pending Signatures -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">✍️ Pending Signatures</h2>
+                        <a href="/manager/signatures" class="section-action">View all →</a>
+                    </div>
+                    {% if pending_signatures -%}
+                    <ul class="activity-feed">{%- for doc in pending_signatures %}
+                        <li class="activity-item">
+                            <span class="activity-icon">📄</span>
+                            <span class="activity-text"><strong>{{ doc.tenant_name }}</strong> — {{ doc.document_name }}</span>
+                            <span class="activity-time">{{ doc.due_date|default('No due date') }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="empty-state empty-state-compact">
+                        <p class="empty-state-text-small">No pending signatures</p>
+                    </div>
+                    {% endif %}
+                </section>
+            </aside>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Auto-refresh stats every 60 seconds
+    setInterval(async () => {
+        try {
+            const response = await fetchWithCSRF('/api/manager/dashboard-stats');
+            if (response.ok) {
+                const data = await response.json();
+                // Update stat values
+                document.querySelectorAll('.stat-value').forEach((el, i) => {
+                    const keys = ['total_cases', 'pending_documents', 'active_staff', 'overdue_tasks'];
+                    if (data[keys[i]]) el.textContent = data[keys[i]];
+                });
+            }
+        } catch (e) {
+            console.log('Stats refresh failed:', e);
+        }
+    }, 60000);
+</script>
+{% endblock %}
