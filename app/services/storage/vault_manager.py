@@ -29,24 +29,20 @@ from typing import Optional, Dict, Any
 from dataclasses import dataclass, asdict
 
 from app.core.config import get_settings
+from app.core.vault_paths import (
+    SEMPTIFY_ROOT,
+    AUTH_FOLDER,
+    VAULT_FOLDER,
+    TOKEN_FILE,
+    TOKEN_BACKUP,
+    DEVICE_KEYS_FILE,
+    PROVISIONING_FILE,
+    REHOME_FILE,
+    README_FILE,
+    VAULT_MANIFEST as MANIFEST_FILE,
+)
 
 settings = get_settings()
-
-
-# =============================================================================
-# Constants
-# =============================================================================
-
-SEMPTIFY_ROOT = "Semptify5.0"
-AUTH_FOLDER = f"{SEMPTIFY_ROOT}/.auth"
-VAULT_FOLDER = f"{SEMPTIFY_ROOT}/Vault"
-TOKEN_FILE = f"{AUTH_FOLDER}/token.enc"
-TOKEN_BACKUP = f"{AUTH_FOLDER}/token.enc.backup"
-DEVICE_KEYS_FILE = f"{AUTH_FOLDER}/device_keys.json"
-PROVISIONING_FILE = f"{AUTH_FOLDER}/provisioning_state.json"
-REHOME_FILE = f"{SEMPTIFY_ROOT}/Rehome.html"
-README_FILE = f"{SEMPTIFY_ROOT}/README.txt"
-MANIFEST_FILE = f"{SEMPTIFY_ROOT}/VAULT_MANIFEST.txt"
 
 
 # =============================================================================
