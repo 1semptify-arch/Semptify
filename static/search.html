@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search - Semptify</title>
+    <style>
+        :root {
+            --primary: #1e3a5f;
+            --primary-light: #2d5a87;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #1e293b;
+            --text-light: #475569;
+            --bg: #fdfcfa;
+            --paper: #ffffff;
+            --border: #e2e8f0;
+            --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: var(--shadow);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .header-nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .header-nav a:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* Search Container */
+        .search-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .search-box {
+            background: var(--paper);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .search-btn {
+            padding: 1rem 2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .search-btn:hover:not(:disabled) {
+            background: var(--primary-light);
+            transform: translateY(-1px);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            padding: 0.5rem 1rem;
+            background: #f1f5f9;
+            border: 2px solid transparent;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-chip.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Results */
+        .results-container {
+            background: var(--paper);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            min-height: 400px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .results-count {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .results-loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .results-empty {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        /* Result Sections */
+        .result-section {
+            margin-bottom: 2rem;
+        }
+
+        .result-section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-item {
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .result-item:hover {
+            border-color: var(--accent);
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+        }
+
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .result-snippet {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .result-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .result-type {
+            padding: 0.2rem 0.5rem;
+            background: #f1f5f9;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .result-type.document { background: #dbeafe; color: #1e40af; }
+        .result-type.timeline { background: #f3e8ff; color: #6b21a8; }
+        .result-type.contact { background: #dcfce7; color: #166534; }
+        .result-type.law { background: #fef3c7; color: #92400e; }
+
+        .highlight {
+            background: #fef3c7;
+            padding: 0.1rem 0.2rem;
+            border-radius: 3px;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .search-input-group {
+                flex-direction: column;
+            }
+
+            .search-filters {
+                justify-content: center;
+            }
+
+            .results-header {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1>🔍 Search</h1>
+            <nav class="header-nav">
+                <a href="/home.html">Home</a>
+                <a href="/static/documents.html">Documents</a>
+                <a href="/static/timeline.html">Timeline</a>
+                <a href="/static/contacts.html">Contacts</a>
+                <a href="/static/library.html">Library</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Search Container -->
+    <main class="search-container">
+        <div class="search-box">
+            <div class="search-input-group">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="search-input" 
+                    placeholder="Search documents, timeline, contacts, laws..."
+                    autofocus
+                >
+                <button id="searchBtn" class="search-btn" onclick="performSearch()">
+                    Search
+                </button>
+            </div>
+            
+            <div class="search-filters">
+                <div class="filter-chip active" data-type="all" onclick="toggleFilter(this)">All</div>
+                <div class="filter-chip" data-type="document" onclick="toggleFilter(this)">Documents</div>
+                <div class="filter-chip" data-type="timeline" onclick="toggleFilter(this)">Timeline</div>
+                <div class="filter-chip" data-type="contact" onclick="toggleFilter(this)">Contacts</div>
+                <div class="filter-chip" data-type="law" onclick="toggleFilter(this)">Laws</div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="results-container">
+            <div id="resultsContent">
+                <div class="results-empty">
+                    <h3>🔍 Ready to Search</h3>
+                    <p>Enter a search query above to find documents, timeline events, contacts, and legal information.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024-2026 Semptify • Free Forever • No Ads • Privacy-First</p>
+    </footer>
+
+    <script>
+        let currentQuery = '';
+        let activeFilters = new Set(['all']);
+        let searchResults = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('searchInput');
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            // Load query from URL if present
+            const urlParams = new URLSearchParams(window.location.search);
+            const q = urlParams.get('q');
+            if (q) {
+                input.value = q;
+                performSearch();
+            }
+        });
+
+        function toggleFilter(chip) {
+            const type = chip.dataset.type;
+            
+            if (type === 'all') {
+                // Select "All" and deselect others
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                activeFilters = new Set(['all']);
+            } else {
+                // Deselect "All" if selecting specific types
+                document.querySelector('.filter-chip[data-type="all"]').classList.remove('active');
+                activeFilters.delete('all');
+                
+                // Toggle the selected filter
+                if (activeFilters.has(type)) {
+                    activeFilters.delete(type);
+                    chip.classList.remove('active');
+                } else {
+                    activeFilters.add(type);
+                    chip.classList.add('active');
+                }
+                
+                // If no filters selected, default to "All"
+                if (activeFilters.size === 0) {
+                    document.querySelector('.filter-chip[data-type="all"]').classList.add('active');
+                    activeFilters = new Set(['all']);
+                }
+            }
+            
+            // Re-render results if we have them
+            if (searchResults) {
+                renderResults(searchResults);
+            }
+        }
+
+        async function performSearch() {
+            const input = document.getElementById('searchInput');
+            const query = input.value.trim();
+            
+            if (!query) {
+                return;
+            }
+            
+            currentQuery = query;
+            
+            // Update URL
+            const url = new URL(window.location);
+            url.searchParams.set('q', query);
+            window.history.pushState({}, '', url);
+            
+            // Show loading
+            showLoading();
+            
+            try {
+                const response = await fetch(`/api/search/?q=${encodeURIComponent(query)}&limit=20`);
+                
+                if (!response.ok) {
+                    throw new Error('Search failed');
+                }
+                
+                const data = await response.json();
+                searchResults = data;
+                renderResults(data);
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                showError('Search failed. Please try again.');
+            }
+        }
+
+        function showLoading() {
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML = `
+                <div class="results-loading">
+                    <div class="spinner">🔍</div>
+                    <p>Searching...</p>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML = `
+                <div class="results-empty">
+                    <h3>❌ Error</h3>
+                    <p>${message}</p>
+                </div>
+            `;
+        }
+
+        function renderResults(data) {
+            const resultsContent = document.getElementById('resultsContent');
+            
+            if (!data.total_results || data.total_results === 0) {
+                resultsContent.innerHTML = `
+                    <div class="results-empty">
+                        <h3>📭 No Results</h3>
+                        <p>No results found for "<strong>${escapeHtml(currentQuery)}</strong>"</p>
+                        <p>Try different keywords or check your spelling.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="results-header">
+                    <h2>Search Results</h2>
+                    <div class="results-count">${data.total_results} results found</div>
+                </div>
+            `;
+            
+            // Render each section if it has results and is not filtered out
+            if (shouldShowSection('document') && data.documents.length > 0) {
+                html += renderSection('Documents', data.documents, 'document');
+            }
+            
+            if (shouldShowSection('timeline') && data.timeline.length > 0) {
+                html += renderSection('Timeline Events', data.timeline, 'timeline');
+            }
+            
+            if (shouldShowSection('contact') && data.contacts.length > 0) {
+                html += renderSection('Contacts', data.contacts, 'contact');
+            }
+            
+            if (shouldShowSection('law') && data.law_library.length > 0) {
+                html += renderSection('Law Library', data.law_library, 'law');
+            }
+            
+            resultsContent.innerHTML = html;
+        }
+
+        function shouldShowSection(type) {
+            return activeFilters.has('all') || activeFilters.has(type);
+        }
+
+        function renderSection(title, results, type) {
+            const icon = {
+                document: '📄',
+                timeline: '📅',
+                contact: '👤',
+                law: '⚖️'
+            }[type] || '📋';
+            
+            let html = `
+                <div class="result-section">
+                    <h3 class="result-section-title">
+                        ${icon} ${title} (${results.length})
+                    </h3>
+            `;
+            
+            results.slice(0, 10).forEach(result => {
+                html += renderResult(result, type);
+            });
+            
+            html += '</div>';
+            return html;
+        }
+
+        function renderResult(result, type) {
+            const snippet = highlightQuery(result.snippet || '', currentQuery);
+            const metadata = result.metadata || {};
+            
+            let metaHtml = '';
+            
+            if (type === 'document') {
+                metaHtml = `
+                    <span class="result-type document">Document</span>
+                    ${metadata.document_type ? `<span>${metadata.document_type}</span>` : ''}
+                    ${metadata.file_type ? `<span>${metadata.file_type}</span>` : ''}
+                    ${metadata.created_at ? `<span>${formatDate(metadata.created_at)}</span>` : ''}
+                `;
+            } else if (type === 'timeline') {
+                metaHtml = `
+                    <span class="result-type timeline">Timeline</span>
+                    ${metadata.event_type ? `<span>${metadata.event_type}</span>` : ''}
+                    ${metadata.event_date ? `<span>${formatDate(metadata.event_date)}</span>` : ''}
+                `;
+            } else if (type === 'contact') {
+                metaHtml = `
+                    <span class="result-type contact">Contact</span>
+                    ${metadata.role ? `<span>${metadata.role}</span>` : ''}
+                    ${metadata.phone ? `<span>📞 ${metadata.phone}</span>` : ''}
+                    ${metadata.email ? `<span>✉️ ${metadata.email}</span>` : ''}
+                `;
+            } else if (type === 'law') {
+                metaHtml = `
+                    <span class="result-type law">Law</span>
+                    ${metadata.keywords ? `<span>Keywords: ${metadata.keywords.join(', ')}</span>` : ''}
+                `;
+            }
+            
+            return `
+                <div class="result-item" onclick="window.location.href='${result.url}'">
+                    <div class="result-title">${escapeHtml(result.title)}</div>
+                    <div class="result-snippet">${snippet}</div>
+                    <div class="result-meta">
+                        ${metaHtml}
+                        <span>Score: ${result.score.toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function highlightQuery(text, query) {
+            if (!text || !query) return escapeHtml(text);
+            
+            const regex = new RegExp(`(${escapeRegex(query)})`, 'gi');
+            return escapeHtml(text).replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString();
+            } catch {
+                return dateString;
+            }
+        }
+    </script>
+</body>
+</html>

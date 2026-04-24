@@ -286,14 +286,22 @@ All 5 high-priority tasks completed. 1 medium-priority task (WebSocket) in progr
 
 ## Pending Components (Medium Priority)
 
-### Advanced Search System
-- **Status**: Not Started
-- **Priority**: Medium
-- **Planned Features**:
-  - Full-text search
-  - Document indexing
-  - Search relevance scoring
-  - Advanced filters
+### Advanced Search System (100% Complete) ✅
+- **Status**: Production Ready — **Completed April 24, 2026**
+- **Location**: `app/core/search_engine.py`, `app/routers/search.py`, `static/search.html`
+- **Backend Features**:
+  - BM25 relevance scoring algorithm
+  - Full-text document indexing with highlights
+  - Multi-source search: Documents, Timeline, Contacts, Law Library
+  - Fallback SQL search if advanced engine fails
+  - API endpoint: `GET /api/search/?q=`
+- **Frontend Features**:
+  - Dedicated search UI at `/static/search.html`
+  - Real-time search with loading states
+  - Filter by content type (Documents, Timeline, Contacts, Laws)
+  - Result highlighting and scoring display
+  - Responsive design with mobile support
+- **Integration**: Router registered in main.py as `/api/search`
 
 ### Document Preview System
 - **Status**: Not Started
