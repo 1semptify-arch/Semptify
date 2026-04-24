@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Your Storage - Semptify</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --primary: #1e3a5f;
+            --primary-light: #2d5a87;
+            --accent: #3b82f6;
+            --warm: #f59e0b;
+            --text: #1e293b;
+            --text-light: #475569;
+            --bg: #fdfcfa;
+            --paper: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, '"'"'Segoe UI'"'"', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Header - SSOT Constant */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.25rem;
+        }
+
+        .header .tagline {
+            font-size: 1.25rem;
+            font-weight: 300;
+            opacity: 0.9;
+            font-style: italic;
+        }
+
+        .header .subtitle {
+            font-size: 0.95rem;
+            opacity: 0.75;
+            margin-top: 0.5rem;
+        }
+
+        /* Article Container */
+        .article {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: var(--paper);
+            min-height: 60vh;
+        }
+
+        /* Page specific styles */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .back-link {
+            color: var(--accent);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .back-link:hover { text-decoration: underline; }
+
+        .step-indicator {
+            background: #f1f5f9;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-title h2 {
+            font-size: 1.75rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-light);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* Why Storage Section */
+        .why-storage {
+            background: #f0f9ff;
+            border-left: 4px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .why-storage h3 {
+            font-size: 1.1rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .why-storage p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Provider Cards */
+        .providers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .provider-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 2rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .provider-card:hover {
+            background: #f1f5f9;
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+        }
+
+        .provider-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .provider-icon svg {
+            width: 48px;
+            height: 48px;
+        }
+
+        .provider-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .provider-description {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .provider-features {
+            list-style: none;
+            text-align: left;
+            width: 100%;
+        }
+
+        .provider-features li {
+            padding: 0.3rem 0;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-light);
+        }
+
+        .provider-features li::before {
+            content: "✓";
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* Skip Option */
+        .skip-section {
+            text-align: center;
+            padding: 2rem 0;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .skip-link {
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .skip-link:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        /* Footer - SSOT Constant */
+        .footer {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            background: #f1f5f9;
+            color: var(--text-light);
+            font-size: 0.75rem;
+            font-family: -apple-system, BlinkMacSystemFont, '"'"'Segoe UI'"'"', sans-serif;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+            max-width: 600px;
+            margin: 0 auto 1rem;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            .footer-grid { grid-template-columns: repeat(2, 1fr); }
+            .providers-grid { grid-template-columns: 1fr; }
+        }
+
+        .footer-column h4 {
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: center;
+        }
+
+        .footer-column ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+        }
+
+        .footer-column li { margin-bottom: 0.25rem; }
+
+        .footer-column a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .footer-column a:hover { text-decoration: underline; }
+
+        .footer-disclaimer {
+            max-width: 600px;
+            margin: 0 auto 0.75rem;
+            padding: 0.5rem 0;
+            border-top: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .footer-bottom { margin-top: 0.75rem; }
+
+        .footer-bottom p {
+            margin: 0.15rem 0;
+            text-align: center;
+            font-size: 0.7rem;
+        }
+
+        .footer-meta {
+            color: var(--accent);
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .header .tagline { font-size: 1.1rem; }
+            .article { padding: 1.5rem 1.25rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header - SSOT Constant -->
+    <header class="header">
+        <h1>📓 Semptify</h1>
+        <p class="tagline">The Tenant'"'"'s Journal</p>
+        <p class="subtitle">Your proactive guide to a peaceful tenancy</p>
+    </header>
+
+    <!-- Article - Page Content -->
+    <article class="article">
+        <div class="page-header">
+            <a href="/onboarding/select-role.html" class="back-link">← Back to Role Selection</a>
+            <span class="step-indicator">Step 2 of 3</span>
+        </div>
+
+        <div class="page-title">
+            <h2>☁️ Connect Your Storage</h2>
+        </div>
+        <p class="page-subtitle">
+            Semptify stores YOUR documents in YOUR cloud. We never see your data.<br>
+            <strong>Choose where your tenant journal will live.</strong>
+        </p>
+
+        <!-- Why Storage -->
+        <div class="why-storage">
+            <h3>🛡️ Why Connect Storage?</h3>
+            <p>• Your documents stay in YOUR Google Drive, Dropbox, or OneDrive</p>
+            <p>• You maintain complete control and ownership of your data</p>
+            <p>• Access your documents from any device, even without Semptify</p>
+            <p>• We create a private "'"'"'Semptify'"'"'" folder only you can access</p>
+        </div>
+
+        <!-- Provider Cards -->
+        <div class="providers-grid">
+            <!-- Google Drive -->
+            <a href="#" class="provider-card" onclick="selectProvider(event, "'"'"'google_drive'"'"')">
+                <div class="provider-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                </div>
+                <div class="provider-name">Google Drive</div>
+                <div class="provider-description">Most popular — 15GB free</div>
+                <ul class="provider-features">
+                    <li>Works with Gmail</li>
+                    <li>Mobile app available</li>
+                    <li>Easy sharing</li>
+                </ul>
+            </a>
+
+            <!-- Dropbox -->
+            <a href="#" class="provider-card" onclick="selectProvider(event, "'"'"'dropbox'"'"')">
+                <div class="provider-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path fill="#0061FF" d="M12 6.19L6.5 9.89l5.5 3.7-5.5 3.7L1 13.59l5.5-3.7L1 6.19 6.5 2.5 12 6.19zm0 7.4l5.5-3.7L12 6.19 6.5 9.89l5.5 3.7zm0 3.7l-5.5-3.7 5.5 3.7 5.5-3.7-5.5 3.7zm5.5-7.4L12 6.19l5.5-3.69L23 6.19l-5.5 3.7zm-5.5 11.1l-5.5-3.7v1.5l5.5 3.7 5.5-3.7v-1.5l-5.5 3.7z"/>
+                    </svg>
+                </div>
+                <div class="provider-name">Dropbox</div>
+                <div class="provider-description">Simple & reliable — 2GB free</div>
+                <ul class="provider-features">
+                    <li>Version history</li>
+                    <li>File recovery</li>
+                    <li>Simple interface</li>
+                </ul>
+            </a>
+
+            <!-- OneDrive -->
+            <a href="#" class="provider-card" onclick="selectProvider(event, "'"'"'onedrive'"'"')">
+                <div class="provider-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path fill="#0078D4" d="M10.5 18.5c0 .28-.22.5-.5.5H3c-1.1 0-2-.9-2-2v-1c0-2.21 1.79-4 4-4 .34 0 .68.04 1 .12V12c0-2.76 2.24-5 5-5 2.06 0 3.83 1.24 4.6 3.02.13-.01.26-.02.4-.02 2.76 0 5 2.24 5 5s-2.24 5-5 5h-5c-.28 0-.5-.22-.5-.5z"/>
+                    </svg>
+                </div>
+                <div class="provider-name">OneDrive</div>
+                <div class="provider-description">Microsoft — 5GB free</div>
+                <ul class="provider-features">
+                    <li>Works with Outlook</li>
+                    <li>Office integration</li>
+                    <li>Windows built-in</li>
+                </ul>
+            </a>
+        </div>
+
+        <!-- Skip Option -->
+        <div class="skip-section">
+            <a href="/onboarding/select-role.html?skip_storage=true" class="skip-link">
+                Skip for now → I'"'"'ll connect storage later
+            </a>
+        </div>
+    </article>
+
+    <!-- Footer - SSOT Constant -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-column">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="/public/privacy.html">Privacy</a></li>
+                    <li><a href="/public/terms.html">Terms</a></li>
+                    <li><a href="/public/disclaimer.html">Disclaimer</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h4>Connect</h4>
+                <ul>
+                    <li><a href="/public/contact.html">Contact</a></li>
+                    <li><a href="/public/feedback.html">Feedback</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-disclaimer">
+            <strong>Important:</strong> Semptify is an organizational tool, not legal advice. Always consult a qualified attorney for legal guidance.
+        </div>
+        <div class="footer-bottom">
+            <p>© 2024-2026 Semptify</p>
+            <p class="footer-meta">Free Forever • No Ads • Open Source</p>
+        </div>
+    </footer>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const role = urlParams.get("'"'"'role'"'"'") || localStorage.getItem("'"'"'selectedRole'"'"'") || "'"'"'tenant'"'"'";
+
+        if (urlParams.get("'"'"'role'"'"'")) {
+            localStorage.setItem("'"'"'selectedRole'"'"'", role);
+        }
+
+        function selectProvider(event, provider) {
+            event.preventDefault();
+            const params = new URLSearchParams();
+            params.set("'"'"'role'"'"'", role);
+            params.set("'"'"'from'"'"'", "'"'"'onboarding'"'"'");
+            params.set("'"'"'return_to'"'"'", "'"'"'/onboarding/vault-init.html'"'"'");
+            window.location.href = "'"'"'/storage/auth/'"'"'" + provider + "'"'"'?'"'"'" + params.toString();
+        }
+    </script>
+</body>
+</html>
