@@ -117,6 +117,7 @@ legal_analysis_router = _safe_router_import("app.routers.legal_analysis")
 legal_filing_router = _safe_router_import("app.routers.legal_filing")
 distributed_mesh_router = _safe_router_import("app.routers.mesh")
 legal_trails_router = _safe_router_import("app.routers.legal_trails")
+state_laws_router = _safe_router_import("app.routers.state_laws")
 contacts_router = _safe_router_import("app.routers.contacts")
 recognition_router = _safe_router_import("app.routers.recognition")
 search_router = _safe_router_import("app.routers.search")
@@ -1780,6 +1781,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(legal_filing_router, tags=["Legal Filing"])  # Legal merit, consistency, evidence analysis
     if legal_trails_router:
         fastapi_app.include_router(legal_trails_router, tags=["Legal Trails"])  # Track violations, claims, broker oversight, filing deadlines
+    if state_laws_router:
+        fastapi_app.include_router(state_laws_router, tags=["State Laws"])  # State-specific housing law information (MN-first)
     if contacts_router:
         fastapi_app.include_router(contacts_router, tags=["Contact Manager"])  # Track landlords, attorneys, witnesses, agencies
     if recognition_router:

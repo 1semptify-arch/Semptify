@@ -317,188 +317,219 @@
       });
     }
 
-    const stateLaws = {
-      CA: {
-        name: 'California',
-        notice: '30 days (under 1 year); 60 days (1+ years). 3-Day Pay or Quit for unpaid rent.',
-        deposit: '2 months rent (unfurnished); 3 months (furnished). Must return within 21 days.',
-        rentControl: 'Yes — statewide AB 1482 caps annual increases at 5% + CPI (max 10%). Many cities have stricter local ordinances.',
-        repairs: 'Reasonable time, typically 30 days. Tenant may repair-and-deduct or withhold rent for serious defects.',
-        sources: '<a href="https://leginfo.legislature.ca.gov/" target="_blank" rel="noopener">California Legislative Info</a>'
-      },
-      NY: {
-        name: 'New York',
-        notice: '30 days (month-to-month). Rent-stabilized: renewal notices 90-150 days before expiration.',
-        deposit: 'No statutory limit. Must be kept in interest-bearing account if building has 6+ units.',
-        rentControl: 'Yes — NYC has rent stabilization and rent control. Other cities may have local programs.',
-        repairs: 'Warranty of habitability implied. Tenant may withhold rent or seek HP court action.',
-        sources: '<a href="https://hcr.ny.gov/" target="_blank" rel="noopener">NYS Homes & Community Renewal</a>'
-      },
-      TX: {
-        name: 'Texas',
-        notice: '30 days (month-to-month). 3-Day Notice to Vacate for lease violations.',
-        deposit: 'No statutory limit. Must return within 30 days (with itemized deductions).',
-        rentControl: 'No — state law prohibits local rent control (unless pre-1995 ordinance exists).',
-        repairs: '7 days after written notice for most repairs. Tenant may repair-and-deduct, withhold rent, or terminate.',
-        sources: '<a href="https://www.tdlr.texas.gov/" target="_blank" rel="noopener">Texas Dept of Licensing & Regulation</a>'
-      },
-      FL: {
-        name: 'Florida',
-        notice: '15 days (month-to-month). 7-Day Notice for cure or quit.',
-        deposit: 'No statutory limit. Must return within 15 days (no deductions) or 30 days (with deductions).',
-        rentControl: 'No — state law preempts local rent control.',
-        repairs: '7 days after written notice. Tenant may withhold rent or terminate for material noncompliance.',
-        sources: '<a href="https://www.floridabar.com/" target="_blank" rel="noopener">Florida Bar</a>'
-      },
-      IL: {
-        name: 'Illinois',
-        notice: '30 days (month-to-month). 5-Day Notice for unpaid rent. 10-Day Notice for lease violations.',
-        deposit: 'No statutory limit. Cook County: max 1.5x monthly rent. Return within 30-45 days depending on jurisdiction.',
-        rentControl: 'No statewide. Cook County has Just Cause Eviction Ordinance. Some municipalities have local ordinances.',
-        repairs: '14 days after written notice. Tenant may repair-and-deduct (up to $500 or half monthly rent).',
-        sources: '<a href="https://www.illinoislegalaid.org/" target="_blank" rel="noopener">Illinois Legal Aid Online</a>'
-      },
-      PA: {
-        name: 'Pennsylvania',
-        notice: '30 days (under 1 year lease); 15 days (over 1 year). 10-Day Notice to Quit for unpaid rent.',
-        deposit: 'No statutory limit. Must return within 30 days. Philadelphia requires interest-bearing account.',
-        rentControl: 'No statewide. Philadelphia has limited rent control for certain properties.',
-        repairs: 'Reasonable time. Tenant may escrow rent through court for serious violations.',
-        sources: '<a href="https://www.pabar.com/" target="_blank" rel="noopener">Pennsylvania Bar Association</a>'
-      },
-      WA: {
-        name: 'Washington',
-        notice: '20 days (month-to-month). 14-Day Pay or Vacate. 10-Day Comply or Vacate.',
-        deposit: 'No statutory limit. Must return within 21 days. Seattle limits to 1 month rent.',
-        rentControl: 'No statewide. Several cities have local ordinances (Seattle, Tacoma).',
-        repairs: '24-72 hours for essential services; 10 days for other repairs. Tenant may withhold rent or repair-and-deduct.',
-        sources: '<a href="https://apps.leg.wa.gov/RCW/" target="_blank" rel="noopener">Revised Code of Washington</a>'
-      },
-      MA: {
-        name: 'Massachusetts',
-        notice: '30 days or rental period (whichever is longer). 14-Day Notice to Quit for unpaid rent.',
-        deposit: '1 month rent maximum. Must be held in interest-bearing account (5% or actual interest). Return within 30 days.',
-        rentControl: 'Yes — statewide eviction protections + rent control in some municipalities.',
-        repairs: '14 days after written notice. Tenant may withhold rent or seek court order.',
-        sources: '<a href="https://www.mass.gov/" target="_blank" rel="noopener">Mass.gov</a>'
-      },
-      OR: {
-        name: 'Oregon',
-        notice: '30 days (month-to-month). 10-Day Notice for unpaid rent (first violation). 24 hours for immediate threat.',
-        deposit: 'No statutory limit. Must return within 31 days. Portland limits to 1.5x rent.',
-        rentControl: 'Yes — statewide rent control caps annual increases at 7% + CPI.',
-        repairs: '7 days after written notice for essential services; 30 days for other repairs.',
-        sources: '<a href="https://www.oregon.gov/ohcs/" target="_blank" rel="noopener">Oregon Housing & Community Services</a>'
-      },
-      CO: {
-        name: 'Colorado',
-        notice: '21 days (month-to-month). 10-Day Demand for Compliance or Possession. 3-Day Demand for unpaid rent.',
-        deposit: 'No statutory limit. Must return within 30 days (or 60 if lease specifies).',
-        rentControl: 'No statewide. Some local jurisdictions have mobile home rent control.',
-        repairs: '24-96 hours depending on severity. Tenant may withhold rent or terminate.',
-        sources: '<a href="https://www.colorado.gov/hcpf/" target="_blank" rel="noopener">Colorado Division of Housing</a>'
-      },
-      MI: {
-        name: 'Michigan',
-        notice: '30 days (month-to-month). 7-Day Notice to Quit for unpaid rent.',
-        deposit: '1.5 months rent maximum. Must return within 30 days.',
-        rentControl: 'No statewide. Some local ordinances exist.',
-        repairs: 'Reasonable time after notice. Tenant may escrow rent or seek court action.',
-        sources: '<a href="https://www.michigan.gov/ag/" target="_blank" rel="noopener">Michigan Attorney General</a>'
-      },
-      OH: {
-        name: 'Ohio',
-        notice: '30 days (month-to-month). 3-Day Notice for unpaid rent. 30-Day Notice for lease violations.',
-        deposit: 'No statutory limit. Must return within 30 days.',
-        rentControl: 'No statewide. Local rent control prohibited by state law.',
-        repairs: '30 days after written notice. Tenant may deposit rent with court for unresolved repairs.',
-        sources: '<a href="https://www.ohioattorneygeneral.gov/" target="_blank" rel="noopener">Ohio Attorney General</a>'
-      },
-      NC: {
-        name: 'North Carolina',
-        notice: '7 days (week-to-week); 30 days (month-to-month). 10-Day Notice to Quit for unpaid rent.',
-        deposit: '2 weeks rent (week-to-week); 1.5 months rent (month-to-month). Must return within 30 days.',
-        rentControl: 'No statewide. Local rent control prohibited by state law.',
-        repairs: 'Reasonable time. Tenant may repair-and-deduct or seek court action.',
-        sources: '<a href="https://www.ncdoi.gov/" target="_blank" rel="noopener">NC Department of Insurance</a>'
-      },
-      GA: {
-        name: 'Georgia',
-        notice: '30 days (month-to-month) or 60 days if requested by landlord. Immediate for lease violations if specified.',
-        deposit: 'No statutory limit. Must return within 30 days (or one month, whichever is later).',
-        rentControl: 'No statewide. Local rent control prohibited.',
-        repairs: 'Reasonable time. Georgia law does not explicitly allow repair-and-deduct.',
-        sources: '<a href="https://consumer.georgia.gov/" target="_blank" rel="noopener">Georgia Consumer Protection</a>'
-      },
-      AZ: {
-        name: 'Arizona',
-        notice: '30 days (month-to-month). 5-Day Notice for unpaid rent. 10-Day Notice for lease violations.',
-        deposit: '1.5 months rent maximum. Must return within 14 business days.',
-        rentControl: 'No statewide. Local rent control prohibited by state law.',
-        repairs: '10 days after written notice (5 days for health/safety). Tenant may repair-and-deduct.',
-        sources: '<a href="https://www.azag.gov/" target="_blank" rel="noopener">Arizona Attorney General</a>'
-      },
-      VA: {
-        name: 'Virginia',
-        notice: '30 days (month-to-month). 5-Day Pay or Quit. 30-Day Notice for lease violations.',
-        deposit: 'No statutory limit. Must return within 45 days.',
-        rentControl: 'No statewide. Local rent control generally prohibited.',
-        repairs: '30 days after written notice. Tenant may use self-help remedy if cost under $1,500.',
-        sources: '<a href="https://www.vdh.virginia.gov/" target="_blank" rel="noopener">Virginia Dept of Health</a>'
-      },
-      NJ: {
-        name: 'New Jersey',
-        notice: '30 days (month-to-month). Rent-controlled units may require 1-2 years notice.',
-        deposit: '1.5 months rent maximum. Must be kept in separate interest-bearing account. Return within 30 days.',
-        rentControl: 'Yes — multiple municipalities have rent control (Jersey City, Newark, Hoboken, etc.).',
-        repairs: 'Reasonable time. Tenant may withhold rent through court. Anti-Eviction Act provides strong protections.',
-        sources: '<a href="https://www.nj.gov/dca/divisions/codes/" target="_blank" rel="noopener">NJ Dept of Community Affairs</a>'
-      },
-      MN: {
-        name: 'Minnesota',
-        notice: '30 days (month-to-month). 14-Day Notice to Quit for unpaid rent.',
-        deposit: 'No statutory limit. Must return within 21 days (or 5 days after termination due to condemnation/disaster).',
-        rentControl: 'No statewide. Some local ordinances (St. Paul has rent stabilization).',
-        repairs: '14 days after written notice. Tenant may repair-and-deduct, withhold rent, or seek court order.',
-        sources: '<a href="https://www.ag.state.mn.us/" target="_blank" rel="noopener">Minnesota Attorney General</a>'
-      },
-      WI: {
-        name: 'Wisconsin',
-        notice: '28 days (month-to-month). 5-Day Pay or Vacate. 14-Day Notice for lease violations.',
-        deposit: 'No statutory limit. Must return within 21 days.',
-        rentControl: 'No statewide. Local rent control prohibited.',
-        repairs: 'Reasonable time. Tenant may withhold rent or seek court order.',
-        sources: '<a href="https://www.dhs.wisconsin.gov/" target="_blank" rel="noopener">Wisconsin Dept of Health Services</a>'
-      },
-      MO: {
-        name: 'Missouri',
-        notice: '30 days (month-to-month). 10-Day Demand for Rent. Immediate for lease violations.',
-        deposit: '2 months rent maximum. Must return within 30 days.',
-        rentControl: 'No statewide. Local rent control prohibited.',
-        repairs: '14 days after written notice. Tenant may repair-and-deduct ($300 limit or half monthly rent).',
-        sources: '<a href="https://ago.mo.gov/" target="_blank" rel="noopener">Missouri Attorney General</a>'
-      }
-    };
+    // Dynamic State Law Loading
+    let stateLawsData = {};
+    let currentStateCode = localStorage.getItem('selectedState') || 'MN';
 
-    function showStateLaw() {
+    async function loadStates() {
+      try {
+        const resp = await fetch('/api/states/');
+        if (!resp.ok) throw new Error('Failed to load states');
+        const data = await resp.json();
+        populateStateDropdown(data.states);
+        
+        // Auto-detect if no saved preference
+        if (!localStorage.getItem('selectedState')) {
+          detectUserState();
+        }
+      } catch (e) {
+        console.error('States load failed:', e);
+        // Fallback: populate with basic MN option
+        document.getElementById('state-law-select').innerHTML = `
+          <option value="">— Select a State —</option>
+          <option value="MN" selected>Minnesota ⭐</option>
+        `;
+      }
+    }
+
+    function populateStateDropdown(states) {
+      const select = document.getElementById('state-law-select');
+      select.innerHTML = '<option value="">— Select a State —</option>';
+      
+      // Sort: complete states first, then alphabetically
+      const sorted = states.sort((a, b) => {
+        if (a.status === 'complete' && b.status !== 'complete') return -1;
+        if (b.status === 'complete' && a.status !== 'complete') return 1;
+        return a.name.localeCompare(b.name);
+      });
+      
+      sorted.forEach(state => {
+        const marker = state.status === 'complete' ? ' ⭐' : ' (basic)';
+        const selected = state.code === currentStateCode ? ' selected' : '';
+        select.innerHTML += `<option value="${state.code}"${selected}>${state.name}${marker}</option>`;
+      });
+    }
+
+    async function detectUserState() {
+      try {
+        const resp = await fetch('/api/states/detect/location');
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.detected_state) {
+            currentStateCode = data.detected_state;
+            localStorage.setItem('selectedState', currentStateCode);
+            document.getElementById('state-law-select').value = currentStateCode;
+            showStateLaw();
+          }
+        }
+      } catch (e) {
+        console.log('State detection failed, using default:', e);
+      }
+    }
+
+    async function showStateLaw() {
       const code = document.getElementById('state-law-select').value;
       const display = document.getElementById('state-law-display');
       if (!code) { display.style.display = 'none'; return; }
-      const law = stateLaws[code];
-      if (!law) { display.style.display = 'none'; return; }
-      document.getElementById('sl-title').textContent = law.name + ' Housing Law Summary';
-      document.getElementById('sl-content').innerHTML = `
-        <ul style="margin-left:1.25rem;margin-bottom:0;">
-          <li><strong>Notice to Vacate:</strong> ${law.notice}</li>
-          <li><strong>Security Deposit:</strong> ${law.deposit}</li>
-          <li><strong>Rent Control:</strong> ${law.rentControl}</li>
-          <li><strong>Repair Timeline:</strong> ${law.repairs}</li>
-          <li><strong>Sources:</strong> ${law.sources}</li>
-        </ul>
-      `;
+      
+      // Save selection
+      currentStateCode = code;
+      localStorage.setItem('selectedState', code);
+      
+      // Show loading
       display.style.display = 'block';
+      document.getElementById('sl-title').textContent = 'Loading...';
+      document.getElementById('sl-content').innerHTML = '<p>Loading state law information...</p>';
+      
+      try {
+        const resp = await fetch(`/api/states/${code}`);
+        if (!resp.ok) throw new Error('Failed to load state details');
+        const law = await resp.json();
+        stateLawsData[code] = law;
+        renderStateLaw(law);
+      } catch (e) {
+        console.error('State law load failed:', e);
+        document.getElementById('sl-content').innerHTML = `<p style="color:#c00;">Error loading state data. <a href="${getStubUrl(code)}" target="_blank">Visit state legal aid resources →</a></p>`;
+      }
+      
       display.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+
+    function renderStateLaw(law) {
+      const isStub = law.status === 'stub';
+      const isComplete = law.status === 'complete';
+      
+      document.getElementById('sl-title').textContent = law.name + ' Housing Law Summary';
+      
+      if (isStub) {
+        // Stub display - limited info with link to external resources
+        document.getElementById('sl-content').innerHTML = `
+          <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:1rem;margin-bottom:1rem;">
+            <strong>⚠️ Limited Data Available</strong><br>
+            We don't have detailed ${law.name} housing laws yet. 
+            Visit <a href="${law.stub_url}" target="_blank" rel="noopener">state legal aid resources</a> for accurate information.
+          </div>
+          <p>${law.notes || ''}</p>
+          <p><a href="/help.html" class="resource-link">📞 Find local legal help →</a></p>
+        `;
+        return;
+      }
+      
+      // Complete state display (MN)
+      const housing = law.housing_laws || {};
+      const notice = law.notice_requirements || {};
+      const deposit = law.security_deposit || {};
+      const rent = law.rent_control || {};
+      const repairs = law.repairs || {};
+      const eviction = law.eviction || {};
+      const discrimination = law.discrimination || {};
+      
+      let html = `
+        <div style="background:#e8f5e9;border:1px solid #4caf50;border-radius:8px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.9rem;">
+          <strong>✅ Detailed Coverage</strong> — ${law.name} housing laws verified by legal aid organizations.
+        </div>
+        
+        <div class="state-law-section">
+          <h4 style="color:var(--hdr1);margin:1rem 0 0.5rem;">🏛️ Housing Laws</h4>
+          <p><strong>Statute:</strong> <a href="${housing.statute_url}" target="_blank" rel="noopener">${housing.landlord_tenant_act}</a></p>
+          <p>${housing.summary || ''}</p>
+        </div>
+        
+        <div class="state-law-section">
+          <h4 style="color:var(--hdr1);margin:1rem 0 0.5rem;">📋 Notice Requirements</h4>
+          <ul style="margin-left:1.25rem;margin-bottom:0.5rem;">
+            <li><strong>Termination:</strong> ${notice.termination_month_to_month || 'N/A'}</li>
+            <li><strong>Nonpayment:</strong> ${notice.nonpayment || 'N/A'}</li>
+            <li><strong>Lease Violation:</strong> ${notice.lease_violation || 'N/A'}</li>
+          </ul>
+          ${notice.notes ? `<p style="font-size:0.85rem;color:#666;"><em>${notice.notes}</em></p>` : ''}
+        </div>
+        
+        <div class="state-law-section">
+          <h4 style="color:var(--hdr1);margin:1rem 0 0.5rem;">💰 Security Deposit</h4>
+          <ul style="margin-left:1.25rem;margin-bottom:0.5rem;">
+            <li><strong>Limit:</strong> ${deposit.limit || 'No statutory limit'}</li>
+            <li><strong>Return Deadline:</strong> ${deposit.return_deadline || 'N/A'}</li>
+            <li><strong>Interest Required:</strong> ${deposit.interest_required ? 'Yes' : 'No'}</li>
+          </ul>
+        </div>
+        
+        <div class="state-law-section">
+          <h4 style="color:var(--hdr1);margin:1rem 0 0.5rem;">🏠 Rent Control</h4>
+          <p>${rent.statewide ? 'Statewide rent control in effect' : (rent.local_programs || 'No statewide rent control')}</p>
+        </div>
+        
+        <div class="state-law-section">
+          <h4 style="color:var(--hdr1);margin:1rem 0 0.5rem;">🔧 Repairs & Habitability</h4>
+          <p><strong>Timeline:</strong> ${repairs.emergency_repairs || 'Reasonable time'}</p>
+          ${repairs.cold_weather_rule ? `<p style="background:#e3f2fd;padding:0.5rem;border-radius:6px;margin-top:0.5rem;"><strong>❄️ Cold Weather Rule:</strong> ${repairs.cold_weather_rule}</p>` : ''}
+        </div>
+        
+        <div class="state-law-section">
+          <h4 style="color:var(--hdr1);margin:1rem 0 0.5rem;">⚖️ Eviction</h4>
+          <ul style="margin-left:1.25rem;margin-bottom:0.5rem;">
+            <li><strong>Court:</strong> ${eviction.court || 'County Court'}</li>
+            <li><strong>Timeline:</strong> ${eviction.timeline || 'Varies'}</li>
+            <li><strong>Lockouts:</strong> ${eviction.lockout_prohibited ? 'Illegal (self-help eviction prohibited)' : 'Check local law'}</li>
+          </ul>
+        </div>
+        
+        <div class="state-law-section">
+          <h4 style="color:var(--hdr1);margin:1rem 0 0.5rem;">🛡️ Discrimination Protections</h4>
+          <p><strong>Protected Classes:</strong> ${(discrimination.protected_classes || []).join(', ')}</p>
+          <p><a href="${discrimination.complaint_url}" target="_blank" rel="noopener">File complaint with ${discrimination.complaint_agency}</a></p>
+        </div>
+      `;
+      
+      // Legal Aid Section
+      if (law.legal_aid && law.legal_aid.length > 0) {
+        html += `
+          <div class="state-law-section">
+            <h4 style="color:var(--hdr1);margin:1rem 0 0.5rem;">🆘 Legal Aid in ${law.name}</h4>
+            <div style="display:grid;gap:0.5rem;">
+        `;
+        law.legal_aid.slice(0, 3).forEach(org => {
+          html += `
+            <div style="background:#f5f5f5;padding:0.75rem;border-radius:8px;">
+              <strong>${org.name}</strong><br>
+              <span style="font-size:0.85rem;color:#666;">
+                ${org.phone ? `📞 ${org.phone}` : ''}
+                ${org.toll_free ? ` | Toll-free: ${org.toll_free}` : ''}<br>
+                ${org.counties ? `Counties: ${org.counties}` : 'Statewide'}
+              </span><br>
+              <a href="${org.url}" target="_blank" rel="noopener" style="font-size:0.85rem;">Visit website →</a>
+            </div>
+          `;
+        });
+        html += '</div></div>';
+      }
+      
+      document.getElementById('sl-content').innerHTML = html;
+    }
+
+    function getStubUrl(code) {
+      const urls = {
+        'MN': 'https://www.homelinemn.org',
+        'CA': 'https://www.lawhelpca.org',
+        'NY': 'https://www.lawhelpny.org',
+        'TX': 'https://texaslawhelp.org',
+        'FL': 'https://www.floridalawhelp.org'
+      };
+      return urls[code] || '/help.html';
+    }
+
+    // Load states on page load
+    loadStates();
   </script>
 </body>
 </html>
