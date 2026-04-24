@@ -326,10 +326,42 @@ User Request → Check:
 
 ## 🎨 DESIGN SYSTEM (SSOT)
 
-### Onboarding Template (Canonical)
-**`static/public/welcome.html` is the SSOT template for ALL onboarding pages.**
+### Color Systems
 
-**Structure:**
+**Onboarding/Public Pages (Light Blue Theme):**
+```css
+:root {
+    --primary: #1e3a5f;           /* Deep blue - headers */
+    --primary-light: #2d5a87;     /* Lighter blue - gradients */
+    --accent: #3b82f6;            /* Bright blue - buttons/links */
+    --warm: #f59e0b;              /* Amber - highlights */
+    --text: #1e293b;              /* Dark text */
+    --text-light: #475569;        /* Secondary text */
+    --text-muted: #64748b;        /* Muted text */
+    --bg: #fdfcfa;                /* Off-white background */
+    --paper: #ffffff;             /* White cards */
+    --border: #e2e8f0;            /* Light borders */
+    --success: #10b981;           /* Green checkmarks */
+}
+```
+Used by: `welcome.html`, `select-role.html`, `storage-select.html`, `reconnect/`
+
+**Authenticated App UI (Dark Navy Theme):**
+```css
+:root {
+    --color-bg-primary: #1a1a2e;      /* Dark navy background */
+    --color-bg-secondary: #16213e;    /* Slightly lighter navy */
+    --color-accent: #3b82f6;          /* Bright blue buttons/links */
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #94a3b8;
+    --color-border: rgba(255, 255, 255, 0.1);
+}
+```
+Used by: Jinja2 templates (`base.html`), dashboards, logged-in pages
+
+### Onboarding Template Structure
+**Header and footer are IDENTICAL across all onboarding pages. Only `<article>` content changes.**
+
 ```html
 <!DOCTYPE html>
 <html lang="en">
@@ -338,66 +370,41 @@ User Request → Check:
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>[Page] - Semptify</title>
     <style>
-        /* CSS Variables - USE THESE EXACT VALUES */
+        /* Light Blue Theme for Onboarding */
         :root {
             --primary: #1e3a5f;
             --primary-light: #2d5a87;
             --accent: #3b82f6;
-            --warm: #f59e0b;
-            --text: #1e293b;
-            --text-light: #475569;
             --bg: #fdfcfa;
             --paper: #ffffff;
+            --text: #1e293b;
         }
         
-        /* Header - CONSTANT across onboarding */
+        body {
+            background: var(--bg);
+            color: var(--text);
+        }
+        
         .header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-            color: white;
-            padding: 3rem 2rem;
-            text-align: center;
         }
-        .header h1 { font-size: 2.5rem; font-weight: 400; letter-spacing: -0.02em; margin-bottom: 0.25rem; }
-        .header .tagline { font-size: 1.25rem; font-weight: 300; opacity: 0.9; font-style: italic; }
-        .header .subtitle { font-size: 0.95rem; opacity: 0.75; margin-top: 0.5rem; }
-        
-        /* Article - Body content goes here, CHANGES per page */
-        .article { max-width: 720px; margin: 0 auto; padding: 2rem; background: var(--paper); }
-        
-        /* Footer - CONSTANT across onboarding */
-        .footer { text-align: center; padding: 1.5rem 1rem; background: #f1f5f9; ... }
-        .footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; max-width: 600px; margin: 0 auto 1rem; text-align: center; }
     </style>
 </head>
 <body>
-    <header class="header">
-        <h1>📓 Semptify</h1>
-        <p class="tagline">The Tenant's Journal</p>
-        <p class="subtitle">Your proactive guide to a peaceful tenancy</p>
-    </header>
-    
-    <article class="article">
-        <!-- PAGE-SPECIFIC CONTENT HERE -->
-    </article>
-    
-    <footer class="footer">
-        <!-- Standard footer content -->
-    </footer>
+    <header class="header">...</header>
+    <article class="article"><!-- PAGE-SPECIFIC CONTENT --></article>
+    <footer class="footer">...</footer>
 </body>
 </html>
 ```
 
-**Rule:** Header and footer are IDENTICAL across all onboarding pages. Only `<article class="article">` content changes.
-
-### Legacy Colors (Internal App)
-```css
---primary: #10b981;           /* emerald-500 - for logged-in app UI */
---bg-gradient-start: #064e3b; /* emerald-900 */
---bg-gradient-end: #065f46;   /* emerald-800 */
---text-primary: #ffffff;
---text-secondary: #a7f3d0;   /* emerald-200 */
-```
-**Note:** Green theme is for authenticated app interface. Blue theme is for onboarding/public pages.
+### Backend Role Names (MUST match exactly)
+| Display Name | data-role value | Backend Code |
+|--------------|-----------------|--------------|
+| Tenant | `user` | U |
+| Advocate | `advocate` | V |
+| Legal | `legal` | L |
+| Manager / Agency | `manager` | M |
 
 ### Typography
 ```css

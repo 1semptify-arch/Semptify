@@ -152,6 +152,7 @@ document_delivery_router = _safe_router_import("app.routers.document_delivery")
 communication_router = _safe_router_import("app.routers.communication")
 free_api_router = _safe_router_import("app.routers.free_api")
 timeline_unified_router = _safe_router_import("app.routers.timeline_unified")
+invite_codes_router = _safe_router_import("app.routers.invite_codes")
 from app.routers import storage
 from app.routers import onboarding
 from app.routers import plugins
@@ -1819,6 +1820,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if enterprise_dashboard_router:
         fastapi_app.include_router(enterprise_dashboard_router, tags=["Enterprise Dashboard"])  # Premium enterprise UI & API
     include_if(timeline_unified_router, prefix="/api/timeline", tags=["Unified Timeline"])  # Interactive timeline with date axis switching
+    include_if(invite_codes_router, tags=["Invite Codes"])  # Advocate/Legal role validation codes
     
     # Storage OAuth (handles authentication)
     if storage.router:
@@ -2050,6 +2052,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Tenant dashboard template error, falling back to static: %s", e)
 
+        # Fallback to static dashboard
+        static_fallback = BASE_PATH / "static" / "tenant" / "dashboard.html"
+        if static_fallback.exists():
+            return FileResponse(str(static_fallback))
+
         return HTMLResponse(content="<h1>Tenant Dashboard not found</h1>", status_code=404)
 
     @fastapi_app.get("/advocate/dashboard", response_class=HTMLResponse)
@@ -2068,6 +2075,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 return templates.TemplateResponse(request, "pages/advocate_dashboard.html")
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Advocate dashboard template error, falling back to static: %s", e)
+
+        # Fallback to static dashboard
+        static_fallback = BASE_PATH / "static" / "advocate" / "dashboard.html"
+        if static_fallback.exists():
+            return FileResponse(str(static_fallback))
 
         return HTMLResponse(content="<h1>Advocate Dashboard not found</h1>", status_code=404)
 
@@ -2088,6 +2100,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Legal dashboard template error, falling back to static: %s", e)
 
+        # Fallback to static dashboard
+        static_fallback = BASE_PATH / "static" / "legal" / "dashboard.html"
+        if static_fallback.exists():
+            return FileResponse(str(static_fallback))
+
         return HTMLResponse(content="<h1>Legal Dashboard not found</h1>", status_code=404)
 
     @fastapi_app.get("/admin/dashboard", response_class=HTMLResponse)
@@ -2106,6 +2123,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 return templates.TemplateResponse(request, "pages/admin_dashboard.html")
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Admin dashboard template error, falling back to static: %s", e)
+
+        # Fallback to static dashboard
+        static_fallback = BASE_PATH / "static" / "admin" / "dashboard.html"
+        if static_fallback.exists():
+            return FileResponse(str(static_fallback))
 
         return HTMLResponse(content="<h1>Admin Dashboard not found</h1>", status_code=404)
 
@@ -2132,10 +2154,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         except Exception:
             pass
 
-        manager_path = BASE_PATH / "static" / "manager" / "index.html"
-        manager_fallback = _render_static_page(manager_path)
-        if manager_fallback:
-            return manager_fallback
+        # Try Jinja2 template first, then static fallback
+        manager_template_path = BASE_PATH / "app" / "templates" / "pages" / "manager_dashboard.html"
+        if manager_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/manager_dashboard.html")
+            except Exception as e:
+                logger.warning("Manager dashboard template error, falling back to static: %s", e)
+
+        static_fallback = BASE_PATH / "static" / "manager" / "dashboard.html"
+        if static_fallback.exists():
+            return FileResponse(str(static_fallback))
 
         return HTMLResponse(content="<h1>Manager Portal not found</h1>", status_code=404)
 
@@ -2143,6 +2172,125 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def manager_dashboard_page(request: Request):
         """Serve the manager dashboard (redirects to portal)."""
         return RedirectResponse(url="/manager", status_code=302)
+
+    @fastapi_app.get("/api/manager/dashboard-stats")
+    async def manager_dashboard_stats(request: Request):
+        """API endpoint for manager dashboard statistics (auto-refresh)."""
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import COOKIE_USER_ID
+        from app.core.user_context import get_role_from_user_id, UserRole
+        from app.core.database import get_db_session
+        from app.core.manager_dashboard import get_dashboard_stats
+
+        user_id = request.cookies.get(COOKIE_USER_ID)
+        if not is_valid_storage_user(user_id):
+            return JSONResponse({"error": "Not authenticated"}, status_code=401)
+
+        # Verify MANAGER role
+        role = get_role_from_user_id(user_id)
+        if role != UserRole.MANAGER:
+            return JSONResponse({"error": "Access denied"}, status_code=403)
+
+        # Get organization ID from user ID prefix
+        org_id = user_id[:12]
+
+        try:
+            with get_db_session() as db:
+                stats = get_dashboard_stats(org_id, db)
+                return JSONResponse(stats)
+        except Exception as e:
+            logger.warning("Dashboard stats query failed: %s", e)
+            # Return fallback stats on error
+            return JSONResponse({
+                "total_cases": 0,
+                "new_cases_this_week": 0,
+                "pending_documents": 0,
+                "urgent_documents": 0,
+                "active_staff": 0,
+                "total_staff": 0,
+                "overdue_tasks": 0
+            })
+
+    @fastapi_app.get("/api/manager/cases")
+    async def manager_cases(request: Request):
+        """API endpoint for manager's organization cases."""
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import COOKIE_USER_ID
+        from app.core.user_context import get_role_from_user_id, UserRole
+        from app.core.database import get_db_session
+        from app.core.manager_dashboard import get_recent_cases
+
+        user_id = request.cookies.get(COOKIE_USER_ID)
+        if not is_valid_storage_user(user_id):
+            return JSONResponse({"error": "Not authenticated"}, status_code=401)
+
+        role = get_role_from_user_id(user_id)
+        if role != UserRole.MANAGER:
+            return JSONResponse({"error": "Access denied"}, status_code=403)
+
+        org_id = user_id[:12]
+
+        try:
+            with get_db_session() as db:
+                cases = get_recent_cases(org_id, db)
+                return JSONResponse({"cases": cases})
+        except Exception as e:
+            logger.warning("Cases query failed: %s", e)
+            return JSONResponse({"cases": []})
+
+    @fastapi_app.get("/api/manager/staff")
+    async def manager_staff(request: Request):
+        """API endpoint for manager's organization staff."""
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import COOKIE_USER_ID
+        from app.core.user_context import get_role_from_user_id, UserRole
+        from app.core.database import get_db_session
+        from app.core.manager_dashboard import get_staff_list
+
+        user_id = request.cookies.get(COOKIE_USER_ID)
+        if not is_valid_storage_user(user_id):
+            return JSONResponse({"error": "Not authenticated"}, status_code=401)
+
+        role = get_role_from_user_id(user_id)
+        if role != UserRole.MANAGER:
+            return JSONResponse({"error": "Access denied"}, status_code=403)
+
+        org_id = user_id[:12]
+
+        try:
+            with get_db_session() as db:
+                staff = get_staff_list(org_id, db)
+                return JSONResponse({"staff": staff})
+        except Exception as e:
+            logger.warning("Staff query failed: %s", e)
+            return JSONResponse({"staff": []})
+
+    @fastapi_app.get("/api/manager/activity")
+    async def manager_activity(request: Request):
+        """API endpoint for manager's organization activity feed."""
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import COOKIE_USER_ID
+        from app.core.user_context import get_role_from_user_id, UserRole
+        from app.core.database import get_db_session
+        from app.core.manager_dashboard import get_recent_activity
+
+        user_id = request.cookies.get(COOKIE_USER_ID)
+        if not is_valid_storage_user(user_id):
+            return JSONResponse({"error": "Not authenticated"}, status_code=401)
+
+        role = get_role_from_user_id(user_id)
+        if role != UserRole.MANAGER:
+            return JSONResponse({"error": "Access denied"}, status_code=403)
+
+        org_id = user_id[:12]
+
+        try:
+            with get_db_session() as db:
+                activity = get_recent_activity(org_id, db)
+                return JSONResponse({"activity": activity})
+        except Exception as e:
+            logger.warning("Activity query failed: %s", e)
+            return JSONResponse({"activity": []})
 
     @fastapi_app.get("/dashboard", response_class=HTMLResponse)
     async def dashboard_page(request: Request):

@@ -7,6 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        /* Light Blue Theme - Matches welcome.html */
         :root {
             --primary: #1e3a5f;
             --primary-light: #2d5a87;
@@ -14,18 +15,22 @@
             --warm: #f59e0b;
             --text: #1e293b;
             --text-light: #475569;
+            --text-muted: #64748b;
             --bg: #fdfcfa;
             --paper: #ffffff;
+            --border: #e2e8f0;
+            --success: #10b981;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, '"'"'Segoe UI'"'"', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: var(--bg);
             color: var(--text);
             line-height: 1.6;
+            min-height: 100vh;
         }
 
-        /* Header - SSOT Constant */
+        /* Header - Matches welcome.html */
         .header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             color: white;
@@ -58,8 +63,8 @@
             max-width: 720px;
             margin: 0 auto;
             padding: 2rem;
-            background: var(--paper);
             min-height: 60vh;
+            background: var(--paper);
         }
 
         /* Page specific styles */
@@ -69,7 +74,7 @@
             justify-content: space-between;
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--border);
         }
 
         .back-link {
@@ -81,14 +86,15 @@
             font-size: 0.9rem;
         }
 
-        .back-link:hover { text-decoration: underline; }
+        .back-link:hover { color: var(--primary); }
 
         .step-indicator {
-            background: #f1f5f9;
+            background: var(--bg);
             padding: 0.5rem 1rem;
             border-radius: 20px;
             font-size: 0.85rem;
             color: var(--text-light);
+            border: 1px solid var(--border);
         }
 
         .page-title {
@@ -110,8 +116,8 @@
 
         /* Why Storage Section */
         .why-storage {
-            background: #f0f9ff;
-            border-left: 4px solid var(--accent);
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid var(--warm);
             border-radius: 0 8px 8px 0;
             padding: 1.5rem;
             margin-bottom: 2rem;
@@ -119,12 +125,12 @@
 
         .why-storage h3 {
             font-size: 1.1rem;
-            color: var(--primary);
+            color: #78350f;
             margin-bottom: 1rem;
         }
 
         .why-storage p {
-            color: var(--text-light);
+            color: #92400e;
             font-size: 0.95rem;
             margin-bottom: 0.5rem;
         }
@@ -138,8 +144,8 @@
         }
 
         .provider-card {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
+            background: var(--paper);
+            border: 2px solid var(--border);
             border-radius: 16px;
             padding: 2rem 1.5rem;
             cursor: pointer;
@@ -154,22 +160,20 @@
         }
 
         .provider-card:hover {
-            background: #f1f5f9;
-            transform: translateY(-4px);
             border-color: var(--accent);
-            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(30, 58, 95, 0.1);
         }
 
         .provider-icon {
             width: 64px;
             height: 64px;
             border-radius: 16px;
-            background: white;
+            background: var(--bg);
             display: flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .provider-icon svg {
@@ -180,7 +184,7 @@
         .provider-name {
             font-size: 1.2rem;
             font-weight: 600;
-            color: var(--text);
+            color: var(--primary);
             margin-bottom: 0.5rem;
         }
 
@@ -207,7 +211,7 @@
 
         .provider-features li::before {
             content: "✓";
-            color: var(--accent);
+            color: var(--success);
             font-weight: bold;
         }
 
@@ -215,7 +219,7 @@
         .skip-section {
             text-align: center;
             padding: 2rem 0;
-            border-top: 1px solid #e2e8f0;
+            border-top: 1px solid var(--border);
         }
 
         .skip-link {
@@ -229,14 +233,14 @@
             text-decoration: underline;
         }
 
-        /* Footer - SSOT Constant */
+        /* Footer */
         .footer {
             text-align: center;
             padding: 1.5rem 1rem;
-            background: #f1f5f9;
-            color: var(--text-light);
+            background: var(--bg);
+            color: var(--text-muted);
             font-size: 0.75rem;
-            font-family: -apple-system, BlinkMacSystemFont, '"'"'Segoe UI'"'"', sans-serif;
+            border-top: 1px solid var(--border);
         }
 
         .footer-grid {
@@ -257,17 +261,15 @@
             font-size: 0.7rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
-            color: var(--text);
+            color: var(--text-light);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            text-align: center;
         }
 
         .footer-column ul {
             list-style: none;
             padding: 0;
             margin: 0;
-            text-align: center;
         }
 
         .footer-column li { margin-bottom: 0.25rem; }
@@ -279,39 +281,18 @@
 
         .footer-column a:hover { text-decoration: underline; }
 
-        .footer-disclaimer {
-            max-width: 600px;
-            margin: 0 auto 0.75rem;
-            padding: 0.5rem 0;
-            border-top: 1px solid #e2e8f0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
         .footer-bottom { margin-top: 0.75rem; }
 
-        .footer-bottom p {
-            margin: 0.15rem 0;
-            text-align: center;
-            font-size: 0.7rem;
-        }
+        .footer-bottom p { margin: 0.15rem 0; color: var(--text-muted); }
 
-        .footer-meta {
-            color: var(--accent);
-            font-weight: 500;
-        }
-
-        @media (max-width: 768px) {
-            .header h1 { font-size: 2rem; }
-            .header .tagline { font-size: 1.1rem; }
-            .article { padding: 1.5rem 1.25rem; }
-        }
+        .footer-meta { color: var(--primary); font-weight: 500; }
     </style>
 </head>
 <body>
-    <!-- Header - SSOT Constant -->
+    <!-- Header -->
     <header class="header">
         <h1>📓 Semptify</h1>
-        <p class="tagline">The Tenant'"'"'s Journal</p>
+        <p class="tagline">The Tenant&apos;s Journal</p>
         <p class="subtitle">Your proactive guide to a peaceful tenancy</p>
     </header>
 
@@ -336,7 +317,7 @@
             <p>• Your documents stay in YOUR Google Drive, Dropbox, or OneDrive</p>
             <p>• You maintain complete control and ownership of your data</p>
             <p>• Access your documents from any device, even without Semptify</p>
-            <p>• We create a private "'"'"'Semptify'"'"'" folder only you can access</p>
+            <p>• We create a private &quot;Semptify&quot; folder only you can access</p>
         </div>
 
         <!-- Provider Cards -->
@@ -396,12 +377,12 @@
         <!-- Skip Option -->
         <div class="skip-section">
             <a href="/onboarding/select-role.html?skip_storage=true" class="skip-link">
-                Skip for now → I'"'"'ll connect storage later
+                Skip for now → I&apos;ll connect storage later
             </a>
         </div>
     </article>
 
-    <!-- Footer - SSOT Constant -->
+    <!-- Footer -->
     <footer class="footer">
         <div class="footer-grid">
             <div class="footer-column">
@@ -420,9 +401,6 @@
                 </ul>
             </div>
         </div>
-        <div class="footer-disclaimer">
-            <strong>Important:</strong> Semptify is an organizational tool, not legal advice. Always consult a qualified attorney for legal guidance.
-        </div>
         <div class="footer-bottom">
             <p>© 2024-2026 Semptify</p>
             <p class="footer-meta">Free Forever • No Ads • Open Source</p>
@@ -431,19 +409,19 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const role = urlParams.get("'"'"'role'"'"'") || localStorage.getItem("'"'"'selectedRole'"'"'") || "'"'"'tenant'"'"'";
+        const role = urlParams.get("role") || localStorage.getItem("selectedRole") || "user";
 
-        if (urlParams.get("'"'"'role'"'"'")) {
-            localStorage.setItem("'"'"'selectedRole'"'"'", role);
+        if (urlParams.get("role")) {
+            localStorage.setItem("selectedRole", role);
         }
 
         function selectProvider(event, provider) {
             event.preventDefault();
             const params = new URLSearchParams();
-            params.set("'"'"'role'"'"'", role);
-            params.set("'"'"'from'"'"'", "'"'"'onboarding'"'"'");
-            params.set("'"'"'return_to'"'"'", "'"'"'/onboarding/vault-init.html'"'"'");
-            window.location.href = "'"'"'/storage/auth/'"'"'" + provider + "'"'"'?'"'"'" + params.toString();
+            params.set("role", role);
+            params.set("from", "onboarding");
+            params.set("return_to", "/onboarding/vault-init.html");
+            window.location.href = "/storage/auth/" + provider + "?" + params.toString();
         }
     </script>
 </body>

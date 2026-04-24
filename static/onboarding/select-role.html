@@ -7,6 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        /* Light Blue Theme - Matches welcome.html */
         :root {
             --primary: #1e3a5f;
             --primary-light: #2d5a87;
@@ -14,18 +15,22 @@
             --warm: #f59e0b;
             --text: #1e293b;
             --text-light: #475569;
+            --text-muted: #64748b;
             --bg: #fdfcfa;
             --paper: #ffffff;
+            --border: #e2e8f0;
+            --success: #10b981;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, '"'"'Segoe UI'"'"', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: var(--bg);
             color: var(--text);
             line-height: 1.6;
+            min-height: 100vh;
         }
 
-        /* Header - SSOT Constant */
+        /* Header - Matches welcome.html */
         .header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             color: white;
@@ -55,11 +60,11 @@
 
         /* Article Container */
         .article {
-            max-width: 720px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 2rem;
-            background: var(--paper);
             min-height: 60vh;
+            background: var(--paper);
         }
 
         /* Page specific styles */
@@ -69,7 +74,7 @@
             justify-content: space-between;
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid var(--border);
         }
 
         .back-link {
@@ -81,14 +86,15 @@
             font-size: 0.9rem;
         }
 
-        .back-link:hover { text-decoration: underline; }
+        .back-link:hover { color: var(--primary); }
 
         .step-indicator {
-            background: #f1f5f9;
+            background: var(--bg);
             padding: 0.5rem 1rem;
             border-radius: 20px;
             font-size: 0.85rem;
             color: var(--text-light);
+            border: 1px solid var(--border);
         }
 
         .page-title {
@@ -117,8 +123,8 @@
         }
 
         .role-card {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
+            background: var(--paper);
+            border: 2px solid var(--border);
             border-radius: 16px;
             padding: 1.5rem;
             cursor: pointer;
@@ -127,14 +133,14 @@
         }
 
         .role-card:hover {
-            background: #f1f5f9;
-            transform: translateY(-4px);
             border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 20px rgba(30, 58, 95, 0.1);
         }
 
         .role-card.selected {
             border-color: var(--accent);
-            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(30, 58, 95, 0.05) 100%);
         }
 
         .role-header {
@@ -146,17 +152,17 @@
 
         .role-icon {
             font-size: 2.5rem;
-            background: white;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
             width: 60px;
             height: 60px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .role-title { font-size: 1.3rem; font-weight: 600; color: var(--text); }
+        .role-title { font-size: 1.3rem; font-weight: 600; color: var(--primary); }
         .role-subtitle { color: var(--text-light); font-size: 0.9rem; }
 
         .role-description {
@@ -181,7 +187,7 @@
 
         .role-features li::before {
             content: "✓";
-            color: var(--accent);
+            color: var(--success);
             font-weight: bold;
         }
 
@@ -189,25 +195,16 @@
             display: inline-flex;
             align-items: center;
             gap: 0.3rem;
-            background: #f1f5f9;
+            background: var(--bg);
             padding: 0.3rem 0.8rem;
             border-radius: 20px;
             font-size: 0.8rem;
-            color: var(--text-light);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
         }
 
-        .verification-badge.easy { background: #dcfce7; color: #166534; }
-        .verification-badge.moderate { background: #fef3c7; color: #92400e; }
-
-        .role-warning {
-            background: #fef3c7;
-            border: 1px solid #fcd34d;
-            border-radius: 8px;
-            padding: 0.8rem;
-            margin-top: 1rem;
-            font-size: 0.8rem;
-            color: #92400e;
-        }
+        .verification-badge.easy { background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: var(--success); }
+        .verification-badge.moderate { background: rgba(245, 158, 11, 0.1); color: var(--warm); border-color: var(--warm); }
 
         .selection-check {
             position: absolute;
@@ -216,7 +213,7 @@
             width: 28px;
             height: 28px;
             border-radius: 50%;
-            border: 2px solid #cbd5e1;
+            border: 2px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -241,7 +238,7 @@
         }
 
         .best-for {
-            background: #f1f5f9;
+            background: var(--bg);
             border-radius: 8px;
             padding: 0.8rem;
             margin-bottom: 1rem;
@@ -270,7 +267,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.8rem;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             color: white;
             text-decoration: none;
             padding: 1rem 2.5rem;
@@ -279,7 +276,6 @@
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(30, 58, 95, 0.4);
             transition: all 0.3s;
             opacity: 0.5;
             pointer-events: none;
@@ -292,7 +288,7 @@
 
         .continue-btn.active:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(30, 58, 95, 0.5);
+            box-shadow: 0 8px 20px rgba(30, 58, 95, 0.3);
         }
 
         .help-section {
@@ -302,14 +298,14 @@
             font-size: 0.9rem;
         }
 
-        /* Footer - SSOT Constant */
+        /* Footer */
         .footer {
             text-align: center;
             padding: 1.5rem 1rem;
-            background: #f1f5f9;
-            color: var(--text-light);
+            background: var(--bg);
+            color: var(--text-muted);
             font-size: 0.75rem;
-            font-family: -apple-system, BlinkMacSystemFont, '"'"'Segoe UI'"'"', sans-serif;
+            border-top: 1px solid var(--border);
         }
 
         .footer-grid {
@@ -323,23 +319,22 @@
 
         @media (max-width: 600px) {
             .footer-grid { grid-template-columns: repeat(2, 1fr); }
+            .roles-grid { grid-template-columns: 1fr; }
         }
 
         .footer-column h4 {
             font-size: 0.7rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
-            color: var(--text);
+            color: var(--text-light);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            text-align: center;
         }
 
         .footer-column ul {
             list-style: none;
             padding: 0;
             margin: 0;
-            text-align: center;
         }
 
         .footer-column li { margin-bottom: 0.25rem; }
@@ -351,40 +346,18 @@
 
         .footer-column a:hover { text-decoration: underline; }
 
-        .footer-disclaimer {
-            max-width: 600px;
-            margin: 0 auto 0.75rem;
-            padding: 0.5rem 0;
-            border-top: 1px solid #e2e8f0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
         .footer-bottom { margin-top: 0.75rem; }
 
-        .footer-bottom p {
-            margin: 0.15rem 0;
-            text-align: center;
-            font-size: 0.7rem;
-        }
+        .footer-bottom p { margin: 0.15rem 0; color: var(--text-muted); }
 
-        .footer-meta {
-            color: var(--accent);
-            font-weight: 500;
-        }
-
-        @media (max-width: 768px) {
-            .header h1 { font-size: 2rem; }
-            .header .tagline { font-size: 1.1rem; }
-            .article { padding: 1.5rem 1.25rem; }
-            .roles-grid { grid-template-columns: 1fr; }
-        }
+        .footer-meta { color: var(--primary); font-weight: 500; }
     </style>
 </head>
 <body>
-    <!-- Header - SSOT Constant -->
+    <!-- Header -->
     <header class="header">
         <h1>📓 Semptify</h1>
-        <p class="tagline">The Tenant'"'"'s Journal</p>
+        <p class="tagline">The Tenant&apos;s Journal</p>
         <p class="subtitle">Your proactive guide to a peaceful tenancy</p>
     </header>
 
@@ -399,14 +372,14 @@
             <h2>👤 Who Are You?</h2>
         </div>
         <p class="page-subtitle">
-            Semptify is built for everyone in the housing ecosystem — tenants, advocates, and legal professionals.<br>
-            <strong>Choose the role that matches how you'"'"'ll use the platform.</strong>
+            Semptify is built for everyone in the housing ecosystem.<br>
+            <strong>Choose the role that matches how you&apos;ll use the platform.</strong>
         </p>
 
-        <!-- Role Cards -->
+        <!-- Role Cards - Backend role names: user, advocate, legal, manager -->
         <div class="roles-grid">
-            <!-- Tenant Role -->
-            <div class="role-card" data-role="tenant" onclick="selectRole(this)">
+            <!-- Tenant Role (backend: user) -->
+            <div class="role-card" data-role="user" onclick="selectRole(this)">
                 <div class="selection-check"></div>
                 <div class="role-header">
                     <div class="role-icon">🏠</div>
@@ -420,19 +393,18 @@
                 </div>
                 <div class="best-for">
                     <div class="best-for-title">Best For</div>
-                    <div class="best-for-text">Renters who want to document their tenancy properly and understand their rights</div>
+                    <div class="best-for-text">Renters who want to document their tenancy properly</div>
                 </div>
                 <ul class="role-features">
                     <li>Personal tenant journal</li>
                     <li>Document timeline builder</li>
                     <li>Rights AND responsibilities guides</li>
                     <li>Private cloud storage</li>
-                    <li>Evidence organization</li>
                 </ul>
                 <span class="verification-badge easy">✓ No verification needed</span>
             </div>
 
-            <!-- Advocate Role -->
+            <!-- Advocate Role (backend: advocate) -->
             <div class="role-card" data-role="advocate" onclick="selectRole(this)">
                 <div class="selection-check"></div>
                 <div class="role-header">
@@ -450,23 +422,22 @@
                     <div class="best-for-text">HOME Line counselors, Legal Aid staff, HUD-certified counselors</div>
                 </div>
                 <ul class="role-features">
-                    <li>Everything in Tenant, plus:</li>
                     <li>Client case management</li>
                     <li>Multi-client document oversight</li>
                     <li>Document delivery to clients</li>
-                    <li>Referral coordination tools</li>
+                    <li>Referral coordination</li>
                 </ul>
                 <span class="verification-badge moderate">🎟️ Invite code required</span>
             </div>
 
-            <!-- Legal Role -->
+            <!-- Legal Role (backend: legal) -->
             <div class="role-card" data-role="legal" onclick="selectRole(this)">
                 <div class="selection-check"></div>
                 <div class="role-header">
                     <div class="role-icon">⚖️</div>
                     <div>
                         <div class="role-title">Licensed Attorney</div>
-                        <div class="role-subtitle">I'"'"'m a lawyer</div>
+                        <div class="role-subtitle">I&apos;m a lawyer</div>
                     </div>
                 </div>
                 <div class="role-description">
@@ -477,16 +448,38 @@
                     <div class="best-for-text">Housing attorneys, pro bono lawyers, Legal Aid attorneys</div>
                 </div>
                 <ul class="role-features">
-                    <li>Everything in Advocate, plus:</li>
                     <li>Privileged communication channels</li>
-                    <li>Work product protection markers</li>
-                    <li>Conflict checking system</li>
+                    <li>Work product protection</li>
+                    <li>Conflict checking</li>
                     <li>Secure document delivery</li>
                 </ul>
                 <span class="verification-badge moderate">🔐 Bar verification required</span>
-                <div class="role-warning">
-                    ⚠️ <strong>Legal Role Notice:</strong> This role is for licensed attorneys only. Verification protects both you and your clients.
+            </div>
+
+            <!-- Manager Role (backend: manager) -->
+            <div class="role-card" data-role="manager" onclick="selectRole(this)">
+                <div class="selection-check"></div>
+                <div class="role-header">
+                    <div class="role-icon">🏢</div>
+                    <div>
+                        <div class="role-title">Manager / Agency</div>
+                        <div class="role-subtitle">Multi-tenant • Workers • Counselors</div>
+                    </div>
                 </div>
+                <div class="role-description">
+                    A housing agency, nonprofit, or organization managing multiple cases, staff, and tenant workflows.
+                </div>
+                <div class="best-for">
+                    <div class="best-for-title">Best For</div>
+                    <div class="best-for-text">Legal Aid orgs, housing nonprofits, tenant unions, social services</div>
+                </div>
+                <ul class="role-features">
+                    <li>Multi-tenant case oversight</li>
+                    <li>Staff/worker assignment</li>
+                    <li>Organization-wide reporting</li>
+                    <li>Bulk document operations</li>
+                </ul>
+                <span class="verification-badge moderate">🎟️ Org invite required</span>
             </div>
         </div>
 
@@ -499,12 +492,11 @@
 
         <!-- Help -->
         <div class="help-section">
-            <p>Not sure which to choose? <strong>Most people should select "Tenant"</strong> — even if you later work with an advocate or attorney.</p>
-            <p>Your role determines what features you see, but you can always change it later.</p>
+            <p>Not sure which to choose? <strong>Most people should select &quot;Tenant&quot;</strong> — even if you later work with an advocate or attorney.</p>
         </div>
     </article>
 
-    <!-- Footer - SSOT Constant -->
+    <!-- Footer -->
     <footer class="footer">
         <div class="footer-grid">
             <div class="footer-column">
@@ -523,9 +515,6 @@
                 </ul>
             </div>
         </div>
-        <div class="footer-disclaimer">
-            <strong>Important:</strong> Semptify is an organizational tool, not legal advice. Always consult a qualified attorney for legal guidance.
-        </div>
         <div class="footer-bottom">
             <p>© 2024-2026 Semptify</p>
             <p class="footer-meta">Free Forever • No Ads • Open Source</p>
@@ -536,24 +525,24 @@
         let selectedRole = null;
 
         function selectRole(card) {
-            document.querySelectorAll("'"'"'.role-card'"'"'").forEach(c => c.classList.remove("'"'"'selected'"'"'"));
-            card.classList.add("'"'"'selected'"'"'");
+            document.querySelectorAll(".role-card").forEach(c => c.classList.remove("selected"));
+            card.classList.add("selected");
             selectedRole = card.dataset.role;
-            document.getElementById("'"'"'continueBtn'"'"'").classList.add("'"'"'active'"'"'");
+            document.getElementById("continueBtn").classList.add("active");
         }
 
         function continueToStorage() {
             if (!selectedRole) {
-                alert("'"'"'Please select a role to continue'"'"'");
+                alert("Please select a role to continue");
                 return;
             }
-            window.location.href = "'"'"'/onboarding/storage-select.html?role='"'"'" + selectedRole;
+            window.location.href = "/onboarding/storage-select.html?role=" + selectedRole;
         }
 
         const urlParams = new URLSearchParams(window.location.search);
-        const preselect = urlParams.get("'"'"'role'"'"'");
+        const preselect = urlParams.get("role");
         if (preselect) {
-            const card = document.querySelector(`[data-role="'"'"'${preselect}'"'"'`]`);
+            const card = document.querySelector(`[data-role="${preselect}"]`);
             if (card) selectRole(card);
         }
     </script>
