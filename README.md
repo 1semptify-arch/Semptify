@@ -36,12 +36,29 @@ Semptify 5.0 introduces a unique authentication model: **your cloud storage IS y
 | OneDrive | ✅ Ready | OAuth2, app folder isolation |
 | Cloudflare R2 | ⚙️ System Only | Admin/internal storage only |
 
-## Quick Start
+## Quick Start (Single Source of Truth)
 
+Semptify 5.0 uses a **canonical launcher** for all startup scenarios.
+
+### Production Mode (Enforced Security)
 ```powershell
-# 1. Create virtual environment
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
+# Double-click or run:
+.\START-SEMPTIFY.bat
+
+# Or directly with PowerShell:
+.\start-semptify.ps1
+```
+
+### Development Mode (Open Security)
+```powershell
+.\start-semptify.ps1 -DevMode
+```
+
+### Manual Setup (if needed)
+```powershell
+# 1. Create virtual environment (if not exists)
+python -m venv venv311
+.\venv311\Scripts\Activate.ps1
 
 # 2. Install dependencies
 pip install -r requirements.txt
@@ -50,9 +67,13 @@ pip install -r requirements.txt
 Copy-Item .env.template .env
 # Edit .env with your OAuth client IDs/secrets
 
-# 4. Run development server
-python -m uvicorn app.main:app --reload --port 8000
+# 4. Run via canonical launcher (NEVER use uvicorn directly)
+.\start-semptify.ps1
 ```
+
+> **IMPORTANT:** Always use `start-semptify.ps1` to start the application.  
+> This ensures SECURITY_MODE=enforced and all production requirements are met.  
+> Direct `uvicorn` commands are for emergency debugging only.
 
 ## API Documentation
 

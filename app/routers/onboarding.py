@@ -140,8 +140,8 @@ ONBOARDING_TEMPLATE = """<!DOCTYPE html>
 </html>
 """
 
-def _render_welcome_and_roles():
-    """Step 1: Welcome + Role Selection"""
+def _render_role_selection():
+    """Role Selection Page with all 6 roles"""
     return ONBOARDING_TEMPLATE.format(content="""
         <div class="progress">
             <div class="progress-dot active"></div>
@@ -150,16 +150,16 @@ def _render_welcome_and_roles():
         </div>
         
         <h1>🏠 Welcome to Semptify</h1>
-        <p class="subtitle">Protect your housing rights with organized evidence</p>
+        <p class="subtitle">Protect housing rights with organized evidence</p>
         
         <div class="step-section">
             <p style="margin-bottom: 1.5rem;">What best describes you?</p>
             
             <div class="button-grid">
-                <button class="btn" onclick="selectRole('user')">
+                <button class="btn" onclick="selectRole('tenant')">
                     <span class="btn-icon">🏠</span>
                     <div>
-                        <div class="btn-label">I'm a Tenant</div>
+                        <div class="btn-label">Tenant</div>
                         <div class="btn-desc">Organizing my own case</div>
                     </div>
                 </button>
@@ -167,7 +167,7 @@ def _render_welcome_and_roles():
                 <button class="btn" onclick="selectRole('advocate')">
                     <span class="btn-icon">🤝</span>
                     <div>
-                        <div class="btn-label">I'm an Advocate</div>
+                        <div class="btn-label">Advocate</div>
                         <div class="btn-desc">Helping multiple clients</div>
                     </div>
                 </button>
@@ -175,17 +175,42 @@ def _render_welcome_and_roles():
                 <button class="btn" onclick="selectRole('legal')">
                     <span class="btn-icon">⚖️</span>
                     <div>
-                        <div class="btn-label">I'm Legal/Judge</div>
-                        <div class="btn-desc">Professional review role</div>
+                        <div class="btn-label">Legal Professional</div>
+                        <div class="btn-desc">Attorney or legal aid</div>
+                    </div>
+                </button>
+                
+                <button class="btn" onclick="selectRole('judge')">
+                    <span class="btn-icon">👨‍⚖️</span>
+                    <div>
+                        <div class="btn-label">Judge / Mediator</div>
+                        <div class="btn-desc">Neutral review & dispute resolution</div>
+                    </div>
+                </button>
+                
+                <button class="btn" onclick="selectRole('manager')">
+                    <span class="btn-icon">📋</span>
+                    <div>
+                        <div class="btn-label">Property Manager</div>
+                        <div class="btn-desc">Managing tenant relations</div>
+                    </div>
+                </button>
+                
+                <button class="btn" onclick="selectRole('admin')">
+                    <span class="btn-icon">🔧</span>
+                    <div>
+                        <div class="btn-label">System Admin</div>
+                        <div class="btn-desc">Platform administration</div>
                     </div>
                 </button>
             </div>
         </div>
         
         <script>
-        function selectRole(role) {{
+        function selectRole(role) {
+            localStorage.setItem('selectedRole', role);
             window.location.href = '/onboarding/providers?role=' + role;
-        }}
+        }
         </script>
     """)
 
@@ -594,19 +619,24 @@ def _render_client_activated():
 
 @router.get("/", response_class=HTMLResponse)
 async def onboarding_start(request: Request, semptify_uid: Optional[str] = Cookie(None)):
-    """Entry point: Show welcome + role selection OR route based on gate status."""
+    """Entry point: Show role selection OR route based on gate status."""
     if not semptify_uid:
-        return HTMLResponse(content=_render_welcome_and_roles())
+        return HTMLResponse(content=_render_role_selection())
     else:
         return RedirectResponse(url="/onboarding/status", status_code=302)
 
+@router.get("/role-select", response_class=HTMLResponse)
+async def role_select():
+    """Dedicated role selection page."""
+    return HTMLResponse(content=_render_role_selection())
+
 @router.get("/providers", response_class=HTMLResponse)
-async def storage_providers(role: Optional[str] = Query("user")):
+async def storage_providers(role: Optional[str] = Query("tenant")):
     """Show storage provider selection."""
     return HTMLResponse(content=_render_storage_selection())
 
 @router.get("/connect")
-async def connect_storage(provider: str = Query(...), role: str = Query("user")):
+async def connect_storage(provider: str = Query(...), role: str = Query("tenant")):
     """Redirect to OAuth flow."""
     return RedirectResponse(
         url=f"/storage/auth/{provider}?role={role}&from=onboarding",
