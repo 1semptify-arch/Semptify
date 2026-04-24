@@ -1109,6 +1109,84 @@ class VaultAuditLog(Base):
     vault_item: Mapped["VaultItem"] = relationship(back_populates="audit_logs")
 
 
+# =============================================================================
+# Invite Code Model - For Advocate/Legal Role Validation
+# =============================================================================
+
+class InviteCode(Base):
+    """
+    Invite codes for validating Advocate and Legal roles.
+    
+    Organizations (managers) generate invite codes for advocates
+    and legal professionals to join their organization.
+    
+    Codes can be:
+    - One-time use (redeemed by a specific user)
+    - Multi-use (multiple advocates from same org)
+    - Time-limited (expires after date)
+    - Role-specific (advocate vs legal vs admin)
+    """
+    __tablename__ = "invite_codes"
+
+    # Primary key: code itself (readable, unique)
+    code: Mapped[str] = mapped_column(String(32), primary_key=True)
+    
+    # Who created this code
+    created_by: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    
+    # Organization context (optional, for multi-tenant agencies)
+    organization_id: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, index=True)
+    organization_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    
+    # Role this code grants
+    role: Mapped[str] = mapped_column(String(20), default="advocate")  # advocate, legal, admin
+    
+    # Usage limits
+    max_uses: Mapped[int] = mapped_column(Integer, default=1)
+    uses_count: Mapped[int] = mapped_column(Integer, default=0)
+    
+    # Who has used this code (JSON array of user IDs)
+    used_by: Mapped[Optional[list]] = mapped_column(JSONB, default=list)
+    
+    # Expiration
+    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTimeTZ, nullable=True)
+    
+    # Status
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    
+    # Optional note/description (e.g., "Summer 2024 intern batch")
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
+    
+    @property
+    def is_expired(self) -> bool:
+        """Check if code has expired."""
+        if self.expires_at is None:
+            return False
+        return utc_now() > self.expires_at
+    
+    @property
+    def is_valid(self) -> bool:
+        """Check if code can still be used."""
+        if not self.is_active:
+            return False
+        if self.is_expired:
+            return False
+        if self.uses_count >= self.max_uses:
+            return False
+        return True
+    
+    @property
+    def remaining_uses(self) -> int:
+        """Number of remaining uses."""
+        if not self.is_valid:
+            return 0
+        return self.max_uses - self.uses_count
+
+
 # Update User model to include new relationships
 User.vault_items = relationship("VaultItem", back_populates="user", cascade="all, delete-orphan")
 User.incidents = relationship("Incident", back_populates="user", cascade="all, delete-orphan")

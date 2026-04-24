@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validate Advocate Access - Semptify</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Light Blue Theme - Matches welcome.html */
+        :root {
+            --primary: #1e3a5f;
+            --primary-light: #2d5a87;
+            --accent: #3b82f6;
+            --warm: #f59e0b;
+            --text: #1e293b;
+            --text-light: #475569;
+            --text-muted: #64748b;
+            --bg: #fdfcfa;
+            --paper: #ffffff;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .back-link {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        .back-link:hover {
+            color: white;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.25rem;
+            letter-spacing: -0.5px;
+        }
+
+        .step-indicator {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            background: rgba(255,255,255,0.15);
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1.5rem;
+        }
+
+        .container {
+            max-width: 480px;
+            width: 100%;
+        }
+
+        .validation-card {
+            background: var(--paper);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(30, 58, 95, 0.08);
+            padding: 2.5rem;
+            text-align: center;
+        }
+
+        .icon-circle {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent), var(--primary-light));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2.5rem;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        /* Form */
+        .form-group {
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .code-input-wrapper {
+            position: relative;
+        }
+
+        .code-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            letter-spacing: 0.25em;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg);
+            color: var(--primary);
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .code-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--paper);
+        }
+
+        .code-input.error {
+            border-color: var(--error);
+            background: #fef2f2;
+        }
+
+        .code-input.success {
+            border-color: var(--success);
+            background: #f0fdf4;
+        }
+
+        .help-text {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Validation Status */
+        .validation-status {
+            margin: 1rem 0;
+            padding: 0.875rem 1rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            display: none;
+        }
+
+        .validation-status.show {
+            display: block;
+        }
+
+        .validation-status.error {
+            background: #fef2f2;
+            color: var(--error);
+            border: 1px solid #fecaca;
+        }
+
+        .validation-status.success {
+            background: #f0fdf4;
+            color: var(--success);
+            border: 1px solid #bbf7d0;
+        }
+
+        .validation-status.loading {
+            background: #eff6ff;
+            color: var(--accent);
+            border: 1px solid #bfdbfe;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), var(--primary-light));
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-light);
+            border: 1px solid var(--border);
+            margin-top: 0.75rem;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+
+        .info-box h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .info-box p {
+            font-size: 0.875rem;
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        /* Success State */
+        .success-state {
+            display: none;
+        }
+
+        .success-state.show {
+            display: block;
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--success), #059669);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 3rem;
+            animation: scaleIn 0.3s ease;
+        }
+
+        @keyframes scaleIn {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--primary);
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            padding: 1.25rem;
+            font-size: 0.85rem;
+        }
+
+        .footer a {
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .validation-card {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .code-input {
+                font-size: 1.25rem;
+                letter-spacing: 0.15em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <a href="/onboarding/select-role.html" class="back-link">
+                <span>←</span> Back
+            </a>
+            <div class="logo">Semptify</div>
+            <span class="step-indicator">Step 2 of 4</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Validation Form -->
+            <div id="validationForm" class="validation-card">
+                <div class="icon-circle">🤝</div>
+                <h1>Advocate Validation</h1>
+                <p class="subtitle">
+                    Enter your organization invite code to access advocate features.
+                </p>
+
+                <form id="inviteForm" onsubmit="handleSubmit(event)">
+                    <div class="form-group">
+                        <label for="inviteCode">Invite Code</label>
+                        <div class="code-input-wrapper">
+                            <input
+                                type="text"
+                                id="inviteCode"
+                                class="code-input"
+                                placeholder="ABCD-1234"
+                                maxlength="9"
+                                autocomplete="off"
+                                oninput="formatCode(this)"
+                                onkeyup="checkCode(event)"
+                            >
+                        </div>
+                        <p class="help-text">Enter the 8-character code provided by your organization</p>
+                    </div>
+
+                    <div id="validationStatus" class="validation-status"></div>
+
+                    <button type="submit" id="submitBtn" class="btn btn-primary" disabled>
+                        Validate & Continue
+                    </button>
+                </form>
+
+                <a href="/onboarding/select-role.html" class="btn btn-secondary">
+                    Choose Different Role
+                </a>
+
+                <div class="info-box">
+                    <h3>ℹ️ Don't have a code?</h3>
+                    <p>
+                        Contact your organization's housing advocate coordinator or manager.
+                        They can generate invite codes from their dashboard.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Success State -->
+            <div id="successState" class="validation-card success-state">
+                <div class="success-icon">✓</div>
+                <h1>Welcome, Advocate!</h1>
+                <p class="subtitle">
+                    Your invite code has been validated. You're now ready to help tenants protect their housing rights.
+                </p>
+                <button class="btn btn-primary" onclick="continueToStorage()">
+                    Continue to Storage Setup →
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>🔒 Tenant data stays in their cloud · <a href="/public/privacy.html">Privacy</a></p>
+    </footer>
+
+    <script>
+        let validatedCode = null;
+        let isValidating = false;
+
+        // Format code input with auto-hyphen
+        function formatCode(input) {
+            let value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+            // Auto-insert hyphen after 4 characters
+            if (value.length > 4) {
+                value = value.slice(0, 4) + '-' + value.slice(4, 8);
+            }
+
+            input.value = value;
+
+            // Clear validation states when typing
+            input.classList.remove('error', 'success');
+            hideStatus();
+
+            // Enable submit when code is complete (9 chars with hyphen)
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = value.length < 9;
+        }
+
+        // Check code on Enter key
+        function checkCode(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                if (!document.getElementById('submitBtn').disabled) {
+                    handleSubmit(event);
+                }
+            }
+        }
+
+        // Show validation status
+        function showStatus(message, type) {
+            const status = document.getElementById('validationStatus');
+            status.textContent = message;
+            status.className = `validation-status ${type} show`;
+        }
+
+        // Hide validation status
+        function hideStatus() {
+            const status = document.getElementById('validationStatus');
+            status.className = 'validation-status';
+        }
+
+        // Handle form submission
+        async function handleSubmit(event) {
+            event.preventDefault();
+
+            if (isValidating) return;
+
+            const code = document.getElementById('inviteCode').value;
+            const input = document.getElementById('inviteCode');
+            const submitBtn = document.getElementById('submitBtn');
+
+            isValidating = true;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="spinner"></div> Validating...';
+            showStatus('Validating invite code...', 'loading');
+
+            try {
+                // Step 1: Validate the code
+                const validateResponse = await fetch('/api/invite-codes/validate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ code }),
+                });
+
+                const validateData = await validateResponse.json();
+
+                if (!validateData.valid) {
+                    throw new Error(validateData.message || 'Invalid invite code');
+                }
+
+                // Step 2: Redeem the code
+                const redeemResponse = await fetch('/api/invite-codes/redeem', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ code }),
+                });
+
+                if (!redeemResponse.ok) {
+                    const errorData = await redeemResponse.json();
+                    throw new Error(errorData.detail || 'Failed to redeem code');
+                }
+
+                const redeemData = await redeemResponse.json();
+
+                // Success!
+                validatedCode = code;
+                input.classList.add('success');
+                showSuccess();
+
+            } catch (error) {
+                input.classList.add('error');
+                showStatus(error.message || 'Validation failed. Please try again.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Validate & Continue';
+            } finally {
+                isValidating = false;
+            }
+        }
+
+        // Show success state
+        function showSuccess() {
+            document.getElementById('validationForm').style.display = 'none';
+            document.getElementById('successState').classList.add('show');
+
+            // Store role in localStorage
+            localStorage.setItem('semptify_role', 'advocate');
+            localStorage.setItem('semptify_role_validated', 'true');
+        }
+
+        // Continue to storage selection
+        function continueToStorage() {
+            window.location.href = '/onboarding/storage-select.html?role=advocate&validated=true';
+        }
+
+        // Check URL params for returning from error
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const error = params.get('error');
+
+            if (error) {
+                showStatus(decodeURIComponent(error), 'error');
+            }
+
+            // Focus the input
+            document.getElementById('inviteCode').focus();
+        });
+    </script>
+</body>
+</html>

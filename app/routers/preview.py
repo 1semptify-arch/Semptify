@@ -180,6 +180,55 @@ async def serve_preview(cache_key: str):
         logger.error(f"Preview serving error: {e}")
         raise HTTPException(status_code=500, detail="Failed to serve preview")
 
+@router.get("/{document_id}/text")
+async def get_text_preview(
+    document_id: str,
+    user: StorageUser = Depends(require_user)
+):
+    """
+    Get text preview for a document.
+    
+    Returns extracted text content for text-based documents.
+    """
+    try:
+        async with get_db_session() as session:
+            doc_query = select(DocumentModel).where(
+                DocumentModel.id == document_id,
+                DocumentModel.user_id == user.user_id
+            )
+            result = await session.execute(doc_query)
+            doc = result.scalar_one_or_none()
+            
+            if not doc:
+                raise HTTPException(status_code=404, detail="Document not found")
+            
+            # Return extracted text if available
+            if doc.extracted_text:
+                return Response(
+                    content=doc.extracted_text[:10000],  # Limit to 10k chars
+                    media_type="text/plain",
+                    headers={"Cache-Control": "public, max-age=3600"}
+                )
+            
+            # Try to read text file directly
+            if doc.file_path and os.path.exists(doc.file_path):
+                with open(doc.file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    content = f.read(10000)
+                    return Response(
+                        content=content,
+                        media_type="text/plain",
+                        headers={"Cache-Control": "public, max-age=3600"}
+                    )
+            
+            raise HTTPException(status_code=404, detail="Text content not available")
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Text preview error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to generate text preview")
+
+
 @router.get("/info/{document_id}")
 async def get_preview_info(
     document_id: str,
