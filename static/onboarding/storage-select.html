@@ -320,6 +320,21 @@
             <p>• We create a private &quot;Semptify&quot; folder only you can access</p>
         </div>
 
+        <!-- Reconnect Section (shown for returning users) -->
+        <div id="reconnect-section" class="reconnect-section" style="display: none;">
+            <h3>👋 Welcome Back</h3>
+            <p id="reconnect-text">You previously connected with <strong id="previous-provider">Unknown</strong>.</p>
+            <button id="reconnect-btn" class="btn btn--primary" onclick="reconnectWithPrevious()">
+                🔐 Reconnect to Your Storage
+            </button>
+            <p class="reconnect-hint">Or choose a different provider below:</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="checking-session" class="checking-session">
+            <p>Checking for existing session...</p>
+        </div>
+
         <!-- Provider Cards -->
         <div class="providers-grid">
             <!-- Google Drive -->
@@ -414,6 +429,58 @@
         if (urlParams.get("role")) {
             localStorage.setItem("selectedRole", role);
         }
+
+        // Session data for returning users
+        let sessionProvider = null;
+        let sessionRole = null;
+
+        // Check for existing session on page load
+        async function checkExistingSession() {
+            try {
+                const response = await fetch('/storage/session/status', {
+                    credentials: 'same-origin'
+                });
+                const data = await response.json();
+
+                // Hide loading state
+                document.getElementById('checking-session').style.display = 'none';
+
+                if (data.is_valid && data.provider) {
+                    // Valid session with provider - show reconnect option
+                    sessionProvider = data.provider;
+                    sessionRole = data.role || role;
+                    
+                    const providerNames = {
+                        'google_drive': 'Google Drive',
+                        'dropbox': 'Dropbox',
+                        'onedrive': 'OneDrive'
+                    };
+                    
+                    document.getElementById('previous-provider').textContent = 
+                        providerNames[data.provider] || data.provider;
+                    document.getElementById('reconnect-section').style.display = 'block';
+                    
+                    // Optionally auto-redirect for returning users (uncomment to enable)
+                    // window.location.href = '/storage/auth/' + data.provider + '?mode=reconnect';
+                }
+            } catch (e) {
+                // No valid session - show provider selection
+                document.getElementById('checking-session').style.display = 'none';
+            }
+        }
+
+        // Reconnect using stored provider
+        function reconnectWithPrevious() {
+            if (sessionProvider) {
+                const params = new URLSearchParams();
+                params.set("role", sessionRole || role);
+                params.set("mode", "reconnect");
+                window.location.href = "/storage/auth/" + sessionProvider + "?" + params.toString();
+            }
+        }
+
+        // Check session on page load
+        checkExistingSession();
 
         function selectProvider(event, provider) {
             event.preventDefault();

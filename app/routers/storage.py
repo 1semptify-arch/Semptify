@@ -97,6 +97,74 @@ OAUTH_STATE_TIMEOUT_MINUTES = 15  # OAuth state TTL in minutes
 
 ALLOWED_ROLES = {"tenant", "manager", "advocate", "legal", "judge", "admin"}
 
+# ============================================================================
+# Session Status Endpoint - For Returning User Auto-Reconnect (SSOT)
+# ============================================================================
+
+class SessionStatusResponse(BaseModel):
+    """Session status for returning user auto-reconnect flow."""
+    has_session: bool
+    is_valid: bool
+    user_id: Optional[str] = None
+    role: Optional[str] = None
+    provider: Optional[str] = None
+    has_storage: bool = False
+
+
+@router.get("/session/status", response_model=SessionStatusResponse)
+async def get_session_status(
+    request: Request,
+    semptify_session: Optional[str] = Cookie(None),
+    db: AsyncSession = Depends(get_db),
+) -> SessionStatusResponse:
+    """
+    Check session status for returning users.
+    
+    Returns role and provider from existing session cookie so frontend
+    can auto-redirect to OAuth without asking user to choose provider again.
+    """
+    # No session cookie present
+    if not semptify_session:
+        return SessionStatusResponse(has_session=False, is_valid=False)
+    
+    # Validate session token and get user info
+    try:
+        from app.core.security import verify_session_token
+        session_data = await verify_session_token(semptify_session, db)
+        
+        if not session_data or not session_data.get("user_id"):
+            return SessionStatusResponse(has_session=True, is_valid=False)
+        
+        user_id = session_data["user_id"]
+        
+        # Check if user ID is valid
+        if not is_valid_storage_user(user_id):
+            return SessionStatusResponse(has_session=True, is_valid=False, user_id=user_id)
+        
+        # Extract role and provider from user ID
+        role = get_role_from_user_id(user_id)
+        provider = get_provider_from_user_id(user_id)
+        
+        # Check if user has storage configured
+        storage_config = await db.execute(
+            select(StorageConfig).where(StorageConfig.user_id == user_id)
+        )
+        has_storage = storage_config.scalar_one_or_none() is not None
+        
+        return SessionStatusResponse(
+            has_session=True,
+            is_valid=True,
+            user_id=user_id,
+            role=role,
+            provider=provider,
+            has_storage=has_storage,
+        )
+        
+    except Exception as e:
+        logger.warning(f"Session status check failed: {e}")
+        return SessionStatusResponse(has_session=True, is_valid=False)
+
+
 # Legacy in-memory compatibility maps.
 # DB rows remain the source of truth; these are only a transitional bridge for
 # older tests/callers still importing module-level state.
