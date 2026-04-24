@@ -311,6 +311,13 @@
             display: flex;
             gap: var(--space-lg);
         }
+
+        .header__inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
         
         /* Footer */
         .footer {
@@ -342,7 +349,28 @@
         .mb-md { margin-bottom: var(--space-md); }
         .mb-lg { margin-bottom: var(--space-lg); }
         .mb-xl { margin-bottom: var(--space-xl); }
-        
+
+        /* Error page utilities */
+        .text-4xl { font-size: 3rem; line-height: 1; }
+        .text-left { text-align: left; }
+        .cursor-pointer { cursor: pointer; }
+        .error-icon { font-size: 4rem; line-height: 1; margin-bottom: var(--space-md); }
+        .code-block {
+            margin-top: var(--space-md);
+            padding: var(--space-md);
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: var(--radius-md);
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: var(--font-size-sm);
+        }
+        .flex-center {
+            display: flex;
+            gap: var(--space-md);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
         .hidden { display: none !important; }
         
         /* Loading Spinner */
@@ -393,7 +421,7 @@
     {% block header %}
     <header class="header">
         <div class="container">
-            <div class="header__inner" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div class="header__inner">
                 <a href="/" class="header__logo">📋 Semptify</a>
                 <nav class="header__nav">
                     {% block nav %}
