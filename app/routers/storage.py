@@ -95,7 +95,7 @@ OAUTH_CONFIGS = {
 
 OAUTH_STATE_TIMEOUT_MINUTES = 15  # OAuth state TTL in minutes
 
-ALLOWED_ROLES = {"user", "manager", "advocate", "legal", "judge", "admin"}
+ALLOWED_ROLES = {"tenant", "manager", "advocate", "legal", "judge", "admin"}
 
 # Legacy in-memory compatibility maps.
 # DB rows remain the source of truth; these are only a transitional bridge for
@@ -655,6 +655,182 @@ async def storage_home(
 
     # New user - show provider selection
     return RedirectResponse(url="/storage/providers", status_code=302)
+
+
+@router.get("/reconnect", response_class=HTMLResponse)
+async def reconnect_storage(request: Request):
+    """
+    Reconnect page for returning users who lost their session/cookie.
+    SEPARATE from onboarding - this is for EXISTING users only.
+    """
+    # Serve from static/reconnect/ (NOT onboarding - they are separate systems)
+    from fastapi.responses import FileResponse
+    from pathlib import Path
+    
+    reconnect_path = Path(__file__).parent.parent.parent / "static" / "reconnect" / "index.html"
+    if reconnect_path.exists():
+        return FileResponse(str(reconnect_path))
+    
+    # Fallback to generated HTML
+    return HTMLResponse(content=_generate_reconnect_html())
+
+
+def _generate_reconnect_html() -> str:
+    """Generate the reconnect page HTML."""
+    settings = _get_settings()
+    
+    providers_html = ""
+    
+    if settings.google_drive_client_id:
+        providers_html += '''
+        <button class="btn" onclick="reconnect('google_drive')">
+            <span class="btn-icon">📁</span>
+            <div>
+                <div class="btn-label">Google Drive</div>
+                <div class="btn-desc">Restore your Google Drive connection</div>
+            </div>
+        </button>
+        '''
+    
+    if settings.dropbox_app_key:
+        providers_html += '''
+        <button class="btn" onclick="reconnect('dropbox')">
+            <span class="btn-icon">☁️</span>
+            <div>
+                <div class="btn-label">Dropbox</div>
+                <div class="btn-desc">Restore your Dropbox connection</div>
+            </div>
+        </button>
+        '''
+    
+    if settings.onedrive_client_id:
+        providers_html += '''
+        <button class="btn" onclick="reconnect('onedrive')">
+            <span class="btn-icon">🔵</span>
+            <div>
+                <div class="btn-label">OneDrive</div>
+                <div class="btn-desc">Restore your OneDrive connection</div>
+            </div>
+        </button>
+        '''
+    
+    return f'''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reconnect - Semptify</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f1f5f9;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }}
+        .container {{
+            max-width: 500px;
+            width: 90%;
+            padding: 2rem;
+        }}
+        .icon {{
+            font-size: 4rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }}
+        h1 {{
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-size: 1.75rem;
+        }}
+        .subtitle {{
+            text-align: center;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+        }}
+        .info-box {{
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid #10b981;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }}
+        .button-grid {{
+            display: grid;
+            gap: 0.75rem;
+        }}
+        .btn {{
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.25rem;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: #f1f5f9;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            width: 100%;
+        }}
+        .btn:hover {{
+            background: rgba(255,255,255,0.15);
+            border-color: rgba(255,255,255,0.3);
+        }}
+        .btn-icon {{
+            font-size: 1.5rem;
+        }}
+        .btn-label {{
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }}
+        .btn-desc {{
+            font-size: 0.875rem;
+            opacity: 0.7;
+        }}
+        .back-link {{
+            display: block;
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #64748b;
+            text-decoration: none;
+        }}
+        .back-link:hover {{
+            color: #94a3b8;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">👋</div>
+        <h1>Welcome Back!</h1>
+        <p class="subtitle">Reconnect your storage to restore your journal</p>
+        
+        <div class="info-box">
+            <strong>No data is lost.</strong> Your documents are safely stored in your cloud account. 
+            Just reconnect with the same provider you used before.
+        </div>
+        
+        <div class="button-grid">
+            {providers_html}
+        </div>
+        
+        <a href="/" class="back-link">← Back to welcome page</a>
+    </div>
+    
+    <script>
+        function reconnect(provider) {{
+            // For returning users, we skip role selection and go straight to OAuth
+            // The server will match them to their existing account
+            window.location.href = '/storage/auth/' + provider + '?mode=reconnect';
+        }}
+    </script>
+</body>
+</html>'''
 
 
 @router.get("/providers")
@@ -1365,9 +1541,9 @@ async def oauth_callback(
                 print(f"🔄 OAuth callback: Matched existing user by provider subject: {user_id}")
             else:
                 # New user - generate ID encoding provider + role
-                role = (state_data.get("role") or "user").strip().lower()
+                role = (state_data.get("role") or "tenant").strip().lower()
                 if role not in ALLOWED_ROLES:
-                    role = "user"
+                    role = "tenant"
                 user_id = generate_user_id(provider, role)
                 print(f"🆕 OAuth callback: New user - generated ID: {user_id} (provider={provider}, role={role})")
 
@@ -1966,6 +2142,124 @@ async def get_session_info(
         "needs_reauth": raw_session is not None and valid_session is None,
         "session_present": raw_session is not None,
     }
+
+
+# ============================================================================
+# Returning User Reconnect API
+# ============================================================================
+
+@router.post("/api/user/lookup")
+async def lookup_user(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Look up user by email or provider for returning user reconnect.
+    
+    Request body: {"email": "user@example.com"} OR {"provider": "google", "provider_account_id": "..."}
+    Response: {"found": true, "user_id": "usr_...", "role": "tenant"} OR {"found": false}
+    """
+    try:
+        data = await request.json()
+        
+        if not data:
+            return {"found": False, "error": "No data provided"}
+        
+        # Lookup by email
+        if "email" in data and data["email"]:
+            from app.models.database import User
+            from sqlalchemy import select
+            
+            result = await db.execute(
+                select(User).where(User.email == data["email"])
+            )
+            user = result.scalar_one_or_none()
+            
+            if user:
+                return {
+                    "found": True,
+                    "user_id": user.user_id,
+                    "role": user.role,
+                    "provider": user.provider,
+                }
+        
+        # Lookup by provider (when user clicks provider button instead of entering email)
+        if "provider" in data and data["provider"]:
+            # User selected a provider - they'll need to OAuth to identify themselves
+            # Store preference and return redirect info
+            return {
+                "found": True,
+                "oauth_required": True,
+                "provider": data["provider"],
+                "message": "Please authenticate with your storage provider",
+            }
+        
+        return {"found": False}
+        
+    except Exception as e:
+        print(f"❌ Error in lookup_user: {e}")
+        return {"found": False, "error": "Lookup failed"}
+
+
+@router.post("/api/session/restore")
+async def restore_session(
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Restore user session after reconnect.
+    
+    Request body: {"user_id": "usr_..."}
+    Response: {"success": true, "redirect_url": "/tenant/dashboard"} OR
+              {"oauth_required": true, "oauth_url": "/storage/providers?..."}
+    """
+    try:
+        data = await request.json()
+        user_id = data.get("user_id")
+        
+        if not user_id:
+            return {"success": False, "error": "No user_id provided"}
+        
+        # Parse user_id to get provider and role
+        from app.core.user_id import parse_user_id
+        provider, role, provider_account_id = parse_user_id(user_id)
+        
+        # Check for existing valid session in DB
+        from app.services.storage import get_valid_session
+        session = await get_valid_session(db, user_id, auto_refresh=True)
+        
+        if session:
+            # Valid session exists - restore cookie and redirect
+            response.set_cookie(
+                key="semptify_uid",
+                value=user_id,
+                httponly=True,
+                secure=False,  # Set to True in production with HTTPS
+                samesite="lax",
+                max_age=30 * 24 * 60 * 60,  # 30 days
+            )
+            
+            # Route to role-appropriate dashboard
+            from app.core.workflow_engine import route_user
+            redirect_url = route_user(user_id, documents_present=True, has_active_case=True)
+            
+            return {
+                "success": True,
+                "redirect_url": redirect_url,
+            }
+        
+        # No valid session - need OAuth re-authentication
+        return {
+            "success": False,
+            "oauth_required": True,
+            "oauth_url": f"/storage/providers?return_to=/storage/reconnect&user_id={user_id}",
+            "message": "Storage connection needs renewal",
+        }
+        
+    except Exception as e:
+        print(f"❌ Error in restore_session: {e}")
+        return {"success": False, "error": "Session restoration failed"}
 
 
 @router.post("/prepare-reconnect")

@@ -150,7 +150,6 @@ unified_overlays_router = _safe_router_import("app.routers.unified_overlays")
 document_delivery_router = _safe_router_import("app.routers.document_delivery")
 communication_router = _safe_router_import("app.routers.communication")
 free_api_router = _safe_router_import("app.routers.free_api")
-advocate_invite_router = _safe_router_import("app.routers.advocate_invite")
 timeline_unified_router = _safe_router_import("app.routers.timeline_unified")
 from app.routers import storage
 from app.routers import onboarding
@@ -480,7 +479,7 @@ async def lifespan(_app: FastAPI):
         if lifespan_settings.security_mode == "enforced":
             logger.info("   🔒 PRODUCTION MODE: ENFORCED SECURITY ACTIVE")
         logger.info("   🌐 Server: http://localhost:8000")
-        logger.info("   📄 Welcome: http://localhost:8000/static/welcome.html")
+        logger.info("   📄 Welcome: http://localhost:8000/")
         logger.info("   📚 API Docs: http://localhost:8000/api/docs")
         logger.info("=" * 60)
         logger.info("")
@@ -1616,6 +1615,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             logger.error("⚠️  Failed to load request logging middleware: %s", e)
             logger.warning("Request logging not available - continuing without it")
     
+    # Smart Gate Checkpoint (enforces welcome page for new users)
+    from app.core.checkpoint_middleware import SmartCheckpointMiddleware
+    fastapi_app.add_middleware(SmartCheckpointMiddleware)
+    logger.info("🚪 Smart checkpoint gate enabled (welcome page checkpoint)")
+    
     # Storage requirement (CRITICAL: Enforces everyone has storage connected)
     from app.core.storage_middleware import StorageRequirementMiddleware
     fastapi_app.add_middleware(
@@ -1697,9 +1701,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if guided_intake_router:
         fastapi_app.include_router(guided_intake_router, tags=["Guided Intake"])
 
+    # Root route - serve welcome page from static/public (outside onboarding flow)
+    @fastapi_app.get("/", response_class=HTMLResponse)
+    async def root_welcome():
+        """Serve welcome page as entry point."""
+        welcome_path = BASE_PATH / "static" / "public" / "welcome.html"
+        if welcome_path.exists():
+            return FileResponse(welcome_path)
+        return RedirectResponse(url="/onboarding", status_code=302)
+
     # Unified Onboarding (primary entry point for new users)
     if onboarding.router:
-        fastapi_app.include_router(onboarding.router, tags=["Onboarding"])
+        fastapi_app.include_router(onboarding.router, prefix="/onboarding", tags=["Onboarding"])
 
     # Storage OAuth (handles authentication)
     if storage.router:
@@ -1802,8 +1815,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(dashboard_router, tags=["Unified Dashboard"])  # Combined dashboard data
     if enterprise_dashboard_router:
         fastapi_app.include_router(enterprise_dashboard_router, tags=["Enterprise Dashboard"])  # Premium enterprise UI & API
-    if advocate_invite_router:
-        fastapi_app.include_router(advocate_invite_router, tags=["Advocate Invitation"])  # Tenant invites personal advocates
     include_if(timeline_unified_router, prefix="/api/timeline", tags=["Unified Timeline"])  # Interactive timeline with date axis switching
     
     # Storage OAuth (handles authentication)
@@ -1994,9 +2005,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if static_path.exists():
         fastapi_app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 
-        # =========================================================================
-        # Onboarding Redirect (before catch-all)
-        # =========================================================================
+    # Mount onboarding folder directly at /onboarding for clean URLs
+    onboarding_static_path = BASE_PATH / "static" / "onboarding"
+    if onboarding_static_path.exists():
+        fastapi_app.mount("/onboarding", StaticFiles(directory=str(onboarding_static_path)), name="onboarding_static")
+
+    # =========================================================================
+    # Onboarding Redirect (before catch-all)
+    # =========================================================================
 
         @fastapi_app.get("/onboarding", response_class=HTMLResponse)
         async def onboarding_redirect():
@@ -2007,11 +2023,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         async def welcome_redirect():
             """Redirect legacy /welcome.html to canonical /onboarding entry point."""
             return RedirectResponse(url="/onboarding", status_code=301)
-
-        @fastapi_app.get("/", response_class=HTMLResponse)
-        async def root_redirect():
-            """Redirect root to unified onboarding flow."""
-            return RedirectResponse(url="/onboarding", status_code=302)
 
 
     # =========================================================================
