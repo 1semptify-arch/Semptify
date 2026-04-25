@@ -45,7 +45,93 @@ VAULT_TIMELINE_EVENTS_FILE = f"{VAULT_TIMELINE}/{VAULT_TIMELINE_EVENTS_FILENAME}
 
 ---
 
-## 2. Module Contracts (Function-Group Registry)
+## 2. Role Mapping (Frontend ↔ Backend)
+
+**File:** `static/onboarding/storage-select.html`
+
+### Canonical Role Names
+
+| Backend (API) | Frontend (UI) | Description |
+|---------------|---------------|-------------|
+| `tenant` | `user` | Tenant/end-user role (human-friendly label) |
+| `manager` | `manager` | Property manager role |
+| `advocate` | `advocate` | Tenant advocate role |
+| `legal` | `legal` | Legal professional role |
+| `judge` | `judge` | Judicial role |
+| `admin` | `admin` | System administrator |
+
+### Mapping Implementation
+
+```javascript
+// static/onboarding/storage-select.html
+const FRONTEND_TO_BACKEND_ROLES = {
+    'user': 'tenant',      // Frontend says "user", backend API expects "tenant"
+    'manager': 'manager',   // Pass-through
+    'advocate': 'advocate', // Pass-through
+    'legal': 'legal',       // Pass-through
+    'judge': 'judge',       // Pass-through
+    'admin': 'admin'        // Pass-through
+};
+
+function mapFrontendRoleToBackend(frontendRole) {
+    return FRONTEND_TO_BACKEND_ROLES[frontendRole] || frontendRole;
+}
+```
+
+### Design Principle
+- Frontend uses human-friendly terms ("I am a user/tenant")
+- Backend uses canonical identifiers (`ALLOWED_ROLES = {"tenant", "manager", ...}`)
+- Mapping happens at the API boundary, not in storage
+- `localStorage` keeps the frontend role value; transformation occurs on outbound API calls
+
+---
+
+## 3. Security Configuration (Cookie Settings)
+
+**Files:** `app/routers/security.py`, `app/routers/storage.py`
+
+### Problem
+Browsers reject `Secure` cookies over HTTP (localhost development). This causes:
+- Malformed cookie dates (Friday/Saturday same day bug)
+- Immediate cookie expiration
+- Session loss on every request
+
+### Solution
+Environment-based conditional security flag:
+
+```python
+# Set secure cookie - secure=False for localhost HTTP, True for HTTPS production
+import os
+is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
+response.set_cookie(
+    key="semptify_session",
+    value=session_data["session_id"],
+    max_age=86400,  # 24 hours
+    httponly=True,
+    secure=False if is_localhost else True,
+    samesite="lax"
+)
+```
+
+### Configuration
+Set in `.env` or environment:
+```bash
+# Development (HTTP localhost)
+ENVIRONMENT=development
+
+# Production (HTTPS)
+ENVIRONMENT=production
+```
+
+### Design Principle
+- Local development: `secure=False` allows HTTP cookies
+- Production: `secure=True` enforces HTTPS-only cookies
+- SameSite=Lax provides CSRF protection without breaking OAuth flows
+- HttpOnly prevents JavaScript access to session cookie
+
+---
+
+## 4. Module Contracts (Function-Group Registry)
 
 **File:** `app/core/module_contracts.py`
 
@@ -420,6 +506,38 @@ return RedirectResponse(redirect_url)
 
 ---
 
+## 8. Process Contracts (Logged)
+
+Process contracts define deterministic user workflows with defined entry criteria, steps, and exit criteria.
+
+| Contract ID | Function Group | File | Status | Version |
+|-------------|----------------|------|--------|---------|
+| `proc_user_reconnect` | `user_session_recovery` | `docs/process_contracts/user_reconnect_v2.md` | Active | 2.0 |
+
+### Contract: User Reconnect Flow
+
+**Purpose**: Enable **returning users** to reconnect their Semptify session. Exclusively for users who have used Semptify before.
+
+**Key Principles**:
+- `provider_subject` is the single source of truth for user identity
+- User ID cookie encodes `provider + role + random` (e.g., `GU7x9kM2pQ`)
+- Returning users never select provider/role again - extracted from user ID
+- Silent reauthorize when tokens expired but refresh fails
+- **Separate from onboarding** - this is for existing users only
+
+**Entry Points**:
+- `/storage/` - Returning user with valid cookie
+- `/storage/reconnect` - User lost cookie, must select provider
+
+**Exit Criteria**:
+- `semptify_uid` cookie set with 1-year expiry
+- Valid storage tokens in DB
+- User routed to role-appropriate dashboard via `route_user()`
+
+**Implementation**: `app/routers/storage.py` (`storage_home()`, `initiate_oauth()`, `oauth_callback()`)
+
+---
+
 ## Files That Implement SSOT
 
 | File | Purpose |
@@ -427,6 +545,7 @@ return RedirectResponse(redirect_url)
 | `app/core/vault_paths.py` | Canonical cloud storage paths |
 | `app/core/module_contracts.py` | Function-group contract registry |
 | `app/core/workflow_engine.py` | Deterministic routing engine |
+| `app/routers/storage.py` | User session recovery (contract: `proc_user_session_recovery`) |
 | `app/services/timeline_chronology.py` | Timeline chronology builder |
 
 ---

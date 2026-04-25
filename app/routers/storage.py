@@ -711,18 +711,42 @@ def _decrypt_token(encrypted: bytes, user_id: str) -> dict:
 async def storage_home(
     request: Request,
     semptify_uid: Optional[str] = Cookie(None),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Main entry point. Checks cookie and routes user appropriately.
-    
-    - Has cookie? → Parse it → Redirect to their provider's OAuth
-    - No cookie? → Show provider selection page
+
+    Returning User Flow (seamless reconnect):
+    - Has valid cookie + valid session → Route to their home page
+    - Has valid cookie + invalid session → Silent OAuth reauthorize (same provider)
+    - No cookie → Show provider selection page for new users
     """
-    if semptify_uid and is_valid_storage_user(semptify_uid):
+    if not semptify_uid or not is_valid_storage_user(semptify_uid):
+        # New user - show provider selection
+        return RedirectResponse(url="/storage/providers", status_code=302)
+
+    # Returning user - check if they have a valid session
+    provider, role, _ = parse_user_id(semptify_uid)
+
+    # Try to get valid session (will auto-refresh if possible)
+    session = await get_valid_session(db, semptify_uid, auto_refresh=True)
+
+    if session:
+        # Valid session - route to their home page
         return RedirectResponse(url=_route_user(semptify_uid), status_code=302)
 
-    # New user - show provider selection
-    return RedirectResponse(url="/storage/providers", status_code=302)
+    # Session expired/invalid and refresh failed - need to reauthorize
+    # Extract provider from their existing user ID (no need to ask user)
+    if provider and provider in OAUTH_CONFIGS:
+        # Silent reauthorize: redirect to OAuth with the same provider
+        # User never has to select provider or role - it's encoded in their ID
+        return RedirectResponse(
+            url=f"/storage/oauth/{provider}?existing_uid={semptify_uid}",
+            status_code=302
+        )
+
+    # Fallback: if we can't determine provider, show reconnect page
+    return RedirectResponse(url="/storage/reconnect", status_code=302)
 
 
 @router.get("/reconnect", response_class=HTMLResponse)
@@ -1346,15 +1370,15 @@ async def initiate_oauth(
     provider: str,
     request: Request,
     db: AsyncSession = Depends(get_db),
-    role: str = "user",
+    role: Optional[str] = None,
     existing_uid: Optional[str] = None,
     return_to: Optional[str] = None,
 ):
     """
     Start OAuth flow.
-    
-    - New user: role param determines their role
-    - Returning user: existing_uid preserves their user ID
+
+    - New user: role param determines their role (defaults to 'tenant')
+    - Returning user: role extracted from existing_uid cookie, param ignored
     - return_to: URL to redirect to after OAuth (for setup wizards)
     """
     try:
@@ -1363,13 +1387,24 @@ async def initiate_oauth(
             print(f"DEBUG: Unknown provider: {provider}")
             raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
 
-        # Normalize and validate requested role.
-        role = (role or "user").strip().lower()
-        if role not in ALLOWED_ROLES:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid role '{role}'. Allowed roles: {sorted(ALLOWED_ROLES)}",
-            )
+        # For returning users, extract role from their existing user ID
+        # New users default to 'tenant' role
+        cookie_uid = request.cookies.get(COOKIE_USER_ID)
+        effective_uid = existing_uid or cookie_uid
+
+        if effective_uid and is_valid_storage_user(effective_uid):
+            # Returning user: role is encoded in their user ID, ignore param
+            _, extracted_role, _ = parse_user_id(effective_uid)
+            role = extracted_role or "tenant"
+            print(f"DEBUG: Returning user - extracted role '{role}' from user ID")
+        else:
+            # New user: validate the requested role
+            role = (role or "tenant").strip().lower()
+            if role not in ALLOWED_ROLES:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid role '{role}'. Allowed roles: {sorted(ALLOWED_ROLES)}",
+                )
 
         # Keep returning-user reauth bound to the current browser cookie.
         cookie_uid = request.cookies.get(COOKIE_USER_ID)
