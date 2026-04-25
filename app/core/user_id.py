@@ -72,7 +72,8 @@ CODE_TO_PROVIDER = {
 ROLE_TO_CODE = {
     "admin": RoleCode.ADMIN,
     "manager": RoleCode.MANAGER,
-    "user": RoleCode.USER,
+    "tenant": RoleCode.USER,      # Maps to 'U' code, distinct from USER string
+    "user": RoleCode.USER,        # Legacy alias
     "advocate": RoleCode.ADVOCATE,
     "legal": RoleCode.LEGAL,
     "judge": RoleCode.JUDGE,
@@ -81,13 +82,13 @@ ROLE_TO_CODE = {
 CODE_TO_ROLE = {
     RoleCode.ADMIN: "admin",
     RoleCode.MANAGER: "manager",
-    RoleCode.USER: "user",
+    RoleCode.USER: "tenant",      # 'U' code = tenant (canonical housing role)
     RoleCode.ADVOCATE: "advocate",
     RoleCode.LEGAL: "legal",
     RoleCode.JUDGE: "judge",
     "A": "admin",
     "M": "manager",
-    "U": "user",
+    "U": "tenant",              # 'U' decodes to tenant
     "V": "advocate",
     "L": "legal",
     "J": "judge",

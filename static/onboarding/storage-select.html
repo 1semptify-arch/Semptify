@@ -338,7 +338,7 @@
         <!-- Provider Cards -->
         <div class="providers-grid">
             <!-- Google Drive -->
-            <a href="#" class="provider-card" onclick="selectProvider(event, "'"'"'google_drive'"'"')">
+            <a href="javascript:void(0);" class="provider-card" onclick="return selectProvider(event, 'google_drive');">
                 <div class="provider-icon">
                     <svg viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -357,7 +357,7 @@
             </a>
 
             <!-- Dropbox -->
-            <a href="#" class="provider-card" onclick="selectProvider(event, "'"'"'dropbox'"'"')">
+            <a href="javascript:void(0);" class="provider-card" onclick="return selectProvider(event, 'dropbox');">
                 <div class="provider-icon">
                     <svg viewBox="0 0 24 24">
                         <path fill="#0061FF" d="M12 6.19L6.5 9.89l5.5 3.7-5.5 3.7L1 13.59l5.5-3.7L1 6.19 6.5 2.5 12 6.19zm0 7.4l5.5-3.7L12 6.19 6.5 9.89l5.5 3.7zm0 3.7l-5.5-3.7 5.5 3.7 5.5-3.7-5.5 3.7zm5.5-7.4L12 6.19l5.5-3.69L23 6.19l-5.5 3.7zm-5.5 11.1l-5.5-3.7v1.5l5.5 3.7 5.5-3.7v-1.5l-5.5 3.7z"/>
@@ -373,7 +373,7 @@
             </a>
 
             <!-- OneDrive -->
-            <a href="#" class="provider-card" onclick="selectProvider(event, "'"'"'onedrive'"'"')">
+            <a href="javascript:void(0);" class="provider-card" onclick="return selectProvider(event, 'onedrive');">
                 <div class="provider-icon">
                     <svg viewBox="0 0 24 24">
                         <path fill="#0078D4" d="M10.5 18.5c0 .28-.22.5-.5.5H3c-1.1 0-2-.9-2-2v-1c0-2.21 1.79-4 4-4 .34 0 .68.04 1 .12V12c0-2.76 2.24-5 5-5 2.06 0 3.83 1.24 4.6 3.02.13-.01.26-.02.4-.02 2.76 0 5 2.24 5 5s-2.24 5-5 5h-5c-.28 0-.5-.22-.5-.5z"/>
@@ -473,22 +473,53 @@
         function reconnectWithPrevious() {
             if (sessionProvider) {
                 const params = new URLSearchParams();
-                params.set("role", sessionRole || role);
+                // Map frontend role to backend role for reconnect flow too
+                const backendRole = mapFrontendRoleToBackend(sessionRole || role);
+                params.set("role", backendRole);
                 params.set("mode", "reconnect");
                 window.location.href = "/storage/auth/" + sessionProvider + "?" + params.toString();
             }
+        }
+
+        // SSOT: Frontend-to-Backend Role Mapping
+        // The frontend uses "user" for tenant role selection (human-friendly)
+        // Backend API expects "tenant" (canonical role identifier)
+        // This mapping happens at the API boundary, not in storage
+        const FRONTEND_TO_BACKEND_ROLES = {
+            'user': 'tenant',      // Tenant role: frontend says "user", backend says "tenant"
+            'manager': 'manager',  // Pass-through
+            'advocate': 'advocate', // Pass-through
+            'legal': 'legal',      // Pass-through
+            'judge': 'judge',      // Pass-through
+            'admin': 'admin'       // Pass-through
+        };
+
+        function mapFrontendRoleToBackend(frontendRole) {
+            const backendRole = FRONTEND_TO_BACKEND_ROLES[frontendRole] || frontendRole;
+            console.log('Role mapping:', frontendRole, '->', backendRole);
+            return backendRole;
         }
 
         // Check session on page load
         checkExistingSession();
 
         function selectProvider(event, provider) {
+            console.log("selectProvider called with:", provider, "role:", role);
             event.preventDefault();
+            event.stopPropagation();
+            
+            // Map frontend role to backend role before sending to OAuth
+            const backendRole = mapFrontendRoleToBackend(role);
+            
             const params = new URLSearchParams();
-            params.set("role", role);
+            params.set("role", backendRole);
             params.set("from", "onboarding");
             params.set("return_to", "/onboarding/vault-init.html");
-            window.location.href = "/storage/auth/" + provider + "?" + params.toString();
+            
+            const url = "/storage/auth/" + provider + "?" + params.toString();
+            console.log("Navigating to:", url);
+            window.location.href = url;
+            return false;
         }
     </script>
 </body>

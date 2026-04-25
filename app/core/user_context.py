@@ -34,13 +34,14 @@ class UserRole(str, Enum):
     """
     User roles determine what features/UI to show.
     A user can have ONE active role per session, but can switch.
-    
+
     NOTE: Role is stable identity, not tied to gates or activation state.
-    The USER role is displayed as "Tenant" in housing context.
+    TENANT is the canonical role for housing context (previously "user").
     """
     ADMIN = "admin"            # System admin: full access
     MANAGER = "manager"        # Case manager: multi-client coordination
-    USER = "user"              # Default: standard user (displayed as Tenant in UI)
+    TENANT = "tenant"          # Tenant: standard housing case user
+    USER = "user"              # Legacy alias for tenant (deprecated, use TENANT)
     ADVOCATE = "advocate"      # Tenant advocate: help multiple users
     LEGAL = "legal"            # Legal role: attorneys, clerks, and court staff
     JUDGE = "judge"            # Judge: judicial officer overseeing cases
@@ -64,10 +65,10 @@ class StorageProvider(str, Enum):
 
 ROLE_PERMISSIONS = {
     # ==========================================================================
-    # TENANT (USER) - Mobile-first, simplified access
+    # TENANT - Mobile-first, simplified access (canonical housing role)
     # Focus: Own case management, self-help tools, guided workflows
     # ==========================================================================
-    UserRole.USER: {
+    UserRole.TENANT: {
         # Vault - own documents only
         "vault_read",
         "vault_write",
@@ -85,6 +86,22 @@ ROLE_PERMISSIONS = {
         "ledger_read",
         "ledger_write",
         # Self-help tools
+        "eviction_defense",
+        "court_forms",
+        "letter_builder",
+    },
+    # Legacy alias - same permissions as TENANT
+    UserRole.USER: {
+        "vault_read",
+        "vault_write",
+        "timeline_read",
+        "timeline_write",
+        "calendar_read",
+        "calendar_write",
+        "copilot_use",
+        "complaints_create",
+        "ledger_read",
+        "ledger_write",
         "eviction_defense",
         "court_forms",
         "letter_builder",
@@ -453,10 +470,16 @@ class StoredSession:
 # =============================================================================
 
 ROLE_UI_CONFIG = {
-    UserRole.USER: {
-        "theme": "user",
+    UserRole.TENANT: {
+        "theme": "tenant",
         "nav_items": ["vault", "timeline", "calendar", "copilot", "complaints", "ledger"],
-        "dashboard": "user_dashboard",
+        "dashboard": "tenant_dashboard",
+        "landing": "/vault",
+    },
+    UserRole.USER: {  # Legacy alias - same as TENANT
+        "theme": "tenant",
+        "nav_items": ["vault", "timeline", "calendar", "copilot", "complaints", "ledger"],
+        "dashboard": "tenant_dashboard",
         "landing": "/vault",
     },
     UserRole.MANAGER: {
@@ -488,7 +511,7 @@ ROLE_UI_CONFIG = {
 
 def get_ui_config(role: UserRole) -> dict:
     """Get UI configuration for a role."""
-    return ROLE_UI_CONFIG.get(role, ROLE_UI_CONFIG[UserRole.USER])
+    return ROLE_UI_CONFIG.get(role, ROLE_UI_CONFIG[UserRole.TENANT])
 
 
 async def get_user_context(
