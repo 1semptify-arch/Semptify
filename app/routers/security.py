@@ -314,13 +314,15 @@ async def create_secure_session_endpoint(
             "expires_at": session_data["session"]["expires_at"]
         })
         
-        # Set secure cookie
+        # Set secure cookie - secure=False for localhost HTTP, True for HTTPS production
+        import os
+        is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
         response.set_cookie(
             key="semptify_session",
             value=session_data["session_id"],
             max_age=86400,  # 24 hours
             httponly=True,
-            secure=True,
+            secure=False if is_localhost else True,
             samesite="lax"
         )
         

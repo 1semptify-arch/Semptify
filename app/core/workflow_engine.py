@@ -117,7 +117,7 @@ def _resolve_route(process: ProcessCode, role: UserRole) -> str:
 
 
 def _tenant_decision(state: WorkflowState) -> WorkflowDecision:
-    """Routing logic for UserRole.USER (Tenant)."""
+    """Routing logic for UserRole.TENANT and UserRole.USER (Tenant roles)."""
     warnings: list[str] = []
 
     if state.storage_state == StorageState.NEED_CONNECT:
@@ -238,14 +238,14 @@ def evaluate(state: WorkflowState) -> WorkflowDecision:
 
     Example:
         state = WorkflowState(
-            role=UserRole.USER,
+            role=UserRole.TENANT,
             storage_state=StorageState.ALREADY_CONNECTED,
             documents_present=True,
         )
         decision = evaluate(state)
         redirect_to(decision.next_route)
     """
-    if state.role == UserRole.USER:
+    if state.role in (UserRole.TENANT, UserRole.USER):
         return _tenant_decision(state)
     return _professional_decision(state)
 
