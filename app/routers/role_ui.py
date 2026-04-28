@@ -94,6 +94,23 @@ async def ui_router(
     return RedirectResponse(url=landing_page, status_code=302)
 
 
+@router.get("/route")
+async def ui_route(request: Request):
+    """
+    Post-auth/post-onboarding redirect. Reads the user cookie, checks the vault,
+    and sends the user directly to their role home page. No extra hops.
+    Returning users and newly onboarded users both land here cleanly.
+    """
+    from app.core.workflow_engine import route_user as _route_user
+    from app.core.cookie_auth import extract_user_id
+    user_id = extract_user_id(request)
+    if not user_id:
+        return RedirectResponse(url="/static/welcome.html", status_code=302)
+    landing = _route_user(user_id)
+    logger.info("ui/route: user=%s → %s", user_id, landing)
+    return RedirectResponse(url=landing, status_code=302)
+
+
 @router.get("/role-info")
 async def get_role_info(
     user: Optional[UserContext] = Depends(get_current_user)

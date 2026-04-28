@@ -45,6 +45,66 @@ VAULT_TIMELINE_EVENTS_FILE = f"{VAULT_TIMELINE}/{VAULT_TIMELINE_EVENTS_FILENAME}
 
 ---
 
+## 1.1 Unified Vault + Registry Document Flow
+
+**Files:** `app/services/vault_upload_service.py`, `app/services/document_registry.py`
+
+### Principle: Single Entry Point, Automatic Certification
+
+Every document entering Semptify follows ONE path:
+
+```
+Tenant Upload
+    ↓
+Vault Upload Service (vault_upload_service.upload())
+    ├─ Store in user's cloud storage (Semptify5.0/Vault/documents/)
+    ├─ Create VaultDocument (vault_id, sha256_hash, storage_path)
+    ├─ Generate certificate
+    ├─ AUTO-REGISTER in Document Registry ← NEW: Unified step
+    │   └─ Create chain of custody record
+    │   └─ Assign SEM-YYYY-NNNNNN-XXXX ID (registry_id)
+    │   └─ Verify integrity (sha256)
+    └─ Create unified overlay (upload manifest)
+    ↓
+Return CertifiedVaultDocument
+    ├─ vault_id: Semptify internal reference
+    ├─ registry_id: Chain of custody ID
+    ├─ is_certified: True (has both vault + registry)
+    └─ integrity_status: "verified"
+```
+
+### VaultDocument Certification States
+
+| State | vault_id | registry_id | is_certified | Meaning |
+|-------|----------|-------------|--------------|---------|
+| **Certified** | ✅ | ✅ | `True` | Full chain of custody, ready for processing |
+| **Uncertified** | ✅ | ❌ | `False` | In vault but registration failed - retry needed |
+| **Invalid** | ❌ | - | `False` | Upload failed, document not stored |
+
+### SSOT Rule
+
+> **"Every document in the vault IS a registered document. No exceptions."**
+
+- Vault upload auto-registers - router doesn't call registry separately
+- Registry enrichment (case_number, IP) happens after auto-registration
+- Downstream modules check `doc.is_certified` before processing
+- Uncertified docs are logged but not rejected - they can be re-registered
+
+### Code Pattern
+
+```python
+# OLD: Router called registry separately (two-step)
+vault_doc = await vault_service.upload(...)
+registry_doc = registry.register_document(...)  # REDUNDANT
+
+# NEW: Vault auto-registers, router enriches (unified)
+vault_doc = await vault_service.upload(...)  # Auto-registers
+if vault_doc.registry_id:
+    registry.enrich_document(vault_doc.registry_id, case_number=..., ip_address=...)
+```
+
+---
+
 ## 2. Role Mapping (Frontend ↔ Backend)
 
 **File:** `static/onboarding/storage-select.html`
@@ -100,7 +160,39 @@ Browsers reject `Secure` cookies over HTTP (localhost development). This causes:
 Environment-based conditional security flag:
 
 ```python
-# Set secure cookie - secure=False for localhost HTTP, True for HTTPS production
+import os
+is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
+
+response.set_cookie(
+    key="semptify_session",
+    value=session_data["session_id"],
+    max_age=86400,  # 24 hours
+    httponly=True,
+    secure=False if is_localhost else True,  # Conditional!
+    samesite="lax",
+)
+```
+
+### Implementation Notes
+
+#### Role Name Consistency (Critical Fix)
+**Bug:** Redirect loop caused by role name mismatch between user ID encoding and page guards.
+
+**Root Cause:** User IDs encode role as `"tenant"` but page guards checked for `{"user"}`.
+
+**Files Fixed:**
+- `app/main.py` `_guard_role_page` calls for tenant routes:
+  - `/tenant/` → changed `{"user"}` to `{"tenant"}`
+  - `/tenant/{subpage}` → changed `{"user"}` to `{"tenant"}`  
+  - `/tenant/home/` → changed `{"user"}` to `{"tenant"}`
+
+**Rule:** Page guard allowed_roles must match the role string encoded in user IDs (via `get_role_from_user_id`).
+
+#### HTTP/HTTPS Cookie Security Pattern
+**Standard:** `secure=False` for localhost HTTP, `secure=True` for production HTTPS
+
+```python
+# Correct pattern for cookie security
 import os
 is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
 response.set_cookie(
@@ -108,8 +200,8 @@ response.set_cookie(
     value=session_data["session_id"],
     max_age=86400,  # 24 hours
     httponly=True,
-    secure=False if is_localhost else True,
-    samesite="lax"
+    secure=False if is_localhost else True,  # Conditional!
+    samesite="lax",
 )
 ```
 
@@ -122,6 +214,24 @@ ENVIRONMENT=development
 # Production (HTTPS)
 ENVIRONMENT=production
 ```
+
+### Implementation Checklist
+All cookie-setting locations must use this pattern:
+
+| File | Function | Line | Status |
+|------|----------|------|--------|
+| `app/routers/security.py` | `login` | ~325 | ✅ Fixed |
+| `app/routers/storage.py` | `oauth_callback` | ~1700 | ✅ Fixed |
+| `app/routers/storage.py` | `oauth_callback` (error path) | ~1744 | ✅ Fixed |
+| `app/routers/storage.py` | `rehome` | ~2134 | ✅ Fixed |
+| `app/routers/storage.py` | `restore_session` | ~2344 | ✅ Fixed |
+| `app/routers/storage.py` | `update_user_id` | ~2677 | ✅ Fixed |
+
+**Critical:** Never hardcode `secure=True` or `secure=False`. Always use the conditional pattern.
+
+**Common Bug:** Each cookie-setting block must define `is_localhost` in its own scope. Don't assume it's inherited from earlier in the function. Example bug fixed at line ~1744 where error handler used `is_localhost` without defining it first.
+
+**Critical Consistency:** The `semptify_uid` cookie must ALWAYS use `httponly=False` (not True) so JavaScript can read it for auth checks. Bug fixed at line ~2346 where `restore_session` incorrectly used `httponly=True` while all other locations used `httponly=False`.
 
 ### Design Principle
 - Local development: `secure=False` allows HTTP cookies

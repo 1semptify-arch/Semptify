@@ -171,12 +171,13 @@ try {
     Write-Host "  Press Ctrl+C to stop" -ForegroundColor Yellow
     Write-Host ""
 
-    # Start the server
+    # Start the server (using factory pattern)
     & $PYTHON -m uvicorn $MODULE `
         --host $ListenHost `
         --port $Port `
         --loop asyncio `
-        --http h11
+        --http h11 `
+        --factory
 
 } catch {
     Write-Host ""

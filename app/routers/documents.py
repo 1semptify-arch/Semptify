@@ -355,11 +355,11 @@ async def upload_document(
             },
         )
     
-    # Initialize response data
-    registry_id = None
+    # Initialize response data from vault (auto-registered during upload)
+    registry_id = vault_doc.registry_id if vault_doc else None
     content_hash = vault_doc.sha256_hash if vault_doc else None
     is_duplicate = False
-    integrity_verified = False
+    integrity_verified = vault_doc.integrity_status == "verified" if vault_doc else False
     forgery_score = 0.0
     requires_review = False
     intake_status = None
@@ -368,28 +368,25 @@ async def upload_document(
     matched_statutes = []
     
     # =========================================================================
-    # STEP 1: REGISTER DOCUMENT (Chain of Custody, Hash, Unique ID)
+    # STEP 1: ENRICH REGISTRY (Vault auto-registered, now enrich with case/IP)
     # =========================================================================
-    if HAS_REGISTRY:
+    if HAS_REGISTRY and registry_id:
         try:
             registry = get_document_registry()
-            reg_doc = registry.register_document(
-                user_id=user_id,
-                content=content,
-                filename=file.filename,
-                mime_type=mime_type,
+            # Enrich the auto-registered document with additional context
+            registry.enrich_document(
+                document_id=registry_id,
                 case_number=case_number,
                 ip_address=client_ip,
+                vault_metadata={
+                    "vault_id": vault_doc.vault_id if vault_doc else None,
+                    "storage_provider": vault_doc.storage_provider if vault_doc else None,
+                    "source_module": vault_doc.source_module if vault_doc else None,
+                }
             )
-            registry_id = reg_doc.document_id
-            content_hash = reg_doc.content_hash
-            is_duplicate = reg_doc.is_duplicate
-            integrity_verified = reg_doc.integrity_status.value == "verified"
-            forgery_score = reg_doc.forgery_score
-            requires_review = reg_doc.requires_review
-            logger.info(f"Document registered: {registry_id}")
+            logger.info(f"Document registry enriched: {registry_id}")
         except Exception as e:
-            logger.warning(f"Registry integration failed: {e}")
+            logger.warning(f"Registry enrichment failed: {e}")
     
     # =========================================================================
     # STEP 2: PIPELINE PROCESSING (Store, Analyze, Classify)

@@ -1697,14 +1697,8 @@ async def oauth_callback(
         # In production with HTTPS, set secure=True
         import os
         is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
-        response.set_cookie(
-            key=COOKIE_USER_ID,
-            value=user_id,
-            max_age=COOKIE_MAX_AGE,  # 1 year
-            httponly=False,  # Must be False so JavaScript can read for auth checks
-            secure=False if is_localhost else True,  # Must be False for http://localhost
-            samesite="lax",
-        )
+        from app.core.cookie_auth import set_auth_cookie
+        set_auth_cookie(response, user_id, max_age=COOKIE_MAX_AGE, secure=not is_localhost)
         
         # Clear the redirect loop counter cookie (onboarding is now complete)
         response.delete_cookie("semptify_redirect_loop_count")
@@ -1739,16 +1733,13 @@ async def oauth_callback(
                 provider,
                 user_id,
             )
-            fallback_url = "/tenant/documents?storage_setup=retry_required&provider=" + provider
+            fallback_url = "/onboarding/status?storage_setup=retry_required&provider=" + provider
             response = RedirectResponse(url=fallback_url, status_code=302)
-            response.set_cookie(
-                key=COOKIE_USER_ID,
-                value=user_id,
-                max_age=COOKIE_MAX_AGE,
-                httponly=False,
-                secure=False if is_localhost else True,
-                samesite="lax",
-            )
+            # Ensure is_localhost is defined for error path cookie
+            import os
+            is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
+            from app.core.cookie_auth import set_auth_cookie
+            set_auth_cookie(response, user_id, max_age=COOKIE_MAX_AGE, secure=not is_localhost)
 
         return response
     except HTTPException as exc:
@@ -1969,7 +1960,8 @@ async def _vault_access_ready(
 ) -> tuple[bool, str]:
     """Check whether vault is ready for function-token access (created + enabled)."""
     from app.services.storage import get_provider
-    from app.services.storage.vault_manager import get_vault_manager, PROVISIONING_FILE
+    from app.services.storage.vault_manager import get_vault_manager
+    from app.core.vault_paths import PROVISIONING_FILE
 
     try:
         storage = get_provider(provider, access_token=access_token)
@@ -2131,14 +2123,8 @@ async def rehome_device(
 </body>
 </html>''')
     
-    response.set_cookie(
-        key=COOKIE_USER_ID,
-        value=user_id,
-        max_age=COOKIE_MAX_AGE,
-        httponly=False,  # Must be False so JavaScript can read for auth checks
-        secure=is_secure,
-        samesite="lax",
-    )
+    from app.core.cookie_auth import set_auth_cookie
+    set_auth_cookie(response, user_id, max_age=COOKIE_MAX_AGE, secure=is_secure)
     
     return response
 
@@ -2334,14 +2320,11 @@ async def restore_session(
         
         if session:
             # Valid session exists - restore cookie and redirect
-            response.set_cookie(
-                key="semptify_uid",
-                value=user_id,
-                httponly=True,
-                secure=False,  # Set to True in production with HTTPS
-                samesite="lax",
-                max_age=30 * 24 * 60 * 60,  # 30 days
-            )
+            # Set secure cookie - secure=False for localhost HTTP, True for HTTPS production
+            import os
+            is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
+            from app.core.cookie_auth import set_auth_cookie
+            set_auth_cookie(response, user_id, max_age=30 * 24 * 60 * 60, secure=not is_localhost)
             
             # Route to role-appropriate dashboard
             from app.core.workflow_engine import route_user
@@ -2670,14 +2653,8 @@ async def switch_role(
     import os
     is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
     is_secure = False if is_localhost else True
-    response.set_cookie(
-        key=COOKIE_USER_ID,
-        value=new_uid,
-        httponly=False,  # Must be False so JavaScript can read for auth checks
-        secure=is_secure,
-        samesite="lax",
-        max_age=COOKIE_MAX_AGE,
-    )
+    from app.core.cookie_auth import set_auth_cookie
+    set_auth_cookie(response, new_uid, max_age=COOKIE_MAX_AGE, secure=is_secure)
 
     return {
         "success": True,
