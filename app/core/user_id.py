@@ -141,7 +141,11 @@ def parse_user_id(user_id: str) -> Tuple[Optional[str], Optional[str], Optional[
     """
     if not user_id or len(user_id) < 3:
         return None, None, None
-    
+
+    # Strip HMAC signature if present (format: "<user_id>.<sig>")
+    if "." in user_id:
+        user_id = user_id.rsplit(".", 1)[0]
+
     provider_char = user_id[0].upper()
     role_char = user_id[1].upper()
     unique_part = user_id[2:]

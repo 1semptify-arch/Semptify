@@ -1,0 +1,447 @@
+{% extends "base.html" %}
+
+{% block title %}My Home - Semptify{% endblock %}
+{% block description %}Your safe space to organize your housing situation and protect your rights.{% endblock %}
+
+{% block nav %}
+<a href="/tenant/home">Home</a>
+<a href="/tenant/capture">Quick Capture</a>
+<a href="/tenant/journal">Journal</a>
+<a href="/tenant/inbox">Inbox</a>
+{% endblock %}
+
+{% block styles %}
+<style>
+.tenant-home {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+}
+
+/* Welcome Section - Reassuring, not overwhelming */
+.welcome-section {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.05));
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--color-border);
+}
+
+.welcome-section h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-primary);
+}
+
+.welcome-section p {
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* Status Card - What's happening NOW */
+.status-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.status-card h2 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-bottom: 1rem;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.status-item:last-child {
+    border-bottom: none;
+}
+
+.status-icon {
+    font-size: 1.25rem;
+    width: 2rem;
+    text-align: center;
+}
+
+.status-content {
+    flex: 1;
+}
+
+.status-label {
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.status-meta {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}
+
+/* Quick Actions - One-click help */
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.action-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    text-align: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.action-card:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-hover);
+    transform: translateY(-2px);
+}
+
+.action-icon {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+}
+
+.action-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    color: var(--color-text-primary);
+}
+
+.action-desc {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+}
+
+/* Emergency Capture - Prominent for stress moments */
+.emergency-capture {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(245, 158, 11, 0.05));
+    border: 2px solid var(--color-warning);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.emergency-capture h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--color-text-primary);
+}
+
+.emergency-capture p {
+    color: var(--color-text-secondary);
+    margin-bottom: 1rem;
+}
+
+.capture-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.capture-chip {
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.capture-chip:hover {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: white;
+}
+
+/* Recent Activity */
+.activity-section {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+}
+
+.activity-section h2 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--color-text-primary);
+}
+
+.activity-empty {
+    text-align: center;
+    padding: 2rem;
+    color: var(--color-text-muted);
+}
+
+.activity-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.activity-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0; /* Suppress whitespace text nodes from Jinja2 rendering */
+}
+
+.activity-list > * {
+    font-size: 1rem; /* Restore font size for actual content */
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    font-size: 1.25rem;
+    width: 1.5rem;
+    text-align: center;
+}
+
+.activity-text {
+    flex: 1;
+    color: var(--color-text-primary);
+    font-size: 0.9375rem;
+}
+
+.activity-time {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+/* Help Footer */
+.help-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.help-footer p {
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+}
+
+.help-link {
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.help-link:hover {
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .quick-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .welcome-section h1 {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tenant-home">
+    
+    <!-- Welcome - Reassuring tone -->
+    <section class="welcome-section">
+        <h1>Welcome back{% if user_name %}, {{ user_name }}{% endif %}</h1>
+        <p>This is your safe space. Everything you record here helps protect your rights. You're not alone.</p>
+    </section>
+    
+    <!-- Emergency Quick Capture - Prominent for stress -->
+    <section class="emergency-capture">
+        <h2>⚡ Something just happened?</h2>
+        <p>Quickly record it now while it's fresh. One tap, we'll handle the rest.</p>
+        <div class="capture-chips">
+            <button class="capture-chip" data-capture="notice">Got a notice</button>
+            <button class="capture-chip" data-capture="conversation">Had a conversation</button>
+            <button class="capture-chip" data-capture="repair">Repair not done</button>
+            <button class="capture-chip" data-capture="harassment">Feeling pressured</button>
+            <button class="capture-chip" data-capture="other">Something else</button>
+        </div>
+    </section>
+    
+    <!-- Status Overview - What's happening NOW -->
+    <section class="status-card">
+        <h2>Your Situation</h2>
+        
+        <div class="status-item">
+            <span class="status-icon">📅</span>
+            <div class="status-content">
+                <div class="status-label">
+                    {% if next_deadline %}
+                        Next: {{ next_deadline.title }}
+                    {% else %}
+                        No upcoming deadlines
+                    {% endif %}
+                </div>
+                <div class="status-meta">
+                    {% if next_deadline %}
+                        Due {{ next_deadline.date }} ({{ next_deadline.days_remaining }} days)
+                    {% else %}
+                        You're all caught up
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-item">
+            <span class="status-icon">📄</span>
+            <div class="status-content">
+                <div class="status-label">
+                    {% if document_count %}
+                        {{ document_count }} document{% if document_count != 1 %}s{% endif %} saved
+                    {% else %}
+                        No documents yet
+                    {% endif %}
+                </div>
+                <div class="status-meta">
+                    {% if last_document_date %}
+                        Last added {{ last_document_date }}
+                    {% else %}
+                        Upload photos, notices, or receipts
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-item">
+            <span class="status-icon">📝</span>
+            <div class="status-content">
+                <div class="status-label">
+                    {% if journal_count %}
+                        {{ journal_count }} journal entr{% if journal_count != 1 %}ies{% else %}y{% endif %}
+                    {% else %}
+                        Journal is empty
+                    {% endif %}
+                </div>
+                <div class="status-meta">
+                    {% if last_journal_date %}
+                        Last entry {{ last_journal_date }}
+                    {% else %}
+                        Record conversations, incidents, dates
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Quick Actions -->
+    <section class="quick-actions">
+        <a href="/tenant/capture" class="action-card">
+            <div class="action-icon">⚡</div>
+            <div class="action-title">Quick Capture</div>
+            <div class="action-desc">Log something that just happened</div>
+        </a>
+        
+        <a href="/documents" class="action-card">
+            <div class="action-icon">📄</div>
+            <div class="action-title">Documents</div>
+            <div class="action-desc">Upload and organize evidence</div>
+        </a>
+        
+        <a href="/timeline" class="action-card">
+            <div class="action-icon">📅</div>
+            <div class="action-title">Timeline</div>
+            <div class="action-desc">See your case chronology</div>
+        </a>
+        
+        <a href="/tenant/journal" class="action-card">
+            <div class="action-icon">📝</div>
+            <div class="action-title">Journal</div>
+            <div class="action-desc">Record conversations & events</div>
+        </a>
+    </section>
+    
+    <!-- Recent Activity -->
+    <section class="activity-section">
+        <h2>Recent Activity</h2>
+        {% if recent_activity %}
+            <ul class="activity-list">{% for item in recent_activity %}<li class="activity-item"><span class="activity-icon">{{ item.icon }}</span><span class="activity-text">{{ item.description }}</span><span class="activity-time">{{ item.time_ago }}</span></li>{% endfor %}</ul>
+        {% else %}
+            <div class="activity-empty">
+                <div class="activity-empty-icon">🌱</div>
+                <p>Your activity will appear here.<br>Start by capturing something that happened.</p>
+            </div>
+        {% endif %}
+    </section>
+    
+    <!-- Help Footer -->
+    <footer class="help-footer">
+        <p>Need help understanding your rights or next steps?</p>
+        <a href="/tenant/help" class="help-link">Get personalized guidance →</a>
+    </footer>
+    
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Quick capture chips
+document.querySelectorAll('.capture-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        const captureType = chip.getAttribute('data-capture');
+        // Redirect to capture page with type pre-selected
+        window.location.href = `/tenant/capture?type=${captureType}`;
+    });
+});
+
+// Update status timestamps periodically
+function updateTimestamps() {
+    // Could refresh relative times here
+}
+
+// Log page view for analytics (privacy-respecting)
+if (window.fetchWithCSRF) {
+    fetchWithCSRF('/api/analytics/pageview', {
+        method: 'POST',
+        body: JSON.stringify({ page: 'tenant_home' })
+    }).catch(() => {}); // Silent fail
+}
+</script>
+{% endblock %}

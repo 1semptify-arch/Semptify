@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}Quick Capture - Semptify{% endblock %}
+
+{% block nav %}
+<a href="/tenant/home">← Back to Home</a>
+{% endblock %}
+
+{% block styles %}
+<style>
+.capture-container {
+    max-width: 700px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.capture-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.capture-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.capture-header p {
+    color: var(--color-text-secondary);
+}
+
+/* Type Selection */
+.type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.type-card {
+    background: var(--color-bg-card);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.type-card:hover,
+.type-card.active {
+    border-color: var(--color-accent);
+    background: var(--color-bg-hover);
+}
+
+.type-card.active {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.type-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.type-label {
+    font-weight: 500;
+    font-size: 0.9375rem;
+}
+
+/* Form Section */
+.form-section {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-primary);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-size: 1rem;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* Date/Time Row */
+.datetime-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+/* File Upload */
+.file-upload {
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.file-upload:hover {
+    border-color: var(--color-accent);
+    background: var(--color-bg-hover);
+}
+
+.file-upload-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.file-upload-text {
+    color: var(--color-text-secondary);
+    font-size: 0.9375rem;
+}
+
+/* Submit Button */
+.submit-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--color-accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.submit-btn:hover {
+    background: var(--color-accent-hover);
+}
+
+/* Success Message */
+.success-message {
+    display: none;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid var(--color-success);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.success-message.show {
+    display: block;
+}
+
+.success-icon {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Urgency Banner */
+.urgency-banner {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(245, 158, 11, 0.1));
+    border: 2px solid var(--color-warning);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.urgency-banner input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    accent-color: var(--color-warning);
+}
+
+.urgency-banner label {
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="capture-container">
+    
+    <div class="capture-header">
+        <h1>What happened?</h1>
+        <p>Record it now while it's fresh. You can add more details later.</p>
+    </div>
+    
+    <!-- Success Message -->
+    <div class="success-message" id="successMsg">
+        <div class="success-icon">✅</div>
+        <h3>Recorded successfully</h3>
+        <p>Your entry has been saved. What would you like to do next?</p>
+        <div style="margin-top: 1rem; display: flex; gap: 0.75rem; justify-content: center;">
+            <a href="/tenant/capture" class="btn btn--secondary">Record another</a>
+            <a href="/tenant/home" class="btn btn--primary">Go to Home</a>
+        </div>
+    </div>
+    
+    <form id="captureForm" action="/api/tenant/capture" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <!-- Type Selection -->
+        <div class="type-grid">
+            <div class="type-card {% if capture_type == 'notice' %}active{% endif %}" data-type="notice">
+                <div class="type-icon">📋</div>
+                <div class="type-label">Got a Notice</div>
+            </div>
+            <div class="type-card {% if capture_type == 'conversation' %}active{% endif %}" data-type="conversation">
+                <div class="type-icon">💬</div>
+                <div class="type-label">Conversation</div>
+            </div>
+            <div class="type-card {% if capture_type == 'repair' %}active{% endif %}" data-type="repair">
+                <div class="type-icon">🔧</div>
+                <div class="type-label">Repair Issue</div>
+            </div>
+            <div class="type-card {% if capture_type == 'harassment' %}active{% endif %}" data-type="harassment">
+                <div class="type-icon">⚠️</div>
+                <div class="type-label">Feeling Pressured</div>
+            </div>
+            <div class="type-card {% if capture_type == 'payment' %}active{% endif %}" data-type="payment">
+                <div class="type-icon">💰</div>
+                <div class="type-label">Payment Issue</div>
+            </div>
+            <div class="type-card {% if capture_type == 'other' %}active{% endif %}" data-type="other">
+                <div class="type-icon">📝</div>
+                <div class="type-label">Something Else</div>
+            </div>
+        </div>
+        
+        <input type="hidden" name="capture_type" id="captureType" value="{{ capture_type or 'other' }}">
+        
+        <div class="form-section">
+            <!-- Urgency -->
+            <div class="urgency-banner">
+                <input type="checkbox" id="isUrgent" name="is_urgent" value="true">
+                <label for="isUrgent">This needs immediate attention</label>
+            </div>
+            
+            <!-- What Happened -->
+            <div class="form-group">
+                <label for="whatHappened">What happened? *</label>
+                <textarea id="whatHappened" name="description" required placeholder="Describe what happened...">{{ prefill_description or '' }}</textarea>
+            </div>
+            
+            <!-- When -->
+            <div class="form-group datetime-row">
+                <div>
+                    <label for="eventDate">Date *</label>
+                    <input type="date" id="eventDate" name="event_date" required value="{{ today }}">
+                </div>
+                <div>
+                    <label for="eventTime">Time (optional)</label>
+                    <input type="time" id="eventTime" name="event_time">
+                </div>
+            </div>
+            
+            <!-- Who -->
+            <div class="form-group">
+                <label for="whoInvolved">Who was involved?</label>
+                <input type="text" id="whoInvolved" name="who_involved" placeholder="e.g., Property manager John, Maintenance worker">
+            </div>
+            
+            <!-- Where -->
+            <div class="form-group">
+                <label for="whereLocation">Where did this happen?</label>
+                <input type="text" id="whereLocation" name="location" placeholder="e.g., My apartment, Leasing office, Parking lot">
+            </div>
+            
+            <!-- Upload -->
+            <div class="form-group">
+                <label>Have any photos, documents, or recordings?</label>
+                <div class="file-upload" id="fileUpload">
+                    <div class="file-upload-icon">📎</div>
+                    <div class="file-upload-text">
+                        Tap to upload files<br>
+                        <small>or drag and drop here</small>
+                    </div>
+                </div>
+                <input type="file" id="fileInput" name="files" multiple hidden>
+                <div id="fileList" style="margin-top: 0.75rem;"></div>
+            </div>
+            
+            <!-- Submit -->
+            <button type="submit" class="submit-btn">Save This Record</button>
+        </div>
+    </form>
+    
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Type selection
+const typeCards = document.querySelectorAll('.type-card');
+const captureTypeInput = document.getElementById('captureType');
+
+typeCards.forEach(card => {
+    card.addEventListener('click', () => {
+        typeCards.forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        captureTypeInput.value = card.dataset.type;
+    });
+});
+
+// File upload
+document.getElementById('fileUpload').addEventListener('click', () => {
+    document.getElementById('fileInput').click();
+});
+
+document.getElementById('fileInput').addEventListener('change', (e) => {
+    const fileList = document.getElementById('fileList');
+    fileList.innerHTML = '';
+    Array.from(e.target.files).forEach(file => {
+        const div = document.createElement('div');
+        div.textContent = `📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        div.style.cssText = 'padding: 0.5rem; background: rgba(255,255,255,0.05); border-radius: 4px; margin-bottom: 0.25rem;';
+        fileList.appendChild(div);
+    });
+});
+
+// Set today's date
+document.getElementById('eventDate').valueAsDate = new Date();
+
+// Form submission
+document.getElementById('captureForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    try {
+        const response = await fetchWithCSRF('/api/tenant/capture', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            document.getElementById('successMsg').classList.add('show');
+            document.getElementById('captureForm').style.display = 'none';
+        } else {
+            showFlash('Failed to save. Please try again.', 'error');
+        }
+    } catch (err) {
+        showFlash('Network error. Please check connection.', 'error');
+    }
+});
+</script>
+{% endblock %}

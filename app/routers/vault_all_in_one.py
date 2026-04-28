@@ -27,7 +27,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.security import get_current_user_id
+from app.core.security import get_user_id
 from app.services.vault_ingestion import (
     VaultIngestionService,
     IngestionRequest,
@@ -208,7 +208,7 @@ class TimelineResponse(BaseModel):
 async def ingest_vault_item(
     request: VaultItemIngestRequest,
     db: AsyncSession = Depends(get_db),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_user_id),
 ):
     """
     Ingest a new item into the unified vault.
@@ -279,7 +279,7 @@ async def search_vault_items(
     offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: AsyncSession = Depends(get_db),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_user_id),
 ):
     """
     Search vault items with filtering and timeline ordering.
@@ -324,7 +324,7 @@ async def search_vault_items(
 async def advanced_search_vault_items(
     request: VaultSearchRequest,
     db: AsyncSession = Depends(get_db),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_user_id),
 ):
     """
     Advanced vault search with POST body for complex queries.
@@ -365,7 +365,7 @@ async def advanced_search_vault_items(
 async def get_vault_item(
     item_id: int,
     db: AsyncSession = Depends(get_db),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_user_id),
 ):
     """Get a single vault item by ID."""
     from sqlalchemy import select
@@ -389,7 +389,7 @@ async def update_vault_item(
     item_id: int,
     request: VaultItemUpdateRequest,
     db: AsyncSession = Depends(get_db),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_user_id),
 ):
     """
     Update vault item (immutable fields protected).
@@ -426,7 +426,7 @@ async def update_vault_item(
 async def delete_vault_item(
     item_id: int,
     db: AsyncSession = Depends(get_db),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_user_id),
 ):
     """
     Delete vault item (with audit logging).
@@ -463,7 +463,7 @@ async def get_vault_timeline(
     date_to: Optional[datetime] = Query(None, description="End date"),
     limit: int = Query(100, ge=1, le=1000),
     db: AsyncSession = Depends(get_db),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_user_id),
 ):
     """
     Get timeline view of vault items.
@@ -505,7 +505,7 @@ async def get_vault_timeline(
 async def create_incident(
     request: IncidentCreateRequest,
     db: AsyncSession = Depends(get_db),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_user_id),
 ):
     """Create a new incident/case for organizing related evidence."""
     
@@ -533,7 +533,7 @@ async def list_incidents(
     status: Optional[str] = Query(None, description="Filter by status"),
     incident_type: Optional[str] = Query(None, description="Filter by type"),
     db: AsyncSession = Depends(get_db),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_user_id),
 ):
     """List all incidents for the user."""
     from sqlalchemy import select, func
@@ -572,7 +572,7 @@ async def list_incidents(
 async def get_incident(
     incident_id: int,
     db: AsyncSession = Depends(get_db),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_user_id),
 ):
     """Get a single incident with item count."""
     from sqlalchemy import select, func
@@ -607,7 +607,7 @@ async def get_incident_timeline(
     timeline_mode: str = Query("event_time", description="event_time, record_time, semptify_entry_time"),
     limit: int = Query(1000, ge=1, le=5000),
     db: AsyncSession = Depends(get_db),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_user_id),
 ):
     """
     Get timeline of all vault items for a specific incident.
@@ -639,7 +639,7 @@ async def search_by_metadata(
     field: str = Query(..., description="Metadata field name"),
     value: str = Query(..., description="Value to search for"),
     db: AsyncSession = Depends(get_db),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_user_id),
 ):
     """
     Deep search by specific metadata field value.
@@ -668,7 +668,7 @@ async def search_by_location(
     lon: float = Query(..., description="Longitude"),
     radius: float = Query(1000, description="Radius in meters"),
     db: AsyncSession = Depends(get_db),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_user_id),
 ):
     """
     Search for items near a geographic location.

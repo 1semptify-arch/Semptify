@@ -109,15 +109,23 @@ def is_public_path(path: str) -> bool:
 def is_valid_storage_user(user_id: str) -> bool:
     """
     Validate user ID represents a real user with storage connected.
-    
-    Valid format: <provider><role><8-char-random>
+
+    SECURITY: First verifies the HMAC signature to reject tampered cookies.
+    Then validates the raw user_id format (provider + role + unique).
+
+    Valid format (before signing): <provider><role><8-char-random>
     Example: GU7x9kM2pQ = Google + User + 7x9kM2pQ
-    
-    SECURITY: Blocks system users, demo users, and invalid IDs.
     """
     if not user_id:
         return False
-    
+
+    # Verify HMAC signature — strips it and returns raw user_id, or None if tampered
+    from app.core.cookie_auth import verify_user_id
+    raw = verify_user_id(user_id)
+    if raw is None:
+        return False
+    user_id = raw
+
     # Block known system/demo patterns
     invalid_patterns = [
         "open-mode",

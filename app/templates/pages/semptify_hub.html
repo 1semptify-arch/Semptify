@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+
+{% block title %}Semptify — Home{% endblock %}
+{% block description %}Your home, your documents, your rights. Organized and protected.{% endblock %}
+
+{% block nav %}
+<a href="/tenant/home">Home</a>
+<a href="/documents">Office</a>
+<a href="/law-library">Library</a>
+<a href="/timeline">Tools</a>
+<a href="/tenant/help">Help</a>
+{% endblock %}
+
+{% block styles %}
+<style>
+.s-home {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 4rem;
+}
+
+/* ── Zone nav tabs ── */
+.zone-tabs {
+    display: flex;
+    gap: 0.375rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.zone-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--color-text-secondary);
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    transition: all var(--transition-fast);
+}
+
+.zone-tab:hover {
+    color: var(--color-text-primary);
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-hover);
+}
+
+.zone-tab.tab-home    { border-bottom: 2px solid var(--color-success); }
+.zone-tab.tab-office  { border-bottom: 2px solid #3b82f6; }
+.zone-tab.tab-library { border-bottom: 2px solid #a78bfa; }
+.zone-tab.tab-tools   { border-bottom: 2px solid #f59e0b; }
+.zone-tab.tab-help    { border-bottom: 2px solid var(--color-error); }
+
+/* ── Zone section ── */
+.zone {
+    margin-bottom: 2.5rem;
+}
+
+.zone-heading {
+    display: flex;
+    align-items: baseline;
+    gap: 0.625rem;
+    margin-bottom: 0.25rem;
+}
+
+.zone-heading h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+}
+
+.zone-heading .zone-tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--color-text-muted);
+}
+
+.zone-desc {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 1rem;
+}
+
+/* ── Card grid ── */
+.zone-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.875rem;
+}
+
+.z-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all var(--transition-normal);
+}
+
+.z-card:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-hover);
+    transform: translateY(-2px);
+    color: inherit;
+}
+
+.z-card-icon { font-size: 1.75rem; }
+.z-card-title { font-size: 0.9375rem; font-weight: 600; color: var(--color-text-primary); }
+.z-card-desc  { font-size: 0.8125rem; color: var(--color-text-secondary); line-height: 1.45; }
+
+/* Zone accent lines */
+.zone-home    .z-card { border-top: 2px solid var(--color-success); }
+.zone-office  .z-card { border-top: 2px solid #3b82f6; }
+.zone-library .z-card { border-top: 2px solid #a78bfa; }
+.zone-tools   .z-card { border-top: 2px solid #f59e0b; }
+.zone-help    .z-card { border-top: 2px solid var(--color-error); }
+
+/* ── Divider ── */
+.zone-divider {
+    border: none;
+    border-top: 1px solid var(--color-border);
+    margin: 0.25rem 0 2rem;
+}
+
+/* ── Crisis strip ── */
+.crisis-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    background: rgba(239, 68, 68, 0.07);
+    border: 1px solid rgba(239, 68, 68, 0.28);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.crisis-strip-text { font-size: 0.9rem; color: var(--color-text-secondary); }
+.crisis-strip-text strong { display: block; color: var(--color-error); margin-bottom: 0.1rem; }
+
+.crisis-btn {
+    padding: 0.5rem 1.25rem;
+    background: var(--color-error);
+    color: white;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: opacity var(--transition-fast);
+}
+
+.crisis-btn:hover { opacity: 0.85; color: white; }
+
+@media (max-width: 580px) {
+    .zone-grid { grid-template-columns: 1fr 1fr; }
+    .zone-tabs  { gap: 0.25rem; }
+    .zone-tab   { padding: 0.45rem 0.75rem; font-size: 0.85rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="s-home">
+
+    <!-- Zone tabs — the 5 places you go -->
+    <nav class="zone-tabs" aria-label="Semptify zones">
+        <a href="#home"    class="zone-tab tab-home">🏠 Home</a>
+        <a href="#office"  class="zone-tab tab-office">🗂 Office</a>
+        <a href="#library" class="zone-tab tab-library">📚 Library</a>
+        <a href="#tools"   class="zone-tab tab-tools">🔧 Tools</a>
+        <a href="#help"    class="zone-tab tab-help">🆘 Help</a>
+    </nav>
+
+    <!-- ══ HOME ══════════════════════════════════════ -->
+    <section class="zone zone-home" id="home">
+        <div class="zone-heading">
+            <h2>🏠 Home</h2>
+            <span class="zone-tag">Your situation right now</span>
+        </div>
+        <p class="zone-desc">Where you are today. Your home, your tenancy, what's recorded, and what's happening.</p>
+        <div class="zone-grid">
+            <a href="/tenant/home" class="z-card">
+                <span class="z-card-icon">🏠</span>
+                <span class="z-card-title">My Home</span>
+                <span class="z-card-desc">Your current situation — status, recent activity, next step</span>
+            </a>
+            <a href="/tenant/capture" class="z-card">
+                <span class="z-card-icon">⚡</span>
+                <span class="z-card-title">Quick Capture</span>
+                <span class="z-card-desc">Something just happened — record it now before it's forgotten</span>
+            </a>
+            <a href="/tenant/journal" class="z-card">
+                <span class="z-card-icon">📝</span>
+                <span class="z-card-title">Journal</span>
+                <span class="z-card-desc">Private notes — conversations, incidents, dates, observations</span>
+            </a>
+            <a href="/tenant/inbox" class="z-card">
+                <span class="z-card-icon">📬</span>
+                <span class="z-card-title">Inbox</span>
+                <span class="z-card-desc">Notices, messages, and anything received from your landlord</span>
+            </a>
+        </div>
+    </section>
+
+    <hr class="zone-divider">
+
+    <!-- ══ OFFICE ═════════════════════════════════════ -->
+    <section class="zone zone-office" id="office">
+        <div class="zone-heading">
+            <h2>🗂 Office</h2>
+            <span class="zone-tag">Gather · Organize · Process · Deliver</span>
+        </div>
+        <p class="zone-desc">Where the work gets done. Upload your documents, organize your record, and produce what you need.</p>
+        <div class="zone-grid">
+            <a href="/vault" class="z-card">
+                <span class="z-card-icon">📥</span>
+                <span class="z-card-title">Vault</span>
+                <span class="z-card-desc">Upload and store your lease, notices, photos, receipts — everything</span>
+            </a>
+            <a href="/documents" class="z-card">
+                <span class="z-card-icon">🗃</span>
+                <span class="z-card-title">Documents</span>
+                <span class="z-card-desc">View, label, and organize your full document record</span>
+            </a>
+            <a href="/timeline" class="z-card">
+                <span class="z-card-icon">📅</span>
+                <span class="z-card-title">Timeline</span>
+                <span class="z-card-desc">Every event in your tenancy in chronological order</span>
+            </a>
+            <a href="/delivery/send" class="z-card">
+                <span class="z-card-icon">📤</span>
+                <span class="z-card-title">Deliver</span>
+                <span class="z-card-desc">Send documents, share records, produce formatted reports</span>
+            </a>
+        </div>
+    </section>
+
+    <hr class="zone-divider">
+
+    <!-- ══ LIBRARY ════════════════════════════════════ -->
+    <section class="zone zone-library" id="library">
+        <div class="zone-heading">
+            <h2>📚 Library</h2>
+            <span class="zone-tag">Laws · Rights · Research · Accountability</span>
+        </div>
+        <p class="zone-desc">What the law says. Your rights as a tenant, the rules your landlord must follow, and the facts of your situation.</p>
+        <div class="zone-grid">
+            <a href="/law-library" class="z-card">
+                <span class="z-card-icon">⚖️</span>
+                <span class="z-card-title">Law Library</span>
+                <span class="z-card-desc">Tenant law by state — statutes, protections, landlord obligations</span>
+            </a>
+            <a href="/my-tenancy" class="z-card">
+                <span class="z-card-icon">🏛</span>
+                <span class="z-card-title">My Tenancy</span>
+                <span class="z-card-desc">Facts specific to your lease, property, and landlord record</span>
+            </a>
+            <a href="/eviction-defense" class="z-card">
+                <span class="z-card-icon">🛡</span>
+                <span class="z-card-title">Eviction Defense</span>
+                <span class="z-card-desc">Understand the eviction process, your rights, and how to respond</span>
+            </a>
+            <a href="/legal-analysis" class="z-card">
+                <span class="z-card-icon">🔍</span>
+                <span class="z-card-title">Legal Analysis</span>
+                <span class="z-card-desc">Semptify reads your documents and identifies relevant legal issues</span>
+            </a>
+        </div>
+    </section>
+
+    <hr class="zone-divider">
+
+    <!-- ══ TOOLS ══════════════════════════════════════ -->
+    <section class="zone zone-tools" id="tools">
+        <div class="zone-heading">
+            <h2>🔧 Tools</h2>
+            <span class="zone-tag">Utilities that support your tenancy</span>
+        </div>
+        <p class="zone-desc">Practical tools for keeping your tenancy organized and your deadlines tracked.</p>
+        <div class="zone-grid">
+            <a href="/calendar" class="z-card">
+                <span class="z-card-icon">🗓</span>
+                <span class="z-card-title">Calendar</span>
+                <span class="z-card-desc">Deadlines, hearings, rent due dates, and notice periods</span>
+            </a>
+            <a href="/functionx" class="z-card">
+                <span class="z-card-icon">⚙️</span>
+                <span class="z-card-title">Actions</span>
+                <span class="z-card-desc">Run analysis, extract data, and process your documents</span>
+            </a>
+            <a href="/invite-advocate" class="z-card">
+                <span class="z-card-icon">🤝</span>
+                <span class="z-card-title">Invite Advocate</span>
+                <span class="z-card-desc">Bring in a housing advocate or attorney to assist your case</span>
+            </a>
+            <a href="/tenant/copilot" class="z-card">
+                <span class="z-card-icon">🤖</span>
+                <span class="z-card-title">AI Assistant</span>
+                <span class="z-card-desc">Ask questions about your documents or situation in plain language</span>
+            </a>
+        </div>
+    </section>
+
+    <hr class="zone-divider">
+
+    <!-- ══ HELP ═══════════════════════════════════════ -->
+    <section class="zone zone-help" id="help">
+        <div class="zone-heading">
+            <h2>🆘 Help</h2>
+            <span class="zone-tag">Guidance · Support · Contacts</span>
+        </div>
+        <p class="zone-desc">Not sure what to do next? Start here.</p>
+        <div class="zone-grid">
+            <a href="/tenant/help" class="z-card">
+                <span class="z-card-icon">🧭</span>
+                <span class="z-card-title">What do I do?</span>
+                <span class="z-card-desc">Guided next steps based on your situation — plain language</span>
+            </a>
+            <a href="/tenant/help#contacts" class="z-card">
+                <span class="z-card-icon">📞</span>
+                <span class="z-card-title">Legal Aid</span>
+                <span class="z-card-desc">Free legal help, housing advocates, tenant hotlines by state</span>
+            </a>
+            <a href="/tenant/copilot" class="z-card">
+                <span class="z-card-icon">💬</span>
+                <span class="z-card-title">Ask the AI</span>
+                <span class="z-card-desc">Ask anything about your documents or rights — available 24/7</span>
+            </a>
+        </div>
+
+        <div class="crisis-strip">
+            <div class="crisis-strip-text">
+                <strong>Facing an immediate threat?</strong>
+                Lockout, physical removal, or a court date within 48 hours — get emergency guidance now.
+            </div>
+            <a href="/tenant/help" class="crisis-btn">Emergency Help →</a>
+        </div>
+    </section>
+
+</div>
+{% endblock %}

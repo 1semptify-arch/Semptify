@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block title %}Inbox - Semptify{% endblock %}
+
+{% block nav %}
+<a href="/tenant/home">Home</a>
+<a href="/tenant/capture">Quick Capture</a>
+<a href="/tenant/journal">Journal</a>
+<a href="/tenant/inbox" class="active">Inbox</a>
+{% endblock %}
+
+{% block styles %}
+<style>
+.inbox-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+}
+
+.inbox-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.inbox-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.unread-badge {
+    background: var(--color-accent);
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+}
+
+/* Notification Types */
+.notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.notification-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    transition: all 0.2s ease;
+}
+
+.notification-item:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-hover);
+}
+
+.notification-item.unread {
+    border-left: 3px solid var(--color-accent);
+    background: rgba(59, 130, 246, 0.03);
+}
+
+.notification-item.urgent {
+    border-left: 3px solid var(--color-error);
+    background: rgba(239, 68, 68, 0.03);
+}
+
+.notification-icon {
+    font-size: 1.5rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--color-text-primary);
+}
+
+.notification-text {
+    color: var(--color-text-secondary);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+}
+
+.notification-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+}
+
+.notification-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.notification-actions button,
+.notification-actions a {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--color-accent);
+    color: white;
+    border: none;
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+/* Empty State */
+.empty-inbox {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.empty-inbox h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.empty-inbox p {
+    color: var(--color-text-secondary);
+}
+
+/* Tabs */
+.inbox-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 0.5rem;
+}
+
+.tab-btn {
+    padding: 0.625rem 1.25rem;
+    background: transparent;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: 0.9375rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover,
+.tab-btn.active {
+    color: var(--color-accent);
+    border-bottom-color: var(--color-accent);
+}
+
+.tab-btn .count {
+    background: var(--color-bg-primary);
+    padding: 0.125rem 0.5rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    margin-left: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="inbox-container">
+    
+    <div class="inbox-header">
+        <h1>
+            📬 Inbox
+            {% if unread_count > 0 %}
+            <span class="unread-badge">{{ unread_count }}</span>
+            {% endif %}
+        </h1>
+        <button class="btn-secondary" onclick="markAllRead()">Mark all read</button>
+    </div>
+    
+    {% if notifications %}
+    <!-- Tabs -->
+    <div class="inbox-tabs">
+        <button class="tab-btn active" data-tab="all">All <span class="count">{{ notifications|length }}</span></button>
+        <button class="tab-btn" data-tab="unread">Unread <span class="count">{{ unread_count }}</span></button>
+        <button class="tab-btn" data-tab="urgent">Urgent <span class="count">{{ urgent_count }}</span></button>
+        <button class="tab-btn" data-tab="system">System <span class="count">{{ system_count }}</span></button>
+    </div>
+    
+    <!-- Notifications -->
+    <div class="notification-list">
+        {% for notification in notifications %}
+        <div class="notification-item {% if not notification.read %}unread{% endif %} {% if notification.priority == 'urgent' %}urgent{% endif %}" data-id="{{ notification.id }}" data-read="{{ notification.read }}" data-priority="{{ notification.priority }}">
+            <div class="notification-icon">
+                {% if notification.type == 'deadline' %}⏰
+                {% elif notification.type == 'document' %}📄
+                {% elif notification.type == 'message' %}💬
+                {% elif notification.type == 'alert' %}⚠️
+                {% elif notification.type == 'success' %}✅
+                {% else %}📢
+                {% endif %}
+            </div>
+            <div class="notification-content">
+                <div class="notification-title">{{ notification.title }}</div>
+                <div class="notification-text">{{ notification.message }}</div>
+                <div class="notification-meta">
+                    <span>{{ notification.created_at|format_date }}</span>
+                    {% if notification.source %}
+                    <span>From: {{ notification.source }}</span>
+                    {% endif %}
+                </div>
+                {% if notification.action_url %}
+                <div class="notification-actions">
+                    <a href="{{ notification.action_url }}" class="btn-primary">{{ notification.action_text or 'View' }}</a>
+                    <button class="btn-secondary" onclick="dismissNotification('{{ notification.id }}')">Dismiss</button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% else %}
+    <!-- Empty -->
+    <div class="empty-inbox">
+        <div class="empty-icon">📭</div>
+        <h3>Your inbox is empty</h3>
+        <p>We'll notify you about deadlines, document uploads, and important updates here.</p>
+    </div>
+    {% endif %}
+    
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Tab filtering
+const tabBtns = document.querySelectorAll('.tab-btn');
+const notifItems = document.querySelectorAll('.notification-item');
+
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        tabBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const tab = btn.dataset.tab;
+        
+        notifItems.forEach(item => {
+            let show = false;
+            if (tab === 'all') show = true;
+            else if (tab === 'unread') show = item.dataset.read === 'False';
+            else if (tab === 'urgent') show = item.dataset.priority === 'urgent';
+            else if (tab === 'system') show = item.classList.contains('system');
+            
+            item.style.display = show ? 'flex' : 'none';
+        });
+    });
+});
+
+// Dismiss notification
+async function dismissNotification(id) {
+    try {
+        await fetchWithCSRF(`/api/notifications/${id}/dismiss`, { method: 'POST' });
+        const item = document.querySelector(`[data-id="${id}"]`);
+        if (item) item.remove();
+    } catch (e) {
+        showFlash('Failed to dismiss', 'error');
+    }
+}
+
+// Mark all read
+async function markAllRead() {
+    try {
+        await fetchWithCSRF('/api/notifications/mark-all-read', { method: 'POST' });
+        notifItems.forEach(item => {
+            item.classList.remove('unread');
+            item.dataset.read = 'True';
+        });
+        showFlash('All notifications marked as read', 'success');
+    } catch (e) {
+        showFlash('Failed to mark read', 'error');
+    }
+}
+
+// Click to mark read
+notifItems.forEach(item => {
+    item.addEventListener('click', async (e) => {
+        if (e.target.closest('button') || e.target.closest('a')) return;
+        
+        const id = item.dataset.id;
+        if (item.dataset.read === 'False') {
+            try {
+                await fetchWithCSRF(`/api/notifications/${id}/read`, { method: 'POST' });
+                item.classList.remove('unread');
+                item.dataset.read = 'True';
+            } catch (e) {}
+        }
+    });
+});
+</script>
+{% endblock %}

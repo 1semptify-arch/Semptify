@@ -1,0 +1,37 @@
+/* Workspace Stage Model - Semptify 5.0
+   Provides consistent stage/workspace visual structure across all role pages.
+*/
+
+.workspace-stage {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem;
+}
+
+.workspace-stage__header {
+    margin-bottom: 1.5rem;
+}
+
+.workspace-stage__content {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.workspace-stage__panel {
+    background: var(--color-surface, #ffffff);
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 8px;
+    padding: 1.25rem;
+}
+
+.workspace-stage__title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text-primary, #111827);
+    margin-bottom: 0.5rem;
+}
+
+.workspace-stage__subtitle {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary, #6b7280);
+}

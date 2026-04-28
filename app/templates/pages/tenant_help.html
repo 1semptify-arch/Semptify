@@ -1,0 +1,418 @@
+{% extends "base.html" %}
+
+{% block title %}Get Help - Semptify{% endblock %}
+
+{% block nav %}
+<a href="/tenant/home">← Back to Home</a>
+{% endblock %}
+
+{% block styles %}
+<style>
+.help-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+}
+
+.help-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.help-header h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.help-header p {
+    color: var(--color-text-secondary);
+    font-size: 1.0625rem;
+}
+
+/* Crisis Banner */
+.crisis-banner {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(245, 158, 11, 0.1));
+    border: 2px solid var(--color-error);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.crisis-banner h2 {
+    color: var(--color-error);
+    font-size: 1.125rem;
+    margin-bottom: 0.75rem;
+}
+
+.crisis-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-text-primary);
+    display: block;
+    margin: 0.5rem 0;
+}
+
+/* Help Options Grid */
+.help-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.help-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.help-card:hover {
+    border-color: var(--color-accent);
+    background: var(--color-bg-hover);
+}
+
+.help-card.featured {
+    border-color: var(--color-accent);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.help-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.help-card h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.help-card p {
+    color: var(--color-text-secondary);
+    font-size: 0.9375rem;
+    margin-bottom: 1rem;
+}
+
+.help-btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-accent);
+    color: white;
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.help-btn:hover {
+    background: var(--color-accent-hover);
+}
+
+.help-btn.secondary {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+}
+
+.help-btn.secondary:hover {
+    background: var(--color-bg-hover);
+}
+
+/* Resources Section */
+.resources-section {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.resources-section h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.resource-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.resource-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.resource-item:last-child {
+    border-bottom: none;
+}
+
+.resource-icon {
+    font-size: 1.25rem;
+}
+
+.resource-content {
+    flex: 1;
+}
+
+.resource-title {
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.resource-desc {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}
+
+.resource-link {
+    color: var(--color-accent);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+/* FAQ Accordion */
+.faq-section {
+    margin-bottom: 2rem;
+}
+
+.faq-section h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.faq-item {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+}
+
+.faq-question {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: transparent;
+    border: none;
+    color: var(--color-text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-question::after {
+    content: '+';
+    font-size: 1.25rem;
+    color: var(--color-text-muted);
+}
+
+.faq-question.active::after {
+    content: '−';
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.faq-answer.show {
+    max-height: 500px;
+}
+
+.faq-answer-content {
+    padding: 0 1.25rem 1rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+}
+
+/* Footer Note */
+.help-footer-note {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.875rem;
+    border-top: 1px solid var(--color-border);
+    margin-top: 2rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="help-container">
+    
+    <div class="help-header">
+        <h1>How can we help you?</h1>
+        <p>You're not alone. Here are ways to get the support you need.</p>
+    </div>
+    
+    <!-- Crisis Banner -->
+    <div class="crisis-banner">
+        <h2>🚨 Emergency? Need immediate help?</h2>
+        <p>If you're facing imminent eviction or unsafe conditions:</p>
+        <span class="crisis-number">📞 Call 211</span>
+        <p>or contact your local tenant rights hotline</p>
+    </div>
+    
+    <!-- Help Options -->
+    <div class="help-grid">
+        <div class="help-card featured">
+            <div class="help-icon">💬</div>
+            <h3>Ask a Question</h3>
+            <p>Get personalized guidance about your situation from our system.</p>
+            <a href="/tenant/copilot" class="help-btn">Start Chat</a>
+        </div>
+        
+        <div class="help-card">
+            <div class="help-icon">📋</div>
+            <h3>Document Review</h3>
+            <p>Upload a notice or letter and we'll help you understand it.</p>
+            <a href="/documents/upload" class="help-btn">Upload Document</a>
+        </div>
+        
+        <div class="help-card">
+            <div class="help-icon">⚖️</div>
+            <h3>Legal Resources</h3>
+            <p>Find free or low-cost legal aid in your area.</p>
+            <a href="/legal-aid" class="help-btn secondary">Find Legal Aid</a>
+        </div>
+        
+        <div class="help-card">
+            <div class="help-icon">🏛️</div>
+            <h3>File a Complaint</h3>
+            <p>Report housing code violations or illegal actions.</p>
+            <a href="/complaint-filing" class="help-btn secondary">File Complaint</a>
+        </div>
+    </div>
+    
+    <!-- Resources -->
+    <div class="resources-section">
+        <h2>Quick Resources</h2>
+        <ul class="resource-list">
+            <li class="resource-item">
+                <span class="resource-icon">📅</span>
+                <div class="resource-content">
+                    <div class="resource-title">Eviction Timeline</div>
+                    <div class="resource-desc">Understand the steps and deadlines in your state</div>
+                </div>
+                <a href="/resources/eviction-timeline" class="resource-link">View →</a>
+            </li>
+            <li class="resource-item">
+                <span class="resource-icon">📝</span>
+                <div class="resource-content">
+                    <div class="resource-title">Notice Response Templates</div>
+                    <div class="resource-desc">Pre-written responses to common notices</div>
+                </div>
+                <a href="/resources/templates" class="resource-link">View →</a>
+            </li>
+            <li class="resource-item">
+                <span class="resource-icon">📊</span>
+                <div class="resource-content">
+                    <div class="resource-title">Know Your Rights</div>
+                    <div class="resource-desc">Tenant rights summary for your state</div>
+                </div>
+                <a href="/resources/rights" class="resource-link">View →</a>
+            </li>
+            <li class="resource-item">
+                <span class="resource-icon">📱</span>
+                <div class="resource-content">
+                    <div class="resource-title">Emergency Contacts</div>
+                    <div class="resource-desc">Hotlines and resources for immediate help</div>
+                </div>
+                <a href="/resources/emergency" class="resource-link">View →</a>
+            </li>
+        </ul>
+    </div>
+    
+    <!-- FAQ -->
+    <div class="faq-section">
+        <h2>Common Questions</h2>
+        
+        <div class="faq-item">
+            <button class="faq-question">What should I do if I receive an eviction notice?</button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    First, don't panic. You have rights and time to respond. Document everything, 
+                    check the notice for errors, and consider reaching out to legal aid immediately. 
+                    Use our Document Review feature to analyze the notice.
+                </div>
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <button class="faq-question">Can my landlord enter my apartment without notice?</button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Laws vary by state, but generally landlords must provide 24-48 hours notice 
+                    except in emergencies. Document any unauthorized entries in your journal.
+                </div>
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <button class="faq-question">What repairs is my landlord responsible for?</button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Landlords must maintain habitable conditions including heat, water, 
+                    structural integrity, and safety systems. Document repair requests and 
+                    any failures to respond.
+                </div>
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <button class="faq-question">How do I organize my evidence effectively?</button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Use Quick Capture immediately when something happens. Upload photos 
+                    of notices, keep a detailed journal, and let our timeline feature 
+                    organize everything chronologically.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="help-footer-note">
+        <p>Semptify provides organization and education tools. For legal advice, 
+        please consult with a qualified attorney.</p>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// FAQ Accordion
+document.querySelectorAll('.faq-question').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const answer = btn.nextElementSibling;
+        const isActive = btn.classList.contains('active');
+        
+        // Close all
+        document.querySelectorAll('.faq-question').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.faq-answer').forEach(a => a.classList.remove('show'));
+        
+        // Open clicked if wasn't active
+        if (!isActive) {
+            btn.classList.add('active');
+            answer.classList.add('show');
+        }
+    });
+});
+</script>
+{% endblock %}
