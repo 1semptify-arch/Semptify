@@ -1,7 +1,18 @@
 """Canonical cloud vault paths (single source of truth)."""
 
 SEMPTIFY_ROOT = "Semptify5.0"
+AUTH_FOLDER = f".{SEMPTIFY_ROOT}/auth"
+VAULT_FOLDER = f".{SEMPTIFY_ROOT}/vault"
 VAULT_ROOT = f"{SEMPTIFY_ROOT}/Vault"
+
+# Local auth files
+TOKEN_FILE = f"{AUTH_FOLDER}/token.enc"
+TOKEN_BACKUP = f"{AUTH_FOLDER}/token.enc.backup"
+DEVICE_KEYS_FILE = f"{AUTH_FOLDER}/device_keys.json"
+PROVISIONING_FILE = f"{AUTH_FOLDER}/provisioning.json"
+REHOME_FILE = f"{AUTH_FOLDER}/rehome.json"
+README_FILE = f"{VAULT_FOLDER}/README.md"
+VAULT_MANIFEST = f"{VAULT_FOLDER}/manifest.json"
 
 VAULT_DOCUMENTS = f"{VAULT_ROOT}/documents"
 VAULT_CERTIFICATES = f"{VAULT_ROOT}/certificates"

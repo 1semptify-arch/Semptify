@@ -350,6 +350,60 @@
         .mb-lg { margin-bottom: var(--space-lg); }
         .mb-xl { margin-bottom: var(--space-xl); }
 
+        /* Logo quick upload */
+        #logo-upload-trigger {
+            cursor: pointer;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-upload-hint {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--color-accent);
+            opacity: 0;
+            transform: translateY(2px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        #logo-upload-trigger:hover .logo-upload-hint {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Logo upload toast */
+        #logo-toast-container {
+            position: fixed;
+            top: 72px;
+            left: 1rem;
+            z-index: 1002;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            pointer-events: none;
+        }
+
+        .logo-toast {
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 500;
+            max-width: 260px;
+            box-shadow: var(--shadow-md);
+            animation: fadeInLeft 0.25s ease, fadeOutLeft 0.25s ease 3s forwards;
+        }
+
+        .logo-toast--success { background: var(--color-success); color: white; }
+        .logo-toast--error   { background: var(--color-error);   color: white; }
+        .logo-toast--info    { background: var(--color-bg-secondary); color: var(--color-text-primary); border: 1px solid var(--color-border); }
+
+        @keyframes fadeInLeft  { from { opacity: 0; transform: translateX(-12px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeOutLeft { to   { opacity: 0; transform: translateX(-12px); } }
+
         /* Error page utilities */
         .text-4xl { font-size: 3rem; line-height: 1; }
         .text-left { text-align: left; }
@@ -422,13 +476,19 @@
     <header class="header">
         <div class="container">
             <div class="header__inner">
-                <a href="/" class="header__logo">📋 Semptify</a>
+                <span class="header__logo" id="logo-upload-trigger" title="Upload a document">
+                    Semptify
+                    <span class="logo-upload-hint">Document Upload</span>
+                </span>
+                <input type="file" id="logo-upload-input" style="display:none;" multiple
+                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt,.mp3,.mp4,.mov">
                 <nav class="header__nav">
                     {% block nav %}
-                    <a href="/vault">Vault</a>
+                    <a href="/ui/route">Home</a>
+                    <a href="/documents">My Documents</a>
                     <a href="/timeline">Timeline</a>
-                    <a href="/calendar">Calendar</a>
-                    <a href="/eviction-defense">Eviction Help</a>
+                    <a href="/law-library">My Rights</a>
+                    <a href="/tenant/help">Help</a>
                     {% endblock %}
                 </nav>
             </div>
@@ -436,6 +496,11 @@
     </header>
     {% endblock %}
     
+    <!-- Functions Bar (tenant pages only) -->
+    {% if briefcase or vault is defined %}
+    {% include "components/functions_bar.html" with context %}
+    {% endif %}
+
     <!-- Flash Messages -->
     {% if messages %}
     <div class="container">
@@ -496,5 +561,61 @@
     
     <!-- Page-specific scripts -->
     {% block scripts %}{% endblock %}
+
+    <!-- Logo quick upload -->
+    <div id="logo-toast-container"></div>
+    <script>
+    (function() {
+        const trigger = document.getElementById('logo-upload-trigger');
+        const input   = document.getElementById('logo-upload-input');
+        const toasts  = document.getElementById('logo-toast-container');
+        const csrf    = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+        if (!trigger || !input) return;
+
+        trigger.addEventListener('click', () => input.click());
+
+        input.addEventListener('change', async (e) => {
+            const files = Array.from(e.target.files || []);
+            if (!files.length) return;
+            for (const file of files) { await uploadFile(file); }
+            input.value = '';
+        });
+
+        async function uploadFile(file) {
+            toast(`Uploading "${file.name}"...`, 'info');
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('source', 'logo_quick_upload');
+            try {
+                const res  = await fetch('/api/documents/upload', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-Token': csrf },
+                    body: fd,
+                    credentials: 'include'
+                });
+                const data = await res.json();
+                if (res.ok && (data.id || data.vault_id)) {
+                    toast(`"${file.name}" uploaded`, 'success');
+                    window.dispatchEvent(new CustomEvent('vault:uploaded', {
+                        detail: { filename: file.name, vault_id: data.vault_id || data.id }
+                    }));
+                } else {
+                    toast(data.message || `Failed: "${file.name}"`, 'error');
+                }
+            } catch (_) {
+                toast(`Network error — "${file.name}"`, 'error');
+            }
+        }
+
+        function toast(msg, type) {
+            const el = document.createElement('div');
+            el.className = `logo-toast logo-toast--${type}`;
+            el.textContent = msg;
+            toasts.appendChild(el);
+            setTimeout(() => el.remove(), 3300);
+        }
+    })();
+    </script>
 </body>
 </html>

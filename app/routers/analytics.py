@@ -13,7 +13,7 @@ Provides comprehensive analytics endpoints for:
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
@@ -122,6 +122,38 @@ async def track_event(
     except Exception as e:
         logger.error(f"Event tracking error: {e}")
         raise HTTPException(status_code=500, detail="Failed to track event")
+
+
+@router.post("/pageview", response_model=EventTrackResponse)
+async def track_pageview(
+    request: Request,
+    user: StorageUser = Depends(require_user)
+):
+    """
+    Track a page view event (frontend navigation tracking).
+    Lightweight endpoint for recording page visits.
+    """
+    try:
+        page_path = request.headers.get("X-Page-Path", "/unknown")
+        
+        event_id = track_user_action(
+            action="page_view",
+            user_id=user.user_id,
+            metadata={
+                "page_path": page_path,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        )
+        
+        return EventTrackResponse(
+            success=True,
+            event_id=event_id,
+            message="Page view tracked"
+        )
+        
+    except Exception as e:
+        logger.error(f"Pageview tracking error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to track page view")
 
 
 @router.post("/track/document-upload")

@@ -603,7 +603,7 @@ def _render_client_activated():
         </div>
         
         <div class="step-section">
-            <button class="btn" onclick="window.location.href='/ui/'" style="width: 100%; padding: 1.5rem; font-size: 1.1rem;">
+            <button class="btn" onclick="window.location.href='/ui/route'" style="width: 100%; padding: 1.5rem; font-size: 1.1rem;">
                 ✓ Enter Semptify
             </button>
         </div>

@@ -39,8 +39,16 @@ try:
     from app.services.storage import get_provider
     HAS_STORAGE = True
 except ImportError:
-    HAS_STORAGE = False
+    HAS_STORAGE = True
     logger.warning("Storage provider not available")
+
+# Import document registry for auto-registration
+try:
+    from app.services.document_registry import get_document_registry
+    HAS_REGISTRY = True
+except ImportError:
+    HAS_REGISTRY = False
+    logger.info("Document registry not available, vault uploads will be uncertified")
 
 
 # =============================================================================
@@ -49,8 +57,14 @@ except ImportError:
 
 @dataclass
 class VaultDocument:
-    """A document stored in user's vault."""
-    vault_id: str  # Primary identifier
+    """A document stored in user's vault.
+    
+    Every VaultDocument is automatically registered in the Document Registry
+    upon upload, ensuring chain of custody and tamper-proof identification.
+    A VaultDocument without registry_id is considered 'uncertified' and
+    should not be processed by downstream modules.
+    """
+    vault_id: str  # Primary identifier (Semptify internal)
     user_id: str
     filename: str  # Original filename
     safe_filename: str  # Safe filename in vault (uuid.ext)
@@ -64,11 +78,24 @@ class VaultDocument:
     storage_provider: str  # google_drive, dropbox, onedrive, local
     certificate_id: Optional[str]
     uploaded_at: str
+    # Registration - every vault doc auto-registers for chain of custody
+    registry_id: Optional[str] = None  # SEM-YYYY-NNNNNN-XXXX format
+    integrity_status: str = "unverified"  # verified, tampered, unverified
     # Processing state
     processed: bool = False
     extracted_data: Optional[dict] = None
     # Source tracking
     source_module: str = "direct"  # Which module initiated upload
+    
+    @property
+    def is_certified(self) -> bool:
+        """Check if document has completed registration and has chain of custody."""
+        return self.registry_id is not None and self.integrity_status == "verified"
+    
+    @property
+    def sem_id(self) -> str:
+        """Get Semptify document ID (registry_id if available, else vault_id)."""
+        return self.registry_id or self.vault_id
     
     def to_dict(self) -> dict:
         return asdict(self)
@@ -382,7 +409,37 @@ class VaultUploadService:
             source_module=source_module,
         )
         
-        # Add to index
+        # =========================================================================
+        # AUTO-REGISTRATION: Every vault document gets registry entry for custody
+        # =========================================================================
+        if HAS_REGISTRY:
+            try:
+                registry = get_document_registry()
+                # Import here to avoid circular dependencies
+                from app.core.security import get_client_ip_from_request
+                
+                reg_doc = registry.register_document(
+                    user_id=user_id,
+                    content=content,
+                    filename=filename,
+                    mime_type=mime_type,
+                    vault_id=vault_id,
+                    storage_provider=storage_provider,
+                    storage_path=storage_path,
+                    certificate_id=certificate_id,
+                    ip_address=None,  # Will be enriched by caller if available
+                )
+                doc.registry_id = reg_doc.document_id
+                doc.integrity_status = reg_doc.integrity_status.value
+                logger.info(f"✅ Document registered: {reg_doc.document_id} for vault {vault_id}")
+            except Exception as e:
+                logger.warning(f"Auto-registration failed for {vault_id}: {e}")
+                # Document is still in vault, but uncertified - downstream modules
+                # should check doc.is_certified before processing
+        else:
+            logger.warning(f"Registry unavailable - vault document {vault_id} is uncertified")
+        
+        # Add to index (now with registry info if available)
         self.index.add(doc)
 
         await self._create_unified_overlay(

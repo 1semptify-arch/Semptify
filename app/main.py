@@ -2350,6 +2350,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         return HTMLResponse(content="<h1>GUI Navigation Hub not found</h1>", status_code=404)
 
+    @fastapi_app.get("/home", response_class=HTMLResponse)
+    async def semptify_home(request: Request):
+        """Serve the Semptify Home — tenant front door."""
+        return templates.TemplateResponse(request, "pages/semptify_hub.html")
+
     @fastapi_app.get("/auto-mode", response_class=HTMLResponse)
     async def auto_mode_panel(request: Request):
         """Serve the Auto Mode Control Panel."""
@@ -2772,12 +2777,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     def _guard_role_page(request: Request, allowed_roles: set[str]) -> Optional[RedirectResponse]:
         """Lightweight guard: storage connected + expected role for portal page."""
+        from app.core.cookie_auth import extract_user_id
         from app.core.storage_middleware import is_valid_storage_user
-        from app.core.user_id import COOKIE_USER_ID, get_role_from_user_id
+        from app.core.user_id import get_role_from_user_id
         from app.core.workflow_engine import route_user as _route_user
 
-        user_id = request.cookies.get(COOKIE_USER_ID)
-        if not is_valid_storage_user(user_id):
+        signed_cookie = request.cookies.get("semptify_uid", "")
+        user_id = extract_user_id(request)
+        if not user_id or not is_valid_storage_user(signed_cookie):
             return RedirectResponse(url="/storage/providers", status_code=302)
 
         current_role = get_role_from_user_id(user_id) or ""
@@ -2883,7 +2890,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant/", response_class=HTMLResponse)
     async def tenant_page(request: Request):
         """Serve the tenant My Case page."""
-        guard_redirect = _guard_role_page(request, {"user"})
+        guard_redirect = _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
 
@@ -3008,10 +3015,108 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             }
         )
 
+    async def _get_tenant_briefcase(user_id: str, user_name: Optional[str] = None):
+        """Fetch complete tenant briefcase - unified vault, timeline, journal, inbox."""
+        from app.core.tenant_briefcase import get_tenant_briefcase
+        return await get_tenant_briefcase(user_id, user_name)
+
+    @fastapi_app.get("/tenant/home", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/home/", response_class=HTMLResponse)
+    async def tenant_home(request: Request):
+        """Serve the tenant home hub page (lightweight entry point after onboarding)."""
+        guard_redirect = _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+        
+        # Get user from cookie/session
+        user_id = request.cookies.get("semptify_uid", "")
+        briefcase = await _get_tenant_briefcase(user_id) if user_id else None
+        
+        # Try tenant home template first, then fall back to main tenant template
+        tenant_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "tenant_home.html"
+        if tenant_home_template_path.exists():
+            try:
+                context = {"briefcase": briefcase} if briefcase else {
+                    "briefcase": None,
+                    "vault": {"total_documents": 0, "has_documents": False},
+                    "timeline": {"has_timeline": False},
+                    "journal": {"has_journal": False},
+                    "inbox": {"unread_count": 0},
+                    "has_any_data": False,
+                    "is_new_tenant": True,
+                }
+                return templates.TemplateResponse(request, "pages/tenant_home.html", context)
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Tenant home template error: %s", e)
+        
+        # Fallback to main tenant page
+        return await tenant_page(request)
+
+    @fastapi_app.get("/tenant/capture", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/capture/", response_class=HTMLResponse)
+    async def tenant_capture(request: Request, type: str = None):
+        """Quick capture page for recording events."""
+        guard_redirect = _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+        
+        user_id = request.cookies.get("semptify_uid", "")
+        briefcase = await _get_tenant_briefcase(user_id) if user_id else None
+        
+        context = {
+            "briefcase": briefcase,
+            "capture_type": type,
+            "today": datetime.now().strftime("%Y-%m-%d"),
+            "csrf_token": request.state.csrf_token if hasattr(request.state, "csrf_token") else "",
+        }
+        return templates.TemplateResponse(request, "pages/tenant_capture.html", context)
+
+    @fastapi_app.get("/tenant/journal", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/journal/", response_class=HTMLResponse)
+    async def tenant_journal(request: Request):
+        """Journal page for viewing recorded entries."""
+        guard_redirect = _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+        
+        user_id = request.cookies.get("semptify_uid", "")
+        briefcase = await _get_tenant_briefcase(user_id) if user_id else None
+        
+        context = {"briefcase": briefcase}
+        return templates.TemplateResponse(request, "pages/tenant_journal.html", context)
+
+    @fastapi_app.get("/tenant/inbox", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/inbox/", response_class=HTMLResponse)
+    async def tenant_inbox(request: Request):
+        """Inbox for notifications and updates."""
+        guard_redirect = _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+        
+        user_id = request.cookies.get("semptify_uid", "")
+        briefcase = await _get_tenant_briefcase(user_id) if user_id else None
+        
+        context = {"briefcase": briefcase}
+        return templates.TemplateResponse(request, "pages/tenant_inbox.html", context)
+
+    @fastapi_app.get("/tenant/help", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/help/", response_class=HTMLResponse)
+    async def tenant_help(request: Request):
+        """Help and resources page."""
+        guard_redirect = _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+        
+        user_id = request.cookies.get("semptify_uid", "")
+        briefcase = await _get_tenant_briefcase(user_id) if user_id else None
+        
+        context = {"briefcase": briefcase}
+        return templates.TemplateResponse(request, "pages/tenant_help.html", context)
+
     @fastapi_app.get("/tenant/{subpage}", response_class=HTMLResponse)
     async def tenant_subpage(subpage: str, request: Request):
-        """Serve tenant sub-pages (documents, timeline, help, copilot)."""
-        guard_redirect = _guard_role_page(request, {"user"})
+        """Catch-all for tenant sub-pages not matched by explicit routes above."""
+        guard_redirect = _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
 
@@ -3030,27 +3135,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if subpage_index_fallback:
             return subpage_index_fallback
 
-        # Fallback: redirect to main tenant page
-        return RedirectResponse(url="/tenant", status_code=302)
-
-    @fastapi_app.get("/tenant/home", response_class=HTMLResponse)
-    @fastapi_app.get("/tenant/home/", response_class=HTMLResponse)
-    async def tenant_home(request: Request):
-        """Serve the tenant home hub page (lightweight entry point after onboarding)."""
-        guard_redirect = _guard_role_page(request, {"user"})
-        if guard_redirect:
-            return guard_redirect
-        
-        # Try tenant home template first, then fall back to main tenant template
-        tenant_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "tenant_home.html"
-        if tenant_home_template_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/tenant_home.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Tenant home template error: %s", e)
-        
-        # Fallback to main tenant page
-        return await tenant_page(request)
+        # Fallback: redirect to tenant home (not the old Case page)
+        return RedirectResponse(url="/tenant/home", status_code=302)
 
     # =========================================================================
     # Advocate Pages

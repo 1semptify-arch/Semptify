@@ -1,0 +1,376 @@
+{# Functions Bar - Quick actions & briefcase summary in header area #}
+{# Usage: {% include "components/functions_bar.html" with context %} #}
+
+<div class="functions-bar" id="functions-bar">
+    <div class="container">
+        <div class="functions-bar__inner">
+            {# Left: Briefcase Summary #}
+            <div class="functions-bar__briefcase">
+                <a href="/tenant/journal" class="functions-bar__briefcase-link" title="View your vault">
+                    <span class="functions-bar__icon">💼</span>
+                    <span class="functions-bar__count">{{ briefcase.vault.total_documents if briefcase else 0 }}</span>
+                    <span class="functions-bar__label">items</span>
+                    {% if briefcase and briefcase.inbox.unread_count > 0 %}
+                    <span class="functions-bar__alert-badge">{{ briefcase.inbox.unread_count }}</span>
+                    {% endif %}
+                </a>
+            </div>
+
+            {# Center: Quick Actions #}
+            <div class="functions-bar__actions">
+                {# Quick Upload - Primary Action #}
+                <button class="functions-bar__btn functions-bar__btn--primary" id="functions-upload-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17,8 12,3 7,8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    Upload
+                </button>
+                <input type="file" id="functions-upload-input" style="display: none;" multiple 
+                       accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt,.mp3,.mp4,.mov">
+
+                {# Quick Capture #}
+                <a href="/tenant/capture" class="functions-bar__btn functions-bar__btn--secondary">
+                    <span>➕</span>
+                    Capture
+                </a>
+
+                {# Quick Journal #}
+                <a href="/tenant/journal" class="functions-bar__btn functions-bar__btn--secondary">
+                    <span>📖</span>
+                    Journal
+                </a>
+
+                {# Inbox (with badge if unread) #}
+                <a href="/tenant/inbox" class="functions-bar__btn functions-bar__btn--secondary {% if briefcase and briefcase.inbox.unread_count > 0 %}functions-bar__btn--alert{% endif %}">
+                    <span>🔔</span>
+                    Inbox
+                    {% if briefcase and briefcase.inbox.unread_count > 0 %}
+                    <span class="functions-bar__btn-badge">{{ briefcase.inbox.unread_count }}</span>
+                    {% endif %}
+                </a>
+            </div>
+
+            {# Right: Help #}
+            <div class="functions-bar__help">
+                <a href="/tenant/help" class="functions-bar__help-link" title="Get help">
+                    <span>❓</span>
+                    <span class="functions-bar__help-text">Help</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Toast notifications #}
+<div class="functions-bar__toast-container" id="functions-toast"></div>
+
+<style>
+.functions-bar {
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-border);
+    padding: 0.75rem 0;
+}
+
+.functions-bar__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+/* Briefcase Section */
+.functions-bar__briefcase {
+    flex-shrink: 0;
+}
+
+.functions-bar__briefcase-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--color-text-primary);
+    transition: all 0.2s ease;
+}
+
+.functions-bar__briefcase-link:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-accent);
+}
+
+.functions-bar__icon {
+    font-size: 1.125rem;
+}
+
+.functions-bar__count {
+    font-weight: 700;
+    color: var(--color-accent);
+}
+
+.functions-bar__label {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}
+
+.functions-bar__alert-badge {
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background: var(--color-error);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.25rem;
+}
+
+/* Actions Section */
+.functions-bar__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    justify-content: center;
+}
+
+.functions-bar__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.functions-bar__btn--primary {
+    background: var(--color-accent);
+    color: white;
+    border: 1px solid var(--color-accent);
+}
+
+.functions-bar__btn--primary:hover {
+    background: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+}
+
+.functions-bar__btn--primary:active {
+    transform: translateY(1px);
+}
+
+.functions-bar__btn--secondary {
+    background: var(--color-bg-card);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.functions-bar__btn--secondary:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-hover);
+    color: var(--color-text-primary);
+}
+
+.functions-bar__btn--alert {
+    border-color: var(--color-warning);
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.functions-bar__btn--alert:hover {
+    background: rgba(245, 158, 11, 0.2);
+}
+
+.functions-bar__btn-badge {
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    background: var(--color-error);
+    color: white;
+    font-size: 0.625rem;
+    font-weight: 700;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Help Section */
+.functions-bar__help {
+    flex-shrink: 0;
+}
+
+.functions-bar__help-link {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    color: var(--color-text-muted);
+    text-decoration: none;
+    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    transition: all 0.2s ease;
+}
+
+.functions-bar__help-link:hover {
+    color: var(--color-text-primary);
+    background: var(--color-bg-hover);
+}
+
+/* Toast notifications */
+.functions-bar__toast-container {
+    position: fixed;
+    top: 80px;
+    right: 1rem;
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    pointer-events: none;
+}
+
+.functions-bar__toast {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    animation: slideInTop 0.3s ease, fadeOutTop 0.3s ease 3s forwards;
+    max-width: 280px;
+    box-shadow: var(--shadow-md);
+}
+
+.functions-bar__toast--success {
+    background: var(--color-success);
+    color: white;
+}
+
+.functions-bar__toast--error {
+    background: var(--color-error);
+    color: white;
+}
+
+.functions-bar__toast--info {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+}
+
+@keyframes slideInTop {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOutTop {
+    to { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .functions-bar__inner {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .functions-bar__actions {
+        order: 3;
+        width: 100%;
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+    }
+
+    .functions-bar__btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8125rem;
+    }
+
+    .functions-bar__help-text {
+        display: none;
+    }
+}
+</style>
+
+<script>
+(function() {
+    const uploadBtn = document.getElementById('functions-upload-btn');
+    const uploadInput = document.getElementById('functions-upload-input');
+    const toastContainer = document.getElementById('functions-toast');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+    if (!uploadBtn || !uploadInput) return;
+
+    // Quick upload
+    uploadBtn.addEventListener('click', () => uploadInput.click());
+
+    uploadInput.addEventListener('change', async (e) => {
+        const files = e.target.files;
+        if (!files.length) return;
+
+        for (const file of files) {
+            await uploadFile(file);
+        }
+
+        uploadInput.value = '';
+    });
+
+    async function uploadFile(file) {
+        showToast(`Uploading "${file.name}"...`, 'info');
+        uploadBtn.classList.add('functions-bar__btn--uploading');
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('source', 'functions_bar_quick_upload');
+
+        try {
+            const response = await fetch('/api/documents/upload', {
+                method: 'POST',
+                headers: { 'X-CSRF-Token': csrfToken },
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (response.ok && (result.id || result.vault_id)) {
+                showToast(`"${file.name}" uploaded successfully`, 'success');
+
+                // Update count in briefcase link
+                const countEl = document.querySelector('.functions-bar__count');
+                if (countEl) {
+                    const current = parseInt(countEl.textContent) || 0;
+                    countEl.textContent = current + 1;
+                }
+
+                // Notify other components
+                window.dispatchEvent(new CustomEvent('vault:uploaded', {
+                    detail: { filename: file.name, vault_id: result.vault_id || result.id }
+                }));
+            } else {
+                showToast(result.message || `Failed to upload "${file.name}"`, 'error');
+            }
+        } catch (error) {
+            showToast(`Network error uploading "${file.name}"`, 'error');
+        } finally {
+            uploadBtn.classList.remove('functions-bar__btn--uploading');
+        }
+    }
+
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `functions-bar__toast functions-bar__toast--${type}`;
+        toast.textContent = message;
+        toastContainer?.appendChild(toast);
+
+        setTimeout(() => toast.remove(), 3300);
+    }
+})();
+</script>

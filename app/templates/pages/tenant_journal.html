@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block title %}Journal - Semptify{% endblock %}
+
+{% block nav %}
+<a href="/tenant/home">Home</a>
+<a href="/tenant/capture">Quick Capture</a>
+<a href="/tenant/journal" class="active">Journal</a>
+<a href="/tenant/inbox">Inbox</a>
+{% endblock %}
+
+{% block styles %}
+<style>
+.journal-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+}
+
+.journal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.journal-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.new-entry-btn {
+    background: var(--color-accent);
+    color: white;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.new-entry-btn:hover {
+    background: var(--color-accent-hover);
+}
+
+/* Stats Bar */
+.stats-bar {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1.5rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--color-accent);
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+}
+
+/* Entry List */
+.entry-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.entry-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    transition: all 0.2s ease;
+}
+
+.entry-card:hover {
+    border-color: var(--color-border-hover);
+    background: var(--color-bg-hover);
+}
+
+.entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+
+.entry-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: var(--radius-full);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-accent);
+}
+
+.entry-type.urgent {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--color-error);
+}
+
+.entry-date {
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+}
+
+.entry-preview {
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.entry-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+}
+
+.entry-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--color-text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+/* Filters */
+.filter-bar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 0.5rem 1rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: white;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="journal-container">
+    
+    <div class="journal-header">
+        <h1>📓 Your Journal</h1>
+        <a href="/tenant/capture" class="new-entry-btn">+ New Entry</a>
+    </div>
+    
+    {% if entries %}
+    <!-- Stats -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <div class="stat-value">{{ total_entries }}</div>
+            <div class="stat-label">Total Entries</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">{{ entries_this_month }}</div>
+            <div class="stat-label">This Month</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">{{ urgent_count }}</div>
+            <div class="stat-label">Urgent</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">{{ days_since_start }}</div>
+            <div class="stat-label">Days Recording</div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="filter-bar">
+        <button class="filter-btn active" data-filter="all">All Entries</button>
+        <button class="filter-btn" data-filter="notice">Notices</button>
+        <button class="filter-btn" data-filter="conversation">Conversations</button>
+        <button class="filter-btn" data-filter="repair">Repairs</button>
+        <button class="filter-btn" data-filter="urgent">⚠️ Urgent</button>
+    </div>
+    
+    <!-- Entries -->
+    <div class="entry-list">
+        {% for entry in entries %}
+        <article class="entry-card" data-type="{{ entry.capture_type }}" data-urgent="{{ entry.is_urgent }}">
+            <div class="entry-header">
+                <span class="entry-type {% if entry.is_urgent %}urgent{% endif %}">
+                    {% if entry.capture_type == 'notice' %}📋 Notice
+                    {% elif entry.capture_type == 'conversation' %}💬 Conversation
+                    {% elif entry.capture_type == 'repair' %}🔧 Repair
+                    {% elif entry.capture_type == 'harassment' %}⚠️ Harassment
+                    {% elif entry.capture_type == 'payment' %}💰 Payment
+                    {% else %}📝 Other
+                    {% endif %}
+                </span>
+                <span class="entry-date">{{ entry.created_at|format_date }}</span>
+            </div>
+            <p class="entry-preview">{{ entry.description }}</p>
+            <div class="entry-meta">
+                {% if entry.has_attachments %}
+                <span>📎 {{ entry.attachment_count }} file(s)</span>
+                {% endif %}
+                {% if entry.who_involved %}
+                <span>👤 {{ entry.who_involved }}</span>
+                {% endif %}
+                {% if entry.location %}
+                <span>📍 {{ entry.location }}</span>
+                {% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <div class="empty-icon">🌱</div>
+        <h3>Your journal is empty</h3>
+        <p>Every detail you record strengthens your position. Start with something that happened today.</p>
+        <a href="/tenant/capture" class="new-entry-btn">Record Your First Entry</a>
+    </div>
+    {% endif %}
+    
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Filter functionality
+const filterBtns = document.querySelectorAll('.filter-btn');
+const entryCards = document.querySelectorAll('.entry-card');
+
+filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const filter = btn.dataset.filter;
+        
+        entryCards.forEach(card => {
+            if (filter === 'all') {
+                card.style.display = 'block';
+            } else if (filter === 'urgent') {
+                card.style.display = card.dataset.urgent === 'True' ? 'block' : 'none';
+            } else {
+                card.style.display = card.dataset.type === filter ? 'block' : 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
