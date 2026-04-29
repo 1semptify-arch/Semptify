@@ -80,13 +80,13 @@ async def ui_router(
     If not authenticated, redirects to welcome/login page.
     """
     if not user:
-        return RedirectResponse(url="/static/welcome.html", status_code=302)
+        return RedirectResponse(url="/static/public/welcome.html", status_code=302)
     
     device = detect_device_type(request)
     logger.info("UI routing: user=%s, role=%s, device=%s", user.user_id, user.role.value, device)
     
     # Use canonical role landing page first, static fallback handled by route layer
-    landing_page = ROLE_LANDING_PAGES.get(user.role) or ROLE_FALLBACK_PAGES.get(user.role, "/static/welcome.html")
+    landing_page = ROLE_LANDING_PAGES.get(user.role) or ROLE_FALLBACK_PAGES.get(user.role, "/static/public/welcome.html")
     
     # Log for debugging
     logger.info("Redirecting to: %s", landing_page)
@@ -105,7 +105,7 @@ async def ui_route(request: Request):
     from app.core.cookie_auth import extract_user_id
     user_id = extract_user_id(request)
     if not user_id:
-        return RedirectResponse(url="/static/welcome.html", status_code=302)
+        return RedirectResponse(url="/static/public/welcome.html", status_code=302)
     landing = _route_user(user_id)
     logger.info("ui/route: user=%s → %s", user_id, landing)
     return RedirectResponse(url=landing, status_code=302)
@@ -124,7 +124,7 @@ async def get_role_info(
             "authenticated": False,
             "role": None,
             "ui_mode": "public",
-            "landing_page": "/static/welcome.html"
+            "landing_page": "/static/public/welcome.html"
         }
     
     role_meta = get_role_metadata(user.role)
@@ -160,7 +160,7 @@ async def get_available_roles() -> dict:
             "description": meta.get("description", ""),
             "purpose": role_def.get("purpose", meta.get("description", "")),
             "default_landing_process": role_def.get("default_landing_process", ""),
-            "landing_page": meta.get("landing_page", "/static/welcome.html"),
+            "landing_page": meta.get("landing_page", "/static/public/welcome.html"),
             "icon": meta.get("icon", "👤"),
             "ui_mode": meta.get("ui_mode", "desktop"),
         })
