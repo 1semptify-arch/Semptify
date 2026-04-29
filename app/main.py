@@ -83,8 +83,8 @@ def _safe_router_import(module_path: str):
         return None
 
 # =============================================================================
-# SEMPTIFY 5.0 — BASE ROUTERS (always active)
-# See ADDONS_INVENTORY.md for the full product family map.
+# SEMPTIFY 5.0 CORE — Lightweight Base (always active)
+# Philosophy: Document Everything. Avoid the Pitfalls.
 # =============================================================================
 from app.routers import health
 from app.routers import storage
@@ -92,22 +92,32 @@ from app.routers import onboarding
 from app.routers import plugins
 from app.routers import development
 
+# Core Document/Vault System
 documents_router        = _safe_router_import("app.routers.documents")
 vault_router            = _safe_router_import("app.routers.vault")
 vault_engine_router     = _safe_router_import("app.routers.vault_engine")
 timeline_unified_router = _safe_router_import("app.routers.timeline_unified")
+briefcase_router        = _safe_router_import("app.routers.briefcase")  # Vault viewer
 workflow_router         = _safe_router_import("app.routers.workflow")
 role_ui_router          = _safe_router_import("app.routers.role_ui")
-role_upgrade_router     = _safe_router_import("app.routers.role_upgrade")
 websocket_router        = _safe_router_import("app.routers.websocket")
 free_api_router         = _safe_router_import("app.routers.free_api")
+
+# Core Rights & Education
 state_laws_router       = _safe_router_import("app.routers.state_laws")
+law_library_router      = _safe_router_import("app.routers.law_library")
+
+# Core Tools (lightweight utilities)
 contacts_router         = _safe_router_import("app.routers.contacts")
 search_router           = _safe_router_import("app.routers.search")
 pdf_tools_router        = _safe_router_import("app.routers.pdf_tools")
 preview_router          = _safe_router_import("app.routers.preview")
 document_converter_router = _safe_router_import("app.routers.document_converter")
-invite_codes_router     = _safe_router_import("app.routers.invite_codes")
+legal_analysis_router   = _safe_router_import("app.routers.legal_analysis")  # Brain-optional
+
+# Disabled for tenant-only core build
+role_upgrade_router     = None  # Multi-role feature - deferred
+invite_codes_router     = None  # Collaboration feature - deferred
 
 # =============================================================================
 # SEMPTIFY EXTENDED — EVICTION DEFENSE ADD-ON (disabled)
@@ -135,19 +145,12 @@ zoom_court_prep_router   = None
 DAKOTA_AVAILABLE = False
 
 # =============================================================================
-# SEMPTIFY EXTENDED — LEGAL PACKET ADD-ON (disabled)
+# SEMPTIFY EXTENDED — LEGAL/COURT ADD-ON (disabled)
+# Heavy legal filing features - enable for Extended build
 # =============================================================================
-# law_library_router    = _safe_router_import("app.routers.law_library")
-# court_forms_router    = _safe_router_import("app.routers.court_forms")
-# court_packet_router   = _safe_router_import("app.routers.court_packet")
-# legal_filing_router   = _safe_router_import("app.routers.legal_filing")
-# legal_analysis_router = _safe_router_import("app.routers.legal_analysis")
-# legal_trails_router   = _safe_router_import("app.routers.legal_trails")
-law_library_router    = None
 court_forms_router    = None
 court_packet_router   = None
 legal_filing_router   = None
-legal_analysis_router = None
 legal_trails_router   = None
 
 # =============================================================================
@@ -156,7 +159,6 @@ legal_trails_router   = None
 # intake_router        = _safe_router_import("app.routers.intake")
 # guided_intake_router = _safe_router_import("app.routers.guided_intake")
 # case_builder_router  = _safe_router_import("app.routers.case_builder")
-# briefcase_router     = _safe_router_import("app.routers.briefcase")
 # progress_router      = _safe_router_import("app.routers.progress")
 # actions_router       = _safe_router_import("app.routers.actions")
 # plan_maker_router    = _safe_router_import("app.routers.plan_maker")
@@ -164,23 +166,26 @@ legal_trails_router   = None
 intake_router        = None
 guided_intake_router = None
 case_builder_router  = None
-briefcase_router     = None
 progress_router      = None
 actions_router       = None
 plan_maker_router    = None
 tools_api_router     = None
 
 # =============================================================================
-# SEMPTIFY EXTENDED — ACCOUNTABILITY ADD-ON (disabled)
+# OTHER DIVISION — Preserved for Future Product Lines
+# These serve different purposes than Core tenant journaling
 # =============================================================================
-# complaints_router    = _safe_router_import("app.routers.complaints")
-# fraud_exposure_router   = _safe_router_import("app.routers.fraud_exposure")
-# public_exposure_router  = _safe_router_import("app.routers.public_exposure")
+# Campaign/Public/Fraud modules - for separate advocacy product lines
 # campaign_router         = _safe_router_import("app.routers.campaign")
+# public_exposure_router  = _safe_router_import("app.routers.public_exposure")
+# fraud_exposure_router   = _safe_router_import("app.routers.fraud_exposure")
+campaign_router         = None   # Marketing/Public Division
+public_exposure_router  = None   # Advocacy Division
+fraud_exposure_router   = None   # Investigation Division
+
+# Complaints - could be Core or Extended depending on scope
+# complaints_router    = _safe_router_import("app.routers.complaints")
 complaints_router       = None
-fraud_exposure_router   = None
-public_exposure_router  = None
-campaign_router         = None
 
 # =============================================================================
 # SEMPTIFY EXTENDED — ADVOCATE NETWORK ADD-ON (disabled)
