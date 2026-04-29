@@ -132,7 +132,119 @@ r2.pdf
 .windsurfrules
 .gemini/
 .cline/
+.agents/
+.zencoder/
+.zenflow/
+.semptify/
+.ai_state.json
+.clipboard
+.windsurf/
 
 AGENT.md
 CLAUDE.md
 .agent-mem/
+
+# AI session / assessment docs (dev only, not for public repo)
+ASSESSMENT_REPORT.md
+CODEBASE_ASSESSMENT.md
+CODEBASE_ASSESSMENT_V2.md
+SEMPTIFY_5.0_ASSESSMENT.md
+SEMTIFY_CRITICAL_ASSESSMENT.md
+SESSION_COMPLETION_REPORT.md
+SYSTEM_EVALUATION_REPORT.md
+DELIVERY_COMPLETE.md
+DELIVERY_SUMMARY.md
+INTEGRATION_STATUS.md
+DEPLOYMENT_STATUS.md
+DEPLOYMENT_READINESS.md
+COMPLETION_CHECKLIST.md
+ACTION_CHECKLIST.md
+DOCUMENT_UPLOAD_FIX_SUMMARY.md
+TODO_DOCUMENT_UPLOAD_AND_INTEGRITY.md
+PRODUCTION_SECURITY_IMPLEMENTATION_COMPLETE.md
+PRODUCTION_SECURITY_FILES_INVENTORY.md
+PRODUCTION_SECURITY_VISUAL_SUMMARY.md
+PRODUCTION_DEPLOYMENT_FINAL.md
+PRODUCTION_MASTER_INDEX.md
+MODULE_COMPLIANCE_INVENTORY.csv
+MODULE_COMPLIANCE_REALIGNMENT.md
+SYSTEM_BUILDER_GUIDE.md
+IMPLEMENTATION_BANNER.txt
+USER_FLOW_TEST_RESULTS.md
+plan-*.prompt.md
+content-snippets.txt
+
+# Credentials / sensitive workbooks
+CREDENTIALS_SETUP_WORKBOOK.html
+CREDENTIALS_SETUP_WORKBOOK_REVEALED.html
+
+# PDFs / binary attachments
+*.pdf
+semptify logo.png
+5.jpg
+
+# Windows launchers / scripts (dev convenience tools)
+*.hta
+*.bat
+*.vbs
+CreateDesktopShortcut.ps1
+Semptify-Bootstrap.ps1
+build_windows.ps1
+fix_python_env.ps1
+start-semptify.ps1
+SEMPTIFY-LAUNCHER.hta
+SemptifyControlPanel.hta
+Semptify.bat
+START-SEMPTIFY.bat
+START-WITH-POSTGRES.bat
+start.bat
+
+# One-off migration / fix scripts
+OAUTH_STATE_FIX.py
+fix_db_permissions.py
+create_tables.py
+check_routes.py
+analyze_nav.py
+deploy_legal_filing_module.py
+deploy_part1.py
+setup_credentials.py
+system_health_check.py
+validate_vault_system.py
+batch_auto_analysis.py
+
+# Crawl / report output
+crawler_report.json
+system_health_report.json
+openapi.json
+openapi_check.json
+compatibility_system.json
+trusted_domains.json
+invite_codes.json
+
+# Duplicate / outdated requirements
+requirements_clean.txt
+requirements-dev.txt
+env_template.txt
+
+# Misc dev artifacts
+-w
+f t.txt
+test_doc.txt
+test_notice.txt
+bsimpotrrttd/
+staticbac/
+DOCUMENTS/
+MASTER_INDEX.md
+
+# Loose test files in root (proper tests live in tests/)
+test_*.py
+sdk_demo.py
+sdk_modules_demo.py
+semptify_desktop.py
+semptify_free_apis.py
+run_server.py
+
+# Server logs
+server.log
+server_error.log
+server_output.log
