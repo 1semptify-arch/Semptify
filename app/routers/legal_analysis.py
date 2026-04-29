@@ -23,7 +23,14 @@ from ..services.legal_analysis_engine import (
     NoticeComplianceStatus,
 )
 from ..services.tenancy_hub import get_tenancy_hub_service
-from ..services.positronic_brain import get_brain, PositronicBrain, BrainEvent, EventType, ModuleType
+
+# Positronic Brain integration - optional for lightweight builds
+try:
+    from ..services.positronic_brain import get_brain, PositronicBrain, BrainEvent, EventType, ModuleType
+    BRAIN_AVAILABLE = True
+except ImportError:
+    BRAIN_AVAILABLE = False
+    PositronicBrain = None
 
 logger = logging.getLogger(__name__)
 
@@ -413,8 +420,7 @@ def _generate_action_items(assessment) -> List[Dict[str, Any]]:
 @router.get("/assess-merit/from-case/{case_id}")
 async def assess_merit_from_case(
     case_id: str,
-    perspective: str = Query(default="defendant"),
-    brain: PositronicBrain = Depends(get_brain)
+    perspective: str = Query(default="defendant")
 ):
     """
     Assess legal merit directly from a tenancy case.
@@ -429,24 +435,26 @@ async def assess_merit_from_case(
     case_data = case.to_dict()
     assessment = engine.assess_legal_merit(case_data, perspective)
 
-    # Emit event to brain
-    try:
-        await brain.emit(BrainEvent(
-            event_type=EventType.LEGAL_MERIT_ASSESSED,
-            source_module=ModuleType.LEGAL_ANALYSIS,
-            data={
-                "case_id": case_id,
-                "case_name": case.case_name,
-                "perspective": perspective,
-                "overall_merit": assessment.overall_merit.value,
-                "score": assessment.score,
-                "strengths_count": len(assessment.strengths),
-                "weaknesses_count": len(assessment.weaknesses),
-                "critical_issues_count": len(assessment.critical_issues),
-            }
-        ))
-    except Exception as e:
-        logger.warning(f"Failed to emit brain event: {e}")
+    # Emit event to brain (optional - only if brain available)
+    if BRAIN_AVAILABLE:
+        try:
+            brain = await get_brain()
+            await brain.emit(BrainEvent(
+                event_type=EventType.LEGAL_MERIT_ASSESSED,
+                source_module=ModuleType.LEGAL_ANALYSIS,
+                data={
+                    "case_id": case_id,
+                    "case_name": case.case_name,
+                    "perspective": perspective,
+                    "overall_merit": assessment.overall_merit.value,
+                    "score": assessment.score,
+                    "strengths_count": len(assessment.strengths),
+                    "weaknesses_count": len(assessment.weaknesses),
+                    "critical_issues_count": len(assessment.critical_issues),
+                }
+            ))
+        except Exception as e:
+            logger.debug(f"Brain event not emitted: {e}")
 
     return {
         "success": True,
@@ -573,7 +581,7 @@ async def analyze_binding_status(documents: List[Dict[str, Any]]):
 # =============================================================================
 
 @router.get("/quick-check/{case_id}")
-async def quick_case_check(case_id: str, brain: PositronicBrain = Depends(get_brain)):
+async def quick_case_check(case_id: str):
     """
     Quick legal health check for a case.
     Returns traffic-light style status for key areas.
@@ -604,22 +612,24 @@ async def quick_case_check(case_id: str, brain: PositronicBrain = Depends(get_br
     else:
         overall = "green"
 
-    # Emit event to brain
-    try:
-        await brain.emit(BrainEvent(
-            event_type=EventType.LEGAL_QUICK_CHECK,
-            source_module=ModuleType.LEGAL_ANALYSIS,
-            data={
-                "case_id": case_id,
-                "overall_status": overall,
-                "evidence_status": checks["evidence"]["status"],
-                "consistency_status": checks["consistency"]["status"],
-                "timeline_status": checks["timeline"]["status"],
-                "documentation_status": checks["documentation"]["status"],
-            }
-        ))
-    except Exception as e:
-        logger.warning(f"Failed to emit brain event: {e}")
+    # Emit event to brain (optional)
+    if BRAIN_AVAILABLE:
+        try:
+            brain = await get_brain()
+            await brain.emit(BrainEvent(
+                event_type=EventType.LEGAL_QUICK_CHECK,
+                source_module=ModuleType.LEGAL_ANALYSIS,
+                data={
+                    "case_id": case_id,
+                    "overall_status": overall,
+                    "evidence_status": checks["evidence"]["status"],
+                    "consistency_status": checks["consistency"]["status"],
+                    "timeline_status": checks["timeline"]["status"],
+                    "documentation_status": checks["documentation"]["status"],
+                }
+            ))
+        except Exception as e:
+            logger.debug(f"Brain event not emitted: {e}")
 
     return {
         "success": True,
