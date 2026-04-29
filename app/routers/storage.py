@@ -624,7 +624,13 @@ async def create_or_update_user(
     if not user and email:
         # Check for existing user by email (e.g. prior failed attempt with different user_id)
         result = await db.execute(select(User).where(User.email == email))
-        user = result.scalar_one_or_none()
+        email_match = result.scalar_one_or_none()
+        if email_match and email_match.id != user_id:
+            # Found a row under a different user_id — treat as new user so the
+            # correct user_id (matching the cookie) gets its own DB row.
+            # The old row is kept; a new one is created under the current user_id.
+            email_match = None
+        user = email_match
 
     if user:
         # Update last login
@@ -750,24 +756,34 @@ async def storage_home(
 
 
 @router.get("/reconnect", response_class=HTMLResponse)
-async def reconnect_storage(request: Request):
+async def reconnect_storage(request: Request, semptify_uid: Optional[str] = Cookie(None)):
     """
-    Reconnect page for returning users who lost their session/cookie.
-    SEPARATE from onboarding - this is for EXISTING users only.
+    Reconnect page for returning users who need to re-authorize storage.
+    SEPARATE from onboarding — this is re-auth only, no role selection.
+
+    Flow:
+    1. Cookie present with known provider → silent OAuth redirect, no page shown
+    2. Cookie present but unknown provider → show provider picker (last resort)
+    3. No cookie → show provider picker (will create new session)
     """
-    # Serve from static/reconnect/ (NOT onboarding - they are separate systems)
-    from fastapi.responses import FileResponse
-    from pathlib import Path
-    
-    reconnect_path = Path(__file__).parent.parent.parent / "static" / "reconnect" / "index.html"
-    if reconnect_path.exists():
-        return FileResponse(str(reconnect_path))
-    
-    # Fallback to generated HTML
-    return HTMLResponse(content=_generate_reconnect_html())
+    from app.core.cookie_auth import verify_user_id
+    raw_uid = verify_user_id(semptify_uid) if semptify_uid else None
+
+    if raw_uid:
+        provider, _, _ = parse_user_id(raw_uid)
+        if provider and provider in OAUTH_CONFIGS:
+            # Provider is known from user ID — skip the picker, go straight to OAuth
+            logger.info("Reconnect: silent re-auth for user=%s provider=%s", raw_uid[:4] + "***", provider)
+            return RedirectResponse(
+                url=f"/storage/auth/{provider}?existing_uid={raw_uid}",
+                status_code=302,
+            )
+
+    # Last resort: can't determine provider — show picker
+    return HTMLResponse(content=_generate_reconnect_html(existing_uid=raw_uid))
 
 
-def _generate_reconnect_html() -> str:
+def _generate_reconnect_html(existing_uid: Optional[str] = None) -> str:
     """Generate the reconnect page HTML."""
     settings = _get_settings()
     
@@ -806,6 +822,9 @@ def _generate_reconnect_html() -> str:
         </button>
         '''
     
+    import json as _json
+    existing_uid_js = _json.dumps(existing_uid)  # produces "null" or '"GU..."'
+
     return f'''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -915,10 +934,15 @@ def _generate_reconnect_html() -> str:
     </div>
     
     <script>
+        var EXISTING_UID = {existing_uid_js};
         function reconnect(provider) {{
-            // For returning users, we skip role selection and go straight to OAuth
-            // The server will match them to their existing account
-            window.location.href = '/storage/auth/' + provider + '?mode=reconnect';
+            // Thread existing_uid so the callback keeps the user's original ID.
+            // Server-injected from cookie at page render time.
+            var url = '/storage/auth/' + provider;
+            if (EXISTING_UID) {{
+                url += '?existing_uid=' + encodeURIComponent(EXISTING_UID);
+            }}
+            window.location.href = url;
         }}
     </script>
 </body>
@@ -1612,6 +1636,7 @@ async def oauth_callback(
 
         # Determine user ID
         existing_uid = state_data.get("existing_uid")
+        matched_user = None  # set below if a returning user is found by provider subject
         if existing_uid:
             # Returning user - keep their ID
             existing_provider, _, _ = parse_user_id(existing_uid)
@@ -1681,32 +1706,12 @@ async def oauth_callback(
         # This is the ProcessGroup exit gate: session saved + user row written = storage connected.
         await _mark_group_complete(db, user_id, "storage_connected")
 
-        # Determine landing page
-        # If return_to was specified (e.g., from storage setup wizard), use that
-        return_to = state_data.get("return_to")
-        if return_to:
-            landing = return_to
-        else:
-            landing = _route_user(user_id)
-
-        response = RedirectResponse(url=landing, status_code=302)
-        print(f"🍪 Setting cookie: {COOKIE_USER_ID}={user_id}, redirecting to {landing}")
-
-        # Set the ONE cookie - user ID that encodes everything
-        # For localhost development, don't use secure flag (http doesn't support secure cookies)
-        # In production with HTTPS, set secure=True
+        # Provision the user's storage vault BEFORE determining landing page.
+        # The vault must exist before route_user() checks document count.
         import os
         is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
         from app.core.cookie_auth import set_auth_cookie
-        set_auth_cookie(response, user_id, max_age=COOKIE_MAX_AGE, secure=not is_localhost)
-        
-        # Clear the redirect loop counter cookie (onboarding is now complete)
-        response.delete_cookie("semptify_redirect_loop_count")
 
-        # Provision the user's storage vault after authentication is established.
-        # OAuth success should not be treated as a callback failure if vault setup hits
-        # a provider-side file/folder error; that creates an auth loop while the DB
-        # session already exists.
         auth_marker = {
             "user_id": user_id,
             "provider": provider,
@@ -1716,6 +1721,7 @@ async def oauth_callback(
         encrypted = _encrypt_token(auth_marker, user_id)
         base_url = str(request.base_url).rstrip("/")
 
+        vault_ok = True
         try:
             await _store_auth_marker(
                 provider=provider,
@@ -1733,13 +1739,34 @@ async def oauth_callback(
                 provider,
                 user_id,
             )
-            fallback_url = "/onboarding/status?storage_setup=retry_required&provider=" + provider
-            response = RedirectResponse(url=fallback_url, status_code=302)
-            # Ensure is_localhost is defined for error path cookie
-            import os
-            is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
-            from app.core.cookie_auth import set_auth_cookie
-            set_auth_cookie(response, user_id, max_age=COOKIE_MAX_AGE, secure=not is_localhost)
+            vault_ok = False
+
+        # Determine landing page — AFTER vault provisioning attempt.
+        # New users (no existing_uid) always go to the onboarding upload step:
+        #   vault is now initialized, they upload one document to activate the account,
+        #   then route_user() correctly routes them to their role home with documents_present=True.
+        # Returning users use route_user() as normal.
+        # If vault provisioning failed, send to onboarding/status for retry.
+        return_to = state_data.get("return_to")
+        # A user is "new" only if they had no existing_uid in state AND were not
+        # matched to an existing DB account by provider subject during this callback.
+        is_new_user = not state_data.get("existing_uid") and not matched_user
+
+        if not vault_ok:
+            landing = "/onboarding/status?storage_setup=retry_required&provider=" + provider
+        elif return_to:
+            landing = return_to
+        elif is_new_user:
+            landing = "/onboarding/upload"
+        else:
+            landing = _route_user(user_id)
+
+        response = RedirectResponse(url=landing, status_code=302)
+        logger.info("OAuth callback complete: user=%s new=%s vault_ok=%s landing=%s",
+                    user_id[:6] + "***", is_new_user, vault_ok, landing)
+
+        set_auth_cookie(response, user_id, max_age=COOKIE_MAX_AGE, secure=not is_localhost)
+        response.delete_cookie("semptify_redirect_loop_count")
 
         return response
     except HTTPException as exc:
@@ -2336,10 +2363,11 @@ async def restore_session(
             }
         
         # No valid session - need OAuth re-authentication
+        # NOTE: Do NOT set return_to here - let OAuth callback use route_user() to determine landing
         return {
             "success": False,
             "oauth_required": True,
-            "oauth_url": f"/storage/providers?return_to=/storage/reconnect&user_id={user_id}",
+            "oauth_url": f"/storage/providers?user_id={user_id}",
             "message": "Storage connection needs renewal",
         }
         
@@ -2666,6 +2694,18 @@ async def switch_role(
 # ============================================================================
 # Logout
 # ============================================================================
+
+@router.get("/logout-reset", response_class=HTMLResponse)
+async def logout_reset(response: Response):
+    """
+    GET endpoint to clear a stale semptify_uid cookie and redirect to provider selection.
+    Used when a user has a cookie that no longer has a matching DB record.
+    """
+    redirect = RedirectResponse(url="/storage/providers", status_code=302)
+    redirect.delete_cookie(COOKIE_USER_ID)
+    redirect.delete_cookie("semptify_redirect_loop_count")
+    return redirect
+
 
 @router.post("/logout")
 async def logout(
