@@ -149,6 +149,19 @@ async def request_role_upgrade(
             detail="Admin role cannot be requested via API. Contact system administrator."
         )
     
+    # TEMPORARY: Professional roles coming soon (Q3 2026)
+    # SSOT for role availability is onboarding/select-role.html
+    if requested_role in (UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER):
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "coming_soon",
+                "message": f"The {requested_role.value} role is launching Q3 2026.",
+                "available_now": ["tenant"],
+                "note": "SSOT: static/onboarding/select-role.html shows current availability"
+            }
+        )
+    
     # Get user ID (from session or generate temp)
     user_id = user.user_id if user else "temp_" + str(hash(request.email or "anon"))[:8]
     
