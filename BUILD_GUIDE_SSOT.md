@@ -73,7 +73,11 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 - [ ] None logged yet
 
 ### Minor (Defer)
-- [ ] **Browser Preview Cross-Origin Issue** — Reconnect flow redirects to `localhost:8000` causing frame error when testing through preview proxy at `127.0.0.1:58057`. Workaround: Test directly at `http://localhost:8000`.
+- [x] **Browser Preview Cross-Origin Issue** — Preview proxy at `127.0.0.1:58057` cannot load app URLs at `localhost:8000` due to frame security restrictions. Affects:
+  - `/storage/reconnect` → `localhost:8000/storage/reconnect`
+  - `/onboarding/select-role.html` → `localhost:8000/onboarding/select-role.html`
+  
+  **Workaround:** Test directly at `http://localhost:8000` (not through preview proxy).
 
 ---
 
