@@ -70,7 +70,7 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 - [ ] None logged yet
 
 ### Major (Fix Before Release)
-- [ ] None logged yet
+- [x] **Reconnect → Storage Selection Loop** — Fixed in `storage.py:2369`. Removed `return_to=/storage/reconnect` which caused OAuth callback to redirect back to reconnect instead of role home. Now uses `route_user()` to determine correct landing page.
 
 ### Minor (Defer)
 - [x] **Browser Preview Cross-Origin Issue** — Preview proxy at `127.0.0.1:58057` cannot load app URLs at `localhost:8000` due to frame security restrictions. Affects:
