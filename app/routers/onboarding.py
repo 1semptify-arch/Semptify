@@ -621,14 +621,22 @@ def _render_client_activated():
 async def onboarding_start(request: Request, semptify_uid: Optional[str] = Cookie(None)):
     """Entry point: Show role selection OR route based on gate status."""
     if not semptify_uid:
-        return HTMLResponse(content=_render_role_selection())
+        # SSOT: Role selection only exists in static/onboarding/select-role.html
+        return RedirectResponse(url="/onboarding/select-role.html", status_code=302)
     else:
         return RedirectResponse(url="/onboarding/status", status_code=302)
 
-@router.get("/role-select", response_class=HTMLResponse)
+@router.get("/role-select")
 async def role_select():
-    """Dedicated role selection page."""
-    return HTMLResponse(content=_render_role_selection())
+    """Dedicated role selection page - redirects to SSOT location."""
+    return RedirectResponse(url="/onboarding/select-role.html", status_code=302)
+
+@router.get("/select-role.html")
+async def role_select_alias():
+    """Alias - static file served by FastAPI static middleware."""
+    # FastAPI will serve static/onboarding/select-role.html automatically
+    # This route exists for documentation/clarity - SSOT is the static file
+    return RedirectResponse(url="/onboarding/select-role.html", status_code=302)
 
 @router.get("/providers", response_class=HTMLResponse)
 async def storage_providers(role: Optional[str] = Query("tenant")):
@@ -668,48 +676,241 @@ async def onboarding_status(semptify_uid: Optional[str] = Cookie(None), db: Asyn
 
 @router.get("/upload", response_class=HTMLResponse)
 async def upload_prompt(semptify_uid: Optional[str] = Cookie(None)):
-    """Prompt user to upload first document."""
+    """Prompt new user to upload first document to activate vault and account."""
     if not semptify_uid:
         return RedirectResponse(url="/onboarding", status_code=302)
-    
+
     return HTMLResponse(content=ONBOARDING_TEMPLATE.format(content="""
-        <h1>📄 Upload Your First Document</h1>
-        <p class="subtitle">This activates client_activated gate</p>
-        
-        <div class="status-box">
-            Uploading your first document completes account activation.<br>
-            After this, you'll have access to all Semptify features.
+        <div class="progress">
+            <div class="progress-dot active"></div>
+            <div class="progress-dot active"></div>
+            <div class="progress-dot"></div>
         </div>
-        
+
+        <h1>📄 Add Your First Document</h1>
+        <p class="subtitle">This verifies your vault is working and activates your account</p>
+
+        <div class="status-box">
+            ✓ Storage connected. Upload one document to confirm your vault is ready.<br>
+            This can be anything — a lease, a notice, a photo. You can add more later.
+        </div>
+
         <div class="step-section" style="margin-top: 2rem;">
             <form id="uploadForm" enctype="multipart/form-data">
-                <input type="file" id="fileInput" name="file" required style="
-                    padding: 1rem; width: 100%; margin-bottom: 1rem;
-                    background: rgba(255,255,255,0.1); border-radius: 8px; color: #fff;
-                ">
+                <input type="file" id="fileInput" name="file" required
+                    aria-label="Choose a document to upload"
+                    style="padding: 1rem; width: 100%; margin-bottom: 1rem;
+                           background: rgba(255,255,255,0.1); border-radius: 8px; color: #fff;">
                 <button type="submit" class="btn" style="width: 100%; padding: 1rem; cursor: pointer;">
-                    📤 Upload Document
+                    📤 Upload &amp; Activate
                 </button>
             </form>
+            <div id="uploadStatus" style="margin-top: 1rem;"></div>
         </div>
-        
+
         <script>
+        // Step sequence: upload → verify vault → activate → route
+        // Onboarding complete signal fires ONLY after vault confirms the doc is stored.
+
+        function setStatus(msg, color) {
+            document.getElementById('uploadStatus').innerHTML =
+                '<p style="color:' + color + '; margin-top:0.5rem;">' + msg + '</p>';
+        }
+
+        async function verifyVault(docId, attempts) {
+            // Polls verify-vault up to `attempts` times with 1.5s gap.
+            // Returns true if confirmed, false if all attempts fail.
+            for (let i = 0; i < attempts; i++) {
+                if (i > 0) {
+                    setStatus('⏳ Confirming vault storage... (' + i + '/' + attempts + ')', '#a7f3d0');
+                    await new Promise(r => setTimeout(r, 1500));
+                }
+                try {
+                    const r = await fetch('/onboarding/verify-vault?doc_id=' + encodeURIComponent(docId));
+                    const data = await r.json();
+                    if (data.ok) return { ok: true };
+                    // Surface the exact reason from the server on final attempt
+                    if (i === attempts - 1) return { ok: false, reason: data.reason };
+                } catch (e) {
+                    if (i === attempts - 1) return { ok: false, reason: 'Connection error during vault check.' };
+                }
+            }
+            return { ok: false, reason: 'Vault did not confirm in time.' };
+        }
+
         document.getElementById('uploadForm').onsubmit = async (e) => {
             e.preventDefault();
             const file = document.getElementById('fileInput').files[0];
+            if (!file) return;
+
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+
+            // Step 1: Upload
+            setStatus('📤 Uploading...', '#a7f3d0');
             const formData = new FormData();
             formData.append('file', file);
-            
-            const response = await fetch('/documents/upload', {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (response.ok) {
-                window.location.href = '/onboarding/status';
-            } else {
-                alert('Upload failed');
+
+            let docId;
+            try {
+                const res = await fetch('/api/documents/upload', { method: 'POST', body: formData });
+                if (!res.ok) {
+                    let errBody = {};
+                    try { errBody = await res.json(); } catch (_) { errBody = { message: await res.text() }; }
+                    console.error('Upload error:', errBody);
+                    if (res.status === 401 && errBody.redirect_url) {
+                        setStatus('Session expired — redirecting to reconnect...', '#fcd34d');
+                        setTimeout(() => { window.location.href = errBody.redirect_url; }, 1200);
+                        return;
+                    }
+                    setStatus('Upload failed: ' + (errBody.message || res.status), '#fca5a5');
+                    submitBtn.disabled = false;
+                    return;
+                }
+                const data = await res.json();
+                // Extract vault_id from response — field may be vault_id or doc_id
+                docId = data.vault_id || data.doc_id || data.id || null;
+            } catch (err) {
+                setStatus('Connection error during upload. Please try again.', '#fca5a5');
+                console.error(err);
+                submitBtn.disabled = false;
+                return;
             }
+
+            if (!docId) {
+                setStatus('Upload succeeded but no document ID was returned. Please contact support.', '#fca5a5');
+                console.warn('Upload response had no vault_id/doc_id/id field:', data);
+                submitBtn.disabled = false;
+                return;
+            }
+
+            // Step 2: Verify vault — confirm the doc is actually stored before proceeding
+            setStatus('✓ Upload received — verifying vault storage...', '#a7f3d0');
+            const verify = await verifyVault(String(docId), 5);
+
+            if (!verify.ok) {
+                setStatus(
+                    '⚠ Vault check failed: ' + verify.reason +
+                    '<br><small>Your upload was received but storage could not be confirmed. ' +
+                    'Please try uploading again.</small>',
+                    '#fcd34d'
+                );
+                submitBtn.disabled = false;
+                return;
+            }
+
+            // Step 3: All checks passed — fire the onboarding complete signal
+            setStatus('✓ Vault confirmed — activating your account...', '#a7f3d0');
+            try {
+                await fetch('/onboarding/activate', { method: 'POST' });
+            } catch (err) {
+                console.warn('Activate call failed (non-fatal):', err);
+            }
+
+            setStatus('✓ Account activated — entering Semptify...', '#10b981');
+            window.location.href = '/ui/route';
         };
         </script>
     """))
+
+
+@router.get("/verify-vault")
+async def verify_vault(
+    doc_id: str = Query(..., description="vault_id returned by the upload endpoint"),
+    semptify_uid: Optional[str] = Cookie(None),
+):
+    """
+    Vault readiness check — called BEFORE the onboarding complete signal fires.
+
+    Confirms:
+    1. The vault service is reachable
+    2. The uploaded document is indexed under this user (by vault_id)
+    3. The storage path on the document record is non-empty
+
+    Returns JSON: { ok: bool, reason: str }
+    The upload page must receive ok=true before calling /onboarding/activate.
+    """
+    if not semptify_uid:
+        return JSONResponse({"ok": False, "reason": "Not authenticated — no session cookie."})
+
+    if not doc_id:
+        return JSONResponse({"ok": False, "reason": "No document ID supplied."})
+
+    try:
+        from app.services.vault_upload_service import get_vault_service
+        svc = get_vault_service()
+
+        # Check 1: vault service is alive
+        try:
+            docs = svc.get_user_documents(semptify_uid)
+        except Exception as exc:
+            logger.error("verify-vault: get_user_documents failed: %s", exc)
+            return JSONResponse({
+                "ok": False,
+                "reason": "Vault service could not be reached. Try again in a moment.",
+            })
+
+        # Check 2: the specific doc_id is present and belongs to this user
+        match = next((d for d in docs if getattr(d, "vault_id", None) == doc_id), None)
+        if not match:
+            logger.warning(
+                "verify-vault: doc_id=%s not found in vault for user=%s",
+                doc_id[:8] + "***",
+                semptify_uid[:6] + "***",
+            )
+            return JSONResponse({
+                "ok": False,
+                "reason": "Document not found in your vault yet. The upload may still be processing — please wait a moment and try again.",
+            })
+
+        # Check 3: storage path is recorded (document reached the storage layer)
+        if not getattr(match, "storage_path", None):
+            logger.warning(
+                "verify-vault: doc_id=%s has no storage_path for user=%s",
+                doc_id[:8] + "***",
+                semptify_uid[:6] + "***",
+            )
+            return JSONResponse({
+                "ok": False,
+                "reason": "Document was received but the storage path was not confirmed. Please try uploading again.",
+            })
+
+        logger.info(
+            "verify-vault: PASS for user=%s doc_id=%s path=%s",
+            semptify_uid[:6] + "***",
+            doc_id[:8] + "***",
+            str(match.storage_path)[:40],
+        )
+        return JSONResponse({"ok": True, "reason": "Vault confirmed. Document is stored and retrievable."})
+
+    except Exception as exc:
+        logger.exception("verify-vault: unexpected error: %s", exc)
+        return JSONResponse({
+            "ok": False,
+            "reason": "Verification check encountered an unexpected error. Please try again.",
+        })
+
+
+@router.post("/activate")
+async def activate_client(
+    semptify_uid: Optional[str] = Cookie(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """Mark client_activated gate complete. Called after verify-vault passes."""
+    if not semptify_uid:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    result = await db.execute(select(User).where(User.id == semptify_uid))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    completed = set((user.completed_groups or "").split(","))
+    completed.discard("")
+    completed.add("vault_initialized")
+    completed.add("client_activated")
+    user.completed_groups = ",".join(sorted(completed))
+    await db.commit()
+
+    logger.info("client_activated gate set for user=%s", semptify_uid[:6] + "***")
+    return {"ok": True}
