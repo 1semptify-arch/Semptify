@@ -22,9 +22,15 @@ from ..services.legal_analysis_engine import (
     LegalMeritLevel,
     NoticeComplianceStatus,
 )
-from ..services.tenancy_hub import get_tenancy_hub_service
 
-# Positronic Brain integration - optional for lightweight builds
+# Optional service dependencies for lightweight builds
+try:
+    from ..services.tenancy_hub import get_tenancy_hub_service
+    TENANCY_HUB_AVAILABLE = True
+except ImportError:
+    TENANCY_HUB_AVAILABLE = False
+    get_tenancy_hub_service = None
+
 try:
     from ..services.positronic_brain import get_brain, PositronicBrain, BrainEvent, EventType, ModuleType
     BRAIN_AVAILABLE = True
@@ -424,7 +430,14 @@ async def assess_merit_from_case(
 ):
     """
     Assess legal merit directly from a tenancy case.
+    Requires: tenancy_hub service (available in Extended build)
     """
+    if not TENANCY_HUB_AVAILABLE:
+        raise HTTPException(
+            status_code=503,
+            detail="Tenancy hub service not available in Core build. Enable Extended features."
+        )
+    
     hub_service = get_tenancy_hub_service()
     case = hub_service.get_case(case_id)
 
@@ -585,7 +598,14 @@ async def quick_case_check(case_id: str):
     """
     Quick legal health check for a case.
     Returns traffic-light style status for key areas.
+    Requires: tenancy_hub service (available in Extended build)
     """
+    if not TENANCY_HUB_AVAILABLE:
+        raise HTTPException(
+            status_code=503,
+            detail="Tenancy hub service not available in Core build. Enable Extended features."
+        )
+    
     hub_service = get_tenancy_hub_service()
     case = hub_service.get_case(case_id)
 
