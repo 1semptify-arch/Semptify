@@ -82,99 +82,194 @@ def _safe_router_import(module_path: str):
         logging.getLogger(__name__).warning("Router import failed (%s): %s", module_path, ex)
         return None
 
-# Import optional routers
-auto_mode_router = _safe_router_import("app.routers.auto_mode")
-intake_router = _safe_router_import("app.routers.intake")
-registry_router = _safe_router_import("app.routers.registry")
-vault_engine_router = _safe_router_import("app.routers.vault_engine")
-law_library_router = _safe_router_import("app.routers.law_library")
-eviction_defense_router = _safe_router_import("app.routers.eviction_defense")
-zoom_court_router = _safe_router_import("app.routers.zoom_court")
-form_data_router = _safe_router_import("app.routers.form_data")
-setup_router = _safe_router_import("app.routers.setup")
-websocket_router = _safe_router_import("app.routers.websocket")
-brain_router = _safe_router_import("app.routers.brain")
-vault_all_in_one_router = _safe_router_import("app.routers.vault_all_in_one")
-
+# =============================================================================
+# SEMPTIFY 5.0 — BASE ROUTERS (always active)
+# See ADDONS_INVENTORY.md for the full product family map.
+# =============================================================================
 from app.routers import health
-cloud_sync_router = _safe_router_import("app.routers.cloud_sync")
-complaints_router = _safe_router_import("app.routers.complaints")
-module_hub_router = _safe_router_import("app.routers.module_hub")
-positronic_mesh_router = _safe_router_import("app.routers.positronic_mesh")
-mesh_network_router = _safe_router_import("app.routers.mesh_network")
-location_router = _safe_router_import("app.routers.location")
-hud_funding_router = _safe_router_import("app.routers.hud_funding")
-fraud_exposure_router = _safe_router_import("app.routers.fraud_exposure")
-public_exposure_router = _safe_router_import("app.routers.public_exposure")
-plan_maker_router = _safe_router_import("app.routers.plan_maker")
-research_router = _safe_router_import("app.routers.research")
-campaign_router = _safe_router_import("app.routers.campaign")
-research_module_router = _safe_router_import("app.modules.research_module")
-extraction_router = _safe_router_import("app.routers.extraction")
-funding_search_router = _safe_router_import("app.routers.funding_search")
-tenancy_hub_router = _safe_router_import("app.routers.tenancy_hub")
-legal_analysis_router = _safe_router_import("app.routers.legal_analysis")
-legal_filing_router = _safe_router_import("app.routers.legal_filing")
-distributed_mesh_router = _safe_router_import("app.routers.mesh")
-legal_trails_router = _safe_router_import("app.routers.legal_trails")
-state_laws_router = _safe_router_import("app.routers.state_laws")
-contacts_router = _safe_router_import("app.routers.contacts")
-recognition_router = _safe_router_import("app.routers.recognition")
-search_router = _safe_router_import("app.routers.search")
-court_forms_router = _safe_router_import("app.routers.court_forms")
-zoom_court_prep_router = _safe_router_import("app.routers.zoom_court_prep")
-pdf_tools_router = _safe_router_import("app.routers.pdf_tools")
-tools_api_router = _safe_router_import("app.routers.tools_api")
-briefcase_router = _safe_router_import("app.routers.briefcase")
-emotion_router = _safe_router_import("app.routers.emotion")
-court_packet_router = _safe_router_import("app.routers.court_packet")
-actions_router = _safe_router_import("app.routers.actions")
-progress_router = _safe_router_import("app.routers.progress")
-dashboard_router = _safe_router_import("app.routers.dashboard")
-enterprise_dashboard_router = _safe_router_import("app.routers.enterprise_dashboard")
-crawler_router = _safe_router_import("app.routers.crawler")
-role_ui_router = _safe_router_import("app.routers.role_ui")
-role_upgrade_router = _safe_router_import("app.routers.role_upgrade")
-guided_intake_router = _safe_router_import("app.routers.guided_intake")
-overlays_router = _safe_router_import("app.routers.overlays")
-document_converter_router = _safe_router_import("app.routers.document_converter")
-page_index_router = _safe_router_import("app.routers.page_index")
-documents_router = _safe_router_import("app.routers.documents")
-vault_router = _safe_router_import("app.routers.vault")
-workflow_router = _safe_router_import("app.routers.workflow")
-case_builder_router = _safe_router_import("app.routers.case_builder")
-preview_router = _safe_router_import("app.routers.preview")
-batch_router = _safe_router_import("app.routers.batch")
-analytics_router = _safe_router_import("app.routers.analytics")
-functionx_router = _safe_router_import("app.routers.functionx")
-unified_overlays_router = _safe_router_import("app.routers.unified_overlays")
-document_delivery_router = _safe_router_import("app.routers.document_delivery")
-communication_router = _safe_router_import("app.routers.communication")
-free_api_router = _safe_router_import("app.routers.free_api")
-timeline_unified_router = _safe_router_import("app.routers.timeline_unified")
-invite_codes_router = _safe_router_import("app.routers.invite_codes")
 from app.routers import storage
 from app.routers import onboarding
 from app.routers import plugins
 from app.routers import development
-# DISABLED: from app.core.mesh_integration import start_mesh_network, stop_mesh_network
 
-# Tenant Defense Module
-from app.modules.tenant_defense import router as tenant_defense_router
+documents_router        = _safe_router_import("app.routers.documents")
+vault_router            = _safe_router_import("app.routers.vault")
+vault_engine_router     = _safe_router_import("app.routers.vault_engine")
+timeline_unified_router = _safe_router_import("app.routers.timeline_unified")
+workflow_router         = _safe_router_import("app.routers.workflow")
+role_ui_router          = _safe_router_import("app.routers.role_ui")
+role_upgrade_router     = _safe_router_import("app.routers.role_upgrade")
+websocket_router        = _safe_router_import("app.routers.websocket")
+free_api_router         = _safe_router_import("app.routers.free_api")
+state_laws_router       = _safe_router_import("app.routers.state_laws")
+contacts_router         = _safe_router_import("app.routers.contacts")
+search_router           = _safe_router_import("app.routers.search")
+pdf_tools_router        = _safe_router_import("app.routers.pdf_tools")
+preview_router          = _safe_router_import("app.routers.preview")
+document_converter_router = _safe_router_import("app.routers.document_converter")
+invite_codes_router     = _safe_router_import("app.routers.invite_codes")
 
+# =============================================================================
+# SEMPTIFY EXTENDED — EVICTION DEFENSE ADD-ON (disabled)
+# To enable: uncomment the lines below and add consent gate
+# =============================================================================
+# eviction_defense_router  = _safe_router_import("app.routers.eviction_defense")
+# zoom_court_router        = _safe_router_import("app.routers.zoom_court")
+# zoom_court_prep_router   = _safe_router_import("app.routers.zoom_court_prep")
+eviction_defense_router  = None
+zoom_court_router        = None
+zoom_court_prep_router   = None
 # Dakota County Eviction Defense Module
-try:
-    from app.routers.eviction import (
-        flows_router as dakota_flows,
-        forms_router as dakota_forms,
-        case_router as dakota_case,
-        learning_router as dakota_learning,
-        procedures_router as dakota_procedures,
-    )
-    DAKOTA_AVAILABLE = True
-except ImportError as e:
-    logging.getLogger(__name__).warning("Dakota County module import failed: %s", e)
-    DAKOTA_AVAILABLE = False
+# try:
+#     from app.routers.eviction import (
+#         flows_router as dakota_flows,
+#         forms_router as dakota_forms,
+#         case_router as dakota_case,
+#         learning_router as dakota_learning,
+#         procedures_router as dakota_procedures,
+#     )
+#     DAKOTA_AVAILABLE = True
+# except ImportError as e:
+#     logging.getLogger(__name__).warning("Dakota County module import failed: %s", e)
+#     DAKOTA_AVAILABLE = False
+DAKOTA_AVAILABLE = False
+
+# =============================================================================
+# SEMPTIFY EXTENDED — LEGAL PACKET ADD-ON (disabled)
+# =============================================================================
+# law_library_router    = _safe_router_import("app.routers.law_library")
+# court_forms_router    = _safe_router_import("app.routers.court_forms")
+# court_packet_router   = _safe_router_import("app.routers.court_packet")
+# legal_filing_router   = _safe_router_import("app.routers.legal_filing")
+# legal_analysis_router = _safe_router_import("app.routers.legal_analysis")
+# legal_trails_router   = _safe_router_import("app.routers.legal_trails")
+law_library_router    = None
+court_forms_router    = None
+court_packet_router   = None
+legal_filing_router   = None
+legal_analysis_router = None
+legal_trails_router   = None
+
+# =============================================================================
+# SEMPTIFY EXTENDED — CASE MANAGEMENT ADD-ON (disabled)
+# =============================================================================
+# intake_router        = _safe_router_import("app.routers.intake")
+# guided_intake_router = _safe_router_import("app.routers.guided_intake")
+# case_builder_router  = _safe_router_import("app.routers.case_builder")
+# briefcase_router     = _safe_router_import("app.routers.briefcase")
+# progress_router      = _safe_router_import("app.routers.progress")
+# actions_router       = _safe_router_import("app.routers.actions")
+# plan_maker_router    = _safe_router_import("app.routers.plan_maker")
+# tools_api_router     = _safe_router_import("app.routers.tools_api")
+intake_router        = None
+guided_intake_router = None
+case_builder_router  = None
+briefcase_router     = None
+progress_router      = None
+actions_router       = None
+plan_maker_router    = None
+tools_api_router     = None
+
+# =============================================================================
+# SEMPTIFY EXTENDED — ACCOUNTABILITY ADD-ON (disabled)
+# =============================================================================
+# complaints_router    = _safe_router_import("app.routers.complaints")
+# fraud_exposure_router   = _safe_router_import("app.routers.fraud_exposure")
+# public_exposure_router  = _safe_router_import("app.routers.public_exposure")
+# campaign_router         = _safe_router_import("app.routers.campaign")
+complaints_router       = None
+fraud_exposure_router   = None
+public_exposure_router  = None
+campaign_router         = None
+
+# =============================================================================
+# SEMPTIFY EXTENDED — ADVOCATE NETWORK ADD-ON (disabled)
+# Requires: user consent to share documents with advocates
+# =============================================================================
+# communication_router      = _safe_router_import("app.routers.communication")
+# document_delivery_router  = _safe_router_import("app.routers.document_delivery")
+communication_router      = None
+document_delivery_router  = None
+# Tenant Defense Module
+# from app.modules.tenant_defense import router as tenant_defense_router
+tenant_defense_router = None
+
+# =============================================================================
+# SEMPTIFY EXTENDED — FUNDING SEARCH ADD-ON (disabled)
+# =============================================================================
+# funding_search_router = _safe_router_import("app.routers.funding_search")
+# hud_funding_router    = _safe_router_import("app.routers.hud_funding")
+# location_router       = _safe_router_import("app.routers.location")
+funding_search_router = None
+hud_funding_router    = None
+location_router       = None
+
+# =============================================================================
+# SEMPTIFY EXTENDED — ADMIN / REPORTING ADD-ON (disabled)
+# =============================================================================
+# analytics_router           = _safe_router_import("app.routers.analytics")
+# dashboard_router           = _safe_router_import("app.routers.dashboard")
+# enterprise_dashboard_router = _safe_router_import("app.routers.enterprise_dashboard")
+# batch_router               = _safe_router_import("app.routers.batch")
+# registry_router            = _safe_router_import("app.routers.registry")
+# tenancy_hub_router         = _safe_router_import("app.routers.tenancy_hub")
+analytics_router           = None
+dashboard_router           = None
+enterprise_dashboard_router = None
+batch_router               = None
+registry_router            = None
+tenancy_hub_router         = None
+
+# =============================================================================
+# SEMPTIFY RESEARCH — AI INTELLIGENCE ADD-ON (disabled)
+# Requires: explicit user consent to allow AI to read documents
+# =============================================================================
+# recognition_router      = _safe_router_import("app.routers.recognition")
+# extraction_router       = _safe_router_import("app.routers.extraction")
+# crawler_router          = _safe_router_import("app.routers.crawler")
+# research_router         = _safe_router_import("app.routers.research")
+# research_module_router  = _safe_router_import("app.modules.research_module")
+# form_data_router        = _safe_router_import("app.routers.form_data")
+# overlays_router         = _safe_router_import("app.routers.overlays")
+# unified_overlays_router = _safe_router_import("app.routers.unified_overlays")
+# vault_all_in_one_router = _safe_router_import("app.routers.vault_all_in_one")
+# cloud_sync_router       = _safe_router_import("app.routers.cloud_sync")
+recognition_router      = None
+extraction_router       = None
+crawler_router          = None
+research_router         = None
+research_module_router  = None
+form_data_router        = None
+overlays_router         = None
+unified_overlays_router = None
+vault_all_in_one_router = None
+cloud_sync_router       = None
+
+# =============================================================================
+# SEMPTIFY AI INFRASTRUCTURE — Internal (disabled)
+# =============================================================================
+# brain_router           = _safe_router_import("app.routers.brain")
+# auto_mode_router       = _safe_router_import("app.routers.auto_mode")
+# emotion_router         = _safe_router_import("app.routers.emotion")
+# positronic_mesh_router = _safe_router_import("app.routers.positronic_mesh")
+# mesh_network_router    = _safe_router_import("app.routers.mesh_network")
+# distributed_mesh_router = _safe_router_import("app.routers.mesh")
+# module_hub_router      = _safe_router_import("app.routers.module_hub")
+# functionx_router       = _safe_router_import("app.routers.functionx")
+brain_router           = None
+auto_mode_router       = None
+emotion_router         = None
+positronic_mesh_router = None
+mesh_network_router    = None
+distributed_mesh_router = None
+module_hub_router      = None
+functionx_router       = None
+
+# =============================================================================
+# DEV / INTERNAL ONLY
+# =============================================================================
+setup_router    = _safe_router_import("app.routers.setup")
+page_index_router = _safe_router_import("app.routers.page_index")
 
 
 # =============================================================================
@@ -1712,9 +1807,46 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(welcome_path)
         return RedirectResponse(url="/onboarding", status_code=302)
 
+    # ==========================================================================
+    # Role Home Routes — destinations from workflow_engine after auth/reconnect
+    # ==========================================================================
+    _ROLE_STATIC_MAP = {
+        "/tenant/home":      "static/tenant/dashboard.html",
+        "/tenant/documents": "static/tenant/index.html",
+        "/tenant":           "static/tenant/index.html",
+        "/advocate":         "static/advocate/index.html",
+        "/advocate/home":    "static/advocate/dashboard.html",
+        "/legal":            "static/legal/index.html",
+        "/legal/home":       "static/legal/dashboard.html",
+        "/manager":          "static/manager/index.html",
+        "/manager/home":     "static/manager/dashboard.html",
+        "/admin":            "static/admin/dashboard.html",
+        "/admin/home":       "static/admin/dashboard.html",
+        "/judge":            "static/legal/index.html",
+        "/judge/home":       "static/legal/dashboard.html",
+    }
+
+    def _make_role_handler(rel_path: str):
+        async def _handler():
+            p = BASE_PATH / rel_path
+            if p.exists():
+                return FileResponse(str(p))
+            return RedirectResponse(url="/", status_code=302)
+        return _handler
+
+    for _route, _file in _ROLE_STATIC_MAP.items():
+        fastapi_app.add_api_route(
+            _route,
+            _make_role_handler(_file),
+            methods=["GET"],
+            response_class=HTMLResponse,
+            tags=["Role Home"],
+        )
+
     # Unified Onboarding (primary entry point for new users)
+    # NOTE: onboarding.router already declares prefix="/onboarding" — no prefix here
     if onboarding.router:
-        fastapi_app.include_router(onboarding.router, prefix="/onboarding", tags=["Onboarding"])
+        fastapi_app.include_router(onboarding.router, tags=["Onboarding"])
 
     # Storage OAuth (handles authentication)
     if storage.router:
@@ -2010,10 +2142,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if static_path.exists():
         fastapi_app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 
-    # Mount onboarding folder directly at /onboarding for clean URLs
+    # Mount onboarding static assets at /onboarding-assets to avoid shadowing the
+    # /onboarding router. The router prefix /onboarding must take priority.
     onboarding_static_path = BASE_PATH / "static" / "onboarding"
     if onboarding_static_path.exists():
-        fastapi_app.mount("/onboarding", StaticFiles(directory=str(onboarding_static_path)), name="onboarding_static")
+        fastapi_app.mount("/onboarding-assets", StaticFiles(directory=str(onboarding_static_path)), name="onboarding_static")
 
     # =========================================================================
     # Onboarding Redirect (before catch-all)
