@@ -143,6 +143,39 @@
             background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(30, 58, 95, 0.05) 100%);
         }
 
+        /* Coming Soon / Disabled Role Styling */
+        .role-card.coming-soon {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+
+        .role-card.coming-soon:hover {
+            border-color: var(--border);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .coming-soon-badge {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            white-space: nowrap;
+        }
+
+        .role-card.coming-soon .role-icon {
+            filter: grayscale(0.5);
+        }
+
         .role-header {
             display: flex;
             align-items: center;
@@ -404,9 +437,9 @@
                 <span class="verification-badge easy">✓ No verification needed</span>
             </div>
 
-            <!-- Advocate Role (backend: advocate) -->
-            <div class="role-card" data-role="advocate" onclick="selectRole(this)">
-                <div class="selection-check"></div>
+            <!-- Advocate Role (backend: advocate) - COMING SOON -->
+            <div class="role-card coming-soon" data-role="advocate" onclick="showComingSoon(event)">
+                <div class="coming-soon-badge">🔜 Coming Soon</div>
                 <div class="role-header">
                     <div class="role-icon">🤝</div>
                     <div>
@@ -430,14 +463,14 @@
                 <span class="verification-badge moderate">🎟️ Invite code required</span>
             </div>
 
-            <!-- Legal Role (backend: legal) -->
-            <div class="role-card" data-role="legal" onclick="selectRole(this)">
-                <div class="selection-check"></div>
+            <!-- Legal Role (backend: legal) - COMING SOON -->
+            <div class="role-card coming-soon" data-role="legal" onclick="showComingSoon(event)">
+                <div class="coming-soon-badge">🔜 Coming Soon</div>
                 <div class="role-header">
                     <div class="role-icon">⚖️</div>
                     <div>
                         <div class="role-title">Licensed Attorney</div>
-                        <div class="role-subtitle">I&apos;m a lawyer</div>
+                        <div class="role-subtitle">I'm a lawyer</div>
                     </div>
                 </div>
                 <div class="role-description">
@@ -456,9 +489,9 @@
                 <span class="verification-badge moderate">🔐 Bar verification required</span>
             </div>
 
-            <!-- Manager Role (backend: manager) -->
-            <div class="role-card" data-role="manager" onclick="selectRole(this)">
-                <div class="selection-check"></div>
+            <!-- Manager Role (backend: manager) - COMING SOON -->
+            <div class="role-card coming-soon" data-role="manager" onclick="showComingSoon(event)">
+                <div class="coming-soon-badge">🔜 Coming Soon</div>
                 <div class="role-header">
                     <div class="role-icon">🏢</div>
                     <div>
@@ -492,7 +525,8 @@
 
         <!-- Help -->
         <div class="help-section">
-            <p>Not sure which to choose? <strong>Most people should select &quot;Tenant&quot;</strong> — even if you later work with an advocate or attorney.</p>
+            <p><strong>Start with "Tenant"</strong> — Advocate, Legal, and Agency roles are coming soon for professionals.</p>
+            <p style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">🏠 Tenant role is fully available now. Professional tools launching Q3 2026.</p>
         </div>
     </article>
 
@@ -525,10 +559,20 @@
         let selectedRole = null;
 
         function selectRole(card) {
+            // Prevent selection of coming-soon roles
+            if (card.classList.contains("coming-soon")) {
+                return;
+            }
             document.querySelectorAll(".role-card").forEach(c => c.classList.remove("selected"));
             card.classList.add("selected");
             selectedRole = card.dataset.role;
             document.getElementById("continueBtn").classList.add("active");
+        }
+
+        function showComingSoon(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            alert("🏗️ This role is coming soon!\n\nWe're building professional tools for advocates, attorneys, and agencies.\n\nFor now, select 'Tenant' to start organizing your housing records.");
         }
 
         function continueToStorage() {
