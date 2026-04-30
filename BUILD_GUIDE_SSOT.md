@@ -51,6 +51,7 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 | 1. Welcome Page | `/static/public/welcome.html` | ⏳ Testing | Check CTAs work |
 | 2. New User Path | `/onboarding/select-role.html` | ⏳ Testing | Only Tenant selectable |
 | 3. Returning User | `/storage/reconnect` | ✅ Working | Session valid → role home; Invalid → OAuth → role home |
+| 3a. **Return to Task** | `/storage/reconnect?return_to=/timeline/view/123` | ✅ Implemented | Mid-task auth expiry → return to previous page after reauth |
 | 4. Storage Select | `/onboarding/storage-select.html` | ⏳ Testing | Provider selection |
 | 5. OAuth Flow | `/storage/connect` | ⏳ Testing | Google/Dropbox/OneDrive |
 | 6. Tenant Home | `/tenant/home` | ⏳ Testing | Dashboard loads |
@@ -148,7 +149,33 @@ SEMPFIFY_FEATURE_SET=full        # Everything
 
 ---
 
-## 📝 Build Log
+## � Task Recovery (return_to)
+
+When auth expires mid-task, user can return to their previous state after reauth.
+
+### Usage
+```
+User at /timeline/view/123 → Auth expires
+→ Redirect: /storage/reconnect?return_to=/timeline/view/123
+→ OAuth flow
+→ Callback returns to: /timeline/view/123 (not home)
+```
+
+### Implementation Details
+- **Entry:** `storage.py:763` - `return_to` query param on `/reconnect`
+- **Validation:** Only local paths allowed (`/...`, not `//...` or `https://`)
+- **Session valid:** Returns directly to `return_to` URL (skips OAuth)
+- **Session invalid:** Passes `return_to` through OAuth → callback restores it
+- **HTML picker:** JavaScript threads `RETURN_TO` through OAuth state
+
+### Security
+- External URLs rejected (prevent open redirect)
+- Double slashes rejected (`//evil.com`)
+- Empty/null `return_to` falls back to `route_user()` → home
+
+---
+
+## �📝 Build Log
 
 ### April 29, 2026 - Modular Core Restructure
 - ✅ Reorganized `main.py` into CORE / EXTENDED / OTHER DIVISION
