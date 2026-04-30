@@ -2,7 +2,8 @@
 
 **Purpose:** Single source of truth for build status, testing results, and known issues.  
 **Last Updated:** April 29, 2026  
-**Build Type:** Core (Tenant Role Only)
+**Build Type:** Core (Tenant Role Only)  
+**Status:** Reconnect Flow VERIFIED ✅
 
 ---
 
@@ -49,7 +50,7 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 |------|-----|--------|-------|
 | 1. Welcome Page | `/static/public/welcome.html` | ⏳ Testing | Check CTAs work |
 | 2. New User Path | `/onboarding/select-role.html` | ⏳ Testing | Only Tenant selectable |
-| 3. Returning User | `/storage/reconnect` | ⏳ Testing | OAuth reconnect |
+| 3. Returning User | `/storage/reconnect` | ✅ Working | Session valid → role home; Invalid → OAuth → role home |
 | 4. Storage Select | `/onboarding/storage-select.html` | ⏳ Testing | Provider selection |
 | 5. OAuth Flow | `/storage/connect` | ⏳ Testing | Google/Dropbox/OneDrive |
 | 6. Tenant Home | `/tenant/home` | ⏳ Testing | Dashboard loads |
@@ -70,10 +71,13 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 - [ ] None logged yet
 
 ### Major (Fix Before Release)
-- [x] **Reconnect → Storage Selection Loop** — Fixed in `storage.py:2369` and `storage.py:780-785`. 
-  - Removed `return_to=/storage/reconnect` from OAuth URL (was causing callback to loop back)
-  - Added session validation to `/reconnect` endpoint - if session still valid, routes directly to role home without OAuth
-  - Now proper flow: valid session → role home | invalid session → OAuth → role home
+- [x] **Reconnect → Storage Selection Loop** — **FIXED & VERIFIED** ✅
+  - **Root cause:** `return_to=/storage/reconnect` caused OAuth callback to loop back to reconnect page
+  - **Fix 1 (storage.py:2369):** Removed `return_to` parameter from OAuth URL - now uses `route_user()` for landing
+  - **Fix 2 (storage.py:780-785):** Added session validation to `/reconnect` endpoint before OAuth
+  - **Final flow:**
+    - Valid session → `route_user(uid)` → role home (NO OAuth)
+    - Invalid session → silent OAuth → `route_user(uid)` → role home
 
 ### Minor (Defer)
 - [x] **Browser Preview Cross-Origin Issue** — Preview proxy at `127.0.0.1:58057` cannot load app URLs at `localhost:8000` due to frame security restrictions. Affects:
