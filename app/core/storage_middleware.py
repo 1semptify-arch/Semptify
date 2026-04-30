@@ -31,11 +31,20 @@ PUBLIC_PATHS: Set[str] = {
     "/metrics",
     "/api/version",
     
-    # Onboarding & special pages
+    # Onboarding & special pages — all sub-routes must be public
+    # (user has no cookie yet during onboarding)
     "/onboarding",
     "/onboarding/",
     "/onboarding/max-redirects",
     "/onboarding/max-redirects/",
+    "/onboarding/select-role.html",
+    "/onboarding/role-select",
+    "/onboarding/providers",
+    "/onboarding/connect",
+    "/onboarding/upload",
+    "/onboarding/activate",
+    "/onboarding/verify-vault",
+    "/onboarding/status",
     
     # Storage/Auth flow (must be public to connect)
     "/storage",
@@ -44,6 +53,7 @@ PUBLIC_PATHS: Set[str] = {
     "/storage/auth",
     "/storage/callback",
     "/storage/logout",
+    "/storage/logout-reset",
     "/storage/rehome",
     
     # Welcome/setup pages
@@ -191,9 +201,11 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
         if is_public_path(path):
             return await call_next(request)
         
-        # Get user ID from cookie
-        user_id = request.cookies.get(COOKIE_USER_ID)
-        
+        # Get user ID from cookie — verify HMAC and extract raw user_id
+        from app.core.cookie_auth import verify_user_id
+        _raw_cookie = request.cookies.get(COOKIE_USER_ID)
+        user_id = verify_user_id(_raw_cookie) if _raw_cookie else None
+
         # Check if valid storage user
         if not is_valid_storage_user(user_id):
             # Log the issue
@@ -248,10 +260,12 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                     )
                     _row = _result.scalar_one_or_none()
                     if _row is None:
-                        # User cookie is valid-format but no DB row — not fully registered yet
+                        # User cookie is valid-format but no DB row — stale cookie.
+                        # Redirect through logout-reset to clear the cookie first,
+                        # then land on provider selection for a fresh OAuth flow.
                         _logger = logging.getLogger("semptify.security")
                         _logger.warning(
-                            "User ID %s has valid format but no DB record — redirecting to storage",
+                            "User ID %s has valid format but no DB record — clearing stale cookie",
                             user_id[:4] + "***",
                         )
                         if path.startswith("/api/"):
@@ -259,12 +273,12 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                                 status_code=401,
                                 content={
                                     "error": "storage_required",
-                                    "message": "Please connect your cloud storage to continue",
+                                    "message": "Session expired. Please reconnect your storage.",
                                     "action": "redirect",
-                                    "redirect_url": "/storage/providers",
+                                    "redirect_url": "/storage/logout-reset",
                                 },
                             )
-                        return RedirectResponse(url="/storage/providers", status_code=302)
+                        return RedirectResponse(url="/storage/logout-reset", status_code=302)
 
                     completed = _row or ""
                     if "storage_connected" not in completed.split(","):
