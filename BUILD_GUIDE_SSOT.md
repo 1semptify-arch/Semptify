@@ -45,16 +45,19 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 
 ## 🧪 Testing Checklist
 
-### Welcome Flow
+### Welcome Flow (4 Steps - Storage Mandatory)
 | Step | URL | Status | Notes |
 |------|-----|--------|-------|
-| 1. Welcome Page | `/static/public/welcome.html` | ⏳ Testing | Check CTAs work |
-| 2. New User Path | `/onboarding/select-role.html` | ⏳ Testing | Only Tenant selectable |
-| 3. Returning User | `/storage/reconnect` | ✅ **VERIFIED** | Session valid → role home; Invalid → OAuth → role home |
-| 3a. **Return to Task** | `/storage/reconnect?return_to=/timeline/view/123` | ✅ **VERIFIED** | Mid-task auth expiry → return to previous page after reauth |
-| 4. Storage Select | `/onboarding/storage-select.html` | ⏳ Testing | Provider selection |
-| 5. OAuth Flow | `/storage/connect` | ⏳ Testing | Google/Dropbox/OneDrive |
-| 6. Tenant Home | `/tenant/home` | ⏳ Testing | Dashboard loads |
+| 1. Welcome Page | `/static/welcome.html` | ⏳ Testing | Single CTA: "Get Started" |
+| 2. Role Selection | `/onboarding/select-role.html` | ⏳ Testing | Tenant only (Core) |
+| 3. Storage Connect | `/onboarding/storage-select.html` → OAuth | ⏳ Testing | **Mandatory** - no skip option |
+| 4. Tenant Home | `/tenant/home` | ⏳ Testing | Vault ready, upload enabled |
+
+### Returning User Flow
+| Step | URL | Status | Notes |
+|------|-----|--------|-------|
+| Reconnect | `/storage/reconnect` | ✅ **VERIFIED** | Session valid → home; Invalid → silent OAuth → home |
+| Return to Task | `/storage/reconnect?return_to=/timeline/view/123` | ✅ **VERIFIED** | Mid-task expiry → restore previous page after reauth |
 
 ### Document Flow
 | Step | Endpoint | Status | Notes |
@@ -206,12 +209,14 @@ curl http://localhost:8000/api/health
 
 ---
 
-## ✅ Release Criteria
+## ✅ Release Criteria (Core 5.0 - 4 Step Flow)
 
-- [ ] Welcome → Role Select → Storage → OAuth → Tenant Home flows work
+- [ ] Welcome → Role Select → Storage (mandatory) → Tenant Home flows work
+- [ ] No "skip storage" option exists
 - [ ] Document upload to vault works
 - [ ] Timeline/Briefcase viewers work
 - [ ] Legal analysis (direct) works
 - [ ] No errors in logs
 - [ ] All non-Core routers disabled
+- [ ] Extended journey archived to `concepts/EXTENDED_USER_JOURNEY_CONCEPT.md`
 

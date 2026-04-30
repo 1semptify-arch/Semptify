@@ -53,7 +53,7 @@ class ProcessCode(str, Enum):
 # Mapping of process codes to route paths
 PROCESS_ROUTES: dict[ProcessCode, str] = {
     ProcessCode.A: "/",
-    ProcessCode.B1: "/tenant/documents",
+    ProcessCode.B1: "/tenant/home",
     ProcessCode.B2: "/tenant/home",
     ProcessCode.B3: "/static/eviction_answer.html",
     ProcessCode.B4: "/advocate",

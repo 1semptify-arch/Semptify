@@ -592,7 +592,7 @@ class OAuthState(Base):
     id: Mapped[str] = mapped_column(String(255), primary_key=True)   # the state token
     provider: Mapped[str] = mapped_column(String(50))
     role: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    existing_uid: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    existing_uid: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
     return_to: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)

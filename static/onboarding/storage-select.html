@@ -215,24 +215,6 @@
             font-weight: bold;
         }
 
-        /* Skip Option */
-        .skip-section {
-            text-align: center;
-            padding: 2rem 0;
-            border-top: 1px solid var(--border);
-        }
-
-        .skip-link {
-            color: var(--text-light);
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-
-        .skip-link:hover {
-            color: var(--accent);
-            text-decoration: underline;
-        }
-
         /* Footer */
         .footer {
             text-align: center;
@@ -389,12 +371,7 @@
             </a>
         </div>
 
-        <!-- Skip Option -->
-        <div class="skip-section">
-            <a href="/onboarding/select-role.html?skip_storage=true" class="skip-link">
-                Skip for now → I&apos;ll connect storage later
-            </a>
-        </div>
+        <!-- Storage connection is mandatory for document vault -->
     </article>
 
     <!-- Footer -->
@@ -514,7 +491,7 @@
             const params = new URLSearchParams();
             params.set("role", backendRole);
             params.set("from", "onboarding");
-            params.set("return_to", "/onboarding/vault-init.html");
+            params.set("return_to", "/ui/route");
             
             const url = "/storage/auth/" + provider + "?" + params.toString();
             console.log("Navigating to:", url);

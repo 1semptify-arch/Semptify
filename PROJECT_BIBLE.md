@@ -41,16 +41,19 @@ The project must be aligned with these core values:
 For any question about ethics, AI behavior, or product policy, consult `AGENTS.md`.
 For any question about security, privacy, or production safety, consult `SECURITY_AND_PRIVACY_ARCHITECTURE.md`.
 
-## 4. Approved Onboarding Flow
+## 4. Approved Onboarding Flow (Core 5.0)
 
 The canonical first-run onboarding flow is:
 
-1. Welcome screen
-2. Role selection
-3. Storage connection or explicit skip
-4. Advocate/legal validation if applicable
-5. Vault activation / document trust anchor
-6. Role-specific home/dashboard
+1. Welcome screen (`/static/welcome.html`)
+2. Role selection (`/onboarding/select-role.html`) — Tenant only in Core
+3. **Storage connection (MANDATORY)** (`/onboarding/storage-select.html`)
+4. Vault activation (automatic post-OAuth)
+5. Tenant home (`/tenant/home`)
+
+**Note:** Storage connection is mandatory for Core 5.0. There is no "skip" option.
+Documents are stored in user's cloud provider (Google Drive, Dropbox, or OneDrive).
+The aspirational 9-step Extended journey has been archived to `concepts/EXTENDED_USER_JOURNEY_CONCEPT.md`.
 
 The following files are the canonical onboarding assets:
 - `static/onboarding/welcome.html`
