@@ -713,6 +713,29 @@ def _decrypt_token(encrypted: bytes, user_id: str) -> dict:
 # Main Entry Point - Check Cookie & Auto-Route
 # ============================================================================
 
+@router.get("/entry")
+async def storage_entry(
+    request: Request,
+    semptify_uid: Optional[str] = Cookie(None),
+    return_to: Optional[str] = None,
+):
+    """
+    Entry point for returning users.
+    Redirects to reconnect if cookie exists, otherwise to provider selection.
+
+    Args:
+        return_to: Optional URL to return to after reconnect (for task continuation)
+    """
+    # Build reconnect URL with return_to if provided
+    reconnect_url = "/storage/reconnect"
+    if return_to:
+        reconnect_url = f"/storage/reconnect?return_to={return_to}"
+
+    if semptify_uid:
+        return RedirectResponse(url=reconnect_url, status_code=302)
+    return RedirectResponse(url="/storage/providers", status_code=302)
+
+
 @router.get("/")
 async def storage_home(
     request: Request,
