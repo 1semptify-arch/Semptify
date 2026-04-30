@@ -37,14 +37,14 @@ async def validator_dashboard(
     if raw_uid:
         provider, role, unique = parse_user_id(raw_uid)
     
-    # Routing tests
+    # Routing tests (using correct user ID format: <provider><role><8-chars>)
     routing_tests = []
     test_cases = [
-        ("New Tenant", "google_drive_tenant_new123", False, False),
-        ("Tenant w/Docs", "google_drive_tenant_docs123", True, False),
-        ("Tenant w/Case", "google_drive_tenant_case123", True, True),
-        ("Advocate", "google_drive_advocate_prof123", True, True),
-        ("Legal", "google_drive_legal_atty123", True, True),
+        ("New Tenant", "GU7x9kM2pQ", False, False),      # G=Google, U=Tenant
+        ("Tenant w/Docs", "GUabc12345", True, False),   # G=Google, U=Tenant
+        ("Tenant w/Case", "GUxyz78901", True, True),    # G=Google, U=Tenant
+        ("Advocate", "GVdef45678", True, True),         # G=Google, V=Advocate
+        ("Legal", "GLghi90123", True, True),            # G=Google, L=Legal
     ]
     
     for name, uid, docs, case in test_cases:
