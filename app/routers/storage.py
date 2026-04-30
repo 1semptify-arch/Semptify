@@ -830,15 +830,21 @@ def _generate_reconnect_html(existing_uid: Optional[str] = None, return_to: Opti
         # We know their provider - show only that one prominently
         icon, name, enabled = PROVIDER_CONFIG[known_provider]
         if enabled:
-            primary_button = f'''
-            <button class="btn btn-primary" onclick="reconnect('{known_provider}')">
-                <span class="btn-icon">{icon}</span>
-                <div>
-                    <strong>Restore your {name}</strong>
-                    <small>Your documents are safe - just need to reconnect</small>
-                </div>
-            </button>
+            # Auto-redirect script for returning users - no click needed
+            auto_redirect_script = f'''
+            <div id="reconnecting-msg" style="text-align:center;padding:2rem;">
+                <div style="font-size:3rem;margin-bottom:1rem;">🔄</div>
+                <h3>Reconnecting to {name}...</h3>
+                <p>Your documents are safe. Redirecting you now.</p>
+            </div>
+            <script>
+                // Auto-redirect after 1.5 seconds to let user read the message
+                setTimeout(function() {{
+                    reconnect('{known_provider}');
+                }}, 1500);
+            </script>
             '''
+            primary_button = auto_redirect_script
             # Show other providers as secondary options
             other_providers = ""
             for pid, (picon, pname, penabled) in PROVIDER_CONFIG.items():
