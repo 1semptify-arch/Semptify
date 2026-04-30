@@ -1819,6 +1819,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(welcome_path)
         return RedirectResponse(url="/onboarding", status_code=302)
 
+    # Favicon - serve a simple SVG to prevent 404 errors
+    @fastapi_app.get("/favicon.ico")
+    async def favicon():
+        """Serve favicon as SVG."""
+        svg = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+            <rect width="100" height="100" rx="20" fill="#2c5aa0"/>
+            <text x="50" y="70" font-size="50" text-anchor="middle" fill="white">S</text>
+        </svg>'''
+        from fastapi.responses import Response
+        return Response(content=svg, media_type="image/svg+xml")
+
     # ==========================================================================
     # Role Home Routes — destinations from workflow_engine after auth/reconnect
     # ==========================================================================
