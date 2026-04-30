@@ -573,23 +573,19 @@
 
     </article>
 
-    <!-- CTA - Bottom of page, stacked buttons -->
+    <!-- CTA - Single entry point: backend routes returning users automatically -->
     <div class="cta" style="border-top: 2px solid var(--primary); margin-top: 0; padding: 3rem 2rem; background: var(--paper);">
-        <p style="margin-bottom: 1.5rem; font-size: 1.2rem; color: var(--primary); font-weight: 500;">Choose your path:</p>
+        <p style="margin-bottom: 1.5rem; font-size: 1.2rem; color: var(--primary); font-weight: 500;">Ready to protect your rights?</p>
         
-        <div style="display: flex; flex-direction: column; gap: 1rem; align-items: center; max-width: 400px; margin: 0 auto;">
-            <button onclick="enterApp('/onboarding/select-role.html')" class="cta-button" style="width: 100%; max-width: 320px; text-align: center; border: none; cursor: pointer; font-family: inherit;">
-                <div>🆕 New User</div>
-                <div style="font-size: 0.9rem; opacity: 0.9;">Start your journal</div>
-            </button>
-            
-            <button onclick="enterApp('/storage/reconnect')" class="cta-button cta-button-secondary" style="width: 100%; max-width: 320px; text-align: center; border: none; cursor: pointer; font-family: inherit;">
-                <div>👋 Returning User</div>
-                <div style="font-size: 0.9rem; opacity: 0.9;">Reconnect your storage</div>
-            </button>
-        </div>
+        <button onclick="enterApp('/onboarding/select-role.html')" class="cta-button" style="width: 100%; max-width: 320px; text-align: center; border: none; cursor: pointer; font-family: inherit; margin: 0 auto; display: block;">
+            <div>📓 Get Started →</div>
+            <div style="font-size: 0.9rem; opacity: 0.9;">Start your tenant journal</div>
+        </button>
         
-        <p class="cta-subtext" style="margin-top: 1.5rem; font-size: 0.9rem;">Free to use. Your documents stay in your control.</p>
+        <p class="cta-subtext" style="margin-top: 1.5rem; font-size: 0.9rem;">
+            Free to use. Your documents stay in your control.<br>
+            <span style="opacity: 0.7; font-size: 0.85rem;">Returning user? We'll detect your account automatically.</span>
+        </p>
     </div>
 
     <!-- Footer - SSOT Compliant -->

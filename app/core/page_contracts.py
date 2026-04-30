@@ -177,9 +177,9 @@ CONTRACT_WELCOME = PageContract(
         "App server is running",
     ],
     exit_criteria=[
-        "Role selected (cookie or query param set)",
-        "Storage status confirmed (need_connect / already_connected / review_only)",
-        "User clicks 'Start Process' and is routed to Process B",
+        "Role selected (cookie set to 'user' for tenant)",
+        "User clicks 'Get Started' and proceeds to role selection",
+        "All users routed through: Welcome → Role Select → Storage Connect (mandatory) → Tenant Home",
     ],
     telemetry_events=[
         "welcome_page_load",
