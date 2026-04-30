@@ -809,46 +809,60 @@ async def reconnect_storage(
 
 def _generate_reconnect_html(existing_uid: Optional[str] = None, return_to: Optional[str] = None) -> str:
     """Generate the reconnect page HTML."""
+    from app.core.user_id import get_provider_from_user_id
+    
     settings = _get_settings()
     
-    providers_html = ""
+    # Determine known provider from user ID
+    known_provider = None
+    if existing_uid:
+        known_provider = get_provider_from_user_id(existing_uid)
     
-    if settings.google_drive_client_id:
-        providers_html += '''
-        <button class="btn" onclick="reconnect('google_drive')">
-            <span class="btn-icon">📁</span>
-            <div>
-                <div class="btn-label">Google Drive</div>
-                <div class="btn-desc">Restore your Google Drive connection</div>
-            </div>
-        </button>
-        '''
+    # Provider button configurations
+    PROVIDER_CONFIG = {
+        "google_drive": ("📁", "Google Drive", settings.google_drive_client_id),
+        "dropbox": ("☁️", "Dropbox", settings.dropbox_app_key),
+        "onedrive": ("🔵", "OneDrive", settings.onedrive_client_id),
+    }
     
-    if settings.dropbox_app_key:
-        providers_html += '''
-        <button class="btn" onclick="reconnect('dropbox')">
-            <span class="btn-icon">☁️</span>
-            <div>
-                <div class="btn-label">Dropbox</div>
-                <div class="btn-desc">Restore your Dropbox connection</div>
-            </div>
-        </button>
-        '''
-    
-    if settings.onedrive_client_id:
-        providers_html += '''
-        <button class="btn" onclick="reconnect('onedrive')">
-            <span class="btn-icon">🔵</span>
-            <div>
-                <div class="btn-label">OneDrive</div>
-                <div class="btn-desc">Restore your OneDrive connection</div>
-            </div>
-        </button>
-        '''
+    # Generate HTML
+    if known_provider and known_provider in PROVIDER_CONFIG:
+        # We know their provider - show only that one prominently
+        icon, name, enabled = PROVIDER_CONFIG[known_provider]
+        if enabled:
+            primary_button = f'''
+            <button class="btn btn-primary" onclick="reconnect('{known_provider}')">
+                <span class="btn-icon">{icon}</span>
+                <div>
+                    <strong>Restore your {name}</strong>
+                    <small>Your documents are safe - just need to reconnect</small>
+                </div>
+            </button>
+            '''
+            # Show other providers as secondary options
+            other_providers = ""
+            for pid, (picon, pname, penabled) in PROVIDER_CONFIG.items():
+                if pid != known_provider and penabled:
+                    other_providers += f'''
+                    <button class="btn btn-secondary" onclick="reconnect('{pid}')">
+                        <span class="btn-icon">{picon}</span>
+                        <div>
+                            <small>Use {pname} instead</small>
+                        </div>
+                    </button>
+                    '''
+            providers_html = primary_button + '<div style="margin-top:1rem;opacity:0.8;">' + other_providers + '</div>'
+        else:
+            # Provider disabled - show all available
+            providers_html = _get_all_provider_buttons(settings)
+    else:
+        # Unknown provider - show all
+        providers_html = _get_all_provider_buttons(settings)
     
     import json as _json
     existing_uid_js = _json.dumps(existing_uid)  # produces "null" or '"GU..."'
     return_to_js = _json.dumps(return_to)  # produces "null" or '"/timeline/..."'
+
 
     return f'''<!DOCTYPE html>
 <html lang="en">
