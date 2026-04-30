@@ -50,8 +50,8 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 |------|-----|--------|-------|
 | 1. Welcome Page | `/static/public/welcome.html` | ⏳ Testing | Check CTAs work |
 | 2. New User Path | `/onboarding/select-role.html` | ⏳ Testing | Only Tenant selectable |
-| 3. Returning User | `/storage/reconnect` | ✅ Working | Session valid → role home; Invalid → OAuth → role home |
-| 3a. **Return to Task** | `/storage/reconnect?return_to=/timeline/view/123` | ✅ Implemented | Mid-task auth expiry → return to previous page after reauth |
+| 3. Returning User | `/storage/reconnect` | ✅ **VERIFIED** | Session valid → role home; Invalid → OAuth → role home |
+| 3a. **Return to Task** | `/storage/reconnect?return_to=/timeline/view/123` | ✅ **VERIFIED** | Mid-task auth expiry → return to previous page after reauth |
 | 4. Storage Select | `/onboarding/storage-select.html` | ⏳ Testing | Provider selection |
 | 5. OAuth Flow | `/storage/connect` | ⏳ Testing | Google/Dropbox/OneDrive |
 | 6. Tenant Home | `/tenant/home` | ⏳ Testing | Dashboard loads |
@@ -186,7 +186,8 @@ User at /timeline/view/123 → Auth expires
 - Fixed reconnect loop (`storage.py:780-803`)
 - Added `return_to` task recovery
 - Created `GOVERNING_SYSTEM_SSOT.md` — conductor architecture documented
-- Testing welcome/onboarding flow now
+- Created `workflow_validator.py` — admin dashboard for conductor verification
+- **VERIFIED:** Cookie auth, user ID parsing, routing system, workflow decisions all operational
 
 ---
 
