@@ -34,20 +34,29 @@ logger = logging.getLogger(__name__)
 async def onboarding_entry(
     request: Request,
     semptify_uid: Optional[str] = Cookie(None),
+    return_to: Optional[str] = None,
 ):
     """
     Smart entry point from welcome page.
 
-    - Returning user (has semptify_uid cookie) → /storage/reconnect
+    - Returning user (has semptify_uid cookie) → /storage/reconnect?return_to=...
     - New user (no cookie) → /onboarding/select-role.html
+
+    Args:
+        return_to: Optional URL to return to after reconnect (for task continuation)
 
     This keeps one CTA on welcome page while routing correctly.
     """
+    # Build reconnect URL with return_to if provided
+    reconnect_url = "/storage/reconnect"
+    if return_to:
+        reconnect_url = f"/storage/reconnect?return_to={return_to}"
+
     if semptify_uid and len(semptify_uid) >= 10:
         # Returning user - go to reconnect flow
         logger.info(f"Smart entry: returning user {semptify_uid[:4]}... → reconnect")
-        return RedirectResponse(url="/storage/reconnect", status_code=302)
-    
+        return RedirectResponse(url=reconnect_url, status_code=302)
+
     # New user - start onboarding
     logger.info("Smart entry: new user → role selection")
     return RedirectResponse(url="/onboarding/select-role.html", status_code=302)
