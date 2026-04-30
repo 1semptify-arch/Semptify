@@ -115,6 +115,9 @@ preview_router          = _safe_router_import("app.routers.preview")
 document_converter_router = _safe_router_import("app.routers.document_converter")
 legal_analysis_router   = _safe_router_import("app.routers.legal_analysis")  # Brain-optional
 
+# Workflow Validator (admin/diagnostic tool)
+workflow_validator_router = _safe_router_import("app.routers.workflow_validator")
+
 # Disabled for tenant-only core build
 role_upgrade_router     = None  # Multi-role feature - deferred
 invite_codes_router     = None  # Collaboration feature - deferred
@@ -1794,6 +1797,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Workflow engine + page contract API
     if workflow_router:
         fastapi_app.include_router(workflow_router)
+    
+    # Workflow validator (admin diagnostic dashboard)
+    if workflow_validator_router:
+        fastapi_app.include_router(workflow_validator_router, tags=["Admin"])
     
     # Role upgrade/verification API
     if role_upgrade_router:
