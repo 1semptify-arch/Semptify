@@ -71,12 +71,12 @@ RUN mkdir -p uploads uploads/vault logs security data && \
 # Switch to non-root user
 USER semptify
 
-# Expose port
+# Expose port (Render sets PORT env var, defaults to 8000)
 EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:${PORT}/health || exit 1
 
-# Start command (use gunicorn for production, uvicorn for dev)
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+# Start command - uses $PORT env var for Render compatibility
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
