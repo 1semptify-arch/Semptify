@@ -39,20 +39,23 @@ async def onboarding_entry(
     """
     Smart entry point from welcome page.
 
-    - Returning user (has semptify_uid cookie) → /storage/reconnect?return_to=...
-    - New user (no cookie) → /onboarding/select-role.html
+    - Returning user (has valid semptify_uid cookie) → /storage/reconnect?return_to=...
+    - New user (no cookie or invalid cookie) → /onboarding/select-role.html
 
     Args:
         return_to: Optional URL to return to after reconnect (for task continuation)
 
     This keeps one CTA on welcome page while routing correctly.
     """
+    from app.core.user_id import is_valid_storage_user
+
     # Build reconnect URL with return_to if provided
     reconnect_url = "/storage/reconnect"
     if return_to:
         reconnect_url = f"/storage/reconnect?return_to={return_to}"
 
-    if semptify_uid and len(semptify_uid) >= 10:
+    # Validate the cookie properly (checks format and signature)
+    if semptify_uid and is_valid_storage_user(semptify_uid):
         # Returning user - go to reconnect flow
         logger.info(f"Smart entry: returning user {semptify_uid[:4]}... → reconnect")
         return RedirectResponse(url=reconnect_url, status_code=302)
