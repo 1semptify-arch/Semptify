@@ -175,19 +175,22 @@ User at /timeline/view/123 → Auth expires
 
 ---
 
-## �📝 Build Log
+## Build Log
 
 ### April 29, 2026 - Modular Core Restructure
-- ✅ Reorganized `main.py` into CORE / EXTENDED / OTHER DIVISION
-- ✅ Made `legal_analysis.py` brain-optional (works standalone)
-- ✅ Moved `briefcase.py`, `timeline_unified.py` to Core
-- ✅ Preserved `campaign.py`, `public_exposure.py`, `fraud_exposure.py` in Other Division
-- ✅ Fixed `app/services/` import structure
-- 🧪 Testing welcome/onboarding flow now
+- Reorganized `main.py` into CORE / EXTENDED / OTHER DIVISION
+- Made `legal_analysis.py` brain-optional (works standalone)
+- Moved `briefcase.py`, `timeline_unified.py` to Core
+- Preserved `campaign.py`, `public_exposure.py`, `fraud_exposure.py` in Other Division
+- Fixed `app/services/` import structure
+- Fixed reconnect loop (`storage.py:780-803`)
+- Added `return_to` task recovery
+- Created `GOVERNING_SYSTEM_SSOT.md` — conductor architecture documented
+- Testing welcome/onboarding flow now
 
 ---
 
-## 🔍 Debug Commands
+## Debug Commands
 
 ```bash
 # Start server
