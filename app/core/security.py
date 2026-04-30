@@ -1075,6 +1075,7 @@ async def get_current_user(
             'A': UserRole.ADMIN,
             'M': UserRole.MANAGER,
             'U': UserRole.USER,
+            'T': UserRole.TENANT,
             'V': UserRole.ADVOCATE,
             'L': UserRole.LEGAL,
         }
