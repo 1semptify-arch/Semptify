@@ -756,30 +756,43 @@ async def storage_home(
 
 
 @router.get("/reconnect", response_class=HTMLResponse)
-async def reconnect_storage(request: Request, semptify_uid: Optional[str] = Cookie(None)):
+async def reconnect_storage(
+    request: Request,
+    semptify_uid: Optional[str] = Cookie(None),
+    db: AsyncSession = Depends(get_db),
+):
     """
     Reconnect page for returning users who need to re-authorize storage.
     SEPARATE from onboarding — this is re-auth only, no role selection.
 
     Flow:
-    1. Cookie present with known provider → silent OAuth redirect, no page shown
-    2. Cookie present but unknown provider → show provider picker (last resort)
-    3. No cookie → show provider picker (will create new session)
+    1. Cookie + valid session → route directly to role home (NO OAuth needed)
+    2. Cookie + invalid session + known provider → silent OAuth redirect
+    3. Cookie but unknown provider → show provider picker
+    4. No cookie → show provider picker
     """
     from app.core.cookie_auth import verify_user_id
     raw_uid = verify_user_id(semptify_uid) if semptify_uid else None
 
     if raw_uid:
         provider, _, _ = parse_user_id(raw_uid)
+        
+        # FIRST: Check if session is still valid (no OAuth needed!)
+        session = await get_valid_session(db, raw_uid, auto_refresh=True)
+        if session:
+            # Session valid - go directly to role home, skip OAuth entirely
+            logger.info("Reconnect: session valid, routing to home for user=%s", raw_uid[:4] + "***")
+            return RedirectResponse(url=_route_user(raw_uid), status_code=302)
+        
+        # Session invalid but provider known - silent OAuth reauthorize
         if provider and provider in OAUTH_CONFIGS:
-            # Provider is known from user ID — skip the picker, go straight to OAuth
             logger.info("Reconnect: silent re-auth for user=%s provider=%s", raw_uid[:4] + "***", provider)
             return RedirectResponse(
                 url=f"/storage/auth/{provider}?existing_uid={raw_uid}",
                 status_code=302,
             )
 
-    # Last resort: can't determine provider — show picker
+    # Last resort: can't determine provider or no valid cookie — show picker
     return HTMLResponse(content=_generate_reconnect_html(existing_uid=raw_uid))
 
 
