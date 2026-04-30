@@ -41,13 +41,28 @@ Example: GD7x9kM2pQ.a3f8c2d1e4b7...
 
 ### User ID Structure
 ```
-<provider>_<role>_<unique_id>
-Example: google_drive_tenant_abc123
-         │          │    │
-         │          │    └── Unique identifier
-         │          └─────── Role (tenant/advocate/legal/etc)
-         └────────────────── Provider (google_drive/dropbox/onedrive)
+Format: <provider_code><role_code><8-char-random>
+Example: GU7x9kM2pQ = Google Drive + User (Tenant) + 7x9kM2pQ
+         │ │ │
+         │ │ └── 8-character random suffix
+         │ └──── Role code (U=User/Tenant, A=Admin, V=Advocate, L=Legal)
+         └────── Provider code (G=Google, D=Dropbox, O=OneDrive)
 ```
+
+**Provider Codes (1 char):**
+- `G` = Google Drive
+- `D` = Dropbox  
+- `O` = OneDrive
+
+**Role Codes (1 char):**
+- `U` = User (displayed as Tenant in housing context)
+- `A` = Admin
+- `M` = Manager
+- `V` = Advocate
+- `L` = Legal
+- `J` = Judge
+
+**Important:** The underscore-separated format (`google_drive_tenant_abc123`) is NOT valid for `parse_user_id()`. Use the compact 10-character format.
 
 ### Auth Flow Diagram
 ```
