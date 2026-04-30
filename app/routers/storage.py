@@ -760,19 +760,28 @@ async def reconnect_storage(
     request: Request,
     semptify_uid: Optional[str] = Cookie(None),
     db: AsyncSession = Depends(get_db),
+    return_to: Optional[str] = Query(None),
 ):
     """
     Reconnect page for returning users who need to re-authorize storage.
     SEPARATE from onboarding — this is re-auth only, no role selection.
 
     Flow:
-    1. Cookie + valid session → route directly to role home (NO OAuth needed)
-    2. Cookie + invalid session + known provider → silent OAuth redirect
-    3. Cookie but unknown provider → show provider picker
+    1. Cookie + valid session → route directly to role home OR return_to URL
+    2. Cookie + invalid session + known provider → silent OAuth (with return_to)
+    3. Cookie but unknown provider → show provider picker (with return_to)
     4. No cookie → show provider picker
+    
+    Args:
+        return_to: URL to return to after successful reauth (for mid-task recovery)
     """
     from app.core.cookie_auth import verify_user_id
     raw_uid = verify_user_id(semptify_uid) if semptify_uid else None
+    
+    # Validate return_to for security (only local paths allowed)
+    safe_return_to = None
+    if return_to and return_to.startswith("/") and not return_to.startswith("//"):
+        safe_return_to = return_to
 
     if raw_uid:
         provider, _, _ = parse_user_id(raw_uid)
@@ -780,23 +789,25 @@ async def reconnect_storage(
         # FIRST: Check if session is still valid (no OAuth needed!)
         session = await get_valid_session(db, raw_uid, auto_refresh=True)
         if session:
-            # Session valid - go directly to role home, skip OAuth entirely
-            logger.info("Reconnect: session valid, routing to home for user=%s", raw_uid[:4] + "***")
-            return RedirectResponse(url=_route_user(raw_uid), status_code=302)
+            # Session valid - return to task or home
+            landing = safe_return_to if safe_return_to else _route_user(raw_uid)
+            logger.info("Reconnect: session valid, routing to %s for user=%s", landing, raw_uid[:4] + "***")
+            return RedirectResponse(url=landing, status_code=302)
         
-        # Session invalid but provider known - silent OAuth reauthorize
+        # Session invalid but provider known - silent OAuth reauthorize with return_to
         if provider and provider in OAUTH_CONFIGS:
-            logger.info("Reconnect: silent re-auth for user=%s provider=%s", raw_uid[:4] + "***", provider)
-            return RedirectResponse(
-                url=f"/storage/auth/{provider}?existing_uid={raw_uid}",
-                status_code=302,
-            )
+            logger.info("Reconnect: silent re-auth for user=%s provider=%s return_to=%s", 
+                       raw_uid[:4] + "***", provider, safe_return_to)
+            auth_url = f"/storage/auth/{provider}?existing_uid={raw_uid}"
+            if safe_return_to:
+                auth_url += f"&return_to={safe_return_to}"
+            return RedirectResponse(url=auth_url, status_code=302)
 
-    # Last resort: can't determine provider or no valid cookie — show picker
-    return HTMLResponse(content=_generate_reconnect_html(existing_uid=raw_uid))
+    # Last resort: can't determine provider or no valid cookie — show picker with return_to
+    return HTMLResponse(content=_generate_reconnect_html(existing_uid=raw_uid, return_to=safe_return_to))
 
 
-def _generate_reconnect_html(existing_uid: Optional[str] = None) -> str:
+def _generate_reconnect_html(existing_uid: Optional[str] = None, return_to: Optional[str] = None) -> str:
     """Generate the reconnect page HTML."""
     settings = _get_settings()
     
@@ -837,6 +848,7 @@ def _generate_reconnect_html(existing_uid: Optional[str] = None) -> str:
     
     import json as _json
     existing_uid_js = _json.dumps(existing_uid)  # produces "null" or '"GU..."'
+    return_to_js = _json.dumps(return_to)  # produces "null" or '"/timeline/..."'
 
     return f'''<!DOCTYPE html>
 <html lang="en">
@@ -948,12 +960,20 @@ def _generate_reconnect_html(existing_uid: Optional[str] = None) -> str:
     
     <script>
         var EXISTING_UID = {existing_uid_js};
+        var RETURN_TO = {return_to_js};
         function reconnect(provider) {{
             // Thread existing_uid so the callback keeps the user's original ID.
-            // Server-injected from cookie at page render time.
+            // Thread return_to to restore previous task after reauth.
             var url = '/storage/auth/' + provider;
+            var params = [];
             if (EXISTING_UID) {{
-                url += '?existing_uid=' + encodeURIComponent(EXISTING_UID);
+                params.push('existing_uid=' + encodeURIComponent(EXISTING_UID));
+            }}
+            if (RETURN_TO) {{
+                params.push('return_to=' + encodeURIComponent(RETURN_TO));
+            }}
+            if (params.length > 0) {{
+                url += '?' + params.join('&');
             }}
             window.location.href = url;
         }}
