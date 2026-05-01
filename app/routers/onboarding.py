@@ -48,6 +48,7 @@ async def onboarding_entry(
     This keeps one CTA on welcome page while routing correctly.
     """
     from app.core.user_id import is_valid_storage_user
+    from app.core.checkpoint_middleware import set_checkpoint_cookie
 
     # Build reconnect URL with return_to if provided
     reconnect_url = "/storage/reconnect"
@@ -58,11 +59,15 @@ async def onboarding_entry(
     if semptify_uid and is_valid_storage_user(semptify_uid):
         # Returning user - go to reconnect flow
         logger.info(f"Smart entry: returning user {semptify_uid[:4]}... → reconnect")
-        return RedirectResponse(url=reconnect_url, status_code=302)
+        response = RedirectResponse(url=reconnect_url, status_code=302)
+        set_checkpoint_cookie(response)
+        return response
 
-    # New user - start onboarding
+    # New user - set checkpoint server-side and start onboarding
     logger.info("Smart entry: new user → role selection")
-    return RedirectResponse(url="/onboarding/select-role.html", status_code=302)
+    response = RedirectResponse(url="/onboarding/select-role.html", status_code=302)
+    set_checkpoint_cookie(response)
+    return response
 
 
 # Template for role + provider selection
