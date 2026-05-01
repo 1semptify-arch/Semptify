@@ -77,9 +77,9 @@ def validate_production_mode() -> bool:
             if not settings.R2_BUCKET_NAME:
                 missing_r2.append("R2_BUCKET_NAME")
             if missing_r2:
-                logger.error("❌ Cloudflare R2 system storage is not fully configured: %s", ", ".join(missing_r2))
-                return False
-            logger.info("✅ Cloudflare R2 system storage configured")
+                logger.warning("⚠️  Cloudflare R2 system storage not fully configured: %s — R2-dependent features will be unavailable", ", ".join(missing_r2))
+            else:
+                logger.info("✅ Cloudflare R2 system storage configured")
             
             # 8. Database SSL
             if settings.DB_SSL_MODE != "require":
