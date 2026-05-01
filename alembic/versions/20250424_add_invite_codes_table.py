@@ -17,7 +17,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = '20250424_add_invite_codes'
-down_revision: Union[str, None] = '20250422_unified_timeline_view'
+down_revision: Union[str, None] = '20250422_unified_timeline'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
