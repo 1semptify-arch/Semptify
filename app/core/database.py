@@ -62,6 +62,7 @@ def get_engine():
             }
         else:
             # PostgreSQL: use async-compatible connection pooling
+            # ssl=False for internal Render networking (no SSL required)
             pool_config = {
                 "poolclass": AsyncAdaptedQueuePool,
                 "pool_size": 5,  # Base connections
@@ -69,6 +70,7 @@ def get_engine():
                 "pool_timeout": 30,  # Seconds to wait for connection
                 "pool_recycle": 1800,  # Recycle connections after 30 min
                 "pool_pre_ping": True,  # Verify connections before use
+                "connect_args": {"ssl": False},
             }
 
         _engine = create_async_engine(

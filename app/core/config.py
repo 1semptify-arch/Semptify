@@ -42,6 +42,7 @@ def _resolve_secret_key() -> str:
 
 def _resolve_database_url() -> str:
     """Return DATABASE_URL, converting postgres:// / postgresql:// to the asyncpg driver."""
+    import re
     url = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./semptify.db")
     if url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql+asyncpg://", 1)
@@ -49,6 +50,8 @@ def _resolve_database_url() -> str:
         url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
     elif url.startswith("sqlite://") and "+aiosqlite" not in url:
         url = url.replace("sqlite://", "sqlite+aiosqlite://", 1)
+    # asyncpg does not support sslmode query param — strip it
+    url = re.sub(r"[?&]sslmode=[^&]*", "", url)
     return url
 
 
