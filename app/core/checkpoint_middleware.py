@@ -116,8 +116,8 @@ def set_checkpoint_cookie(response, max_age: int = CHECKPOINT_MAX_AGE):
     response.set_cookie(
         key=CHECKPOINT_COOKIE,
         value=CHECKPOINT_VALUE,
-        httponly=True,
-        secure=False,  # Set True in production with HTTPS
+        httponly=False,  # Must be readable by JS on welcome page
+        secure=True,  # HTTPS only (semptify.org)
         samesite="lax",
         max_age=max_age,
     )
