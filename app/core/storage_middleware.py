@@ -233,13 +233,13 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                         "error": "storage_required",
                         "message": "Please connect your cloud storage to continue",
                         "action": "redirect",
-                        "redirect_url": "/storage/providers"
+                        "redirect_url": "/onboarding/start"
                     }
                 )
             
-            # For HTML pages, redirect to storage providers
+            # For HTML pages, route through onboarding (role selection first)
             return RedirectResponse(
-                url="/storage/providers",
+                url="/onboarding/start",
                 status_code=302
             )
         
