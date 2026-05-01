@@ -36,7 +36,7 @@ python-dotenv>=1.0.0        # Environment variable loading
 # =============================================================================
 # File Processing
 # =============================================================================
-python-magic-bin>=0.4.14    # MIME type detection - Windows bundle (includes libmagic)
+python-magic>=0.4.27        # MIME type detection (cross-platform, libmagic installed via apt in Dockerfile)
 Pillow>=10.0.0              # Image processing (optional)
 
 # =============================================================================
