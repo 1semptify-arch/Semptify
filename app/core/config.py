@@ -50,8 +50,9 @@ def _resolve_database_url() -> str:
         url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
     elif url.startswith("sqlite://") and "+aiosqlite" not in url:
         url = url.replace("sqlite://", "sqlite+aiosqlite://", 1)
-    # asyncpg does not support sslmode query param — strip it
+    # asyncpg does not support these query params — strip them
     url = re.sub(r"[?&]sslmode=[^&]*", "", url)
+    url = re.sub(r"[?&]channel_binding=[^&]*", "", url)
     return url
 
 
