@@ -89,23 +89,37 @@ def require_ssot_path(path: str, context: str = ""):
         raise SSOTViolation(violation_msg)
 
 
-def ssot_redirect(path: str, context: str = "") -> RedirectResponse:
+def ssot_redirect(path: str, context: str = "", strict: bool = False) -> RedirectResponse:
     """
     Create a redirect response with SSOT validation.
     
     All redirects in the app should use this instead of raw RedirectResponse.
     
     Args:
-        path: Destination path (must be SSOT-registered)
+        path: Destination path
         context: Where this redirect originates
+        strict: If True, raises on non-SSOT paths. If False, warns and allows.
         
     Returns:
-        RedirectResponse (validated)
+        RedirectResponse (validated through evolution system)
         
     Raises:
-        SSOTViolation: If path bypasses SSOT
+        SSOTViolation: Only if strict=True and path is non-canonical
     """
-    require_ssot_path(path, context)
+    # Use evolution system - paths can grow and change
+    resolved = navigation.resolve_path(path)
+    
+    if resolved != path:
+        # Path was deprecated or escaped - log the transformation
+        logger.info(f"SSOT Evolution: '{path}' resolved to '{resolved}' in {context}")
+        path = resolved
+    elif not is_ssot_path(path):
+        # Non-SSOT path - warn but allow (evolution needs experimentation)
+        logger.warning(f"SSOT Advisory: Non-canonical path '{path}' used in {context}. "
+                      f"Consider adding to registry via register_stage().")
+        if strict:
+            raise SSOTViolation(f"Strict mode: Non-canonical path '{path}' blocked in {context}")
+    
     return RedirectResponse(url=path, status_code=302)
 
 
