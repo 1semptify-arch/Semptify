@@ -66,3 +66,38 @@ Reject or challenge changes that primarily optimize for:
 - If a proposed change creates a mismatch between product claims and actual behavior, flag it.
 - Prefer deterministic, testable, auditable code paths.
 - Preserve user trust as a first-order engineering concern.
+
+## SSOT Architecture Enforcement (CRITICAL)
+
+All navigation, routing, and URL construction MUST follow Single Source of Truth (SSOT) principles:
+
+### NEVER DO (will be rejected):
+- Hardcoded URL strings: `"/onboarding-assets/select-role.html"`, `"/storage/providers"`
+- Direct `RedirectResponse(url="/some/path")` without navigation registry
+- Inline JS navigation: `window.location.href = "/path/to/page"`
+- HTML href attributes with hardcoded paths: `<a href="/onboarding/...">`
+- Middleware or routers defining their own redirect targets
+
+### ALWAYS DO:
+- Import: `from app.core.navigation import navigation`
+- Use: `navigation.get_stage("role_select").path`
+- Use: `navigation.get_onboarding_start()` for entry points
+- Use: `navigation.get_next_path(current_stage)` for transitions
+- Static files: Fetch `/onboarding/ssot-navigation` API, then navigate
+- Python redirects: Use paths from navigation registry only
+
+### Verification (MANDATORY):
+Before committing any navigation change, run:
+```bash
+python tests/test_ssot_architecture.py
+```
+All tests must pass. Violations block deployment.
+
+### Why This Matters:
+SSOT violations are the #1 cause of redirect loops, broken flows, and "many chiefs" architecture. Navigation is a **process**, not a property of individual pages. Centralize or perish.
+
+### Files that must use SSOT:
+- All files in `app/routers/*.py` that return redirects
+- All files in `app/core/*_middleware.py`
+- All files in `static/onboarding/*.html`
+- Any new navigation/routing logic
