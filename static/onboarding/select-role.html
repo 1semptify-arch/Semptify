@@ -575,12 +575,30 @@
             alert("🏗️ This role is coming soon!\n\nWe're building professional tools for advocates, attorneys, and agencies.\n\nFor now, select 'Tenant' to start organizing your housing records.");
         }
 
-        function continueToStorage() {
+        // SSOT navigation cache
+        let navSSOT = null;
+        
+        async function loadNavigation() {
+            if (navSSOT) return navSSOT;
+            try {
+                const res = await fetch('/onboarding/ssot-navigation');
+                navSSOT = await res.json();
+                return navSSOT;
+            } catch (e) {
+                console.error('Failed to load SSOT navigation:', e);
+                return null;
+            }
+        }
+        
+        async function continueToStorage() {
             if (!selectedRole) {
                 alert("Please select a role to continue");
                 return;
             }
-            window.location.href = "/onboarding-assets/storage-select.html?role=" + selectedRole;
+            // Get path from SSOT, fallback to default
+            const nav = await loadNavigation();
+            const storagePath = nav?.onboarding_flow?.storage_select?.path || '/onboarding-assets/storage-select.html';
+            window.location.href = storagePath + "?role=" + selectedRole;
         }
 
         const urlParams = new URLSearchParams(window.location.search);
