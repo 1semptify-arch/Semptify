@@ -623,7 +623,8 @@
         // Set checkpoint cookie - validates user acknowledged terms/privacy
         function setCheckpointCookie() {
             const maxAge = 365 * 24 * 60 * 60; // 1 year
-            document.cookie = `semptify_checkpoint=acknowledged; path=/; max-age=${maxAge}; samesite=lax`;
+            const secure = window.location.protocol === 'https:' ? '; secure' : '';
+            document.cookie = `semptify_checkpoint=acknowledged; path=/; max-age=${maxAge}; samesite=lax${secure}`;
         }
         
         // Enter app - set checkpoint then navigate

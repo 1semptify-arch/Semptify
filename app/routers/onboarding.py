@@ -65,7 +65,7 @@ async def onboarding_entry(
 
     # New user - set checkpoint server-side and start onboarding
     logger.info("Smart entry: new user → role selection")
-    response = RedirectResponse(url="/onboarding/select-role.html", status_code=302)
+    response = RedirectResponse(url="/onboarding-assets/select-role.html", status_code=302)
     set_checkpoint_cookie(response)
     return response
 
