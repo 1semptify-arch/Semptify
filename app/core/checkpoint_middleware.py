@@ -117,8 +117,9 @@ def set_checkpoint_cookie(response, max_age: int = CHECKPOINT_MAX_AGE):
         key=CHECKPOINT_COOKIE,
         value=CHECKPOINT_VALUE,
         httponly=False,  # Must be readable by JS on welcome page
-        secure=False,  # Allow HTTP for testing (Render handles HTTPS)
+        secure=False,  # Allow HTTP for testing
         samesite="lax",
+        path="/",  # Critical: cookie must be valid for all paths
         max_age=max_age,
     )
 
