@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.user_id import COOKIE_USER_ID, generate_user_id, parse_user_id
 from app.core.config import get_settings
+from app.core.navigation import navigation
 from app.core.user_context import UserRole
 from app.models.models import User
 from sqlalchemy import select
@@ -63,11 +64,23 @@ async def onboarding_entry(
         set_checkpoint_cookie(response)
         return response
 
-    # New user - set checkpoint server-side and start onboarding
+    # New user - set checkpoint server-side and start onboarding (SSOT path)
     logger.info("Smart entry: new user → role selection")
-    response = RedirectResponse(url="/onboarding-assets/select-role.html", status_code=302)
+    role_stage = navigation.get_stage("role_select")
+    response = RedirectResponse(url=role_stage.path, status_code=302)
     set_checkpoint_cookie(response)
     return response
+
+
+@router.get("/ssot-navigation")
+async def get_navigation_ssot():
+    """
+    Export complete navigation state — SSOT for static files.
+    
+    Static pages consume this to get canonical paths.
+    No hardcoded URLs in HTML/JS.
+    """
+    return navigation.to_dict()
 
 
 # Template for role + provider selection

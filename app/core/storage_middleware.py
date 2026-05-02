@@ -14,6 +14,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from typing import Set
 
 from app.core.user_id import parse_user_id, COOKIE_USER_ID
+from app.core.navigation import navigation
 
 # Redirect loop tracking cookie name
 REDIRECT_LOOP_COOKIE = "semptify_redirect_loop_count"
@@ -233,13 +234,13 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                         "error": "storage_required",
                         "message": "Please connect your cloud storage to continue",
                         "action": "redirect",
-                        "redirect_url": "/onboarding/start"
+                        "redirect_url": navigation.get_onboarding_start()
                     }
                 )
             
-            # For HTML pages, route through onboarding (role selection first)
+            # For HTML pages, route through onboarding (role selection first) - SSOT
             return RedirectResponse(
-                url="/onboarding/start",
+                url=navigation.get_onboarding_start(),
                 status_code=302
             )
         
