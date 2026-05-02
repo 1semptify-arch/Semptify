@@ -250,4 +250,5 @@ class ParsedUserId:
 # =============================================================================
 
 COOKIE_USER_ID = "semptify_uid"  # The one cookie we need
+COOKIE_STORAGE_PROVIDER = "semdrive_provider"  # Storage provider from OAuth callback
 COOKIE_MAX_AGE = 365 * 24 * 60 * 60  # 1 year
