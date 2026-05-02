@@ -15,6 +15,8 @@ from pydantic import BaseModel
 
 from app.core.config import Settings, get_settings
 from app.core.security import require_user, StorageUser, rate_limit_dependency
+from app.core.navigation import navigation
+from app.core.ssot_guard import ssot_redirect
 
 
 router = APIRouter()
@@ -51,7 +53,9 @@ async def register_redirect():
     In Semptify 5.0, there's no traditional registration.
     Users authenticate by connecting their cloud storage.
     """
-    return RedirectResponse(url="/storage/providers", status_code=302)
+    providers_stage = navigation.get_stage("providers")
+    providers_path = providers_stage.path if providers_stage else "/storage/providers"
+    return ssot_redirect(providers_path, context="auth_register")
 
 
 @router.post(
@@ -111,4 +115,6 @@ async def logout():
     
     Redirects to storage logout endpoint.
     """
-    return RedirectResponse(url="/storage/logout", status_code=307)
+    # Note: /storage/logout is a route within the storage router, not in SSOT registry
+    # Using ssot_redirect with advisory mode (strict=False by default)
+    return ssot_redirect("/storage/logout", context="auth_logout")
