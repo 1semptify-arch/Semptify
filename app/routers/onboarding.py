@@ -19,6 +19,7 @@ from app.core.database import get_db
 from app.core.user_id import COOKIE_USER_ID, generate_user_id, parse_user_id
 from app.core.config import get_settings
 from app.core.navigation import navigation
+from app.core.ssot_guard import ssot_redirect
 from app.core.user_context import UserRole
 from app.models.models import User
 from sqlalchemy import select
@@ -60,14 +61,14 @@ async def onboarding_entry(
     if semptify_uid and is_valid_storage_user(semptify_uid):
         # Returning user - go to reconnect flow
         logger.info(f"Smart entry: returning user {semptify_uid[:4]}... → reconnect")
-        response = RedirectResponse(url=reconnect_url, status_code=302)
+        response = ssot_redirect(reconnect_url, context="onboarding_entry reconnect")
         set_checkpoint_cookie(response)
         return response
 
     # New user - set checkpoint server-side and start onboarding (SSOT path)
     logger.info("Smart entry: new user → role selection")
     role_stage = navigation.get_stage("role_select")
-    response = RedirectResponse(url=role_stage.path, status_code=302)
+    response = ssot_redirect(role_stage.path, context="onboarding_entry role_select")
     set_checkpoint_cookie(response)
     return response
 
@@ -681,15 +682,15 @@ async def onboarding_root(request: Request, semptify_uid: Optional[str] = Cookie
     # Use SSOT navigation registry
     if not semptify_uid:
         role_stage = navigation.get_stage("role_select")
-        return RedirectResponse(url=role_stage.path, status_code=302)
+        return ssot_redirect(role_stage.path, context="onboarding_root role_select")
     else:
-        return RedirectResponse(url="/onboarding/status", status_code=302)
+        return ssot_redirect("/onboarding/status", context="onboarding_root status")
 
 @router.get("/role-select")
 async def role_select_redirect():
     """Legacy redirect - routes to SSOT role selection."""
     role_stage = navigation.get_stage("role_select")
-    return RedirectResponse(url=role_stage.path, status_code=301)
+    return ssot_redirect(role_stage.path, context="role_select_redirect")
 
 @router.get("/select-role.html")
 async def role_select_static():
@@ -710,7 +711,7 @@ async def role_select_static():
     
     # Fallback to SSOT path if file not found
     role_stage = navigation.get_stage("role_select")
-    return RedirectResponse(url=role_stage.path, status_code=302)
+    return ssot_redirect(role_stage.path, context="role_select_static fallback")
 
 @router.get("/providers", response_class=HTMLResponse)
 async def storage_providers(role: Optional[str] = Query("tenant")):
@@ -720,22 +721,20 @@ async def storage_providers(role: Optional[str] = Query("tenant")):
 @router.get("/connect")
 async def connect_storage(provider: str = Query(...), role: str = Query("tenant")):
     """Redirect to OAuth flow."""
-    return RedirectResponse(
-        url=f"/storage/auth/{provider}?role={role}&from=onboarding",
-        status_code=302
-    )
+    auth_url = f"/storage/auth/{provider}?role={role}&from=onboarding"
+    return ssot_redirect(auth_url, context="connect_storage oauth")
 
 @router.get("/status", response_class=HTMLResponse)
 async def onboarding_status(semptify_uid: Optional[str] = Cookie(None), db: AsyncSession = Depends(get_db)):
     """Check current gate status and show appropriate message."""
     if not semptify_uid:
-        return RedirectResponse(url="/onboarding", status_code=302)
+        return ssot_redirect("/onboarding", context="onboarding_status no cookie")
 
     result = await db.execute(select(User).where(User.id == semptify_uid))
     user = result.scalar_one_or_none()
 
     if not user:
-        return RedirectResponse(url="/onboarding", status_code=302)
+        return ssot_redirect("/onboarding", context="onboarding_status no user")
 
     completed = (user.completed_groups or "").split(",")
 
@@ -746,13 +745,13 @@ async def onboarding_status(semptify_uid: Optional[str] = Cookie(None), db: Asyn
     elif "storage_connected" in completed:
         return HTMLResponse(content=_render_storage_connected())
     else:
-        return RedirectResponse(url="/onboarding", status_code=302)
+        return ssot_redirect("/onboarding", context="onboarding_status incomplete")
 
 @router.get("/upload", response_class=HTMLResponse)
 async def upload_prompt(semptify_uid: Optional[str] = Cookie(None)):
     """Prompt new user to upload first document to activate vault and account."""
     if not semptify_uid:
-        return RedirectResponse(url="/onboarding", status_code=302)
+        return ssot_redirect("/onboarding", context="upload_prompt no cookie")
 
     return HTMLResponse(content=ONBOARDING_TEMPLATE.format(content="""
         <div class="progress">

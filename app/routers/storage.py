@@ -48,6 +48,8 @@ from app.core.user_id import (
     COOKIE_USER_ID,
     COOKIE_MAX_AGE,
 )
+from app.core.navigation import navigation
+from app.core.ssot_guard import ssot_redirect
 from app.core.security import (
     issue_function_access_token,
     verify_function_access_token,
@@ -727,13 +729,15 @@ async def storage_entry(
         return_to: Optional URL to return to after reconnect (for task continuation)
     """
     # Build reconnect URL with return_to if provided
-    reconnect_url = "/storage/reconnect"
-    if return_to:
-        reconnect_url = f"/storage/reconnect?return_to={return_to}"
-
+    providers_stage = navigation.get_stage("providers")
+    providers_path = providers_stage.path if providers_stage else "/storage/providers"
+    
     if semptify_uid:
-        return RedirectResponse(url=reconnect_url, status_code=302)
-    return RedirectResponse(url="/storage/providers", status_code=302)
+        reconnect_url = "/storage/reconnect"
+        if return_to:
+            reconnect_url = f"/storage/reconnect?return_to={return_to}"
+        return ssot_redirect(reconnect_url, context="storage_entry reconnect")
+    return ssot_redirect(providers_path, context="storage_entry providers")
 
 
 @router.get("/")
@@ -750,9 +754,12 @@ async def storage_home(
     - Has valid cookie + invalid session → Silent OAuth reauthorize (same provider)
     - No cookie → Show provider selection page for new users
     """
+    providers_stage = navigation.get_stage("providers")
+    providers_path = providers_stage.path if providers_stage else "/storage/providers"
+    
     if not semptify_uid or not is_valid_storage_user(semptify_uid):
         # New user - show provider selection
-        return RedirectResponse(url="/storage/providers", status_code=302)
+        return ssot_redirect(providers_path, context="storage_home providers")
 
     # Returning user - check if they have a valid session
     provider, role, _ = parse_user_id(semptify_uid)
@@ -762,20 +769,18 @@ async def storage_home(
 
     if session:
         # Valid session - route to their home page
-        return RedirectResponse(url=_route_user(semptify_uid), status_code=302)
+        return ssot_redirect(_route_user(semptify_uid), context="storage_home session valid")
 
     # Session expired/invalid and refresh failed - need to reauthorize
     # Extract provider from their existing user ID (no need to ask user)
     if provider and provider in OAUTH_CONFIGS:
         # Silent reauthorize: redirect to OAuth with the same provider
         # User never has to select provider or role - it's encoded in their ID
-        return RedirectResponse(
-            url=f"/storage/oauth/{provider}?existing_uid={semptify_uid}",
-            status_code=302
-        )
+        oauth_url = f"/storage/auth/{provider}?existing_uid={semptify_uid}"
+        return ssot_redirect(oauth_url, context="storage_home silent reauth")
 
     # Fallback: if we can't determine provider, show reconnect page
-    return RedirectResponse(url="/storage/reconnect", status_code=302)
+    return ssot_redirect("/storage/reconnect", context="storage_home reconnect fallback")
 
 
 @router.get("/reconnect", response_class=HTMLResponse)
@@ -815,7 +820,7 @@ async def reconnect_storage(
             # Session valid - return to task or home
             landing = safe_return_to if safe_return_to else _route_user(raw_uid)
             logger.info("Reconnect: session valid, routing to %s for user=%s", landing, raw_uid[:4] + "***")
-            return RedirectResponse(url=landing, status_code=302)
+            return ssot_redirect(landing, context="reconnect_storage session valid")
         
         # Session invalid but provider known - silent OAuth reauthorize with return_to
         if provider and provider in OAUTH_CONFIGS:
@@ -824,7 +829,7 @@ async def reconnect_storage(
             auth_url = f"/storage/auth/{provider}?existing_uid={raw_uid}"
             if safe_return_to:
                 auth_url += f"&return_to={safe_return_to}"
-            return RedirectResponse(url=auth_url, status_code=302)
+            return ssot_redirect(auth_url, context="reconnect_storage silent reauth")
 
     # Last resort: can't determine provider or no valid cookie — show picker with return_to
     return HTMLResponse(content=_generate_reconnect_html(existing_uid=raw_uid, return_to=safe_return_to))
@@ -1590,6 +1595,7 @@ async def initiate_oauth(
             raise HTTPException(status_code=400, detail="Provider not implemented")
 
         auth_url = f"{config['auth_url']}?{urlencode(params)}"
+        # External OAuth URLs are exempt from SSOT (they're not app navigation)
         return RedirectResponse(url=auth_url, status_code=302)
     except Exception as e:
         print(f"DEBUG: Exception in initiate_oauth: {e}")
@@ -1837,10 +1843,11 @@ async def oauth_callback(
         else:
             landing = _route_user(user_id)
 
-        response = RedirectResponse(url=landing, status_code=302)
         logger.info("OAuth callback complete: user=%s new=%s vault_ok=%s landing=%s",
                     user_id[:6] + "***", is_new_user, vault_ok, landing)
 
+        # Use SSOT redirect for internal navigation
+        response = ssot_redirect(landing, context="oauth_callback success")
         set_auth_cookie(response, user_id, max_age=COOKIE_MAX_AGE, secure=not is_localhost)
         response.delete_cookie("semptify_redirect_loop_count")
 
@@ -1858,12 +1865,14 @@ async def oauth_callback(
             request.url.path,
             exc.detail,
         )
-        error_url = "/storage/providers?" + urlencode({
+        providers_stage = navigation.get_stage("providers")
+        providers_path = providers_stage.path if providers_stage else "/storage/providers"
+        error_url = providers_path + "?" + urlencode({
             "error": "oauth_callback_failed",
             "provider": provider,
             "message": message,
         })
-        return RedirectResponse(url=error_url, status_code=302)
+        return ssot_redirect(error_url, context="oauth_callback HTTP error")
     except Exception as exc:
         logger.exception(
             "OAuth callback unexpected error for provider=%s path=%s",
@@ -1871,12 +1880,14 @@ async def oauth_callback(
             request.url.path,
             exc_info=True,
         )
-        error_url = "/storage/providers?" + urlencode({
+        providers_stage = navigation.get_stage("providers")
+        providers_path = providers_stage.path if providers_stage else "/storage/providers"
+        error_url = providers_path + "?" + urlencode({
             "error": "oauth_callback_failed",
             "provider": provider,
             "message": "Unexpected callback error. Please reconnect your storage.",
         })
-        return RedirectResponse(url=error_url, status_code=302)
+        return ssot_redirect(error_url, context="oauth_callback exception")
 # ============================================================================
 # Token Exchange
 # ============================================================================
@@ -2777,7 +2788,9 @@ async def logout_reset(response: Response):
     GET endpoint to clear a stale semptify_uid cookie and redirect to provider selection.
     Used when a user has a cookie that no longer has a matching DB record.
     """
-    redirect = RedirectResponse(url="/storage/providers", status_code=302)
+    providers_stage = navigation.get_stage("providers")
+    providers_path = providers_stage.path if providers_stage else "/storage/providers"
+    redirect = ssot_redirect(providers_path, context="logout_reset")
     redirect.delete_cookie(COOKIE_USER_ID)
     redirect.delete_cookie("semptify_redirect_loop_count")
     return redirect

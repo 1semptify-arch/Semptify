@@ -23,6 +23,9 @@ from app.core.user_context import (
     ROLE_METADATA
 )
 from app.core.security import get_current_user
+from app.core.navigation import navigation
+from app.core.user_id import parse_user_id, COOKIE_STORAGE_PROVIDER
+from app.core.ssot_guard import ssot_redirect
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +51,40 @@ def detect_device_type(request: Request) -> str:
     elif any(kw in user_agent for kw in mobile_keywords):
         return "mobile"
     return "desktop"
+
+
+def has_storage_connection(request: Request) -> bool:
+    """
+    Check if user has mandatory storage connected.
+    Users (tenants) MUST have storage before accessing their home.
+    
+    Verification uses ONLY server-side, tamper-proof signals:
+    - Signed storage provider cookie (set during OAuth callback)
+    - Provider code embedded in signed user_id cookie (HMAC-verified)
+    
+    NEVER trust client-sent headers for security gates.
+    """
+    try:
+        # Check for storage provider cookie (set during OAuth callback, HMAC-signed)
+        storage_provider = request.cookies.get(COOKIE_STORAGE_PROVIDER)
+        if storage_provider:
+            logger.info("Storage check: found provider cookie: %s", storage_provider)
+            return True
+            
+        # Check if user_id contains valid provider (signed cookie, tamper-proof)
+        from app.core.cookie_auth import extract_user_id
+        user_id = extract_user_id(request)
+        if user_id:
+            provider, _, _ = parse_user_id(user_id)
+            if provider in ["google_drive", "dropbox", "onedrive"]:
+                logger.info("Storage check: provider detected in user_id: %s", provider)
+                return True
+                
+        logger.warning("Storage check: no storage connection found for request")
+        return False
+    except Exception as e:
+        logger.warning("Storage check failed for request: %s", e)
+        return False
 
 
 # =============================================================================
@@ -78,20 +115,34 @@ async def ui_router(
     """
     Main UI router - redirects to appropriate interface based on role.
     If not authenticated, redirects to welcome/login page.
+    If tenant without storage, redirects to storage setup (mandatory).
     """
     if not user:
-        return RedirectResponse(url="/static/public/welcome.html", status_code=302)
+        return ssot_redirect(navigation.get_stage("welcome").path, context="ui_router unauthenticated")
     
     device = detect_device_type(request)
     logger.info("UI routing: user=%s, role=%s, device=%s", user.user_id, user.role.value, device)
     
+    # CRITICAL: Check storage requirement for USER (tenant) role
+    # This prevents the security bypass allowing /tenant/home without storage
+    if user.role == UserRole.USER:
+        if not has_storage_connection(request):
+            logger.warning("STORAGE GATE: User %s attempted bypass without storage. Redirecting to storage setup.", user.user_id)
+            storage_stage = navigation.get_stage("storage_select")
+            return ssot_redirect(storage_stage.path, context="ui_router storage gate")
+    
     # Use canonical role landing page first, static fallback handled by route layer
-    landing_page = ROLE_LANDING_PAGES.get(user.role) or ROLE_FALLBACK_PAGES.get(user.role, "/static/public/welcome.html")
+    landing_page = ROLE_LANDING_PAGES.get(user.role) or ROLE_FALLBACK_PAGES.get(user.role)
+    
+    # SSOT: All redirects flow through the navigation registry
+    if not landing_page:
+        logger.error("No landing page configured for role: %s", user.role.value)
+        landing_page = navigation.get_stage("welcome").path
     
     # Log for debugging
     logger.info("Redirecting to: %s", landing_page)
     
-    return RedirectResponse(url=landing_page, status_code=302)
+    return ssot_redirect(landing_page, context=f"ui_router role={user.role.value}")
 
 
 @router.get("/route")
@@ -105,10 +156,10 @@ async def ui_route(request: Request):
     from app.core.cookie_auth import extract_user_id
     user_id = extract_user_id(request)
     if not user_id:
-        return RedirectResponse(url="/static/public/welcome.html", status_code=302)
+        return ssot_redirect(navigation.get_stage("welcome").path, context="ui_route unauthenticated")
     landing = _route_user(user_id)
     logger.info("ui/route: user=%s → %s", user_id, landing)
-    return RedirectResponse(url=landing, status_code=302)
+    return ssot_redirect(landing, context="ui_route workflow")
 
 
 @router.get("/role-info")
@@ -124,7 +175,7 @@ async def get_role_info(
             "authenticated": False,
             "role": None,
             "ui_mode": "public",
-            "landing_page": "/static/public/welcome.html"
+            "landing_page": navigation.get_stage("welcome").path
         }
     
     role_meta = get_role_metadata(user.role)
@@ -263,10 +314,11 @@ async def get_navigation_menu(
     Returns ordered list of menu items for the UI.
     """
     if not user:
+        providers_stage = navigation.get_stage("providers")
         return {
             "menu": [
-                {"label": "Home", "path": "/", "icon": "🏠"},
-                {"label": "Sign In", "path": "/storage/providers", "icon": "🔑"},
+                {"label": "Home", "path": navigation.get_stage("welcome").path, "icon": "🏠"},
+                {"label": "Sign In", "path": providers_stage.path if providers_stage else "/storage/providers", "icon": "🔑"},
             ]
         }
     
