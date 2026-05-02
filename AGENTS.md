@@ -101,3 +101,26 @@ SSOT violations are the #1 cause of redirect loops, broken flows, and "many chie
 - All files in `app/core/*_middleware.py`
 - All files in `static/onboarding/*.html`
 - Any new navigation/routing logic
+
+### SSOT Evolution (When to Break Rules):
+
+**Rules exist to enable flow, not prevent it.** The SSOT registry is alive and grows with the product.
+
+**Legitimate exceptions:**
+- **Experimental features**: Use `navigation.add_escape_hatch(path, reason="Beta feature", ttl_days=7)`
+- **New flows**: Use `navigation.register_stage(FlowStage(...))` to expand SSOT
+- **Deprecating old paths**: Use `navigation.deprecate_path("/old", "/new")` for graceful evolution
+
+**Philosophy:** 
+- A rule that cannot evolve is a prison
+- A rule that is never enforced is a suggestion
+- Good rules have escape hatches with TTLs (time-to-live)
+- Break rules intentionally, document the exception, let it expire or integrate
+
+**When breaking SSOT:**
+1. Document WHY in code
+2. Use escape_hatch with expiration
+3. After the experiment, either: 
+   - Kill it (remove the code)
+   - Formalize it (register as proper FlowStage)
+   - Deprecate it (old path → new canonical)
