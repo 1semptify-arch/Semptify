@@ -676,25 +676,41 @@ def _render_client_activated():
 # ============================================================================
 
 @router.get("/", response_class=HTMLResponse)
-async def onboarding_start(request: Request, semptify_uid: Optional[str] = Cookie(None)):
+async def onboarding_root(request: Request, semptify_uid: Optional[str] = Cookie(None)):
     """Entry point: Show role selection OR route based on gate status."""
+    # Use SSOT navigation registry
     if not semptify_uid:
-        # SSOT: Role selection only exists in static/onboarding/select-role.html
-        return RedirectResponse(url="/onboarding/select-role.html", status_code=302)
+        role_stage = navigation.get_stage("role_select")
+        return RedirectResponse(url=role_stage.path, status_code=302)
     else:
         return RedirectResponse(url="/onboarding/status", status_code=302)
 
 @router.get("/role-select")
-async def role_select():
-    """Dedicated role selection page - redirects to SSOT location."""
-    return RedirectResponse(url="/onboarding/select-role.html", status_code=302)
+async def role_select_redirect():
+    """Legacy redirect - routes to SSOT role selection."""
+    role_stage = navigation.get_stage("role_select")
+    return RedirectResponse(url=role_stage.path, status_code=301)
 
 @router.get("/select-role.html")
-async def role_select_alias():
-    """Alias - static file served by FastAPI static middleware."""
-    # FastAPI will serve static/onboarding/select-role.html automatically
-    # This route exists for documentation/clarity - SSOT is the static file
-    return RedirectResponse(url="/onboarding/select-role.html", status_code=302)
+async def role_select_static():
+    """
+    Serve the static role selection page directly.
+    
+    This route shadows the static file mount at /onboarding-assets/
+    to provide a cleaner URL while still serving the same content.
+    """
+    from fastapi.responses import FileResponse
+    from pathlib import Path
+    
+    base_path = Path(__file__).parent.parent.parent
+    file_path = base_path / "static" / "onboarding" / "select-role.html"
+    
+    if file_path.exists():
+        return FileResponse(str(file_path))
+    
+    # Fallback to SSOT path if file not found
+    role_stage = navigation.get_stage("role_select")
+    return RedirectResponse(url=role_stage.path, status_code=302)
 
 @router.get("/providers", response_class=HTMLResponse)
 async def storage_providers(role: Optional[str] = Query("tenant")):

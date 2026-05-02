@@ -81,7 +81,7 @@ class NavigationRegistry:
         "role_select": FlowStage(
             id="role_select",
             name="Select Role",
-            path="/onboarding-assets/select-role.html",
+            path="/onboarding/select-role.html",  # Served by router, shadowing static
             next_stage="storage_select",
             requires_checkpoint=True
         ),
