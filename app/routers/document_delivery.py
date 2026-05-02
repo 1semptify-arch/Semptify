@@ -22,6 +22,8 @@ from app.core.database import get_db
 from app.core.config import get_settings, Settings
 from app.core.security import require_user, StorageUser
 from app.core.workflow_engine import route_user
+from app.core.navigation import navigation
+from app.core.ssot_guard import ssot_redirect
 from app.models.document_delivery_models import (
     SendDocumentRequest,
     SendDocumentResponse,
@@ -82,7 +84,9 @@ async def delivery_inbox_page(request: Request):
     user_id = request.cookies.get("se_user")
     if not user_id:
         # Redirect to storage providers for OAuth
-        return RedirectResponse(url="/storage/providers", status_code=302)
+        providers_stage = navigation.get_stage("providers")
+        providers_path = providers_stage.path if providers_stage else "/storage/providers"
+        return ssot_redirect(providers_path, context="delivery_inbox_page unauthenticated")
     
     # Return the static HTML page
     from pathlib import Path
