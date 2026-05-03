@@ -62,7 +62,9 @@ def get_engine():
             }
         else:
             # PostgreSQL: use async-compatible connection pooling
-            # ssl=True required for Neon Postgres (TLS enforced)
+            # Auto-detect localhost (no SSL) vs production (SSL required)
+            is_localhost = "localhost" in settings.database_url or "127.0.0.1" in settings.database_url
+            
             pool_config = {
                 "poolclass": AsyncAdaptedQueuePool,
                 "pool_size": 5,  # Base connections
@@ -70,7 +72,7 @@ def get_engine():
                 "pool_timeout": 30,  # Seconds to wait for connection
                 "pool_recycle": 1800,  # Recycle connections after 30 min
                 "pool_pre_ping": True,  # Verify connections before use
-                "connect_args": {"ssl": True},
+                "connect_args": {"ssl": False if is_localhost else True},
             }
 
         _engine = create_async_engine(

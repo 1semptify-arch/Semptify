@@ -46,6 +46,7 @@ PUBLIC_PATHS: Set[str] = {
     "/onboarding/activate",
     "/onboarding/verify-vault",
     "/onboarding/status",
+    "/onboarding/ssot-navigation",  # SSOT API for static file navigation
     
     # Storage/Auth flow (must be public to connect)
     "/storage",
@@ -87,6 +88,7 @@ PUBLIC_PATHS: Set[str] = {
 PUBLIC_PREFIXES = (
     "/storage/",
     "/static/",  # All static files are public (HTML, CSS, JS)
+    "/onboarding-assets/",  # Onboarding static files (storage-select, etc)
     "/tenant",   # Tenant pages (My Case) - serve page, auth handled by page JS
     "/law-library",  # Law Library page
     "/eviction-defense",  # Eviction Defense page

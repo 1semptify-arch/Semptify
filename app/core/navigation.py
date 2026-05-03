@@ -8,7 +8,7 @@ Following SSOT Architecture:
 - Jinja2 templates inject via context processor
 """
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, ClassVar
 
 
 @dataclass(frozen=True)
@@ -32,6 +32,7 @@ class FlowStage:
     requires_checkpoint: bool = True
 
 
+@dataclass
 class NavigationRegistry:
     """
     Central registry — THE source of truth for all navigation.
@@ -45,7 +46,7 @@ class NavigationRegistry:
     """
     
     # --- Path Cache (auto-built from registry) ---
-    _CANONICAL_PATHS: Set[str] = set()
+    _CANONICAL_PATHS: ClassVar[Set[str]] = set()
     
     @classmethod
     def _build_canonical_set(cls) -> Set[str]:
@@ -70,7 +71,7 @@ class NavigationRegistry:
         return paths
     
     # --- Onboarding Flow (SSOT) ---
-    ONBOARDING_FLOW: Dict[str, FlowStage] = field(default_factory=lambda: {
+    ONBOARDING_FLOW: ClassVar[Dict[str, FlowStage]] = {
         "welcome": FlowStage(
             id="welcome",
             name="Welcome",
@@ -99,10 +100,10 @@ class NavigationRegistry:
             next_stage="dashboard",
             requires_checkpoint=True
         ),
-    })
+    }
     
     # --- Court Integration Paths (SSOT) ---
-    COURT_FLOW: Dict[str, FlowStage] = field(default_factory=lambda: {
+    COURT_FLOW: ClassVar[Dict[str, FlowStage]] = {
         "mndes_guide": FlowStage(
             id="mndes_guide",
             name="MNDES Submission Guide",
@@ -131,16 +132,16 @@ class NavigationRegistry:
             next_stage=None,
             requires_checkpoint=False
         ),
-    })
+    }
 
     # --- Main Navigation (SSOT) ---
-    MAIN_NAV: List[NavItem] = field(default_factory=lambda: [
+    MAIN_NAV: ClassVar[List[NavItem]] = [
         NavItem(name="Home", path="/home", icon="🏠", order=0, requires="auth"),
         NavItem(name="Cases", path="/cases", icon="📁", order=1, requires="auth"),
         NavItem(name="Documents", path="/documents", icon="📄", order=2, requires="storage"),
         NavItem(name="Timeline", path="/timeline", icon="📅", order=3, requires="storage"),
         NavItem(name="Settings", path="/settings", icon="⚙️", order=10, requires="auth"),
-    ])
+    ]
     
     # --- Utility Methods ---
     @classmethod
@@ -163,14 +164,14 @@ class NavigationRegistry:
         """Determine next path in flow — SSOT transition logic."""
         stage = cls.get_stage(current_stage_id)
         if not stage or not stage.next_stage:
-            return "/home"
+            return "/"  # Welcome page is the safe fallback
         next_stage = cls.get_stage(stage.next_stage)
-        return next_stage.path if next_stage else "/home"
+        return next_stage.path if next_stage else "/"
     
     # --- Evolution Mechanisms (SSOT must breathe) ---
     
-    _DEPRECATED_PATHS: Dict[str, str] = {}  # old_path -> new_path
-    _ESCAPE_HATCHES: Set[str] = set()  # Temporarily allowed non-SSOT paths
+    _DEPRECATED_PATHS: ClassVar[Dict[str, str]] = {}  # old_path -> new_path
+    _ESCAPE_HATCHES: ClassVar[Set[str]] = set()  # Temporarily allowed non-SSOT paths
     
     @classmethod
     def register_stage(cls, stage: FlowStage) -> None:

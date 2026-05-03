@@ -280,7 +280,7 @@
 
                 <div class="actions">
                     <button id="startBtn" class="btn btn--primary">Start Process</button>
-                    <a class="btn btn--secondary" href="/storage/providers">Connect Storage</a>
+                    <a class="btn btn--secondary" id="connectStorageBtn" href="#">Connect Storage</a>
                 </div>
             </div>
 
@@ -353,6 +353,23 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- SSOT Violation Notification Banner -->
+<div id="ssotViolationBanner" style="display:none; position:fixed; top:0; left:0; right:0; background:#dc2626; color:white; padding:12px 20px; font-size:14px; z-index:9999; font-family:sans-serif;">
+    <strong>⚠️ SSOT VIOLATION:</strong> <span id="ssotViolationMsg"></span>
+    <button onclick="this.parentElement.style.display='none'" style="float:right; background:white; color:#dc2626; border:none; padding:4px 12px; cursor:pointer; font-weight:bold;">✕</button>
+</div>
+<script>
+    // SSOT Violation Reporter
+    function reportSSOTViolation(message) {
+        console.error('[SSOT VIOLATION]', message);
+        const banner = document.getElementById('ssotViolationBanner');
+        const msg = document.getElementById('ssotViolationMsg');
+        if (banner && msg) {
+            msg.textContent = message;
+            banner.style.display = 'block';
+        }
+    }
+</script>
 <script src="/static/js/semptify-auth.js"></script>
 <script src="/static/js/entry-flow.js"></script>
 <script>
@@ -368,13 +385,13 @@
     const rolePurpose = document.getElementById("rolePurpose");
     const routePreview = document.getElementById("routePreview");
     const startBtn = document.getElementById("startBtn");
-    const fallbackRoleRoutes = {
-        user: "/tenant",
-        advocate: "/advocate",
-        legal: "/legal",
-        manager: "/admin",
-        admin: "/admin",
-    };
+    // SSOT-compliant fallback: paths loaded from navigation API, never hardcoded
+    async function getFallbackRoute(roleValue) {
+        const nav = await loadNavigation();
+        const stage = nav?.onboarding_flow?.role_select;
+        const nextPath = stage?.next ? nav.onboarding_flow[stage.next]?.path : '/onboarding/providers';
+        return nextPath || '/onboarding/providers';
+    }
 
     let lastDecision = null;
 
@@ -390,28 +407,24 @@
         return nextRoute;
     }
 
-    async function trackHelpInteraction(action, meta = {}) {
-        const payload = {
-            event_type: "user.action",
-            source_module: "ui",
-            data: {
-                page: "welcome",
-                action,
-                ts: new Date().toISOString(),
-                ...meta,
-            },
-        };
-
+    // SSOT Navigation cache for fallback routes
+    let navSSOT = null;
+    async function loadNavigation() {
+        if (navSSOT) return navSSOT;
         try {
-            await fetch("/brain/events", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                keepalive: true,
-                body: JSON.stringify(payload),
-            });
-        } catch (_) {
-            // Ignore telemetry failures to keep UX fast.
+            const res = await fetch('/onboarding/ssot-navigation');
+            navSSOT = await res.json();
+            return navSSOT;
+        } catch (e) {
+            console.error('SSOT: Failed to load navigation:', e);
+            return null;
         }
+    }
+
+    // DISABLED: Research System telemetry - /brain/events not part of Semptify 5.0 core
+    async function trackHelpInteraction(action, meta = {}) {
+        // No-op: Telemetry disabled to prevent Research System interference
+        console.log('[Telemetry Disabled]', action, meta);
     }
 
     async function fetchRouteDecision(roleValue, storageState) {
@@ -424,17 +437,13 @@
             if (!res.ok) throw new Error("API error " + res.status);
             return await res.json();
         } catch (_) {
-            // Fallback: build a minimal local decision if API is unreachable
-            if (storageState === "need_connect") {
-                return { next_process: "A", next_route: "/storage/providers",
-                         deterministic_reason: "No storage connected — redirecting to connect.", warnings: [] };
-            }
-            const isTenant = roleValue === "user";
-            return {
-                next_process: isTenant ? "B2" : "B4",
-                next_route: fallbackRoleRoutes[roleValue] || "/advocate",
-                deterministic_reason: (isTenant ? "Quick Case Triage (Tenant)" : "Professional Review Workspace"),
-                warnings: [],
+            // Fallback: SSOT-compliant navigation from API
+            const fallbackPath = await getFallbackRoute(roleValue);
+            return { 
+                next_process: "A", 
+                next_route: fallbackPath,
+                deterministic_reason: "Navigating to onboarding flow.", 
+                warnings: [] 
             };
         }
     }
@@ -589,6 +598,15 @@
             });
     });
 
+    // SSOT: Initialize Connect Storage button with path from navigation API
+    async function initConnectStorageButton() {
+        const btn = document.getElementById("connectStorageBtn");
+        if (!btn) return;
+        const nav = await loadNavigation();
+        const providersPath = nav?.onboarding_flow?.providers?.path || '/onboarding/providers';
+        btn.href = providersPath;
+    }
+
     document.addEventListener("click", (event) => {
         const tracked = event.target.closest("[data-help-track]");
         if (!tracked) return;
@@ -598,6 +616,15 @@
         trackHelpInteraction(action, { href });
     });
 
-    renderPreview();
+    // Initialize on DOM ready
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => {
+            initConnectStorageButton();
+            renderPreview();
+        });
+    } else {
+        initConnectStorageButton();
+        renderPreview();
+    }
 </script>
 {% endblock %}

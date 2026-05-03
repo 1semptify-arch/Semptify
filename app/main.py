@@ -2948,8 +2948,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         signed_cookie = request.cookies.get("semptify_uid", "")
         user_id = extract_user_id(request)
-        if not user_id or not is_valid_storage_user(signed_cookie):
-            return RedirectResponse(url="/storage/providers", status_code=302)
+        if not user_id:
+            # No cookie at all - new user to welcome page
+            return RedirectResponse(url="/", status_code=302)
+        if not is_valid_storage_user(signed_cookie):
+            # Has cookie but invalid - returning user needs reconnect
+            return RedirectResponse(url="/storage/reconnect", status_code=302)
 
         current_role = get_role_from_user_id(user_id) or ""
         if current_role not in allowed_roles:
@@ -2982,8 +2986,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
             # Must be authenticated
             user_id = request.cookies.get(COOKIE_USER_ID)
+            if not user_id:
+                # No cookie - new user to welcome page
+                return RedirectResponse(url="/", status_code=302)
             if not is_valid_storage_user(user_id):
-                return RedirectResponse(url="/storage/providers", status_code=302)
+                # Has cookie but invalid - returning user needs reconnect
+                return RedirectResponse(url="/storage/reconnect", status_code=302)
 
             # Check role
             current_role = get_role_from_user_id(user_id) or ""
@@ -3621,17 +3629,20 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     cursor: pointer;
                     font-weight: 600;
                     transition: all 0.2s;
+                    display: inline-block;
+                    text-decoration: none;
+                    text-align: center;
                 }
-                .btn-primary {
+                a.btn-primary, .btn-primary {
                     background: #d97706;
                     color: white;
                 }
-                .btn-primary:hover { background: #b45309; }
-                .btn-secondary {
+                a.btn-primary:hover, .btn-primary:hover { background: #b45309; }
+                a.btn-secondary, .btn-secondary {
                     background: #e5e7eb;
                     color: #1f2937;
                 }
-                .btn-secondary:hover { background: #d1d5db; }
+                a.btn-secondary:hover, .btn-secondary:hover { background: #d1d5db; }
                 .footer {
                     font-size: 0.9rem;
                     color: #9ca3af;
@@ -3674,23 +3685,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 </div>
                 
                 <div class="buttons">
-                    <button class="btn btn-primary" onclick="location.href='/'">Try Again</button>
-                    <button class="btn btn-secondary" onclick="clearCacheAndTry()">Clear Cache & Try</button>
+                    <a href="/" class="btn btn-primary">Try Again</a>
+                    <a href="/storage/logout-reset" class="btn btn-secondary">Clear Session & Restart</a>
                 </div>
                 
                 <div class="footer">
                     Still stuck? <a href="mailto:support@semptify.com">Contact support</a> and we'll help you get started.
                 </div>
             </div>
-            
-            <script>
-                function clearCacheAndTry() {
-                    // Clear the redirect loop cookie
-                    document.cookie = 'semptify_redirect_loop_count=; Max-Age=0; path=/;';
-                    // Redirect to start
-                    location.href = '/';
-                }
-            </script>
         </body>
         </html>
         """)

@@ -577,7 +577,7 @@
     <div class="cta" style="border-top: 2px solid var(--primary); margin-top: 0; padding: 3rem 2rem; background: var(--paper);">
         <p style="margin-bottom: 1.5rem; font-size: 1.2rem; color: var(--primary); font-weight: 500;">Ready to protect your rights?</p>
         
-        <button onclick="enterApp('/onboarding/start')" class="cta-button" style="width: 100%; max-width: 320px; text-align: center; border: none; cursor: pointer; font-family: inherit; margin: 0 auto; display: block;">
+        <button onclick="enterApp()" class="cta-button" style="width: 100%; max-width: 320px; text-align: center; border: none; cursor: pointer; font-family: inherit; margin: 0 auto; display: block;">
             <div>📓 Get Started →</div>
             <div style="font-size: 0.9rem; opacity: 0.9;">New or returning — we'll route you right</div>
         </button>
@@ -618,8 +618,28 @@
         </div>
     </footer>
 
-    <!-- Smart Gate: Set checkpoint cookie on entry -->
+    <!-- SSOT Violation Notification Banner -->
+    <div id="ssotViolationBanner" style="display:none; position:fixed; top:0; left:0; right:0; background:#dc2626; color:white; padding:12px 20px; font-size:14px; z-index:9999; font-family:sans-serif;">
+        <strong>⚠️ SSOT VIOLATION DETECTED:</strong> <span id="ssotViolationMsg"></span>
+        <button onclick="this.parentElement.style.display='none'" style="float:right; background:white; color:#dc2626; border:none; padding:4px 12px; cursor:pointer; font-weight:bold;">✕</button>
+    </div>
+
+    <!-- Smart Gate: SSOT Navigation - Fetch paths from API, never hardcode -->
     <script>
+        // SSOT Violation Reporter
+        function reportSSOTViolation(message) {
+            console.error('[SSOT VIOLATION]', message);
+            const banner = document.getElementById('ssotViolationBanner');
+            const msg = document.getElementById('ssotViolationMsg');
+            if (banner && msg) {
+                msg.textContent = message;
+                banner.style.display = 'block';
+            }
+        }
+
+        // SSOT Navigation cache
+        let navSSOT = null;
+        
         // Set checkpoint cookie - validates user acknowledged terms/privacy
         function setCheckpointCookie() {
             const maxAge = 365 * 24 * 60 * 60; // 1 year
@@ -627,10 +647,57 @@
             document.cookie = `semptify_checkpoint=acknowledged; path=/; max-age=${maxAge}; samesite=lax${secure}`;
         }
         
-        // Enter app - set checkpoint then navigate
-        function enterApp(destination) {
+        // Fetch navigation from SSOT API (requires checkpoint cookie to pass middleware)
+        async function loadNavigation() {
+            if (navSSOT) return navSSOT;
+            try {
+                const res = await fetch('/onboarding/ssot-navigation');
+                console.log('SSOT API status:', res.status, 'content-type:', res.headers.get('content-type'));
+                if (!res.ok) {
+                    reportSSOTViolation('SSOT API returned ' + res.status + ' - navigation registry unreachable');
+                    return null;
+                }
+                const contentType = res.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    const text = await res.text();
+                    console.error('SSOT API returned non-JSON:', text.substring(0, 200));
+                    reportSSOTViolation('SSOT API returned HTML instead of JSON - middleware blocking?');
+                    return null;
+                }
+                navSSOT = await res.json();
+                // DEBUG: Log everything we received
+                console.log('Full SSOT response:', navSSOT);
+                console.log('onboarding_flow keys:', Object.keys(navSSOT?.onboarding_flow || {}));
+                console.log('welcome stage:', navSSOT?.onboarding_flow?.welcome);
+                return navSSOT;
+            } catch (e) {
+                reportSSOTViolation('Failed to load SSOT navigation: ' + e.message);
+                return null;
+            }
+        }
+        
+        // Enter app - SSOT compliant: set cookie, fetch path from API, then navigate
+        async function enterApp() {
+            // CRITICAL: Set cookie FIRST so SSOT API request passes middleware
             setCheckpointCookie();
-            window.location.href = destination;
+            
+            // Small delay to ensure cookie is set before fetch
+            await new Promise(r => setTimeout(r, 50));
+            
+            // Get onboarding start path from SSOT
+            const nav = await loadNavigation();
+            
+            // Get the next stage ID, then lookup its path
+            const welcomeStage = nav?.onboarding_flow?.welcome;
+            const nextStageId = welcomeStage?.next;
+            const nextStage = nextStageId ? nav?.onboarding_flow?.[nextStageId] : null;
+            const startPath = nextStage?.path || '/onboarding/start';
+            
+            if (!nextStage?.path) {
+                reportSSOTViolation('SSOT: welcome.next="' + nextStageId + '" but no path found. Using fallback: ' + startPath);
+            }
+            
+            window.location.href = startPath;
         }
         
         // Check if we came from a gate redirect and show message
@@ -638,8 +705,15 @@
         if (urlParams.get('gate') === 'checkpoint_required') {
             const returnTo = urlParams.get('return_to') || '';
             console.log('Gate: Redirected to welcome. Return path:', returnTo);
-            // Could show a toast/message here if desired
         }
+        
+        // Prevent bfcache issues - reload if restored from cache
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                console.log('Page restored from bfcache, reloading fresh');
+                window.location.reload();
+            }
+        });
     </script>
 
 </body>

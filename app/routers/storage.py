@@ -1560,7 +1560,12 @@ async def initiate_oauth(
         }
 
         # Build callback URL
-        base_url = str(request.base_url).rstrip("/")
+        # Use PUBLIC_BASE_URL if set (for proxies/production), else request.base_url
+        settings = _get_settings()
+        if settings.public_base_url:
+            base_url = settings.public_base_url.rstrip("/")
+        else:
+            base_url = str(request.base_url).rstrip("/")
         callback_uri = f"{base_url}/storage/callback/{provider}"
         print(f"DEBUG: Callback URI: {callback_uri}")
 
@@ -1703,7 +1708,12 @@ async def oauth_callback(
                 "return_to": legacy_state.get("return_to"),
             }
 
-        base_url = str(request.base_url).rstrip("/")
+        # Build callback URL (use PUBLIC_BASE_URL if set)
+        settings = _get_settings()
+        if settings.public_base_url:
+            base_url = settings.public_base_url.rstrip("/")
+        else:
+            base_url = str(request.base_url).rstrip("/")
         callback_uri = f"{base_url}/storage/callback/{provider}"
 
         # Exchange code for tokens
@@ -1848,7 +1858,7 @@ async def oauth_callback(
 
         # Use SSOT redirect for internal navigation
         response = ssot_redirect(landing, context="oauth_callback success")
-        set_auth_cookie(response, user_id, max_age=COOKIE_MAX_AGE, secure=not is_localhost)
+        set_auth_cookie(response, user_id)
         response.delete_cookie("semptify_redirect_loop_count")
 
         return response
