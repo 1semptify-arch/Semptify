@@ -38,6 +38,8 @@ EXEMPT_PATHS = {
     "/storage/callback",
     "/api/user/lookup",
     "/api/session/restore",
+    "/onboarding/ssot-navigation",  # SSOT API for static file navigation
+    "/onboarding-assets/",  # Static onboarding pages (storage-select, etc)
     "/health",
 }
 

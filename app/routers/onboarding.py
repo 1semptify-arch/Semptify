@@ -49,7 +49,7 @@ async def onboarding_entry(
 
     This keeps one CTA on welcome page while routing correctly.
     """
-    from app.core.user_id import is_valid_storage_user
+    from app.core.storage_middleware import is_valid_storage_user
     from app.core.checkpoint_middleware import set_checkpoint_cookie
 
     # Build reconnect URL with return_to if provided
@@ -745,7 +745,9 @@ async def onboarding_status(semptify_uid: Optional[str] = Cookie(None), db: Asyn
     elif "storage_connected" in completed:
         return HTMLResponse(content=_render_storage_connected())
     else:
-        return ssot_redirect("/onboarding", context="onboarding_status incomplete")
+        # User exists but hasn't connected storage - go to storage entry (not back to /onboarding)
+        # This prevents redirect loop: /onboarding/ -> /onboarding/status -> /onboarding/
+        return ssot_redirect("/storage/entry", context="onboarding_status needs storage")
 
 @router.get("/upload", response_class=HTMLResponse)
 async def upload_prompt(semptify_uid: Optional[str] = Cookie(None)):

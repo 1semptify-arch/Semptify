@@ -638,6 +638,55 @@ def invalidate_session(session_id: str) -> bool:
 
 
 # =============================================================================
+# User ID Extraction (FastAPI Dependencies)
+# =============================================================================
+
+from app.core.user_id import parse_user_id, COOKIE_USER_ID
+
+
+def get_user_id(request: Request) -> Optional[str]:
+    """
+    Extract and validate user ID from request cookies.
+    
+    FastAPI dependency for protected routes. Returns the user_id if valid,
+    or None if no valid user ID is present.
+    
+    Args:
+        request: FastAPI Request object
+        
+    Returns:
+        User ID string if valid cookie present, None otherwise
+        
+    Example:
+        @router.get("/protected")
+        async def protected_route(user_id: str = Depends(get_user_id)):
+            if not user_id:
+                raise HTTPException(status_code=401)
+            return {"user_id": user_id}
+    """
+    cookie_value = request.cookies.get(COOKIE_USER_ID)
+    if not cookie_value:
+        return None
+    
+    # Parse and validate the user_id format
+    provider, role, unique_part = parse_user_id(cookie_value)
+    if not provider or not role or not unique_part:
+        return None
+    
+    # Return the full cookie value (includes HMAC signature if present)
+    return cookie_value
+
+
+def get_optional_user_id(request: Request) -> Optional[str]:
+    """
+    Optional user ID extraction - same as get_user_id but for optional auth routes.
+    
+    Returns user_id if present and valid, None otherwise (no error).
+    """
+    return get_user_id(request)
+
+
+# =============================================================================
 # User ID Generation
 # =============================================================================
 

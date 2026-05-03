@@ -595,10 +595,18 @@
                 alert("Please select a role to continue");
                 return;
             }
-            // Get path from SSOT, fallback to default
+            // Get path from SSOT API (never hardcode)
             const nav = await loadNavigation();
-            const storagePath = nav?.onboarding_flow?.storage_select?.path || '/onboarding-assets/storage-select.html';
-            window.location.href = storagePath + "?role=" + selectedRole;
+            console.log('SSOT nav:', nav);
+            const stage = nav?.onboarding_flow?.role_select;
+            console.log('role_select stage:', stage);
+            const nextStageId = stage?.next;
+            console.log('nextStageId:', nextStageId);
+            const nextStage = nextStageId ? nav?.onboarding_flow?.[nextStageId] : null;
+            console.log('nextStage:', nextStage);
+            const nextPath = nextStage?.path || '/onboarding/providers';
+            console.log('nextPath:', nextPath);
+            window.location.href = nextPath + "?role=" + selectedRole;
         }
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -607,6 +615,14 @@
             const card = document.querySelector(`[data-role="${preselect}"]`);
             if (card) selectRole(card);
         }
+        
+        // Prevent bfcache issues - force page reload if restored from cache
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                console.log('Page restored from bfcache, reloading fresh');
+                window.location.reload();
+            }
+        });
     </script>
 </body>
 </html>

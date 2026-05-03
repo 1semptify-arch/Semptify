@@ -76,6 +76,10 @@ class Settings:
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
     log_json_format: bool = os.getenv("LOG_JSON_FORMAT", "False").lower() in ("1", "true", "yes", "on")
     cors_origins: str = os.getenv("CORS_ORIGINS", "*")
+    # Explicit public URL for OAuth callbacks (bypasses request.base_url detection)
+    # Local: http://localhost:8000
+    # Production: https://semotify.org
+    public_base_url: str = os.getenv("PUBLIC_BASE_URL", "")
 
     @property
     def cors_origins_list(self):
