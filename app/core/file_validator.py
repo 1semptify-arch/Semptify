@@ -121,6 +121,30 @@ class FileValidator:
             'description': 'M4A audio file',
             'risk_level': 'medium'
         },
+        'wma': {
+            'mime_types': ['audio/x-ms-wma', 'audio/wma'],
+            'max_size_mb': 100,
+            'description': 'WMA audio file',
+            'risk_level': 'medium'
+        },
+        'aac': {
+            'mime_types': ['audio/aac', 'audio/x-aac'],
+            'max_size_mb': 100,
+            'description': 'AAC audio file',
+            'risk_level': 'medium'
+        },
+        'aiff': {
+            'mime_types': ['audio/aiff', 'audio/x-aiff'],
+            'max_size_mb': 200,
+            'description': 'AIFF audio file',
+            'risk_level': 'low'
+        },
+        'flac': {
+            'mime_types': ['audio/flac', 'audio/x-flac'],
+            'max_size_mb': 200,
+            'description': 'FLAC audio file',
+            'risk_level': 'low'
+        },
         
         # Video
         'mp4': {
@@ -139,6 +163,42 @@ class FileValidator:
             'mime_types': ['video/x-msvideo'],
             'max_size_mb': 500,
             'description': 'AVI video file',
+            'risk_level': 'medium'
+        },
+        'wmv': {
+            'mime_types': ['video/x-ms-wmv'],
+            'max_size_mb': 500,
+            'description': 'WMV video file',
+            'risk_level': 'medium'
+        },
+        'mkv': {
+            'mime_types': ['video/x-matroska'],
+            'max_size_mb': 500,
+            'description': 'MKV video file',
+            'risk_level': 'medium'
+        },
+        'flv': {
+            'mime_types': ['video/x-flv'],
+            'max_size_mb': 500,
+            'description': 'FLV video file',
+            'risk_level': 'medium'
+        },
+        'mpeg': {
+            'mime_types': ['video/mpeg'],
+            'max_size_mb': 500,
+            'description': 'MPEG video file',
+            'risk_level': 'medium'
+        },
+        'mpg': {
+            'mime_types': ['video/mpeg'],
+            'max_size_mb': 500,
+            'description': 'MPG video file',
+            'risk_level': 'medium'
+        },
+        'm4v': {
+            'mime_types': ['video/x-m4v', 'video/mp4'],
+            'max_size_mb': 500,
+            'description': 'M4V video file',
             'risk_level': 'medium'
         },
         
@@ -160,7 +220,29 @@ class FileValidator:
             'max_size_mb': 10,
             'description': 'CSV spreadsheet',
             'risk_level': 'low'
-        }
+        },
+        
+        # Presentations (MNDES-required)
+        'ppt': {
+            'mime_types': ['application/vnd.ms-powerpoint'],
+            'max_size_mb': 50,
+            'description': 'Microsoft PowerPoint (legacy)',
+            'risk_level': 'medium'
+        },
+        'pptx': {
+            'mime_types': ['application/vnd.openxmlformats-officedocument.presentationml.presentation'],
+            'max_size_mb': 50,
+            'description': 'Microsoft PowerPoint',
+            'risk_level': 'medium'
+        },
+        
+        # Additional image formats (MNDES-required)
+        'tif': {
+            'mime_types': ['image/tiff', 'image/tiff-fx'],
+            'max_size_mb': 50,
+            'description': 'TIFF image',
+            'risk_level': 'low'
+        },
     }
     
     # Dangerous file extensions to block
@@ -169,7 +251,9 @@ class FileValidator:
         'dmg', 'iso', 'img', 'bin', 'run', 'sh', 'ps1', 'py', 'pl', 'rb', 'php', 'asp', 'jsp',
         'msi', 'msp', 'mst', 'cpl', 'inf', 'reg', 'scr', 'sct', 'shb', 'shs', 'url', 'vbe',
         'wsc', 'wsf', 'wsh', 'ps1xml', 'ps2', 'ps2xml', 'psc1', 'psd1', 'psdxml', 'cdxml',
-        'cer', 'crt', 'der', 'p7b', 'p7c', 'p7m', 'p7s', 'spc', 'sst', 'stl'
+        'cer', 'crt', 'der', 'p7b', 'p7c', 'p7m', 'p7s', 'spc', 'sst', 'stl',
+        # Archives — explicitly prohibited by MNDES Order ADM09-8010 (no zipped files)
+        'zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'tgz',
     }
     
     # Dangerous MIME types to block

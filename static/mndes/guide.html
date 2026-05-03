@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MNDES Submission Guide — Semptify</title>
+  <style>
+    :root {
+      --color-bg: #f9fafb;
+      --color-surface: #ffffff;
+      --color-primary: #1d4ed8;
+      --color-primary-light: #dbeafe;
+      --color-warning: #b45309;
+      --color-warning-bg: #fffbeb;
+      --color-danger: #b91c1c;
+      --color-danger-bg: #fef2f2;
+      --color-success: #15803d;
+      --color-success-bg: #f0fdf4;
+      --color-border: #e5e7eb;
+      --color-text: #111827;
+      --color-muted: #6b7280;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
+      padding: 24px 16px 64px;
+    }
+
+    .container { max-width: 760px; margin: 0 auto; }
+
+    .header {
+      background: var(--color-primary);
+      color: white;
+      border-radius: var(--radius);
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+    .header h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 6px; }
+    .header p { opacity: 0.85; font-size: 0.95rem; }
+    .header .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+      padding: 2px 10px;
+      font-size: 0.78rem;
+      margin-top: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .alert {
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 16px;
+      font-size: 0.92rem;
+      border-left: 4px solid transparent;
+    }
+    .alert-warning {
+      background: var(--color-warning-bg);
+      border-color: var(--color-warning);
+      color: var(--color-warning);
+    }
+    .alert-danger {
+      background: var(--color-danger-bg);
+      border-color: var(--color-danger);
+      color: var(--color-danger);
+    }
+    .alert-info {
+      background: var(--color-primary-light);
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    .alert strong { display: block; margin-bottom: 4px; font-weight: 700; }
+
+    .card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .card h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .step-list { list-style: none; }
+    .step-list li {
+      display: flex;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .step-list li:last-child { border-bottom: none; }
+    .step-num {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      color: white;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+    .step-content strong { display: block; font-weight: 600; margin-bottom: 3px; }
+    .step-content p { color: var(--color-muted); font-size: 0.9rem; }
+
+    .file-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .file-tag {
+      background: var(--color-success-bg);
+      color: var(--color-success);
+      border: 1px solid #bbf7d0;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-align: center;
+    }
+    .file-tag.audio { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .file-tag.video { background: #fdf4ff; color: #7e22ce; border-color: #e9d5ff; }
+    .file-tag.image { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+
+    .limit-list { list-style: none; }
+    .limit-list li {
+      padding: 7px 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.9rem;
+      color: var(--color-muted);
+    }
+    .limit-list li:last-child { border-bottom: none; }
+    .limit-list li::before { content: "⛔ "; }
+
+    .support-box {
+      background: var(--color-primary-light);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      font-size: 0.9rem;
+      margin-top: 16px;
+    }
+    .support-box h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
+    .support-box p { margin-bottom: 4px; }
+
+    .portal-btn {
+      display: block;
+      width: 100%;
+      background: var(--color-primary);
+      color: white;
+      text-align: center;
+      padding: 14px;
+      border-radius: var(--radius);
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-top: 20px;
+      transition: background 0.15s;
+    }
+    .portal-btn:hover { background: #1e40af; }
+
+    .disclaimer {
+      background: var(--color-danger-bg);
+      border: 1px solid #fecaca;
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-top: 20px;
+      font-size: 0.88rem;
+      color: var(--color-danger);
+      text-align: center;
+    }
+    .disclaimer strong { display: block; font-size: 1rem; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="header">
+      <h1>How to Submit Exhibits to MNDES</h1>
+      <p>Minnesota Digital Exhibit System — Required for all MN district court cases</p>
+      <span class="badge">Order ADM09-8010 &nbsp;|&nbsp; Effective January 1, 2025</span>
+    </div>
+
+    <!-- Critical warning -->
+    <div class="alert alert-danger">
+      <strong>Semptify is NOT the court.</strong>
+      Saving files in Semptify does not submit them to the court. You must complete your
+      submission at the MNDES portal: <strong>mndigitalexhibitsystem.courts.state.mn.us</strong>
+    </div>
+
+    <div class="alert alert-warning">
+      <strong>Court will NOT return your digital exhibits.</strong>
+      Keep your own copies of everything you upload to MNDES.
+    </div>
+
+    <!-- Steps -->
+    <div class="card">
+      <h2>Submission Steps</h2>
+      <ol class="step-list">
+        <li>
+          <span class="step-num">1</span>
+          <div class="step-content">
+            <strong>Check your files in Semptify</strong>
+            <p>Use the MNDES compliance checker to confirm each file is on the Acceptable File Types List before uploading to the court.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <div class="step-content">
+            <strong>Convert non-compliant files</strong>
+            <p>Convert proprietary formats to MP4, MP3, PDF, or JPG. If conversion is impossible, contact the presiding judge BEFORE the hearing to request an exception (Order §6).</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <div class="step-content">
+            <strong>Create or log in to MNDES</strong>
+            <p>Register at mndigitalexhibitsystem.courts.state.mn.us using your legal name and email. Works in Chrome, Edge, and Safari.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">4</span>
+          <div class="step-content">
+            <strong>Find your case</strong>
+            <p>Enter your MN case number (e.g., 19WS-CV-24-1234). Dashes are optional.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">5</span>
+          <div class="step-content">
+            <strong>Upload each exhibit individually</strong>
+            <p>Do NOT combine. Do NOT zip or compress. One file = one exhibit. Give each a descriptive name (e.g., "Photo of rear door — June 12").</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">6</span>
+          <div class="step-content">
+            <strong>Set exhibit visibility</strong>
+            <p>Upload as "public" unless it's a medical record in a Civil Commitment case or a court order restricts access. Pre-hearing exhibits are automatically non-public.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">7</span>
+          <div class="step-content">
+            <strong>Share with the opposing party (if required)</strong>
+            <p>Use MNDES Share. <strong>If a no-contact order (OFP/HRO/DANCO) is active</strong>, do NOT use MNDES sharing — contact court administration for instructions first.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">8</span>
+          <div class="step-content">
+            <strong>Record your MNDES tracking numbers in Semptify</strong>
+            <p>Each uploaded file gets a unique tracking number. Enter it back into Semptify to complete your audit trail.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">9</span>
+          <div class="step-content">
+            <strong>At the hearing: OFFER each exhibit to the judge</strong>
+            <p>Uploading does NOT automatically make a file evidence. You must ask the judge to admit each exhibit during the hearing.</p>
+          </div>
+        </li>
+        <li>
+          <span class="step-num">10</span>
+          <div class="step-content">
+            <strong>Keep your own copies</strong>
+            <p>The court will not return digital exhibits. Retain originals on your device or cloud storage.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <!-- Accepted file types -->
+    <div class="card">
+      <h2>Accepted File Types</h2>
+      <p style="font-size:0.88rem;color:var(--color-muted);margin-bottom:10px;">
+        Source: MNDES Acceptable File Formats — mncourts.gov/mndes (updated Jan 2025)
+      </p>
+
+      <p style="font-size:0.85rem;font-weight:600;margin-bottom:6px;">Documents</p>
+      <div class="file-grid">
+        <span class="file-tag">PDF</span>
+        <span class="file-tag">DOC</span>
+        <span class="file-tag">DOCX</span>
+        <span class="file-tag">RTF</span>
+        <span class="file-tag">TXT</span>
+        <span class="file-tag">XLS</span>
+        <span class="file-tag">XLSX</span>
+        <span class="file-tag">PPT</span>
+        <span class="file-tag">PPTX</span>
+      </div>
+
+      <p style="font-size:0.85rem;font-weight:600;margin-top:14px;margin-bottom:6px;">Images</p>
+      <div class="file-grid">
+        <span class="file-tag image">JPG/JPEG</span>
+        <span class="file-tag image">PNG</span>
+        <span class="file-tag image">GIF</span>
+        <span class="file-tag image">TIFF/TIF</span>
+        <span class="file-tag image">BMP</span>
+      </div>
+
+      <p style="font-size:0.85rem;font-weight:600;margin-top:14px;margin-bottom:6px;">Audio <span style="font-weight:400;color:var(--color-muted)">(jury-room eligible)</span></p>
+      <div class="file-grid">
+        <span class="file-tag audio">MP3</span>
+        <span class="file-tag audio">WAV</span>
+        <span class="file-tag audio">M4A</span>
+        <span class="file-tag audio">WMA</span>
+        <span class="file-tag audio">AAC</span>
+        <span class="file-tag audio">AIFF</span>
+        <span class="file-tag audio">FLAC</span>
+      </div>
+
+      <p style="font-size:0.85rem;font-weight:600;margin-top:14px;margin-bottom:6px;">Video <span style="font-weight:400;color:var(--color-muted)">(jury-room eligible)</span></p>
+      <div class="file-grid">
+        <span class="file-tag video">MP4</span>
+        <span class="file-tag video">MOV</span>
+        <span class="file-tag video">AVI</span>
+        <span class="file-tag video">WMV</span>
+        <span class="file-tag video">MKV</span>
+        <span class="file-tag video">FLV</span>
+        <span class="file-tag video">MPEG</span>
+        <span class="file-tag video">MPG</span>
+        <span class="file-tag video">M4V</span>
+      </div>
+    </div>
+
+    <!-- Hard limits -->
+    <div class="card">
+      <h2>What Cannot Go Into MNDES</h2>
+      <ul class="limit-list">
+        <li>Zipped or compressed archives (.zip, .rar, .7z, .tar, etc.)</li>
+        <li>Sexual content, nudity, or internet links to such content — submit as physical exhibit</li>
+        <li>Discovery documents (Alford Packets) — unless judge specifically orders it</li>
+        <li>Motion or affidavit attachments — use the eFile &amp; eServe (eFS) system instead</li>
+        <li>Sealed case exhibits — call court admin at 651-377-7180 to upload on your behalf</li>
+        <li>In-camera review exhibits — deliver directly to judge's chambers</li>
+        <li>Certified copies authenticating originals — must be physical exhibits</li>
+        <li>Executable files, scripts, or any file type not on the Acceptable File Types List</li>
+        <li>Files larger than 100 GB — submit as physical exhibit</li>
+      </ul>
+    </div>
+
+    <!-- Support -->
+    <div class="card">
+      <h2>Need Help With MNDES?</h2>
+      <div class="support-box">
+        <h3>MNDES External Application Support Team (EAST)</h3>
+        <p><strong>Metro area:</strong> 651-413-8160</p>
+        <p><strong>All other callers:</strong> 1-833-707-2791</p>
+        <p><strong>Hours:</strong> Monday–Friday, 8:30am–4:15pm CT (excluding court holidays)</p>
+        <p style="margin-top:8px;"><a href="https://www.mncourts.gov/MNDES/Contact.aspx" target="_blank" rel="noopener">Submit a support request online →</a></p>
+      </div>
+    </div>
+
+    <a class="portal-btn" href="https://mndigitalexhibitsystem.courts.state.mn.us" target="_blank" rel="noopener">
+      Open MNDES Portal to Submit Exhibits →
+    </a>
+
+    <div class="disclaimer">
+      <strong>Semptify is a document organization tool, not a court filing system.</strong>
+      Uploading to Semptify does not submit exhibits to any court.
+      You must complete submission directly at the MNDES portal.
+      Semptify is not a law firm and does not provide legal advice.
+    </div>
+
+  </div>
+
+  <script>
+    // Fetch live compliance data from Semptify API to update file type list if available
+    fetch('/api/mndes/acceptable-file-types')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data && data.file_types_version) {
+          const badge = document.querySelector('.badge');
+          if (badge) {
+            badge.textContent += `  |  File Types v${data.file_types_version}`;
+          }
+        }
+      })
+      .catch(() => {}); // Silent fail — page is fully functional without JS
+  </script>
+</body>
+</html>
