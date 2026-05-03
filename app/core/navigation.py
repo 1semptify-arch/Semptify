@@ -101,6 +101,38 @@ class NavigationRegistry:
         ),
     })
     
+    # --- Court Integration Paths (SSOT) ---
+    COURT_FLOW: Dict[str, FlowStage] = field(default_factory=lambda: {
+        "mndes_guide": FlowStage(
+            id="mndes_guide",
+            name="MNDES Submission Guide",
+            path="/mndes/guide",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "mndes_validate": FlowStage(
+            id="mndes_validate",
+            name="MNDES File Compliance Check",
+            path="/api/mndes/validate",
+            next_stage="mndes_package",
+            requires_checkpoint=True
+        ),
+        "mndes_package": FlowStage(
+            id="mndes_package",
+            name="MNDES Exhibit Package",
+            path="/api/mndes/package",
+            next_stage=None,
+            requires_checkpoint=True
+        ),
+        "mndes_compliance_guide": FlowStage(
+            id="mndes_compliance_guide",
+            name="MNDES Compliance Guide (All Roles)",
+            path="/mndes/compliance-guide",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+    })
+
     # --- Main Navigation (SSOT) ---
     MAIN_NAV: List[NavItem] = field(default_factory=lambda: [
         NavItem(name="Home", path="/home", icon="🏠", order=0, requires="auth"),
@@ -123,8 +155,8 @@ class NavigationRegistry:
     
     @classmethod
     def get_stage(cls, stage_id: str) -> Optional[FlowStage]:
-        """Get flow stage by ID — all routing logic uses this."""
-        return cls.ONBOARDING_FLOW.get(stage_id)
+        """Get flow stage by ID — searches all registries (onboarding + court)."""
+        return cls.ONBOARDING_FLOW.get(stage_id) or cls.COURT_FLOW.get(stage_id)
     
     @classmethod
     def get_next_path(cls, current_stage_id: str) -> str:

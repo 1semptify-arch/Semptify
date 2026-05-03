@@ -1,0 +1,591 @@
+{# Page Recipe Visualization Template #}
+{# Usage: Render a PageRecipe as an interactive visualization #}
+{# 
+   Context expected:
+   - recipe: PageRecipe instance (as dict from to_dict())
+   - title: Page title
+#}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe: {{ recipe.page_title }}</title>
+    <style>
+        :root {
+            --color-intent-collect: #4f46e5;
+            --color-intent-present: #059669;
+            --color-intent-process: #d97706;
+            --color-intent-navigate: #7c3aed;
+            --color-intent-communicate: #db2777;
+            --color-intent-configure: #0891b2;
+            --color-intent-verify: #dc2626;
+            --color-intent-output: #7c2d12;
+            --color-complete: #10b981;
+            --color-pending: #f59e0b;
+            --color-missing: #ef4444;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border: #475569;
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        
+        .recipe-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Header */
+        .recipe-header {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--color-intent-{{ recipe.intent }});
+        }
+        
+        .recipe-id {
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .recipe-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .intent-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: var(--color-intent-{{ recipe.intent }});
+            color: white;
+            margin-bottom: 1.5rem;
+        }
+        
+        .purpose-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        .purpose-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .purpose-text {
+            font-size: 1.125rem;
+            color: var(--text-primary);
+            font-style: italic;
+        }
+        
+        .user-intent {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border-left: 3px solid #f59e0b;
+        }
+        
+        .user-intent-label {
+            font-size: 0.75rem;
+            color: #f59e0b;
+            margin-bottom: 0.25rem;
+        }
+        
+        .user-intent-text {
+            font-size: 1rem;
+        }
+        
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+        }
+        
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .status-indicator.complete { background: var(--color-complete); }
+        .status-indicator.pending { background: var(--color-pending); }
+        .status-indicator.missing { background: var(--color-missing); }
+        
+        /* Grid Layout */
+        .recipe-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .recipe-grid { grid-template-columns: 1fr; }
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Components */
+        .component-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .component-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border-left: 3px solid var(--border);
+        }
+        
+        .component-item.required { border-left-color: var(--color-intent-collect); }
+        .component-item.optional { border-left-color: var(--text-secondary); opacity: 0.8; }
+        .component-item.implemented { border-left-color: var(--color-complete); }
+        .component-item.missing { border-left-color: var(--color-missing); }
+        
+        .component-status {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .component-status.implemented { background: rgba(16, 185, 129, 0.2); color: var(--color-complete); }
+        .component-status.pending { background: rgba(245, 158, 11, 0.2); color: var(--color-pending); }
+        .component-status.missing { background: rgba(239, 68, 68, 0.2); color: var(--color-missing); }
+        
+        .component-info { flex: 1; }
+        
+        .component-name {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .component-type {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+        
+        .component-desc {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        
+        .component-path {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+        
+        /* Steps Flow */
+        .steps-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        
+        .step-item {
+            display: flex;
+            gap: 1rem;
+            position: relative;
+        }
+        
+        .step-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 40px;
+            width: 2px;
+            height: calc(100% - 24px);
+            background: var(--border);
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+        }
+        
+        .step-item.system .step-number {
+            background: var(--color-intent-process);
+            border-color: var(--color-intent-process);
+            color: white;
+        }
+        
+        .step-item.user .step-number {
+            background: var(--color-intent-collect);
+            border-color: var(--color-intent-collect);
+            color: white;
+        }
+        
+        .step-content {
+            flex: 1;
+            padding-bottom: 1.5rem;
+        }
+        
+        .step-actor {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+        
+        .step-desc {
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .step-meta {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Data Flow */
+        .data-flow {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .data-section h4 {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .data-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .data-tag {
+            padding: 0.375rem 0.75rem;
+            background: var(--bg-card);
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-family: monospace;
+        }
+        
+        /* Errors */
+        .error-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .error-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 6px;
+            border-left: 3px solid var(--color-missing);
+        }
+        
+        .error-recovery {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-left: auto;
+        }
+        
+        /* Success Criteria */
+        .criteria-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .criteria-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 6px;
+            border-left: 3px solid var(--color-complete);
+        }
+        
+        .criteria-check {
+            color: var(--color-complete);
+            font-weight: 700;
+        }
+        
+        /* Completion */
+        .completion-section {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            text-align: center;
+        }
+        
+        .completion-arrow {
+            font-size: 2rem;
+            color: var(--color-complete);
+            margin: 1rem 0;
+        }
+        
+        .completion-route {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 1rem;
+        }
+        
+        /* Print */
+        @media print {
+            body { background: white; color: black; }
+            .recipe-header { border: 2px solid #333; }
+            .card { border: 1px solid #ccc; }
+        }
+    </style>
+</head>
+<body>
+    <div class="recipe-container">
+        <!-- Header -->
+        <header class="recipe-header">
+            <div class="recipe-id">{{ recipe.page_id }}</div>
+            <h1 class="recipe-title">{{ recipe.page_title }}</h1>
+            
+            <div class="intent-badge">
+                <span>{{ recipe.intent }}</span>
+            </div>
+            
+            <div class="purpose-section">
+                <div class="purpose-label">Purpose</div>
+                <div class="purpose-text">{{ recipe.purpose }}</div>
+                
+                <div class="user-intent">
+                    <div class="user-intent-label">User Intent</div>
+                    <div class="user-intent-text">"{{ recipe.user_intent }}"</div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-indicator {{ 'complete' if recipe.validation.complete else 'pending' }}"></div>
+                <span>{{ 'Complete' if recipe.validation.complete else 'In Progress' }}</span>
+            </div>
+            <div class="status-item">
+                <span>{{ recipe.validation.implemented_count }}/{{ recipe.validation.total_components }} Components</span>
+            </div>
+            <div class="status-item">
+                <span>{{ recipe.steps|length }} Steps</span>
+            </div>
+            <div class="status-item">
+                <span>{{ recipe.error_handling.error_states|length }} Error States</span>
+            </div>
+        </div>
+        
+        <!-- Grid -->
+        <div class="recipe-grid">
+            <!-- Left Column: Components -->
+            <div class="recipe-left">
+                <div class="card">
+                    <h2 class="card-title">
+                        🔧 Required Components
+                    </h2>
+                    <div class="component-list">
+                        {% for component in recipe.components %}
+                        <div class="component-item 
+                            {{ 'required' if component.required else 'optional' }} 
+                            {{ 'implemented' if component.implemented else 'missing' }}">
+                            <div class="component-status {{ 'implemented' if component.implemented else 'missing' }}">
+                                {{ 'Done' if component.implemented else 'Needed' }}
+                            </div>
+                            <div class="component-info">
+                                <div class="component-name">{{ component.name }}</div>
+                                <div class="component-type">{{ component.type }}</div>
+                                <div class="component-desc">{{ component.description }}</div>
+                                {% if component.file_path %}
+                                <div class="component-path">{{ component.file_path }}</div>
+                                {% endif %}
+                                {% if component.depends_on %}
+                                <div class="component-path">Depends: {{ component.depends_on|join(', ') }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-top: 1.5rem;">
+                    <h2 class="card-title">
+                        📊 Data Flow
+                    </h2>
+                    <div class="data-flow">
+                        <div class="data-section">
+                            <h4>Inputs</h4>
+                            <div class="data-tags">
+                                {% for input in recipe.data_flow.inputs %}
+                                <span class="data-tag">{{ input }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="data-section">
+                            <h4>Outputs</h4>
+                            <div class="data-tags">
+                                {% for output in recipe.data_flow.outputs %}
+                                <span class="data-tag">{{ output }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column: Steps & Success -->
+            <div class="recipe-right">
+                <div class="card">
+                    <h2 class="card-title">
+                        🎯 Success Criteria
+                    </h2>
+                    <div class="criteria-list">
+                        {% for criteria in recipe.success_criteria %}
+                        <div class="criteria-item">
+                            <span class="criteria-check">✓</span>
+                            <span>{{ criteria }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-top: 1.5rem;">
+                    <h2 class="card-title">
+                        📝 Execution Steps
+                    </h2>
+                    <div class="steps-container">
+                        {% for step in recipe.steps %}
+                        <div class="step-item {{ step.actor }}">
+                            <div class="step-number">{{ step.order }}</div>
+                            <div class="step-content">
+                                <div class="step-actor">{{ step.actor }}</div>
+                                <div class="step-desc">{{ step.description }}</div>
+                                {% if step.requires %}
+                                <div class="step-meta">
+                                    Requires: {{ step.requires|join(', ') }}
+                                </div>
+                                {% endif %}
+                                {% if step.outputs %}
+                                <div class="step-meta">
+                                    Produces: {{ step.outputs|join(', ') }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="card" style="margin-top: 1.5rem;">
+                    <h2 class="card-title">
+                        ⚠️ Error Handling
+                    </h2>
+                    <div class="error-list">
+                        {% for error in recipe.error_handling.error_states %}
+                        <div class="error-item">
+                            <span>❌</span>
+                            <span>{{ error }}</span>
+                            {% if recipe.error_handling.recovery_paths.get(error) %}
+                            <span class="error-recovery">
+                                → {{ recipe.error_handling.recovery_paths[error] }}
+                            </span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Completion -->
+        {% if recipe.completion_redirect %}
+        <div class="completion-section">
+            <h3>Completion Path</h3>
+            <div class="completion-arrow">↓</div>
+            <div class="completion-route">{{ recipe.completion_redirect }}</div>
+            {% if recipe.completion_actions %}
+            <div style="margin-top: 1rem; color: var(--text-secondary);">
+                Actions: {{ recipe.completion_actions|join(', ') }}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
