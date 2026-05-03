@@ -148,6 +148,12 @@ zoom_court_prep_router   = None
 DAKOTA_AVAILABLE = False
 
 # =============================================================================
+# SEMPTIFY CORE — MNDES (MN Court Exhibit System) — ALWAYS ENABLED
+# Required for MN Supreme Court Order ADM09-8010 compliance (eff. Jan 1, 2025)
+# =============================================================================
+mndes_router = _safe_router_import("app.routers.mndes")
+
+# =============================================================================
 # SEMPTIFY EXTENDED — LEGAL/COURT ADD-ON (disabled)
 # Heavy legal filing features - enable for Extended build
 # =============================================================================
@@ -1945,6 +1951,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(recognition_router, tags=["Document Recognition"])  # World-class document recognition engine
     if search_router:
         fastapi_app.include_router(search_router, prefix="/api/search", tags=["Global Search"])  # Universal search across all content
+    if mndes_router:
+        fastapi_app.include_router(mndes_router, tags=["MNDES — Court Exhibit System"])  # MN Digital Exhibit System (Order ADM09-8010)
     if court_forms_router:
         fastapi_app.include_router(court_forms_router, tags=["Court Forms"])  # Auto-generate Minnesota court forms
     if zoom_court_prep_router:

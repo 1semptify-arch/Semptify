@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MNDES Compliance Guide — Semptify</title>
+  <style>
+    :root {
+      --hdr1: #1e3a5f;
+      --hdr2: #1d4ed8;
+      --accent: #1d4ed8;
+      --accent2: #3b82f6;
+      --light: #eff6ff;
+      --warn: #b45309;
+      --warn-bg: #fffbeb;
+      --danger: #b91c1c;
+      --danger-bg: #fef2f2;
+      --success: #15803d;
+      --success-bg: #f0fdf4;
+      --border: #e5e7eb;
+      --text: #111827;
+      --muted: #6b7280;
+      --radius: 10px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f1f5f9; color: var(--text); line-height: 1.6; }
+
+    /* ── Header ── */
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
+    .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 60px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.2rem; text-decoration: none; color: #fff; white-space: nowrap; }
+    .logo span { opacity: 0.7; font-weight: 400; font-size: 0.85rem; margin-left: 0.5rem; }
+    nav.header-nav { display: flex; gap: 0.25rem; margin-left: auto; }
+    nav.header-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.88rem; }
+    nav.header-nav a:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .back-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 0.35rem 1rem; border-radius: 8px; font-size: 0.85rem; text-decoration: none; cursor: pointer; }
+    .back-btn:hover { background: rgba(255,255,255,0.25); }
+
+    /* ── Order badge bar ── */
+    .order-bar { background: var(--hdr2); color: rgba(255,255,255,0.9); text-align: center; font-size: 0.8rem; padding: 6px; letter-spacing: 0.03em; }
+    .order-bar strong { color: #fff; }
+
+    /* ── Layout ── */
+    .page { max-width: 1100px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 240px 1fr; gap: 1.5rem; align-items: start; }
+    @media (max-width: 768px) { .page { grid-template-columns: 1fr; } .sidebar { display: none; } }
+
+    /* ── Sidebar ── */
+    .sidebar { position: sticky; top: 80px; }
+    .sidebar-card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+    .sidebar-card h3 { font-size: 0.8rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.75rem; }
+    .toc-link { display: block; padding: 0.35rem 0.5rem; font-size: 0.85rem; color: var(--muted); text-decoration: none; border-radius: 5px; border-left: 3px solid transparent; }
+    .toc-link:hover { background: var(--light); color: var(--accent); border-color: var(--accent); }
+    .toc-link.role { font-weight: 600; color: var(--text); }
+    .toc-divider { height: 1px; background: var(--border); margin: 0.5rem 0; }
+
+    /* ── Role tabs ── */
+    .role-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .role-tab { padding: 0.45rem 1.1rem; border-radius: 20px; border: 2px solid var(--border); background: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--muted); transition: all 0.15s; }
+    .role-tab:hover { border-color: var(--accent2); color: var(--accent); }
+    .role-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    /* ── Main content cards ── */
+    .card { background: #fff; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .card h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--light); display: flex; align-items: center; gap: 0.5rem; }
+    .card h3 { font-size: 0.95rem; font-weight: 700; margin: 1rem 0 0.5rem; color: var(--hdr1); }
+
+    /* ── Role section headers ── */
+    .role-section { display: none; }
+    .role-section.visible { display: block; }
+    .role-header { border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; }
+    .role-header h2 { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.3rem; }
+    .role-header p { opacity: 0.9; font-size: 0.92rem; }
+    .role-tenant .role-header { background: linear-gradient(135deg, #4c1d95, #7c3aed); color: #fff; }
+    .role-advocate .role-header { background: linear-gradient(135deg, #065f46, #059669); color: #fff; }
+    .role-legal .role-header { background: linear-gradient(135deg, #1e3a5f, #1d4ed8); color: #fff; }
+    .role-manager .role-header { background: linear-gradient(135deg, #92400e, #d97706); color: #fff; }
+    .role-admin .role-header { background: linear-gradient(135deg, #1f2937, #374151); color: #fff; }
+
+    /* ── Alerts ── */
+    .alert { border-radius: 8px; padding: 12px 16px; margin-bottom: 1rem; border-left: 4px solid transparent; font-size: 0.9rem; }
+    .alert-danger { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+    .alert-warning { background: var(--warn-bg); border-color: var(--warn); color: var(--warn); }
+    .alert-info { background: var(--light); border-color: var(--accent); color: var(--hdr1); }
+    .alert-success { background: var(--success-bg); border-color: var(--success); color: var(--success); }
+    .alert strong { display: block; font-weight: 700; margin-bottom: 3px; }
+
+    /* ── Requirement lists ── */
+    .req-list { list-style: none; }
+    .req-list li { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: 0.9rem; }
+    .req-list li:last-child { border-bottom: none; }
+    .req-icon { flex-shrink: 0; font-size: 1rem; margin-top: 1px; }
+
+    /* ── File type grid ── */
+    .ft-group { margin-bottom: 1rem; }
+    .ft-label { font-size: 0.8rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .ft-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 700; border: 1px solid; }
+    .chip-doc  { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+    .chip-img  { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+    .chip-aud  { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+    .chip-vid  { background: #fdf4ff; color: #7e22ce; border-color: #e9d5ff; }
+    .chip-no   { background: #fef2f2; color: #b91c1c; border-color: #fecaca; text-decoration: line-through; }
+
+    /* ── Checklist ── */
+    .checklist { list-style: none; }
+    .checklist li { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid #f3f4f6; font-size: 0.9rem; }
+    .checklist li:last-child { border-bottom: none; }
+    .check-box { flex-shrink: 0; width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 4px; cursor: pointer; background: #fff; margin-top: 1px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; }
+    .check-box.checked { background: var(--success); border-color: var(--success); color: #fff; }
+    .check-text { flex: 1; }
+    .check-text strong { display: block; font-weight: 600; }
+    .check-text span { font-size: 0.82rem; color: var(--muted); }
+
+    /* ── Step flow ── */
+    .steps { list-style: none; counter-reset: step; }
+    .steps li { display: flex; gap: 14px; padding: 10px 0; border-bottom: 1px solid #f3f4f6; counter-increment: step; }
+    .steps li:last-child { border-bottom: none; }
+    .step-num { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 0.78rem; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+    .step-body strong { display: block; font-weight: 700; font-size: 0.92rem; margin-bottom: 2px; }
+    .step-body p { font-size: 0.87rem; color: var(--muted); }
+
+    /* ── Tables ── */
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th { text-align: left; padding: 8px 12px; background: #f8fafc; font-weight: 700; color: var(--muted); font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid var(--border); }
+    td { padding: 8px 12px; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem; font-weight: 700; }
+    .badge-yes { background: #dcfce7; color: #15803d; }
+    .badge-no  { background: #fee2e2; color: #b91c1c; }
+    .badge-cond{ background: #fef9c3; color: #854d0e; }
+
+    /* ── Actions bar ── */
+    .actions-bar { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 0.5rem 1.1rem; border-radius: 8px; font-size: 0.88rem; font-weight: 700; text-decoration: none; cursor: pointer; border: none; transition: all 0.15s; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #1e40af; }
+    .btn-secondary { background: #fff; color: var(--accent); border: 2px solid var(--accent); }
+    .btn-secondary:hover { background: var(--light); }
+
+    /* ── Print ── */
+    @media print {
+      .sidebar, .role-tabs, .back-btn, .actions-bar, header { display: none !important; }
+      .page { grid-template-columns: 1fr; padding: 0; }
+      .role-section { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a class="logo" href="/">Semptify <span>Court Tools</span></a>
+    <nav class="header-nav">
+      <a href="/mndes/guide">Submission Guide</a>
+      <a href="/api/mndes/acceptable-file-types" target="_blank">File Types API</a>
+    </nav>
+    <a class="back-btn" onclick="history.back()">← Back</a>
+  </div>
+</header>
+
+<div class="order-bar">
+  <strong>Minnesota Supreme Court Order ADM09-8010</strong> &nbsp;|&nbsp; Effective January 1, 2025 &nbsp;|&nbsp; MNDES mandatory in all MN district courts
+</div>
+
+<div class="page">
+
+  <!-- ── Sidebar ToC ── -->
+  <aside class="sidebar">
+    <div class="sidebar-card">
+      <h3>Contents</h3>
+      <a class="toc-link" href="#overview">What is MNDES?</a>
+      <a class="toc-link" href="#file-types">File Types</a>
+      <a class="toc-link" href="#prohibited">Prohibited Items</a>
+      <a class="toc-link" href="#lifecycle">Exhibit Lifecycle</a>
+      <div class="toc-divider"></div>
+      <div style="font-size:0.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:0.3rem 0.5rem;">By Role</div>
+      <a class="toc-link role" href="#" onclick="switchRole('tenant');return false;">Tenant / Self-Rep</a>
+      <a class="toc-link role" href="#" onclick="switchRole('advocate');return false;">Advocate</a>
+      <a class="toc-link role" href="#" onclick="switchRole('legal');return false;">Legal / Attorney</a>
+      <a class="toc-link role" href="#" onclick="switchRole('manager');return false;">Case Manager</a>
+      <a class="toc-link role" href="#" onclick="switchRole('admin');return false;">Admin / Judge Staff</a>
+      <div class="toc-divider"></div>
+      <a class="toc-link" href="#checklist">Pre-Submission Checklist</a>
+      <a class="toc-link" href="#support">Support &amp; Contacts</a>
+      <div style="margin-top:1rem;">
+        <a href="https://mndigitalexhibitsystem.courts.state.mn.us" target="_blank" rel="noopener" style="display:block;background:var(--accent);color:#fff;text-align:center;padding:0.5rem;border-radius:8px;font-size:0.85rem;font-weight:700;text-decoration:none;">Open MNDES Portal →</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ── Main Content ── -->
+  <main>
+
+    <!-- Critical warnings -->
+    <div class="alert alert-danger">
+      <strong>Semptify does NOT submit to the court.</strong>
+      Organizing files here does not file or submit them. You must complete every exhibit upload at <strong>mndigitalexhibitsystem.courts.state.mn.us</strong>
+    </div>
+    <div class="alert alert-warning">
+      <strong>The court will not return your digital exhibits.</strong>
+      Retain your own copies of every file you upload to MNDES.
+    </div>
+
+    <!-- ── Overview ── -->
+    <div id="overview" class="card">
+      <h2>What is MNDES?</h2>
+      <p style="font-size:0.92rem;margin-bottom:0.75rem;">The <strong>Minnesota Digital Exhibit System (MNDES)</strong> is the mandatory web-based platform for submitting, managing, and accessing digital exhibits in all Minnesota district courts, effective January 1, 2025 under Supreme Court Order ADM09-8010.</p>
+      <ul class="req-list">
+        <li><span class="req-icon">⚖️</span><div><strong>Mandatory statewide.</strong> All digital exhibits must be submitted via MNDES unless the presiding judge permits an exception for good cause.</div></li>
+        <li><span class="req-icon">🔒</span><div><strong>Pre-hearing exhibits are NOT public records</strong> until offered in a public proceeding (Order §9). Upload does not automatically make a file evidence.</div></li>
+        <li><span class="req-icon">🎧</span><div><strong>Audio &amp; video admitted exhibits</strong> must be permitted in the jury room in criminal cases; civil cases are at the judge's discretion (Order §2/§3).</div></li>
+        <li><span class="req-icon">📋</span><div><strong>File types are strictly controlled.</strong> Only the Acceptable File Types List is permitted. The State Court Administrator maintains and publishes the current list (Order §5).</div></li>
+        <li><span class="req-icon">🚫</span><div><strong>No zipped/combined files.</strong> Each exhibit must be uploaded as a separate file. No archives.</div></li>
+        <li><span class="req-icon">🗑️</span><div><strong>Courts can delete exhibits</strong> per records retention schedules without notifying the submitting party (Order §7). Keep your own copies.</div></li>
+      </ul>
+    </div>
+
+    <!-- ── File Types ── -->
+    <div id="file-types" class="card">
+      <h2>MNDES Acceptable File Types</h2>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;">Source: MNDES Acceptable File Formats — mncourts.gov/mndes (v2025-01). Semptify's compliance checker enforces this list.</p>
+      <div class="ft-group">
+        <div class="ft-label">Documents</div>
+        <div class="ft-chips">
+          <span class="chip chip-doc">PDF</span><span class="chip chip-doc">DOC</span><span class="chip chip-doc">DOCX</span><span class="chip chip-doc">RTF</span><span class="chip chip-doc">TXT</span><span class="chip chip-doc">XLS</span><span class="chip chip-doc">XLSX</span><span class="chip chip-doc">PPT</span><span class="chip chip-doc">PPTX</span>
+        </div>
+      </div>
+      <div class="ft-group">
+        <div class="ft-label">Images</div>
+        <div class="ft-chips">
+          <span class="chip chip-img">JPG/JPEG</span><span class="chip chip-img">PNG</span><span class="chip chip-img">GIF</span><span class="chip chip-img">TIFF/TIF</span><span class="chip chip-img">BMP</span>
+        </div>
+      </div>
+      <div class="ft-group">
+        <div class="ft-label">Audio — jury-room eligible if admitted</div>
+        <div class="ft-chips">
+          <span class="chip chip-aud">MP3</span><span class="chip chip-aud">WAV</span><span class="chip chip-aud">M4A</span><span class="chip chip-aud">WMA</span><span class="chip chip-aud">AAC</span><span class="chip chip-aud">AIFF</span><span class="chip chip-aud">FLAC</span>
+        </div>
+      </div>
+      <div class="ft-group">
+        <div class="ft-label">Video — jury-room eligible if admitted</div>
+        <div class="ft-chips">
+          <span class="chip chip-vid">MP4</span><span class="chip chip-vid">MOV</span><span class="chip chip-vid">AVI</span><span class="chip chip-vid">WMV</span><span class="chip chip-vid">MKV</span><span class="chip chip-vid">FLV</span><span class="chip chip-vid">MPEG</span><span class="chip chip-vid">MPG</span><span class="chip chip-vid">M4V</span>
+        </div>
+      </div>
+      <div class="alert alert-info" style="margin-top:0.75rem;margin-bottom:0;">
+        <strong>Proprietary formats (MTS, MXF, VOB, R3D, etc.)</strong> require conversion to an accepted format, or a judge exception before the hearing (Order §6). Semptify flags these automatically.
+      </div>
+    </div>
+
+    <!-- ── Prohibited ── -->
+    <div id="prohibited" class="card">
+      <h2>What Cannot Go Into MNDES</h2>
+      <table>
+        <thead>
+          <tr><th>Item</th><th>Rule</th><th>Alternative</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>Zipped/compressed files</strong> (.zip .rar .7z .tar)</td><td>Order §5 — no archives</td><td>Upload files individually in original format</td></tr>
+          <tr><td><strong>Sexual content / nudity</strong></td><td>Order §10 — hard prohibition</td><td>Physical exhibit via court clerk</td></tr>
+          <tr><td><strong>Discovery documents</strong> (Alford Packets etc.)</td><td>Not exhibit evidence</td><td>Exchange through proper discovery channels</td></tr>
+          <tr><td><strong>Motion/affidavit attachments</strong></td><td>Those belong in eFS</td><td>eFile &amp; eServe system</td></tr>
+          <tr><td><strong>Sealed case exhibits</strong></td><td>Requires court staff upload</td><td>Call court admin: 651-377-7180</td></tr>
+          <tr><td><strong>In-camera review exhibits</strong></td><td>Judge's chambers only</td><td>Deliver directly to court clerk</td></tr>
+          <tr><td><strong>Certified copies authenticating originals</strong></td><td>Must remain physical</td><td>Physical exhibit</td></tr>
+          <tr><td><strong>Executable/script files</strong> (.exe .bat .py .js etc.)</td><td>Cybersecurity threat — Order §5</td><td>Convert content to PDF</td></tr>
+          <tr><td><strong>Files &gt; 100 GB</strong></td><td>Dakota County size limit</td><td>Compress/trim or bring as physical exhibit</td></tr>
+          <tr><td><strong>Hyperlinks to sexual content</strong></td><td>Order §10</td><td>Physical exhibit</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Exhibit Lifecycle ── -->
+    <div id="lifecycle" class="card">
+      <h2>Exhibit Lifecycle &amp; Public Access Rules</h2>
+      <table>
+        <thead>
+          <tr><th>Status</th><th>Publicly Accessible?</th><th>Case Record?</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="badge badge-cond">Pre-Hearing</span></td><td><span class="badge badge-no">No</span></td><td><span class="badge badge-no">No</span></td><td>Uploaded but not yet offered to the court</td></tr>
+          <tr><td><span class="badge badge-cond">Offered</span></td><td><span class="badge badge-cond">Conditional</span></td><td><span class="badge badge-yes">Yes</span></td><td>Party asked judge to admit — becomes a case record</td></tr>
+          <tr><td><span class="badge badge-yes">Admitted</span></td><td><span class="badge badge-yes">Yes</span></td><td><span class="badge badge-yes">Yes</span></td><td>Judge admitted as evidence; publicly accessible unless restricted</td></tr>
+          <tr><td><span class="badge badge-no">Rejected</span></td><td><span class="badge badge-no">No</span></td><td><span class="badge badge-yes">Yes</span></td><td>Judge declined to admit</td></tr>
+          <tr><td><span class="badge badge-no">Withdrawn</span></td><td><span class="badge badge-no">No</span></td><td><span class="badge badge-yes">Yes</span></td><td>Party withdrew before ruling</td></tr>
+        </tbody>
+      </table>
+      <div class="alert alert-info" style="margin-top:1rem;margin-bottom:0;">
+        Courts may provide public access to admitted exhibits via hyperlink if the presiding judge approves (Order §8). Evidentiary exhibits are not remotely accessible without judge authorization.
+      </div>
+    </div>
+
+    <!-- ── ROLE TABS ── -->
+    <div style="margin: 1.5rem 0 0.5rem;">
+      <h2 style="font-size:1rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Your Role-Specific Requirements</h2>
+    </div>
+    <div class="role-tabs" id="roleTabs">
+      <button class="role-tab active" onclick="switchRole('tenant')">Tenant / Self-Rep</button>
+      <button class="role-tab" onclick="switchRole('advocate')">Advocate</button>
+      <button class="role-tab" onclick="switchRole('legal')">Legal / Attorney</button>
+      <button class="role-tab" onclick="switchRole('manager')">Case Manager</button>
+      <button class="role-tab" onclick="switchRole('admin')">Admin / Judge Staff</button>
+    </div>
+
+    <!-- ── TENANT ── -->
+    <div id="role-tenant" class="role-section role-tenant visible">
+      <div class="role-header">
+        <h2>Tenant / Self-Represented Party</h2>
+        <p>You are presenting your own case. This guide walks you through what you need to do step by step.</p>
+      </div>
+      <div class="card">
+        <h2>What You Must Do</h2>
+        <ul class="steps">
+          <li><span class="step-num">1</span><div class="step-body"><strong>Check your files before the hearing</strong><p>Use Semptify's MNDES compliance checker. Every file must be on the Acceptable File Types List. The checker flags problems automatically.</p></div></li>
+          <li><span class="step-num">2</span><div class="step-body"><strong>Convert any flagged files</strong><p>Use free tools: VLC or HandBrake for video, Audacity for audio, print-to-PDF for documents. If you can't convert, ask the judge for an exception at least a few days before the hearing.</p></div></li>
+          <li><span class="step-num">3</span><div class="step-body"><strong>Create an MNDES account</strong><p>Go to <a href="https://mndigitalexhibitsystem.courts.state.mn.us" target="_blank">mndigitalexhibitsystem.courts.state.mn.us</a>. Register with your legal name. Works in Chrome, Edge, Safari.</p></div></li>
+          <li><span class="step-num">4</span><div class="step-body"><strong>Upload each exhibit separately</strong><p>Find your case number. Click "New Submission." Upload ONE file at a time — do not zip or combine. Name it clearly (e.g., "Lease Agreement — March 2023").</p></div></li>
+          <li><span class="step-num">5</span><div class="step-body"><strong>Share with the other party (if required)</strong><p>Use MNDES Share. <strong>If you have a no-contact/protection order (OFP, HRO, DANCO): do NOT use MNDES sharing.</strong> Call court administration first.</p></div></li>
+          <li><span class="step-num">6</span><div class="step-body"><strong>Record your tracking numbers in Semptify</strong><p>MNDES assigns a tracking number to each uploaded file. Enter these back in Semptify to complete your audit trail.</p></div></li>
+          <li><span class="step-num">7</span><div class="step-body"><strong>At the hearing: say "I offer Exhibit 1"</strong><p>Uploading is not enough. You must verbally offer each exhibit to the judge during the hearing. The judge decides whether to admit it.</p></div></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Critical Reminders</h2>
+        <ul class="req-list">
+          <li><span class="req-icon">🚨</span><div>The court <strong>will not return</strong> your digital exhibits after the case closes. Keep your original files.</div></li>
+          <li><span class="req-icon">🚨</span><div>Uploading to Semptify <strong>does not submit</strong> to the court. You must go to MNDES and upload yourself.</div></li>
+          <li><span class="req-icon">⚠️</span><div>Do not upload discovery documents (Alford Packets) into MNDES unless a judge orders it.</div></li>
+          <li><span class="req-icon">⚠️</span><div>If your case is sealed or involves in-camera evidence, call the court at 651-377-7180 before uploading anything.</div></li>
+          <li><span class="req-icon">✅</span><div>You can upload exhibits as early as the day you receive your hearing notice — earlier is better.</div></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ── ADVOCATE ── -->
+    <div id="role-advocate" class="role-section role-advocate">
+      <div class="role-header">
+        <h2>Advocate</h2>
+        <p>You assist clients with document preparation and submission readiness. You do not file on their behalf but ensure their exhibits meet MNDES standards.</p>
+      </div>
+      <div class="card">
+        <h2>Your MNDES Responsibilities</h2>
+        <ul class="req-list">
+          <li><span class="req-icon">✅</span><div><strong>Run compliance checks</strong> on all client exhibit files using Semptify before any hearing. Flag and resolve non-compliant files early.</div></li>
+          <li><span class="req-icon">✅</span><div><strong>Guide conversion</strong> of proprietary formats. Help clients understand free tools (VLC, HandBrake, print-to-PDF).</div></li>
+          <li><span class="req-icon">✅</span><div><strong>Screen for prohibited content.</strong> Verify files do not contain sexual content or nudity before client uploads. Confirm it's not discovery material.</div></li>
+          <li><span class="req-icon">✅</span><div><strong>Flag no-contact order cases</strong> immediately. If OFP/HRO/DANCO is active, the client must NOT use MNDES Share. Direct them to court administration.</div></li>
+          <li><span class="req-icon">✅</span><div><strong>Educate on the distinction:</strong> uploading to MNDES ≠ offering into evidence. Client must verbally offer at the hearing.</div></li>
+          <li><span class="req-icon">✅</span><div><strong>Confirm client retains copies.</strong> Remind them the court does not return digital exhibits.</div></li>
+          <li><span class="req-icon">🚫</span><div><strong>Do not upload for clients</strong> unless they have formally authorized you and you are a registered MNDES user for that case.</div></li>
+          <li><span class="req-icon">🚫</span><div><strong>Motion/affidavit attachments</strong> are not MNDES exhibits — those go through eFile &amp; eServe (eFS).</div></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Multi-Client Compliance Workflow</h2>
+        <ul class="steps">
+          <li><span class="step-num">1</span><div class="step-body"><strong>Create a case package in Semptify</strong><p>Use the MNDES Package Builder for each client case. Semptify validates all files at once and produces a checklist.</p></div></li>
+          <li><span class="step-num">2</span><div class="step-body"><strong>Review the compliance summary</strong><p>Address all red flags (non-compliant types, proprietary formats, size issues) before the client's filing deadline.</p></div></li>
+          <li><span class="step-num">3</span><div class="step-body"><strong>Prepare the client</strong><p>Walk through the pre-submission checklist together. Confirm all attestations: no sexual content, not discovery, not a motion attachment.</p></div></li>
+          <li><span class="step-num">4</span><div class="step-body"><strong>Client uploads at MNDES portal</strong><p>The client must log in and upload independently. You can assist but the submission is under their name.</p></div></li>
+          <li><span class="step-num">5</span><div class="step-body"><strong>Record tracking numbers</strong><p>After upload, record the MNDES tracking numbers in Semptify for the audit trail.</p></div></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ── LEGAL / ATTORNEY ── -->
+    <div id="role-legal" class="role-section role-legal">
+      <div class="role-header">
+        <h2>Legal / Attorney</h2>
+        <p>You are counsel of record. You have full MNDES submission authority and evidentiary responsibility for every exhibit you offer.</p>
+      </div>
+      <div class="card">
+        <h2>Compliance Obligations (Order ADM09-8010)</h2>
+        <ul class="req-list">
+          <li><span class="req-icon">⚖️</span><div><strong>Mandatory MNDES use.</strong> All electronic exhibits for MN district court cases must be submitted via MNDES (Order §1). No exceptions without presiding judge approval.</div></li>
+          <li><span class="req-icon">⚖️</span><div><strong>Acceptable File Types only.</strong> Counsel is responsible for ensuring exhibits comply with the State Court Administrator's list (Order §5).</div></li>
+          <li><span class="req-icon">⚖️</span><div><strong>Proprietary format obligation.</strong> Make "reasonable efforts" to convert proprietary formats (Order §6). If conversion is impossible, obtain judge permission before the hearing and provide: the file, any proprietary player/codecs, and playback instructions.</div></li>
+          <li><span class="req-icon">⚖️</span><div><strong>Jury room implications.</strong> Admitted audio/video exhibits in criminal cases must be permitted in the jury room under Minn. R. Crim. P. 26.03, subd. 20 unless the trial judge excludes them (Order §2). Tag audio/video exhibits accordingly.</div></li>
+          <li><span class="req-icon">⚖️</span><div><strong>Public access.</strong> Admitted exhibits are case records. Pre-hearing exhibits are not publicly accessible (Order §9). Opposing counsel access may be provided by email/transmission with judge approval (Order §8).</div></li>
+          <li><span class="req-icon">⚖️</span><div><strong>Retention responsibility.</strong> Digital exhibits are presumed copies. Parties are presumed to retain them. The court may destroy MNDES exhibits per records schedules without notice (Order §7).</div></li>
+          <li><span class="req-icon">🚫</span><div><strong>Sexual content / nudity prohibited</strong> in MNDES absolutely (Order §10). Must be submitted as physical exhibits.</div></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Role-Specific Exhibit Workflow</h2>
+        <ul class="steps">
+          <li><span class="step-num">1</span><div class="step-body"><strong>Build exhibit list in Semptify</strong><p>Create an MNDES package. Tag each exhibit with its exhibit number per any scheduling order. Flag jury-room eligibility for A/V.</p></div></li>
+          <li><span class="step-num">2</span><div class="step-body"><strong>Validate file types</strong><p>Confirm all files pass the MNDES compliance check. Convert or seek exception for any non-conforming format.</p></div></li>
+          <li><span class="step-num">3</span><div class="step-body"><strong>Pre-file exchange (if required)</strong><p>Exchange exhibit list with opposing counsel per the court's scheduling order. Use MNDES Share unless a protection order applies.</p></div></li>
+          <li><span class="step-num">4</span><div class="step-body"><strong>Upload and confirm tracking numbers</strong><p>Log in to MNDES, upload each exhibit individually, record tracking numbers back in Semptify for the record.</p></div></li>
+          <li><span class="step-num">5</span><div class="step-body"><strong>At trial: offer and lay foundation</strong><p>Offer each exhibit. Lay proper evidentiary foundation. The judge's admission decision determines case record status.</p></div></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ── CASE MANAGER ── -->
+    <div id="role-manager" class="role-section role-manager">
+      <div class="role-header">
+        <h2>Case Manager</h2>
+        <p>You manage exhibit preparation and compliance across multiple client cases. You ensure no case goes to hearing with non-compliant files.</p>
+      </div>
+      <div class="card">
+        <h2>Management Responsibilities</h2>
+        <ul class="req-list">
+          <li><span class="req-icon">📋</span><div><strong>Triage all case files</strong> using MNDES compliance check before scheduling any hearing preparation session.</div></li>
+          <li><span class="req-icon">📋</span><div><strong>Track judge exception requests.</strong> If any case has a proprietary format that cannot be converted, log the exception request, the judge's response, and the outcome in Semptify.</div></li>
+          <li><span class="req-icon">📋</span><div><strong>Flag protection order cases immediately.</strong> Cases with OFP/HRO/DANCO require special handling for exhibit sharing. Never use MNDES Share without confirming there is no active protection order.</div></li>
+          <li><span class="req-icon">📋</span><div><strong>Verify discovery separation.</strong> Confirm no discovery material (Alford Packets, interrogatory responses) is routed into the MNDES exhibit pipeline. Those belong in separate channels.</div></li>
+          <li><span class="req-icon">📋</span><div><strong>Maintain audit trail.</strong> Record MNDES tracking numbers for each exhibit in Semptify as soon as uploads are confirmed.</div></li>
+          <li><span class="req-icon">📋</span><div><strong>Remind clients to retain originals.</strong> Courts delete digital exhibits on records schedules without notice. Clients must keep copies.</div></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Compliance Red Flags to Watch For</h2>
+        <table>
+          <thead><tr><th>Situation</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td>File extension not on accepted list</td><td>Convert or escalate for judge exception before hearing</td></tr>
+            <tr><td>Zip/archive file</td><td>Unzip and upload each file individually</td></tr>
+            <tr><td>MTS, VOB, MXF, R3D video format</td><td>Convert to MP4 or MOV using HandBrake/VLC</td></tr>
+            <tr><td>Case has OFP/HRO/DANCO flag</td><td>Contact court admin before any exhibit sharing step</td></tr>
+            <tr><td>Sealed case flag on client file</td><td>Court staff must upload — call 651-377-7180</td></tr>
+            <tr><td>File &gt; 100 GB</td><td>Trim/compress or bring as physical exhibit</td></tr>
+            <tr><td>File described as "Alford Packet" or discovery</td><td>Remove from MNDES pipeline; route to discovery channel</td></tr>
+            <tr><td>Motion or affidavit attachment</td><td>File through eFile &amp; eServe (eFS) system, not MNDES</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── ADMIN / JUDGE STAFF ── -->
+    <div id="role-admin" class="role-section role-admin">
+      <div class="role-header">
+        <h2>Admin / Court-Facing Staff</h2>
+        <p>This role includes Semptify administrators and court-adjacent staff supporting users. This section covers your responsibilities under Order ADM09-8010 and how Semptify enforces compliance on your side.</p>
+      </div>
+      <div class="card">
+        <h2>System-Level Compliance Points</h2>
+        <ul class="req-list">
+          <li><span class="req-icon">🔧</span><div><strong>File type enforcement is automatic.</strong> Semptify's <code>mndes_compliance.py</code> enforces the Acceptable File Types List at upload time. Blocked types return an error before the file is stored.</div></li>
+          <li><span class="req-icon">🔧</span><div><strong>Archive/zip blocking is active.</strong> ZIP, RAR, 7Z, TAR, GZ and related archives are added to the blocked extension list in <code>file_validator.py</code>.</div></li>
+          <li><span class="req-icon">🔧</span><div><strong>Audit trail.</strong> Every MNDES validation result, package creation, and attestation is logged via Semptify's audit logger. No MNDES action is silent.</div></li>
+          <li><span class="req-icon">🔧</span><div><strong>No-contact order gates.</strong> When a case is flagged with OFP/HRO/DANCO, Semptify surfaces the warning and blocks exhibit sharing steps until acknowledged.</div></li>
+          <li><span class="req-icon">🔧</span><div><strong>Sealed case block.</strong> Any package creation request for a sealed case returns a 422 with instructions to contact court administration at 651-377-7180.</div></li>
+          <li><span class="req-icon">🔧</span><div><strong>File types version.</strong> The current list version is <code>2025-01</code>. When the State Court Administrator updates the official list, update <code>MNDES_ACCEPTABLE_TYPES</code> in <code>app/core/mndes_compliance.py</code> and bump <code>MNDES_FILE_TYPES_VERSION</code>.</div></li>
+          <li><span class="req-icon">🔧</span><div><strong>No public API to MNDES.</strong> Semptify cannot submit directly to MNDES. <code>ManualPortalClient</code> in <code>mndes_api_client.py</code> returns portal instructions. Swap to <code>MNDESRestClient</code> when MN courts release an API.</div></li>
+          <li><span class="req-icon">🔧</span><div><strong>Navigation SSOT.</strong> All MNDES paths (<code>/mndes/guide</code>, <code>/api/mndes/*</code>) are registered in <code>NavigationRegistry.COURT_FLOW</code>. Never hardcode these paths in templates or routers.</div></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Keeping Compliance Current</h2>
+        <ul class="steps">
+          <li><span class="step-num">1</span><div class="step-body"><strong>Monitor mncourts.gov/mndes</strong><p>The State Court Administrator periodically reviews and updates the Acceptable File Types List. Check when a new order is issued.</p></div></li>
+          <li><span class="step-num">2</span><div class="step-body"><strong>Update mndes_compliance.py</strong><p>Edit <code>MNDES_ACCEPTABLE_TYPES</code>, <code>MNDES_PROHIBITED_TYPES</code>, and <code>MNDES_FILE_TYPES_VERSION</code>. No other files need changes for file type updates.</p></div></li>
+          <li><span class="step-num">3</span><div class="step-body"><strong>Run compliance tests</strong><p>Run <code>pytest tests/test_mndes_compliance.py</code> after any update to the acceptable types list.</p></div></li>
+          <li><span class="step-num">4</span><div class="step-body"><strong>Update this guide</strong><p>Keep this compliance-guide.html synchronized with any rule changes from new court orders.</p></div></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ── Pre-Submission Checklist ── -->
+    <div id="checklist" class="card">
+      <h2>Interactive Pre-Submission Checklist</h2>
+      <p style="font-size:0.88rem;color:var(--muted);margin-bottom:1rem;">Check each item before uploading exhibits to MNDES. This checklist is required per Order ADM09-8010 and Semptify attestation requirements.</p>
+      <ul class="checklist" id="preSubmitChecklist">
+        <li>
+          <div class="check-box" onclick="toggleCheck(this)"></div>
+          <div class="check-text"><strong>All files are on the MNDES Acceptable File Types List</strong><span>No unknown extensions, no proprietary formats without judge exception</span></div>
+        </li>
+        <li>
+          <div class="check-box" onclick="toggleCheck(this)"></div>
+          <div class="check-text"><strong>No zip, rar, 7z, or other compressed archives</strong><span>Each exhibit uploaded individually in its original format</span></div>
+        </li>
+        <li>
+          <div class="check-box" onclick="toggleCheck(this)"></div>
+          <div class="check-text"><strong>Files do NOT contain sexual content or nudity</strong><span>Required attestation per Order §10 — violations must be physical exhibits</span></div>
+        </li>
+        <li>
+          <div class="check-box" onclick="toggleCheck(this)"></div>
+          <div class="check-text"><strong>Files are NOT discovery documents</strong><span>Alford Packets and interrogatories do not go through MNDES</span></div>
+        </li>
+        <li>
+          <div class="check-box" onclick="toggleCheck(this)"></div>
+          <div class="check-text"><strong>Files are NOT motion or affidavit attachments</strong><span>Those go through eFile &amp; eServe (eFS), not MNDES</span></div>
+        </li>
+        <li>
+          <div class="check-box" onclick="toggleCheck(this)"></div>
+          <div class="check-text"><strong>Case is NOT sealed and does NOT require in-camera review</strong><span>Sealed cases: call court admin at 651-377-7180</span></div>
+        </li>
+        <li>
+          <div class="check-box" onclick="toggleCheck(this)"></div>
+          <div class="check-text"><strong>No active no-contact order that restricts sharing</strong><span>OFP/HRO/DANCO: contact court admin before any sharing step</span></div>
+        </li>
+        <li>
+          <div class="check-box" onclick="toggleCheck(this)"></div>
+          <div class="check-text"><strong>All files are under 100 GB individually</strong><span>Dakota County Guideline — oversized files must be physical exhibits</span></div>
+        </li>
+        <li>
+          <div class="check-box" onclick="toggleCheck(this)"></div>
+          <div class="check-text"><strong>I understand uploading does NOT automatically make a file evidence</strong><span>You must offer each exhibit to the judge at the hearing</span></div>
+        </li>
+        <li>
+          <div class="check-box" onclick="toggleCheck(this)"></div>
+          <div class="check-text"><strong>I have retained my own copies of all exhibit files</strong><span>The court will not return digital exhibits after case closure</span></div>
+        </li>
+      </ul>
+      <div id="checklistStatus" style="margin-top:1rem;font-size:0.9rem;font-weight:600;color:var(--muted);"></div>
+    </div>
+
+    <!-- ── Support ── -->
+    <div id="support" class="card">
+      <h2>Support Contacts</h2>
+      <table>
+        <thead><tr><th>Resource</th><th>Contact</th><th>Hours</th></tr></thead>
+        <tbody>
+          <tr><td><strong>MNDES EAST Support Team</strong><br><span style="font-size:0.82rem;color:var(--muted)">Technical issues with MNDES portal</span></td><td>651-413-8160 (metro)<br>1-833-707-2791 (other)<br><a href="https://www.mncourts.gov/MNDES/Contact.aspx" target="_blank">Online contact form</a></td><td>Mon–Fri 8:30am–4:15pm CT<br>(excluding court holidays)</td></tr>
+          <tr><td><strong>Sealed Case / Court Admin Upload</strong></td><td>651-377-7180</td><td>Court business hours</td></tr>
+          <tr><td><strong>MNDES Portal</strong></td><td><a href="https://mndigitalexhibitsystem.courts.state.mn.us" target="_blank">mndigitalexhibitsystem.courts.state.mn.us</a></td><td>24/7 upload availability</td></tr>
+          <tr><td><strong>Official File Types List</strong></td><td><a href="https://mncourts.gov/help-topics/evidence-and-exhibits/minnesota-digital-exhibit-system-mndes" target="_blank">mncourts.gov/mndes</a></td><td>—</td></tr>
+          <tr><td><strong>Semptify MNDES API</strong></td><td><a href="/api/mndes/acceptable-file-types" target="_blank">/api/mndes/acceptable-file-types</a></td><td>Always available</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-bar">
+      <a class="btn btn-primary" href="https://mndigitalexhibitsystem.courts.state.mn.us" target="_blank" rel="noopener">Open MNDES Portal</a>
+      <a class="btn btn-secondary" href="/mndes/guide">Step-by-Step Submission Guide</a>
+      <a class="btn btn-secondary" href="/api/mndes/acceptable-file-types" target="_blank">File Types JSON</a>
+      <button class="btn btn-secondary" onclick="window.print()">Print This Guide</button>
+    </div>
+
+    <div class="alert alert-danger" style="margin-top:1.5rem;text-align:center;">
+      <strong>Semptify is not a law firm and does not provide legal advice.</strong>
+      This guide is for informational purposes and MNDES compliance reference only.
+      Consult an attorney for legal guidance on your case.
+    </div>
+
+  </main>
+</div>
+
+<script>
+  function switchRole(role) {
+    document.querySelectorAll('.role-section').forEach(s => s.classList.remove('visible'));
+    document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+    const section = document.getElementById('role-' + role);
+    if (section) section.classList.add('visible');
+    document.querySelectorAll('.role-tab').forEach(t => {
+      if (t.textContent.toLowerCase().includes(role) || 
+          (role === 'tenant' && t.textContent.toLowerCase().includes('tenant')) ||
+          (role === 'advocate' && t.textContent.toLowerCase().includes('advocate')) ||
+          (role === 'legal' && t.textContent.toLowerCase().includes('legal')) ||
+          (role === 'manager' && t.textContent.toLowerCase().includes('manager')) ||
+          (role === 'admin' && t.textContent.toLowerCase().includes('admin'))) {
+        t.classList.add('active');
+      }
+    });
+    section && section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function toggleCheck(el) {
+    el.classList.toggle('checked');
+    el.textContent = el.classList.contains('checked') ? '✓' : '';
+    updateChecklistStatus();
+  }
+
+  function updateChecklistStatus() {
+    const boxes = document.querySelectorAll('#preSubmitChecklist .check-box');
+    const checked = [...boxes].filter(b => b.classList.contains('checked')).length;
+    const total = boxes.length;
+    const status = document.getElementById('checklistStatus');
+    if (checked === total) {
+      status.style.color = 'var(--success)';
+      status.textContent = '✓ All ' + total + ' items checked — ready for MNDES upload';
+    } else {
+      status.style.color = 'var(--muted)';
+      status.textContent = checked + ' of ' + total + ' items checked';
+    }
+  }
+
+  // Auto-detect role from URL param or session and pre-select tab
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    const role = params.get('role');
+    if (role && ['tenant','advocate','legal','manager','admin'].includes(role)) {
+      switchRole(role);
+    }
+
+    // Fetch live file types version from API
+    fetch('/api/mndes/acceptable-file-types')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data && data.file_types_version) {
+          document.querySelectorAll('[data-ft-version]').forEach(el => {
+            el.textContent = 'v' + data.file_types_version;
+          });
+        }
+      })
+      .catch(() => {});
+  })();
+</script>
+</body>
+</html>
