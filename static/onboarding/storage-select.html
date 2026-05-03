@@ -437,8 +437,8 @@
                         providerNames[data.provider] || data.provider;
                     document.getElementById('reconnect-section').style.display = 'block';
                     
-                    // Auto-redirect returning users immediately to OAuth - skip provider selection
-                    window.location.href = '/storage/auth/' + data.provider + '?mode=reconnect';
+                    // Show reconnect option but don't auto-redirect - let user choose
+                    console.log('Existing session found, showing reconnect option');
                 }
             } catch (e) {
                 // No valid session - show provider selection
@@ -498,6 +498,14 @@
             window.location.href = url;
             return false;
         }
+        
+        // Prevent bfcache issues - reload if restored from cache
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                console.log('Page restored from bfcache, reloading fresh');
+                window.location.reload();
+            }
+        });
     </script>
 </body>
 </html>
