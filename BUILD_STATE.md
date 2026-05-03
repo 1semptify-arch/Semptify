@@ -12,6 +12,17 @@
 
 ---
 
+## Previous Deploy
+- **Hash**: `TBD` (pending push completion)
+- **Date**: 2026-05-03 15:48 UTC-05
+- **Shipped**: SSOT Architecture Compliance & Security Hardening
+  - All SSOT violations fixed across role_ui, storage, auth, onboarding, document_delivery
+  - Secure storage gate (no bypass without storage)
+  - SSOT-compliant navigation in welcome.html
+  - Deleted orphaned files
+
+---
+
 ## What Is Confirmed Shipped (d62a519)
 
 ### MNDES Integration (NEW)
@@ -24,6 +35,15 @@
 - [x] `static/mndes/guide.html` — step-by-step submission guide
 - [x] `app/core/navigation.py` — mndes_guide, mndes_validate, mndes_package, mndes_compliance_guide registered in SSOT
 - [x] `app/main.py` — MNDES router registered
+
+### SSOT Architecture Compliance (Batch 1 & 2)
+- [x] `app/routers/role_ui.py` — All redirects via SSOT registry, secure storage gate added
+- [x] `app/routers/storage.py` — All hardcoded paths replaced with navigation.get_stage()
+- [x] `app/routers/auth.py` — SSOT-compliant redirects
+- [x] `app/routers/onboarding.py` — SSOT-compliant redirects + import fix
+- [x] `app/routers/document_delivery.py` — SSOT violation fixed (storage/providers path)
+- [x] `static/public/welcome.html` — SSOT navigation, checkpoint cookie, violation reporter
+- [x] `static/onboarding/storage-select.html` — User choice preserved, no auto-redirect
 
 ### Role Dashboards (UPDATED)
 - [x] `static/tenant/dashboard.html` — MNDES card + Quick Actions link
