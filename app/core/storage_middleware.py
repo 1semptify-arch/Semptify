@@ -36,6 +36,7 @@ PUBLIC_PATHS: Set[str] = {
     # (user has no cookie yet during onboarding)
     "/onboarding",
     "/onboarding/",
+    "/onboarding/start",        # Smart entry point — new users have no cookie yet
     "/onboarding/max-redirects",
     "/onboarding/max-redirects/",
     "/onboarding/select-role.html",
@@ -89,7 +90,7 @@ PUBLIC_PREFIXES = (
     "/storage/",
     "/static/",  # All static files are public (HTML, CSS, JS)
     "/onboarding-assets/",  # Onboarding static files (storage-select, etc)
-    "/tenant",   # Tenant pages (My Case) - serve page, auth handled by page JS
+    # NOTE: /tenant is NOT public — requires valid storage user (enforced by this middleware)
     "/law-library",  # Law Library page
     "/eviction-defense",  # Eviction Defense page
     "/zoom-court",  # Zoom Court page

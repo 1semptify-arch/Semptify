@@ -728,13 +728,13 @@ async def connect_storage(provider: str = Query(...), role: str = Query("tenant"
 async def onboarding_status(semptify_uid: Optional[str] = Cookie(None), db: AsyncSession = Depends(get_db)):
     """Check current gate status and show appropriate message."""
     if not semptify_uid:
-        return ssot_redirect("/onboarding", context="onboarding_status no cookie")
+        return ssot_redirect("/onboarding/", context="onboarding_status no cookie")
 
     result = await db.execute(select(User).where(User.id == semptify_uid))
     user = result.scalar_one_or_none()
 
     if not user:
-        return ssot_redirect("/onboarding", context="onboarding_status no user")
+        return ssot_redirect("/onboarding/", context="onboarding_status no user")
 
     completed = (user.completed_groups or "").split(",")
 
@@ -753,7 +753,7 @@ async def onboarding_status(semptify_uid: Optional[str] = Cookie(None), db: Asyn
 async def upload_prompt(semptify_uid: Optional[str] = Cookie(None)):
     """Prompt new user to upload first document to activate vault and account."""
     if not semptify_uid:
-        return ssot_redirect("/onboarding", context="upload_prompt no cookie")
+        return ssot_redirect("/onboarding/", context="upload_prompt no cookie")
 
     return HTMLResponse(content=ONBOARDING_TEMPLATE.format(content="""
         <div class="progress">

@@ -97,7 +97,7 @@ OAUTH_CONFIGS = {
 
 OAUTH_STATE_TIMEOUT_MINUTES = 15  # OAuth state TTL in minutes
 
-ALLOWED_ROLES = {"tenant", "manager", "advocate", "legal", "judge", "admin"}
+ALLOWED_ROLES = {"user", "tenant", "manager", "advocate", "legal", "judge", "admin"}
 
 # ============================================================================
 # Session Status Endpoint - For Returning User Auto-Reconnect (SSOT)
@@ -1758,7 +1758,10 @@ async def oauth_callback(
             matched_user = await get_user_by_provider_subject(db, provider, provider_subject)
             if matched_user:
                 user_id = matched_user.id
-                print(f"🔄 OAuth callback: Matched existing user by provider subject: {user_id}")
+                # Extract role from user_id for returning users
+                _, role, _ = parse_user_id(user_id)
+                role = role or "tenant"
+                print(f"🔄 OAuth callback: Matched existing user by provider subject: {user_id} (role={role})")
             else:
                 # New user - generate ID encoding provider + role
                 role = (state_data.get("role") or "tenant").strip().lower()
@@ -1784,7 +1787,9 @@ async def oauth_callback(
         )
 
         # Create/update user and storage config in database
-        await create_or_update_user(
+        # NOTE: role is NOT passed here — create_or_update_user derives it from
+        # parse_user_id(user_id) internally. Role is encoded in the user_id by design.
+        user = await create_or_update_user(
             db,
             user_id,
             provider,
@@ -1792,6 +1797,9 @@ async def oauth_callback(
             display_name=identity_display_name,
             storage_user_id=provider_subject,
         )
+        if user:
+            user_id = str(user.id)
+        is_new_user = True
         await get_or_create_storage_config(db, user_id, provider)
 
         # Permanently record that storage authentication is complete.
@@ -1803,6 +1811,10 @@ async def oauth_callback(
         import os
         is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
         from app.core.cookie_auth import set_auth_cookie
+
+        # CRITICAL: Ensure user_id is set before creating auth_marker
+        if not user_id and user:
+            user_id = str(user.id)
 
         auth_marker = {
             "user_id": user_id,
@@ -1854,11 +1866,17 @@ async def oauth_callback(
             landing = _route_user(user_id)
 
         logger.info("OAuth callback complete: user=%s new=%s vault_ok=%s landing=%s",
-                    user_id[:6] + "***", is_new_user, vault_ok, landing)
+                    user_id[:6] + "***" if user_id else "EMPTY", is_new_user, vault_ok, landing)
+        
+        # DEBUG: Verify user_id before setting cookie
+        if not user_id:
+            logger.error("CRITICAL: user_id is empty! Cannot set auth cookie.")
+            raise HTTPException(status_code=500, detail="User ID missing after OAuth")
 
         # Use SSOT redirect for internal navigation
         response = ssot_redirect(landing, context="oauth_callback success")
         set_auth_cookie(response, user_id)
+        logger.info("Auth cookie set for user: %s", user_id[:6] + "***")
         response.delete_cookie("semptify_redirect_loop_count")
 
         return response
@@ -1884,10 +1902,12 @@ async def oauth_callback(
         })
         return ssot_redirect(error_url, context="oauth_callback HTTP error")
     except Exception as exc:
+        error_msg = str(exc)
         logger.exception(
-            "OAuth callback unexpected error for provider=%s path=%s",
+            "OAuth callback unexpected error for provider=%s path=%s error=%s",
             provider,
             request.url.path,
+            error_msg,
             exc_info=True,
         )
         providers_stage = navigation.get_stage("providers")
@@ -1895,9 +1915,9 @@ async def oauth_callback(
         error_url = providers_path + "?" + urlencode({
             "error": "oauth_callback_failed",
             "provider": provider,
-            "message": "Unexpected callback error. Please reconnect your storage.",
+            "message": f"Error: {error_msg}",
         })
-        return ssot_redirect(error_url, context="oauth_callback exception")
+        return ssot_redirect(error_url, context="oauth callback exception")
 # ============================================================================
 # Token Exchange
 # ============================================================================
@@ -2248,7 +2268,7 @@ async def rehome_device(
 </html>''')
     
     from app.core.cookie_auth import set_auth_cookie
-    set_auth_cookie(response, user_id, max_age=COOKIE_MAX_AGE, secure=is_secure)
+    set_auth_cookie(response, user_id)
     
     return response
 
@@ -2448,7 +2468,7 @@ async def restore_session(
             import os
             is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
             from app.core.cookie_auth import set_auth_cookie
-            set_auth_cookie(response, user_id, max_age=30 * 24 * 60 * 60, secure=not is_localhost)
+            set_auth_cookie(response, user_id)
             
             # Route to role-appropriate dashboard
             from app.core.workflow_engine import route_user
@@ -2779,7 +2799,7 @@ async def switch_role(
     is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
     is_secure = False if is_localhost else True
     from app.core.cookie_auth import set_auth_cookie
-    set_auth_cookie(response, new_uid, max_age=COOKIE_MAX_AGE, secure=is_secure)
+    set_auth_cookie(response, new_uid)
 
     return {
         "success": True,
