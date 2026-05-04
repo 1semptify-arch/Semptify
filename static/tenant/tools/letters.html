@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Template Letters – Semptify</title>
+  <style>
+    :root {
+      --hdr1: #4c1d95; --hdr2: #5b21b6; --accent: #7c3aed;
+      --bg: #faf8ff; --light: #f5f3ff; --text: #1a1a2e; --muted: #64748b;
+      --border: #e2e8f0; --success: #16a34a; --warning: #d97706;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
+
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 60px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.2rem; text-decoration: none; color: #fff; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: 6px; font-size: 0.88rem; }
+    nav.core-nav a:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+    .hero { background: linear-gradient(160deg, #ede9fe 0%, var(--bg) 60%); padding: 2rem 1.5rem 1.5rem; }
+    .hero-inner { max-width: 1100px; margin: 0 auto; }
+    .hero h1 { font-size: 1.8rem; font-weight: 800; color: var(--hdr1); margin-bottom: 0.4rem; }
+    .hero p { color: var(--muted); font-size: 1rem; max-width: 580px; line-height: 1.6; }
+
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    .disclaimer { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 0.85rem 1.1rem; font-size: 0.83rem; color: #92400e; line-height: 1.6; margin-bottom: 2rem; }
+
+    .letter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+
+    .letter-card { background: #fff; border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .letter-card-header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; padding: 1.1rem 1.25rem; }
+    .letter-card-header h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .letter-card-header p { font-size: 0.8rem; opacity: 0.85; }
+    .letter-card-body { padding: 1.25rem; }
+    .letter-card-body p { font-size: 0.85rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.5; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: var(--text); margin-bottom: 0.35rem; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #d1d5db; border-radius: 7px;
+      font-size: 0.88rem; font-family: inherit; color: var(--text); background: #fff; outline: none;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+
+    .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .btn { padding: 0.65rem 1.25rem; border: none; border-radius: 7px; font-size: 0.88rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+    .btn-primary { background: var(--hdr1); color: #fff; }
+    .btn-primary:hover { background: var(--hdr2); }
+    .btn-copy { background: var(--light); color: var(--accent); border: 1px solid #ddd6fe; }
+    .btn-copy:hover { background: #ede9fe; }
+
+    .preview-box {
+      display: none; background: #f8f9ff; border: 1px solid #c7d2fe;
+      border-radius: 8px; padding: 1rem 1.25rem; margin-top: 1rem;
+      font-size: 0.83rem; line-height: 1.75; white-space: pre-wrap;
+      font-family: Georgia, serif; color: var(--text);
+    }
+    .preview-box.visible { display: block; }
+
+    .copy-confirm { display: none; color: var(--success); font-size: 0.8rem; margin-top: 0.35rem; font-weight: 600; }
+    .copy-confirm.visible { display: block; }
+
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 3rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; overflow-y: auto; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; display: block; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
+
+    @media (max-width: 768px) {
+      nav.core-nav { display: none; }
+      .hamburger { display: block; }
+      .letter-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/tenant/home">🏠 Dashboard</a>
+    <a href="/tenant/journal">📓 Journal</a>
+    <a href="/tenant/documents">📁 Documents</a>
+    <a href="/law-library">📚 Rights</a>
+    <a href="/tenant/help">🆘 Help</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <a href="/tenant/home" class="logo">Semptify</a>
+      <nav class="core-nav">
+        <a href="/tenant/home">🏠 Home</a>
+        <a href="/tenant/journal">📓 Journal</a>
+        <a href="/tenant/documents">📁 Documents</a>
+        <a href="/law-library">📚 Rights</a>
+        <a href="/tenant/help">🆘 Help</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-inner">
+      <h1>✉️ Template Letters</h1>
+      <p>Professional letters you can edit and send to your landlord. Every letter creates a paper trail that protects you.</p>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="disclaimer">
+      <strong>⚖️ Not Legal Advice —</strong> These templates are starting points. Adapt them to your exact situation. For complex or high-stakes situations, contact a licensed attorney or free legal aid. <a href="/public/disclaimer.html" style="color:#92400e;">Full disclaimer →</a>
+    </div>
+
+    <div class="letter-grid">
+
+      <!-- MAINTENANCE REQUEST -->
+      <div class="letter-card" id="card-maintenance">
+        <div class="letter-card-header">
+          <h3>🔧 Maintenance Request</h3>
+          <p>Written repair request to your landlord</p>
+        </div>
+        <div class="letter-card-body">
+          <p>Use this to formally request repairs. Minnesota law (MN Stat. 504B.161) requires landlords to keep rental units habitable. A written request creates a legal record.</p>
+          <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" id="maint-tenant" placeholder="Your full name">
+          </div>
+          <div class="form-group">
+            <label>Property Address</label>
+            <input type="text" id="maint-address" placeholder="123 Main St, Apt 4, City, MN">
+          </div>
+          <div class="form-group">
+            <label>Landlord / Property Manager Name</label>
+            <input type="text" id="maint-landlord" placeholder="Name or company">
+          </div>
+          <div class="form-group">
+            <label>Describe the Problem</label>
+            <textarea id="maint-problem" placeholder="e.g. The furnace has not produced heat since November 3rd. Indoor temperature is below 50°F."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Today's Date</label>
+            <input type="date" id="maint-date" title="Today's date">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="generateMaintenance()">Generate Letter</button>
+            <button class="btn btn-copy" onclick="copyLetter('maint-preview')">Copy</button>
+          </div>
+          <div class="copy-confirm" id="maint-confirm">✅ Copied to clipboard</div>
+          <div class="preview-box" id="maint-preview"></div>
+        </div>
+      </div>
+
+      <!-- SECURITY DEPOSIT DEMAND -->
+      <div class="letter-card" id="card-deposit">
+        <div class="letter-card-header">
+          <h3>💰 Security Deposit Return Demand</h3>
+          <p>Demand return of your security deposit</p>
+        </div>
+        <div class="letter-card-body">
+          <p>Minnesota law (MN Stat. 504B.178) requires landlords to return security deposits within <strong>21 days</strong> after you move out, with an itemized statement. This letter demands compliance.</p>
+          <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" id="dep-tenant" placeholder="Your full name">
+          </div>
+          <div class="form-group">
+            <label>Your Current Address (where to send the deposit)</label>
+            <input type="text" id="dep-current-address" placeholder="Your new address">
+          </div>
+          <div class="form-group">
+            <label>Former Property Address</label>
+            <input type="text" id="dep-old-address" placeholder="Address you moved out of">
+          </div>
+          <div class="form-group">
+            <label>Landlord / Property Manager Name</label>
+            <input type="text" id="dep-landlord" placeholder="Name or company">
+          </div>
+          <div class="form-group">
+            <label>Move-Out Date</label>
+            <input type="date" id="dep-moveout" title="Move-out date">
+          </div>
+          <div class="form-group">
+            <label>Deposit Amount ($)</label>
+            <input type="number" id="dep-amount" placeholder="e.g. 1200">
+          </div>
+          <div class="form-group">
+            <label>Today's Date</label>
+            <input type="date" id="dep-date" title="Today's date">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="generateDeposit()">Generate Letter</button>
+            <button class="btn btn-copy" onclick="copyLetter('dep-preview')">Copy</button>
+          </div>
+          <div class="copy-confirm" id="dep-confirm">✅ Copied to clipboard</div>
+          <div class="preview-box" id="dep-preview"></div>
+        </div>
+      </div>
+
+      <!-- HABITABILITY COMPLAINT -->
+      <div class="letter-card" id="card-habitability">
+        <div class="letter-card-header">
+          <h3>🏚️ Habitability Complaint</h3>
+          <p>Formal complaint about unsafe or unlivable conditions</p>
+        </div>
+        <div class="letter-card-body">
+          <p>Use when conditions are severe and the landlord has not acted on your repair requests. This letter escalates the matter and formally invokes your rights under MN Stat. 504B.</p>
+          <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" id="hab-tenant" placeholder="Your full name">
+          </div>
+          <div class="form-group">
+            <label>Property Address</label>
+            <input type="text" id="hab-address" placeholder="123 Main St, Apt 4, City, MN">
+          </div>
+          <div class="form-group">
+            <label>Landlord / Property Manager Name</label>
+            <input type="text" id="hab-landlord" placeholder="Name or company">
+          </div>
+          <div class="form-group">
+            <label>Describe the Conditions (be specific)</label>
+            <textarea id="hab-conditions" placeholder="e.g. No heat since Nov 3rd. Mold on bathroom ceiling since Oct. Broken exterior door lock since Sep 15th. Each request for repairs has been ignored."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Date of First Repair Request</label>
+            <input type="date" id="hab-first-request" title="Date of first repair request">
+          </div>
+          <div class="form-group">
+            <label>Today's Date</label>
+            <input type="date" id="hab-date" title="Today's date">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="generateHabitability()">Generate Letter</button>
+            <button class="btn btn-copy" onclick="copyLetter('hab-preview')">Copy</button>
+          </div>
+          <div class="copy-confirm" id="hab-confirm">✅ Copied to clipboard</div>
+          <div class="preview-box" id="hab-preview"></div>
+        </div>
+      </div>
+
+      <!-- LEASE NON-RENEWAL NOTICE RESPONSE -->
+      <div class="letter-card" id="card-nonrenewal">
+        <div class="letter-card-header">
+          <h3>📋 Response to Non-Renewal Notice</h3>
+          <p>Formal response when landlord declines to renew</p>
+        </div>
+        <div class="letter-card-body">
+          <p>If you believe the non-renewal is retaliatory (e.g. after a repair complaint), document that clearly in this response. Under MN Stat. 504B.285, retaliation is illegal.</p>
+          <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" id="nr-tenant" placeholder="Your full name">
+          </div>
+          <div class="form-group">
+            <label>Property Address</label>
+            <input type="text" id="nr-address" placeholder="123 Main St, Apt 4, City, MN">
+          </div>
+          <div class="form-group">
+            <label>Landlord / Property Manager Name</label>
+            <input type="text" id="nr-landlord" placeholder="Name or company">
+          </div>
+          <div class="form-group">
+            <label>Non-Renewal Notice Date</label>
+            <input type="date" id="nr-notice-date" title="Non-renewal notice date">
+          </div>
+          <div class="form-group">
+            <label>Is this potentially retaliatory? If so, describe</label>
+            <textarea id="nr-retaliation" placeholder="e.g. This notice was issued two weeks after I submitted a repair request for the broken furnace on October 15th."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Today's Date</label>
+            <input type="date" id="nr-date" title="Today's date">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="generateNonRenewal()">Generate Letter</button>
+            <button class="btn btn-copy" onclick="copyLetter('nr-preview')">Copy</button>
+          </div>
+          <div class="copy-confirm" id="nr-confirm">✅ Copied to clipboard</div>
+          <div class="preview-box" id="nr-preview"></div>
+        </div>
+      </div>
+
+    </div><!-- /letter-grid -->
+
+  </div><!-- /container -->
+
+  <footer>
+    <div>
+      <a href="/tenant/home">Home</a>
+      <a href="/tenant/help">Help</a>
+      <a href="/law-library">Rights</a>
+      <a href="/public/disclaimer.html">Disclaimer</a>
+    </div>
+    <div style="margin-top:0.5rem;">Semptify · Free Forever · Not Legal Advice</div>
+  </footer>
+
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+
+    function today() { return new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'}); }
+    function fmtDate(val) {
+      if (!val) return '[DATE]';
+      const d = new Date(val + 'T12:00:00');
+      return d.toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'});
+    }
+    function show(id, text) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.classList.add('visible');
+    }
+    function copyLetter(id) {
+      const el = document.getElementById(id);
+      if (!el.textContent.trim()) return;
+      navigator.clipboard.writeText(el.textContent).then(() => {
+        const confirmId = id.replace('-preview', '-confirm');
+        const c = document.getElementById(confirmId);
+        if (c) { c.classList.add('visible'); setTimeout(() => c.classList.remove('visible'), 3000); }
+      });
+    }
+
+    function generateMaintenance() {
+      const t = document.getElementById('maint-tenant').value || '[YOUR NAME]';
+      const a = document.getElementById('maint-address').value || '[PROPERTY ADDRESS]';
+      const l = document.getElementById('maint-landlord').value || '[LANDLORD NAME]';
+      const p = document.getElementById('maint-problem').value || '[DESCRIBE THE PROBLEM]';
+      const d = fmtDate(document.getElementById('maint-date').value) || today();
+      show('maint-preview',
+`${d}
+
+${l}
+[Landlord Address]
+
+RE: Formal Written Repair Request — ${a}
+
+Dear ${l},
+
+I am writing to formally request repairs at the above property, which I rent from you.
+
+The following issue(s) require your immediate attention:
+
+${p}
+
+Minnesota law (Minn. Stat. § 504B.161) requires landlords to keep rental properties in reasonable repair and in compliance with applicable health and safety laws. I am requesting that you complete these repairs within a reasonable time.
+
+Please confirm receipt of this request and advise me of your timeline for completing the work. If I do not hear from you within 14 days, I will consider my legal remedies including, but not limited to, rent escrow and a habitability claim.
+
+Please keep this letter for your records, as I am keeping a copy for mine.
+
+Sincerely,
+
+${t}
+${a}
+`);
+    }
+
+    function generateDeposit() {
+      const t = document.getElementById('dep-tenant').value || '[YOUR NAME]';
+      const ca = document.getElementById('dep-current-address').value || '[YOUR CURRENT ADDRESS]';
+      const oa = document.getElementById('dep-old-address').value || '[FORMER ADDRESS]';
+      const l = document.getElementById('dep-landlord').value || '[LANDLORD NAME]';
+      const mo = fmtDate(document.getElementById('dep-moveout').value);
+      const amt = document.getElementById('dep-amount').value ? `$${document.getElementById('dep-amount').value}` : '[AMOUNT]';
+      const d = fmtDate(document.getElementById('dep-date').value) || today();
+      show('dep-preview',
+`${d}
+
+${l}
+[Landlord Address]
+
+RE: Demand for Return of Security Deposit — ${oa}
+
+Dear ${l},
+
+I am the former tenant at ${oa}. I vacated the property on ${mo}.
+
+You received a security deposit from me in the amount of ${amt}. Under Minnesota law (Minn. Stat. § 504B.178), you are required to return my security deposit, along with an itemized written statement of any deductions, within 21 days of my vacating the premises.
+
+More than 21 days have passed since my move-out date. I have not received my deposit or any itemized statement. I am therefore formally demanding the return of my full deposit of ${amt} plus any interest owed.
+
+Please send payment to my current address:
+
+${t}
+${ca}
+
+If I do not receive my deposit within 7 days of this letter, I will seek recovery through conciliation court, where Minnesota law permits me to seek up to twice the amount wrongfully withheld, plus damages and attorney fees.
+
+Sincerely,
+
+${t}
+`);
+    }
+
+    function generateHabitability() {
+      const t = document.getElementById('hab-tenant').value || '[YOUR NAME]';
+      const a = document.getElementById('hab-address').value || '[PROPERTY ADDRESS]';
+      const l = document.getElementById('hab-landlord').value || '[LANDLORD NAME]';
+      const c = document.getElementById('hab-conditions').value || '[DESCRIBE CONDITIONS]';
+      const fr = fmtDate(document.getElementById('hab-first-request').value);
+      const d = fmtDate(document.getElementById('hab-date').value) || today();
+      show('hab-preview',
+`${d}
+
+${l}
+[Landlord Address]
+
+RE: Formal Habitability Complaint — ${a}
+
+Dear ${l},
+
+I am writing to formally notify you that the rental unit at ${a} is not being maintained in a habitable condition, in violation of Minnesota law (Minn. Stat. § 504B.161).
+
+The following conditions exist:
+
+${c}
+
+I first notified you of these issues on or around ${fr}. These conditions remain unresolved. Your failure to address these issues constitutes a breach of your legal obligations as a landlord.
+
+I am requesting immediate remediation of all items listed above. If these conditions are not corrected within 14 days of this letter, I will pursue all available legal remedies, including but not limited to:
+
+• Filing a rent escrow action with the court (Minn. Stat. § 504B.385)
+• Asserting habitability as a defense in any eviction proceeding
+• Contacting the local housing inspection authority
+• Seeking damages for diminished rental value
+
+I am retaining a copy of this letter and will present it as evidence in any legal proceeding.
+
+Sincerely,
+
+${t}
+${a}
+`);
+    }
+
+    function generateNonRenewal() {
+      const t = document.getElementById('nr-tenant').value || '[YOUR NAME]';
+      const a = document.getElementById('nr-address').value || '[PROPERTY ADDRESS]';
+      const l = document.getElementById('nr-landlord').value || '[LANDLORD NAME]';
+      const nd = fmtDate(document.getElementById('nr-notice-date').value);
+      const ret = document.getElementById('nr-retaliation').value;
+      const d = fmtDate(document.getElementById('nr-date').value) || today();
+      const retalBlock = ret ? `\nI also wish to note that this non-renewal notice may constitute illegal retaliation under Minn. Stat. § 504B.285:\n\n${ret}\n\nRetaliatory non-renewal is prohibited by Minnesota law. I reserve all rights under that statute.\n` : '';
+      show('nr-preview',
+`${d}
+
+${l}
+[Landlord Address]
+
+RE: Response to Non-Renewal Notice — ${a}
+
+Dear ${l},
+
+I have received your notice dated ${nd} indicating that you do not intend to renew my lease at ${a}.
+
+I am writing to formally acknowledge receipt of this notice and to preserve my rights.
+${retalBlock}
+I intend to fulfill all obligations under my current lease through its expiration date. I expect that you will fulfill your obligations as well, including maintaining the property in habitable condition and providing required notice for any entry.
+
+Please contact me in writing for all further communications regarding this tenancy.
+
+Sincerely,
+
+${t}
+${a}
+`);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deadline Tracker – Semptify</title>
+  <style>
+    :root {
+      --hdr1: #4c1d95; --hdr2: #5b21b6; --accent: #7c3aed;
+      --bg: #faf8ff; --light: #f5f3ff; --text: #1a1a2e; --muted: #64748b;
+      --border: #e2e8f0; --danger: #dc2626; --warning: #d97706; --success: #16a34a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
+
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1000px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 60px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.2rem; text-decoration: none; color: #fff; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.7rem; border-radius: 6px; font-size: 0.88rem; }
+    nav.core-nav a:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+
+    .hero { background: linear-gradient(160deg, #ede9fe 0%, var(--bg) 60%); padding: 2rem 1.5rem 1.5rem; }
+    .hero-inner { max-width: 1000px; margin: 0 auto; }
+    .hero h1 { font-size: 1.8rem; font-weight: 800; color: var(--hdr1); margin-bottom: 0.4rem; }
+    .hero p { color: var(--muted); font-size: 1rem; line-height: 1.6; max-width: 580px; }
+
+    .container { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    .disclaimer { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 0.85rem 1.1rem; font-size: 0.83rem; color: #92400e; line-height: 1.6; margin-bottom: 2rem; }
+
+    /* Add deadline form */
+    .add-form { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; margin-bottom: 2rem; }
+    .add-form h2 { font-size: 1.1rem; font-weight: 700; color: var(--hdr1); margin-bottom: 1.1rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.75rem; align-items: end; }
+    .form-group { display: flex; flex-direction: column; gap: 0.3rem; }
+    .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+    .form-group input, .form-group select {
+      padding: 0.6rem 0.8rem; border: 1px solid #d1d5db; border-radius: 7px;
+      font-size: 0.88rem; font-family: inherit; color: var(--text); outline: none; background: #fff;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+    .btn-add { background: var(--hdr1); color: #fff; border: none; padding: 0.65rem 1.25rem; border-radius: 7px; font-size: 0.9rem; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
+    .btn-add:hover { background: var(--hdr2); }
+
+    /* Deadlines list */
+    .deadlines-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .deadlines-header h2 { font-size: 1.1rem; font-weight: 700; color: var(--hdr1); }
+    .filter-tabs { display: flex; gap: 0.4rem; }
+    .filter-tab { padding: 0.35rem 0.85rem; border: 1px solid var(--border); border-radius: 20px; font-size: 0.8rem; cursor: pointer; background: #fff; color: var(--muted); font-family: inherit; }
+    .filter-tab.active, .filter-tab:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    .deadline-list { display: flex; flex-direction: column; gap: 0.65rem; }
+
+    .deadline-item { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem; }
+    .deadline-item.overdue { border-color: var(--danger); background: #fff5f5; }
+    .deadline-item.urgent { border-color: var(--warning); background: #fffbeb; }
+    .deadline-item.upcoming { border-color: #fde68a; background: #fefce8; }
+    .deadline-item.safe { border-color: #bbf7d0; background: #f0fdf4; }
+
+    .deadline-status { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .deadline-item.overdue .deadline-status { background: var(--danger); }
+    .deadline-item.urgent .deadline-status { background: var(--warning); }
+    .deadline-item.upcoming .deadline-status { background: #ca8a04; }
+    .deadline-item.safe .deadline-status { background: var(--success); }
+
+    .deadline-info { flex: 1; }
+    .deadline-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.15rem; }
+    .deadline-meta { font-size: 0.8rem; color: var(--muted); }
+    .deadline-days { font-weight: 700; font-size: 0.88rem; white-space: nowrap; }
+    .deadline-item.overdue .deadline-days { color: var(--danger); }
+    .deadline-item.urgent .deadline-days { color: var(--warning); }
+    .deadline-item.upcoming .deadline-days { color: #ca8a04; }
+    .deadline-item.safe .deadline-days { color: var(--success); }
+
+    .btn-delete { background: none; border: none; color: #cbd5e1; cursor: pointer; font-size: 1.1rem; padding: 0.2rem 0.4rem; border-radius: 4px; }
+    .btn-delete:hover { color: var(--danger); background: #fee2e2; }
+
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 0.75rem; }
+
+    /* MN Legal Deadlines Reference */
+    .reference-section { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; margin-top: 2rem; }
+    .reference-section h2 { font-size: 1.1rem; font-weight: 700; color: var(--hdr1); margin-bottom: 1rem; }
+    .ref-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .ref-table th { text-align: left; padding: 0.6rem 0.75rem; background: var(--light); color: var(--hdr1); font-weight: 700; border-bottom: 2px solid #ddd6fe; }
+    .ref-table td { padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+    .ref-table tr:last-child td { border-bottom: none; }
+    .ref-table .law { font-size: 0.75rem; color: var(--muted); }
+
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 3rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; overflow-y: auto; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; display: block; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
+
+    @media (max-width: 768px) {
+      nav.core-nav { display: none; }
+      .hamburger { display: block; }
+      .form-row { grid-template-columns: 1fr 1fr; }
+      .form-row .btn-add { grid-column: span 2; }
+      .ref-table { font-size: 0.78rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/tenant/home">🏠 Dashboard</a>
+    <a href="/tenant/journal">📓 Journal</a>
+    <a href="/tenant/documents">📁 Documents</a>
+    <a href="/law-library">📚 Rights</a>
+    <a href="/tenant/help">🆘 Help</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <a href="/tenant/home" class="logo">Semptify</a>
+      <nav class="core-nav">
+        <a href="/tenant/home">🏠 Home</a>
+        <a href="/tenant/journal">📓 Journal</a>
+        <a href="/tenant/documents">📁 Documents</a>
+        <a href="/law-library">📚 Rights</a>
+        <a href="/tenant/help">🆘 Help</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-inner">
+      <h1>⏰ Deadline Tracker</h1>
+      <p>Track rent due dates, court dates, response deadlines, and lease milestones. Missing a deadline can be costly — don't let it happen.</p>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <div class="disclaimer">
+      <strong>⚖️ Not Legal Advice —</strong> Deadlines shown are based on Minnesota law as of early 2026. Always verify with an attorney or <a href="https://homelinemn.org" target="_blank" rel="noopener noreferrer" style="color:#92400e;">HOME Line</a> for your specific situation. <a href="/public/disclaimer.html" style="color:#92400e;">Full disclaimer →</a>
+    </div>
+
+    <!-- Add Deadline Form -->
+    <div class="add-form">
+      <h2>➕ Add a Deadline</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="new-title" placeholder="e.g. Respond to eviction summons">
+        </div>
+        <div class="form-group">
+          <label>Due Date</label>
+          <input type="date" id="new-date" title="Due date">
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select id="new-category" title="Deadline category">
+            <option value="court">Court / Legal</option>
+            <option value="rent">Rent Payment</option>
+            <option value="lease">Lease Milestone</option>
+            <option value="response">Response to Notice</option>
+            <option value="deposit">Security Deposit</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <button class="btn-add" onclick="addDeadline()">Add</button>
+      </div>
+    </div>
+
+    <!-- Deadline List -->
+    <div class="deadlines-header">
+      <h2>📋 Your Deadlines</h2>
+      <div class="filter-tabs">
+        <button class="filter-tab active" onclick="filterDeadlines('all', this)">All</button>
+        <button class="filter-tab" onclick="filterDeadlines('overdue', this)">⚠️ Overdue</button>
+        <button class="filter-tab" onclick="filterDeadlines('court', this)">Court</button>
+        <button class="filter-tab" onclick="filterDeadlines('rent', this)">Rent</button>
+      </div>
+    </div>
+
+    <div class="deadline-list" id="deadline-list">
+      <!-- populated by JS -->
+    </div>
+
+    <!-- MN Legal Deadlines Reference -->
+    <div class="reference-section">
+      <h2>📜 Key Minnesota Legal Deadlines (Reference)</h2>
+      <table class="ref-table">
+        <thead>
+          <tr>
+            <th>Situation</th>
+            <th>Deadline</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Respond to eviction summons (Answer)<br><span class="law">Minn. Stat. § 504B.321</span></td>
+            <td><strong>7 days</strong> from service</td>
+            <td>File written answer with the court. Missing this = default judgment.</td>
+          </tr>
+          <tr>
+            <td>Security deposit return by landlord<br><span class="law">Minn. Stat. § 504B.178</span></td>
+            <td><strong>21 days</strong> after move-out</td>
+            <td>Landlord must return deposit + itemized statement. Failure allows you to sue for 2x the amount.</td>
+          </tr>
+          <tr>
+            <td>Notice to quit before eviction (non-payment)<br><span class="law">Minn. Stat. § 504B.135</span></td>
+            <td><strong>14 days</strong> written notice</td>
+            <td>Landlord must give 14 days written notice to pay or quit before filing eviction.</td>
+          </tr>
+          <tr>
+            <td>Landlord notice to enter (non-emergency)<br><span class="law">Minn. Stat. § 504B.211</span></td>
+            <td><strong>24 hours</strong> advance notice</td>
+            <td>Landlord must give reasonable notice; 24 hours is the standard. Emergencies are exempt.</td>
+          </tr>
+          <tr>
+            <td>Landlord provide written lease<br><span class="law">Minn. Stat. § 504B.111</span></td>
+            <td>Before or at move-in</td>
+            <td>Required for leases of 12+ months. You have a right to a written copy.</td>
+          </tr>
+          <tr>
+            <td>Landlord disclose name/address for notices<br><span class="law">Minn. Stat. § 504B.181</span></td>
+            <td>At or before move-in</td>
+            <td>Landlord must disclose who to send notices to.</td>
+          </tr>
+          <tr>
+            <td>Tenant file rent escrow action<br><span class="law">Minn. Stat. § 504B.385</span></td>
+            <td>After reasonable time for repairs</td>
+            <td>After written repair request goes unaddressed, tenant may deposit rent with court.</td>
+          </tr>
+          <tr>
+            <td>Respond to lease non-renewal<br><span class="law">Minn. Stat. § 504B.145</span></td>
+            <td>Check lease terms</td>
+            <td>Your lease may require notice 30–60 days before end. Check your specific lease.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div><!-- /container -->
+
+  <footer>
+    <div>
+      <a href="/tenant/home">Home</a>
+      <a href="/tenant/help">Help</a>
+      <a href="/law-library">Rights</a>
+      <a href="/public/disclaimer.html">Disclaimer</a>
+    </div>
+    <div style="margin-top:0.5rem;">Semptify · Free Forever · Deadlines shown are informational only</div>
+  </footer>
+
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+
+    const STORAGE_KEY = 'semptify_deadlines_v1';
+
+    function loadDeadlines() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+      catch { return []; }
+    }
+    function saveDeadlines(items) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    function getDaysUntil(dateStr) {
+      const due = new Date(dateStr + 'T12:00:00');
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      return Math.round((due - now) / (1000 * 60 * 60 * 24));
+    }
+
+    function getStatusClass(days) {
+      if (days < 0) return 'overdue';
+      if (days <= 3) return 'urgent';
+      if (days <= 7) return 'upcoming';
+      return 'safe';
+    }
+
+    function formatDays(days) {
+      if (days < 0) return `${Math.abs(days)} day${Math.abs(days) !== 1 ? 's' : ''} overdue`;
+      if (days === 0) return 'Due today';
+      if (days === 1) return 'Due tomorrow';
+      return `${days} days left`;
+    }
+
+    function categoryLabel(cat) {
+      const map = { court: '🏛️ Court', rent: '💰 Rent', lease: '📋 Lease', response: '📬 Response', deposit: '💵 Deposit', other: '📌 Other' };
+      return map[cat] || cat;
+    }
+
+    function renderDeadlines(filter = 'all') {
+      const items = loadDeadlines().sort((a, b) => new Date(a.date) - new Date(b.date));
+      const list = document.getElementById('deadline-list');
+
+      const filtered = filter === 'all' ? items :
+        filter === 'overdue' ? items.filter(i => getDaysUntil(i.date) < 0) :
+        items.filter(i => i.category === filter);
+
+      if (!filtered.length) {
+        list.innerHTML = `<div class="empty-state"><div class="icon">✅</div><p>${filter === 'overdue' ? 'No overdue deadlines.' : 'No deadlines yet. Add one above.'}</p></div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(item => {
+        const days = getDaysUntil(item.date);
+        const status = getStatusClass(days);
+        const due = new Date(item.date + 'T12:00:00').toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'});
+        return `<div class="deadline-item ${status}" data-cat="${item.category}">
+          <div class="deadline-status"></div>
+          <div class="deadline-info">
+            <div class="deadline-title">${escHtml(item.title)}</div>
+            <div class="deadline-meta">${categoryLabel(item.category)} · Due ${due}</div>
+          </div>
+          <div class="deadline-days">${formatDays(days)}</div>
+          <button class="btn-delete" onclick="deleteDeadline('${item.id}')" title="Delete">✕</button>
+        </div>`;
+      }).join('');
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    function addDeadline() {
+      const title = document.getElementById('new-title').value.trim();
+      const date = document.getElementById('new-date').value;
+      const category = document.getElementById('new-category').value;
+      if (!title || !date) { alert('Please enter a description and due date.'); return; }
+      const items = loadDeadlines();
+      items.push({ id: Date.now().toString(), title, date, category });
+      saveDeadlines(items);
+      document.getElementById('new-title').value = '';
+      document.getElementById('new-date').value = '';
+      renderDeadlines(currentFilter);
+    }
+
+    function deleteDeadline(id) {
+      const items = loadDeadlines().filter(i => i.id !== id);
+      saveDeadlines(items);
+      renderDeadlines(currentFilter);
+    }
+
+    let currentFilter = 'all';
+    function filterDeadlines(f, btn) {
+      currentFilter = f;
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      renderDeadlines(f);
+    }
+
+    // Pre-populate today's date
+    document.getElementById('new-date').valueAsDate = new Date();
+
+    renderDeadlines();
+  </script>
+</body>
+</html>

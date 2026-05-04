@@ -442,21 +442,29 @@ class VaultUploadService:
         # Add to index (now with registry info if available)
         self.index.add(doc)
 
-        await self._create_unified_overlay(
-            doc,
-            overlay_type=OverlayType.VAULT_UPLOAD_MANIFEST,
-            payload={
-                "sha256_hash": doc.sha256_hash,
-                "file_size": doc.file_size,
-                "mime_type": doc.mime_type,
-                "storage_path": doc.storage_path,
-                "certificate_id": doc.certificate_id,
-                "source_module": doc.source_module,
-            },
-            metadata={"stage": "upload"},
-            access_token=access_token,
-            storage_provider=storage_provider,
-        )
+        # SSOT ENFORCEMENT: Only certified documents may receive overlays.
+        # A document is certified when it has a registry_id and integrity_status == "verified".
+        # Uncertified documents are stored but invisible to all downstream Semptify processes.
+        if doc.is_certified:
+            await self._create_unified_overlay(
+                doc,
+                overlay_type=OverlayType.VAULT_UPLOAD_MANIFEST,
+                payload={
+                    "sha256_hash": doc.sha256_hash,
+                    "file_size": doc.file_size,
+                    "mime_type": doc.mime_type,
+                    "storage_path": doc.storage_path,
+                    "certificate_id": doc.certificate_id,
+                    "source_module": doc.source_module,
+                },
+                metadata={"stage": "upload"},
+                access_token=access_token,
+                storage_provider=storage_provider,
+            )
+        else:
+            logger.warning(
+                "Document %s is uncertified — overlays blocked until registration completes.", vault_id
+            )
         
         logger.info("📁 Document uploaded to vault: %s (%s) via %s", vault_id, filename, source_module)
         

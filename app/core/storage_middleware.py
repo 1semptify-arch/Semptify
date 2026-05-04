@@ -59,6 +59,10 @@ PUBLIC_PATHS: Set[str] = {
     "/storage/logout-reset",
     "/storage/rehome",
     
+    # Public policy pages (privacy, terms, disclaimer, contact, feedback)
+    "/public",
+    "/public/",
+
     # Welcome/setup pages
     "/welcome.html",
     "/storage_setup.html",
@@ -88,7 +92,8 @@ PUBLIC_PATHS: Set[str] = {
 # Path prefixes that are always public
 PUBLIC_PREFIXES = (
     "/storage/",
-    "/static/",  # All static files are public (HTML, CSS, JS)
+    "/static/",   # All static files are public (HTML, CSS, JS)
+    "/public/",   # Policy pages: privacy, terms, disclaimer, contact, feedback
     "/onboarding-assets/",  # Onboarding static files (storage-select, etc)
     # NOTE: /tenant is NOT public — requires valid storage user (enforced by this middleware)
     "/law-library",  # Law Library page

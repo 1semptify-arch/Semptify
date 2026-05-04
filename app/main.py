@@ -2173,6 +2173,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if static_path.exists():
         fastapi_app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 
+    # Mount /public to serve public-facing policy and info pages (privacy, terms, etc.)
+    public_static_path = BASE_PATH / "static" / "public"
+    if public_static_path.exists():
+        fastapi_app.mount("/public", StaticFiles(directory=str(public_static_path)), name="public_static")
+
     # Mount onboarding static assets at /onboarding-assets to avoid shadowing the
     # /onboarding router. The router prefix /onboarding must take priority.
     onboarding_static_path = BASE_PATH / "static" / "onboarding"
@@ -3253,11 +3258,30 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         guard_redirect = _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        
+
         user_id = request.cookies.get("semptify_uid", "")
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
-        
-        context = {"briefcase": briefcase}
+
+        entries = []
+        if briefcase and hasattr(briefcase, "journal_entries"):
+            entries = briefcase.journal_entries or []
+
+        context = {
+            "briefcase": briefcase,
+            "entries": entries,
+            "total_entries": len(entries),
+            "entries_this_month": sum(
+                1 for e in entries
+                if hasattr(e, "created_at") and e.created_at and
+                e.created_at.month == datetime.now().month and
+                e.created_at.year == datetime.now().year
+            ) if entries else 0,
+            "urgent_count": sum(1 for e in entries if getattr(e, "is_urgent", False)),
+            "days_since_start": (
+                (datetime.now() - min(e.created_at for e in entries if hasattr(e, "created_at") and e.created_at)).days
+                if entries else 0
+            ),
+        }
         return templates.TemplateResponse(request, "pages/tenant_journal.html", context)
 
     @fastapi_app.get("/tenant/inbox", response_class=HTMLResponse)
@@ -3277,16 +3301,42 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant/help", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/help/", response_class=HTMLResponse)
     async def tenant_help(request: Request):
-        """Help and resources page."""
+        """Help and resources page for tenants."""
+        guard_redirect = _guard_role_page(request, {"tenant", "user"})
+        if guard_redirect:
+            return guard_redirect
+
+        user_id = request.cookies.get("semptify_uid", "")
+        briefcase = await _get_tenant_briefcase(user_id) if user_id else None
+
+        context = {"briefcase": briefcase}
+        return templates.TemplateResponse(request, "pages/tenant_help.html", context)
+
+    @fastapi_app.get("/tenant/tools/letters", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/tools/letters/", response_class=HTMLResponse)
+    async def tenant_letters(request: Request):
+        """Template letters page — maintenance request, deposit demand, etc."""
         guard_redirect = _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
-        
-        user_id = request.cookies.get("semptify_uid", "")
-        briefcase = await _get_tenant_briefcase(user_id) if user_id else None
-        
-        context = {"briefcase": briefcase}
-        return templates.TemplateResponse(request, "pages/tenant_help.html", context)
+        letters_path = BASE_PATH / "static" / "tenant" / "tools" / "letters.html"
+        static_page = _render_static_page(letters_path, inject_stage_model=True)
+        if static_page:
+            return static_page
+        return RedirectResponse(url="/tenant/home", status_code=302)
+
+    @fastapi_app.get("/tenant/tools/deadlines", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/tools/deadlines/", response_class=HTMLResponse)
+    async def tenant_deadlines(request: Request):
+        """Deadline tracker — rent due, lease end, response deadlines."""
+        guard_redirect = _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+        deadlines_path = BASE_PATH / "static" / "tenant" / "tools" / "deadlines.html"
+        static_page = _render_static_page(deadlines_path, inject_stage_model=True)
+        if static_page:
+            return static_page
+        return RedirectResponse(url="/tenant/home", status_code=302)
 
     @fastapi_app.get("/tenant/{subpage}", response_class=HTMLResponse)
     async def tenant_subpage(subpage: str, request: Request):

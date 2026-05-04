@@ -173,7 +173,7 @@ async def create_code(
         # Get user's organization info
         user = db.query(User).filter_by(id=user_id).first()
         org_id = user_id[:12] if user else None  # Use part of user ID as org ID
-        org_name = user.display_name if user else "Unknown Organization"
+        org_name = user.email or f"Org {user_id[:8]}" if user else "Unknown Organization"
         
         # Create the code
         invite = create_invite_code(
