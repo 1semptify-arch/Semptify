@@ -1841,7 +1841,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # ==========================================================================
     _ROLE_STATIC_MAP = {
         "/tenant/home":      "static/tenant/dashboard.html",
-        "/tenant/documents": "static/tenant/index.html",
+        "/tenant/documents": "static/tenant/documents.html",
         "/tenant":           "static/tenant/index.html",
         "/advocate":         "static/advocate/index.html",
         "/advocate/home":    "static/advocate/dashboard.html",
