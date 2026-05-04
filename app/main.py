@@ -2189,9 +2189,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return RedirectResponse(url="/onboarding/", status_code=302)
 
         @fastapi_app.get("/welcome.html", response_class=HTMLResponse)
-        async def welcome_redirect():
-            """Redirect legacy /welcome.html to canonical /onboarding entry point."""
-            return RedirectResponse(url="/onboarding", status_code=301)
+        async def welcome_html():
+            """Serve welcome page — canonical entry point for new users."""
+            welcome_path = BASE_PATH / "static" / "public" / "welcome.html"
+            if welcome_path.exists():
+                return FileResponse(welcome_path)
+            return RedirectResponse(url="/", status_code=302)
 
 
     # =========================================================================

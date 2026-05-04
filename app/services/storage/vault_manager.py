@@ -338,9 +338,10 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
             </div>
         </div>
         
-        <button class="btn btn-primary" onclick="rehome()" id="rehomeBtn">
+        <!-- Direct link: works from file:// without any JS fetch restrictions -->
+        <a href="{base_url}/storage/rehome/{user_id}" class="btn btn-primary" id="rehomeBtn">
             <span>🔗</span> Connect This Device
-        </button>
+        </a>
         
         <div class="status" id="status"></div>
         
@@ -349,35 +350,22 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
             Your data stays encrypted in your {provider_display}. 
             Semptify never stores your files on external servers.
         </div>
+        
+        <div style="margin-top:16px; font-size:0.8rem; color:#64748b;">
+            If the button doesn't work, copy this link into your browser:<br>
+            <code style="word-break:break-all; color:#94a3b8;">{base_url}/storage/rehome/{user_id}</code>
+        </div>
     </div>
     
     <script>
-        const USER_ID = "{user_id}";
-        const SEMPTIFY_URL = "{base_url}";
+        // NOTE: This file is opened from cloud storage (file:// origin).
+        // Do NOT use fetch() here — file:// cannot make network requests.
+        // Navigation via href works fine; fetch() is blocked by browser security.
         
-        function rehome() {{
-            const status = document.getElementById("status");
-            const btn = document.getElementById("rehomeBtn");
-            
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span> Connecting...';
-            
-            status.className = "status loading";
-            status.innerHTML = '<span class="spinner"></span> Verifying your account...';
-            
-            // Small delay for UX, then redirect
-            setTimeout(() => {{
-                window.location.href = SEMPTIFY_URL + "/storage/rehome/" + USER_ID;
-            }}, 800);
-        }}
-        
-        // Check if we can reach Semptify
-        fetch(SEMPTIFY_URL + "/health")
-            .then(r => r.json())
-            .catch(() => {{
-                document.getElementById("status").className = "status error";
-                document.getElementById("status").innerHTML = "⚠️ Cannot reach Semptify server. Make sure it's running at " + SEMPTIFY_URL;
-            }});
+        // Auto-redirect after 1.5s so user doesn't even need to click
+        setTimeout(() => {{
+            window.location.href = "{base_url}/storage/rehome/{user_id}";
+        }}, 1500);
     </script>
 </body>
 </html>'''
