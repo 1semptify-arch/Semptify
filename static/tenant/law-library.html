@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Law Library – Semptify</title>
+  <style>
+    :root { --hdr1:#4c1d95;--hdr2:#5b21b6;--accent:#7c3aed;--accent2:#8b5cf6;--bg:#faf8ff;--light:#f5f3ff;--text:#1a1a2e;--muted:#64748b;--border:#e2e8f0;--gold:#d97706;--green:#15803d;--red:#dc2626; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text)}
+    header{background:linear-gradient(135deg,var(--hdr1),var(--hdr2));color:#fff;position:sticky;top:0;z-index:200}
+    .hi{max-width:1200px;margin:0 auto;padding:0 1.5rem;display:flex;align-items:center;height:60px;gap:1rem}
+    .logo{font-weight:800;font-size:1.2rem;text-decoration:none;color:#fff;white-space:nowrap}
+    nav a{color:rgba(255,255,255,.8);text-decoration:none;padding:.35rem .65rem;border-radius:6px;font-size:.85rem;white-space:nowrap}
+    nav a:hover,nav a.active{background:rgba(255,255,255,.18);color:#fff}
+    .hero{background:linear-gradient(160deg,#1e1b4b,#3730a3,#4c1d95);color:#fff;padding:3rem 1.5rem 2.5rem;position:relative;overflow:hidden}
+    .hero::before{content:"⚖";position:absolute;right:-1rem;top:-1rem;font-size:12rem;opacity:.05}
+    .hi2{max-width:1100px;margin:0 auto}
+    .badge{display:inline-block;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:99px;padding:.3rem .9rem;font-size:.75rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:1rem}
+    .hero h1{font-size:2rem;font-weight:900;margin-bottom:.6rem;line-height:1.2}
+    .hero p{font-size:.95rem;opacity:.85;max-width:640px;line-height:1.7;margin-bottom:1.5rem}
+    .hstats{display:flex;gap:2rem;flex-wrap:wrap}
+    .hstat .num{font-size:1.5rem;font-weight:900}
+    .hstat .lbl{font-size:.72rem;opacity:.75;text-transform:uppercase;letter-spacing:.04em}
+    .tabs{background:#fff;border-bottom:2px solid var(--border);position:sticky;top:60px;z-index:100;overflow-x:auto}
+    .ti{max-width:1200px;margin:0 auto;display:flex;padding:0 1.5rem}
+    .tab{padding:.85rem 1rem;font-size:.82rem;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .15s}
+    .tab:hover{color:var(--accent)}
+    .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+    .container{max-width:1200px;margin:0 auto;padding:2rem 1.5rem}
+    .section{display:none}.section.active{display:block}
+    .g3{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem;margin-bottom:1.5rem}
+    .g2{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:1.25rem;margin-bottom:1.5rem}
+    .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.5rem}
+    .ca{border-left:4px solid var(--accent)}.cg{border-left:4px solid #22c55e}.cr{border-left:4px solid var(--red)}.co{border-left:4px solid var(--gold)}
+    .card h3{font-size:1rem;font-weight:800;margin-bottom:.5rem;color:var(--hdr1)}
+    .card p,.card li{font-size:.87rem;color:var(--muted);line-height:1.7}
+    .card ul{padding-left:1.2rem}
+    .card li{margin-bottom:.3rem}
+    .cite{font-size:.72rem;color:#a78bfa;font-weight:700;margin-top:.75rem;display:block}
+    .tag{display:inline-block;background:var(--light);color:var(--accent);border-radius:99px;padding:.15rem .6rem;font-size:.7rem;font-weight:700;margin-bottom:.5rem}
+    .lb{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:.85rem;overflow:hidden}
+    .lh{display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;cursor:pointer;transition:background .1s}
+    .lh:hover{background:var(--light)}
+    .ln{background:linear-gradient(135deg,var(--hdr1),var(--accent));color:#fff;border-radius:8px;padding:.3rem .65rem;font-size:.73rem;font-weight:800;white-space:nowrap}
+    .lt{font-weight:700;font-size:.93rem;flex:1}
+    .la{color:var(--muted);font-size:.85rem;transition:transform .2s}
+    .lb.open .la{transform:rotate(90deg)}
+    .lbd{display:none;padding:0 1.25rem 1.25rem;border-top:1px solid var(--border)}
+    .lb.open .lbd{display:block}
+    .lbd p{font-size:.87rem;color:var(--muted);line-height:1.75;margin-top:.85rem}
+    .plain{background:var(--light);border-radius:8px;padding:.75rem 1rem;margin-top:.75rem;font-size:.84rem;color:var(--hdr1);font-weight:600}
+    .vt{display:inline-block;margin-top:.6rem;padding:.3rem .8rem;border-radius:99px;font-size:.73rem;font-weight:700;background:#f0fdf4;color:var(--green);border:1px solid #bbf7d0}
+    .ag{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-bottom:1.5rem}
+    .am{background:#fff;border:1px solid var(--border);border-radius:12px;padding:1.25rem;position:relative;overflow:hidden}
+    .am::before{content:attr(data-num);position:absolute;right:.75rem;top:.3rem;font-size:3rem;font-weight:900;color:var(--light);line-height:1}
+    .am .anum{font-size:.7rem;font-weight:800;text-transform:uppercase;color:var(--accent);letter-spacing:.06em;margin-bottom:.4rem}
+    .am h4{font-size:.9rem;font-weight:800;color:var(--hdr1);margin-bottom:.4rem}
+    .am p{font-size:.82rem;color:var(--muted);line-height:1.6}
+    .am .tu{background:#f0fdf4;border-radius:7px;padding:.45rem .7rem;font-size:.77rem;color:var(--green);font-weight:600;margin-top:.65rem}
+    .fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1rem;margin-bottom:1.5rem}
+    .fc{background:linear-gradient(135deg,#fdf4ff,#f5f3ff);border:1px solid #ddd6fe;border-radius:14px;padding:1.25rem}
+    .fc .em{font-size:1.75rem;margin-bottom:.5rem}
+    .fc h4{font-size:.88rem;font-weight:800;color:var(--hdr1);margin-bottom:.35rem}
+    .fc p{font-size:.82rem;color:var(--muted);line-height:1.65}
+    .comic{background:#fff;border:2px solid #a78bfa;border-radius:14px;padding:1.5rem;margin-bottom:1.25rem}
+    .ct{font-weight:800;font-size:.92rem;color:var(--hdr1);margin-bottom:1rem}
+    .panels{display:flex}
+    .panel{flex:1;border:1px solid #ddd6fe;padding:.9rem;font-size:.82rem;line-height:1.5;position:relative}
+    .panel:not(:last-child){border-right:none}
+    .panel:first-child{border-radius:10px 0 0 10px}
+    .panel:last-child{border-radius:0 10px 10px 0}
+    .sp{font-weight:800;font-size:.72rem;color:var(--accent);margin-bottom:.3rem;text-transform:uppercase}
+    .pn{position:absolute;top:.3rem;right:.4rem;font-size:.65rem;color:#c4b5fd;font-weight:700}
+    .tbl{width:100%;border-collapse:collapse;font-size:.84rem;background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--border);margin-bottom:1.5rem}
+    .tbl th{background:linear-gradient(135deg,var(--hdr1),var(--hdr2));color:#fff;padding:.7rem 1rem;text-align:left;font-size:.76rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+    .tbl td{padding:.65rem 1rem;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:top}
+    .tbl tr:last-child td{border-bottom:none}
+    .tbl tr:hover td{background:var(--light)}
+    .tbl td strong{color:var(--text)}
+    .tl{position:relative;padding-left:2rem}
+    .tl::before{content:'';position:absolute;left:.55rem;top:0;bottom:0;width:2px;background:#ddd6fe}
+    .tli{position:relative;margin-bottom:1.5rem}
+    .tld{position:absolute;left:-1.65rem;top:.3rem;width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 0 0 2px var(--accent2)}
+    .tly{font-size:.7rem;font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+    .tlt{font-size:.9rem;font-weight:700;color:var(--hdr1);margin:.15rem 0}
+    .tlb{font-size:.83rem;color:var(--muted);line-height:1.65}
+    .sh{margin-bottom:1.5rem}
+    .sh h2{font-size:1.45rem;font-weight:900;color:var(--hdr1)}
+    .sh p{font-size:.9rem;color:var(--muted);margin-top:.3rem;line-height:1.6}
+    .div{display:flex;align-items:center;gap:.75rem;margin:1.75rem 0 1.25rem}
+    .div span{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);white-space:nowrap}
+    .div::before,.div::after{content:'';flex:1;height:1px;background:var(--border)}
+    .qb{background:linear-gradient(135deg,var(--hdr1),#3730a3);color:#fff;border-radius:14px;padding:1.75rem 2rem;margin-bottom:1.5rem;position:relative}
+    .qb::before{content:'"';position:absolute;left:1rem;top:.5rem;font-size:4rem;opacity:.2;line-height:1}
+    .qb p{font-size:1rem;font-style:italic;line-height:1.75;position:relative}
+    .qb cite{display:block;font-size:.78rem;opacity:.75;margin-top:.6rem;font-style:normal;font-weight:700}
+    @media(max-width:700px){.panels{flex-direction:column}.panel:first-child{border-radius:10px 10px 0 0}.panel:last-child{border-radius:0 0 10px 10px}.panel:not(:last-child){border-right:1px solid #ddd6fe;border-bottom:none}}
+  </style>
+</head>
+<body>
+<header>
+  <div class="hi">
+    <a class="logo" href="/tenant/home">Semptify</a>
+    <nav style="display:flex;gap:.2rem;flex:1">
+      <a href="/tenant/home">Dashboard</a>
+      <a href="/tenant/documents">Documents</a>
+      <a href="/law-library" class="active">Law Library</a>
+      <a href="/tenant/tools/deadlines.html">Deadlines</a>
+      <a href="/tenant/tools/letters.html">Letters</a>
+      <a href="/tenant/help.html">Help</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hi2">
+    <div class="badge">Semptify Law Library</div>
+    <h1>Know Your Rights.<br>Use Them.</h1>
+    <p>Federal statutes, constitutional protections, Minnesota law, local ordinances, history, and plain-English explanations — built for tenants who can't afford a lawyer but refuse to be pushed around.</p>
+    <div class="hstats">
+      <div class="hstat"><div class="num">27</div><div class="lbl">Amendments</div></div>
+      <div class="hstat"><div class="num">FHA</div><div class="lbl">Fair Housing Act</div></div>
+      <div class="hstat"><div class="num">504B</div><div class="lbl">MN Landlord-Tenant</div></div>
+      <div class="hstat"><div class="num">Free</div><div class="lbl">Always</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="ti">
+    <div class="tab active" onclick="show('constitution')">📜 Constitution</div>
+    <div class="tab" onclick="show('federal')">🏛 Federal Law</div>
+    <div class="tab" onclick="show('minnesota')">🏠 Minnesota</div>
+    <div class="tab" onclick="show('local')">🏙 Local</div>
+    <div class="tab" onclick="show('procedures')">📋 Procedures</div>
+    <div class="tab" onclick="show('history')">📅 History</div>
+    <div class="tab" onclick="show('comics')">🎭 Comics</div>
+    <div class="tab" onclick="show('funfacts')">💡 Fun Facts</div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- CONSTITUTION -->
+<div class="section active" id="sec-constitution">
+  <div class="sh"><h2>📜 The U.S. Constitution &amp; Your Housing Rights</h2><p>Ratified 1788. The Bill of Rights followed in 1791. These 10 amendments remain the backbone of every American's legal protections — here's what they mean for tenants.</p></div>
+  <div class="qb"><p>We the People of the United States, in Order to form a more perfect Union, establish Justice, insure domestic Tranquility... do ordain and establish this Constitution for the United States of America.</p><cite>— Preamble, U.S. Constitution, 1788</cite></div>
+  <div class="div"><span>Bill of Rights — Tenant Relevance</span></div>
+  <div class="ag">
+    <div class="am" data-num="1"><div class="anum">1st Amendment · 1791</div><h4>Free Speech &amp; Petition</h4><p>Government cannot punish you for speaking out about housing conditions. You have the right to petition courts and agencies without retaliation.</p><div class="tu">File complaints without fear of government retaliation.</div></div>
+    <div class="am" data-num="4"><div class="anum">4th Amendment · 1791</div><h4>No Unreasonable Search</h4><p>Your home is protected from warrantless searches. State law extends similar protections to landlord entry — notice is required.</p><div class="tu">Landlord cannot enter without proper advance notice.</div></div>
+    <div class="am" data-num="5"><div class="anum">5th Amendment · 1791</div><h4>Due Process &amp; Takings</h4><p>No deprivation of property without due process. Government takings require fair compensation. Evictions must follow proper procedure.</p><div class="tu">Notice, hearing, and right to respond are required in all eviction proceedings.</div></div>
+    <div class="am" data-num="8"><div class="anum">8th Amendment · 1791</div><h4>No Excessive Fines</h4><p>Grossly disproportionate fines are prohibited. Courts increasingly apply this to abusive late fees in housing proceedings.</p><div class="tu">Challenge outrageous fees in housing court.</div></div>
+    <div class="am" data-num="13"><div class="anum">13th Amendment · 1865</div><h4>No Involuntary Servitude</h4><p>Abolished slavery. Debt bondage — landlords requiring labor or service in lieu of rent — is unconstitutional.</p><div class="tu">No landlord can require unpaid work as partial rent payment.</div></div>
+    <div class="am" data-num="14"><div class="anum">14th Amendment · 1868</div><h4>Equal Protection</h4><p>No state shall deny any person equal protection of the laws. Foundation of all housing discrimination law in America.</p><div class="tu">Discrimination in housing based on race, origin, or religion violates this amendment directly.</div></div>
+  </div>
+  <div class="div"><span>Quick Reference Table</span></div>
+  <table class="tbl">
+    <thead><tr><th>Amendment</th><th>Right</th><th>Housing Application</th><th>Ratified</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1st</strong></td><td>Speech, petition, assembly</td><td>Complain, organize, file reports</td><td>1791</td></tr>
+      <tr><td><strong>4th</strong></td><td>Search &amp; seizure</td><td>Landlord entry rules</td><td>1791</td></tr>
+      <tr><td><strong>5th</strong></td><td>Due process, takings</td><td>Eviction procedure</td><td>1791</td></tr>
+      <tr><td><strong>8th</strong></td><td>Excessive fines</td><td>Abusive fee challenges</td><td>1791</td></tr>
+      <tr><td><strong>13th</strong></td><td>Involuntary servitude</td><td>Labor-for-rent schemes</td><td>1865</td></tr>
+      <tr><td><strong>14th</strong></td><td>Equal protection</td><td>Housing discrimination foundation</td><td>1868</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- FEDERAL -->
+<div class="section" id="sec-federal">
+  <div class="sh"><h2>🏛 Federal Housing Law</h2><p>These laws apply in all 50 states. No state, city, or landlord can take them away. They are the federal floor.</p></div>
+  <div class="div"><span>Fair Housing Act — 42 U.S.C. § 3601</span></div>
+  <div class="g3">
+    <div class="card ca"><div class="tag">42 U.S.C. § 3604</div><h3>Protected Classes</h3><ul><li><strong>Race</strong></li><li><strong>Color</strong></li><li><strong>National Origin</strong></li><li><strong>Religion</strong></li><li><strong>Sex</strong> (incl. gender identity, sexual orientation per HUD 2021)</li><li><strong>Disability</strong></li><li><strong>Familial Status</strong> (children under 18, pregnancy)</li></ul><span class="cite">Fair Housing Act, 42 U.S.C. §§ 3601–3619</span></div>
+    <div class="card cg"><div class="tag">Disability</div><h3>Reasonable Accommodations</h3><p>Landlords must make reasonable accommodations in rules and practices for tenants with disabilities. Reasonable modifications to the unit must be allowed (tenant typically pays).</p><ul style="margin-top:.5rem"><li>Accessible parking</li><li>Service/assistance animals</li><li>Grab bars in bathroom</li><li>Modified payment schedule</li></ul><span class="cite">42 U.S.C. § 3604(f)</span></div>
+    <div class="card cr"><div class="tag">Prohibited Acts</div><h3>What Landlords Cannot Do</h3><ul><li>Refuse to rent based on protected class</li><li>Different terms based on class</li><li>"Steering" tenants to certain areas</li><li>Discriminatory advertising</li><li>Retaliate for FHA complaints</li><li>Intimidate anyone exercising FHA rights</li></ul><span class="cite">42 U.S.C. § 3617</span></div>
+  </div>
+  <div class="div"><span>Other Key Federal Laws</span></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">42 U.S.C. § 1437</span><span class="lt">U.S. Housing Act — Public Housing &amp; Section 8</span><span class="la">▶</span></div><div class="lbd"><p>Establishes the Housing Choice Voucher Program (Section 8). Units must meet HUD Housing Quality Standards. Landlords cannot treat voucher holders differently in jurisdictions with source-of-income protection.</p><div class="plain">Section 8 units must pass government inspection. Landlords in the program cannot discriminate against voucher holders.</div><span class="vt">Tenant Protective</span></div></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">42 U.S.C. § 1982</span><span class="lt">Civil Rights Act of 1866 — Property Rights</span><span class="la">▶</span></div><div class="lbd"><p>All citizens have the same right to lease property regardless of race. Supreme Court in <em>Jones v. Mayer Co. (1968)</em> held this covers private housing. Racial discrimination in housing has been illegal since 1866.</p><div class="plain">Racial discrimination in housing has been illegal for over 150 years. No exceptions. No private business justification.</div><span class="vt">Tenant Protective</span></div></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">15 U.S.C. § 1681</span><span class="lt">Fair Credit Reporting Act — Tenant Screening</span><span class="la">▶</span></div><div class="lbd"><p>If a landlord denies tenancy based on a screening report, they must give you an adverse action notice with the reporting agency's name and your right to a free copy and dispute process.</p><div class="plain">Denied because of your credit? You must be told, given the report, and allowed to dispute errors — free of charge.</div><span class="vt">Tenant Protective</span></div></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">42 U.S.C. § 4851</span><span class="lt">Lead Hazard Reduction Act — Disclosure Required</span><span class="la">▶</span></div><div class="lbd"><p>Landlords of pre-1978 housing must disclose known lead paint hazards and provide the EPA pamphlet before lease signing. Penalties up to $18,000 per violation for failure to disclose.</p><div class="plain">Pre-1978 home? You are owed a lead paint disclosure before signing anything. No disclosure = federal violation.</div><span class="vt">Tenant Protective</span></div></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">50 U.S.C. § 3901</span><span class="lt">SCRA — Servicemembers Civil Relief Act</span><span class="la">▶</span></div><div class="lbd"><p>Active duty military can terminate a lease with 30 days notice after deployment orders. Landlords cannot evict without a court order during active duty. Rent cannot increase without written consent.</p><div class="plain">Deployed? You can legally break your lease. Your landlord cannot make your life harder because you serve.</div><span class="vt">Tenant Protective</span></div></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">42 U.S.C. § 3617</span><span class="lt">FHA Anti-Retaliation</span><span class="la">▶</span></div><div class="lbd"><p>Unlawful to coerce, intimidate, threaten, or interfere with any person exercising Fair Housing rights. Applies to landlords who retaliate after a tenant files an HUD complaint.</p><div class="plain">File an FHA complaint → landlord raises rent → that itself is a separate federal violation.</div><span class="vt">Tenant Protective</span></div></div>
+</div>
+
+<!-- MINNESOTA -->
+<div class="section" id="sec-minnesota">
+  <div class="sh"><h2>🏠 Minnesota Landlord-Tenant Law — Chapter 504B</h2><p>Minnesota provides some of the strongest tenant protections in the Midwest. The law is strictly interpreted by courts.</p></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">§ 504B.161</span><span class="lt">Covenant of Habitability — Landlord Must Repair</span><span class="la">▶</span></div><div class="lbd"><p>Every lease contains an implied covenant that the landlord will maintain the premises in reasonable repair, in compliance with health and safety laws. This covenant cannot be waived — any lease clause that tries to waive it is void.</p><div class="plain">The landlord must keep the unit livable. Heat, water, weatherproofing, safety. No lease clause can remove this duty.</div><span class="vt">Tenant Protective</span></div></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">§ 504B.211</span><span class="lt">Landlord Entry — Notice Required</span><span class="la">▶</span></div><div class="lbd"><p>A landlord must give reasonable notice (24 hours minimum in practice) before entering — except genuine emergencies. Repeated unauthorized entry is grounds for a rent escrow action.</p><div class="plain">Landlord cannot walk in unannounced. 24-hour notice minimum. Emergency (fire, flood) is the only exception.</div><span class="vt">Tenant Protective</span></div></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">§ 504B.178</span><span class="lt">Security Deposits — 21-Day Return Rule</span><span class="la">▶</span></div><div class="lbd"><p>Landlord must return the deposit (plus interest) within 21 days after tenancy ends. If deductions are taken, an itemized written statement is required. Wrongful withholding = deposit + $500 punitive damages + attorney fees.</p><div class="plain">21 days, itemized statement, or you owe the deposit back plus $500 and the tenant's lawyer fees.</div><span class="vt">Tenant Protective</span></div></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">§ 504B.385</span><span class="lt">Rent Escrow Action</span><span class="la">▶</span></div><div class="lbd"><p>If a landlord fails to repair a habitability violation, a tenant may bring a rent escrow action. The court deposits rent into escrow and may order repairs, rent reduction, or lease termination. Tenant does NOT stop paying rent — they pay into court escrow.</p><div class="plain">Don't stop paying rent. File a rent escrow action. Your rent goes to the court until the landlord fixes the problem.</div><span class="vt">Tenant Protective</span></div></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">§ 504B.231</span><span class="lt">Retaliatory Conduct — Prohibited</span><span class="la">▶</span></div><div class="lbd"><p>A landlord may not retaliate by raising rent, reducing services, or beginning eviction because a tenant: complained to government; organized a tenants' union; or exercised a legal right. Retaliation is <strong>presumed</strong> if adverse action occurs within 90 days of a protected activity.</p><div class="plain">File a code complaint → landlord raises rent within 90 days → that is presumed illegal retaliation. Landlord must prove it wasn't.</div><span class="vt">Tenant Protective</span></div></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">§ 504B.291</span><span class="lt">Eviction — Court Order Required</span><span class="la">▶</span></div><div class="lbd"><p>Evictions in Minnesota require a court order. Self-help eviction — changing locks, removing property, shutting off utilities — is illegal regardless of what the lease says.</p><div class="plain">Landlord cannot lock you out or shut off heat without a court order. Doing so makes THEM liable to you.</div><span class="vt">Tenant Protective</span></div></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">§ 504B.195</span><span class="lt">Domestic Abuse — Early Lease Termination</span><span class="la">▶</span></div><div class="lbd"><p>Victims of domestic abuse, sexual assault, or stalking may terminate a lease early without penalty by providing written notice and documentation. Landlord cannot penalize or withhold the deposit for this.</p><div class="plain">Domestic abuse survivor? You can legally break your lease and leave safely. Your landlord cannot charge you for it.</div><span class="vt">Tenant Protective</span></div></div>
+  <div class="div"><span>Notice Periods — Minnesota</span></div>
+  <table class="tbl">
+    <thead><tr><th>Situation</th><th>Required Notice</th><th>Statute</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Nonpayment of rent</strong></td><td>14 days (then file in court)</td><td>§ 504B.135</td></tr>
+      <tr><td><strong>Lease violation</strong></td><td>Reasonable time to cure</td><td>§ 504B.285</td></tr>
+      <tr><td><strong>Month-to-month termination</strong></td><td>One full rental period</td><td>§ 504B.135</td></tr>
+      <tr><td><strong>Landlord entry</strong></td><td>24 hours (emergency excepted)</td><td>§ 504B.211</td></tr>
+      <tr><td><strong>Security deposit return</strong></td><td>21 days after move-out</td><td>§ 504B.178</td></tr>
+    </tbody>
+  </table>
+  <div class="div"><span>MN Human Rights Act — Extra Protected Classes</span></div>
+  <div class="g3">
+    <div class="card ca"><h3>MN Goes Further Than Federal</h3><ul><li>Marital status</li><li>Sexual orientation (since 1993)</li><li>Gender identity (explicit)</li><li>Age</li><li>Public assistance / source of income</li></ul><span class="cite">Minn. Stat. § 363A.09</span></div>
+    <div class="card cg"><h3>Source of Income Protection</h3><p>Minnesota landlords cannot refuse to rent solely because someone pays with a housing voucher (Section 8) or receives public assistance. Stronger than federal law.</p><span class="cite">Minn. Stat. § 363A.09, subd. 1(3)</span></div>
+    <div class="card co"><h3>Free Legal Help — Minnesota</h3><ul><li>HOME Line: 612-728-5767</li><li>Mid-MN Legal Aid: 612-332-1441</li><li>MN Attorney General: 651-296-3353</li><li>Hennepin Housing Court: 612-348-6000</li><li>Ramsey Housing Court: 651-266-8266</li></ul></div>
+  </div>
+</div>
+
+<!-- LOCAL -->
+<div class="section" id="sec-local">
+  <div class="sh"><h2>🏙 Local Ordinances — Minnesota Cities</h2><p>Cities can add protections on top of state law. They cannot take away state rights — only add more.</p></div>
+  <div class="div"><span>Minneapolis</span></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">MCO § 244.2020</span><span class="lt">Minneapolis Rent Stabilization — 3% Annual Cap</span><span class="la">▶</span></div><div class="lbd"><p>Approved by voters November 2021. Limits rent increases to 3% per year for most units. Exemptions: new construction (after 2021), owner-occupied buildings of 3 units or fewer. Landlords can apply for exceptions for capital improvements or hardship.</p><div class="plain">In Minneapolis, most landlords cannot raise your rent more than 3% per year. One of the few Midwest rent control laws.</div><span class="vt">Tenant Protective</span></div></div>
+  <div class="div"><span>Saint Paul</span></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">Saint Paul Ord. § 193A</span><span class="lt">Saint Paul Rent Stabilization — Applies to New Construction</span><span class="la">▶</span></div><div class="lbd"><p>Voters approved in 2021. Unlike Minneapolis, applies to new construction too. Allows CPI-based adjustments. Subject to ongoing legal and legislative challenges — check current status.</p><div class="plain">Saint Paul's rent control is broader than Minneapolis. Includes newer buildings. Still being challenged in court.</div><span class="vt">Tenant Protective (ongoing)</span></div></div>
+  <div class="lb" onclick="toggleLaw(this)"><div class="lh"><span class="ln">Saint Paul Ord. § 193B</span><span class="lt">Just Cause Eviction — Long-Term Tenants</span><span class="la">▶</span></div><div class="lbd"><p>Landlords must have a "just cause" (nonpayment, material lease violation, etc.) to evict tenants who have lived in the unit for 3+ years. "I just want you out" is not legally sufficient.</p><div class="plain">Lived in Saint Paul for 3+ years? Your landlord needs a real legal reason to evict you.</div><span class="vt">Tenant Protective</span></div></div>
+  <div class="div"><span>Other MN Cities</span></div>
+  <table class="tbl">
+    <thead><tr><th>City</th><th>Key Ordinance</th><th>Contact</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Bloomington</strong></td><td>Rental licensing, code enforcement</td><td>952-563-8930</td></tr>
+      <tr><td><strong>Brooklyn Park</strong></td><td>Rental licensing required</td><td>763-493-8000</td></tr>
+      <tr><td><strong>Duluth</strong></td><td>Housing code, rental registration</td><td>218-730-5000</td></tr>
+      <tr><td><strong>Richfield</strong></td><td>Rental licensing, just cause provisions</td><td>612-861-9700</td></tr>
+      <tr><td><strong>Rochester</strong></td><td>Rental license required, inspection program</td><td>507-328-2900</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- PROCEDURES -->
+<div class="section" id="sec-procedures">
+  <div class="sh"><h2>📋 Legal Procedures — What To Do &amp; When</h2><p>Knowing the law is step one. Knowing the procedure is step two.</p></div>
+  <div class="div"><span>Facing Eviction — MN Timeline</span></div>
+  <div class="g2">
+    <div class="card cr"><h3>⚠️ Eviction Timeline</h3><ul><li><strong>Day 1:</strong> Receive written notice (14-day for nonpayment)</li><li><strong>Day 14+:</strong> Landlord files in district court</li><li><strong>Within 7–14 days:</strong> You receive a Summons with court date</li><li><strong>Court date:</strong> Appear or default judgment is entered against you</li><li><strong>If judgment against you:</strong> 7-day writ of recovery</li><li><strong>After 7 days:</strong> Sheriff can enforce the writ</li></ul></div>
+    <div class="card cg"><h3>✅ Your Defenses</h3><ul><li>Payment (you paid — have proof)</li><li>Improper notice (wrong format or timeline)</li><li>Retaliation (you complained about conditions)</li><li>Habitability (unit was uninhabitable)</li><li>Discrimination (protected class)</li><li>Waiver (landlord accepted rent after the notice)</li><li>Procedural defects</li></ul></div>
+  </div>
+  <div class="div"><span>Where to File Complaints</span></div>
+  <table class="tbl">
+    <thead><tr><th>Issue</th><th>Where to File</th><th>Contact</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Habitability / repairs</strong></td><td>City housing inspector + MN District Court (rent escrow)</td><td>311 (Minneapolis / St. Paul)</td></tr>
+      <tr><td><strong>Housing discrimination</strong></td><td>HUD or MN Dept. of Human Rights</td><td>1-800-669-9777 / mdhr.mn.gov</td></tr>
+      <tr><td><strong>Security deposit</strong></td><td>Conciliation Court (up to $15,000)</td><td>District court clerk</td></tr>
+      <tr><td><strong>Illegal lockout</strong></td><td>MN District Court emergency order + police</td><td>Non-emergency police line</td></tr>
+      <tr><td><strong>Retaliation</strong></td><td>MN District Court or MN AG Consumer Services</td><td>651-296-3353</td></tr>
+      <tr><td><strong>Lead paint violation</strong></td><td>EPA or MN Dept. of Health</td><td>1-800-424-5323</td></tr>
+    </tbody>
+  </table>
+  <div class="g3">
+    <div class="card ca"><h3>Conciliation Court Claims</h3><ul><li>Security deposit up to $15,000</li><li>Rent overpaid</li><li>Property damage by landlord</li><li>Moving costs from illegal eviction</li><li>$500 punitive (security deposit)</li></ul></div>
+    <div class="card cg"><h3>What You Need</h3><ul><li>Written lease or proof of tenancy</li><li>All texts and emails</li><li>Photos of conditions</li><li>Move-in/move-out checklist</li><li>Receipts for money paid</li></ul></div>
+    <div class="card co"><h3>Cost &amp; Process</h3><p>Filing fee ~$75–$100. No attorney required. File at district court clerk. Hearing typically 30–60 days out. Judge decides same day.</p></div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="section" id="sec-history">
+  <div class="sh"><h2>📅 Timeline of Housing Rights in America</h2><p>These protections were not given — they were fought for. Each one represents a struggle that changed the law.</p></div>
+  <div class="tl">
+    <div class="tli"><div class="tld"></div><div class="tly">1791</div><div class="tlt">Bill of Rights Ratified</div><div class="tlb">Due process, protection from search, and equal protection — the foundations every tenant right rests on today.</div></div>
+    <div class="tli"><div class="tld"></div><div class="tly">1866</div><div class="tlt">Civil Rights Act of 1866</div><div class="tlb">Granted all citizens the same right to lease property regardless of race — 102 years before the Fair Housing Act.</div></div>
+    <div class="tli"><div class="tld"></div><div class="tly">1917</div><div class="tlt">Buchanan v. Warley (SCOTUS)</div><div class="tlb">Supreme Court struck down racial zoning ordinances. Segregation moved underground into private deed covenants instead.</div></div>
+    <div class="tli"><div class="tld"></div><div class="tly">1937</div><div class="tlt">U.S. Housing Act</div><div class="tlb">Created federal public housing. First large-scale federal involvement in housing for low-income Americans.</div></div>
+    <div class="tli"><div class="tld"></div><div class="tly">1948</div><div class="tlt">Shelley v. Kraemer (SCOTUS)</div><div class="tlb">Racially restrictive deed covenants cannot be enforced by courts. A landmark civil rights housing victory.</div></div>
+    <div class="tli"><div class="tld"></div><div class="tly">1968</div><div class="tlt">Fair Housing Act Passed</div><div class="tlb">Passed 7 days after Dr. King's assassination. Banned discrimination in housing based on race, color, religion, national origin. Still in force.</div></div>
+    <div class="tli"><div class="tld"></div><div class="tly">1974</div><div class="tlt">Sex Added to FHA</div><div class="tlb">Women and pregnant tenants gained explicit federal housing protection for the first time.</div></div>
+    <div class="tli"><div class="tld"></div><div class="tly">1988</div><div class="tlt">Disability &amp; Families Added to FHA</div><div class="tlb">Landlords must now accommodate disabilities and cannot discriminate against families with children under 18.</div></div>
+    <div class="tli"><div class="tld"></div><div class="tly">1993</div><div class="tlt">Minnesota Adds Sexual Orientation</div><div class="tlb">MN became one of the first states to explicitly protect LGBTQ tenants — 27 years before federal extension.</div></div>
+    <div class="tli"><div class="tld"></div><div class="tly">2020</div><div class="tlt">Bostock v. Clayton County (SCOTUS)</div><div class="tlb">Title VII sex discrimination includes sexual orientation and gender identity. HUD extended this to FHA in 2021.</div></div>
+    <div class="tli"><div class="tld"></div><div class="tly">2021</div><div class="tlt">Minneapolis &amp; Saint Paul Rent Control</div><div class="tlb">Voters approved rent stabilization — first in the Midwest. Rent increases capped at 3% annually for most units.</div></div>
+    <div class="tli"><div class="tld"></div><div class="tly">2025+</div><div class="tlt">The Fight Continues</div><div class="tlb">Battles over just-cause eviction, source-of-income protection, and housing court access continue in legislatures and courts nationwide. These rights require constant defense.</div></div>
+  </div>
+</div>
+
+<!-- COMICS -->
+<div class="section" id="sec-comics">
+  <div class="sh"><h2>🎭 The Tenant &amp; The Law — A Comic Guide</h2><p>Because sometimes the law makes more sense in four panels. Educational use only — not legal advice.</p></div>
+  <div class="comic"><div class="ct">Episode 1: "The Unlawful Lockout"</div><div class="panels"><div class="panel"><span class="pn">1</span><div class="sp">Landlord</div>"You're late on rent. I'm changing the locks tonight."</div><div class="panel"><span class="pn">2</span><div class="sp">Tenant</div>"That's illegal. Self-help eviction is banned under Minn. Stat. § 504B.291."</div><div class="panel"><span class="pn">3</span><div class="sp">Landlord</div>"I own this building. I make the rules."</div><div class="panel"><span class="pn">4</span><div class="sp">Judge (later)</div>"Landlord owes actual damages, punitive damages, and attorney fees. Court adjourned."</div></div></div>
+  <div class="comic"><div class="ct">Episode 2: "The 23-Day Security Deposit"</div><div class="panels"><div class="panel"><span class="pn">1</span><div class="sp">Tenant</div>"I moved out 23 days ago. Where's my deposit?"</div><div class="panel"><span class="pn">2</span><div class="sp">Landlord</div>"I've been busy. I'll get to it."</div><div class="panel"><span class="pn">3</span><div class="sp">Tenant</div>"§ 504B.178 says 21 days. Day 22 means you owe the deposit plus $500 plus attorney fees. I filed in Conciliation Court this morning."</div><div class="panel"><span class="pn">4</span><div class="sp">Landlord</div>"...I'll have a check to you by 5pm."</div></div></div>
+  <div class="comic"><div class="ct">Episode 3: "The Retaliatory Rent Increase"</div><div class="panels"><div class="panel"><span class="pn">1</span><div class="sp">Tenant</div>"The heat hasn't worked for two weeks. I called the city inspector."</div><div class="panel"><span class="pn">2</span><div class="sp">Landlord</div>"New letter: your rent is going up $400 next month."</div><div class="panel"><span class="pn">3</span><div class="sp">Tenant</div>"I called the inspector 12 days ago. Under § 504B.231, retaliation is presumed within 90 days of a complaint."</div><div class="panel"><span class="pn">4</span><div class="sp">Landlord</div>"...the rent increase was a typo."</div></div></div>
+  <div class="comic"><div class="ct">Episode 4: "The Fair Housing Ad"</div><div class="panels"><div class="panel"><span class="pn">1</span><div class="sp">Landlord Ad</div>"Apartment for rent. Ideal for young professionals. No families."</div><div class="panel"><span class="pn">2</span><div class="sp">HUD Investigator</div>"That ad violates the Fair Housing Act. Familial status is a protected class. 42 U.S.C. § 3604."</div><div class="panel"><span class="pn">3</span><div class="sp">Landlord</div>"I didn't mean anything by it."</div><div class="panel"><span class="pn">4</span><div class="sp">HUD</div>"Intent is irrelevant. Disparate impact is enough. Civil penalty: up to $21,410 for a first offense."</div></div></div>
+  <div class="comic"><div class="ct">Episode 5: "The Surprise Inspection"</div><div class="panels"><div class="panel"><span class="pn">1</span><div class="sp">Landlord</div>"I'm coming in Tuesday to 'check on things.' No notice needed — I own the place."</div><div class="panel"><span class="pn">2</span><div class="sp">Tenant</div>"§ 504B.211 requires reasonable notice. 24 hours minimum."</div><div class="panel"><span class="pn">3</span><div class="sp">Landlord</div>"The 4th Amendment is only for government searches."</div><div class="panel"><span class="pn">4</span><div class="sp">Tenant</div>"State law covers private landlords. Same result. See you Wednesday — after proper notice."</div></div></div>
+</div>
+
+<!-- FUN FACTS -->
+<div class="section" id="sec-funfacts">
+  <div class="sh"><h2>💡 Fun Facts &amp; Legal Trivia</h2><p>The law is weirder, funnier, and more interesting than anyone tells you.</p></div>
+  <div class="fg">
+    <div class="fc"><div class="em">📜</div><h4>The Constitution Never Mentions "Rent"</h4><p>The words "rent," "landlord," "tenant," and "housing" appear exactly zero times in the original U.S. Constitution. All housing law you rely on is built on implications, amendments, and 230+ years of court interpretation.</p></div>
+    <div class="fc"><div class="em">⏳</div><h4>The Fair Housing Act Almost Didn't Pass</h4><p>Proposed in 1966 and 1967 — killed both times. It only passed in 1968 because of the political shock of Dr. King's assassination. Congress had 7 days to act. They did. One week changed 200 years of housing law.</p></div>
+    <div class="fc"><div class="em">🐕</div><h4>"No Pets" vs. Service Animals</h4><p>Your landlord's "no pets" policy cannot apply to service animals or emotional support animals under the FHA. A no-pets clause cannot override a disability accommodation. Courts have even upheld ESA cases involving unusual animals.</p></div>
+    <div class="fc"><div class="em">💰</div><h4>The $20 Jury Trial Threshold</h4><p>The 7th Amendment preserves jury trial rights in federal civil cases over $20. That threshold was set in 1791. In today's dollars, $20 in 1791 is about $700. Congress has never updated it in 230+ years.</p></div>
+    <div class="fc"><div class="em">🏛️</div><h4>The 14th Amendment Was Born from Housing</h4><p>The 14th Amendment was ratified in 1868 partly because Southern states were passing "Black Codes" preventing freed slaves from owning property or signing leases. Housing rights were at the heart of Reconstruction law.</p></div>
+    <div class="fc"><div class="em">🔑</div><h4>Self-Help Eviction Was Once Legal</h4><p>In the 1800s, landlords routinely changed locks and threw out tenants without courts. It took decades of tenant organizing to make self-help eviction illegal everywhere. In some states this wasn't banned until the 1970s.</p></div>
+    <div class="fc"><div class="em">🎰</div><h4>No Federal Rent Control Exists</h4><p>There is no federal rent control law in the United States. Rent control only exists where local or state governments create it. Most states have preemption laws blocking cities from creating it at all.</p></div>
+    <div class="fc"><div class="em">⚖️</div><h4>Habitability Warranty Is Newer Than You Think</h4><p>In 1970, most states had no implied warranty of habitability. Tenants were stuck with broken units and no legal remedy. The warranty emerged from court decisions in the late 1960s and 1970s — within living memory.</p></div>
+    <div class="fc"><div class="em">📊</div><h4>Most Eviction Cases Are Default Judgments</h4><p>Studies show that in most U.S. housing courts, 70–80% of eviction cases result in a default judgment — meaning the tenant never showed up. Just showing up to court dramatically changes outcomes. Appearance = fighting chance.</p></div>
+    <div class="fc"><div class="em">🏘️</div><h4>Racially Restrictive Covenants Still Exist in Deeds</h4><p>Many property deeds in the U.S. still contain racially restrictive language from before 1948. They are legally unenforceable (Shelley v. Kraemer, 1948) but were never erased. Some states allow homeowners to file formal discharge documents to remove them.</p></div>
+    <div class="fc"><div class="em">📬</div><h4>You Can Sue HUD If They Ignore Your Complaint</h4><p>If HUD does not complete its investigation of your Fair Housing complaint within 100 days, you have the right to request a right-to-sue letter and take your case to federal court directly. HUD's inaction does not end your rights.</p></div>
+    <div class="fc"><div class="em">🌡️</div><h4>Minnesota Has a Legal Minimum Temperature</h4><p>Minnesota law requires landlords to maintain a minimum indoor temperature of 68°F from October 1 through April 30. Failure to do so is a habitability violation. It's one of the few states with a specific temperature requirement in statute.</p></div>
+  </div>
+  <div class="card ca" style="margin-top:1rem">
+    <h3>Disclaimer</h3>
+    <p>This library is for educational purposes. It is not legal advice. Laws change. Local variations apply. For your specific situation, contact a licensed attorney, MN Legal Aid (612-332-1441), or HOME Line (612-728-5767). Semptify helps you organize — a lawyer helps you fight.</p>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+function toggleLaw(el) {
+  el.classList.toggle('open');
+}
+</script>
+</body>
+</html>
