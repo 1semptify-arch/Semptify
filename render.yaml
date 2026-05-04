@@ -81,6 +81,18 @@ services:
       - key: R2_ENDPOINT
         sync: false
 
+      # ---------------------------------------------------------------------
+      # Email — Transactional (Resend recommended — resend.com)
+      # Set RESEND_API_KEY in Render Dashboard > Environment (never in git)
+      # FROM_EMAIL must be a verified domain address in your Resend account
+      # ---------------------------------------------------------------------
+      - key: RESEND_API_KEY
+        sync: false
+      - key: FROM_EMAIL
+        value: noreply@semptify.org
+      - key: SUPPORT_EMAIL
+        value: support@semptify.org
+
 # NOTE: No databases block here intentionally.
 # Use Neon (neon.tech) — free PostgreSQL with no 90-day expiry.
 # Render's free PostgreSQL deletes data after 90 days.
