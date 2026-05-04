@@ -4,22 +4,36 @@
 ---
 
 ## Last Deployed Commit
-- **Hash**: `a0d15e9`
-- **Date**: 2026-05-03
+- **Hash**: `6817d53`
+- **Date**: 2026-05-04 02:14 UTC-05
 - **Branch**: `main`
 - **Repo**: https://github.com/1semptify-arch/Semptify.git
 - **Render auto-deploy**: YES — triggers on every push to main
 
 ---
 
-## Previous Deploy
-- **Hash**: `TBD` (pending push completion)
-- **Date**: 2026-05-03 15:48 UTC-05
-- **Shipped**: SSOT Architecture Compliance & Security Hardening
-  - All SSOT violations fixed across role_ui, storage, auth, onboarding, document_delivery
-  - Secure storage gate (no bypass without storage)
-  - SSOT-compliant navigation in welcome.html
-  - Deleted orphaned files
+## What Is Confirmed Working (6817d53)
+
+### 4-Step Flow — VERIFIED LIVE
+- [x] `GET /` → 200 welcome page served
+- [x] `GET /welcome.html` → 200 welcome page served (fixed — was 301 to /onboarding)
+- [x] `GET /onboarding/start` → 302 to /onboarding/select-role.html (fixed — was infinite loop)
+- [x] `GET /onboarding/select-role.html` → 200 role select page
+- [x] `GET /storage/providers` → 200 storage selection
+- [x] `GET /tenant/home` (no cookie) → 302 to /onboarding/start (bypass CLOSED)
+- [x] `GET /tenant/` (no cookie) → 302 to /onboarding/start (bypass CLOSED)
+
+### OAuth Flow — VERIFIED LIVE
+- [x] Google Drive OAuth callback completes without crash
+- [x] `create_or_update_user()` — spurious `role=` kwarg removed, `storage_user_id` restored
+- [x] User row created in DB, cookie set, device registered
+- [x] `Rehome.html` — fetch() removed, plain href + auto-redirect works from file:// origin
+
+---
+
+## Known Limitations (Not Bugs — Future Work)
+- Rehome.html in existing users' Drive is old version (fixed version only for new users)
+- MNDES exhibit packages stored in memory — lost on server restart
 
 ---
 
