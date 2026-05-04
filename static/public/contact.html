@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact – Semptify</title>
+  <style>
+    :root { --primary: #1e3a5f; --accent: #3b82f6; --text: #1e293b; --text-light: #475569; --bg: #fdfcfa; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
+    header { background: var(--primary); color: #fff; padding: 1.5rem 2rem; display: flex; align-items: center; gap: 1rem; }
+    header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 1.2rem; }
+    header nav { margin-left: auto; display: flex; gap: 1.5rem; font-size: 0.9rem; }
+    header nav a { color: rgba(255,255,255,0.8); text-decoration: none; }
+    header nav a:hover { color: #fff; }
+    .article { max-width: 720px; margin: 0 auto; padding: 2.5rem 2rem; }
+    h1 { font-size: 2rem; font-weight: 400; color: var(--primary); margin-bottom: 0.5rem; }
+    .subtitle { color: var(--text-light); margin-bottom: 2.5rem; font-size: 1.05rem; }
+    h2 { font-size: 1.1rem; color: var(--primary); margin: 0 0 0.35rem; font-weight: 600; }
+    p { color: var(--text-light); margin-bottom: 0.5rem; }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin: 2rem 0; }
+    @media (max-width: 600px) { .contact-grid { grid-template-columns: 1fr; } }
+    .contact-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1.5rem; }
+    .contact-card .icon { font-size: 1.75rem; margin-bottom: 0.75rem; }
+    .contact-card a { color: var(--accent); font-weight: 500; text-decoration: none; word-break: break-all; }
+    .contact-card a:hover { text-decoration: underline; }
+    .note { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 1rem 1.25rem; border-radius: 0 8px 8px 0; margin: 2rem 0; }
+    .note p { margin: 0; color: #92400e; font-size: 0.95rem; }
+    footer { background: var(--primary); color: rgba(255,255,255,0.7); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 3rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.75rem; text-decoration: none; }
+    footer a:hover { color: #fff; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/">📓 Semptify</a>
+    <nav>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/public/terms.html">Terms</a>
+      <a href="/public/disclaimer.html">Disclaimer</a>
+    </nav>
+  </header>
+
+  <article class="article">
+    <h1>Contact Semptify</h1>
+    <p class="subtitle">We're a small team. We read every message.</p>
+
+    <div class="contact-grid">
+
+      <div class="contact-card">
+        <div class="icon">👋</div>
+        <h2>General</h2>
+        <p>Questions about the app, your account, or anything else.</p>
+        <a href="mailto:hello@semptify.org">hello@semptify.org</a>
+      </div>
+
+      <div class="contact-card">
+        <div class="icon">⚖️</div>
+        <h2>Legal</h2>
+        <p>Legal notices, copyright claims, subpoenas, or policy questions.</p>
+        <a href="mailto:legal@semptify.org">legal@semptify.org</a>
+      </div>
+
+      <div class="contact-card">
+        <div class="icon">🔒</div>
+        <h2>Privacy</h2>
+        <p>Data requests, privacy concerns, or to exercise your rights under applicable law.</p>
+        <a href="mailto:privacy@semptify.org">privacy@semptify.org</a>
+      </div>
+
+      <div class="contact-card">
+        <div class="icon">🛠️</div>
+        <h2>Technical</h2>
+        <p>Bug reports, technical issues, or problems connecting your storage.</p>
+        <a href="mailto:tech@semptify.org">tech@semptify.org</a>
+      </div>
+
+    </div>
+
+    <div class="note">
+      <p>⚠️ We cannot provide legal advice or tell you what to do in your specific legal situation. For legal help, please contact a licensed attorney or your local legal aid society. See our <a href="/public/disclaimer.html">legal disclaimer</a>.</p>
+    </div>
+
+    <p>Want to give feedback about the product? <a href="/public/feedback.html">Submit feedback here →</a></p>
+
+  </article>
+
+  <footer>
+    <div>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/public/terms.html">Terms</a>
+      <a href="/public/disclaimer.html">Disclaimer</a>
+      <a href="/public/contact.html">Contact</a>
+      <a href="/public/feedback.html">Feedback</a>
+      <a href="/public/credits.html">Open Source Credits</a>
+    </div>
+    <div style="margin-top:0.5rem;">© 2024–2026 Semptify · Free Forever · No Ads</div>
+  </footer>
+
+</body>
+</html>

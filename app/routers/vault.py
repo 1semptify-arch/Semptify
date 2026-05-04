@@ -1,13 +1,25 @@
 """
 Document Vault Router (Cloud Storage Version)
-Secure document upload to user's cloud storage with certification.
+Secure document storage, retrieval, and certification.
 
-Semptify 5.0 Architecture:
-- ALL DOCUMENTS GO TO VAULT FIRST
+=============================================================================
+SSOT — VAULT RESPONSIBILITIES
+=============================================================================
+The vault STORES and SERVES documents. It does NOT intake them from the UI.
+
+UI uploads:   POST /api/intake/upload/auto   (intake.py is the ONE door in)
+Vault reads:  GET  /api/vault/documents      (list tenant's stored documents)
+Vault fetch:  GET  /api/vault/download/{id}  (retrieve a specific document)
+
+The POST /upload endpoint in this router is for INTERNAL/SERVICE use only.
+It is called by VaultUploadService — never directly from the tenant UI.
+If you are building a UI upload form, point it at /api/intake/upload/auto.
+
+Storage:
 - Documents stored in USER's cloud storage (Google Drive, Dropbox, OneDrive)
-- Modules access documents FROM the vault
-- User must be authenticated via storage OAuth
-- Certificates stored alongside documents in .semptify/vault/
+- Certificates stored alongside documents in .semptify/vault/certificates/
+- User must be authenticated via storage OAuth before any vault operation
+=============================================================================
 """
 
 import hashlib

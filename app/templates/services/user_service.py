@@ -45,7 +45,7 @@ async def create_user(
     provider: str,
     storage_user_id: str,
     email: Optional[str] = None,
-    display_name: Optional[str] = None,
+    display_name: Optional[str] = None,  # accepted but not stored on User — fetched from provider at login
     default_role: str = "tenant",
 ) -> User:
     """Create a new user from storage provider auth."""
@@ -55,7 +55,6 @@ async def create_user(
             primary_provider=provider,
             storage_user_id=storage_user_id,
             email=email,
-            display_name=display_name,
             default_role=default_role,
             created_at=datetime.utcnow(),
             last_login=datetime.utcnow(),
@@ -71,7 +70,7 @@ async def get_or_create_user(
     provider: str,
     storage_user_id: str,
     email: Optional[str] = None,
-    display_name: Optional[str] = None,
+    display_name: Optional[str] = None,  # accepted but not stored on User — fetched from provider at login
     default_role: str = "tenant",
 ) -> tuple[User, bool]:
     """
@@ -85,8 +84,6 @@ async def get_or_create_user(
             user.last_login = datetime.utcnow()
             if email and not user.email:
                 user.email = email
-            if display_name and not user.display_name:
-                user.display_name = display_name
             session.add(user)
             await session.commit()
         return user, False
@@ -120,8 +117,8 @@ async def update_user_role(user_id: str, role: str) -> Optional[User]:
 async def update_user_profile(
     user_id: str,
     email: Optional[str] = None,
-    display_name: Optional[str] = None,
-    avatar_url: Optional[str] = None,
+    display_name: Optional[str] = None,  # accepted but not stored — fetched from provider at login
+    avatar_url: Optional[str] = None,    # accepted but not stored — fetched from provider at login
 ) -> Optional[User]:
     """Update user profile info."""
     async with get_db_session() as session:
@@ -132,10 +129,6 @@ async def update_user_profile(
         if user:
             if email is not None:
                 user.email = email
-            if display_name is not None:
-                user.display_name = display_name
-            if avatar_url is not None:
-                user.avatar_url = avatar_url
             user.updated_at = datetime.utcnow()
             await session.commit()
             await session.refresh(user)
@@ -225,6 +218,5 @@ async def get_user_auth_info(user_id: str) -> Optional[dict]:
         "primary_provider": user.primary_provider,
         "default_role": user.default_role,
         "email": user.email,
-        "display_name": user.display_name,
         "linked_providers": [user.primary_provider] + [l.provider for l in linked],
     }

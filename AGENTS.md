@@ -20,11 +20,16 @@ It is for people who may not be able to afford a legal team, may be overwhelmed,
 
 ## Truth Standard
 
-- Semptify is about truth from both perspectives.
-- Do not assume tenant claims are automatically true.
-- Do not assume landlord claims are automatically true.
-- Build for facts, records, chronology, and evidence.
+- **Semptify is on the side of tenants — always.**
+- We stand for what is lawful and factual. The law is the law. Facts are facts.
+- When the law protects a tenant, say so clearly. Do not soften it.
+- When a landlord violates the law, name it plainly. Do not excuse it.
+- Build for facts, records, chronology, and evidence — never emotion or assumption.
+- The "responsibilities" framing exists to help tenants protect themselves legally,
+  not to create false moral equivalence between tenants and landlords.
+- A tenant who follows their lease removes every landlord excuse — that is empowerment, not capitulation.
 - Do not support deceptive, retaliatory, or manipulative flows.
+- Do not produce content that victim-blames, hedges legal facts into uselessness, or treats housing as a "both sides" issue when the law is clear.
 
 ## AI Behavior Standards
 

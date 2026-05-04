@@ -1,8 +1,32 @@
 """
 Unified Overlay Manager
 =======================
-Single source of truth for all overlay operations.
-Cloud-only, stateless: all storage is in user's cloud, no local files.
+
+=============================================================================
+SSOT — OVERLAYS ARE THE ONLY ACCESS MECHANISM
+=============================================================================
+The raw document file stored in the vault is IMMUTABLE and UNTOUCHED.
+No Semptify process reads, parses, or modifies the raw file directly.
+
+Every process that needs to work with a document — OCR, classification,
+timeline extraction, letter generation, briefcase display, court packet
+assembly — does so EXCLUSIVELY through overlays.
+
+An overlay is a structured record stored in the user's cloud storage that
+describes what was found in, extracted from, or annotated on a document.
+The document itself is never touched after vault storage.
+
+Rule: A document that has no overlay does not exist to Semptify processes.
+Rule: A document that is uncertified (no registry_id) may not receive overlays.
+Rule: All overlays are stored in the USER's cloud storage — never on our servers.
+
+Overlay lifecycle:
+  1. Vault stores raw file → issues vault_id + certificate
+  2. Registry certifies → issues registry_id (sem_id)
+  3. VAULT_UPLOAD_MANIFEST overlay created → document is now visible
+  4. Downstream processes create additional overlays (extraction, classification, etc.)
+  5. All reads go through overlay — raw file is never re-opened by Semptify
+=============================================================================
 
 Core Principle: Original documents NEVER get modified.
 All mutations happen in overlay layers stored in user's cloud storage.

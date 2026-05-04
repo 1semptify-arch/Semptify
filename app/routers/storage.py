@@ -641,8 +641,6 @@ async def create_or_update_user(
             user.storage_user_id = storage_user_id
         if email and not user.email:
             user.email = email
-        if display_name and not user.display_name:
-            user.display_name = display_name
     else:
         # Create new user
         user = User(
@@ -651,7 +649,6 @@ async def create_or_update_user(
             storage_user_id=storage_user_id or user_id,
             default_role=role,
             email=email,
-            display_name=display_name,
             last_login=now,
         )
         db.add(user)
@@ -1784,18 +1781,6 @@ async def oauth_callback(
             access_token=access_token,
             refresh_token=refresh_token,
             expires_at=expires_at,
-        )
-
-        # Create/update user and storage config in database
-        # NOTE: role is NOT passed here — create_or_update_user derives it from
-        # parse_user_id(user_id) internally. Role is encoded in the user_id by design.
-        user = await create_or_update_user(
-            db,
-            user_id,
-            provider,
-            email=identity_email,
-            display_name=identity_display_name,
-            storage_user_id=provider_subject,
         )
         if user:
             user_id = str(user.id)
