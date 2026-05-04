@@ -2780,6 +2780,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/law-library", response_class=HTMLResponse)
     async def law_library_page():
         """Serve the law library page."""
+        static_path = BASE_PATH / "static" / "tenant" / "law-library.html"
+        content = _render_static_page(static_path, inject_stage_model=False)
+        if content:
+            return HTMLResponse(content=content)
         return HTMLResponse(content=_inject_workspace_stage_model(generate_law_library_html()))
 
     # =========================================================================
