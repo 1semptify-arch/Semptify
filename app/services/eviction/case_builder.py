@@ -416,7 +416,7 @@ class EvictionCaseBuilder:
         """Extract tenant info from user profile and documents."""
         # Start with what we know from user profile
         tenant = ExtractedTenantInfo(
-            full_name=user.display_name or "",
+            full_name=user.email or "",  # display_name removed — fetched from provider at login
             address="",
             city="",
             state="MN",

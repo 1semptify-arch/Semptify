@@ -1,15 +1,32 @@
 """
 Document Intake API Router
 
-Provides endpoints for:
-- Document upload and intake
-- Processing status tracking
-- Extraction results retrieval
-- Issue detection results
-- Batch processing
-- Vault-based processing (documents from cloud storage)
+=============================================================================
+SSOT — ONE WAY IN
+=============================================================================
+Every document entering Semptify MUST come through this router.
+There is no other legitimate entry point.
 
-ALL UPLOADS GO TO VAULT FIRST - modules access from vault.
+Canonical entry points:
+  POST /api/intake/upload       — store in vault, queue for processing
+  POST /api/intake/upload/auto  — store in vault + full pipeline in one call
+
+What intake does (in order):
+  1. Notarize    — tamper-proof SHA-256 receipt before anything else
+  2. Vault store — VaultUploadService issues vault_id + certificate_id
+  3. Register    — Document Registry issues registry_id (sem_id)
+  4. Process     — OCR, classify, extract dates/parties/amounts
+  5. Emit event  — downstream systems (timeline, briefcase, deadlines) react
+
+What intake does NOT do:
+  - Display documents to the tenant (that is the vault read router)
+  - Manage storage OAuth (that is storage.py)
+  - Route the user (that is role_ui.py)
+
+Do NOT add a second upload route anywhere else in the codebase.
+If another module needs to store a document, it calls VaultUploadService
+directly — it does not create its own POST route.
+=============================================================================
 """
 
 import logging
@@ -315,6 +332,29 @@ async def upload_document(
         except Exception as e:
             logger.warning("Vault upload failed: %s", e)
     
+    # SSOT GATE: Do not proceed if vault document is not certified.
+    # Uncertified = no registry_id or integrity_status != "verified".
+    # The document is safely stored in the vault but frozen until certified.
+    if HAS_VAULT_SERVICE and vault_id:
+        _vault_doc = vault_doc if 'vault_doc' in dir() else None
+        if _vault_doc is not None and not _vault_doc.is_certified:
+            logger.warning(
+                "SSOT GATE: Document %s failed certification — downstream processing blocked.",
+                vault_id,
+            )
+            return UploadResponse(
+                id="",
+                filename=file.filename or "unknown",
+                status="uncertified",
+                message=(
+                    f"Document stored in vault ({vault_id}) but failed Semptify validation. "
+                    "No processing will occur until certification completes. "
+                    "Contact support if this persists."
+                ),
+                vault_id=vault_id,
+                overlay_record_ids=[],
+            )
+
     # STEP 2: Intake the document for processing (in background, don't wait)
     engine = get_intake_engine()
     try:
@@ -576,29 +616,53 @@ async def upload_documents_batch(
     for file in files:
         try:
             content = await file.read()
-            
+
             if len(content) == 0:
                 failed.append({"filename": file.filename, "error": "Empty file"})
                 continue
-            
+
             if len(content) > 25 * 1024 * 1024:
                 failed.append({"filename": file.filename, "error": "File too large"})
                 continue
-            
+
+            # SSOT: Every document — including batch — must go through vault first.
+            vault_doc = None
+            vault_id = None
+            if HAS_VAULT_SERVICE:
+                vault_service = get_vault_service()
+                vault_doc = await vault_service.upload(
+                    user_id=user_id,
+                    filename=file.filename or "unknown",
+                    content=content,
+                    mime_type=file.content_type or "application/octet-stream",
+                    source_module="intake_batch",
+                )
+                vault_id = vault_doc.vault_id
+
+            # SSOT GATE: Block uncertified documents from downstream processing.
+            if vault_doc is not None and not vault_doc.is_certified:
+                failed.append({
+                    "filename": file.filename,
+                    "error": f"Document stored in vault ({vault_id}) but failed certification — processing blocked.",
+                })
+                continue
+
             doc = await engine.intake_document(
                 user_id=user_id,
                 file_content=content,
                 filename=file.filename or "unknown",
                 mime_type=file.content_type or "application/octet-stream",
+                vault_id=vault_id,
             )
-            
+
             uploaded.append(UploadResponse(
                 id=doc.id,
                 filename=doc.filename,
                 status=doc.status.value,
                 message="Document received",
+                vault_id=vault_id,
             ))
-            
+
         except Exception as e:
             failed.append({"filename": file.filename, "error": str(e)})
     

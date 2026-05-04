@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Help & Resources – Semptify</title>
+  <style>
+    :root {
+      --hdr1: #4c1d95; --hdr2: #5b21b6; --accent: #7c3aed; --accent2: #8b5cf6;
+      --light: #f5f3ff; --bg: #faf8ff; --text: #1a1a2e; --muted: #64748b;
+      --danger: #dc2626; --success: #16a34a; --warning: #d97706;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); }
+
+    /* ── Header ── */
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; position: sticky; top: 0; z-index: 100; }
+    .header-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 64px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.3rem; text-decoration: none; color: #fff; white-space: nowrap; }
+    nav.core-nav { display: flex; gap: 0.25rem; flex: 1; }
+    nav.core-nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: 6px; font-size: 0.9rem; white-space: nowrap; }
+    nav.core-nav a:hover, nav.core-nav a.active { background: rgba(255,255,255,0.15); color: #fff; }
+    .header-actions { margin-left: auto; }
+    .hamburger { display: none; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+    .role-banner { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; padding: 0.4rem 0; font-size: 0.82rem; text-align: center; }
+
+    /* ── Emergency Banner ── */
+    .emergency-banner { background: linear-gradient(135deg, #b91c1c, #991b1b); padding: 0.85rem 1.5rem; display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .emergency-banner strong { color: #fff; font-size: 0.9rem; }
+    .emergency-banner a { color: #fff; text-decoration: none; padding: 0.4rem 0.9rem; background: rgba(255,255,255,0.2); border-radius: 6px; font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
+    .emergency-banner a:hover { background: rgba(255,255,255,0.35); }
+
+    /* ── Page Hero ── */
+    .hero { background: linear-gradient(160deg, #ede9fe 0%, var(--bg) 60%); padding: 2.5rem 1.5rem 1.5rem; text-align: center; }
+    .hero h1 { font-size: 1.9rem; font-weight: 800; color: var(--hdr1); margin-bottom: 0.5rem; }
+    .hero p { color: var(--muted); max-width: 560px; margin: 0 auto 1.5rem; line-height: 1.6; }
+
+    /* ── Search ── */
+    .search-wrap { max-width: 600px; margin: 0 auto 0; }
+    .search-wrap input { width: 100%; padding: 0.85rem 1.25rem; font-size: 1rem; border: 2px solid #ddd6fe; border-radius: 10px; outline: none; font-family: inherit; }
+    .search-wrap input:focus { border-color: var(--accent); }
+
+    /* ── Layout ── */
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .section { margin-bottom: 3rem; }
+    .section-title { font-size: 1.25rem; font-weight: 700; color: var(--hdr1); margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.6rem; }
+
+    /* ── Journey Steps ── */
+    .journey-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.85rem; }
+    .journey-step { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem; text-decoration: none; color: var(--text); display: flex; align-items: center; gap: 0.85rem; transition: all 0.15s; }
+    .journey-step:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(124,58,237,0.1); transform: translateY(-1px); }
+    .step-num { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.95rem; flex-shrink: 0; }
+    .step-body h4 { font-size: 0.92rem; font-weight: 600; margin-bottom: 0.2rem; }
+    .step-body p { font-size: 0.78rem; color: var(--muted); }
+
+    /* ── Cards Grid ── */
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; transition: all 0.15s; }
+    .card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(124,58,237,0.08); }
+    .card-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+    .card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .card p { color: var(--muted); font-size: 0.85rem; line-height: 1.5; margin-bottom: 0.85rem; }
+    .card-link { color: var(--accent); font-weight: 600; font-size: 0.85rem; text-decoration: none; }
+    .card-link:hover { text-decoration: underline; }
+
+    /* ── Contact Grid ── */
+    .contact-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+    .contact-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+    .contact-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--hdr1); }
+    .contact-card .phone { font-size: 1.3rem; font-weight: 800; color: var(--success); margin-bottom: 0.35rem; }
+    .contact-card p { font-size: 0.83rem; color: var(--muted); margin-bottom: 0.35rem; line-height: 1.5; }
+    .contact-card .hours { font-size: 0.75rem; color: #94a3b8; }
+
+    /* ── Resource Links ── */
+    .resource-list { display: flex; flex-direction: column; gap: 0.6rem; }
+    .resource-link { display: flex; align-items: center; gap: 1rem; padding: 0.9rem 1.1rem; background: #fff; border: 1px solid var(--border); border-radius: 8px; color: var(--text); text-decoration: none; transition: all 0.15s; }
+    .resource-link:hover { border-color: var(--accent); background: var(--light); }
+    .resource-link.featured { border-color: var(--accent); background: #f5f3ff; }
+    .resource-icon { font-size: 1.3rem; width: 28px; flex-shrink: 0; }
+    .resource-body strong { display: block; font-size: 0.92rem; }
+    .resource-body p { font-size: 0.8rem; color: var(--muted); margin: 0; }
+
+    /* ── FAQ ── */
+    .faq-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .faq-item { background: #fff; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .faq-question { padding: 1.1rem 1.25rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 0.95rem; user-select: none; }
+    .faq-question:hover { background: var(--light); }
+    .faq-chevron { font-size: 0.8rem; transition: transform 0.2s; color: var(--muted); }
+    .faq-item.open .faq-chevron { transform: rotate(180deg); }
+    .faq-answer { padding: 0 1.25rem 1.1rem; color: var(--muted); line-height: 1.65; font-size: 0.9rem; display: none; }
+    .faq-item.open .faq-answer { display: block; }
+    .faq-answer strong { color: var(--text); }
+    .faq-answer a { color: var(--accent); }
+
+    /* ── Disclaimer ── */
+    .disclaimer { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 10px; padding: 1rem 1.25rem; font-size: 0.82rem; color: #92400e; line-height: 1.6; margin-bottom: 2rem; }
+    .disclaimer strong { display: block; margin-bottom: 0.25rem; }
+
+    /* ── Back to top ── */
+    #backToTop { position: fixed; bottom: 1.5rem; right: 1.5rem; width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: #fff; border: none; font-size: 1.1rem; cursor: pointer; opacity: 0; transition: opacity 0.3s; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(124,58,237,0.3); }
+    #backToTop.visible { opacity: 1; }
+
+    /* ── Footer ── */
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+    footer a:hover { color: #fff; }
+
+    /* ── Mobile Nav Drawer ── */
+    .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; overflow-y: auto; }
+    .nav-drawer.open { display: flex; }
+    .nav-drawer a { color: rgba(255,255,255,0.85); text-decoration: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 1rem; display: block; }
+    .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
+    .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
+    .drawer-backdrop.open { display: block; }
+
+    @media (max-width: 768px) {
+      nav.core-nav { display: none; }
+      .hamburger { display: block; }
+      .cards-grid, .contact-grid, .journey-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  <nav class="nav-drawer" id="nav-drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <strong style="color:#fff;">Semptify</strong>
+      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    </div>
+    <a href="/tenant/home">🏠 Dashboard</a>
+    <a href="/tenant/journal">📓 Journal</a>
+    <a href="/tenant/documents">📁 Documents</a>
+    <a href="/law-library">📚 Rights</a>
+    <a href="/tenant/help" style="color:#fbbf24;font-weight:700;">🆘 Help</a>
+  </nav>
+
+  <header>
+    <div class="header-inner">
+      <button class="hamburger" onclick="openDrawer()">☰</button>
+      <a href="/tenant/home" class="logo">Semptify</a>
+      <nav class="core-nav">
+        <a href="/tenant/home">🏠 Home</a>
+        <a href="/tenant/journal">📓 Journal</a>
+        <a href="/tenant/documents">📁 Documents</a>
+        <a href="/law-library">📚 Rights</a>
+        <a href="/tenant/help" class="active">🆘 Help</a>
+      </nav>
+      <div class="header-actions">
+        <button onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;padding:0.45rem 1rem;border-radius:8px;font-weight:700;cursor:pointer;font-size:0.9rem;">🔒 Vault</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="role-banner">🆘 Help & Resources — Everything you need to protect your housing rights</div>
+
+  <!-- Emergency Banner -->
+  <div class="emergency-banner">
+    <strong>🚨 EMERGENCY?</strong>
+    <a href="tel:988">📞 988 Crisis Line</a>
+    <a href="tel:211">📞 211 Housing Help</a>
+    <a href="tel:18007456686">📞 HOME Line: 1-800-745-6686</a>
+    <a href="tel:18883545522">📞 Legal Aid: 1-888-354-5522</a>
+  </div>
+
+  <!-- Hero + Search -->
+  <div class="hero">
+    <h1>🆘 Help & Resources Center</h1>
+    <p>Everything you need to understand your rights, document your situation, and take action.</p>
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="🔍 Search... e.g. 'eviction notice', 'repair request', 'court date'" oninput="filterContent(this.value)">
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- Legal Disclaimer -->
+    <div class="disclaimer">
+      <strong>⚖️ Not Legal Advice</strong>
+      This page provides educational information only — not legal advice. Laws vary by location and change over time. For advice specific to your situation, contact a licensed attorney or free legal aid. See our <a href="/public/disclaimer.html" style="color:#92400e;">full disclaimer</a>.
+    </div>
+
+    <!-- Tenant Journey -->
+    <section class="section" id="journey">
+      <h2 class="section-title">🗺️ Your Tenant Journey — Step by Step</h2>
+      <div class="journey-grid">
+        <a href="/tenant/documents?type=lease" class="journey-step">
+          <div class="step-num">1</div>
+          <div class="step-body"><h4>📝 Lease & Move-In</h4><p>Upload your lease and deposit receipts</p></div>
+        </a>
+        <a href="/tenant/journal?category=rent_payment" class="journey-step">
+          <div class="step-num">2</div>
+          <div class="step-body"><h4>💰 Rent Payments</h4><p>Log every payment — date, amount, method</p></div>
+        </a>
+        <a href="/tenant/journal?category=maintenance_request" class="journey-step">
+          <div class="step-num">3</div>
+          <div class="step-body"><h4>🔧 Maintenance Issues</h4><p>Document repair requests and landlord responses</p></div>
+        </a>
+        <a href="/tenant/documents?type=notice" class="journey-step">
+          <div class="step-num">4</div>
+          <div class="step-body"><h4>⚠️ Notices Received</h4><p>Upload any notices from your landlord</p></div>
+        </a>
+        <a href="/tenant/journal" class="journey-step">
+          <div class="step-num">5</div>
+          <div class="step-body"><h4>📅 Build Your Timeline</h4><p>Organize events — what happened and when</p></div>
+        </a>
+        <a href="/law-library" class="journey-step">
+          <div class="step-num">6</div>
+          <div class="step-body"><h4>📖 Know Your Rights</h4><p>Minnesota tenant law, plain language</p></div>
+        </a>
+        <a href="/tenant/tools/letters" class="journey-step">
+          <div class="step-num">7</div>
+          <div class="step-body"><h4>✉️ Write a Letter</h4><p>Template letters to your landlord</p></div>
+        </a>
+        <a href="/eviction/answer" class="journey-step">
+          <div class="step-num">8</div>
+          <div class="step-body"><h4>📝 Answer a Summons</h4><p>Respond to an eviction complaint</p></div>
+        </a>
+        <a href="/eviction/zoom" class="journey-step">
+          <div class="step-num">9</div>
+          <div class="step-body"><h4>💻 Court Prep</h4><p>Checklist for your hearing</p></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Semptify Tools -->
+    <section class="section" id="tools">
+      <h2 class="section-title">🛠️ Your Semptify Tools</h2>
+      <div class="cards-grid">
+        <div class="card">
+          <div class="card-icon">📓</div>
+          <h3>Tenant Journal</h3>
+          <p>Log rent payments, maintenance requests, landlord communications — build a complete timeline of your tenancy.</p>
+          <a href="/tenant/journal" class="card-link">Open Journal →</a>
+        </div>
+        <div class="card">
+          <div class="card-icon">📁</div>
+          <h3>Document Vault</h3>
+          <p>Secure storage in your own cloud (Google Drive, Dropbox, or OneDrive). Your files never touch our servers.</p>
+          <a href="/tenant/documents" class="card-link">Open Documents →</a>
+        </div>
+        <div class="card">
+          <div class="card-icon">📚</div>
+          <h3>Know Your Rights</h3>
+          <p>Plain-language guides to Minnesota tenant law. What your landlord must do. What the law says.</p>
+          <a href="/law-library" class="card-link">Read the Law →</a>
+        </div>
+        <div class="card">
+          <div class="card-icon">✉️</div>
+          <h3>Template Letters</h3>
+          <p>Maintenance requests, security deposit demands, and more — ready to edit and send.</p>
+          <a href="/tenant/tools/letters" class="card-link">Get Templates →</a>
+        </div>
+        <div class="card">
+          <div class="card-icon">⏰</div>
+          <h3>Deadlines</h3>
+          <p>Track rent due dates, lease renewal windows, response deadlines, and court dates.</p>
+          <a href="/tenant/tools/deadlines" class="card-link">Track Deadlines →</a>
+        </div>
+        <div class="card">
+          <div class="card-icon">🏛️</div>
+          <h3>Court Procedure Info</h3>
+          <p>What happens in eviction court, how to respond to a summons, what to bring, what to expect.</p>
+          <a href="/eviction/answer" class="card-link">Learn the Process →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Emergency & Crisis Contacts -->
+    <section class="section" id="emergency">
+      <h2 class="section-title">🚨 Emergency & Crisis Contacts</h2>
+      <div class="contact-grid">
+        <div class="contact-card">
+          <h3>📞 988 Crisis Lifeline</h3>
+          <div class="phone"><a href="tel:988" style="color:inherit;text-decoration:none;">Call or Text 988</a></div>
+          <p>Mental health crisis, emotional distress, suicide prevention.</p>
+          <div class="hours">24/7 · Free · Confidential</div>
+        </div>
+        <div class="contact-card">
+          <h3>📞 HOME Line</h3>
+          <div class="phone"><a href="tel:18007456686" style="color:inherit;text-decoration:none;">1-800-745-6686</a></div>
+          <p>Minnesota's free tenant hotline. Legal advice, counseling, and rental help.</p>
+          <div class="hours">Mon–Thu 9am–5pm · Fri 9am–12pm</div>
+        </div>
+        <div class="contact-card">
+          <h3>📞 Legal Aid Society</h3>
+          <div class="phone"><a href="tel:18883545522" style="color:inherit;text-decoration:none;">1-888-354-5522</a></div>
+          <p>Free legal help for low-income tenants. May represent you in court.</p>
+          <div class="hours">Mon–Fri 8am–4:30pm</div>
+        </div>
+        <div class="contact-card">
+          <h3>📞 211 United Way</h3>
+          <div class="phone"><a href="tel:211" style="color:inherit;text-decoration:none;">Dial 2-1-1</a></div>
+          <p>Emergency rental assistance, food, shelter, and crisis referrals.</p>
+          <div class="hours">24/7 · Free</div>
+        </div>
+        <div class="contact-card">
+          <h3>📞 Domestic Violence Hotline</h3>
+          <div class="phone"><a href="tel:18007997233" style="color:inherit;text-decoration:none;">1-800-799-7233</a></div>
+          <p>Confidential help with safety planning and urgent support.</p>
+          <div class="hours">24/7 · Free · Confidential</div>
+        </div>
+        <div class="contact-card">
+          <h3>📞 Hennepin County</h3>
+          <div class="phone"><a href="tel:6123483000" style="color:inherit;text-decoration:none;">612-348-3000</a></div>
+          <p>Emergency rental assistance and homeless prevention programs.</p>
+          <div class="hours">Mon–Fri 8am–4:30pm</div>
+        </div>
+        <div class="contact-card">
+          <h3>📞 Ramsey County</h3>
+          <div class="phone"><a href="tel:6512664444" style="color:inherit;text-decoration:none;">651-266-4444</a></div>
+          <p>Financial assistance and emergency housing support.</p>
+          <div class="hours">Mon–Fri 8am–4:30pm</div>
+        </div>
+        <div class="contact-card">
+          <h3>📞 Dakota County</h3>
+          <div class="phone"><a href="tel:6515545611" style="color:inherit;text-decoration:none;">651-554-5611</a></div>
+          <p>Community services and rental support pathways.</p>
+          <div class="hours">Mon–Fri 8am–4:30pm</div>
+        </div>
+        <div class="contact-card">
+          <h3>📞 Anoka County</h3>
+          <div class="phone"><a href="tel:7633241300" style="color:inherit;text-decoration:none;">763-324-1300</a></div>
+          <p>Housing support, emergency aid screening, and referrals.</p>
+          <div class="hours">Mon–Fri 8am–4:30pm</div>
+        </div>
+        <div class="contact-card">
+          <h3>📞 Washington County</h3>
+          <div class="phone"><a href="tel:6514306459" style="color:inherit;text-decoration:none;">651-430-6459</a></div>
+          <p>Housing assistance and family support services.</p>
+          <div class="hours">Mon–Fri 8am–4:30pm</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Legal Resources -->
+    <section class="section" id="legal">
+      <h2 class="section-title">⚖️ Legal Resources</h2>
+      <div class="resource-list">
+        <a href="/tenant/tools/letters" class="resource-link featured">
+          <span class="resource-icon">✉️</span>
+          <div class="resource-body">
+            <strong>✨ Letter Builder</strong>
+            <p>Maintenance request, security deposit demand, and other template letters</p>
+          </div>
+        </a>
+        <a href="https://www.lawhelpmn.org" target="_blank" rel="noopener noreferrer" class="resource-link">
+          <span class="resource-icon">🔗</span>
+          <div class="resource-body">
+            <strong>LawHelpMN.org</strong>
+            <p>Free legal information and lawyer referrals for Minnesota residents</p>
+          </div>
+        </a>
+        <a href="https://www.mncourts.gov/Help-Topics/Eviction-Landlord-and-Tenant-Cases.aspx" target="_blank" rel="noopener noreferrer" class="resource-link">
+          <span class="resource-icon">🏛️</span>
+          <div class="resource-body">
+            <strong>Minnesota Courts — Eviction Info</strong>
+            <p>Official court procedures, forms, and filing instructions</p>
+          </div>
+        </a>
+        <a href="https://www.ag.state.mn.us/Consumer/Handbooks/LT/default.asp" target="_blank" rel="noopener noreferrer" class="resource-link">
+          <span class="resource-icon">📖</span>
+          <div class="resource-body">
+            <strong>MN Attorney General — Landlord-Tenant Handbook</strong>
+            <p>Official plain-language guide to Minnesota landlord-tenant law</p>
+          </div>
+        </a>
+        <a href="https://homelinemn.org" target="_blank" rel="noopener noreferrer" class="resource-link">
+          <span class="resource-icon">🏠</span>
+          <div class="resource-body">
+            <strong>HOME Line</strong>
+            <p>Minnesota's tenant advocacy organization — free counseling and legal advice</p>
+          </div>
+        </a>
+        <a href="https://www.revisor.mn.gov/statutes/cite/504B" target="_blank" rel="noopener noreferrer" class="resource-link">
+          <span class="resource-icon">📜</span>
+          <div class="resource-body">
+            <strong>MN Statutes Chapter 504B</strong>
+            <p>Full text of Minnesota landlord-tenant law — the actual statute</p>
+          </div>
+        </a>
+        <a href="https://www.hud.gov/states/minnesota/renting" target="_blank" rel="noopener noreferrer" class="resource-link">
+          <span class="resource-icon">🇺🇸</span>
+          <div class="resource-body">
+            <strong>HUD Minnesota</strong>
+            <p>Federal housing resources, fair housing rights, and HUD programs</p>
+          </div>
+        </a>
+        <a href="https://www.housinglink.org" target="_blank" rel="noopener noreferrer" class="resource-link">
+          <span class="resource-icon">🔍</span>
+          <div class="resource-body">
+            <strong>HousingLink</strong>
+            <p>Minnesota housing search, subsidized housing, and rental assistance info</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+      <h2 class="section-title">❓ Frequently Asked Questions</h2>
+      <div class="faq-list">
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>How long do I have to respond to an eviction notice in Minnesota?</span>
+            <span class="faq-chevron">▼</span>
+          </div>
+          <div class="faq-answer">
+            After being served with an eviction summons and complaint, you typically have <strong>7 days</strong> to file a written answer with the court. If you don't respond, the court may issue a default judgment against you. <strong>Do not ignore a summons.</strong> Contact Legal Aid (1-888-354-5522) or HOME Line (1-800-745-6686) immediately.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Can I be evicted in winter in Minnesota?</span>
+            <span class="faq-chevron">▼</span>
+          </div>
+          <div class="faq-answer">
+            Yes. The law does not have a general winter eviction moratorium. Eviction proceedings continue year-round. However, sheriffs have discretion about executing physical removal when temperatures are dangerously cold and no shelter is available — but this is discretionary, not a legal right. <strong>Always attend your court hearing regardless of season.</strong>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>What if my landlord won't make repairs?</span>
+            <span class="faq-chevron">▼</span>
+          </div>
+          <div class="faq-answer">
+            Minnesota law (MN Stat. 504B.161) requires landlords to maintain habitable conditions. Your remedies include:
+            <br><br>
+            <strong>1. Rent Escrow</strong> — pay rent to the court instead of the landlord until repairs are made.<br>
+            <strong>2. Repair and Deduct</strong> — under certain conditions, deduct repair costs from rent.<br>
+            <strong>3. Habitability Defense</strong> — use poor conditions as a defense in an eviction case.<br>
+            <br>
+            <strong>Document everything first.</strong> Use your Semptify journal to log every request with dates. Upload photos to your vault. Always make repair requests in writing.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Can I sue my landlord back?</span>
+            <span class="faq-chevron">▼</span>
+          </div>
+          <div class="faq-answer">
+            Yes. A <strong>counterclaim</strong> lets you sue your landlord in the same eviction case. Common counterclaims include:
+            <br><br>
+            • Habitability violations (unsafe conditions, failed repairs)<br>
+            • Illegal lockout or utility shutoff<br>
+            • Retaliation for exercising your rights<br>
+            • Security deposit violations<br>
+            • Discrimination<br>
+            <br>
+            A successful counterclaim can reduce or eliminate what you owe, and may result in damages awarded to you.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Do I need a lawyer?</span>
+            <span class="faq-chevron">▼</span>
+          </div>
+          <div class="faq-answer">
+            You can represent yourself (called "pro se"). Semptify is built to help you do exactly that — organize your facts, understand the law, and document everything clearly.
+            <br><br>
+            That said, a lawyer significantly improves your chances in court. <strong>Free legal help is available:</strong><br>
+            • Legal Aid: <a href="tel:18883545522">1-888-354-5522</a><br>
+            • HOME Line: <a href="tel:18007456686">1-800-745-6686</a><br>
+            • LawHelpMN: <a href="https://www.lawhelpmn.org" target="_blank" rel="noopener noreferrer">lawhelpmn.org</a>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>What should I bring to court?</span>
+            <span class="faq-chevron">▼</span>
+          </div>
+          <div class="faq-answer">
+            <strong>Essential items:</strong><br><br>
+            • Your written answer/response to the complaint<br>
+            • Signed lease agreement<br>
+            • All rent receipts (every payment you've made)<br>
+            • Written repair requests and landlord responses<br>
+            • Photos of the property (dated)<br>
+            • All communications with your landlord (texts, emails, notes)<br>
+            • Your Semptify journal timeline — chronological record of events<br>
+            • Government-issued ID<br>
+            <br>
+            Organize documents chronologically. Judges need to see <em>what happened and when</em>.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>How do I document a maintenance problem properly?</span>
+            <span class="faq-chevron">▼</span>
+          </div>
+          <div class="faq-answer">
+            The gold standard: <strong>written request + dated photos + proof of delivery.</strong><br><br>
+            1. Write the request (email or letter) — date it, describe the problem specifically<br>
+            2. Take photos the same day — they embed a timestamp<br>
+            3. Send via email (creates a record) or certified mail<br>
+            4. Log it in your Semptify journal immediately<br>
+            5. Upload the request and photos to your vault<br>
+            <br>
+            If the landlord doesn't respond in a reasonable time, follow up in writing and document that too.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Is Semptify free?</span>
+            <span class="faq-chevron">▼</span>
+          </div>
+          <div class="faq-answer">
+            <strong>Yes. Semptify is 100% free.</strong> No subscription, no premium tier, no hidden costs. No ads. We do not sell your data. We accept voluntary donations to support development but they are never required. Free forever.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-question" onclick="toggleFaq(this)">
+            <span>Where does my data go? Who can see it?</span>
+            <span class="faq-chevron">▼</span>
+          </div>
+          <div class="faq-answer">
+            Your documents are stored in <strong>your own cloud storage</strong> — Google Drive, Dropbox, or OneDrive. Semptify never stores your documents on our servers. Only you can access your vault. We cannot read your files. See our <a href="/public/privacy.html">Privacy Policy</a> for full details.
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </div><!-- /container -->
+
+  <button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top" aria-label="Back to top">▲</button>
+
+  <footer>
+    <div>
+      <a href="/tenant/home">Home</a>
+      <a href="/tenant/journal">Journal</a>
+      <a href="/tenant/documents">Documents</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/public/disclaimer.html">Disclaimer</a>
+      <a href="/public/contact.html">Contact</a>
+    </div>
+    <div style="margin-top:0.5rem;">Semptify · Free Forever · No Ads · Your data stays in your cloud</div>
+  </footer>
+
+  <script src="/js/core/vault-portal.js"></script>
+  <script>
+    function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
+    function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+
+    function toggleFaq(el) { el.parentElement.classList.toggle('open'); }
+
+    function filterContent(query) {
+      query = query.toLowerCase();
+      document.querySelectorAll('.card, .journey-step, .faq-item, .resource-link, .contact-card').forEach(el => {
+        el.style.display = (!query || el.textContent.toLowerCase().includes(query)) ? '' : 'none';
+      });
+      if (query.length > 2) {
+        document.querySelectorAll('.faq-item').forEach(item => {
+          if (item.textContent.toLowerCase().includes(query)) item.classList.add('open');
+        });
+      }
+    }
+
+    window.addEventListener('scroll', () => {
+      document.getElementById('backToTop').classList.toggle('visible', window.scrollY > 300);
+    });
+  </script>
+</body>
+</html>

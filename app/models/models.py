@@ -4,6 +4,24 @@ SQLAlchemy ORM models for all entities.
 
 All datetime columns use DateTime(timezone=True) for proper UTC handling.
 Use utc_now() from app.core.utc for all timestamp defaults.
+
+=============================================================================
+SSOT — DATABASE BOUNDARY RULE
+=============================================================================
+PostgreSQL holds: POINTERS and STRUCTURE only.
+User's cloud storage holds: CONTENT and OVERLAYS.
+
+Allowed in DB:  user_id, vault_id, sha256_hash, event_type, event_date,
+                status flags, timestamps, short labels (255 chars max),
+                landlord/entity data for admin/research tools.
+
+NOT allowed:    complaint text, witness statements, contact PII (phone/
+                email/address), annotation text, extracted document content,
+                case narrative of any kind.
+
+If a column stores what a tenant said, wrote, or what was found in their
+document — it belongs in an overlay in their cloud, not here.
+=============================================================================
 """
 
 import enum
@@ -117,10 +135,10 @@ class User(Base):
     # Role preference (restored on return)
     default_role: Mapped[str] = mapped_column(String(20), default="user")  # user, manager, advocate, legal, admin
     
-    # Profile (from storage provider)
+    # Profile (from storage provider — stored as pointers only, not cached PII)
+    # email/display_name/avatar are fetched from the provider at login, never stored here.
+    # Keeping email as nullable index only for admin dedup — must not be used for profiling.
     email: Mapped[Optional[str]] = mapped_column(String(255), unique=True, nullable=True)
-    display_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    avatar_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
     # Intensity Engine (tenant-specific feature)
     intensity_level: Mapped[str] = mapped_column(String(10), default="low")  # low, medium, high
@@ -325,14 +343,13 @@ class RentPayment(Base):
     
     # Method and confirmation
     payment_method: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    confirmation_number: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
     
     # Linked receipt document (stores doc ID from file-based pipeline, not FK)
     receipt_document_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
     
     # Notes
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    
+
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
     
@@ -427,6 +444,8 @@ class Complaint(Base):
     # Timestamps
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
+
+
 # =============================================================================
 # Witness Statements
 # =============================================================================

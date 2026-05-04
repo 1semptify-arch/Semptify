@@ -103,7 +103,7 @@ def get_recent_cases(
         ).count()
         
         cases.append({
-            "tenant_name": user.display_name or f"Tenant {user.id[:8]}",
+            "tenant_name": user.email or f"Tenant {user.id[:8]}",
             "property": "Unknown Property",  # TODO: Add property field to User
             "assigned_to": "Unassigned",  # TODO: Add case assignment
             "status": "active" if doc_count > 0 else "pending",
@@ -140,7 +140,7 @@ def get_staff_list(
                 user = db_session.query(User).filter_by(id=user_id).first()
                 if user:
                     staff.append({
-                        "name": user.display_name or f"User {user_id[:8]}",
+                        "name": user.email or f"User {user_id[:8]}",
                         "role": code.role,
                         "status": "offline",  # TODO: Implement presence tracking
                         "last_seen": user.last_login.isoformat() if user.last_login else None,
@@ -184,7 +184,7 @@ def get_pending_signatures(
         for doc in docs:
             user = db_session.query(User).filter_by(id=doc.user_id).first()
             pending.append({
-                "tenant_name": user.display_name if user else "Unknown",
+                "tenant_name": user.email if user else "Unknown",
                 "document_name": doc.filename or "Untitled Document",
                 "due_date": doc.due_date.isoformat() if hasattr(doc, 'due_date') and doc.due_date else None,
                 "sent_date": doc.created_at.isoformat() if doc.created_at else None,
@@ -226,7 +226,7 @@ def get_recent_activity(
         user = db_session.query(User).filter_by(id=doc.user_id).first()
         activities.append({
             "icon": "📄",
-            "description": f"<strong>{user.display_name or 'Tenant'}</strong> uploaded {doc.filename or 'a document'}",
+            "description": f"<strong>{user.email or 'Tenant'}</strong> uploaded {doc.filename or 'a document'}",
             "time": format_time_ago(doc.created_at),
             "timestamp": doc.created_at.isoformat() if doc.created_at else None,
         })

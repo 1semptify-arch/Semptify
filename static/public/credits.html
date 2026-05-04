@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open Source Credits – Semptify</title>
+  <style>
+    :root {
+      --hdr1: #4c1d95; --hdr2: #5b21b6; --accent: #7c3aed;
+      --bg: #faf8ff; --light: #f5f3ff; --text: #1a1a2e; --muted: #64748b;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+    header { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; }
+    .header-inner { max-width: 860px; margin: 0 auto; padding: 0 1.5rem; display: flex; align-items: center; height: 56px; gap: 1rem; }
+    .logo { font-weight: 800; font-size: 1.1rem; text-decoration: none; color: #fff; }
+    nav a { color: rgba(255,255,255,0.8); text-decoration: none; padding: 0.35rem 0.65rem; border-radius: 5px; font-size: 0.85rem; }
+    nav a:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+    .container { max-width: 860px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+    h1 { font-size: 1.7rem; font-weight: 800; color: var(--hdr1); margin-bottom: 0.4rem; }
+    .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; }
+
+    .notice { background: var(--light); border: 1px solid #ddd6fe; border-radius: 8px; padding: 1rem 1.25rem; font-size: 0.88rem; color: #4c1d95; margin-bottom: 2rem; line-height: 1.65; }
+
+    h2 { font-size: 1.05rem; font-weight: 700; color: var(--hdr1); margin: 2rem 0 0.75rem; padding-bottom: 0.4rem; border-bottom: 2px solid #ede9fe; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; margin-bottom: 0.5rem; }
+    th { text-align: left; padding: 0.55rem 0.75rem; background: var(--light); color: var(--hdr1); font-weight: 700; border-bottom: 2px solid #ddd6fe; }
+    td { padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    td a { color: var(--accent); text-decoration: none; }
+    td a:hover { text-decoration: underline; }
+    .badge { display: inline-block; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 20px; background: #ede9fe; color: #5b21b6; white-space: nowrap; }
+    .badge.apache { background: #ecfdf5; color: #065f46; }
+    .badge.bsd { background: #eff6ff; color: #1e40af; }
+    .badge.lgpl { background: #fff7ed; color: #9a3412; }
+    .badge.psf { background: #f0fdf4; color: #14532d; }
+
+    .license-block { background: #f8f9ff; border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; font-size: 0.8rem; font-family: 'Courier New', monospace; color: var(--muted); white-space: pre-wrap; margin-top: 2rem; line-height: 1.6; }
+    .license-block h3 { font-family: inherit; font-size: 0.85rem; color: var(--hdr1); margin-bottom: 0.5rem; }
+
+    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 3rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <a href="/" class="logo">Semptify</a>
+      <nav>
+        <a href="/">Home</a>
+        <a href="/public/about.html">About</a>
+        <a href="/public/privacy.html">Privacy</a>
+        <a href="/public/terms.html">Terms</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <h1>Open Source Credits</h1>
+    <p class="subtitle">Semptify is built on the shoulders of excellent open source software. We are grateful to every project and contributor listed here.</p>
+
+    <div class="notice">
+      Semptify itself is source-available. The libraries below are used under their respective licenses.
+      Where a license requires reproduction of its text, it is included at the bottom of this page.
+      All copyright notices are preserved as required.
+    </div>
+
+    <!-- Core Framework -->
+    <h2>Core Framework</h2>
+    <table>
+      <thead><tr><th>Package</th><th>License</th><th>Copyright</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>FastAPI</strong><br>≥ 0.109.0</td>
+          <td><span class="badge">MIT</span></td>
+          <td>© 2018 Sebastián Ramírez</td>
+          <td><a href="https://github.com/tiangolo/fastapi" target="_blank" rel="noopener noreferrer">github.com/tiangolo/fastapi</a></td>
+        </tr>
+        <tr>
+          <td><strong>Uvicorn</strong><br>≥ 0.27.0</td>
+          <td><span class="badge">BSD</span></td>
+          <td>© 2017-present Encode OSS Ltd.</td>
+          <td><a href="https://github.com/encode/uvicorn" target="_blank" rel="noopener noreferrer">github.com/encode/uvicorn</a></td>
+        </tr>
+        <tr>
+          <td><strong>Pydantic</strong><br>≥ 2.5.0</td>
+          <td><span class="badge">MIT</span></td>
+          <td>© 2017–present Samuel Colvin</td>
+          <td><a href="https://github.com/pydantic/pydantic" target="_blank" rel="noopener noreferrer">github.com/pydantic/pydantic</a></td>
+        </tr>
+        <tr>
+          <td><strong>pydantic-settings</strong><br>≥ 2.1.0</td>
+          <td><span class="badge">MIT</span></td>
+          <td>© Pydantic contributors</td>
+          <td><a href="https://github.com/pydantic/pydantic-settings" target="_blank" rel="noopener noreferrer">github.com/pydantic/pydantic-settings</a></td>
+        </tr>
+        <tr>
+          <td><strong>Starlette</strong><br>(FastAPI dependency)</td>
+          <td><span class="badge">BSD</span></td>
+          <td>© 2018-present Encode OSS Ltd.</td>
+          <td><a href="https://github.com/encode/starlette" target="_blank" rel="noopener noreferrer">github.com/encode/starlette</a></td>
+        </tr>
+        <tr>
+          <td><strong>Jinja2</strong><br>≥ 3.1.0</td>
+          <td><span class="badge bsd">BSD-3</span></td>
+          <td>© 2007 Pallets Projects</td>
+          <td><a href="https://github.com/pallets/jinja" target="_blank" rel="noopener noreferrer">github.com/pallets/jinja</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Database -->
+    <h2>Database</h2>
+    <table>
+      <thead><tr><th>Package</th><th>License</th><th>Copyright</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>SQLAlchemy</strong><br>≥ 2.0.0</td>
+          <td><span class="badge">MIT</span></td>
+          <td>© 2005–present SQLAlchemy authors</td>
+          <td><a href="https://github.com/sqlalchemy/sqlalchemy" target="_blank" rel="noopener noreferrer">github.com/sqlalchemy/sqlalchemy</a></td>
+        </tr>
+        <tr>
+          <td><strong>asyncpg</strong><br>≥ 0.29.0</td>
+          <td><span class="badge apache">Apache 2.0</span></td>
+          <td>© MagicStack Inc.</td>
+          <td><a href="https://github.com/MagicStack/asyncpg" target="_blank" rel="noopener noreferrer">github.com/MagicStack/asyncpg</a></td>
+        </tr>
+        <tr>
+          <td><strong>aiosqlite</strong><br>≥ 0.19.0</td>
+          <td><span class="badge">MIT</span></td>
+          <td>© 2018 Amethyst Reese</td>
+          <td><a href="https://github.com/omnilib/aiosqlite" target="_blank" rel="noopener noreferrer">github.com/omnilib/aiosqlite</a></td>
+        </tr>
+        <tr>
+          <td><strong>Alembic</strong><br>≥ 1.17.0</td>
+          <td><span class="badge">MIT</span></td>
+          <td>© SQLAlchemy authors</td>
+          <td><a href="https://github.com/sqlalchemy/alembic" target="_blank" rel="noopener noreferrer">github.com/sqlalchemy/alembic</a></td>
+        </tr>
+        <tr>
+          <td><strong>psycopg2-binary</strong><br>≥ 2.9.9</td>
+          <td><span class="badge lgpl">LGPL-3.0</span></td>
+          <td>© 2001–present Federico Di Gregorio, Daniele Varrazzo</td>
+          <td><a href="https://github.com/psycopg/psycopg2" target="_blank" rel="noopener noreferrer">github.com/psycopg/psycopg2</a></td>
+        </tr>
+        <tr>
+          <td><strong>redis-py</strong><br>≥ 5.0.0</td>
+          <td><span class="badge">MIT</span></td>
+          <td>© Redis Ltd.</td>
+          <td><a href="https://github.com/redis/redis-py" target="_blank" rel="noopener noreferrer">github.com/redis/redis-py</a></td>
+        </tr>
+        <tr>
+          <td><strong>greenlet</strong><br>≥ 3.0.0</td>
+          <td><span class="badge">MIT</span></td>
+          <td>© Greenlet contributors</td>
+          <td><a href="https://github.com/python-greenlet/greenlet" target="_blank" rel="noopener noreferrer">github.com/python-greenlet/greenlet</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Security -->
+    <h2>Security &amp; Authentication</h2>
+    <table>
+      <thead><tr><th>Package</th><th>License</th><th>Copyright</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>cryptography</strong><br>≥ 41.0.0</td>
+          <td><span class="badge apache">Apache 2.0 / BSD</span></td>
+          <td>© Individual contributors</td>
+          <td><a href="https://github.com/pyca/cryptography" target="_blank" rel="noopener noreferrer">github.com/pyca/cryptography</a></td>
+        </tr>
+        <tr>
+          <td><strong>passlib</strong><br>≥ 1.7.4</td>
+          <td><span class="badge">BSD</span></td>
+          <td>© 2008–2020 Eli Collins</td>
+          <td><a href="https://github.com/hynek/passlib" target="_blank" rel="noopener noreferrer">github.com/hynek/passlib</a></td>
+        </tr>
+        <tr>
+          <td><strong>slowapi</strong><br>≥ 0.1.9</td>
+          <td><span class="badge">MIT</span></td>
+          <td>© 2020 Laurent Savaëte</td>
+          <td><a href="https://github.com/laurentS/slowapi" target="_blank" rel="noopener noreferrer">github.com/laurentS/slowapi</a></td>
+        </tr>
+        <tr>
+          <td><strong>python-multipart</strong><br>≥ 0.0.6</td>
+          <td><span class="badge apache">Apache 2.0</span></td>
+          <td>© Andrew Dunham</td>
+          <td><a href="https://github.com/andrew-d/python-multipart" target="_blank" rel="noopener noreferrer">github.com/andrew-d/python-multipart</a></td>
+        </tr>
+        <tr>
+          <td><strong>python-dotenv</strong><br>≥ 1.0.0</td>
+          <td><span class="badge">BSD</span></td>
+          <td>© 2014 Saurabh Kumar</td>
+          <td><a href="https://github.com/theskumar/python-dotenv" target="_blank" rel="noopener noreferrer">github.com/theskumar/python-dotenv</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- HTTP / Networking -->
+    <h2>HTTP &amp; Networking</h2>
+    <table>
+      <thead><tr><th>Package</th><th>License</th><th>Copyright</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>httpx</strong><br>≥ 0.26.0</td>
+          <td><span class="badge">BSD</span></td>
+          <td>© 2019-present Encode OSS Ltd.</td>
+          <td><a href="https://github.com/encode/httpx" target="_blank" rel="noopener noreferrer">github.com/encode/httpx</a></td>
+        </tr>
+        <tr>
+          <td><strong>aioboto3</strong><br>≥ 13.0.0</td>
+          <td><span class="badge apache">Apache 2.0</span></td>
+          <td>© Terry Cain</td>
+          <td><a href="https://github.com/terrycain/aioboto3" target="_blank" rel="noopener noreferrer">github.com/terrycain/aioboto3</a></td>
+        </tr>
+        <tr>
+          <td><strong>aiofiles</strong><br>≥ 23.0.0</td>
+          <td><span class="badge apache">Apache 2.0</span></td>
+          <td>© 2016-present Tin Tvrtković</td>
+          <td><a href="https://github.com/Tinche/aiofiles" target="_blank" rel="noopener noreferrer">github.com/Tinche/aiofiles</a></td>
+        </tr>
+        <tr>
+          <td><strong>Gunicorn</strong><br>≥ 21.0.0</td>
+          <td><span class="badge">MIT</span></td>
+          <td>© 2009–present Benoît Chesneau, Paul J. Davis</td>
+          <td><a href="https://github.com/benoitc/gunicorn" target="_blank" rel="noopener noreferrer">github.com/benoitc/gunicorn</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- File & Document Processing -->
+    <h2>File &amp; Document Processing</h2>
+    <table>
+      <thead><tr><th>Package</th><th>License</th><th>Copyright</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Pillow</strong><br>≥ 10.0.0</td>
+          <td><span class="badge">HPND</span></td>
+          <td>© 1995–2011 Fredrik Lundh · © 2010-present Contributors</td>
+          <td><a href="https://github.com/python-pillow/Pillow" target="_blank" rel="noopener noreferrer">github.com/python-pillow/Pillow</a></td>
+        </tr>
+        <tr>
+          <td><strong>ReportLab</strong><br>≥ 4.0.0</td>
+          <td><span class="badge bsd">BSD-3</span></td>
+          <td>© 2000–present ReportLab Inc.</td>
+          <td><a href="https://github.com/MrBitBucket/reportlab-mirror" target="_blank" rel="noopener noreferrer">reportlab.com</a></td>
+        </tr>
+        <tr>
+          <td><strong>PyPDF2</strong><br>≥ 3.0.0</td>
+          <td><span class="badge bsd">BSD-3</span></td>
+          <td>© 2006–2008 Mathieu Fenniak</td>
+          <td><a href="https://github.com/py-pdf/pypdf" target="_blank" rel="noopener noreferrer">github.com/py-pdf/pypdf</a></td>
+        </tr>
+        <tr>
+          <td><strong>python-docx</strong><br>≥ 1.1.0</td>
+          <td><span class="badge">MIT</span></td>
+          <td>© 2013 Steve Canny</td>
+          <td><a href="https://github.com/python-openxml/python-docx" target="_blank" rel="noopener noreferrer">github.com/python-openxml/python-docx</a></td>
+        </tr>
+        <tr>
+          <td><strong>pdfplumber</strong><br>≥ 0.10.0</td>
+          <td><span class="badge">MIT</span></td>
+          <td>© 2016 Jeremy Singer-Vine</td>
+          <td><a href="https://github.com/jsvine/pdfplumber" target="_blank" rel="noopener noreferrer">github.com/jsvine/pdfplumber</a></td>
+        </tr>
+        <tr>
+          <td><strong>PyMuPDF</strong><br>≥ 1.23.0</td>
+          <td><span class="badge lgpl">AGPL-3.0</span></td>
+          <td>© Artifex Software Inc.</td>
+          <td><a href="https://github.com/pymupdf/PyMuPDF" target="_blank" rel="noopener noreferrer">github.com/pymupdf/PyMuPDF</a></td>
+        </tr>
+        <tr>
+          <td><strong>python-magic</strong><br>≥ 0.4.27</td>
+          <td><span class="badge">MIT</span></td>
+          <td>© 2001 Adam Hupp</td>
+          <td><a href="https://github.com/ahupp/python-magic" target="_blank" rel="noopener noreferrer">github.com/ahupp/python-magic</a></td>
+        </tr>
+        <tr>
+          <td><strong>icalendar</strong><br>≥ 5.0.0</td>
+          <td><span class="badge bsd">BSD</span></td>
+          <td>© 2012-present collective.icalendar contributors</td>
+          <td><a href="https://github.com/collective/icalendar" target="_blank" rel="noopener noreferrer">github.com/collective/icalendar</a></td>
+        </tr>
+        <tr>
+          <td><strong>Beautiful Soup 4</strong><br>≥ 4.12.0</td>
+          <td><span class="badge">MIT</span></td>
+          <td>© 2004–2023 Leonard Richardson</td>
+          <td><a href="https://www.crummy.com/software/BeautifulSoup/" target="_blank" rel="noopener noreferrer">crummy.com/software/BeautifulSoup</a></td>
+        </tr>
+        <tr>
+          <td><strong>lxml</strong><br>≥ 5.0.0</td>
+          <td><span class="badge bsd">BSD-3</span></td>
+          <td>© 2004 Infrae</td>
+          <td><a href="https://github.com/lxml/lxml" target="_blank" rel="noopener noreferrer">github.com/lxml/lxml</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Python Runtime -->
+    <h2>Python Runtime</h2>
+    <table>
+      <thead><tr><th>Package</th><th>License</th><th>Copyright</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Python</strong><br>≥ 3.11</td>
+          <td><span class="badge psf">PSF-2.0</span></td>
+          <td>© 2001–present Python Software Foundation</td>
+          <td><a href="https://www.python.org" target="_blank" rel="noopener noreferrer">python.org</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Note on PyMuPDF -->
+    <div class="notice" style="margin-top:2rem;">
+      <strong>Note on PyMuPDF (AGPL-3.0):</strong> PyMuPDF is used for server-side PDF text extraction only. Its use under AGPL-3.0 requires that the full source code of Semptify remain available if distributed. Semptify's source is available at
+      <a href="https://github.com/Bradleycrowe/Semptify5.0" target="_blank" rel="noopener noreferrer">github.com/Bradleycrowe/Semptify5.0</a>.
+    </div>
+
+    <!-- MIT License Text (required reproduction) -->
+    <div class="license-block">
+      <h3>MIT License (applies to: FastAPI, Pydantic, SQLAlchemy, Alembic, aiosqlite, slowapi, redis-py, Gunicorn, python-docx, pdfplumber, python-magic, Beautiful Soup 4, greenlet, and others)</h3>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+    </div>
+
+    <div class="license-block" style="margin-top:1rem;">
+      <h3>Apache License 2.0 (applies to: asyncpg, aioboto3, aiofiles, python-multipart, cryptography)</h3>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+    </div>
+
+  </div>
+
+  <footer>
+    <div>
+      <a href="/">Home</a>
+      <a href="/public/about.html">About</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/public/terms.html">Terms</a>
+      <a href="/public/disclaimer.html">Disclaimer</a>
+      <a href="/public/contact.html">Contact</a>
+      <a href="/public/credits.html">Open Source Credits</a>
+    </div>
+    <div style="margin-top:0.5rem;">Semptify · Free Forever · No Advertising · Privacy-Respecting</div>
+  </footer>
+
+</body>
+</html>

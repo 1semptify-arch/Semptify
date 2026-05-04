@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Get Help - Semptify{% endblock %}
+{% block title %}Help & Resources - Semptify{% endblock %}
 
 {% block nav %}
-<a href="/tenant/home">← Back to Home</a>
+<a href="/tenant/home">← Home</a>
+<a href="/tenant/journal">Journal</a>
+<a href="/tenant/documents">Documents</a>
+<a href="/tenant/help" class="active">🆘 Help</a>
 {% endblock %}
 
 {% block styles %}
@@ -255,143 +258,192 @@
 
 {% block content %}
 <div class="help-container">
-    
+
     <div class="help-header">
-        <h1>How can we help you?</h1>
-        <p>You're not alone. Here are ways to get the support you need.</p>
+        <h1>🆘 Help & Resources</h1>
+        <p>Everything you need to understand your rights, document your situation, and take action.</p>
     </div>
-    
+
+    <!-- Legal Disclaimer -->
+    <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:0.9rem 1.1rem;margin-bottom:1.5rem;font-size:0.85rem;color:#92400e;line-height:1.6;">
+        <strong>⚖️ Not Legal Advice —</strong> This page is for education and organization only. For advice about your specific situation, contact a licensed attorney or free legal aid. <a href="/public/disclaimer.html" style="color:#92400e;">Full disclaimer →</a>
+    </div>
+
     <!-- Crisis Banner -->
     <div class="crisis-banner">
-        <h2>🚨 Emergency? Need immediate help?</h2>
-        <p>If you're facing imminent eviction or unsafe conditions:</p>
-        <span class="crisis-number">📞 Call 211</span>
-        <p>or contact your local tenant rights hotline</p>
+        <h2>🚨 Emergency or Immediate Need?</h2>
+        <span class="crisis-number"><a href="tel:988" style="color:inherit;text-decoration:none;">📞 988</a> — Crisis Lifeline · 24/7</span>
+        <span class="crisis-number"><a href="tel:211" style="color:inherit;text-decoration:none;">📞 211</a> — Housing, food, shelter · 24/7</span>
+        <span class="crisis-number"><a href="tel:18007456686" style="color:inherit;text-decoration:none;">📞 1-800-745-6686</a> — HOME Line (MN tenant hotline)</span>
+        <span class="crisis-number"><a href="tel:18883545522" style="color:inherit;text-decoration:none;">📞 1-888-354-5522</a> — Legal Aid (free legal help)</span>
     </div>
-    
-    <!-- Help Options -->
+
+    <!-- Quick Actions -->
     <div class="help-grid">
         <div class="help-card featured">
-            <div class="help-icon">💬</div>
-            <h3>Ask a Question</h3>
-            <p>Get personalized guidance about your situation from our system.</p>
-            <a href="/tenant/copilot" class="help-btn">Start Chat</a>
+            <div class="help-icon">📓</div>
+            <h3>Record an Event</h3>
+            <p>Document what happened right now — rent payment, maintenance request, landlord contact.</p>
+            <a href="/tenant/capture" class="help-btn">New Entry</a>
         </div>
-        
         <div class="help-card">
-            <div class="help-icon">📋</div>
-            <h3>Document Review</h3>
-            <p>Upload a notice or letter and we'll help you understand it.</p>
-            <a href="/documents/upload" class="help-btn">Upload Document</a>
+            <div class="help-icon">📁</div>
+            <h3>Upload a Document</h3>
+            <p>Upload a notice, receipt, photo, or letter to your secure vault.</p>
+            <a href="/tenant/documents" class="help-btn">Open Vault</a>
         </div>
-        
         <div class="help-card">
-            <div class="help-icon">⚖️</div>
-            <h3>Legal Resources</h3>
-            <p>Find free or low-cost legal aid in your area.</p>
-            <a href="/legal-aid" class="help-btn secondary">Find Legal Aid</a>
+            <div class="help-icon">📚</div>
+            <h3>Know Your Rights</h3>
+            <p>Plain-language Minnesota tenant law — what the law says, what your landlord must do.</p>
+            <a href="/law-library" class="help-btn secondary">Read the Law</a>
         </div>
-        
         <div class="help-card">
-            <div class="help-icon">🏛️</div>
-            <h3>File a Complaint</h3>
-            <p>Report housing code violations or illegal actions.</p>
-            <a href="/complaint-filing" class="help-btn secondary">File Complaint</a>
+            <div class="help-icon">✉️</div>
+            <h3>Write a Letter</h3>
+            <p>Maintenance request, security deposit demand, and other template letters.</p>
+            <a href="/tenant/tools/letters" class="help-btn secondary">Get Templates</a>
         </div>
     </div>
-    
-    <!-- Resources -->
+
+    <!-- Legal Resources -->
     <div class="resources-section">
-        <h2>Quick Resources</h2>
+        <h2>⚖️ Free Legal Help (Minnesota)</h2>
         <ul class="resource-list">
             <li class="resource-item">
-                <span class="resource-icon">📅</span>
+                <span class="resource-icon">🏠</span>
                 <div class="resource-content">
-                    <div class="resource-title">Eviction Timeline</div>
-                    <div class="resource-desc">Understand the steps and deadlines in your state</div>
+                    <div class="resource-title">HOME Line — 1-800-745-6686</div>
+                    <div class="resource-desc">Minnesota's free tenant hotline. Legal advice and counseling. Mon–Thu 9am–5pm, Fri 9am–12pm.</div>
                 </div>
-                <a href="/resources/eviction-timeline" class="resource-link">View →</a>
+                <a href="https://homelinemn.org" target="_blank" rel="noopener noreferrer" class="resource-link">Visit →</a>
             </li>
             <li class="resource-item">
-                <span class="resource-icon">📝</span>
+                <span class="resource-icon">⚖️</span>
                 <div class="resource-content">
-                    <div class="resource-title">Notice Response Templates</div>
-                    <div class="resource-desc">Pre-written responses to common notices</div>
+                    <div class="resource-title">Legal Aid Society — 1-888-354-5522</div>
+                    <div class="resource-desc">Free legal representation for low-income tenants. May appear in court with you. Mon–Fri 8am–4:30pm.</div>
                 </div>
-                <a href="/resources/templates" class="resource-link">View →</a>
+                <a href="https://www.lawhelpmn.org" target="_blank" rel="noopener noreferrer" class="resource-link">Visit →</a>
             </li>
             <li class="resource-item">
-                <span class="resource-icon">📊</span>
+                <span class="resource-icon">🏛️</span>
                 <div class="resource-content">
-                    <div class="resource-title">Know Your Rights</div>
-                    <div class="resource-desc">Tenant rights summary for your state</div>
+                    <div class="resource-title">Minnesota Courts — Eviction Info</div>
+                    <div class="resource-desc">Official court procedures, forms, and what to expect at a hearing.</div>
                 </div>
-                <a href="/resources/rights" class="resource-link">View →</a>
+                <a href="https://www.mncourts.gov/Help-Topics/Eviction-Landlord-and-Tenant-Cases.aspx" target="_blank" rel="noopener noreferrer" class="resource-link">Visit →</a>
             </li>
             <li class="resource-item">
-                <span class="resource-icon">📱</span>
+                <span class="resource-icon">�</span>
                 <div class="resource-content">
-                    <div class="resource-title">Emergency Contacts</div>
-                    <div class="resource-desc">Hotlines and resources for immediate help</div>
+                    <div class="resource-title">MN Attorney General — Landlord-Tenant Handbook</div>
+                    <div class="resource-desc">Official plain-language guide to Minnesota landlord-tenant law.</div>
                 </div>
-                <a href="/resources/emergency" class="resource-link">View →</a>
+                <a href="https://www.ag.state.mn.us/Consumer/Handbooks/LT/default.asp" target="_blank" rel="noopener noreferrer" class="resource-link">Visit →</a>
+            </li>
+            <li class="resource-item">
+                <span class="resource-icon">📜</span>
+                <div class="resource-content">
+                    <div class="resource-title">MN Statute 504B — Full Landlord-Tenant Law</div>
+                    <div class="resource-desc">The actual statute. Use this to cite the law in letters and court filings.</div>
+                </div>
+                <a href="https://www.revisor.mn.gov/statutes/cite/504B" target="_blank" rel="noopener noreferrer" class="resource-link">Read →</a>
             </li>
         </ul>
     </div>
-    
+
     <!-- FAQ -->
     <div class="faq-section">
-        <h2>Common Questions</h2>
-        
+        <h2>❓ Common Questions</h2>
+
         <div class="faq-item">
-            <button class="faq-question">What should I do if I receive an eviction notice?</button>
+            <button class="faq-question">How long do I have to respond to an eviction notice in Minnesota?</button>
             <div class="faq-answer">
                 <div class="faq-answer-content">
-                    First, don't panic. You have rights and time to respond. Document everything, 
-                    check the notice for errors, and consider reaching out to legal aid immediately. 
-                    Use our Document Review feature to analyze the notice.
+                    After being served with an eviction summons and complaint, you typically have <strong>7 days</strong> to file a written answer with the court. If you don't respond, the court may issue a default judgment against you. <strong>Do not ignore a summons.</strong> Contact Legal Aid (1-888-354-5522) or HOME Line (1-800-745-6686) immediately.
                 </div>
             </div>
         </div>
-        
+
+        <div class="faq-item">
+            <button class="faq-question">What if my landlord won't make repairs?</button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Minnesota law (MN Stat. 504B.161) requires landlords to maintain habitable conditions. Your remedies:<br><br>
+                    <strong>Rent Escrow</strong> — pay rent to the court until repairs are made.<br>
+                    <strong>Repair and Deduct</strong> — under certain conditions, deduct repair costs from rent.<br>
+                    <strong>Habitability Defense</strong> — use poor conditions as a defense in an eviction case.<br><br>
+                    Document everything first. Make repair requests in writing. Log every request in your journal with a date.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">Can I sue my landlord back?</button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Yes. A <strong>counterclaim</strong> lets you sue in the same eviction case. Common grounds: habitability violations, illegal lockout, retaliation, security deposit violations, discrimination. A successful counterclaim can reduce or eliminate what you owe — and may result in damages to you.
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">What should I bring to court?</button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    <strong>Bring everything organized chronologically:</strong><br><br>
+                    • Your written answer to the complaint<br>
+                    • Signed lease agreement<br>
+                    • All rent receipts<br>
+                    • Written repair requests and landlord responses<br>
+                    • Dated photos of the property<br>
+                    • All communications (texts, emails, notes)<br>
+                    • Your Semptify journal — your chronological record<br>
+                    • Government-issued ID
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <button class="faq-question">How do I document a maintenance problem properly?</button>
+            <div class="faq-answer">
+                <div class="faq-answer-content">
+                    Gold standard: <strong>written request + dated photos + proof of delivery.</strong><br><br>
+                    1. Write the request — email or letter, dated, describing the problem specifically<br>
+                    2. Take photos the same day (timestamp embedded)<br>
+                    3. Send via email (record) or certified mail<br>
+                    4. Log it in your Semptify journal immediately<br>
+                    5. Upload request and photos to your vault<br><br>
+                    If the landlord doesn't respond in a reasonable time, follow up in writing and document that too.
+                </div>
+            </div>
+        </div>
+
         <div class="faq-item">
             <button class="faq-question">Can my landlord enter my apartment without notice?</button>
             <div class="faq-answer">
                 <div class="faq-answer-content">
-                    Laws vary by state, but generally landlords must provide 24-48 hours notice 
-                    except in emergencies. Document any unauthorized entries in your journal.
+                    In Minnesota, landlords must provide reasonable notice (generally 24 hours) before entering, except in emergencies. Repeated unauthorized entries may constitute harassment. Document every entry in your journal with date, time, and what occurred.
                 </div>
             </div>
         </div>
-        
+
         <div class="faq-item">
-            <button class="faq-question">What repairs is my landlord responsible for?</button>
+            <button class="faq-question">Is Semptify free?</button>
             <div class="faq-answer">
                 <div class="faq-answer-content">
-                    Landlords must maintain habitable conditions including heat, water, 
-                    structural integrity, and safety systems. Document repair requests and 
-                    any failures to respond.
+                    <strong>Yes. 100% free.</strong> No subscription, no premium tier, no hidden costs. No ads. We do not sell your data. Free forever.
                 </div>
             </div>
         </div>
-        
-        <div class="faq-item">
-            <button class="faq-question">How do I organize my evidence effectively?</button>
-            <div class="faq-answer">
-                <div class="faq-answer-content">
-                    Use Quick Capture immediately when something happens. Upload photos 
-                    of notices, keep a detailed journal, and let our timeline feature 
-                    organize everything chronologically.
-                </div>
-            </div>
-        </div>
+
     </div>
-    
+
     <div class="help-footer-note">
-        <p>Semptify provides organization and education tools. For legal advice, 
-        please consult with a qualified attorney.</p>
+        <p>Semptify is an organizational and educational tool — not a law firm. For legal advice, consult a licensed attorney or free legal aid. <a href="/public/disclaimer.html">Full disclaimer</a>.</p>
     </div>
-    
+
 </div>
 {% endblock %}
 

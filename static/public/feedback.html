@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedback – Semptify</title>
+  <style>
+    :root { --primary: #1e3a5f; --accent: #3b82f6; --text: #1e293b; --text-light: #475569; --bg: #fdfcfa; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px; }
+    header { background: var(--primary); color: #fff; padding: 1.5rem 2rem; display: flex; align-items: center; gap: 1rem; }
+    header a { color: #fff; text-decoration: none; font-weight: 700; font-size: 1.2rem; }
+    header nav { margin-left: auto; display: flex; gap: 1.5rem; font-size: 0.9rem; }
+    header nav a { color: rgba(255,255,255,0.8); text-decoration: none; }
+    header nav a:hover { color: #fff; }
+    .article { max-width: 680px; margin: 0 auto; padding: 2.5rem 2rem; }
+    h1 { font-size: 2rem; font-weight: 400; color: var(--primary); margin-bottom: 0.5rem; }
+    .subtitle { color: var(--text-light); margin-bottom: 2.5rem; font-size: 1.05rem; }
+    label { display: block; font-weight: 600; color: var(--text); margin-bottom: 0.4rem; font-size: 0.95rem; }
+    select, textarea, input[type="email"] {
+      width: 100%; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 8px;
+      font-size: 0.95rem; font-family: inherit; color: var(--text); background: #fff;
+      margin-bottom: 1.5rem; transition: border-color 0.15s;
+    }
+    select:focus, textarea:focus, input[type="email"]:focus { outline: none; border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 130px; }
+    .btn { background: var(--primary); color: #fff; border: none; padding: 0.85rem 2rem; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+    .btn:hover { background: #2d5a87; }
+    .success { display: none; background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px; padding: 1.5rem; text-align: center; color: #166534; margin-top: 1rem; }
+    .success h3 { margin-bottom: 0.5rem; }
+    footer { background: var(--primary); color: rgba(255,255,255,0.7); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 3rem; }
+    footer a { color: rgba(255,255,255,0.7); margin: 0 0.75rem; text-decoration: none; }
+    footer a:hover { color: #fff; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="/">📓 Semptify</a>
+    <nav>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/public/contact.html">Contact</a>
+    </nav>
+  </header>
+
+  <article class="article">
+    <h1>Share Your Feedback</h1>
+    <p class="subtitle">Help us make Semptify better for tenants. Every message is read.</p>
+
+    <form id="feedbackForm" onsubmit="submitFeedback(event)">
+
+      <label for="type">What kind of feedback?</label>
+      <select id="type" name="type" required>
+        <option value="">— Select one —</option>
+        <option value="bug">🐛 Bug or broken feature</option>
+        <option value="missing">📋 Something I need that's missing</option>
+        <option value="confusing">😕 Something confusing or hard to use</option>
+        <option value="content">📚 Issue with rights / legal content</option>
+        <option value="positive">👍 Something that worked well</option>
+        <option value="other">💬 Other</option>
+      </select>
+
+      <label for="message">Your feedback</label>
+      <textarea id="message" name="message" placeholder="Tell us what happened, what you expected, or what would help you most..." required></textarea>
+
+      <label for="email">Your email (optional — only if you want a reply)</label>
+      <input type="email" id="email" name="email" placeholder="you@example.com">
+
+      <button type="submit" class="btn">Send Feedback</button>
+    </form>
+
+    <div class="success" id="successMsg">
+      <h3>✅ Thank you</h3>
+      <p>Your feedback was received. We read everything and use it to improve Semptify for tenants.</p>
+    </div>
+
+  </article>
+
+  <footer>
+    <div>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/public/terms.html">Terms</a>
+      <a href="/public/disclaimer.html">Disclaimer</a>
+      <a href="/public/contact.html">Contact</a>
+    </div>
+    <div style="margin-top:0.5rem;">© 2024–2026 Semptify · Free Forever · No Ads</div>
+  </footer>
+
+  <script>
+    function submitFeedback(e) {
+      e.preventDefault();
+      const type = document.getElementById('type').value;
+      const message = document.getElementById('message').value;
+      const email = document.getElementById('email').value;
+
+      fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, message, email })
+      })
+      .catch(() => {})
+      .finally(() => {
+        document.getElementById('feedbackForm').style.display = 'none';
+        document.getElementById('successMsg').style.display = 'block';
+      });
+    }
+  </script>
+
+</body>
+</html>
