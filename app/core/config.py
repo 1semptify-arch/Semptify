@@ -108,6 +108,11 @@ class Settings:
     azure_ai_region: str = os.getenv("AZURE_AI_REGION", "eastus")
     github_token: str = os.getenv("GITHUB_TOKEN", "")
 
+    # Email (Resend)
+    resend_api_key: str = os.getenv("RESEND_API_KEY", "")
+    from_email: str = os.getenv("FROM_EMAIL", "noreply@semptify.org")
+    support_email: str = os.getenv("SUPPORT_EMAIL", "support@semptify.org")
+
     @classmethod
     def get_settings(cls):
         return cls()
