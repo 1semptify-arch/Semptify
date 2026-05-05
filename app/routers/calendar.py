@@ -624,15 +624,31 @@ async def send_deadline_notifications(
             user_id=user.user_id
         )
         
-        # TODO: Send actual email when email service is configured
-        # For now, just log that we would send an email
-        print(f"TODO: Send email to user {user.user_id} about deadline: {event.title} in {days_until} days")
-        
+        # Send email notification if user has an email address on record
+        user_email = getattr(user, "email", None)
+        if user_email:
+            from app.services.email_service import send_email
+            html = f"""
+            <h2>Upcoming Deadline Reminder</h2>
+            <p>You have a critical deadline in <strong>{days_until} day(s)</strong>:</p>
+            <p style="font-size:1.1rem;color:#1e3a5f"><strong>{event.title}</strong></p>
+            {f'<p>{event.description}</p>' if event.description else ''}
+            <p style="color:#6b7280;font-size:0.9rem">Log in to Semptify to view your full timeline and deadlines.</p>
+            """
+            await send_email(
+                to=user_email,
+                subject=f"Semptify Deadline Reminder: {event.title} in {days_until} day(s)",
+                html=html,
+            )
+
         notifications_sent += 1
-    
+
+    from app.services.email_service import _RESEND_API_KEY
+    email_status = "configured" if _RESEND_API_KEY else "not_configured"
+
     return {
         "notifications_sent": notifications_sent,
         "upcoming_deadlines": len(upcoming_events),
-        "email_service_status": "not_configured",  # TODO: Check email service status
-        "message": f"Sent {notifications_sent} deadline notifications. Email sending not yet implemented."
+        "email_service_status": email_status,
+        "message": f"Sent {notifications_sent} deadline notifications."
     }
