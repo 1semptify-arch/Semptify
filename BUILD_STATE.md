@@ -4,11 +4,34 @@
 ---
 
 ## Last Deployed Commit
-- **Hash**: `6817d53`
-- **Date**: 2026-05-04 02:14 UTC-05
+- **Hash**: `8dd6ec9`
+- **Date**: 2026-05-05 14:36 UTC-05
 - **Branch**: `main`
 - **Repo**: https://github.com/1semptify-arch/Semptify.git
 - **Render auto-deploy**: YES — triggers on every push to main
+
+---
+
+## Shipped This Session (8dd6ec9)
+
+### Email — FULLY LIVE
+- [x] Resend API wired (`app/services/email_service.py`)
+- [x] `RESEND_API_KEY` / `FROM_EMAIL` / `SUPPORT_EMAIL` in config + `.env.example`
+- [x] `/api/feedback` endpoint live — feedback.html now actually sends email
+- [x] `/api/contact` endpoint live — contact form backend wired
+- [x] Both endpoints public (no auth required) — added to `storage_middleware` PUBLIC_PREFIXES
+- [x] Deadline notifications in `calendar.py` wired to `send_email()` (was TODO)
+- [x] Cloudflare Email Routing configured — all `@semptify.org` → `1semptify@gmail.com`
+- [x] End-to-end confirmed: `noreply@semptify.org` → Resend → Cloudflare → Gmail ✅
+
+### E2E Test Suite — BUILT & PASSING
+- [x] `tests/e2e/smoke_test.js` — 6/6 passing
+- [x] `tests/e2e/playwright_full_system_test.js` — 13/13 pages, all flows
+- [x] Full system test: 1 known issue (Swagger /api/docs returns 401 — intentional)
+
+### Page Recipe System
+- [x] `app/core/page_recipe.py` — PageRecipe dataclass + RecipeRegistry
+- [x] `app/templates/page_recipe_template.html` — Jinja2 visualization template
 
 ---
 
