@@ -109,6 +109,7 @@ law_library_router      = _safe_router_import("app.routers.law_library")
 
 # Core Tools (lightweight utilities)
 contacts_router         = _safe_router_import("app.routers.contacts")
+public_forms_router     = _safe_router_import("app.routers.public_forms")
 search_router           = _safe_router_import("app.routers.search")
 pdf_tools_router        = _safe_router_import("app.routers.pdf_tools")
 preview_router          = _safe_router_import("app.routers.preview")
@@ -1947,6 +1948,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(state_laws_router, tags=["State Laws"])  # State-specific housing law information (MN-first)
     if contacts_router:
         fastapi_app.include_router(contacts_router, tags=["Contact Manager"])  # Track landlords, attorneys, witnesses, agencies
+    if public_forms_router:
+        fastapi_app.include_router(public_forms_router, tags=["Public Forms"])  # Contact and feedback form endpoints
     if recognition_router:
         fastapi_app.include_router(recognition_router, tags=["Document Recognition"])  # World-class document recognition engine
     if search_router:
