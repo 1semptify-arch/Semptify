@@ -224,30 +224,53 @@
     </div>
   </main>
   
-  {# Footer - Semptify Mandates Compliance #}
-  <footer class="page-footer">
-    <div class="container">
-      <div class="flex flex-wrap items-center justify-between gap-4">
-        
-        {# Legal Notice - Semptify Mandate: Free forever, no ads #}
-        <div class="text-sm">
-          <span>© 2026 Semptify. Free forever. No advertising. Privacy-first.</span>
-          <br>
-          <span class="text-muted text-xs">
-            Built to protect tenant rights. Not legal advice. 
-            <a href="tel:1-800-292-4150" class="text-accent">MN Legal Aid: 1-800-292-4150</a>
-          </span>
+  {# ============================================
+     UNIFIED FOOTER - Single Source of Truth
+     This footer appears on EVERY page for consistency
+     ============================================ #}
+  <footer class="unified-footer" role="contentinfo" aria-label="Site footer">
+    <div class="footer-container">
+      
+      {# Legal Disclaimer - REQUIRED on all pages per Semptify mandates #}
+      <div class="footer-disclaimer">
+        <div class="footer-disclaimer-icon">⚖️</div>
+        <div class="footer-disclaimer-title">Not Legal Advice</div>
+        <div class="footer-disclaimer-text">
+          Semptify provides educational tools and document organization only. 
+          We are not a law firm. Nothing on this site constitutes legal advice, 
+          legal opinion, or attorney-client relationship. Always consult a 
+          qualified attorney for your specific legal situation.
         </div>
-        
-        {# Footer Navigation #}
-        <nav class="flex flex-wrap gap-4 text-sm" role="navigation" aria-label="Footer">
-          <a href="{{ navigation.get_path('privacy') }}">Privacy</a>
-          <a href="{{ navigation.get_path('terms') }}">Terms</a>
-          <a href="{{ navigation.get_path('disclaimer') }}">Disclaimer</a>
-          <a href="{{ navigation.get_path('contact') }}">Contact</a>
-        </nav>
-        
       </div>
+      
+      {# Footer Navigation - Center aligned #}
+      <nav class="footer-nav" aria-label="Footer navigation">
+        <a href="{{ navigation.get_path('privacy') }}">Privacy</a>
+        <a href="{{ navigation.get_path('terms') }}">Terms</a>
+        <a href="{{ navigation.get_path('disclaimer') }}">Disclaimer</a>
+        <a href="{{ navigation.get_path('about') }}">About</a>
+        <a href="{{ navigation.get_path('contact') }}">Contact</a>
+        <a href="{{ navigation.get_path('credits') }}">Credits</a>
+      </nav>
+      
+      <div class="footer-divider"></div>
+      
+      {# Bottom Info - Center aligned #}
+      <div class="footer-bottom">
+        <div class="footer-copyright">
+          © 2024-2026 Semptify — Free forever · No advertising · Privacy-first
+        </div>
+        <div class="footer-mandates">
+          Built to protect tenant rights
+        </div>
+        <div class="footer-help">
+          Need legal help? 
+          <a href="tel:1-800-292-4150" class="footer-hotline">
+            MN Legal Aid: 1-800-292-4150
+          </a>
+        </div>
+      </div>
+      
     </div>
   </footer>
   

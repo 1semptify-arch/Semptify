@@ -287,6 +287,7 @@ functionx_router       = None
 # =============================================================================
 setup_router    = _safe_router_import("app.routers.setup")
 page_index_router = _safe_router_import("app.routers.page_index")
+page_editor_router = _safe_router_import("app.routers.page_editor")  # Interactive page editor for static & Jinja2 templates
 
 
 # =============================================================================
@@ -2011,6 +2012,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(document_converter_router, tags=["Document Converter"])  # Markdown to DOCX/HTML conversion
     if page_index_router:
         fastapi_app.include_router(page_index_router, tags=["Page Index"])  # HTML page index database
+    if page_editor_router:
+        fastapi_app.include_router(page_editor_router, tags=["Page Editor"])  # Interactive page editor
+        logging.getLogger(__name__).info("📝 Page Editor router connected - Interactive editor for static & Jinja2 templates")
 
     if dashboard_router:
         fastapi_app.include_router(dashboard_router, tags=["Unified Dashboard"])  # Combined dashboard data
