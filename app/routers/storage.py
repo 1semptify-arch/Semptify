@@ -1963,8 +1963,12 @@ async def oauth_callback(
             <script>
                 // Set cookie via JavaScript (already set by server, but ensure it's available)
                 document.cookie = 'semptify_uid={user_id}; path=/; SameSite=Lax';
-                // Redirect to landing page
-                window.location.href = '{landing}';
+                // Redirect to landing page using top window to break out of iframe
+                if (window.top !== window.self) {{
+                    window.top.location.href = '{landing}';
+                }} else {{
+                    window.location.href = '{landing}';
+                }}
             </script>
             <p>Redirecting to your dashboard...</p>
         </body>
