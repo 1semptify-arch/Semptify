@@ -1,0 +1,200 @@
+<!--
+  UNIFIED FOOTER COMPONENT - Semptify
+  
+  This is the SINGLE SOURCE OF TRUTH for all footers across the site.
+  Use this footer on EVERY page for consistency.
+  
+  Mandates enforced:
+  - Not legal advice disclaimer (prominent)
+  - Free forever / No ads / Privacy-first
+  - No user accounts mentioned
+  - No tracking claims
+  
+  Usage:
+  1. Static HTML: Include this file via JavaScript injection (see footer-loader.js)
+  2. Jinja2 Templates: Extends base_ssot.html which includes this automatically
+  
+  Last Updated: 2026-05-06
+-->
+
+<!-- Unified Footer CSS -->
+<style>
+  /* ============================================
+     UNIFIED FOOTER STYLES - Semptify
+     Single Source of Truth for all footers
+     ============================================ */
+  
+  .unified-footer {
+    background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+    color: rgba(255, 255, 255, 0.9);
+    padding: 2.5rem 1.5rem 1.5rem;
+    margin-top: auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  
+  .unified-footer a {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  .unified-footer a:hover {
+    color: #fbbf24;
+  }
+  
+  /* Container */
+  .footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  /* Legal Disclaimer - MOST IMPORTANT */
+  .footer-disclaimer {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  
+  .footer-disclaimer-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .footer-disclaimer-title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #fbbf24;
+    margin-bottom: 0.5rem;
+  }
+  
+  .footer-disclaimer-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  /* Navigation Links - Centered */
+  .footer-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+  }
+  
+  .footer-nav a {
+    padding: 0.25rem 0.5rem;
+  }
+  
+  /* Divider */
+  .footer-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 1.5rem 0;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  
+  /* Bottom Row - Centered */
+  .footer-bottom {
+    text-align: center;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  
+  .footer-copyright {
+    margin-bottom: 0.5rem;
+  }
+  
+  .footer-mandates {
+    font-weight: 600;
+    color: #fbbf24;
+  }
+  
+  .footer-help {
+    margin-top: 0.75rem;
+    font-size: 0.8rem;
+  }
+  
+  /* Legal Aid Hotline - Prominent */
+  .footer-hotline {
+    display: inline-block;
+    background: rgba(251, 191, 36, 0.15);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    margin-top: 0.75rem;
+    font-weight: 600;
+    color: #fbbf24;
+  }
+  
+  /* Responsive */
+  @media (max-width: 640px) {
+    .unified-footer {
+      padding: 2rem 1rem 1.25rem;
+    }
+    
+    .footer-nav {
+      gap: 1rem;
+      font-size: 0.9rem;
+    }
+    
+    .footer-disclaimer-text {
+      font-size: 0.9rem;
+    }
+  }
+</style>
+
+<!-- Unified Footer HTML -->
+<footer class="unified-footer" role="contentinfo" aria-label="Site footer">
+  <div class="footer-container">
+    
+    <!-- Legal Disclaimer - Required on ALL pages -->
+    <div class="footer-disclaimer">
+      <div class="footer-disclaimer-icon">⚖️</div>
+      <div class="footer-disclaimer-title">Not Legal Advice</div>
+      <div class="footer-disclaimer-text">
+        Semptify provides educational tools and document organization only. 
+        We are not a law firm. Nothing on this site constitutes legal advice, 
+        legal opinion, or attorney-client relationship. Always consult a 
+        qualified attorney for your specific legal situation.
+      </div>
+    </div>
+    
+    <!-- Navigation Links -->
+    <nav class="footer-nav" aria-label="Footer navigation">
+      <a href="/">Home</a>
+      <a href="/public/privacy.html">Privacy</a>
+      <a href="/public/terms.html">Terms</a>
+      <a href="/public/disclaimer.html">Disclaimer</a>
+      <a href="/public/about.html">About</a>
+      <a href="/public/contact.html">Contact</a>
+      <a href="/public/credits.html">Credits</a>
+    </nav>
+    
+    <div class="footer-divider"></div>
+    
+    <!-- Bottom Info -->
+    <div class="footer-bottom">
+      <div class="footer-copyright">
+        © 2024-2026 Semptify — Free forever · No advertising · Privacy-first
+      </div>
+      <div class="footer-mandates">
+        Built to protect tenant rights
+      </div>
+      <div class="footer-help">
+        Need legal help? 
+        <a href="tel:1-800-292-4150" class="footer-hotline">
+          MN Legal Aid: 1-800-292-4150
+        </a>
+      </div>
+    </div>
+    
+  </div>
+</footer>

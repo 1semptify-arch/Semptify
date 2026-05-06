@@ -915,3 +915,133 @@ a:hover {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================================================
+   9. UNIFIED FOOTER - Single Source of Truth
+   ============================================================================
+   This footer appears on EVERY page for consistency.
+   Mandates enforced: Not legal advice, Free forever, No ads, Privacy-first
+   ============================================================================ */
+
+.unified-footer {
+  background: linear-gradient(135deg, var(--color-header-1) 0%, var(--color-header-2) 100%);
+  color: rgba(255, 255, 255, 0.9);
+  padding: var(--space-10) var(--space-6) var(--space-6);
+  margin-top: auto;
+}
+
+.unified-footer a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: color var(--transition-fast) ease;
+}
+
+.unified-footer a:hover {
+  color: var(--color-warm);
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Legal Disclaimer - MOST IMPORTANT */
+.footer-disclaimer {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-bottom: var(--space-8);
+  text-align: center;
+}
+
+.footer-disclaimer-icon {
+  font-size: var(--text-2xl);
+  margin-bottom: var(--space-2);
+}
+
+.footer-disclaimer-title {
+  font-weight: 700;
+  font-size: var(--text-lg);
+  color: var(--color-warm);
+  margin-bottom: var(--space-2);
+}
+
+.footer-disclaimer-text {
+  font-size: var(--text-base);
+  line-height: 1.6;
+  max-width: 800px;
+  margin: 0 auto;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Navigation Links - Centered */
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+  font-size: var(--text-base);
+}
+
+.footer-nav a {
+  padding: var(--space-1) var(--space-2);
+}
+
+/* Divider */
+.footer-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: var(--space-6) auto;
+  max-width: 600px;
+}
+
+/* Bottom Row - Centered */
+.footer-bottom {
+  text-align: center;
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.footer-copyright {
+  margin-bottom: var(--space-2);
+}
+
+.footer-mandates {
+  font-weight: 600;
+  color: var(--color-warm);
+}
+
+.footer-help {
+  margin-top: var(--space-3);
+  font-size: var(--text-xs);
+}
+
+/* Legal Aid Hotline - Prominent */
+.footer-hotline {
+  display: inline-block;
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-4);
+  margin-top: var(--space-3);
+  font-weight: 600;
+  color: var(--color-warm);
+}
+
+/* Footer Responsive */
+@media (max-width: 640px) {
+  .unified-footer {
+    padding: var(--space-8) var(--space-4) var(--space-5);
+  }
+  
+  .footer-nav {
+    gap: var(--space-4);
+    font-size: var(--text-sm);
+  }
+  
+  .footer-disclaimer-text {
+    font-size: var(--text-sm);
+  }
+}
