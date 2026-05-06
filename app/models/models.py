@@ -524,7 +524,7 @@ class Session(Base):
     __tablename__ = "sessions"
 
     # Primary key is the user_id (one session per user)
-    user_id: Mapped[str] = mapped_column(String(24), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(100), primary_key=True)
 
     # Provider info
     provider: Mapped[str] = mapped_column(String(20))  # google_drive, dropbox, onedrive
