@@ -15,6 +15,7 @@ from typing import Set
 
 from app.core.user_id import parse_user_id, COOKIE_USER_ID
 from app.core.navigation import navigation
+from app.core.ssot_guard import ssot_redirect
 
 # Redirect loop tracking cookie name
 REDIRECT_LOOP_COOKIE = "semptify_redirect_loop_count"
@@ -289,7 +290,9 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                                     "redirect_url": "/storage/logout-reset",
                                 },
                             )
-                        return RedirectResponse(url="/storage/logout-reset", status_code=302)
+                        logout_reset_stage = navigation.get_stage("logout_reset")
+                        logout_reset_path = logout_reset_stage.path if logout_reset_stage else "/storage/logout-reset"
+                        return ssot_redirect(logout_reset_path, context="storage_middleware session expired")
 
                     completed = _row or ""
                     if "storage_connected" not in completed.split(","):
@@ -316,7 +319,9 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                                         "redirect_url": "/onboarding/max-redirects",
                                     },
                                 )
-                            response = RedirectResponse(url="/onboarding/max-redirects", status_code=302)
+                            max_redirects_stage = navigation.get_stage("max_redirects")
+                            max_redirects_path = max_redirects_stage.path if max_redirects_stage else "/onboarding/max-redirects"
+                            response = ssot_redirect(max_redirects_path, context="storage_middleware redirect loop max")
                             response.delete_cookie(REDIRECT_LOOP_COOKIE)
                             return response
                         
