@@ -4,15 +4,25 @@
 ---
 
 ## Last Deployed Commit
-- **Hash**: `c8968fc`
-- **Date**: 2026-05-06 00:17 UTC-05
+- **Hash**: `71cf7e7`
+- **Date**: 2026-05-06 00:22 UTC-05
 - **Branch**: `main`
 - **Repo**: https://github.com/1semptify-arch/Semptify.git
 - **Render auto-deploy**: YES — triggers on every push to main
 
 ---
 
-## Shipped This Session (c8968fc)
+## Shipped This Session (71cf7e7)
+
+### SSOT Architecture Compliance — CRITICAL
+- [x] **Fixed 13 hardcoded redirects** in `app/main.py` and `app/core/storage_middleware.py`
+- [x] **All redirects now use navigation registry** — no more hardcoded paths
+- [x] **SSOT guard compliance** — all redirects use `ssot_redirect()` with context
+- [x] **Zero compilation errors** — changes verified with `python -m py_compile`
+
+---
+
+## Previous Shipped (c8968fc)
 
 ### Streamlined Verification — RAPID EXECUTION
 - [x] **Server verified running** — Health check passed at 00:17 UTC
