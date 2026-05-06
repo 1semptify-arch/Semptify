@@ -50,6 +50,8 @@ coverage.xml
 
 # Environments
 .env
+.env.production
+.env.backup
 .venv
 env/
 venv/
