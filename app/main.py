@@ -2065,7 +2065,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(dakota_forms, prefix="/eviction/forms", tags=["Court Forms"])
         logging.getLogger(__name__).info("✅ Dakota County Eviction Defense module loaded")
     else:
-        logging.getLogger(__name__).warning("⚠️ Dakota County module not available")
+        logging.getLogger(__name__).info("ℹ️  Dakota County module not available (optional)")
 
     # New Legal Defense Modules
     if law_library_router:
@@ -2109,7 +2109,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logging.getLogger(__name__).info("📊 Litigation Intelligence System router connected - Justice-grade legal intelligence active")
         logging.getLogger(__name__).info("?? Litigation Intelligence System router connected - Justice-grade legal intelligence active")
     except ImportError as e:
-        logging.getLogger(__name__).warning(f"Litigation Intelligence System not available: {e}")
+        logging.getLogger(__name__).info(f"ℹ️  Litigation Intelligence System not available (optional): {e}")
 
     # Core System - System Infrastructure and Services
     try:
@@ -2117,7 +2117,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(core_system.core_router, tags=["Core System"])
         logging.getLogger(__name__).info("?? Core System router connected - System infrastructure active")
     except ImportError as e:
-        logging.getLogger(__name__).warning(f"Core System not available: {e}")
+        logging.getLogger(__name__).info(f"ℹ️  Core System not available (optional): {e}")
 
     # Housing Accountability - Regulatory Compliance & Oversight
     try:
@@ -2125,7 +2125,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(housing_accountability.accountability_router, tags=["Housing Accountability"])
         logging.getLogger(__name__).info("?? Housing Accountability router connected - Regulatory compliance active")
     except ImportError as e:
-        logging.getLogger(__name__).warning(f"Housing Accountability not available: {e}")
+        logging.getLogger(__name__).info(f"ℹ️  Housing Accountability not available (optional): {e}")
 
     # Phase 2 Advanced Features Integration
     # =========================================================================
@@ -2136,7 +2136,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(preview.router, prefix="/api/preview", tags=["Document Preview"])
         logging.getLogger(__name__).info("📄 Document Preview router connected - Multi-format preview generation active")
     except ImportError as e:
-        logging.getLogger(__name__).warning(f"Document Preview router not available: {e}")
+        logging.getLogger(__name__).info(f"ℹ️  Document Preview router not available (optional): {e}")
 
     # Batch Operations - Bulk document management
     try:
@@ -2144,7 +2144,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(batch.router, prefix="/api/batch", tags=["Batch Operations"])
         logging.getLogger(__name__).info("📦 Batch Operations router connected - Bulk document management active")
     except ImportError as e:
-        logging.getLogger(__name__).warning(f"Batch Operations router not available: {e}")
+        logging.getLogger(__name__).info(f"ℹ️  Batch Operations router not available (optional): {e}")
 
     # Data Export/Import - GDPR-compliant data management
     try:
@@ -2152,7 +2152,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(export_import.router, prefix="/api/export-import", tags=["Data Export/Import"])
         logging.getLogger(__name__).info("📊 Data Export/Import router connected - GDPR-compliant data management active")
     except ImportError as e:
-        logging.getLogger(__name__).warning(f"Data Export/Import router not available: {e}")
+        logging.getLogger(__name__).info(f"ℹ️  Data Export/Import router not available (optional): {e}")
 
     # Advanced Security - 2FA and session management
     try:
@@ -2160,7 +2160,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(security.router, prefix="/api/security", tags=["Advanced Security"])
         logging.getLogger(__name__).info("🔒 Advanced Security router connected - 2FA and session management active")
     except ImportError as e:
-        logging.getLogger(__name__).warning(f"Advanced Security router not available: {e}")
+        logging.getLogger(__name__).info(f"ℹ️  Advanced Security router not available (optional): {e}")
 
     # Automated Testing - Comprehensive testing framework
     try:
@@ -2168,7 +2168,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(testing.router, prefix="/api/testing", tags=["Automated Testing"])
         logging.getLogger(__name__).info("🧪 Automated Testing router connected - Comprehensive testing framework active")
     except ImportError as e:
-        logging.getLogger(__name__).warning(f"Automated Testing router not available: {e}")
+        logging.getLogger(__name__).info(f"ℹ️  Automated Testing router not available (optional): {e}")
 
     # API Documentation - Developer portal and API docs
     try:
@@ -2176,7 +2176,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(documentation.router, prefix="/api/docs", tags=["API Documentation"])
         logging.getLogger(__name__).info("📚 API Documentation router connected - Developer portal active")
     except ImportError as e:
-        logging.getLogger(__name__).warning(f"API Documentation router not available: {e}")
+        logging.getLogger(__name__).info(f"ℹ️  API Documentation router not available (optional): {e}")
 
     # Free API Pack - Minnesota tenant rights APIs
     if free_api_router:
