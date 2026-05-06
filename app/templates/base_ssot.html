@@ -70,6 +70,7 @@
   {# Role - used for navigation links, override in child template with {% block role %}tenant{% endblock %} #}
   {% set role = self.role()|default('tenant') %}
   
+  {# MANDATORY 5-LINK NAVIGATION: Home, Library, Office, Tools, Help #}
   {# Mobile Navigation Drawer #}
   <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
   
@@ -79,72 +80,101 @@
       <button onclick="closeDrawer()" class="drawer-close" aria-label="Close menu">✕</button>
     </div>
     
-    {# Mobile Nav Links - Generated from SSOT Navigation Registry #}
-    <a href="{{ navigation.get_path(role + '_home') }}" 
-       class="{% if request.url.path == navigation.get_path(role + '_home') %}active-link{% endif %}">
+    {# MANDATORY 5-ITEM NAVIGATION - All pages must use this structure #}
+    <a href="/" 
+       class="{% if request.url.path == '/' %}active-link{% endif %}">
       🏠 Home
     </a>
-    <a href="{{ navigation.get_path(role + '_journal') }}"
-       class="{% if request.url.path == navigation.get_path(role + '_journal') %}active-link{% endif %}">
-      📝 Journal
+    <a href="/law-library"
+       class="{% if request.url.path == '/law-library' %}active-link{% endif %}">
+      � Library
     </a>
-    <a href="{{ navigation.get_path(role + '_documents') }}"
-       class="{% if request.url.path == navigation.get_path(role + '_documents') %}active-link{% endif %}">
-      📁 Documents
+    <a href="/office"
+       class="{% if request.url.path == '/office' %}active-link{% endif %}">
+      🏢 Office
     </a>
-    <a href="{{ navigation.get_path('law_library') }}"
-       class="{% if request.url.path == navigation.get_path('law_library') %}active-link{% endif %}">
-      ⚖️ Rights
+    <a href="/tools"
+       class="{% if request.url.path == '/tools' %}active-link{% endif %}">
+      🧰 Tools
     </a>
-    <a href="{{ navigation.get_path(role + '_help') }}"
-       class="{% if request.url.path == navigation.get_path(role + '_help') %}active-link{% endif %}">
-      🆘 Help
+    <a href="/help"
+       class="{% if request.url.path == '/help' %}active-link{% endif %}">
+      ❓ Help
     </a>
+  </nav>
+  
+  {# MANDATORY MAIN NAVIGATION - 5 Core Links: Home, Library, Office, Tools, Help #}
+  <nav class="main-nav" role="navigation" aria-label="Main Navigation">
+    <div class="nav-container">
+      <a href="/" class="nav-brand" aria-label="Semptify Home">
+        <span class="nav-logo">⚖️</span>
+        <span class="nav-title">Semptify</span>
+      </a>
+      
+      {# Core Navigation Links - MANDATORY 5-ITEM STRUCTURE #}
+      <ul class="nav-links" role="menubar">
+        <li class="nav-item" role="none">
+          <a href="/" class="nav-link {% if request.url.path == '/' %}active{% endif %}" role="menuitem">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-label">Home</span>
+          </a>
+        </li>
+        <li class="nav-item" role="none">
+          <a href="/law-library" class="nav-link {% if request.url.path == '/law-library' %}active{% endif %}" role="menuitem">
+            <span class="nav-icon">📚</span>
+            <span class="nav-label">Library</span>
+          </a>
+        </li>
+        <li class="nav-item" role="none">
+          <a href="/office" class="nav-link {% if request.url.path == '/office' %}active{% endif %}" role="menuitem">
+            <span class="nav-icon">🏢</span>
+            <span class="nav-label">Office</span>
+          </a>
+        </li>
+        <li class="nav-item" role="none">
+          <a href="/tools" class="nav-link {% if request.url.path == '/tools' %}active{% endif %}" role="menuitem">
+            <span class="nav-icon">🧰</span>
+            <span class="nav-label">Tools</span>
+          </a>
+        </li>
+        <li class="nav-item" role="none">
+          <a href="/help" class="nav-link {% if request.url.path == '/help' %}active{% endif %}" role="menuitem">
+            <span class="nav-icon">❓</span>
+            <span class="nav-label">Help</span>
+          </a>
+        </li>
+      </ul>
+      
+      {# Mobile Menu Toggle #}
+      <button class="nav-toggle hide-desktop" aria-label="Toggle navigation menu" aria-expanded="false" onclick="openDrawer()">
+        <span class="toggle-bar"></span>
+        <span class="toggle-bar"></span>
+        <span class="toggle-bar"></span>
+      </button>
+    </div>
   </nav>
   
   {# Page Header with Gradient Background #}
   <header class="page-header">
     <div class="container">
       
-      {# Top Bar: Logo + Desktop Nav + Actions #}
+      {# Top Bar: Logo + Breadcrumbs + Actions (Navigation now in main-nav above) #}
       <div class="flex items-center justify-between">
         
-        {# Logo Section #}
-        <div class="flex items-center gap-4">
-          <button class="hamburger hide-desktop" onclick="openDrawer()" aria-label="Open menu">
+        {# Logo Section - Hidden when main-nav is present, shown on mobile #}
+        <div class="flex items-center gap-4 hide-desktop">
+          <button class="hamburger" onclick="openDrawer()" aria-label="Open menu">
             ☰
           </button>
-          <a href="{{ navigation.get_path('root') }}" 
-             class="text-2xl font-bold text-inverse" 
-             style="text-decoration: none;"
-             aria-label="Semptify Home">
+          <a href="/" class="text-2xl font-bold text-inverse" style="text-decoration: none;" aria-label="Semptify Home">
             Semptify
           </a>
         </div>
         
-        {# Desktop Navigation - Hidden on Mobile #}
-        <nav class="core-nav hide-mobile" role="navigation" aria-label="Main navigation">
-          <a href="{{ navigation.get_path(role + '_home') }}" 
-             class="nav__link {% if request.url.path == navigation.get_path(role + '_home') %}nav__link--active{% endif %}">
-            🏠 Home
-          </a>
-          <a href="{{ navigation.get_path(role + '_journal') }}"
-             class="nav__link {% if request.url.path == navigation.get_path(role + '_journal') %}nav__link--active{% endif %}">
-            📝 Journal
-          </a>
-          <a href="{{ navigation.get_path(role + '_documents') }}"
-             class="nav__link {% if request.url.path == navigation.get_path(role + '_documents') %}nav__link--active{% endif %}">
-            📁 Documents
-          </a>
-          <a href="{{ navigation.get_path('law_library') }}"
-             class="nav__link {% if request.url.path == navigation.get_path('law_library') %}nav__link--active{% endif %}">
-            ⚖️ Rights
-          </a>
-          <a href="{{ navigation.get_path(role + '_help') }}"
-             class="nav__link {% if request.url.path == navigation.get_path(role + '_help') %}nav__link--active{% endif %}">
-            🆘 Help
-          </a>
-        </nav>
+        {# Breadcrumb or Page Title Area #}
+        <div class="page-title-area hide-mobile">
+          <h1 class="text-inverse">{% block page_title %}Semptify{% endblock %}</h1>
+        </div>
         
         {# Header Actions #}
         <div class="flex items-center gap-3">

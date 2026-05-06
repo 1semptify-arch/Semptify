@@ -1045,3 +1045,180 @@ a:hover {
     font-size: var(--text-sm);
   }
 }
+
+/* ============================================================================
+   SECTION 10: MAIN NAVIGATION
+   Mandatory 5-link navigation: Home, Library, Office, Tools, Help
+   ============================================================================ */
+
+.main-nav {
+  background: var(--surface-0);
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-50);
+}
+
+.nav-container {
+  max-width: var(--max-width-7xl);
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+/* Brand */
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: var(--text-lg);
+}
+
+.nav-logo {
+  font-size: 1.5rem;
+}
+
+.nav-title {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .nav-title {
+    display: block;
+  }
+}
+
+/* Navigation Links - MANDATORY 5-ITEM STRUCTURE */
+.nav-links {
+  display: none;
+  list-style: none;
+  gap: var(--space-1);
+}
+
+@media (min-width: 768px) {
+  .nav-links {
+    display: flex;
+  }
+}
+
+.nav-item {
+  position: relative;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+
+.nav-link.active,
+.nav-link[aria-current="page"] {
+  background: var(--primary-50);
+  color: var(--primary-600);
+}
+
+.nav-icon {
+  font-size: 1.1rem;
+}
+
+.nav-label {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .nav-label {
+    display: inline;
+  }
+}
+
+/* Mobile Toggle */
+.nav-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .nav-toggle {
+    display: none;
+  }
+}
+
+.toggle-bar {
+  width: 24px;
+  height: 2px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Mobile Navigation */
+.nav-mobile {
+  position: absolute;
+  top: 64px;
+  left: 0;
+  right: 0;
+  background: var(--surface-0);
+  border-bottom: 1px solid var(--border-light);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-lg);
+}
+
+.nav-mobile-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.nav-mobile-links a {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.nav-mobile-links a:hover,
+.nav-mobile-links a.active {
+  background: var(--surface-1);
+  color: var(--text-primary);
+}
+
+/* Nav Actions (Contextual) */
+.nav-actions {
+  display: none;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .nav-actions {
+    display: flex;
+  }
+}

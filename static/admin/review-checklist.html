@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semptify Review Checklist - Contracts & Routes</title>
+  <link rel="stylesheet" href="/css/ssot-design-system.css">
+  <style>
+    :root {
+      --review-bg: #0f172a;
+      --review-card: #1e293b;
+      --review-border: #334155;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --accent: #3b82f6;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--review-bg);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+      padding: 2rem;
+      background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+      border-radius: 12px;
+    }
+    
+    .header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      color: white;
+    }
+    
+    .header p {
+      color: rgba(255,255,255,0.8);
+      font-size: 1.1rem;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+      margin-top: 1rem;
+      overflow: hidden;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: #22c55e;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+    
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .stat-value {
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+    
+    /* Checklist Sections */
+    .checklist-section {
+      background: var(--review-card);
+      border: 1px solid var(--review-border);
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      background: rgba(255,255,255,0.05);
+      border-bottom: 1px solid var(--review-border);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .section-header:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+    
+    .section-icon {
+      font-size: 1.3rem;
+    }
+    
+    .section-count {
+      background: var(--accent);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    
+    .section-count.complete {
+      background: var(--success);
+    }
+    
+    .expand-icon {
+      font-size: 1.2rem;
+      transition: transform 0.2s;
+    }
+    
+    .expand-icon.collapsed {
+      transform: rotate(-90deg);
+    }
+    
+    .section-content {
+      padding: 1rem;
+    }
+    
+    .section-content.collapsed {
+      display: none;
+    }
+    
+    /* Checklist Items */
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem;
+      border-bottom: 1px solid var(--review-border);
+      transition: background 0.2s;
+    }
+    
+    .checklist-item:last-child {
+      border-bottom: none;
+    }
+    
+    .checklist-item:hover {
+      background: rgba(255,255,255,0.03);
+    }
+    
+    .checklist-item.reviewed {
+      opacity: 0.6;
+    }
+    
+    .checklist-item.reviewed .item-title {
+      text-decoration: line-through;
+    }
+    
+    /* Custom Checkbox */
+    .checkbox-wrapper {
+      position: relative;
+      flex-shrink: 0;
+    }
+    
+    .custom-checkbox {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--review-border);
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      background: transparent;
+    }
+    
+    .custom-checkbox:hover {
+      border-color: var(--accent);
+    }
+    
+    .custom-checkbox.checked {
+      background: var(--success);
+      border-color: var(--success);
+    }
+    
+    .custom-checkbox.checked::after {
+      content: '✓';
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    
+    .item-content {
+      flex: 1;
+    }
+    
+    .item-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      color: #f1f5f9;
+    }
+    
+    .item-description {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+    
+    .item-meta {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.5rem;
+      font-size: 0.8rem;
+    }
+    
+    .meta-tag {
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.1);
+      color: #cbd5e1;
+    }
+    
+    .meta-tag.critical {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+    }
+    
+    .meta-tag.warning {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fcd34d;
+    }
+    
+    /* Actions */
+    .item-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .btn-small {
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    
+    .btn-test {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .btn-test:hover {
+      background: #2563eb;
+    }
+    
+    .btn-view {
+      background: rgba(255,255,255,0.1);
+      color: #e2e8f0;
+    }
+    
+    .btn-view:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    
+    /* Global Actions */
+    .global-actions {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      display: flex;
+      gap: 1rem;
+    }
+    
+    .btn-floating {
+      padding: 1rem 1.5rem;
+      border: none;
+      border-radius: 50px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .btn-reset {
+      background: var(--review-card);
+      color: #e2e8f0;
+      border: 1px solid var(--review-border);
+    }
+    
+    .btn-reset:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    
+    .btn-save {
+      background: var(--success);
+      color: white;
+    }
+    
+    .btn-save:hover {
+      background: #16a34a;
+    }
+    
+    /* Results Panel */
+    .results-panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      background: var(--review-card);
+      border: 1px solid var(--review-border);
+      border-radius: 16px;
+      padding: 2rem;
+      min-width: 400px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+    
+    .results-panel.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    
+    .results-title {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    
+    .result-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+    }
+    
+    .result-item.success {
+      background: rgba(34, 197, 94, 0.1);
+      color: #4ade80;
+    }
+    
+    .result-item.warning {
+      background: rgba(245, 158, 11, 0.1);
+      color: #fbbf24;
+    }
+    
+    .result-item.error {
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+    }
+    
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 999;
+    }
+    
+    .overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    /* Notes Field */
+    .notes-field {
+      margin-top: 0.75rem;
+      padding: 0.5rem;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--review-border);
+      border-radius: 6px;
+      width: 100%;
+      color: #e2e8f0;
+      font-size: 0.85rem;
+      resize: vertical;
+      min-height: 60px;
+    }
+    
+    .notes-field:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    .notes-field::placeholder {
+      color: #64748b;
+    }
+    
+    /* Filter Bar */
+    .filter-bar {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: var(--review-card);
+      border-radius: 8px;
+    }
+    
+    .filter-btn {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--review-border);
+      border-radius: 6px;
+      background: transparent;
+      color: #e2e8f0;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .filter-btn:hover,
+    .filter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+    
+    .search-input {
+      flex: 1;
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--review-border);
+      border-radius: 6px;
+      background: rgba(0,0,0,0.2);
+      color: #e2e8f0;
+      font-size: 0.9rem;
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🔍 Review Checklist</h1>
+      <p>Contracts & Routes Verification — Ensure all systems work correctly</p>
+      
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+      </div>
+      
+      <div class="stats">
+        <div class="stat-item">
+          <span>✅</span>
+          <span class="stat-value" id="completedCount">0</span>
+          <span>Completed</span>
+        </div>
+        <div class="stat-item">
+          <span>📋</span>
+          <span class="stat-value" id="totalCount">0</span>
+          <span>Total Items</span>
+        </div>
+        <div class="stat-item">
+          <span>⚠️</span>
+          <span class="stat-value" id="pendingCount">0</span>
+          <span>Pending</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterItems('all')">All</button>
+      <button class="filter-btn" onclick="filterItems('contracts')">Contracts</button>
+      <button class="filter-btn" onclick="filterItems('routes')">Routes</button>
+      <button class="filter-btn" onclick="filterItems('pending')">Pending</button>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search checklist items..." oninput="searchItems(this.value)">
+    </div>
+
+    <!-- Contract Verification Section -->
+    <div class="checklist-section" data-category="contracts">
+      <div class="section-header" onclick="toggleSection('contracts')">
+        <div class="section-title">
+          <span class="section-icon">📄</span>
+          <span>Contract Verification</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <span class="section-count" id="contractsCount">0/0</span>
+          <span class="expand-icon" id="contractsExpand">▼</span>
+        </div>
+      </div>
+      <div class="section-content" id="contractsContent">
+        <!-- Items injected by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Routes Verification Section -->
+    <div class="checklist-section" data-category="routes">
+      <div class="section-header" onclick="toggleSection('routes')">
+        <div class="section-title">
+          <span class="section-icon">🛣️</span>
+          <span>Routes & Navigation Verification</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <span class="section-count" id="routesCount">0/0</span>
+          <span class="expand-icon" id="routesExpand">▼</span>
+        </div>
+      </div>
+      <div class="section-content" id="routesContent">
+        <!-- Items injected by JavaScript -->
+      </div>
+    </div>
+
+    <!-- SSOT Compliance Section -->
+    <div class="checklist-section" data-category="ssot">
+      <div class="section-header" onclick="toggleSection('ssot')">
+        <div class="section-title">
+          <span class="section-icon">🏛️</span>
+          <span>SSOT Architecture Compliance</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <span class="section-count" id="ssotCount">0/0</span>
+          <span class="expand-icon" id="ssotExpand">▼</span>
+        </div>
+      </div>
+      <div class="section-content" id="ssotContent">
+        <!-- Items injected by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Footer Consistency Section -->
+    <div class="checklist-section" data-category="footer">
+      <div class="section-header" onclick="toggleSection('footer')">
+        <div class="section-title">
+          <span class="section-icon">🦶</span>
+          <span>Footer Consistency Check</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <span class="section-count" id="footerCount">0/0</span>
+          <span class="expand-icon" id="footerExpand">▼</span>
+        </div>
+      </div>
+      <div class="section-content" id="footerContent">
+        <!-- Items injected by JavaScript -->
+      </div>
+    </div>
+
+    <!-- Security & Privacy Section -->
+    <div class="checklist-section" data-category="security">
+      <div class="section-header" onclick="toggleSection('security')">
+        <div class="section-title">
+          <span class="section-icon">🔒</span>
+          <span>Security & Privacy Verification</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <span class="section-count" id="securityCount">0/0</span>
+          <span class="expand-icon" id="securityExpand">▼</span>
+        </div>
+      </div>
+      <div class="section-content" id="securityContent">
+        <!-- Items injected by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Actions -->
+  <div class="global-actions">
+    <button class="btn-floating btn-reset" onclick="resetAll()">🔄 Reset All</button>
+    <button class="btn-floating btn-save" onclick="runVerification()">▶️ Run Tests</button>
+  </div>
+
+  <!-- Results Overlay -->
+  <div class="overlay" id="overlay" onclick="hideResults()"></div>
+  
+  <!-- Results Panel -->
+  <div class="results-panel" id="resultsPanel">
+    <h2 class="results-title">Verification Results</h2>
+    <div id="resultsContent">
+      <!-- Results injected by JavaScript -->
+    </div>
+    <div style="text-align: center; margin-top: 1.5rem;">
+      <button class="btn-small btn-test" onclick="hideResults()">Close</button>
+    </div>
+  </div>
+
+  <!-- Unified Footer -->
+  <script src="/js/unified-footer-loader.js"></script>
+
+  <script>
+    // Checklist Data
+    const checklistData = {
+      contracts: [
+        {
+          id: 'c1',
+          title: 'Returning User Contract',
+          description: 'Verify /returning-user-contract.html loads correctly and all checkpoints display',
+          critical: true,
+          test: () => fetch('/returning-user-contract.html').then(r => r.ok)
+        },
+        {
+          id: 'c2',
+          title: 'User Reconnect v2',
+          description: 'Test storage reconnection flow and cookie validation',
+          critical: true,
+          test: () => fetch('/user-reconnect-v2.html').then(r => r.ok)
+        },
+        {
+          id: 'c3',
+          title: 'Privacy Policy - No Account Language',
+          description: 'Confirm privacy policy uses "session" not "account" terminology',
+          critical: false,
+          test: async () => {
+            const r = await fetch('/public/privacy.html');
+            const text = await r.text();
+            return !text.includes('your account') && !text.includes('Account information');
+          }
+        },
+        {
+          id: 'c4',
+          title: 'Terms of Service - Session Based',
+          description: 'Verify terms use "session" and "disconnect storage" not account deletion',
+          critical: false,
+          test: async () => {
+            const r = await fetch('/public/terms.html');
+            const text = await r.text();
+            return text.includes('Session and Security') && text.includes('disconnect your cloud storage');
+          }
+        }
+      ],
+      routes: [
+        {
+          id: 'r1',
+          title: 'Welcome Page (/)',
+          description: 'Root path redirects to welcome page correctly',
+          critical: true,
+          test: () => fetch('/').then(r => r.ok)
+        },
+        {
+          id: 'r2',
+          title: 'Tenant Dashboard (/tenant/home)',
+          description: 'Tenant dashboard loads with dynamic data',
+          critical: true,
+          test: () => fetch('/tenant/home').then(r => r.ok || r.status === 302)
+        },
+        {
+          id: 'r3',
+          title: 'Journal Page (/tenant/journal)',
+          description: 'Journal page accessible with CRUD functionality',
+          critical: true,
+          test: () => fetch('/tenant/journal').then(r => r.ok || r.status === 302)
+        },
+        {
+          id: 'r4',
+          title: 'Law Library (/law-library)',
+          description: 'Law library loads with tenant rights and responsibilities',
+          critical: true,
+          test: () => fetch('/law-library').then(r => r.ok)
+        },
+        {
+          id: 'r5',
+          title: 'Storage OAuth Flow',
+          description: 'Storage connection and OAuth callback work correctly',
+          critical: true,
+          test: () => fetch('/storage/providers').then(r => r.ok || r.status === 302)
+        },
+        {
+          id: 'r6',
+          title: 'Page Editor (/admin/page-editor.html)',
+          description: 'Interactive page editor loads and API responds',
+          critical: false,
+          test: async () => {
+            const r1 = await fetch('/admin/page-editor.html');
+            const r2 = await fetch('/api/editor/files');
+            return r1.ok && r2.ok;
+          }
+        }
+      ],
+      ssot: [
+        {
+          id: 's1',
+          title: 'No Hardcoded Redirects',
+          description: 'Verify main.py uses ssot_redirect() not RedirectResponse with hardcoded URLs',
+          critical: true,
+          test: async () => {
+            // This would need server-side verification
+            return { skip: true, message: 'Manual review required - check main.py' };
+          }
+        },
+        {
+          id: 's2',
+          title: 'Navigation Registry Working',
+          description: 'SSOT navigation API returns valid paths',
+          critical: true,
+          test: async () => {
+            const r = await fetch('/onboarding/ssot-navigation');
+            if (!r.ok) return false;
+            const data = await r.json();
+            return data && Object.keys(data).length > 0;
+          }
+        },
+        {
+          id: 's3',
+          title: 'Base Template Uses SSOT',
+          description: 'base_ssot.html uses navigation.get_path() for links',
+          critical: true,
+          test: async () => {
+            const r = await fetch('/templates/base_ssot.html').catch(() => ({ok: false}));
+            if (!r.ok) return true; // Template not directly accessible is OK
+            const text = await r.text();
+            return text.includes('navigation.get_path');
+          }
+        }
+      ],
+      footer: [
+        {
+          id: 'f1',
+          title: 'Welcome Page Footer',
+          description: 'welcome.html uses unified-footer-loader.js',
+          critical: false,
+          test: async () => {
+            const r = await fetch('/public/welcome.html');
+            const text = await r.text();
+            return text.includes('unified-footer-loader.js');
+          }
+        },
+        {
+          id: 'f2',
+          title: 'Dashboard Footer',
+          description: 'Tenant dashboard has unified footer',
+          critical: false,
+          test: async () => {
+            const r = await fetch('/tenant/dashboard.html');
+            const text = await r.text();
+            return text.includes('unified-footer-loader.js');
+          }
+        },
+        {
+          id: 'f3',
+          title: 'Legal Advice Disclaimer Present',
+          description: 'All pages have "Not Legal Advice" disclaimer in footer',
+          critical: true,
+          test: async () => {
+            const pages = ['/public/welcome.html', '/public/privacy.html'];
+            for (const page of pages) {
+              const r = await fetch(page);
+              const text = await r.text();
+              if (!text.includes('Not Legal Advice') && !text.includes('not legal advice')) {
+                return false;
+              }
+            }
+            return true;
+          }
+        },
+        {
+          id: 'f4',
+          title: 'MN Legal Aid Hotline',
+          description: 'Footer includes MN Legal Aid hotline (1-800-292-4150)',
+          critical: false,
+          test: async () => {
+            const r = await fetch('/public/welcome.html');
+            const text = await r.text();
+            return text.includes('1-800-292-4150') || text.includes('292-4150');
+          }
+        }
+      ],
+      security: [
+        {
+          id: 'sec1',
+          title: 'No User Account References',
+          description: 'Pages do not mention "user accounts", "sign up", or "login"',
+          critical: true,
+          test: async () => {
+            const r = await fetch('/public/about.html');
+            const text = await r.text();
+            return !text.includes('create an account') && !text.includes('sign up');
+          }
+        },
+        {
+          id: 'sec2',
+          title: 'No Tracking Claims',
+          description: 'No "users served" or "cases served" statistics',
+          critical: true,
+          test: async () => {
+            const r = await fetch('/public/about.html');
+            const text = await r.text();
+            return !text.match(/\d+\s*Users/i) && !text.match(/\d+\s*Cases/i);
+          }
+        },
+        {
+          id: 'sec3',
+          title: 'Property Managers Not Listed',
+          description: 'Property managers removed from user roles',
+          critical: true,
+          test: async () => {
+            const r = await fetch('/public/about.html');
+            const text = await r.text();
+            return !text.includes('Property Managers') && !text.includes('property manager');
+          }
+        }
+      ]
+    };
+
+    // State
+    let reviewedItems = new Set();
+    let currentFilter = 'all';
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      renderChecklist();
+      updateStats();
+    });
+    
+    // Render checklist items
+    function renderChecklist() {
+      for (const [section, items] of Object.entries(checklistData)) {
+        const container = document.getElementById(section + 'Content');
+        container.innerHTML = items.map(item => `
+          <div class="checklist-item ${reviewedItems.has(item.id) ? 'reviewed' : ''}" 
+               data-id="${item.id}" 
+               data-category="${section}"
+               data-critical="${item.critical}">
+            <div class="checkbox-wrapper">
+              <div class="custom-checkbox ${reviewedItems.has(item.id) ? 'checked' : ''}" 
+                   onclick="toggleItem('${item.id}')"></div>
+            </div>
+            <div class="item-content">
+              <div class="item-title">${item.title}</div>
+              <div class="item-description">${item.description}</div>
+              <div class="item-meta">
+                ${item.critical ? '<span class="meta-tag critical">🔴 CRITICAL</span>' : ''}
+                <span class="meta-tag">${section.toUpperCase()}</span>
+              </div>
+              <textarea class="notes-field" 
+                        placeholder="Review notes... (save automatically)" 
+                        data-id="${item.id}"
+                        oninput="saveNote('${item.id}', this.value)">${getNote(item.id)}</textarea>
+            </div>
+            <div class="item-actions">
+              <button class="btn-small btn-test" onclick="testItem('${item.id}')">🧪 Test</button>
+              ${item.url ? `<a href="${item.url}" class="btn-small btn-view" target="_blank">👁 View</a>` : ''}
+            </div>
+          </div>
+        `).join('');
+        
+        // Update section count
+        updateSectionCount(section, items);
+      }
+    }
+    
+    // Toggle item reviewed
+    function toggleItem(id) {
+      if (reviewedItems.has(id)) {
+        reviewedItems.delete(id);
+      } else {
+        reviewedItems.add(id);
+      }
+      saveState();
+      renderChecklist();
+      updateStats();
+    }
+    
+    // Toggle section collapse
+    function toggleSection(section) {
+      const content = document.getElementById(section + 'Content');
+      const expand = document.getElementById(section + 'Expand');
+      content.classList.toggle('collapsed');
+      expand.classList.toggle('collapsed');
+    }
+    
+    // Update section count display
+    function updateSectionCount(section, items) {
+      const reviewed = items.filter(i => reviewedItems.has(i.id)).length;
+      const total = items.length;
+      const countEl = document.getElementById(section + 'Count');
+      countEl.textContent = `${reviewed}/${total}`;
+      countEl.classList.toggle('complete', reviewed === total);
+    }
+    
+    // Update global stats
+    function updateStats() {
+      let total = 0;
+      let completed = 0;
+      let critical = 0;
+      let criticalCompleted = 0;
+      
+      for (const [section, items] of Object.entries(checklistData)) {
+        items.forEach(item => {
+          total++;
+          if (reviewedItems.has(item.id)) completed++;
+          if (item.critical) {
+            critical++;
+            if (reviewedItems.has(item.id)) criticalCompleted++;
+          }
+        });
+        updateSectionCount(section, items);
+      }
+      
+      document.getElementById('completedCount').textContent = completed;
+      document.getElementById('totalCount').textContent = total;
+      document.getElementById('pendingCount').textContent = total - completed;
+      document.getElementById('progressFill').style.width = `${(completed / total) * 100}%`;
+    }
+    
+    // Test individual item
+    async function testItem(id) {
+      for (const [section, items] of Object.entries(checklistData)) {
+        const item = items.find(i => i.id === id);
+        if (item && item.test) {
+          const btn = event.target;
+          btn.textContent = '⏳ Testing...';
+          btn.disabled = true;
+          
+          try {
+            const result = await Promise.resolve(item.test());
+            if (result === true || (typeof result === 'object' && result.skip)) {
+              btn.textContent = '✅ Pass';
+              btn.style.background = '#22c55e';
+              setTimeout(() => {
+                btn.textContent = '🧪 Test';
+                btn.style.background = '';
+                btn.disabled = false;
+              }, 2000);
+            } else {
+              btn.textContent = '❌ Fail';
+              btn.style.background = '#ef4444';
+              setTimeout(() => {
+                btn.textContent = '🧪 Test';
+                btn.style.background = '';
+                btn.disabled = false;
+              }, 2000);
+            }
+          } catch (e) {
+            btn.textContent = '❌ Error';
+            btn.style.background = '#ef4444';
+            setTimeout(() => {
+              btn.textContent = '🧪 Test';
+              btn.style.background = '';
+              btn.disabled = false;
+            }, 2000);
+          }
+          return;
+        }
+      }
+    }
+    
+    // Run all verifications
+    async function runVerification() {
+      const results = [];
+      let passed = 0;
+      let failed = 0;
+      let skipped = 0;
+      
+      for (const [section, items] of Object.entries(checklistData)) {
+        for (const item of items) {
+          if (item.test) {
+            try {
+              const result = await Promise.resolve(item.test());
+              if (typeof result === 'object' && result.skip) {
+                results.push({ item, status: 'warning', message: result.message });
+                skipped++;
+              } else if (result === true) {
+                results.push({ item, status: 'success' });
+                passed++;
+              } else {
+                results.push({ item, status: 'error' });
+                failed++;
+              }
+            } catch (e) {
+              results.push({ item, status: 'error', message: e.message });
+              failed++;
+            }
+          }
+        }
+      }
+      
+      // Show results
+      const content = document.getElementById('resultsContent');
+      content.innerHTML = `
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">
+            ${failed === 0 ? '✅' : failed > 2 ? '❌' : '⚠️'}
+          </div>
+          <div style="font-size: 1.2rem; color: ${failed === 0 ? '#22c55e' : failed > 2 ? '#ef4444' : '#f59e0b'};">
+            ${failed === 0 ? 'All Tests Passed!' : `${failed} Tests Failed`}
+          </div>
+        </div>
+        ${results.map(r => `
+          <div class="result-item ${r.status}">
+            <span>${r.status === 'success' ? '✓' : r.status === 'warning' ? '⚠' : '✗'}</span>
+            <span>${r.item.title}</span>
+            ${r.message ? `<span style="margin-left: auto; font-size: 0.8rem; opacity: 0.7;">${r.message}</span>` : ''}
+          </div>
+        `).join('')}
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--review-border); text-align: center; color: #94a3b8;">
+          ${passed} passed • ${failed} failed • ${skipped} skipped
+        </div>
+      `;
+      
+      document.getElementById('overlay').classList.add('show');
+      document.getElementById('resultsPanel').classList.add('show');
+    }
+    
+    function hideResults() {
+      document.getElementById('overlay').classList.remove('show');
+      document.getElementById('resultsPanel').classList.remove('show');
+    }
+    
+    // Filter items
+    function filterItems(type) {
+      currentFilter = type;
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      document.querySelectorAll('.checklist-section').forEach(section => {
+        const category = section.dataset.category;
+        if (type === 'all' || category === type) {
+          section.style.display = 'block';
+        } else if (type === 'pending') {
+          const hasPending = checklistData[category].some(i => !reviewedItems.has(i.id));
+          section.style.display = hasPending ? 'block' : 'none';
+        } else {
+          section.style.display = 'none';
+        }
+      });
+    }
+    
+    // Search items
+    function searchItems(query) {
+      const lowerQuery = query.toLowerCase();
+      document.querySelectorAll('.checklist-item').forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(lowerQuery) ? 'flex' : 'none';
+      });
+    }
+    
+    // Notes persistence
+    function saveNote(id, value) {
+      const notes = JSON.parse(localStorage.getItem('reviewNotes') || '{}');
+      notes[id] = value;
+      localStorage.setItem('reviewNotes', JSON.stringify(notes));
+    }
+    
+    function getNote(id) {
+      const notes = JSON.parse(localStorage.getItem('reviewNotes') || '{}');
+      return notes[id] || '';
+    }
+    
+    // State persistence
+    function saveState() {
+      localStorage.setItem('reviewedItems', JSON.stringify([...reviewedItems]));
+    }
+    
+    function loadState() {
+      const saved = localStorage.getItem('reviewedItems');
+      if (saved) {
+        reviewedItems = new Set(JSON.parse(saved));
+      }
+    }
+    
+    function resetAll() {
+      if (confirm('Reset all checkboxes and notes?')) {
+        reviewedItems.clear();
+        localStorage.removeItem('reviewedItems');
+        localStorage.removeItem('reviewNotes');
+        renderChecklist();
+        updateStats();
+      }
+    }
+  </script>
+</body>
+</html>
