@@ -3,7 +3,13 @@
 
 ---
 
-## Shipped This Session (TBD)
+## Shipped This Session (988d353)
+
+### Auto-Migration on Deploy — ADDED
+- [x] Added `run_migrations()` stage to app lifespan (Stage 3b)
+- [x] Runs `alembic upgrade head` automatically on Render startup
+- [x] No manual shell access needed — migrations run before app serves requests
+- [x] Safe fallback: app starts even if migrations fail (logs warning)
 
 ### Core 5.0 Release Verification — COMPLETE
 - [x] **Document upload to vault** — `/api/documents/upload` endpoint verified
@@ -228,10 +234,11 @@ Set these in Render Dashboard > Service > Environment:
 ---
 
 ## Next Session Priorities
-1. Verify Render deploy succeeded (check https://dashboard.render.com)
-2. Set DATABASE_URL on Render if not set
-3. Run `python -m alembic upgrade head` via Render shell after first deploy
-4. Run MNDES unit tests: `pytest tests/test_mndes_service.py -v`
+1. ✅ **DONE:** Verify Render deploy succeeded
+2. ✅ **DONE:** Set DATABASE_URL on Render
+3. ✅ **DONE:** Migrations now run automatically on startup (no shell needed)
+4. Run MNDES unit tests locally: `pytest tests/test_mndes_service.py -v`
+5. Monitor Render logs for migration success message: `✅ Database migrations applied`
 
 ---
 
