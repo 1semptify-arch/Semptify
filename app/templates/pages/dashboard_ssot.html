@@ -1,0 +1,312 @@
+{#
+  Dashboard Page - SSOT Template Example
+  
+  Demonstrates proper Jinja2 inheritance for tenant dashboard.
+  Shows how to override specific blocks while keeping base layout.
+  
+  Route: /tenant/home or /tenant/dashboard
+  Navigation Stage: tenant_home / tenant_dashboard
+#}
+
+{% extends "base_ssot.html" %}
+
+{# Page Metadata #}
+{% block title %}Dashboard{% endblock %}
+{% block meta_description %}Your Semptify dashboard. Track deadlines, manage documents, and stay informed about your tenancy rights.{% endblock %}
+
+{# Required: Role for navigation generation #}
+{% block role %}tenant{% endblock %}
+
+{# Page Header - Simplified for dashboard #}
+{% block page_header %}
+  <h1 class="page-header__title">Welcome back{% if user_name %}, {{ user_name }}{% endif %}</h1>
+  <p class="page-header__subtitle">Here's what's happening with your tenancy</p>
+{% endblock %}
+
+{# Dashboard uses full-width layout, hide sidebar #}
+{% block sidebar %}
+{# Empty - dashboard doesn't need sidebar #}
+{% endblock %}
+
+{# Main Content - Dashboard Grid #}
+{% block content %}
+  
+  {# Quick Stats Row #}
+  <div class="grid gap-4 mb-6" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+    
+    {# Deadline Card #}
+    <div class="card card--compact">
+      <div class="card__body flex items-center gap-4">
+        <div class="text-3xl">⏰</div>
+        <div>
+          <p class="text-sm text-secondary">Upcoming Deadlines</p>
+          <p class="text-2xl font-bold">{{ upcoming_deadlines|default(0) }}</p>
+        </div>
+      </div>
+    </div>
+    
+    {# Documents Card #}
+    <div class="card card--compact">
+      <div class="card__body flex items-center gap-4">
+        <div class="text-3xl">📁</div>
+        <div>
+          <p class="text-sm text-secondary">Documents</p>
+          <p class="text-2xl font-bold">{{ document_count|default(0) }}</p>
+        </div>
+      </div>
+    </div>
+    
+    {# Journal Entries Card #}
+    <div class="card card--compact">
+      <div class="card__body flex items-center gap-4">
+        <div class="text-3xl">📝</div>
+        <div>
+          <p class="text-sm text-secondary">Journal Entries</p>
+          <p class="text-2xl font-bold">{{ journal_entries|default(0) }}</p>
+        </div>
+      </div>
+    </div>
+    
+    {# Timeline Card #}
+    <div class="card card--compact">
+      <div class="card__body flex items-center gap-4">
+        <div class="text-3xl">📅</div>
+        <div>
+          <p class="text-sm text-secondary">Timeline Events</p>
+          <p class="text-2xl font-bold">{{ timeline_events|default(0) }}</p>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+  
+  {# Main Dashboard Grid #}
+  <div class="grid gap-6" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));">
+    
+    {# Deadlines Section #}
+    <section class="card">
+      <div class="card__header flex items-center justify-between">
+        <div>
+          <h3 class="card__title">⏰ Upcoming Deadlines</h3>
+          <p class="card__subtitle">Important dates and deadlines</p>
+        </div>
+        <a href="{{ navigation.get_path('tenant_deadlines') }}" class="btn btn--ghost btn--sm">
+          View All →
+        </a>
+      </div>
+      <div class="card__body">
+        {% if deadlines and deadlines|length > 0 %}
+          <div class="flex flex-col gap-3">
+            {% for deadline in deadlines[:5] %}
+              <div class="flex items-center justify-between p-3 rounded-lg {% if deadline.is_urgent %}bg-error bg-opacity-10{% else %}bg-gray-50{% endif %}">
+                <div class="flex items-center gap-3">
+                  <span class="text-xl">{{ deadline.icon|default('📅') }}</span>
+                  <div>
+                    <p class="font-medium">{{ deadline.title }}</p>
+                    <p class="text-sm text-secondary">{{ deadline.date }}</p>
+                  </div>
+                </div>
+                {% if deadline.is_urgent %}
+                  <span class="badge badge--error">{{ deadline.days_left }} days</span>
+                {% else %}
+                  <span class="badge badge--secondary">{{ deadline.days_left }} days</span>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-8">
+            <p class="text-secondary mb-3">No upcoming deadlines</p>
+            <a href="{{ navigation.get_path('tenant_tools_deadlines') }}" class="btn btn--secondary btn--sm">
+              Add Deadline
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+    
+    {# Recent Activity / Timeline #}
+    <section class="card">
+      <div class="card__header flex items-center justify-between">
+        <div>
+          <h3 class="card__title">📅 Recent Activity</h3>
+          <p class="card__subtitle">Latest events and updates</p>
+        </div>
+        <a href="{{ navigation.get_path('timeline') }}" class="btn btn--ghost btn--sm">
+          View Timeline →
+        </a>
+      </div>
+      <div class="card__body">
+        {% if recent_activity and recent_activity|length > 0 %}
+          <div class="flex flex-col gap-4">
+            {% for activity in recent_activity[:5] %}
+              <div class="flex gap-4">
+                <div class="flex flex-col items-center">
+                  <span class="w-10 h-10 rounded-full bg-primary bg-opacity-10 flex items-center justify-center text-lg">
+                    {{ activity.icon|default('📌') }}
+                  </span>
+                  <div class="w-px h-full bg-gray-200 mt-2"></div>
+                </div>
+                <div class="pb-4">
+                  <p class="font-medium">{{ activity.title }}</p>
+                  <p class="text-sm text-secondary">{{ activity.description|default('') }}</p>
+                  <p class="text-xs text-muted mt-1">{{ activity.date }}</p>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-8">
+            <p class="text-secondary mb-3">No recent activity</p>
+            <a href="{{ navigation.get_path('tenant_journal') }}" class="btn btn--secondary btn--sm">
+              Create Entry
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+    
+    {# Documents Section #}
+    <section class="card">
+      <div class="card__header flex items-center justify-between">
+        <div>
+          <h3 class="card__title">📁 Recent Documents</h3>
+          <p class="card__subtitle">Files in your vault</p>
+        </div>
+        <a href="{{ navigation.get_path('documents') }}" class="btn btn--ghost btn--sm">
+          View All →
+        </a>
+      </div>
+      <div class="card__body">
+        {% if documents and documents|length > 0 %}
+          <div class="flex flex-col gap-2">
+            {% for doc in documents[:5] %}
+              <div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                <div class="flex items-center gap-3">
+                  <span class="text-xl">{{ doc.icon|default('📄') }}</span>
+                  <div>
+                    <p class="font-medium truncate" style="max-width: 200px;">{{ doc.name }}</p>
+                    <p class="text-xs text-muted">{{ doc.size }} • {{ doc.date }}</p>
+                  </div>
+                </div>
+                <a href="{{ doc.url }}" class="btn btn--ghost btn--sm" download>
+                  ⬇️
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-8">
+            <p class="text-secondary mb-3">No documents yet</p>
+            <a href="{{ navigation.get_path('documents_upload') }}" class="btn btn--secondary btn--sm">
+              Upload Document
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </section>
+    
+    {# Quick Actions / Help Section #}
+    <section class="card">
+      <div class="card__header">
+        <h3 class="card__title">🆘 Quick Help</h3>
+        <p class="card__subtitle">Resources and support</p>
+      </div>
+      <div class="card__body">
+        <nav class="nav nav--vertical">
+          <a href="{{ navigation.get_path('law_library') }}" class="nav__link">
+            <span>⚖️</span>
+            <div>
+              <p class="font-medium">Law Library</p>
+              <p class="text-sm text-secondary">Know your tenant rights</p>
+            </div>
+          </a>
+          <a href="tel:1-800-292-4150" class="nav__link">
+            <span>📞</span>
+            <div>
+              <p class="font-medium">MN Legal Aid Hotline</p>
+              <p class="text-sm text-secondary">1-800-292-4150</p>
+            </div>
+          </a>
+          <a href="{{ navigation.get_path('tenant_help') }}" class="nav__link">
+            <span>❓</span>
+            <div>
+              <p class="font-medium">Help Center</p>
+              <p class="text-sm text-secondary">Guides and FAQs</p>
+            </div>
+          </a>
+          <a href="{{ navigation.get_path('tenant_tools_letters') }}" class="nav__link">
+            <span>📝</span>
+            <div>
+              <p class="font-medium">Template Letters</p>
+              <p class="text-sm text-secondary">Maintenance requests, etc.</p>
+            </div>
+          </a>
+        </nav>
+      </div>
+    </section>
+    
+  </div>
+  
+  {# Empty State for New Users #}
+  {% if not has_any_data %}
+    <div class="card mt-6">
+      <div class="card__body text-center py-12">
+        <div class="text-6xl mb-4">🏠</div>
+        <h3 class="text-xl font-semibold mb-2">Welcome to Semptify!</h3>
+        <p class="text-secondary mb-6 max-w-lg mx-auto">
+          Start protecting your tenant rights by documenting your journey. 
+          Upload documents, track deadlines, and keep a journal of important events.
+        </p>
+        <div class="flex flex-wrap justify-center gap-3">
+          <a href="{{ navigation.get_path('tenant_journal') }}" class="btn btn--primary">
+            📝 Start Journal
+          </a>
+          <a href="{{ navigation.get_path('documents_upload') }}" class="btn btn--secondary">
+            📤 Upload Document
+          </a>
+          <a href="{{ navigation.get_path('law_library') }}" class="btn btn--ghost">
+            📚 Learn Your Rights
+          </a>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+  
+{% endblock %}
+
+{# Page-Specific Styles #}
+{% block extra_css %}
+<style>
+  /* Dashboard-specific grid adjustments */
+  .page-layout {
+    grid-template-columns: 1fr; /* Full width, no sidebar */
+  }
+  
+  /* Quick stat cards */
+  .card--compact .card__body {
+    padding: var(--space-4);
+  }
+  
+  /* Activity timeline connector */
+  .card .flex-col .w-px {
+    min-height: 2rem;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    .grid[style*="minmax(400px"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{# Page-Specific JavaScript #}
+{% block extra_js %}
+  // Dashboard JavaScript
+  console.log('Dashboard loaded');
+  
+  // Real-time updates could go here
+  // setInterval(fetchDashboardData, 30000);
+{% endblock %}

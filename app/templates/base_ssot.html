@@ -1,0 +1,304 @@
+{#
+  Semptify SSOT Base Template
+  Single Source of Truth for all page layouts
+  
+  Semptify Mandates Compliance:
+  - Free forever, no ads ✓
+  - Privacy-respecting by design ✓
+  - Calm, clear, trustworthy UX ✓
+  - Rights protection focused ✓
+  - Evidence preservation priority ✓
+  - No surveillance/analytics dependencies ✓
+  
+  SSOT Principles:
+  - One CSS file for all styling
+  - Consistent navigation via navigation registry
+  - Reusable block structure
+  - Accessibility first (ARIA, skip links, focus states)
+  
+  Usage:
+  {% extends "base_ssot.html" %}
+  
+  {% block title %}Page Title{% endblock %}
+  {% block role %}tenant{% endblock %}
+  
+  {% block page_header %}
+    <h1 class="page-header__title">Journal</h1>
+    <p class="page-header__subtitle">Track your tenancy journey</p>
+  {% endblock %}
+  
+  {% block content %}
+    <div class="card">
+      <div class="card__body">Your content here</div>
+    </div>
+  {% endblock %}
+#}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1e3a5f">
+  
+  {# Meta description - override in child template #}
+  <meta name="description" content="{% block meta_description %}Semptify - Free tenant rights protection platform. No ads. Privacy-first.{% endblock %}">
+  
+  {# Title - REQUIRED in child template #}
+  <title>{% block title %}Semptify{% endblock %} | Tenant Rights Protection</title>
+  
+  {# Favicon #}
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', path='/favicon.ico') }}">
+  
+  {# SSOT Design System - Single Source of Truth for all styling #}
+  <link rel="stylesheet" href="{{ url_for('static', path='/css/ssot-design-system.css') }}">
+  
+  {# Page-specific styles - keep minimal #}
+  {% block extra_css %}{% endblock %}
+  
+  {# CSRF Token for security #}
+  {% if csrf_token %}
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  {% endif %}
+</head>
+<body>
+  
+  {# Accessibility: Skip to main content #}
+  <a href="#main-content" class="sr-only focus-visible">
+    Skip to main content
+  </a>
+  
+  {# Role - used for navigation links, override in child template with {% block role %}tenant{% endblock %} #}
+  {% set role = self.role()|default('tenant') %}
+  
+  {# Mobile Navigation Drawer #}
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  
+  <nav class="nav-drawer" id="nav-drawer" role="navigation" aria-label="Mobile navigation">
+    <div class="drawer-header">
+      <strong>Semptify</strong>
+      <button onclick="closeDrawer()" class="drawer-close" aria-label="Close menu">✕</button>
+    </div>
+    
+    {# Mobile Nav Links - Generated from SSOT Navigation Registry #}
+    <a href="{{ navigation.get_path(role + '_home') }}" 
+       class="{% if request.url.path == navigation.get_path(role + '_home') %}active-link{% endif %}">
+      🏠 Home
+    </a>
+    <a href="{{ navigation.get_path(role + '_journal') }}"
+       class="{% if request.url.path == navigation.get_path(role + '_journal') %}active-link{% endif %}">
+      📝 Journal
+    </a>
+    <a href="{{ navigation.get_path(role + '_documents') }}"
+       class="{% if request.url.path == navigation.get_path(role + '_documents') %}active-link{% endif %}">
+      📁 Documents
+    </a>
+    <a href="{{ navigation.get_path('law_library') }}"
+       class="{% if request.url.path == navigation.get_path('law_library') %}active-link{% endif %}">
+      ⚖️ Rights
+    </a>
+    <a href="{{ navigation.get_path(role + '_help') }}"
+       class="{% if request.url.path == navigation.get_path(role + '_help') %}active-link{% endif %}">
+      🆘 Help
+    </a>
+  </nav>
+  
+  {# Page Header with Gradient Background #}
+  <header class="page-header">
+    <div class="container">
+      
+      {# Top Bar: Logo + Desktop Nav + Actions #}
+      <div class="flex items-center justify-between">
+        
+        {# Logo Section #}
+        <div class="flex items-center gap-4">
+          <button class="hamburger hide-desktop" onclick="openDrawer()" aria-label="Open menu">
+            ☰
+          </button>
+          <a href="{{ navigation.get_path('root') }}" 
+             class="text-2xl font-bold text-inverse" 
+             style="text-decoration: none;"
+             aria-label="Semptify Home">
+            Semptify
+          </a>
+        </div>
+        
+        {# Desktop Navigation - Hidden on Mobile #}
+        <nav class="core-nav hide-mobile" role="navigation" aria-label="Main navigation">
+          <a href="{{ navigation.get_path(role + '_home') }}" 
+             class="nav__link {% if request.url.path == navigation.get_path(role + '_home') %}nav__link--active{% endif %}">
+            🏠 Home
+          </a>
+          <a href="{{ navigation.get_path(role + '_journal') }}"
+             class="nav__link {% if request.url.path == navigation.get_path(role + '_journal') %}nav__link--active{% endif %}">
+            📝 Journal
+          </a>
+          <a href="{{ navigation.get_path(role + '_documents') }}"
+             class="nav__link {% if request.url.path == navigation.get_path(role + '_documents') %}nav__link--active{% endif %}">
+            📁 Documents
+          </a>
+          <a href="{{ navigation.get_path('law_library') }}"
+             class="nav__link {% if request.url.path == navigation.get_path('law_library') %}nav__link--active{% endif %}">
+            ⚖️ Rights
+          </a>
+          <a href="{{ navigation.get_path(role + '_help') }}"
+             class="nav__link {% if request.url.path == navigation.get_path(role + '_help') %}nav__link--active{% endif %}">
+            🆘 Help
+          </a>
+        </nav>
+        
+        {# Header Actions #}
+        <div class="flex items-center gap-3">
+          <button class="btn btn--ghost text-inverse" onclick="openVault()" aria-label="Open Vault">
+            🔒 Vault
+          </button>
+          <div class="dropdown">
+            <button class="btn btn--ghost text-inverse" aria-haspopup="true" aria-expanded="false">
+              👤 {{ role|capitalize }}
+            </button>
+            {# Dropdown menu would go here #}
+          </div>
+        </div>
+      </div>
+      
+      {# Page Title Section - Override in child template #}
+      <div class="mt-6">
+        {% block page_header %}
+          <h1 class="page-header__title">{% block page_title %}Semptify{% endblock %}</h1>
+          <p class="page-header__subtitle">{% block page_subtitle %}Tenant Rights Protection{% endblock %}</p>
+        {% endblock %}
+      </div>
+    </div>
+  </header>
+  
+  {# Main Content Area #}
+  <main id="main-content" class="container py-6">
+    <div class="page-layout">
+      
+      {# Sidebar - Override in child template or use default #}
+      {% block sidebar %}
+      <aside class="sidebar hide-mobile" role="complementary" aria-label="Sidebar">
+        
+        {# Quick Actions Section #}
+        <div class="sidebar__section">
+          <h3 class="sidebar__title">Quick Actions</h3>
+          {% block sidebar_actions %}
+          <nav class="nav nav--vertical">
+            <a href="{{ navigation.get_path(role + '_journal') }}" class="nav__link">
+              📝 New Entry
+            </a>
+            <a href="{{ navigation.get_path('documents_upload') }}" class="nav__link">
+              📤 Upload Document
+            </a>
+            <a href="{{ navigation.get_path('law_library') }}" class="nav__link">
+              📚 Law Library
+            </a>
+          </nav>
+          {% endblock %}
+        </div>
+        
+        {# Context Section - Override in child template #}
+        {% block sidebar_context %}
+        <div class="sidebar__section">
+          <h3 class="sidebar__title">Status</h3>
+          <div class="flex items-center gap-2 text-sm">
+            <span class="badge badge--success">●</span>
+            <span>Storage Connected</span>
+          </div>
+        </div>
+        {% endblock %}
+        
+      </aside>
+      {% endblock %}
+      
+      {# Main Content - REQUIRED in child template #}
+      <section class="main-content" role="main">
+        {% block content %}
+        <div class="card">
+          <div class="card__body text-center py-12">
+            <p class="text-secondary">Content not defined. Please override the "content" block.</p>
+          </div>
+        </div>
+        {% endblock %}
+      </section>
+      
+    </div>
+  </main>
+  
+  {# Footer - Semptify Mandates Compliance #}
+  <footer class="page-footer">
+    <div class="container">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        
+        {# Legal Notice - Semptify Mandate: Free forever, no ads #}
+        <div class="text-sm">
+          <span>© 2026 Semptify. Free forever. No advertising. Privacy-first.</span>
+          <br>
+          <span class="text-muted text-xs">
+            Built to protect tenant rights. Not legal advice. 
+            <a href="tel:1-800-292-4150" class="text-accent">MN Legal Aid: 1-800-292-4150</a>
+          </span>
+        </div>
+        
+        {# Footer Navigation #}
+        <nav class="flex flex-wrap gap-4 text-sm" role="navigation" aria-label="Footer">
+          <a href="{{ navigation.get_path('privacy') }}">Privacy</a>
+          <a href="{{ navigation.get_path('terms') }}">Terms</a>
+          <a href="{{ navigation.get_path('disclaimer') }}">Disclaimer</a>
+          <a href="{{ navigation.get_path('contact') }}">Contact</a>
+        </nav>
+        
+      </div>
+    </div>
+  </footer>
+  
+  {# Global JavaScript #}
+  <script>
+    // Mobile Drawer Functions
+    function openDrawer() {
+      document.getElementById('nav-drawer').classList.add('open');
+      document.getElementById('drawer-backdrop').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeDrawer() {
+      document.getElementById('nav-drawer').classList.remove('open');
+      document.getElementById('drawer-backdrop').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    
+    // Vault Modal (placeholder)
+    function openVault() {
+      console.log('Opening vault...');
+      // Implementation would go here
+    }
+    
+    // Keyboard Navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeDrawer();
+        // Close any open modals here
+      }
+    });
+    
+    // CSRF Token Helper
+    function getCsrfToken() {
+      const meta = document.querySelector('meta[name="csrf-token"]');
+      return meta ? meta.content : '';
+    }
+    
+    // API Helper with CSRF
+    async function apiFetch(url, options = {}) {
+      const defaults = {
+        headers: {
+          'X-CSRF-Token': getCsrfToken(),
+          'Content-Type': 'application/json'
+        }
+      };
+      return fetch(url, { ...defaults, ...options });
+    }
+    
+    {% block extra_js %}{% endblock %}
+  </script>
+  
+</body>
+</html>

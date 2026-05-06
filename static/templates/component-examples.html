@@ -1,0 +1,426 @@
+<!--
+  SSOT Component Examples
+  Reference page showing all available components and patterns
+  
+  This is a reference guide - not a production page.
+  Copy patterns from here into your actual pages.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SSOT Design System | Semptify</title>
+  <link rel="stylesheet" href="/static/css/ssot-design-system.css">
+  <style>
+    .example-section { margin-bottom: 3rem; }
+    .example-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--color-primary); }
+    .example-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+    .color-swatch { padding: 2rem; border-radius: var(--radius-lg); text-align: center; }
+    .spacing-box { background: var(--color-primary-light); border-radius: var(--radius-md); }
+  </style>
+</head>
+<body class="bg-page">
+  <div class="container py-8">
+    
+    <h1 class="text-3xl font-bold mb-2">SSOT Design System</h1>
+    <p class="text-secondary mb-8">Single Source of Truth for all Semptify UI components</p>
+    
+    <!-- ========== BUTTONS ========== -->
+    <section class="example-section">
+      <h2 class="example-title">Buttons</h2>
+      <div class="card">
+        <div class="card__body">
+          <div class="flex flex-wrap gap-4 items-center">
+            
+            <!-- Primary Button -->
+            <button class="btn btn--primary">Primary</button>
+            
+            <!-- Secondary Button -->
+            <button class="btn btn--secondary">Secondary</button>
+            
+            <!-- Accent Button -->
+            <button class="btn btn--accent">Accent</button>
+            
+            <!-- Ghost Button -->
+            <button class="btn btn--ghost">Ghost</button>
+            
+            <!-- Danger Button -->
+            <button class="btn btn--danger">Danger</button>
+            
+            <!-- Sizes -->
+            <button class="btn btn--primary btn--sm">Small</button>
+            <button class="btn btn--primary btn--lg">Large</button>
+            
+            <!-- With Icon -->
+            <button class="btn btn--primary">
+              <span>➕</span>
+              <span>Add Item</span>
+            </button>
+            
+            <!-- Disabled -->
+            <button class="btn btn--primary" disabled>Disabled</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- ========== CARDS ========== -->
+    <section class="example-section">
+      <h2 class="example-title">Cards</h2>
+      <div class="example-grid">
+        
+        <!-- Basic Card -->
+        <div class="card">
+          <div class="card__body">
+            <h3 class="font-semibold mb-2">Basic Card</h3>
+            <p class="text-secondary text-sm">Simple card with body content only.</p>
+          </div>
+        </div>
+        
+        <!-- Card with Header -->
+        <div class="card">
+          <div class="card__header">
+            <h3 class="card__title">Card with Header</h3>
+            <p class="card__subtitle">Subtitle text here</p>
+          </div>
+          <div class="card__body">
+            <p class="text-secondary">Card content goes here.</p>
+          </div>
+        </div>
+        
+        <!-- Card with Footer -->
+        <div class="card">
+          <div class="card__body">
+            <p>Card with action buttons in footer.</p>
+          </div>
+          <div class="card__footer">
+            <button class="btn btn--secondary btn--sm">Cancel</button>
+            <button class="btn btn--primary btn--sm">Save</button>
+          </div>
+        </div>
+        
+        <!-- Compact Card -->
+        <div class="card card--compact">
+          <div class="card__body">
+            <p class="text-sm">Compact card with less padding.</p>
+          </div>
+        </div>
+        
+        <!-- Flat Card -->
+        <div class="card card--flat">
+          <div class="card__body">
+            <p>Flat card without shadow.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- ========== FORMS ========== -->
+    <section class="example-section">
+      <h2 class="example-title">Forms</h2>
+      <div class="card">
+        <div class="card__body">
+          
+          <!-- Text Input -->
+          <div class="form-group">
+            <label class="form-label form-label--required" for="name">Full Name</label>
+            <input type="text" id="name" class="form-input" placeholder="Enter your name">
+            <p class="form-hint">This will be displayed on your profile.</p>
+          </div>
+          
+          <!-- Email Input -->
+          <div class="form-group">
+            <label class="form-label" for="email">Email Address</label>
+            <input type="email" id="email" class="form-input" placeholder="you@example.com">
+          </div>
+          
+          <!-- Input with Error -->
+          <div class="form-group">
+            <label class="form-label form-label--required" for="phone">Phone Number</label>
+            <input type="tel" id="phone" class="form-input" value="123">
+            <p class="form-error">⚠️ Please enter a valid phone number.</p>
+          </div>
+          
+          <!-- Select -->
+          <div class="form-group">
+            <label class="form-label" for="role">Role</label>
+            <select id="role" class="form-select">
+              <option value="">Select a role...</option>
+              <option value="tenant">Tenant</option>
+              <option value="advocate">Advocate</option>
+              <option value="legal">Legal Professional</option>
+            </select>
+          </div>
+          
+          <!-- Textarea -->
+          <div class="form-group">
+            <label class="form-label" for="description">Description</label>
+            <textarea id="description" class="form-textarea" placeholder="Enter details..."></textarea>
+          </div>
+          
+          <!-- Input Group -->
+          <div class="form-group">
+            <label class="form-label" for="amount">Amount</label>
+            <div class="input-group">
+              <span class="input-group__prepend">$</span>
+              <input type="number" id="amount" class="form-input" placeholder="0.00">
+              <span class="input-group__append">USD</span>
+            </div>
+          </div>
+          
+          <!-- Disabled Input -->
+          <div class="form-group">
+            <label class="form-label" for="disabled">Disabled Field</label>
+            <input type="text" id="disabled" class="form-input" value="Cannot edit" disabled>
+          </div>
+          
+        </div>
+      </div>
+    </section>
+    
+    <!-- ========== BADGES ========== -->
+    <section class="example-section">
+      <h2 class="example-title">Badges</h2>
+      <div class="card">
+        <div class="card__body flex flex-wrap gap-3">
+          <span class="badge badge--primary">Primary</span>
+          <span class="badge badge--secondary">Secondary</span>
+          <span class="badge badge--success">Success</span>
+          <span class="badge badge--warning">Warning</span>
+          <span class="badge badge--error">Error</span>
+          <span class="badge badge--accent">Accent</span>
+        </div>
+      </div>
+    </section>
+    
+    <!-- ========== ALERTS ========== -->
+    <section class="example-section">
+      <h2 class="example-title">Alerts</h2>
+      <div class="flex flex-col gap-4">
+        <div class="alert alert--info">
+          <span>ℹ️</span>
+          <div>
+            <strong>Information</strong>
+            <p class="text-sm mt-1">This is an informational message.</p>
+          </div>
+        </div>
+        
+        <div class="alert alert--success">
+          <span>✅</span>
+          <div>
+            <strong>Success!</strong>
+            <p class="text-sm mt-1">Your action was completed successfully.</p>
+          </div>
+        </div>
+        
+        <div class="alert alert--warning">
+          <span>⚠️</span>
+          <div>
+            <strong>Warning</strong>
+            <p class="text-sm mt-1">Please review this important notice.</p>
+          </div>
+        </div>
+        
+        <div class="alert alert--error">
+          <span>❌</span>
+          <div>
+            <strong>Error</strong>
+            <p class="text-sm mt-1">Something went wrong. Please try again.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- ========== NAVIGATION ========== -->
+    <section class="example-section">
+      <h2 class="example-title">Navigation</h2>
+      <div class="example-grid">
+        
+        <!-- Horizontal Nav -->
+        <div class="card">
+          <div class="card__body">
+            <h4 class="font-medium mb-3">Horizontal</h4>
+            <nav class="nav nav--horizontal">
+              <a href="#" class="nav__link nav__link--active">Active</a>
+              <a href="#" class="nav__link">Link</a>
+              <a href="#" class="nav__link">Link</a>
+            </nav>
+          </div>
+        </div>
+        
+        <!-- Vertical Nav -->
+        <div class="card">
+          <div class="card__body">
+            <h4 class="font-medium mb-3">Vertical</h4>
+            <nav class="nav nav--vertical">
+              <a href="#" class="nav__link nav__link--active">Dashboard</a>
+              <a href="#" class="nav__link">Settings</a>
+              <a href="#" class="nav__link">Profile</a>
+              <a href="#" class="nav__link">Help</a>
+            </nav>
+          </div>
+        </div>
+        
+      </div>
+    </section>
+    
+    <!-- ========== COLOR PALETTE ========== -->
+    <section class="example-section">
+      <h2 class="example-title">Color Palette (CSS Variables)</h2>
+      <div class="example-grid">
+        <div class="color-swatch" style="background: var(--color-primary); color: white;">
+          <strong>--color-primary</strong><br>
+          #1e3a5f
+        </div>
+        <div class="color-swatch" style="background: var(--color-primary-light); color: white;">
+          <strong>--color-primary-light</strong><br>
+          #2c5aa0
+        </div>
+        <div class="color-swatch" style="background: var(--color-accent); color: #1f2937;">
+          <strong>--color-accent</strong><br>
+          #fbbf24
+        </div>
+        <div class="color-swatch" style="background: var(--color-success); color: white;">
+          <strong>--color-success</strong><br>
+          #10b981
+        </div>
+        <div class="color-swatch" style="background: var(--color-warning); color: #1f2937;">
+          <strong>--color-warning</strong><br>
+          #f59e0b
+        </div>
+        <div class="color-swatch" style="background: var(--color-error); color: white;">
+          <strong>--color-error</strong><br>
+          #ef4444
+        </div>
+      </div>
+    </section>
+    
+    <!-- ========== SPACING SCALE ========== -->
+    <section class="example-section">
+      <h2 class="example-title">Spacing Scale (8px Base)</h2>
+      <div class="card">
+        <div class="card__body flex flex-col gap-4">
+          <div class="flex items-center gap-4">
+            <code class="text-sm">--space-1 (4px)</code>
+            <div class="spacing-box" style="width: var(--space-1); height: 20px;"></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <code class="text-sm">--space-2 (8px)</code>
+            <div class="spacing-box" style="width: var(--space-2); height: 20px;"></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <code class="text-sm">--space-4 (16px)</code>
+            <div class="spacing-box" style="width: var(--space-4); height: 20px;"></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <code class="text-sm">--space-6 (24px)</code>
+            <div class="spacing-box" style="width: var(--space-6); height: 20px;"></div>
+          </div>
+          <div class="flex items-center gap-4">
+            <code class="text-sm">--space-8 (32px)</code>
+            <div class="spacing-box" style="width: var(--space-8); height: 20px;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- ========== TYPOGRAPHY ========== -->
+    <section class="example-section">
+      <h2 class="example-title">Typography</h2>
+      <div class="card">
+        <div class="card__body">
+          <p class="text-4xl font-bold mb-2">text-4xl (36px)</p>
+          <p class="text-3xl font-bold mb-2">text-3xl (30px)</p>
+          <p class="text-2xl font-semibold mb-2">text-2xl (24px)</p>
+          <p class="text-xl font-semibold mb-2">text-xl (20px)</p>
+          <p class="text-lg font-medium mb-2">text-lg (18px)</p>
+          <p class="text-base mb-2">text-base (16px) - Default body text</p>
+          <p class="text-sm text-secondary mb-2">text-sm (14px) - Secondary text</p>
+          <p class="text-xs text-muted">text-xs (12px) - Captions, hints</p>
+        </div>
+      </div>
+    </section>
+    
+    <!-- ========== UTILITY CLASSES ========== -->
+    <section class="example-section">
+      <h2 class="example-title">Common Utility Patterns</h2>
+      <div class="card">
+        <div class="card__body">
+          
+          <!-- Flex Row -->
+          <div class="flex items-center gap-4 mb-4 p-4 bg-gray-50 rounded">
+            <code>.flex .items-center .gap-4</code>
+            <div class="badge badge--primary">Item 1</div>
+            <div class="badge badge--secondary">Item 2</div>
+            <div class="badge badge--accent">Item 3</div>
+          </div>
+          
+          <!-- Grid -->
+          <div class="grid gap-4 mb-4" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="p-4 bg-primary text-inverse text-center rounded">1</div>
+            <div class="p-4 bg-primary text-inverse text-center rounded">2</div>
+            <div class="p-4 bg-primary text-inverse text-center rounded">3</div>
+          </div>
+          
+          <!-- Text Utilities -->
+          <div class="mb-4">
+            <p class="text-center">.text-center</p>
+            <p class="text-right">.text-right</p>
+            <p class="truncate" style="max-width: 200px;">.truncate - This text will be truncated with ellipsis if it's too long</p>
+          </div>
+          
+          <!-- Spacing -->
+          <div class="p-4 bg-gray-100 rounded mb-4">
+            <code>.p-4</code> - Padding on all sides
+          </div>
+          
+          <div class="px-6 py-2 bg-gray-100 rounded mb-4">
+            <code>.px-6 .py-2</code> - Horizontal and vertical padding
+          </div>
+          
+        </div>
+      </div>
+    </section>
+    
+    <!-- Quick Reference -->
+    <section class="example-section">
+      <h2 class="example-title">Quick Reference</h2>
+      <div class="card">
+        <div class="card__body">
+          <pre class="text-sm bg-gray-100 p-4 rounded overflow-auto"><code>/* Link the SSOT Design System */
+&lt;link rel="stylesheet" href="/static/css/ssot-design-system.css"&gt;
+
+/* Use utility classes for layout */
+&lt;div class="flex items-center justify-between gap-4"&gt;
+  &lt;button class="btn btn--primary"&gt;Save&lt;/button&gt;
+  &lt;button class="btn btn--secondary"&gt;Cancel&lt;/button&gt;
+&lt;/div&gt;
+
+/* Use component classes for UI elements */
+&lt;div class="card"&gt;
+  &lt;div class="card__header"&gt;
+    &lt;h3 class="card__title"&gt;Title&lt;/h3&gt;
+  &lt;/div&gt;
+  &lt;div class="card__body"&gt;
+    &lt;p&gt;Content here&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+/* Use CSS variables for custom styling */
+.my-custom-element {
+  color: var(--color-primary);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+}</code></pre>
+        </div>
+      </div>
+    </section>
+    
+    <footer class="mt-12 pt-8 border-t text-center text-secondary text-sm">
+      <p>Semptify SSOT Design System • Use these patterns consistently across all pages</p>
+    </footer>
+    
+  </div>
+</body>
+</html>
