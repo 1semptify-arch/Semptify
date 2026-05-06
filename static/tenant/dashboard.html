@@ -69,6 +69,10 @@
     .nav-drawer a:hover { background: rgba(255,255,255,0.1); }
     .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
     .drawer-backdrop.open { display: block; }
+    .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .drawer-header strong { color: #fff; }
+    .drawer-close { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
+    .nav-drawer .active-link { color: #fbbf24; font-weight: 700; }
 
     @media (max-width: 900px) { .main { grid-template-columns: 1fr; } }
     @media (max-width: 768px) { nav.core-nav { display: none; } .hamburger { display: block; } .grid-2 { grid-template-columns: 1fr; } }
@@ -78,11 +82,11 @@
 
   <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
   <nav class="nav-drawer" id="nav-drawer">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <strong style="color:#fff;">Semptify</strong>
-      <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
+    <div class="drawer-header">
+      <strong>Semptify</strong>
+      <button onclick="closeDrawer()" class="drawer-close">✕</button>
     </div>
-    <a href="/tenant/home" style="color:#fbbf24;font-weight:700;">🏠 Dashboard</a>
+    <a href="/tenant/home" class="active-link">🏠 Dashboard</a>
     <a href="/tenant/journal">� Journal</a>
     <a href="/tenant/documents">📁 Documents</a>
     <a href="/law-library">� Rights</a>
