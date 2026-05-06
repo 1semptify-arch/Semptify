@@ -3896,6 +3896,23 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             status_code=404
         )
 
+    # TEMPORARY: Migration endpoint for sessions.user_id column size fix
+    # REMOVE THIS AFTER RUNNING ONCE
+    @fastapi_app.get("/run-migration-cacc26689cdf")
+    async def run_migration():
+        """Temporary endpoint to run migration for sessions.user_id column size."""
+        from alembic import command
+        from alembic.config import Config
+        import asyncio
+
+        try:
+            # Run the migration
+            config = Config("alembic.ini")
+            command.upgrade(config, "cacc26689cdf")
+            return HTMLResponse(content="<h1>Migration successful! You can now remove this endpoint.</h1>")
+        except Exception as e:
+            return HTMLResponse(content=f"<h1>Migration failed: {str(e)}</h1>", status_code=500)
+
     return fastapi_app
 # Create the app instance
 app = create_app()
