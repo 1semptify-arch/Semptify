@@ -59,11 +59,27 @@ async def onboarding_entry(
 
     # Validate the cookie properly (checks format and signature)
     if semptify_uid and is_valid_storage_user(semptify_uid):
-        # Returning user - go to reconnect flow
-        logger.info(f"Smart entry: returning user {semptify_uid[:4]}... → reconnect")
-        response = ssot_redirect(reconnect_url, context="onboarding_entry reconnect")
-        set_checkpoint_cookie(response)
-        return response
+        # Check if session is actually valid before redirecting to reconnect
+        # This prevents redirect loops when cookies exist but sessions are invalid
+        from app.core.cookie_auth import verify_user_id
+        from app.routers.storage import get_valid_session
+
+        raw_uid = verify_user_id(semptify_uid)
+        if raw_uid:
+            db = request.state.db if hasattr(request.state, 'db') else None
+            if db:
+                try:
+                    session = await get_valid_session(db, raw_uid, auto_refresh=True)
+                    if session:
+                        # Session valid - go to reconnect flow
+                        logger.info(f"Smart entry: returning user {semptify_uid[:4]}... → reconnect (session valid)")
+                        response = ssot_redirect(reconnect_url, context="onboarding_entry reconnect")
+                        set_checkpoint_cookie(response)
+                        return response
+                except Exception:
+                    pass
+        # Session invalid - fall through to new user flow
+        logger.info(f"Smart entry: user {semptify_uid[:4]}... has cookie but invalid session → new user flow")
 
     # New user - set checkpoint server-side and start onboarding (SSOT path)
     logger.info("Smart entry: new user → role selection")
