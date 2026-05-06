@@ -2008,26 +2008,10 @@ async def oauth_callback(
             logger.error("CRITICAL: user_id is empty! Cannot set auth cookie.")
             raise HTTPException(status_code=500, detail="User ID missing after OAuth")
 
-        # Return HTML with JavaScript redirect to avoid cross-origin frame blocking
-        # This bypasses browser security restrictions when redirecting from OAuth iframe
-        html_content = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Redirecting...</title>
-        </head>
-        <body>
-            <script>
-                // Redirect to landing page
-                window.location.href = '{landing}';
-            </script>
-            <p>Redirecting to your dashboard...</p>
-        </body>
-        </html>
-        """
-
-        response = HTMLResponse(content=html_content)
+        # Use server-side redirect so cookies are committed before navigation.
+        # JavaScript redirects have a race condition where Set-Cookie headers
+        # may not be processed before window.location changes.
+        response = RedirectResponse(url=landing, status_code=302)
         set_auth_cookie(response, user_id)
         
         # Set storage provider cookie for storage gate verification
@@ -2038,11 +2022,11 @@ async def oauth_callback(
             max_age=365 * 24 * 60 * 60,  # 1 year
             path="/",
             samesite="lax",
-            httponly=False,  # Allow JavaScript access
+            httponly=False,
         )
         logger.info("Storage provider cookie set: %s", provider)
         
-        logger.info("Auth cookie set for user: %s", user_id[:6] + "***")
+        logger.info("Auth cookie set for user: %s, redirecting to %s", user_id[:6] + "***", landing)
         response.delete_cookie("semptify_redirect_loop_count")
 
         return response
