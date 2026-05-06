@@ -4,15 +4,25 @@
 ---
 
 ## Last Deployed Commit
-- **Hash**: `516ce2b`
-- **Date**: 2026-05-05 23:18 UTC-05
+- **Hash**: `4148281`
+- **Date**: 2026-05-06 00:02 UTC-05
 - **Branch**: `main`
 - **Repo**: https://github.com/1semptify-arch/Semptify.git
 - **Render auto-deploy**: YES — triggers on every push to main
 
 ---
 
-## Shipped This Session (516ce2b)
+## Shipped This Session (4148281)
+
+### Privacy Fix — CRITICAL
+- [x] **Remove user PII storage** — OAuth email/display_name now explicitly discarded
+- [x] **Semptify privacy policy enforced** — User PII lives only in cloud storage vault
+- [x] **Deadline notifications** — Email sending removed (no stored email), in-app only
+- [x] **SSOT navigation compliance** — /onboarding/status and /upload use navigation registry
+
+---
+
+## Previous Shipped (516ce2b)
 
 ### Critical Bug Fixes — DEPLOYED
 - [x] **Test Engine Caching** — Fixed `tests/conftest.py` to clear `get_settings` cache and reset engine between tests. All 12 tests now pass on SQLite instead of failing on stale PostgreSQL engine.
