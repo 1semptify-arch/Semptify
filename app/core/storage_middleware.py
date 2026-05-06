@@ -340,7 +340,9 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                             )
                         
                         # Redirect to welcome screen
-                        response = RedirectResponse(url="/", status_code=302)
+                        root_stage = navigation.get_stage("root")
+                        root_path = root_stage.path if root_stage else "/"
+                        response = ssot_redirect(root_path, context="storage_middleware incomplete onboarding")
                         response.set_cookie(
                             key=REDIRECT_LOOP_COOKIE,
                             value=str(loop_count),
@@ -375,7 +377,9 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                             )
                         elif not path.startswith("/static/") and not path.startswith("/documents"):
                             # Block most HTML pages until client activation
-                            return RedirectResponse(url="/documents", status_code=302)
+                            documents_stage = navigation.get_stage("documents")
+                            documents_path = documents_stage.path if documents_stage else "/documents"
+                            return ssot_redirect(documents_path, context="storage_middleware client activation required")
 
             except Exception:
                 # If DB is unavailable, fall through — don't block the user on a DB error.
