@@ -1937,8 +1937,23 @@ async def oauth_callback(
         elif return_to:
             landing = return_to
         elif is_new_user:
-            upload_stage = navigation.get_stage("upload")
-            landing = upload_stage.path
+            # Auto-create test file to verify vault folders work, then route directly to home
+            try:
+                from app.routers.vault import get_vault_client
+                vault = await get_vault_client(db, user_id)
+                if vault:
+                    # Create a test file to verify Semptify folders work
+                    await vault.write_file(
+                        path=".semptify_setup_complete",
+                        content=b"Semptify vault verified",
+                        metadata={"purpose": "vault_verification"}
+                    )
+                    logger.info("Auto-created test file to verify vault folders for new user")
+            except Exception as e:
+                logger.warning(f"Failed to auto-create test file: {e}")
+                # Continue anyway - vault_ok already succeeded
+            # Route directly to user home, skip upload step
+            landing = _route_user(user_id)
         else:
             landing = _route_user(user_id)
 
