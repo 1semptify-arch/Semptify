@@ -2007,19 +2007,29 @@ async def oauth_callback(
         <head>
             <meta charset="UTF-8">
             <title>Redirecting...</title>
+            <meta http-equiv="refresh" content="0;url={landing}">
         </head>
         <body>
             <script>
                 // Set cookie via JavaScript (already set by server, but ensure it's available)
                 document.cookie = 'semptify_uid={user_id}; path=/; SameSite=Lax';
-                // Redirect to landing page using top window to break out of iframe
-                if (window.top !== window.self) {{
-                    window.top.location.href = '{landing}';
-                }} else {{
+                
+                // Redirect to landing page with fallback for cross-origin iframe blocking
+                try {{
+                    if (window.top !== window.self) {{
+                        // Try to break out of iframe
+                        window.top.location.href = '{landing}';
+                    }} else {{
+                        window.location.href = '{landing}';
+                    }}
+                }} catch (e) {{
+                    // Cross-origin error: redirect within current frame
+                    console.log('Cross-origin redirect blocked, using fallback');
                     window.location.href = '{landing}';
                 }}
             </script>
             <p>Redirecting to your dashboard...</p>
+            <p><a href="{landing}">Click here if you are not redirected automatically</a></p>
         </body>
         </html>
         """
