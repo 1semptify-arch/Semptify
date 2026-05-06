@@ -281,7 +281,7 @@
     <!-- Article - Page Content -->
     <article class="article">
         <div class="page-header">
-            <a href="/onboarding/select-role.html" class="back-link">← Back to Role Selection</a>
+            <a href="#" onclick="goBackToRole()" class="back-link">← Back</a>
             <span class="step-indicator">Step 2 of 3</span>
         </div>
 
@@ -475,6 +475,20 @@
             const backendRole = FRONTEND_TO_BACKEND_ROLES[frontendRole] || frontendRole;
             console.log('Role mapping:', frontendRole, '->', backendRole);
             return backendRole;
+        }
+
+        function goBackToRole() {
+            // Use SSOT navigation to get role_select path
+            fetch('/onboarding/ssot-navigation')
+                .then(res => res.json())
+                .then(nav => {
+                    const rolePath = nav.stages?.role_select?.path || '/onboarding/select-role.html';
+                    window.location.href = rolePath;
+                })
+                .catch(err => {
+                    console.error('Failed to load navigation:', err);
+                    window.location.href = '/onboarding/select-role.html';
+                });
         }
 
         // Check session on page load
