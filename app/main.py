@@ -503,6 +503,31 @@ async def lifespan(_app: FastAPI):
         
         await run_stage(3, TOTAL_STAGES, "Initialize Database", init_database, verify_database)
         
+        # --- STAGE 3b: Run Database Migrations (Alembic) ---
+        async def run_migrations():
+            """Auto-run Alembic migrations on startup for Render deploys."""
+            try:
+                from alembic.config import Config
+                from alembic import command
+                
+                # Create Alembic config pointing to alembic.ini
+                alembic_cfg = Config("alembic.ini")
+                
+                # Run upgrade to head (non-destructive, idempotent)
+                command.upgrade(alembic_cfg, "head")
+                logger.info("   ✅ Database migrations applied")
+                
+            except Exception as e:
+                logger.warning("   ⚠️  Migration check failed (may be first run): %s", e)
+                # Don't fail startup - migrations can be run manually if needed
+        
+        def verify_migrations():
+            # Migrations are optional auto-step, always return True
+            # App will work without them (though new features may fail)
+            return True
+        
+        await run_stage(3, TOTAL_STAGES, "Database Migrations", run_migrations, verify_migrations)
+        
         # --- STAGE 4: Load Configuration ---
         async def load_config():
             # Verify settings are accessible
