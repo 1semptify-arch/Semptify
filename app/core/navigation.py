@@ -100,6 +100,20 @@ class NavigationRegistry:
             next_stage="dashboard",
             requires_checkpoint=True
         ),
+        "status": FlowStage(
+            id="status",
+            name="Onboarding Status",
+            path="/onboarding/status",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "upload": FlowStage(
+            id="upload",
+            name="Document Upload",
+            path="/onboarding/upload",
+            next_stage=None,
+            requires_checkpoint=True
+        ),
     }
     
     # --- Court Integration Paths (SSOT) ---

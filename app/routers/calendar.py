@@ -624,22 +624,10 @@ async def send_deadline_notifications(
             user_id=user.user_id
         )
         
-        # Send email notification if user has an email address on record
-        user_email = getattr(user, "email", None)
-        if user_email:
-            from app.services.email_service import send_email
-            html = f"""
-            <h2>Upcoming Deadline Reminder</h2>
-            <p>You have a critical deadline in <strong>{days_until} day(s)</strong>:</p>
-            <p style="font-size:1.1rem;color:#1e3a5f"><strong>{event.title}</strong></p>
-            {f'<p>{event.description}</p>' if event.description else ''}
-            <p style="color:#6b7280;font-size:0.9rem">Log in to Semptify to view your full timeline and deadlines.</p>
-            """
-            await send_email(
-                to=user_email,
-                subject=f"Semptify Deadline Reminder: {event.title} in {days_until} day(s)",
-                html=html,
-            )
+        # Email notification: Semptify does NOT store user emails in its database.
+        # Users may configure a notification email in their cloud vault settings.
+        # For now, skip email — in-app notification is the primary channel.
+        # Future: fetch notification_email from user's vault metadata if configured.
 
         notifications_sent += 1
 
