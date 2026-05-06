@@ -618,7 +618,9 @@ async def create_or_update_user(
     storage_user_id: Optional[str] = None,
 ) -> User:
     """Create new user or update existing one."""
-    user = await get_user_from_db(db, user_id)
+    # Strip HMAC signature for database operations (User.id is VARCHAR(24))
+    db_user_id = user_id.split('.')[0] if '.' in user_id else user_id
+    user = await get_user_from_db(db, db_user_id)
 
     _, role, _ = parse_user_id(user_id)
     now = utc_now()
@@ -627,7 +629,7 @@ async def create_or_update_user(
         # Check for existing user by email (e.g. prior failed attempt with different user_id)
         result = await db.execute(select(User).where(User.email == email))
         email_match = result.scalar_one_or_none()
-        if email_match and email_match.id != user_id:
+        if email_match and email_match.id != db_user_id:
             # Found a row under a different user_id — treat as new user so the
             # correct user_id (matching the cookie) gets its own DB row.
             # The old row is kept; a new one is created under the current user_id.
@@ -644,9 +646,9 @@ async def create_or_update_user(
     else:
         # Create new user
         user = User(
-            id=user_id,
+            id=db_user_id,
             primary_provider=provider,
-            storage_user_id=storage_user_id or user_id,
+            storage_user_id=storage_user_id or db_user_id,
             default_role=role,
             email=email,
             last_login=now,
@@ -1945,6 +1947,9 @@ async def oauth_callback(
                 import uuid
                 import hashlib
                 
+                # Strip HMAC signature for database operations
+                db_user_id = user_id.split('.')[0] if '.' in user_id else user_id
+                
                 vault = await get_vault_client(db, user_id)
                 if vault:
                     # Create test document content
@@ -1963,7 +1968,7 @@ async def oauth_callback(
                     file_hash = hashlib.sha256(test_content).hexdigest()
                     doc = Document(
                         id=doc_id,
-                        user_id=user_id[:24],  # Document.user_id is VARCHAR(24)
+                        user_id=db_user_id,  # Document.user_id is VARCHAR(24)
                         filename=test_filename,
                         original_filename=test_filename,
                         file_path=f".semptify/vault/documents/{test_filename}",
@@ -1977,7 +1982,7 @@ async def oauth_callback(
                     db.add(doc)
                     await db.commit()
                     
-                    logger.info(f"Auto-created test document {doc_id} to tick counter for new user {user_id[:6]}...")
+                    logger.info(f"Auto-created test document {doc_id} to tick counter for new user {db_user_id[:6]}...")
             except Exception as e:
                 logger.warning(f"Failed to auto-create test document: {e}")
                 # Continue anyway - vault_ok already succeeded
