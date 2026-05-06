@@ -61,7 +61,23 @@ async def onboarding_entry(
     if semptify_uid and is_valid_storage_user(semptify_uid):
         # Returning user - go to reconnect flow
         logger.info(f"Smart entry: returning user {semptify_uid[:4]}... → reconnect")
-        response = ssot_redirect(reconnect_url, context="onboarding_entry reconnect")
+        # Use JavaScript redirect to avoid cross-origin blocking
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Redirecting...</title>
+        </head>
+        <body>
+            <script>
+                window.location.href = '{reconnect_url}';
+            </script>
+            <p>Redirecting...</p>
+        </body>
+        </html>
+        """
+        response = HTMLResponse(content=html_content)
         set_checkpoint_cookie(response)
         return response
 

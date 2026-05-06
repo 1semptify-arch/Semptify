@@ -728,12 +728,28 @@ async def storage_entry(
     # Build reconnect URL with return_to if provided
     providers_stage = navigation.get_stage("providers")
     providers_path = providers_stage.path if providers_stage else "/storage/providers"
-    
+
     if semptify_uid:
         reconnect_url = "/storage/reconnect"
         if return_to:
             reconnect_url = f"/storage/reconnect?return_to={return_to}"
-        return ssot_redirect(reconnect_url, context="storage_entry reconnect")
+        # Use JavaScript redirect to avoid cross-origin blocking
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Redirecting...</title>
+        </head>
+        <body>
+            <script>
+                window.location.href = '{reconnect_url}';
+            </script>
+            <p>Redirecting...</p>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
     return ssot_redirect(providers_path, context="storage_entry providers")
 
 
@@ -777,7 +793,23 @@ async def storage_home(
         return ssot_redirect(oauth_url, context="storage_home silent reauth")
 
     # Fallback: if we can't determine provider, show reconnect page
-    return ssot_redirect("/storage/reconnect", context="storage_home reconnect fallback")
+    # Use JavaScript redirect to avoid cross-origin blocking
+    html_content = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Redirecting...</title>
+    </head>
+    <body>
+        <script>
+            window.location.href = '/storage/reconnect';
+        </script>
+        <p>Redirecting...</p>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
 
 
 @router.get("/reconnect", response_class=HTMLResponse)
