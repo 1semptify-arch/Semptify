@@ -60,6 +60,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.core.config import get_settings
 from app.core.compliance import validate_app_compliance
 from app.core.database import init_db, close_db
+from app.core.navigation import navigation
+from app.core.ssot_guard import ssot_redirect
 
 # PyInstaller frozen executable detection
 def get_base_path() -> Path:
@@ -1824,7 +1826,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         welcome_path = BASE_PATH / "static" / "public" / "welcome.html"
         if welcome_path.exists():
             return FileResponse(welcome_path)
-        return RedirectResponse(url="/onboarding", status_code=302)
+        onboarding_stage = navigation.get_stage("onboarding_start")
+        onboarding_path = onboarding_stage.path if onboarding_stage else "/onboarding"
+        return ssot_redirect(onboarding_path, context="root_welcome fallback")
 
     # Favicon - serve a simple SVG to prevent 404 errors
     @fastapi_app.get("/favicon.ico")
@@ -2194,7 +2198,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         @fastapi_app.get("/onboarding", response_class=HTMLResponse)
         async def onboarding_redirect():
             """Redirect /onboarding to /onboarding/ for the router."""
-            return RedirectResponse(url="/onboarding/", status_code=302)
+            onboarding_stage = navigation.get_stage("onboarding_start")
+            onboarding_path = (onboarding_stage.path if onboarding_stage else "/onboarding") + "/"
+            return ssot_redirect(onboarding_path, context="onboarding_redirect trailing slash")
 
         @fastapi_app.get("/welcome.html", response_class=HTMLResponse)
         async def welcome_html():
@@ -2218,7 +2224,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         user_id = request.cookies.get(COOKIE_USER_ID)
         if not is_valid_storage_user(user_id):
-            return RedirectResponse(url="/storage/providers", status_code=302)
+            providers_stage = navigation.get_stage("providers")
+            providers_path = providers_stage.path if providers_stage else "/storage/providers"
+            return ssot_redirect(providers_path, context="role dashboard unauthenticated")
 
         tenant_dashboard_path = BASE_PATH / "app" / "templates" / "pages" / "tenant_dashboard.html"
         if tenant_dashboard_path.exists():
@@ -2242,7 +2250,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         user_id = request.cookies.get(COOKIE_USER_ID)
         if not is_valid_storage_user(user_id):
-            return RedirectResponse(url="/storage/providers", status_code=302)
+            providers_stage = navigation.get_stage("providers")
+            providers_path = providers_stage.path if providers_stage else "/storage/providers"
+            return ssot_redirect(providers_path, context="role dashboard unauthenticated")
 
         advocate_dashboard_path = BASE_PATH / "app" / "templates" / "pages" / "advocate_dashboard.html"
         if advocate_dashboard_path.exists():
@@ -2266,7 +2276,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         user_id = request.cookies.get(COOKIE_USER_ID)
         if not is_valid_storage_user(user_id):
-            return RedirectResponse(url="/storage/providers", status_code=302)
+            providers_stage = navigation.get_stage("providers")
+            providers_path = providers_stage.path if providers_stage else "/storage/providers"
+            return ssot_redirect(providers_path, context="role dashboard unauthenticated")
 
         legal_dashboard_path = BASE_PATH / "app" / "templates" / "pages" / "legal_dashboard.html"
         if legal_dashboard_path.exists():
@@ -2290,7 +2302,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         user_id = request.cookies.get(COOKIE_USER_ID)
         if not is_valid_storage_user(user_id):
-            return RedirectResponse(url="/storage/providers", status_code=302)
+            providers_stage = navigation.get_stage("providers")
+            providers_path = providers_stage.path if providers_stage else "/storage/providers"
+            return ssot_redirect(providers_path, context="role dashboard unauthenticated")
 
         admin_dashboard_path = BASE_PATH / "app" / "templates" / "pages" / "admin_dashboard.html"
         if admin_dashboard_path.exists():
@@ -2315,7 +2329,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         user_id = request.cookies.get(COOKIE_USER_ID)
         if not is_valid_storage_user(user_id):
-            return RedirectResponse(url="/storage/providers", status_code=302)
+            providers_stage = navigation.get_stage("providers")
+            providers_path = providers_stage.path if providers_stage else "/storage/providers"
+            return ssot_redirect(providers_path, context="role dashboard unauthenticated")
 
         # Verify MANAGER role
         role = get_role_from_user_id(user_id)
@@ -2934,7 +2950,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         user_id = request.cookies.get(COOKIE_USER_ID)
         if not is_valid_storage_user(user_id):
-            return RedirectResponse(url="/storage/providers", status_code=302)
+            providers_stage = navigation.get_stage("providers")
+            providers_path = providers_stage.path if providers_stage else "/storage/providers"
+            return ssot_redirect(providers_path, context="role dashboard unauthenticated")
 
         # Verify professional role
         role = get_role_from_user_id(user_id)
@@ -2968,7 +2986,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return RedirectResponse(url="/", status_code=302)
         if not is_valid_storage_user(signed_cookie):
             # Has cookie but invalid - returning user needs reconnect
-            return RedirectResponse(url="/storage/reconnect", status_code=302)
+            reconnect_stage = navigation.get_stage("storage_reconnect")
+            reconnect_path = reconnect_stage.path if reconnect_stage else "/storage/reconnect"
+            return ssot_redirect(reconnect_path, context="document_delivery reconnect required")
 
         current_role = get_role_from_user_id(user_id) or ""
         if current_role not in allowed_roles:
@@ -3006,7 +3026,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 return RedirectResponse(url="/", status_code=302)
             if not is_valid_storage_user(user_id):
                 # Has cookie but invalid - returning user needs reconnect
-                return RedirectResponse(url="/storage/reconnect", status_code=302)
+                reconnect_stage = navigation.get_stage("storage_reconnect")
+                reconnect_path = reconnect_stage.path if reconnect_stage else "/storage/reconnect"
+                return ssot_redirect(reconnect_path, context="page_contract reconnect required")
 
             # Check role
             current_role = get_role_from_user_id(user_id) or ""
@@ -3168,7 +3190,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # Check: Can we access the user's cloud storage?
         user_id = request.cookies.get(COOKIE_USER_ID)
         if not is_valid_storage_user(user_id):
-            return RedirectResponse(url="/storage/providers", status_code=302)
+            providers_stage = navigation.get_stage("providers")
+            providers_path = providers_stage.path if providers_stage else "/storage/providers"
+            return ssot_redirect(providers_path, context="role dashboard unauthenticated")
         
         events = []
         chronology_items = []
