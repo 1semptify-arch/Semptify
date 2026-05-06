@@ -34,59 +34,38 @@ logger = logging.getLogger(__name__)
 
 @router.get("/start")
 async def onboarding_entry(
+    return_to: Optional[str] = Query(None),
     request: Request,
-    semptify_uid: Optional[str] = Cookie(None),
-    return_to: Optional[str] = None,
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Smart entry point from welcome page.
 
     - Returning user (has valid semptify_uid cookie) → /storage/reconnect?return_to=...
-    - New user (no cookie or invalid cookie) → /onboarding/select-role.html
+    - New user (no cookie or invalid cookie) → /storage/providers (skip role selection)
 
     Args:
         return_to: Optional URL to return to after reconnect (for task continuation)
 
-    This keeps one CTA on welcome page while routing correctly.
+    Simplified: No role selection - everyone is tenant by default.
     """
     from app.core.storage_middleware import is_valid_storage_user
-    from app.core.checkpoint_middleware import set_checkpoint_cookie
 
     # Build reconnect URL with return_to if provided
     reconnect_url = "/storage/reconnect"
     if return_to:
-        reconnect_url = f"/storage/reconnect?return_to={return_to}"
+        reconnect_url += f"?return_to={return_to}"
 
-    # Validate the cookie properly (checks format and signature)
-    if semptify_uid and is_valid_storage_user(semptify_uid):
-        # Check if session is actually valid before redirecting to reconnect
-        # This prevents redirect loops when cookies exist but sessions are invalid
-        from app.core.cookie_auth import verify_user_id
-        from app.routers.storage import get_valid_session
+    # Check for existing valid session
+    semptify_uid = request.cookies.get("semdrive_uid") or request.cookies.get("semdrive_user_id")
+    if semptify_uid and is_valid_storage_user(semdrive_uid):
+        # Returning user - redirect to reconnect
+        return ssot_redirect(reconnect_url, context="onboarding_entry returning user")
 
-        raw_uid = verify_user_id(semptify_uid)
-        if raw_uid:
-            db = request.state.db if hasattr(request.state, 'db') else None
-            if db:
-                try:
-                    session = await get_valid_session(db, raw_uid, auto_refresh=True)
-                    if session:
-                        # Session valid - go to reconnect flow
-                        logger.info(f"Smart entry: returning user {semptify_uid[:4]}... → reconnect (session valid)")
-                        response = ssot_redirect(reconnect_url, context="onboarding_entry reconnect")
-                        set_checkpoint_cookie(response)
-                        return response
-                except Exception:
-                    pass
-        # Session invalid - fall through to new user flow
-        logger.info(f"Smart entry: user {semptify_uid[:4]}... has cookie but invalid session → new user flow")
-
-    # New user - set checkpoint server-side and start onboarding (SSOT path)
-    logger.info("Smart entry: new user → role selection")
-    role_stage = navigation.get_stage("role_select")
-    response = ssot_redirect(role_stage.path, context="onboarding_entry role_select")
-    set_checkpoint_cookie(response)
-    return response
+    # New user - go directly to storage providers (skip role selection)
+    providers_stage = navigation.get_stage("providers")
+    providers_path = providers_stage.path if providers_stage else "/storage/providers"
+    return ssot_redirect(providers_path, context="onboarding_entry new user")
 
 
 @router.get("/ssot-navigation")
