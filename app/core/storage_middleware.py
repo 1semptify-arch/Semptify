@@ -213,10 +213,10 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
         if is_public_path(path):
             return await call_next(request)
         
-        # Get user ID from cookie — verify HMAC and extract raw user_id
-        from app.core.cookie_auth import verify_user_id
+        # Get user ID from cookie — pass the signed cookie directly.
+        # is_valid_storage_user() calls verify_user_id() internally.
         _raw_cookie = request.cookies.get(COOKIE_USER_ID)
-        user_id = verify_user_id(_raw_cookie) if _raw_cookie else None
+        user_id = _raw_cookie
 
         # Check if valid storage user
         if not is_valid_storage_user(user_id):
@@ -255,6 +255,12 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                 status_code=302
             )
         
+        # Extract raw user_id for database operations
+        from app.core.cookie_auth import verify_user_id
+        raw_user_id = verify_user_id(user_id)
+        if not raw_user_id:
+            raw_user_id = user_id  # fallback
+        
         # Valid user - check permanent completion record before continuing.
         # If "storage_connected" is in completed_groups, the ProcessGroup exit criteria
         # were already verified at OAuth time. No cloud round-trip ever needed again.
@@ -268,7 +274,7 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                 _factory = get_session_factory()
                 async with _factory() as _db:
                     _result = await _db.execute(
-                        _select(_User.completed_groups).where(_User.id == user_id)
+                        _select(_User.completed_groups).where(_User.id == raw_user_id)
                     )
                     _row = _result.scalar_one_or_none()
                     if _row is None:
@@ -278,7 +284,7 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                         _logger = logging.getLogger("semptify.security")
                         _logger.warning(
                             "User ID %s has valid format but no DB record — clearing stale cookie",
-                            user_id[:4] + "***",
+                            raw_user_id[:4] + "***",
                         )
                         if path.startswith("/api/"):
                             return JSONResponse(
