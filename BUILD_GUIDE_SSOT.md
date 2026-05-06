@@ -19,27 +19,27 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 ## 🎯 Active Features (Core)
 
 ### 📚 Library (Rights & Education)
-- [ ] `law_library.py` - State laws, statutes
-- [ ] `state_laws.py` - State-specific tenant rights
+- [x] `law_library.py` - State laws, statutes ✅ `/api/law-library`
+- [x] `state_laws.py` - State-specific tenant rights ✅ `/api/states`
 
 ### 🏢 Office (Document Management)
-- [ ] `documents.py` - Upload, processing
-- [ ] `vault.py` - Cloud storage vault
-- [ ] `briefcase.py` - Document viewer
-- [ ] `timeline_unified.py` - Timeline/journal viewer
-- [ ] `pdf_tools.py` - PDF manipulation
-- [ ] `preview.py` - Document preview
-- [ ] `document_converter.py` - Format conversion
+- [x] `documents.py` - Upload, processing ✅ `/api/documents/*`
+- [x] `vault.py` - Cloud storage vault ✅ `/api/vault/*`
+- [x] `briefcase.py` - Document viewer ✅ `/api/briefcase/*`
+- [x] `timeline_unified.py` - Timeline/journal viewer ✅ `/api/timeline-unified/*`
+- [x] `pdf_tools.py` - PDF manipulation ✅ `/api/pdf/*`
+- [x] `preview.py` - Document preview ✅ Preview generation endpoints
+- [x] `document_converter.py` - Format conversion ✅ `/api/convert/*`
 
 ### 🔧 Tools (Analysis & Utilities)
-- [ ] `legal_analysis.py` - Evidence classification, merit assessment
+- [x] `legal_analysis.py` - Evidence classification, merit assessment ✅ `/api/legal-analysis/*`
   - ✅ Direct document analysis (no dependencies)
   - ⏸️ Case-based analysis requires Extended (tenancy_hub)
 
 ### 🆘 Help (Onboarding)
-- [ ] `onboarding.py` - Role selection, storage setup
-- [ ] `role_ui.py` - UI routing
-- [ ] `workflow.py` - Process orchestration
+- [x] `onboarding.py` - Role selection, storage setup ✅ `/onboarding/*`
+- [x] `role_ui.py` - UI routing ✅ Role-based navigation
+- [x] `workflow.py` - Process orchestration ✅ Workflow engine + Page Contracts
 
 ---
 
