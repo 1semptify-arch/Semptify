@@ -11,10 +11,15 @@ Order ADM09-8010 compliance is enforced at every step:
 - No-contact order / sealed case guards
 - Jury-room eligibility tagging for audio/video
 - Full audit trail via audit_logger
+
+Database Persistence:
+- Uses MNDESExhibitPackageDB and MNDESExhibitItemDB for persistence
+- Replaces legacy in-memory _packages dict (lost on restart)
 """
 
 from __future__ import annotations
 
+import json
 import logging
 from datetime import datetime
 from typing import Optional
@@ -25,6 +30,8 @@ from app.core.mndes_compliance import (
     MNDES_PORTAL_URL,
     MNDESIssueCode,
 )
+from app.core.database import get_db_session
+from app.core.utc import utc_now
 from app.models.mndes_exhibit import (
     MNDESExhibit,
     MNDESExhibitCategory,
@@ -36,13 +43,15 @@ from app.models.mndes_exhibit import (
     MNDESAttestationRequest,
     MNDESSubmissionConfirmRequest,
 )
+from app.models.models import MNDESExhibitPackageDB, MNDESExhibitItemDB
 
 logger = logging.getLogger(__name__)
 
 # ============================================================================
-# In-memory store (replace with DB when persistence layer is added)
+# Legacy in-memory store (DEPRECATED - use database instead)
 # ============================================================================
-
+# NOTE: This dict is kept for backward compatibility during migration.
+# New code should use MNDESExhibitPackageDB via _save_package_to_db() and _get_package_from_db()
 _packages: dict[str, MNDESExhibitPackage] = {}
 
 
@@ -59,7 +68,85 @@ class MNDESExhibitService:
         package = await service.create_package(request, vault_index, user_id)
     """
 
-    def create_package(
+    def _package_to_db_model(
+        self, package: MNDESExhibitPackage
+    ) -> MNDESExhibitPackageDB:
+        """Convert Pydantic package model to DB model."""
+        return MNDESExhibitPackageDB(
+            package_id=package.package_id,
+            user_id=package.user_id,
+            mn_case_number=package.mn_case_number,
+            case_type=package.case_type.value if package.case_type else "eviction",
+            case_caption=package.case_caption,
+            package_name=f"Package for {package.mn_case_number}",
+            description=None,
+            exhibits_json=json.dumps([ex.dict() for ex in package.exhibits]),
+            requires_attestation=True,
+            attestation_provided=package.checklist_complete,
+            attestation_date=package.updated_at if package.checklist_complete else None,
+            attested_by=None,
+            status="draft" if not package.mndes_submission_started else ("submitted" if package.mndes_submission_complete else "ready"),
+            is_sealed_case=package.is_sealed_case or False,
+            submitted_at=package.mndes_submission_started,
+            confirmation_number=None,
+            created_at=package.created_at or utc_now(),
+            updated_at=package.updated_at or utc_now(),
+        )
+
+    def _package_from_db_model(
+        self, db_package: MNDESExhibitPackageDB
+    ) -> MNDESExhibitPackage:
+        """Convert DB model to Pydantic package model."""
+        exhibits_data = json.loads(db_package.exhibits_json) if db_package.exhibits_json else []
+        exhibits = [MNDESExhibit(**ex) for ex in exhibits_data]
+
+        return MNDESExhibitPackage(
+            package_id=db_package.package_id,
+            user_id=db_package.user_id,
+            mn_case_number=db_package.mn_case_number,
+            case_type=MNDESCaseType(db_package.case_type) if db_package.case_type else MNDESCaseType.EVICTION,
+            case_caption=db_package.case_caption,
+            exhibits=exhibits,
+            has_no_contact_order=False,  # Stored at exhibit level
+            is_sealed_case=db_package.is_sealed_case,
+            checklist_complete=db_package.attestation_provided,
+            mndes_submission_started=db_package.submitted_at is not None,
+            mndes_submission_complete=db_package.status == "submitted",
+            created_at=db_package.created_at,
+            updated_at=db_package.updated_at,
+        )
+
+    async def _save_package_to_db(self, package: MNDESExhibitPackage) -> None:
+        """Save package to database."""
+        try:
+            async with get_db_session() as session:
+                db_model = self._package_to_db_model(package)
+                await session.merge(db_model)
+                await session.commit()
+                logger.debug("Package %s saved to DB", package.package_id)
+        except Exception as e:
+            logger.error("Failed to save package %s to DB: %s", package.package_id, e)
+            raise
+
+    async def _get_package_from_db(self, package_id: str) -> Optional[MNDESExhibitPackage]:
+        """Get package from database."""
+        try:
+            from sqlalchemy import select
+            async with get_db_session() as session:
+                result = await session.execute(
+                    select(MNDESExhibitPackageDB).where(
+                        MNDESExhibitPackageDB.package_id == package_id
+                    )
+                )
+                db_package = result.scalar_one_or_none()
+                if db_package:
+                    return self._package_from_db_model(db_package)
+                return None
+        except Exception as e:
+            logger.error("Failed to get package %s from DB: %s", package_id, e)
+            return None
+
+    async def create_package(
         self,
         request: MNDESPackageCreateRequest,
         vault_docs: list[dict],
@@ -142,7 +229,10 @@ class MNDESExhibitService:
         )
         package = self._recalculate_package_summary(package)
 
+        # Save to database (primary) and in-memory (backward compat)
+        await self._save_package_to_db(package)
         _packages[package.package_id] = package
+
         logger.info(
             "MNDES package created: %s for case %s (%d exhibits, %d compliant)",
             package.package_id,
@@ -152,10 +242,16 @@ class MNDESExhibitService:
         )
         return package
 
-    def get_package(self, package_id: str) -> Optional[MNDESExhibitPackage]:
+    async def get_package(self, package_id: str) -> Optional[MNDESExhibitPackage]:
+        """Get package from database (falls back to in-memory for legacy)."""
+        # Try database first
+        db_package = await self._get_package_from_db(package_id)
+        if db_package:
+            return db_package
+        # Fall back to in-memory for backward compatibility
         return _packages.get(package_id)
 
-    def apply_attestations(
+    async def apply_attestations(
         self,
         request: MNDESAttestationRequest,
     ) -> MNDESExhibitPackage:
@@ -164,7 +260,7 @@ class MNDESExhibitService:
         Required before submission per Order §10 (no sexual content/nudity)
         and general compliance requirements.
         """
-        package = _packages.get(request.package_id)
+        package = await self.get_package(request.package_id)
         if not package:
             raise ValueError(f"Package {request.package_id} not found")
 
@@ -174,7 +270,7 @@ class MNDESExhibitService:
                 "user_attested_no_sexual_content": request.attests_no_sexual_content,
                 "user_attested_not_discovery": request.attests_not_discovery,
                 "user_attested_not_motion_attachment": request.attests_not_motion_attachment,
-                "updated_at": datetime.utcnow(),
+                "updated_at": utc_now(),
             })
             updated_exhibits.append(updated)
 
@@ -187,13 +283,17 @@ class MNDESExhibitService:
                 and request.attests_understands_no_return
                 and request.attests_semptify_not_mndes
             ),
-            "updated_at": datetime.utcnow(),
+            "updated_at": utc_now(),
         })
+
+        # Save to database (primary) and in-memory (backward compat)
+        await self._save_package_to_db(package)
         _packages[package.package_id] = package
+
         logger.info("MNDES attestations applied to package %s", package.package_id)
         return package
 
-    def confirm_submission(
+    async def confirm_submission(
         self,
         request: MNDESSubmissionConfirmRequest,
     ) -> MNDESExhibitPackage:
@@ -201,7 +301,7 @@ class MNDESExhibitService:
         User confirms they completed manual upload at the MNDES portal.
         Records the MNDES tracking number for the exhibit.
         """
-        package = _packages.get(request.package_id)
+        package = await self.get_package(request.package_id)
         if not package:
             raise ValueError(f"Package {request.package_id} not found")
 
@@ -210,10 +310,10 @@ class MNDESExhibitService:
             if ex.exhibit_id == request.exhibit_id:
                 ex = ex.copy(update={
                     "mndes_submitted_by_user": True,
-                    "mndes_submitted_at": request.submitted_at or datetime.utcnow(),
+                    "mndes_submitted_at": request.submitted_at or utc_now(),
                     "mndes_tracking_number": request.mndes_tracking_number,
                     "status": MNDESExhibitStatus.PRE_HEARING,
-                    "updated_at": datetime.utcnow(),
+                    "updated_at": utc_now(),
                 })
             updated_exhibits.append(ex)
 
@@ -222,27 +322,31 @@ class MNDESExhibitService:
             "exhibits": updated_exhibits,
             "mndes_submission_started": True,
             "mndes_submission_complete": all_submitted,
-            "updated_at": datetime.utcnow(),
+            "updated_at": utc_now(),
         })
+
+        # Save to database (primary) and in-memory (backward compat)
+        await self._save_package_to_db(package)
         _packages[package.package_id] = package
+
         logger.info(
             "MNDES submission confirmed for exhibit %s in package %s (tracking: %s)",
             request.exhibit_id, request.package_id, request.mndes_tracking_number,
         )
         return package
 
-    def get_compliance_summary(self, package_id: str) -> MNDESComplianceSummary:
+    async def get_compliance_summary(self, package_id: str) -> MNDESComplianceSummary:
         """Return compliance summary for a package."""
-        package = _packages.get(package_id)
+        package = await self.get_package(package_id)
         if not package:
             raise ValueError(f"Package {package_id} not found")
         return self._build_compliance_summary(package.exhibits)
 
-    def get_submission_checklist(self, package_id: str) -> dict:
+    async def get_submission_checklist(self, package_id: str) -> dict:
         """
         Return a structured checklist for the user to complete before submitting to MNDES.
         """
-        package = _packages.get(package_id)
+        package = await self.get_package(package_id)
         if not package:
             raise ValueError(f"Package {package_id} not found")
 

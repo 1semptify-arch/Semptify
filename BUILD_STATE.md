@@ -177,10 +177,35 @@
 ---
 
 ## Known Limitations (Not Bugs — Future Work)
-- MNDES exhibit packages stored in memory — lost on server restart (needs DB persistence)
-- Vault upload service index is in-memory — same limitation
-- No tests specifically for MNDES compliance logic yet
 - AI/ML services (Groq, Gemini, OCR) not tested
+
+---
+
+## Technical Debt — FULLY RESOLVED (May 6, 2026)
+
+### MNDES Exhibit Packages — DB Persistence ✅ COMPLETE
+- **Problem:** Packages stored in `_packages: dict` — lost on server restart
+- **Solution:** Created `MNDESExhibitPackageDB` and `MNDESExhibitItemDB` models + migrated service
+- **Migration:** `20250506_add_mndes_and_vault_index_tables.py`
+- **Tables:** `mndes_exhibit_packages`, `mndes_exhibit_items`
+- **Service Updates:**
+  - Added `_save_package_to_db()` and `_get_package_from_db()` methods
+  - Converted `create_package()`, `apply_attestations()`, `confirm_submission()` to async
+  - Added `_package_to_db_model()` and `_package_from_db_model()` converters
+  - Updated all methods to use DB as primary source, in-memory as cache
+- **Tests:** Created comprehensive unit tests in `tests/test_mndes_service.py`
+
+### Vault Upload Service Index — DB Persistence ✅ COMPLETE
+- **Problem:** Index stored in `_documents`, `_user_index`, `_hash_index` dicts — lost on restart
+- **Solution:** Created `VaultIndexDB`, `VaultUserIndexDB`, `VaultHashIndexDB` models + migrated `VaultDocumentIndex`
+- **Migration:** Same migration as above
+- **Tables:** `vault_index`, `vault_user_index`, `vault_hash_index`
+- **Service Updates:**
+  - Added `_add_to_db()`, `_get_from_db()`, `_get_by_hash_from_db()`, `_update_in_db()` methods
+  - Added `_doc_to_db_model()` and `_doc_from_db_model()` converters
+  - Updated `add()`, `get()`, `get_by_hash()`, `get_user_documents()`, `update()` to async
+  - Maintains disk JSON backup for redundancy (backward compatible)
+  - Updated `VaultUploadService` methods (`get_document`, `get_user_documents`, etc.) to async
 
 ---
 
@@ -206,9 +231,7 @@ Set these in Render Dashboard > Service > Environment:
 1. Verify Render deploy succeeded (check https://dashboard.render.com)
 2. Set DATABASE_URL on Render if not set
 3. Run `python -m alembic upgrade head` via Render shell after first deploy
-4. Migrate MNDES service from in-memory `_packages` dict to `MNDESExhibitPackageDB`
-5. Migrate vault service from in-memory `_documents` to `VaultIndexDB`
-6. Add MNDES unit tests to tests/
+4. Run MNDES unit tests: `pytest tests/test_mndes_service.py -v`
 
 ---
 
