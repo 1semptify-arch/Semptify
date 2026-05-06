@@ -1034,18 +1034,36 @@ async def list_providers(
     role: Optional[str] = Query(None),
     from_source: Optional[str] = Query(None, alias="from"),
     return_to: Optional[str] = Query(None),
+    error: Optional[str] = Query(None),
+    message: Optional[str] = Query(None),
+    provider: Optional[str] = Query(None),
 ):
     """
     Show storage provider selection page.
     Returns HTML page for browsers, JSON for API clients.
+    
+    Query params from OAuth callback errors:
+    - error: Error code (e.g., "oauth_callback_failed")
+    - message: Human-readable error message
+    - provider: Which provider failed
     """
     # Check Accept header - if JSON requested, return JSON
     accept = request.headers.get("accept", "")
     if "application/json" in accept and "text/html" not in accept:
         return await _providers_json(semptify_uid)
     
+    # Build error info for display
+    error_info = None
+    if error:
+        error_info = {
+            "code": error,
+            "message": message or "Authentication failed. Please try again.",
+            "provider": provider or "unknown"
+        }
+        logger.warning(f"OAuth error displayed: {error} - {message} (provider: {provider})")
+    
     # Return HTML page
-    return HTMLResponse(content=_generate_providers_html(semptify_uid, role, from_source, return_to))
+    return HTMLResponse(content=_generate_providers_html(semptify_uid, role, from_source, return_to, error_info))
 
 
 async def _providers_json(semptify_uid: Optional[str] = None):
