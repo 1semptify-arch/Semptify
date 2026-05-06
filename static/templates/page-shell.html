@@ -1,0 +1,165 @@
+<!--
+  SSOT Page Shell Template
+  Standardized page layout for all Semptify pages
+  
+  Usage:
+  1. Copy this as starting point for new pages
+  2. Replace {{PAGE_TITLE}} with actual title
+  3. Replace {{ROLE}} with tenant/advocate/legal/admin
+  4. Add content in {{CONTENT}} sections
+  
+  Required CSS: /static/css/ssot-design-system.css
+  Required JS: /static/js/ssot-navigation.js (optional)
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{PAGE_TITLE}} | Semptify</title>
+  
+  <!-- SSOT Design System -->
+  <link rel="stylesheet" href="/static/css/ssot-design-system.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.ico">
+  
+  <!-- Meta -->
+  <meta name="description" content="{{PAGE_DESCRIPTION}}">
+  <meta name="theme-color" content="#1e3a5f">
+</head>
+<body>
+  
+  <!-- Skip Link (Accessibility) -->
+  <a href="#main-content" class="sr-only focus-visible">
+    Skip to main content
+  </a>
+  
+  <!-- Drawer Backdrop (Mobile) -->
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  
+  <!-- Mobile Navigation Drawer -->
+  <nav class="nav-drawer" id="nav-drawer" role="navigation" aria-label="Mobile navigation">
+    <div class="drawer-header">
+      <strong>Semptify</strong>
+      <button onclick="closeDrawer()" class="drawer-close" aria-label="Close menu">✕</button>
+    </div>
+    <a href="/{{ROLE}}/home">🏠 Home</a>
+    <a href="/{{ROLE}}/journal">📝 Journal</a>
+    <a href="/{{ROLE}}/documents">📁 Documents</a>
+    <a href="/law-library">⚖️ Rights</a>
+    <a href="/{{ROLE}}/help">🆘 Help</a>
+  </nav>
+  
+  <!-- Header -->
+  <header class="page-header">
+    <div class="container">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <button class="hamburger hide-desktop" onclick="openDrawer()" aria-label="Open menu">
+            ☰
+          </button>
+          <a href="/" class="text-2xl font-bold text-inverse" style="text-decoration: none;">
+            Semptify
+          </a>
+        </div>
+        
+        <!-- Desktop Navigation -->
+        <nav class="core-nav hide-mobile" role="navigation" aria-label="Main navigation">
+          <a href="/{{ROLE}}/home" class="nav__link nav__link--active">🏠 Home</a>
+          <a href="/{{ROLE}}/journal" class="nav__link">📝 Journal</a>
+          <a href="/{{ROLE}}/documents" class="nav__link">📁 Documents</a>
+          <a href="/law-library" class="nav__link">⚖️ Rights</a>
+          <a href="/{{ROLE}}/help" class="nav__link">🆘 Help</a>
+        </nav>
+        
+        <div class="flex items-center gap-3">
+          <button class="btn btn--ghost text-inverse">
+            🔒 Vault
+          </button>
+          <button class="btn btn--ghost text-inverse">
+            👤 {{ROLE}}
+          </button>
+        </div>
+      </div>
+      
+      <!-- Page Title Section -->
+      <div class="mt-6">
+        <h1 class="page-header__title">{{PAGE_TITLE}}</h1>
+        <p class="page-header__subtitle">{{PAGE_SUBTITLE}}</p>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Main Content -->
+  <main id="main-content" class="container py-6">
+    <div class="page-layout">
+      
+      <!-- Sidebar (Optional) -->
+      <aside class="sidebar hide-mobile" role="complementary">
+        <div class="sidebar__section">
+          <h3 class="sidebar__title">Quick Links</h3>
+          <nav class="nav nav--vertical">
+            <a href="/{{ROLE}}/journal" class="nav__link">📝 New Entry</a>
+            <a href="/{{ROLE}}/documents/upload" class="nav__link">📤 Upload</a>
+            <a href="/law-library" class="nav__link">📚 Law Library</a>
+          </nav>
+        </div>
+        
+        <div class="sidebar__section">
+          <h3 class="sidebar__title">Status</h3>
+          <div class="flex items-center gap-2 text-sm">
+            <span class="badge badge--success">●</span>
+            <span>Storage Connected</span>
+          </div>
+        </div>
+      </aside>
+      
+      <!-- Main Content Area -->
+      <section class="main-content">
+        {{MAIN_CONTENT}}
+      </section>
+      
+    </div>
+  </main>
+  
+  <!-- Footer -->
+  <footer class="page-footer">
+    <div class="container">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="text-sm">
+          <span>© 2026 Semptify. Free forever. No ads.</span>
+        </div>
+        <nav class="flex flex-wrap gap-4 text-sm">
+          <a href="/public/privacy.html">Privacy</a>
+          <a href="/public/terms.html">Terms</a>
+          <a href="/public/disclaimer.html">Disclaimer</a>
+          <a href="/public/contact.html">Contact</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+  
+  <!-- Scripts -->
+  <script>
+    // Mobile Drawer Functions
+    function openDrawer() {
+      document.getElementById('nav-drawer').classList.add('open');
+      document.getElementById('drawer-backdrop').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeDrawer() {
+      document.getElementById('nav-drawer').classList.remove('open');
+      document.getElementById('drawer-backdrop').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    
+    // Close drawer on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDrawer();
+    });
+  </script>
+  
+</body>
+</html>
