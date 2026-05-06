@@ -166,15 +166,22 @@ legal_filing_router   = None
 legal_trails_router   = None
 
 # =============================================================================
-# SEMPTIFY EXTENDED — CASE MANAGEMENT ADD-ON
+# SEMPTIFY EXTENDED — CASE MANAGEMENT ADD-ON (disabled)
 # =============================================================================
-intake_router        = _safe_router_import("app.routers.intake")
-guided_intake_router = _safe_router_import("app.routers.guided_intake")
-case_builder_router  = _safe_router_import("app.routers.case_builder")
-progress_router      = _safe_router_import("app.routers.progress")
-actions_router       = _safe_router_import("app.routers.actions")
-plan_maker_router    = _safe_router_import("app.routers.plan_maker")
-tools_api_router     = _safe_router_import("app.routers.tools_api")
+# intake_router        = _safe_router_import("app.routers.intake")
+# guided_intake_router = _safe_router_import("app.routers.guided_intake")
+# case_builder_router  = _safe_router_import("app.routers.case_builder")
+# progress_router      = _safe_router_import("app.routers.progress")
+# actions_router       = _safe_router_import("app.routers.actions")
+# plan_maker_router    = _safe_router_import("app.routers.plan_maker")
+# tools_api_router     = _safe_router_import("app.routers.tools_api")
+intake_router        = None
+guided_intake_router = None
+case_builder_router  = None
+progress_router      = None
+actions_router       = None
+plan_maker_router    = None
+tools_api_router     = None
 
 # =============================================================================
 # OTHER DIVISION — Preserved for Future Product Lines
@@ -1926,7 +1933,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # app.include_router(context_loop.router, tags=["Context Loop"])  # Core processing engine
     include_if(documents_router, tags=["Documents"])  # Document upload, analysis, intelligence
     include_if(vault_router, prefix="/api/vault", tags=["Document Vault"])  # User storage vault API
-    include_if(intake_router, prefix="/api/intake", tags=["Document Intake"])  # Document intake & extraction
+    include_if(intake_router, tags=["Document Intake"])  # Document intake & extraction
     include_if(registry_router, tags=["Document Registry"])  # Tamper-proof chain of custody
     include_if(vault_engine_router, tags=["Vault Engine"])  # Centralized access control
     include_if(form_data_router, prefix="/api/form-data", tags=["Form Data Hub"])  # Central data integration
@@ -1961,7 +1968,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if extraction_router:
         fastapi_app.include_router(extraction_router, tags=["Form Field Extraction"])  # Extract and map document data to form fields
     if tenancy_hub_router:
-        fastapi_app.include_router(tenancy_hub_router, prefix="/api/tenancy", tags=["Tenancy Hub"])  # Central hub for all tenancy documentation
+        fastapi_app.include_router(tenancy_hub_router, tags=["Tenancy Hub"])  # Central hub for all tenancy documentation
     if legal_analysis_router:
         fastapi_app.include_router(legal_analysis_router, tags=["Legal Analysis"])
     if legal_filing_router:
