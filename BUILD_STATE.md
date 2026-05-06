@@ -4,25 +4,38 @@
 ---
 
 ## Last Deployed Commit
-- **Hash**: `4148281`
-- **Date**: 2026-05-06 00:02 UTC-05
+- **Hash**: `b83d381`
+- **Date**: 2026-05-06 00:11 UTC-05
 - **Branch**: `main`
 - **Repo**: https://github.com/1semptify-arch/Semptify.git
 - **Render auto-deploy**: YES — triggers on every push to main
 
 ---
 
-## Shipped This Session (4148281)
+## Shipped This Session (b83d381)
 
-### Privacy Fix — CRITICAL
-- [x] **Remove user PII storage** — OAuth email/display_name now explicitly discarded
-- [x] **Semptify privacy policy enforced** — User PII lives only in cloud storage vault
-- [x] **Deadline notifications** — Email sending removed (no stored email), in-app only
-- [x] **SSOT navigation compliance** — /onboarding/status and /upload use navigation registry
+### Tenant Completion Guide — MAJOR PROGRESS
+- [x] **Journal Page** — `static/tenant/journal.html` created with full CRUD:
+  - Create entries (date, category, title, description)
+  - Categories: rent_payment, maintenance_request, landlord_communication, general_note, notice, court
+  - Edit and delete entries
+  - API integration to `/api/tenancy/cases/{id}/timeline`
+  - Responsive UI with empty states
+
+- [x] **Two-Sided Rights Content** — Added "Tenant Responsibilities" section to law-library:
+  - 5 detailed cards covering: rent payment, unit maintenance, problem reporting, lease compliance, move-out notice
+  - Minnesota statute citations for each responsibility
+  - Added 🤝 Responsibilities tab to navigation
+  - Includes framing: "Responsibilities are legal armor, not capitulation"
+
+### Verified Existing (Already Working)
+- [x] **5 Footer Pages** — privacy.html, terms.html, disclaimer.html, contact.html, feedback.html all exist and functional
+- [x] **Template Letters** — maintenance request and security deposit demand in `tools/letters.html`
+- [x] **Deadline Tracker** — Full deadline management in `tools/deadlines.html`
 
 ---
 
-## Previous Shipped (516ce2b)
+## Previous Shipped (4148281)
 
 ### Critical Bug Fixes — DEPLOYED
 - [x] **Test Engine Caching** — Fixed `tests/conftest.py` to clear `get_settings` cache and reset engine between tests. All 12 tests now pass on SQLite instead of failing on stale PostgreSQL engine.
