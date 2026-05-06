@@ -1857,9 +1857,8 @@ async def oauth_callback(
                 role = (state_data.get("role") or "tenant").strip().lower()
                 if role not in ALLOWED_ROLES:
                     role = "tenant"
-                # Use provider_subject for deterministic user_id (same Google account = same user_id)
-                user_id = generate_user_id(provider, role, provider_subject)
-                print(f"🆕 OAuth callback: New user - generated ID: {user_id} (provider={provider}, role={role}, subject={provider_subject[:8]}...)")
+                user_id = generate_user_id(provider, role)
+                print(f"🆕 OAuth callback: New user - generated ID: {user_id} (provider={provider}, role={role})")
 
         refresh_token = token_data.get("refresh_token", "")
         expires_in = token_data.get("expires_in", 3600)
