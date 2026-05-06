@@ -339,10 +339,10 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                                 },
                             )
                         
-                        # Redirect to welcome screen
-                        root_stage = navigation.get_stage("root")
-                        root_path = root_stage.path if root_stage else "/"
-                        response = ssot_redirect(root_path, context="storage_middleware incomplete onboarding")
+                        # Redirect to onboarding start directly to avoid redirect loop
+                        onboarding_start_stage = navigation.get_stage("onboarding_start")
+                        onboarding_start_path = onboarding_start_stage.path if onboarding_start_stage else "/onboarding/start"
+                        response = ssot_redirect(onboarding_start_path, context="storage_middleware incomplete onboarding")
                         response.set_cookie(
                             key=REDIRECT_LOOP_COOKIE,
                             value=str(loop_count),
