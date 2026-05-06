@@ -1944,14 +1944,34 @@ async def oauth_callback(
 
         logger.info("OAuth callback complete: user=%s new=%s vault_ok=%s landing=%s",
                     user_id[:6] + "***" if user_id else "EMPTY", is_new_user, vault_ok, landing)
-        
+
         # DEBUG: Verify user_id before setting cookie
         if not user_id:
             logger.error("CRITICAL: user_id is empty! Cannot set auth cookie.")
             raise HTTPException(status_code=500, detail="User ID missing after OAuth")
 
-        # Use SSOT redirect for internal navigation
-        response = ssot_redirect(landing, context="oauth_callback success")
+        # Return HTML with JavaScript redirect to avoid cross-origin frame blocking
+        # This bypasses browser security restrictions when redirecting from OAuth iframe
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Redirecting...</title>
+        </head>
+        <body>
+            <script>
+                // Set cookie via JavaScript (already set by server, but ensure it's available)
+                document.cookie = 'semptify_uid={user_id}; path=/; SameSite=Lax';
+                // Redirect to landing page
+                window.location.href = '{landing}';
+            </script>
+            <p>Redirecting to your dashboard...</p>
+        </body>
+        </html>
+        """
+
+        response = HTMLResponse(content=html_content)
         set_auth_cookie(response, user_id)
         logger.info("Auth cookie set for user: %s", user_id[:6] + "***")
         response.delete_cookie("semptify_redirect_loop_count")
