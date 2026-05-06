@@ -13,6 +13,7 @@ If any other file conflicts with these, the canonical file wins unless the team 
 3. `AGENTS.md` — Canonical AI behavior and product standard guide.
 4. `SECURITY_AND_PRIVACY_ARCHITECTURE.md` — Canonical integrity, security, and privacy guide.
 5. `DEPLOYMENT_READINESS.md` — Canonical production readiness and deployment verification checklist.
+6. `BUILD_GUIDE_SSOT.md` — Canonical build status, testing results, and known issues.
 
 ## 2. Single Build Reference
 
