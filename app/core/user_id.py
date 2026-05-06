@@ -99,28 +99,45 @@ CODE_TO_ROLE = {
 # User ID Operations
 # =============================================================================
 
-def generate_user_id(provider: str, role: str = "user") -> str:
+def generate_user_id(provider: str, role: str = "user", provider_subject: Optional[str] = None) -> str:
     """
-    Generate a new user ID encoding provider and role.
+    Generate a user ID encoding provider and role.
+
+    If provider_subject is provided, the ID is deterministic (same Google account = same user_id).
+    If not provided, generates a random ID for backward compatibility.
 
     Args:
         provider: Storage provider (google_drive, dropbox, onedrive)
         role: User role (user, manager, advocate, legal, admin)
+        provider_subject: Unique ID from OAuth provider (e.g., Google account ID)
 
     Returns:
         User ID like "GU7x9kM2pQ" (10 chars total)
 
     Example:
-        >>> generate_user_id("google_drive", "user")
-        'GUa8Km3xPq'
+        >>> generate_user_id("google_drive", "user", "google_account_123")
+        'GU7x9kM2pQ'  # Deterministic - same input = same output
     """
     # Get codes
     provider_code = PROVIDER_TO_CODE.get(provider, ProviderCode.GOOGLE_DRIVE)
     role_code = ROLE_TO_CODE.get(role, RoleCode.USER)
     
-    # Generate 8-char random suffix (alphanumeric, easy to read)
-    alphabet = string.ascii_letters + string.digits
-    random_part = ''.join(secrets.choice(alphabet) for _ in range(8))
+    if provider_subject:
+        # Derive deterministic suffix from provider_subject (SHA-256 hash, first 8 chars)
+        import hashlib
+        hash_bytes = hashlib.sha256(f"{provider}:{provider_subject}".encode()).digest()
+        # Convert to base36 for alphanumeric (0-9, a-z)
+        import base64
+        b36 = base64.b64encode(hash_bytes).decode()[:8].replace('+', '').replace('/', '').replace('=', '')
+        if len(b36) < 8:
+            # Pad with random chars if hash is too short
+            alphabet = string.ascii_letters + string.digits
+            b36 += ''.join(secrets.choice(alphabet) for _ in range(8 - len(b36)))
+        random_part = b36[:8]
+    else:
+        # Fallback to random for backward compatibility
+        alphabet = string.ascii_letters + string.digits
+        random_part = ''.join(secrets.choice(alphabet) for _ in range(8))
     
     return f"{provider_code.value}{role_code.value}{random_part}"
 
