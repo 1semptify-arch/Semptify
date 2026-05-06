@@ -1865,7 +1865,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             p = BASE_PATH / rel_path
             if p.exists():
                 return FileResponse(str(p))
-            return RedirectResponse(url="/", status_code=302)
+            root_stage = navigation.get_stage("root")
+            root_path = root_stage.path if root_stage else "/"
+            return ssot_redirect(root_path, context="static_fallback redirect")
         return _handler
 
     for _route, _file in _ROLE_STATIC_MAP.items():
@@ -2208,7 +2210,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             welcome_path = BASE_PATH / "static" / "public" / "welcome.html"
             if welcome_path.exists():
                 return FileResponse(welcome_path)
-            return RedirectResponse(url="/", status_code=302)
+            root_stage = navigation.get_stage("root")
+            root_path = root_stage.path if root_stage else "/"
+            return ssot_redirect(root_path, context="welcome_html fallback")
 
 
     # =========================================================================
@@ -2336,7 +2340,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # Verify MANAGER role
         role = get_role_from_user_id(user_id)
         if role != UserRole.MANAGER:
-            return RedirectResponse(url="/", status_code=302)
+            root_stage = navigation.get_stage("root")
+            root_path = root_stage.path if root_stage else "/"
+            return ssot_redirect(root_path, context="manager_portal role mismatch")
 
         # Telemetry
         try:
@@ -2362,7 +2368,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/manager/dashboard", response_class=HTMLResponse)
     async def manager_dashboard_page(request: Request):
         """Serve the manager dashboard (redirects to portal)."""
-        return RedirectResponse(url="/manager", status_code=302)
+        manager_stage = navigation.get_stage("manager_portal")
+        manager_path = manager_stage.path if manager_stage else "/manager"
+        return ssot_redirect(manager_path, context="manager_dashboard redirect to portal")
 
     @fastapi_app.get("/api/manager/dashboard-stats")
     async def manager_dashboard_stats(request: Request):
@@ -2957,7 +2965,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # Verify professional role
         role = get_role_from_user_id(user_id)
         if role not in PROFESSIONAL_ROLES:
-            return RedirectResponse(url="/", status_code=302)
+            root_stage = navigation.get_stage("root")
+            root_path = root_stage.path if root_stage else "/"
+            return ssot_redirect(root_path, context="delivery_send role mismatch")
 
         send_path = BASE_PATH / "static" / "delivery_send.html"
         send_fallback = _render_static_page(send_path)
@@ -2983,7 +2993,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         user_id = extract_user_id(request)
         if not user_id:
             # No cookie at all - new user to welcome page
-            return RedirectResponse(url="/", status_code=302)
+            root_stage = navigation.get_stage("root")
+            root_path = root_stage.path if root_stage else "/"
+            return ssot_redirect(root_path, context="document_delivery no user cookie")
         if not is_valid_storage_user(signed_cookie):
             # Has cookie but invalid - returning user needs reconnect
             reconnect_stage = navigation.get_stage("storage_reconnect")
@@ -3023,7 +3035,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             user_id = request.cookies.get(COOKIE_USER_ID)
             if not user_id:
                 # No cookie - new user to welcome page
-                return RedirectResponse(url="/", status_code=302)
+                root_stage = navigation.get_stage("root")
+                root_path = root_stage.path if root_stage else "/"
+                return ssot_redirect(root_path, context="page_contract no user cookie")
             if not is_valid_storage_user(user_id):
                 # Has cookie but invalid - returning user needs reconnect
                 reconnect_stage = navigation.get_stage("storage_reconnect")
@@ -3137,7 +3151,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         user_id = request.cookies.get(COOKIE_USER_ID)
         if not is_valid_storage_user(user_id):
             # No storage access = can't read or write documents
-            return RedirectResponse(url="/storage/providers", status_code=302)
+            providers_stage = navigation.get_stage("providers")
+            providers_path = providers_stage.path if providers_stage else "/storage/providers"
+            return ssot_redirect(providers_path, context="documents_list unauthenticated")
         
         # Check 2: Fetch document list from user's cloud storage
         documents = []
@@ -3354,7 +3370,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         static_page = _render_static_page(letters_path, inject_stage_model=True)
         if static_page:
             return static_page
-        return RedirectResponse(url="/tenant/home", status_code=302)
+        tenant_home_stage = navigation.get_stage("tenant_home")
+        tenant_home_path = tenant_home_stage.path if tenant_home_stage else "/tenant/home"
+        return ssot_redirect(tenant_home_path, context="tenant_letters fallback")
 
     @fastapi_app.get("/tenant/tools/deadlines", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/tools/deadlines/", response_class=HTMLResponse)
@@ -3367,7 +3385,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         static_page = _render_static_page(deadlines_path, inject_stage_model=True)
         if static_page:
             return static_page
-        return RedirectResponse(url="/tenant/home", status_code=302)
+        tenant_home_stage = navigation.get_stage("tenant_home")
+        tenant_home_path = tenant_home_stage.path if tenant_home_stage else "/tenant/home"
+        return ssot_redirect(tenant_home_path, context="tenant_deadlines fallback")
 
     @fastapi_app.get("/tenant/{subpage}", response_class=HTMLResponse)
     async def tenant_subpage(subpage: str, request: Request):
@@ -3392,7 +3412,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return subpage_index_fallback
 
         # Fallback: redirect to tenant home (not the old Case page)
-        return RedirectResponse(url="/tenant/home", status_code=302)
+        tenant_home_stage = navigation.get_stage("tenant_home")
+        tenant_home_path = tenant_home_stage.path if tenant_home_stage else "/tenant/home"
+        return ssot_redirect(tenant_home_path, context="tenant_subpage fallback")
 
     # =========================================================================
     # Advocate Pages
@@ -3440,7 +3462,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if subpage_index_fallback:
             return subpage_index_fallback
 
-        return RedirectResponse(url="/advocate", status_code=302)
+        advocate_stage = navigation.get_stage("advocate_portal")
+        advocate_path = advocate_stage.path if advocate_stage else "/advocate"
+        return ssot_redirect(advocate_path, context="advocate_subpage fallback")
 
     @fastapi_app.get("/advocate/home", response_class=HTMLResponse)
     @fastapi_app.get("/advocate/home/", response_class=HTMLResponse)
@@ -3508,7 +3532,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         target = subpage_aliases.get(subpage, subpage)
 
         if target is None:
-            return RedirectResponse(url="/law-library", status_code=302)
+            law_library_stage = navigation.get_stage("law_library")
+            law_library_path = law_library_stage.path if law_library_stage else "/law-library"
+            return ssot_redirect(law_library_path, context="legal_subpage alias redirect")
 
         subpage_path = BASE_PATH / "static" / "legal" / f"{target}.html"
         subpage_fallback = _render_static_page(subpage_path, inject_stage_model=True)
@@ -3520,7 +3546,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if subpage_index_fallback:
             return subpage_index_fallback
 
-        return RedirectResponse(url="/legal", status_code=302)
+        legal_stage = navigation.get_stage("legal_portal")
+        legal_path = legal_stage.path if legal_stage else "/legal"
+        return ssot_redirect(legal_path, context="legal_subpage fallback")
 
     @fastapi_app.get("/legal/home", response_class=HTMLResponse)
     @fastapi_app.get("/legal/home/", response_class=HTMLResponse)
@@ -3600,7 +3628,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if subpage_index_fallback:
             return subpage_index_fallback
 
-        return RedirectResponse(url="/admin", status_code=302)
+        admin_stage = navigation.get_stage("admin_portal")
+        admin_path = admin_stage.path if admin_stage else "/admin"
+        return ssot_redirect(admin_path, context="admin_subpage fallback")
 
     @fastapi_app.get("/admin/home", response_class=HTMLResponse)
     @fastapi_app.get("/admin/home/", response_class=HTMLResponse)
