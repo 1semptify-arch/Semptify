@@ -130,7 +130,6 @@
 
 ## Known Limitations (Not Bugs — Future Work)
 - Rehome.html in existing users' Drive is old version (fixed version only for new users)
-- MNDES exhibit packages stored in memory — lost on server restart
 
 ---
 
@@ -207,7 +206,9 @@ Set these in Render Dashboard > Service > Environment:
 1. Verify Render deploy succeeded (check https://dashboard.render.com)
 2. Set DATABASE_URL on Render if not set
 3. Run `python -m alembic upgrade head` via Render shell after first deploy
-4. Add MNDES unit tests to tests/
+4. Migrate MNDES service from in-memory `_packages` dict to `MNDESExhibitPackageDB`
+5. Migrate vault service from in-memory `_documents` to `VaultIndexDB`
+6. Add MNDES unit tests to tests/
 
 ---
 
