@@ -3901,15 +3901,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/run-migration-cacc26689cdf")
     async def run_migration():
         """Temporary endpoint to run migration for sessions.user_id column size."""
-        from alembic import command
-        from alembic.config import Config
-        import asyncio
+        from app.core.database import get_db
+        from sqlalchemy import text
 
         try:
-            # Run the migration
-            config = Config("alembic.ini")
-            command.upgrade(config, "cacc26689cdf")
-            return HTMLResponse(content="<h1>Migration successful! You can now remove this endpoint.</h1>")
+            # Run the SQL directly instead of using alembic
+            async for db in get_db():
+                await db.execute(text("ALTER TABLE sessions ALTER COLUMN user_id TYPE VARCHAR(100)"))
+                await db.commit()
+                return HTMLResponse(content="<h1>Migration successful! You can now remove this endpoint.</h1>")
         except Exception as e:
             return HTMLResponse(content=f"<h1>Migration failed: {str(e)}</h1>", status_code=500)
 
