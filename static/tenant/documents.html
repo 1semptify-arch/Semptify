@@ -256,7 +256,7 @@
 
     try {
       progressBar.style.width = '40%';
-      const r = await fetch('/api/intake/upload/auto', {
+      const r = await fetch('/api/documents/upload', {
         method: 'POST',
         body: form,
         credentials: 'include',
