@@ -112,6 +112,7 @@ def set_auth_cookie(
         key=COOKIE_USER_ID,
         value=sign_user_id(user_id),
         max_age=max_age,
+        path="/",
         httponly=False,
         secure=secure,
         samesite="lax",
