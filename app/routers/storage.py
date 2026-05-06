@@ -1631,13 +1631,15 @@ async def oauth_callback(
         legacy_state = None if state_row else OAUTH_STATES.pop(state, None)
 
         if not state_row and not legacy_state:
+            providers_stage = navigation.get_stage("providers")
+            providers_path = providers_stage.path if providers_stage else "/storage/providers"
             raise HTTPException(
                 status_code=400,
                 detail={
                     "error": "bad_request",
                     "message": "Invalid or expired state. Please try connecting your storage again.",
                     "action": "redirect",
-                    "redirect_url": "/storage/providers",
+                    "redirect_url": providers_path,
                 },
             )
 
@@ -1656,13 +1658,15 @@ async def oauth_callback(
                 state_expires = state_expires.replace(tzinfo=_tz.utc)
 
             if utc_now() > state_expires:
+                providers_stage = navigation.get_stage("providers")
+                providers_path = providers_stage.path if providers_stage else "/storage/providers"
                 raise HTTPException(
                     status_code=400,
                     detail={
                         "error": "bad_request",
                         "message": "Session expired. Please try connecting your storage again.",
                         "action": "redirect",
-                        "redirect_url": "/storage/providers",
+                        "redirect_url": providers_path,
                     },
                 )
 
@@ -1688,13 +1692,15 @@ async def oauth_callback(
                 state_expires = state_expires.replace(tzinfo=_tz.utc)
 
             if state_expires and utc_now() > state_expires:
+                providers_stage = navigation.get_stage("providers")
+                providers_path = providers_stage.path if providers_stage else "/storage/providers"
                 raise HTTPException(
                     status_code=400,
                     detail={
                         "error": "bad_request",
                         "message": "Session expired. Please try connecting your storage again.",
                         "action": "redirect",
-                        "redirect_url": "/storage/providers",
+                        "redirect_url": providers_path,
                     },
                 )
 
