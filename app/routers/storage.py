@@ -1720,8 +1720,8 @@ async def oauth_callback(
         # First-run source of truth: provider-asserted identity proof.
         identity = await _fetch_oauth_identity(provider, access_token)
         provider_subject = identity["provider_subject"]
-        identity_email = identity.get("email")
-        identity_display_name = identity.get("display_name")
+        # NOTE: OAuth email/name are NOT stored per Semptify privacy policy.
+        # User PII lives only in their cloud storage vault, never Semptify's database.
 
         # Determine user ID
         existing_uid = state_data.get("existing_uid")
@@ -1782,15 +1782,8 @@ async def oauth_callback(
             refresh_token=refresh_token,
             expires_at=expires_at,
         )
-        # Create or update user record with email from OAuth
-        await create_or_update_user(
-            db=db,
-            user_id=user_id,
-            provider=provider,
-            email=identity_email,
-            display_name=identity_display_name,
-            storage_user_id=provider_subject,
-        )
+        # NOTE: Semptify does NOT store user PII (email, name) in its database.
+        # User data lives only in their cloud storage vault.
         # A user is "new" only if they had no existing_uid in state AND were not
         # matched to an existing DB account by provider subject during this callback.
         is_new_user = not state_data.get("existing_uid") and not matched_user
@@ -1848,11 +1841,13 @@ async def oauth_callback(
         return_to = state_data.get("return_to")
 
         if not vault_ok:
-            landing = "/onboarding/status?storage_setup=retry_required&provider=" + provider
+            status_stage = navigation.get_stage("status")
+            landing = f"{status_stage.path}?storage_setup=retry_required&provider={provider}"
         elif return_to:
             landing = return_to
         elif is_new_user:
-            landing = "/onboarding/upload"
+            upload_stage = navigation.get_stage("upload")
+            landing = upload_stage.path
         else:
             landing = _route_user(user_id)
 
