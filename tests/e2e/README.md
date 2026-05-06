@@ -23,6 +23,7 @@ cd tests/e2e
 |------|---------|------|--------------|
 | **Smoke** | `./run_e2e_tests.sh --quick` | 30s | Basic health checks, 6 endpoints |
 | **Full** | `./run_e2e_tests.sh` | 3-5min | Every page, every link, every flow |
+| **Flows** | `./run_e2e_tests.sh --flows` | 2-3min | User journey continuity: Welcome → Role → Storage → Home |
 | **CI** | `./run_e2e_tests.sh --ci` | 3-5min | Full test, headless, no browser window |
 
 ## What Gets Tested
@@ -55,6 +56,16 @@ cd tests/e2e
 - **Onboarding Flow**: Welcome → Start → Role Select → Providers
 - **Reconnect Flow**: Entry point with return_to parameter
 - **UI Router**: All role-based UI endpoints
+
+### 5. User Flow Continuity Tests (`--flows`)
+Comprehensive end-to-end user journey testing:
+- **Flow 1**: New User Onboarding (Welcome → Role → Storage → Home)
+- **Flow 2**: Returning User (Reconnect → Home)
+- **Flow 3**: Document Upload (Home → Upload → Vault)
+- **Flow 4**: Navigation Consistency (All paths use SSOT)
+- **Flow 5**: Core API Flows (Legal Analysis, Timeline, Briefcase)
+- **Flow 6**: Non-Core Routers Disabled Check
+- **SSOT Compliance**: Detects hardcoded URLs (navigation violations)
 
 ### 5. Responsive Design
 - Mobile (375x667)
