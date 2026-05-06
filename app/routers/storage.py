@@ -2008,11 +2008,16 @@ async def oauth_callback(
             logger.error("CRITICAL: user_id is empty! Cannot set auth cookie.")
             raise HTTPException(status_code=500, detail="User ID missing after OAuth")
 
-        # Use server-side redirect so cookies are committed before navigation.
-        # JavaScript redirects have a race condition where Set-Cookie headers
-        # may not be processed before window.location changes.
-        response = RedirectResponse(url=landing, status_code=302)
-        set_auth_cookie(response, user_id)
+        # Use HTML meta refresh so cookies are committed before navigation.
+        # 302 redirects can race with Set-Cookie processing in some browsers.
+        html_content = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<meta http-equiv="refresh" content="0;url={landing}">
+<title>Redirecting...</title>
+</head><body><p>Redirecting to your dashboard...</p></body></html>"""
+
+        response = HTMLResponse(content=html_content)
+        set_auth_cookie(response, user_id, secure=True)
         
         # Set storage provider cookie for storage gate verification
         from app.core.user_id import COOKIE_STORAGE_PROVIDER
@@ -2021,6 +2026,7 @@ async def oauth_callback(
             value=provider,
             max_age=365 * 24 * 60 * 60,  # 1 year
             path="/",
+            secure=True,
             samesite="lax",
             httponly=False,
         )
