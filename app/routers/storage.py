@@ -1937,20 +1937,49 @@ async def oauth_callback(
         elif return_to:
             landing = return_to
         elif is_new_user:
-            # Auto-create test file to verify vault folders work, then route directly to home
+            # Auto-create test document to tick counter and prevent case file diversion
             try:
                 from app.routers.vault import get_vault_client
+                from app.models.models import Document
+                from datetime import datetime, timezone
+                import uuid
+                import hashlib
+                
                 vault = await get_vault_client(db, user_id)
                 if vault:
-                    # Create a test file to verify Semptify folders work
+                    # Create test document content
+                    test_content = b"Semptify vault verification document - This confirms your storage is working correctly."
+                    test_filename = "semptify_vault_verification.txt"
+                    doc_id = str(uuid.uuid4())
+                    
+                    # Upload test document to vault
                     await vault.write_file(
-                        path=".semptify_setup_complete",
-                        content=b"Semptify vault verified",
-                        metadata={"purpose": "vault_verification"}
+                        path=f"documents/{test_filename}",
+                        content=test_content,
+                        metadata={"purpose": "vault_verification", "auto_generated": True}
                     )
-                    logger.info("Auto-created test file to verify vault folders for new user")
+                    
+                    # Create Document record in database to tick counter
+                    file_hash = hashlib.sha256(test_content).hexdigest()
+                    doc = Document(
+                        id=doc_id,
+                        user_id=user_id[:24],  # Document.user_id is VARCHAR(24)
+                        filename=test_filename,
+                        original_filename=test_filename,
+                        file_path=f".semptify/vault/documents/{test_filename}",
+                        file_size=len(test_content),
+                        mime_type="text/plain",
+                        document_type="other",
+                        sha256_hash=file_hash,
+                        uploaded_at=datetime.now(timezone.utc),
+                        description="Auto-generated vault verification document"
+                    )
+                    db.add(doc)
+                    await db.commit()
+                    
+                    logger.info(f"Auto-created test document {doc_id} to tick counter for new user {user_id[:6]}...")
             except Exception as e:
-                logger.warning(f"Failed to auto-create test file: {e}")
+                logger.warning(f"Failed to auto-create test document: {e}")
                 # Continue anyway - vault_ok already succeeded
             # Route directly to user home, skip upload step
             landing = _route_user(user_id)
