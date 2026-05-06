@@ -45,10 +45,10 @@ class UserProfileResponse(BaseModel):
 # Endpoints
 # =============================================================================
 
-@router.get("/register")
+@router.get("/register", response_class=HTMLResponse)
 async def register_redirect():
     """
-    Redirect to storage provider selection.
+    Registration redirect.
     
     In Semptify 5.0, there's no traditional registration.
     Users authenticate by connecting their cloud storage.
@@ -56,6 +56,17 @@ async def register_redirect():
     providers_stage = navigation.get_stage("providers")
     providers_path = providers_stage.path if providers_stage else "/storage/providers"
     return ssot_redirect(providers_path, context="auth_register")
+
+
+@router.get("/start")
+async def start_redirect():
+    """
+    Simple start endpoint - bypasses welcome.html caching issues.
+    Goes directly to storage providers (no role selection needed).
+    """
+    providers_stage = navigation.get_stage("providers")
+    providers_path = providers_stage.path if providers_stage else "/storage/providers"
+    return ssot_redirect(providers_path, context="start_redirect")
 
 
 @router.post(
