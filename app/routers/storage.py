@@ -1117,11 +1117,27 @@ def _generate_providers_html(
     role: Optional[str] = None,
     from_source: Optional[str] = None,
     return_to: Optional[str] = None,
+    error_info: Optional[dict] = None,
 ) -> str:
     """Generate the storage provider selection HTML page."""
     current_provider = None
     if semptify_uid:
         current_provider = get_provider_from_user_id(semptify_uid)
+    
+    # Build error display HTML if there was an OAuth error
+    error_html = ""
+    if error_info:
+        error_html = f'''
+        <div class="error-banner" id="error-banner">
+            <div class="error-icon">⚠️</div>
+            <div class="error-content">
+                <div class="error-title">Connection Failed</div>
+                <div class="error-message">{error_info.get("message", "Authentication failed. Please try again.")}</div>
+                <div class="error-debug" style="display: none;">Error code: {error_info.get("code", "unknown")} | Provider: {error_info.get("provider", "unknown")}</div>
+            </div>
+            <button class="error-close" onclick="document.getElementById('error-banner').style.display='none'">×</button>
+        </div>
+        '''
 
     auth_params: dict[str, str] = {}
     if role in ALLOWED_ROLES:
@@ -1328,6 +1344,56 @@ def _generate_providers_html(
             border-radius: 0.75rem;
             color: #fca5a5;
         }}
+        .error-banner {{
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            background: rgba(239, 68, 68, 0.15);
+            border: 2px solid rgba(239, 68, 68, 0.5);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            color: #fca5a5;
+            text-align: left;
+            max-width: 100%;
+        }}
+        .error-icon {{
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }}
+        .error-content {{
+            flex: 1;
+        }}
+        .error-title {{
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+            color: #f87171;
+        }}
+        .error-message {{
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }}
+        .error-debug {{
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            color: #94a3b8;
+            font-family: monospace;
+        }}
+        .error-close {{
+            background: none;
+            border: none;
+            color: #fca5a5;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }}
+        .error-close:hover {{
+            opacity: 1;
+        }}
         footer {{
             margin-top: 2rem;
             color: #64748b;
@@ -1341,6 +1407,7 @@ def _generate_providers_html(
 </head>
 <body>
     <div class="container">
+        {error_html}
         <div class="logo">⚖️</div>
         {"<div class='step-indicator'>Step 2 of 3</div>" if from_source == "onboarding" and role == "user" else "<div class='step-indicator'>Step 3 of 3</div>" if from_source == "onboarding" else ""}
         <h1>Connect Your Storage</h1>
