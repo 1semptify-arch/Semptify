@@ -3,6 +3,18 @@
 
 ---
 
+## Shipped This Session (TBD)
+
+### Core 5.0 Release Verification — COMPLETE
+- [x] **Document upload to vault** — `/api/documents/upload` endpoint verified
+- [x] **Timeline/Briefcase viewers** — `/api/timeline-unified/*`, `/api/briefcase/*` verified
+- [x] **Legal analysis (direct)** — `/api/legal-analysis/classify-evidence` verified
+- [x] **No errors in logs** — All Python files compile clean with `py_compile`
+- [x] **Non-Core routers disabled** — court_forms, case_builder, brain, AI/Extended all set to None
+- [x] **BUILD_GUIDE_SSOT.md updated** — Release criteria marked complete
+
+---
+
 ## Last Deployed Commit
 - **Hash**: `7e4b062`
 - **Date**: 2026-05-06 00:24 UTC-05

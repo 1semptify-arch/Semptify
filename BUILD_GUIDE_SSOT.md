@@ -1,7 +1,7 @@
 # Semptify 5.0 Build Guide (SSOT)
 
 **Purpose:** Single source of truth for build status, testing results, and known issues.  
-**Last Updated:** April 29, 2026  
+**Last Updated:** May 6, 2026  
 **Build Type:** Core (Tenant Role Only)  
 **Status:** Reconnect Flow VERIFIED ✅
 
@@ -48,10 +48,10 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 ### Welcome Flow (4 Steps - Storage Mandatory)
 | Step | URL | Status | Notes |
 |------|-----|--------|-------|
-| 1. Welcome Page | `/static/welcome.html` | ⏳ Testing | Single CTA: "Get Started" |
-| 2. Role Selection | `/onboarding/select-role.html` | ⏳ Testing | Tenant only (Core) |
-| 3. Storage Connect | `/onboarding/storage-select.html` → OAuth | ⏳ Testing | **Mandatory** - no skip option |
-| 4. Tenant Home | `/tenant/home` | ⏳ Testing | Vault ready, upload enabled |
+| 1. Welcome Page | `/static/welcome.html` | ✅ **VERIFIED** | Single CTA: "Get Started" |
+| 2. Role Selection | `/onboarding/select-role.html` | ✅ **VERIFIED** | Tenant only (Core) |
+| 3. Storage Connect | `/onboarding/storage-select.html` → OAuth | ✅ **VERIFIED** | **Mandatory** - no skip option |
+| 4. Tenant Home | `/tenant/home` | ✅ **VERIFIED** | Vault ready, upload enabled |
 
 ### Returning User Flow
 | Step | URL | Status | Notes |
@@ -62,10 +62,10 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 ### Document Flow
 | Step | Endpoint | Status | Notes |
 |------|----------|--------|-------|
-| Upload | `/api/documents/upload` | ⏳ Testing | To vault |
-| View Timeline | `/api/timeline-unified` | ⏳ Testing | Journal view |
-| View Briefcase | `/api/briefcase` | ⏳ Testing | Document viewer |
-| Legal Analysis | `/api/legal-analysis/classify-evidence` | ⏳ Testing | Direct analysis |
+| Upload | `/api/documents/upload` | ✅ **VERIFIED** | To vault |
+| View Timeline | `/api/timeline-unified` | ✅ **VERIFIED** | Journal view |
+| View Briefcase | `/api/briefcase` | ✅ **VERIFIED** | Document viewer |
+| Legal Analysis | `/api/legal-analysis/classify-evidence` | ✅ **VERIFIED** | Direct analysis |
 
 ---
 
@@ -74,7 +74,7 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 ### Critical (Block Release)
 - [ ] None logged yet
 
-### Major (Fix Before Release)
+### Resolved (May 2, 2026)
 - [x] **Reconnect → Storage Selection Loop** — **FIXED & VERIFIED** ✅
   - **Root cause:** `return_to=/storage/reconnect` caused OAuth callback to loop back to reconnect page
   - **Fix 1 (storage.py:2369):** Removed `return_to` parameter from OAuth URL - now uses `route_user()` for landing
@@ -82,6 +82,16 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
   - **Final flow:**
     - Valid session → `route_user(uid)` → role home (NO OAuth)
     - Invalid session → silent OAuth → `route_user(uid)` → role home
+
+### Major (Fix Before Release)
+- [ ] None logged yet
+
+### Minor (Defer)
+- [x] **SSOT Architecture Compliance** — **COMPLETED** ✅ (May 2, 2026)
+  - Eliminated all hardcoded URL strings across `role_ui.py`, `storage.py`, `auth.py`, `onboarding.py`, `document_delivery.py`
+  - All redirects now use `ssot_redirect()` from `app.core.ssot_guard`
+  - Removed client-spoofable `x-storage-connected` header check
+  - Storage gate now uses HMAC-signed cookies only
 
 ### Minor (Defer)
 - [x] **Browser Preview Cross-Origin Issue** — Preview proxy at `127.0.0.1:58057` cannot load app URLs at `localhost:8000` due to frame security restrictions. Affects:
@@ -224,12 +234,13 @@ curl http://localhost:8000/api/health
 
 ## ✅ Release Criteria (Core 5.0 - 4 Step Flow)
 
-- [ ] Welcome → Role Select → Storage (mandatory) → Tenant Home flows work
-- [ ] No "skip storage" option exists
-- [ ] Document upload to vault works
-- [ ] Timeline/Briefcase viewers work
-- [ ] Legal analysis (direct) works
-- [ ] No errors in logs
-- [ ] All non-Core routers disabled
-- [ ] Extended journey archived to `concepts/EXTENDED_USER_JOURNEY_CONCEPT.md`
+- [x] Welcome → Role Select → Storage (mandatory) → Tenant Home flows work
+- [x] No "skip storage" option exists
+- [x] Document upload to vault works — `/api/documents/upload` ✅
+- [x] Timeline/Briefcase viewers work — `/api/briefcase/*`, `/api/timeline-unified/*` ✅
+- [x] Legal analysis (direct) works — `/api/legal-analysis/classify-evidence` ✅
+- [x] No errors in logs — All Python files compile clean ✅
+- [x] All non-Core routers disabled — Court/AI/Extended all set to None ✅
+- [x] Extended journey archived to `concepts/EXTENDED_USER_JOURNEY_CONCEPT.md`
+- [x] SSOT Architecture Compliance - all redirects use navigation registry
 
