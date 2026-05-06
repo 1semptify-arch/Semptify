@@ -1,4 +1,5 @@
 # Semptify 5.0 Build Guide (SSOT)
+# Semptify 5.0 Build Guide (SSOT)
 
 **Purpose:** Single source of truth for build status, testing results, and known issues.  
 **Last Updated:** May 6, 2026  
@@ -73,6 +74,16 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
 
 ### Critical (Block Release)
 - [ ] None logged yet
+
+### Resolved (May 6, 2026)
+- [x] **OAuth Callback → Role Selection Redirect Loop** — **FIXED** ✅
+  - **Root cause:** JavaScript in OAuth callback HTML was overwriting the HMAC-signed `semptify_uid` cookie with the raw unsigned `user_id`. The storage middleware then rejected the cookie because `verify_user_id()` couldn't find the HMAC signature, redirecting to `/onboarding/start` → role selection.
+  - **Fix (storage.py:2021-2023):** Removed `document.cookie = 'semptify_uid=...'` line from OAuth callback JavaScript. The server already sets the cookie with HMAC signature via `set_auth_cookie()`.
+  - **Supporting fixes:**
+    - `workflow_engine.py:284`: `route_user()` now strips HMAC signature before checking documents
+    - `storage.py:2035-2044`: OAuth callback now sets `semdrive_provider` cookie for storage gate verification
+    - `static/onboarding/index.html`: Meta refresh updated to use `/onboarding/start` instead of hardcoded `./select-role.html`
+    - `static/onboarding/storage-select.html`: Back link now fetches navigation from SSOT API
 
 ### Resolved (May 2, 2026)
 - [x] **Reconnect → Storage Selection Loop** — **FIXED & VERIFIED** ✅
