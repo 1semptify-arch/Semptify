@@ -2012,7 +2012,11 @@ async def oauth_callback(
         </head>
         <body>
             <script>
-                window.location.href = '{error_url}';
+                if (window.top !== window.self) {{
+                    window.top.location.href = '{error_url}';
+                }} else {{
+                    window.location.href = '{error_url}';
+                }}
             </script>
             <p>Redirecting...</p>
         </body>
@@ -2046,7 +2050,11 @@ async def oauth_callback(
         </head>
         <body>
             <script>
-                window.location.href = '{error_url}';
+                if (window.top !== window.self) {{
+                    window.top.location.href = '{error_url}';
+                }} else {{
+                    window.location.href = '{error_url}';
+                }}
             </script>
             <p>Redirecting...</p>
         </body>
