@@ -1997,7 +1997,24 @@ async def oauth_callback(
             "provider": provider,
             "message": message,
         })
-        return ssot_redirect(error_url, context="oauth_callback HTTP error")
+
+        # Use JavaScript redirect to avoid cross-origin blocking
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Redirecting...</title>
+        </head>
+        <body>
+            <script>
+                window.location.href = '{error_url}';
+            </script>
+            <p>Redirecting...</p>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
     except Exception as exc:
         error_msg = str(exc)
         logger.exception(
@@ -2014,7 +2031,24 @@ async def oauth_callback(
             "provider": provider,
             "message": f"Error: {error_msg}",
         })
-        return ssot_redirect(error_url, context="oauth callback exception")
+
+        # Use JavaScript redirect to avoid cross-origin blocking
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Redirecting...</title>
+        </head>
+        <body>
+            <script>
+                window.location.href = '{error_url}';
+            </script>
+            <p>Redirecting...</p>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
 # ============================================================================
 # Token Exchange
 # ============================================================================
