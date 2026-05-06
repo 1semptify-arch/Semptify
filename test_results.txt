@@ -1,0 +1,1693 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.13, pytest-9.0.3, pluggy-1.6.0 -- C:\Users\bradc\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Semptify\Semptify-FastAPI
+configfile: pytest.ini (WARNING: ignoring pytest config in pyproject.toml!)
+plugins: anyio-4.13.0, asyncio-1.3.0, cov-7.1.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 12 items
+
+tests/test_core_4step_flow.py::TestStep1Welcome::test_welcome_page_loads ERROR [  8%]
+tests/test_core_4step_flow.py::TestStep1Welcome::test_welcome_no_bypass_to_home ERROR [ 16%]
+tests/test_core_4step_flow.py::TestStep2RoleSelect::test_role_select_page_loads ERROR [ 25%]
+tests/test_core_4step_flow.py::TestStep2RoleSelect::test_tenant_role_available ERROR [ 33%]
+tests/test_core_4step_flow.py::TestStep2RoleSelect::test_role_selection_flow ERROR [ 41%]
+tests/test_core_4step_flow.py::TestStep3StorageMandatory::test_storage_select_page_loads ERROR [ 50%]
+tests/test_core_4step_flow.py::TestStep3StorageMandatory::test_no_skip_button_exists ERROR [ 58%]
+tests/test_core_4step_flow.py::TestStep3StorageMandatory::test_storage_connect_buttons_present ERROR [ 66%]
+tests/test_core_4step_flow.py::TestStep3StorageMandatory::test_cannot_access_home_without_storage ERROR [ 75%]
+tests/test_core_4step_flow.py::TestStep4TenantHome::test_tenant_home_requires_auth ERROR [ 83%]
+tests/test_core_4step_flow.py::TestCompleteFlowIntegration::test_flow_redirection_chain ERROR [ 91%]
+<unknown>:809: SyntaxWarning: invalid escape sequence '\`'
+C:\Semptify\Semptify-FastAPI\app\core\api_documentation.py:809: SyntaxWarning: invalid escape sequence '\`'
+  'Authorization': \`Bearer \${token}\`,
+<unknown>:809: SyntaxWarning: invalid escape sequence '\`'
+C:\Semptify\Semptify-FastAPI\app\core\api_documentation.py:809: SyntaxWarning: invalid escape sequence '\`'
+  'Authorization': \`Bearer \${token}\`,
+<unknown>:809: SyntaxWarning: invalid escape sequence '\`'
+C:\Semptify\Semptify-FastAPI\app\core\api_documentation.py:809: SyntaxWarning: invalid escape sequence '\`'
+  'Authorization': \`Bearer \${token}\`,
+<unknown>:809: SyntaxWarning: invalid escape sequence '\`'
+C:\Semptify\Semptify-FastAPI\app\core\api_documentation.py:809: SyntaxWarning: invalid escape sequence '\`'
+  'Authorization': \`Bearer \${token}\`,
+<unknown>:809: SyntaxWarning: invalid escape sequence '\`'
+<unknown>:809: SyntaxWarning: invalid escape sequence '\`'
+tests/test_core_4step_flow.py::TestCompleteFlowIntegration::test_api_health ERROR [100%]
+ERROR: Coverage failure: total of 13 is less than fail-under=40
+
+
+=================================== ERRORS ====================================
+_________ ERROR at setup of TestStep1Welcome.test_welcome_page_loads __________
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:743: in pytest_fixture_setup
+    hook_result = yield
+                  ^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:313: in _asyncgen_fixture_wrapper
+    result = runner.run(setup(), context=context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:309: in setup
+    res = await gen_obj.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\conftest.py:45: in setup_test_database
+    async with engine.begin() as conn:
+               ^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\contextlib.py:214: in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:1068: in begin
+    async with conn:
+               ^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\base.py:121: in __aenter__
+    return await self.start(is_ctxmanager=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:275: in start
+    await greenlet_spawn(self.sync_engine.connect)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3293: in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:143: in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3317: in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:448: in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:1272: in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:712: in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:177: in _do_get
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:175: in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:389: in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:674: in __init__
+    self.__connect()
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:900: in __connect
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:896: in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\create.py:667: in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\default.py:630: in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py:955: in connect
+    await_only(creator_fn(*arg, **kw)),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:132: in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connection.py:2443: in connect
+    return await connect_utils._connect(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1249: in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1218: in _connect
+    conn = await _connect_addr(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1050: in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1099: in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:977: in _create_ssl_connection
+    do_ssl_upgrade = await pr.on_data
+                     ^^^^^^^^^^^^^^^^
+E   ConnectionError: PostgreSQL server at "localhost:5432" rejected SSL upgrade
+______ ERROR at setup of TestStep1Welcome.test_welcome_no_bypass_to_home ______
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:743: in pytest_fixture_setup
+    hook_result = yield
+                  ^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:313: in _asyncgen_fixture_wrapper
+    result = runner.run(setup(), context=context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:309: in setup
+    res = await gen_obj.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\conftest.py:45: in setup_test_database
+    async with engine.begin() as conn:
+               ^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\contextlib.py:214: in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:1068: in begin
+    async with conn:
+               ^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\base.py:121: in __aenter__
+    return await self.start(is_ctxmanager=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:275: in start
+    await greenlet_spawn(self.sync_engine.connect)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3293: in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:143: in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3317: in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:448: in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:1272: in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:712: in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:177: in _do_get
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:175: in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:389: in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:674: in __init__
+    self.__connect()
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:900: in __connect
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:896: in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\create.py:667: in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\default.py:630: in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py:955: in connect
+    await_only(creator_fn(*arg, **kw)),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:132: in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connection.py:2443: in connect
+    return await connect_utils._connect(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1249: in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1218: in _connect
+    conn = await _connect_addr(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1050: in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1099: in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:977: in _create_ssl_connection
+    do_ssl_upgrade = await pr.on_data
+                     ^^^^^^^^^^^^^^^^
+E   ConnectionError: PostgreSQL server at "localhost:5432" rejected SSL upgrade
+______ ERROR at setup of TestStep2RoleSelect.test_role_select_page_loads ______
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:743: in pytest_fixture_setup
+    hook_result = yield
+                  ^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:313: in _asyncgen_fixture_wrapper
+    result = runner.run(setup(), context=context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:309: in setup
+    res = await gen_obj.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\conftest.py:45: in setup_test_database
+    async with engine.begin() as conn:
+               ^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\contextlib.py:214: in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:1068: in begin
+    async with conn:
+               ^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\base.py:121: in __aenter__
+    return await self.start(is_ctxmanager=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:275: in start
+    await greenlet_spawn(self.sync_engine.connect)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3293: in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:143: in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3317: in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:448: in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:1272: in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:712: in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:177: in _do_get
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:175: in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:389: in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:674: in __init__
+    self.__connect()
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:900: in __connect
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:896: in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\create.py:667: in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\default.py:630: in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py:955: in connect
+    await_only(creator_fn(*arg, **kw)),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:132: in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connection.py:2443: in connect
+    return await connect_utils._connect(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1249: in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1218: in _connect
+    conn = await _connect_addr(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1050: in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1099: in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:977: in _create_ssl_connection
+    do_ssl_upgrade = await pr.on_data
+                     ^^^^^^^^^^^^^^^^
+E   ConnectionError: PostgreSQL server at "localhost:5432" rejected SSL upgrade
+______ ERROR at setup of TestStep2RoleSelect.test_tenant_role_available _______
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:743: in pytest_fixture_setup
+    hook_result = yield
+                  ^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:313: in _asyncgen_fixture_wrapper
+    result = runner.run(setup(), context=context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:309: in setup
+    res = await gen_obj.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\conftest.py:45: in setup_test_database
+    async with engine.begin() as conn:
+               ^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\contextlib.py:214: in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:1068: in begin
+    async with conn:
+               ^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\base.py:121: in __aenter__
+    return await self.start(is_ctxmanager=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:275: in start
+    await greenlet_spawn(self.sync_engine.connect)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3293: in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:143: in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3317: in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:448: in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:1272: in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:712: in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:177: in _do_get
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:175: in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:389: in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:674: in __init__
+    self.__connect()
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:900: in __connect
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:896: in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\create.py:667: in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\default.py:630: in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py:955: in connect
+    await_only(creator_fn(*arg, **kw)),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:132: in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connection.py:2443: in connect
+    return await connect_utils._connect(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1249: in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1218: in _connect
+    conn = await _connect_addr(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1050: in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1099: in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:977: in _create_ssl_connection
+    do_ssl_upgrade = await pr.on_data
+                     ^^^^^^^^^^^^^^^^
+E   ConnectionError: PostgreSQL server at "localhost:5432" rejected SSL upgrade
+_______ ERROR at setup of TestStep2RoleSelect.test_role_selection_flow ________
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:743: in pytest_fixture_setup
+    hook_result = yield
+                  ^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:313: in _asyncgen_fixture_wrapper
+    result = runner.run(setup(), context=context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:309: in setup
+    res = await gen_obj.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\conftest.py:45: in setup_test_database
+    async with engine.begin() as conn:
+               ^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\contextlib.py:214: in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:1068: in begin
+    async with conn:
+               ^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\base.py:121: in __aenter__
+    return await self.start(is_ctxmanager=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:275: in start
+    await greenlet_spawn(self.sync_engine.connect)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3293: in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:143: in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3317: in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:448: in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:1272: in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:712: in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:177: in _do_get
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:175: in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:389: in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:674: in __init__
+    self.__connect()
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:900: in __connect
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:896: in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\create.py:667: in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\default.py:630: in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py:955: in connect
+    await_only(creator_fn(*arg, **kw)),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:132: in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connection.py:2443: in connect
+    return await connect_utils._connect(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1249: in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1218: in _connect
+    conn = await _connect_addr(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1050: in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1099: in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:977: in _create_ssl_connection
+    do_ssl_upgrade = await pr.on_data
+                     ^^^^^^^^^^^^^^^^
+E   ConnectionError: PostgreSQL server at "localhost:5432" rejected SSL upgrade
+_ ERROR at setup of TestStep3StorageMandatory.test_storage_select_page_loads __
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:743: in pytest_fixture_setup
+    hook_result = yield
+                  ^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:313: in _asyncgen_fixture_wrapper
+    result = runner.run(setup(), context=context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:309: in setup
+    res = await gen_obj.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\conftest.py:45: in setup_test_database
+    async with engine.begin() as conn:
+               ^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\contextlib.py:214: in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:1068: in begin
+    async with conn:
+               ^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\base.py:121: in __aenter__
+    return await self.start(is_ctxmanager=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:275: in start
+    await greenlet_spawn(self.sync_engine.connect)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3293: in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:143: in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3317: in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:448: in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:1272: in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:712: in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:177: in _do_get
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:175: in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:389: in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:674: in __init__
+    self.__connect()
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:900: in __connect
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:896: in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\create.py:667: in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\default.py:630: in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py:955: in connect
+    await_only(creator_fn(*arg, **kw)),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:132: in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connection.py:2443: in connect
+    return await connect_utils._connect(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1249: in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1218: in _connect
+    conn = await _connect_addr(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1050: in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1099: in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:977: in _create_ssl_connection
+    do_ssl_upgrade = await pr.on_data
+                     ^^^^^^^^^^^^^^^^
+E   ConnectionError: PostgreSQL server at "localhost:5432" rejected SSL upgrade
+___ ERROR at setup of TestStep3StorageMandatory.test_no_skip_button_exists ____
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:743: in pytest_fixture_setup
+    hook_result = yield
+                  ^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:313: in _asyncgen_fixture_wrapper
+    result = runner.run(setup(), context=context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:309: in setup
+    res = await gen_obj.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\conftest.py:45: in setup_test_database
+    async with engine.begin() as conn:
+               ^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\contextlib.py:214: in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:1068: in begin
+    async with conn:
+               ^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\base.py:121: in __aenter__
+    return await self.start(is_ctxmanager=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:275: in start
+    await greenlet_spawn(self.sync_engine.connect)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3293: in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:143: in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3317: in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:448: in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:1272: in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:712: in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:177: in _do_get
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:175: in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:389: in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:674: in __init__
+    self.__connect()
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:900: in __connect
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:896: in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\create.py:667: in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\default.py:630: in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py:955: in connect
+    await_only(creator_fn(*arg, **kw)),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:132: in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connection.py:2443: in connect
+    return await connect_utils._connect(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1249: in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1218: in _connect
+    conn = await _connect_addr(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1050: in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1099: in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:977: in _create_ssl_connection
+    do_ssl_upgrade = await pr.on_data
+                     ^^^^^^^^^^^^^^^^
+E   ConnectionError: PostgreSQL server at "localhost:5432" rejected SSL upgrade
+_ ERROR at setup of TestStep3StorageMandatory.test_storage_connect_buttons_present _
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:743: in pytest_fixture_setup
+    hook_result = yield
+                  ^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:313: in _asyncgen_fixture_wrapper
+    result = runner.run(setup(), context=context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:309: in setup
+    res = await gen_obj.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\conftest.py:45: in setup_test_database
+    async with engine.begin() as conn:
+               ^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\contextlib.py:214: in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:1068: in begin
+    async with conn:
+               ^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\base.py:121: in __aenter__
+    return await self.start(is_ctxmanager=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:275: in start
+    await greenlet_spawn(self.sync_engine.connect)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3293: in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:143: in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3317: in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:448: in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:1272: in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:712: in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:177: in _do_get
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:175: in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:389: in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:674: in __init__
+    self.__connect()
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:900: in __connect
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:896: in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\create.py:667: in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\default.py:630: in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py:955: in connect
+    await_only(creator_fn(*arg, **kw)),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:132: in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connection.py:2443: in connect
+    return await connect_utils._connect(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1249: in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1218: in _connect
+    conn = await _connect_addr(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1050: in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1099: in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:977: in _create_ssl_connection
+    do_ssl_upgrade = await pr.on_data
+                     ^^^^^^^^^^^^^^^^
+E   ConnectionError: PostgreSQL server at "localhost:5432" rejected SSL upgrade
+_ ERROR at setup of TestStep3StorageMandatory.test_cannot_access_home_without_storage _
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:743: in pytest_fixture_setup
+    hook_result = yield
+                  ^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:313: in _asyncgen_fixture_wrapper
+    result = runner.run(setup(), context=context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:309: in setup
+    res = await gen_obj.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\conftest.py:45: in setup_test_database
+    async with engine.begin() as conn:
+               ^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\contextlib.py:214: in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:1068: in begin
+    async with conn:
+               ^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\base.py:121: in __aenter__
+    return await self.start(is_ctxmanager=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:275: in start
+    await greenlet_spawn(self.sync_engine.connect)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3293: in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:143: in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3317: in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:448: in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:1272: in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:712: in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:177: in _do_get
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:175: in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:389: in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:674: in __init__
+    self.__connect()
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:900: in __connect
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:896: in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\create.py:667: in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\default.py:630: in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py:955: in connect
+    await_only(creator_fn(*arg, **kw)),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:132: in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connection.py:2443: in connect
+    return await connect_utils._connect(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1249: in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1218: in _connect
+    conn = await _connect_addr(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1050: in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1099: in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:977: in _create_ssl_connection
+    do_ssl_upgrade = await pr.on_data
+                     ^^^^^^^^^^^^^^^^
+E   ConnectionError: PostgreSQL server at "localhost:5432" rejected SSL upgrade
+____ ERROR at setup of TestStep4TenantHome.test_tenant_home_requires_auth _____
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:743: in pytest_fixture_setup
+    hook_result = yield
+                  ^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:313: in _asyncgen_fixture_wrapper
+    result = runner.run(setup(), context=context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:309: in setup
+    res = await gen_obj.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\conftest.py:45: in setup_test_database
+    async with engine.begin() as conn:
+               ^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\contextlib.py:214: in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:1068: in begin
+    async with conn:
+               ^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\base.py:121: in __aenter__
+    return await self.start(is_ctxmanager=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:275: in start
+    await greenlet_spawn(self.sync_engine.connect)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3293: in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:143: in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3317: in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:448: in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:1272: in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:712: in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:177: in _do_get
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:175: in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:389: in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:674: in __init__
+    self.__connect()
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:900: in __connect
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:896: in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\create.py:667: in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\default.py:630: in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py:955: in connect
+    await_only(creator_fn(*arg, **kw)),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:132: in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connection.py:2443: in connect
+    return await connect_utils._connect(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1249: in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1218: in _connect
+    conn = await _connect_addr(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1050: in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1099: in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:977: in _create_ssl_connection
+    do_ssl_upgrade = await pr.on_data
+                     ^^^^^^^^^^^^^^^^
+E   ConnectionError: PostgreSQL server at "localhost:5432" rejected SSL upgrade
+__ ERROR at setup of TestCompleteFlowIntegration.test_flow_redirection_chain __
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:743: in pytest_fixture_setup
+    hook_result = yield
+                  ^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:313: in _asyncgen_fixture_wrapper
+    result = runner.run(setup(), context=context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:309: in setup
+    res = await gen_obj.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\conftest.py:45: in setup_test_database
+    async with engine.begin() as conn:
+               ^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\contextlib.py:214: in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:1068: in begin
+    async with conn:
+               ^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\base.py:121: in __aenter__
+    return await self.start(is_ctxmanager=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:275: in start
+    await greenlet_spawn(self.sync_engine.connect)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3293: in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:143: in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3317: in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:448: in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:1272: in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:712: in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:177: in _do_get
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:175: in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:389: in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:674: in __init__
+    self.__connect()
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:900: in __connect
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:896: in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\create.py:667: in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\default.py:630: in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py:955: in connect
+    await_only(creator_fn(*arg, **kw)),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:132: in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connection.py:2443: in connect
+    return await connect_utils._connect(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1249: in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1218: in _connect
+    conn = await _connect_addr(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1050: in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1099: in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:977: in _create_ssl_connection
+    do_ssl_upgrade = await pr.on_data
+                     ^^^^^^^^^^^^^^^^
+E   ConnectionError: PostgreSQL server at "localhost:5432" rejected SSL upgrade
+________ ERROR at setup of TestCompleteFlowIntegration.test_api_health ________
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:743: in pytest_fixture_setup
+    hook_result = yield
+                  ^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:313: in _asyncgen_fixture_wrapper
+    result = runner.run(setup(), context=context)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py:118: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py:725: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\pytest_asyncio\plugin.py:309: in setup
+    res = await gen_obj.__anext__()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\conftest.py:45: in setup_test_database
+    async with engine.begin() as conn:
+               ^^^^^^^^^^^^^^
+C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\contextlib.py:214: in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:1068: in begin
+    async with conn:
+               ^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\base.py:121: in __aenter__
+    return await self.start(is_ctxmanager=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\ext\asyncio\engine.py:275: in start
+    await greenlet_spawn(self.sync_engine.connect)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:201: in greenlet_spawn
+    result = context.throw(*sys.exc_info())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3293: in connect
+    return self._connection_cls(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:143: in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\base.py:3317: in raw_connection
+    return self.pool.connect()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:448: in connect
+    return _ConnectionFairy._checkout(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:1272: in _checkout
+    fairy = _ConnectionRecord.checkout(pool)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:712: in checkout
+    rec = pool._do_get()
+          ^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:177: in _do_get
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\impl.py:175: in _do_get
+    return self._create_connection()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:389: in _create_connection
+    return _ConnectionRecord(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:674: in __init__
+    self.__connect()
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:900: in __connect
+    with util.safe_reraise():
+         ^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\langhelpers.py:121: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\pool\base.py:896: in __connect
+    self.dbapi_connection = connection = pool._invoke_creator(self)
+                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\create.py:667: in connect
+    return dialect.connect(*cargs_tup, **cparams)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\engine\default.py:630: in connect
+    return self.loaded_dbapi.connect(*cargs, **cparams)  # type: ignore[no-any-return]  # NOQA: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\dialects\postgresql\asyncpg.py:955: in connect
+    await_only(creator_fn(*arg, **kw)),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:132: in await_only
+    return current.parent.switch(awaitable)  # type: ignore[no-any-return,attr-defined] # noqa: E501
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\sqlalchemy\util\_concurrency_py3k.py:196: in greenlet_spawn
+    value = await result
+            ^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connection.py:2443: in connect
+    return await connect_utils._connect(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1249: in _connect
+    raise last_error or exceptions.TargetServerAttributeNotMatched(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1218: in _connect
+    conn = await _connect_addr(
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1050: in _connect_addr
+    return await __connect_addr(params, False, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:1099: in __connect_addr
+    tr, pr = await connector
+             ^^^^^^^^^^^^^^^
+C:\Users\bradc\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\LocalCache\local-packages\Python313\site-packages\asyncpg\connect_utils.py:977: in _create_ssl_connection
+    do_ssl_upgrade = await pr.on_data
+                     ^^^^^^^^^^^^^^^^
+E   ConnectionError: PostgreSQL server at "localhost:5432" rejected SSL upgrade
+=============================== tests coverage ================================
+______________ coverage: platform win32, python 3.13.13-final-0 _______________
+
+Name                                                         Stmts   Miss Branch BrPart  Cover   Missing
+--------------------------------------------------------------------------------------------------------
+app\core\__init__.py                                             0      0      0      0   100%
+app\core\action_maps.py                                         46     46      6      0     0%   9-415
+app\core\advanced_rate_limiter.py                              236    236     74      0     0%   8-545
+app\core\advanced_security.py                                  332    329     88      0     1%   11-706
+app\core\analytics_engine.py                                   163    163     38      0     0%   15-426
+app\core\api_documentation.py                                  146     94     28      0    30%   32-40, 43, 66, 77, 83-94, 101-102, 106, 110-207, 211-287, 291-332, 336-370, 374-551, 555-559, 583-589, 593-781, 833-834, 838-839, 843-844, 848-849, 853-854, 858-859
+app\core\audit.py                                              160    160     22      0     0%   24-409
+app\core\audit_logger.py                                       147    147     22      0     0%   8-434
+app\core\batch_operations.py                                   269    187     66      0    24%   58, 86-91, 94, 115-132, 136-137, 142-167, 171-187, 191-283, 287-313, 317-334, 338-341, 345-354, 358, 373-384, 389-411, 415-437, 441-486, 495-503, 509-512, 516-517, 521-522, 526-527, 531-534, 538-539
+app\core\cache.py                                              222    222     52      0     0%   24-401
+app\core\cache_manager.py                                      268    268     62      0     0%   8-480
+app\core\checkpoint_middleware.py                               46     27     18      0    30%   66-91, 95-98, 102-105, 116, 128, 140-144
+app\core\compliance.py                                          62      3     14      4    91%   82, 166, 171->176, 182
+app\core\config.py                                              80      9     12      5    83%   28-39, 48, 50, 52, 84
+app\core\cookie_auth.py                                         37     37     10      0     0%   15-111
+app\core\data_deletion.py                                      225    225     48      0     0%   8-400
+app\core\data_export_import.py                                 362    270     86      0    21%   63, 82-83, 86, 92-106, 111-126, 131-146, 150-195, 200-206, 220-277, 281-334, 338-381, 385-417, 421-444, 449-471, 475-476, 481-493, 497-508, 520-531, 545-557, 563-591, 595-598, 602-610, 614-631, 635, 653-656, 662-667, 671-672, 676-677, 681-682, 686-687, 691-692, 697-703
+app\core\database.py                                            68     40     12      2    40%   18-25, 49, 59, 86-97, 110-119, 127-129, 138-141, 157-166
+app\core\database_pool.py                                      245    245     38      0     0%   8-540
+app\core\distributed_mesh.py                                   296    296     94      0     0%   26-675
+app\core\document_hub.py                                       326    243    132      0    18%   109, 169-172, 175-181, 185-190, 194-198, 202-206, 216-340, 348-349, 353-354, 368-369, 381-382, 386-387, 391-392, 396-399, 403-404, 408-409, 413-414, 418-419, 427-442, 464-517, 521-540, 544-552, 556-567, 579-639, 651-694, 698, 706-707, 711, 724-726
+app\core\error_handling.py                                      97     66     28      0    25%   30-35, 48, 67, 86, 105, 119-133, 142-189, 200-208, 217-227, 264-271, 283-287, 307, 319-342, 351-367
+app\core\errors.py                                              80     30      4      0    60%   55-59, 66-69, 80, 91, 102, 114, 125, 137, 148, 159, 172, 177-184, 198-214, 226-240, 254-267
+app\core\event_bus.py                                          189     87     50      3    44%   99, 108, 120->122, 126, 139-142, 146->148, 153-158, 173-206, 216-243, 247-254, 258-274, 278-281, 285-286, 297-305, 309, 324, 329, 340, 350, 360, 370, 380
+app\core\features.py                                           178    178     52      0     0%   25-424
+app\core\file_validator.py                                     119    119     46      0     0%   8-434
+app\core\gdpr_compliance.py                                    254    254     54      0     0%   9-495
+app\core\id_gen.py                                              60     28     16      0    42%   94-104, 114, 129-138, 151-164, 170
+app\core\invite_codes.py                                        67     67     28      0     0%   12-230
+app\core\job_processor.py                                      279    203     66      0    22%   60, 81-86, 90-96, 100-111, 115, 119, 123-124, 130-150, 154-155, 161-175, 179-189, 193-200, 204-215, 219-303, 307-348, 353-361, 365-374, 379-392, 397-407, 411-423, 427-432, 443-449, 458-465, 470-545, 551-552, 566-567, 579-580, 584-586, 590-591
+app\core\logging_config.py                                      75     32     26      3    46%   22-23, 26-59, 95, 124, 132-136, 154, 170-171, 174-177, 180-184, 188
+app\core\logging_middleware.py                                  70     54     18      0    18%   47-49, 53-148, 153-166, 175-176, 179-201
+app\core\manager_dashboard.py                                   71     71     26      0     0%   14-290
+app\core\mesh_config.py                                         26     26      6      0     0%   7-78
+app\core\mesh_deferral.py                                       66     66     12      0     0%   7-135
+app\core\mesh_integration.py                                   112    112     24      0     0%   12-388
+app\core\mesh_network.py                                       263    263     78      0     0%   16-761
+app\core\module_contracts.py                                    42     42      8      0     0%   9-102
+app\core\module_hub.py                                         425    238     76      3    38%   161, 179-186, 213, 252, 383->385, 389->391, 392, 431-482, 486, 490, 520-564, 577-615, 630-654, 683-715, 719-740, 744-753, 757-768, 772-781, 785-787, 794-800, 804-810, 814-815, 821-826, 830-835, 839-854, 858-862, 882-911, 915-930, 934-948, 956-958, 962, 966-967, 971-972, 980, 984, 988, 1003-1023, 1037-1048, 1057-1065, 1069, 1091, 1102, 1114, 1128
+app\core\module_links.py                                        58     58     10      0     0%   9-450
+app\core\oauth_token_manager.py                                167    112     40      0    27%   29-32, 36-39, 56-57, 61, 65-67, 71-78, 82-118, 122-124, 128, 132-133, 137-141, 153-161, 165-176, 183, 189-217, 224-252, 259-287, 302-303, 307, 311-312
+app\core\offline_manager.py                                     52     52      8      0     0%   8-275
+app\core\overlay_types.py                                       62     15     14      0    62%   144-158
+app\core\page_contracts.py                                     213     52     40      2    65%   36-40, 88-125, 129, 133, 137, 3105, 3114-3119, 3140, 3142, 3149, 3154-3156, 3174-3190, 3195
+app\core\page_manifest.py                                       64     64     14      0     0%   24-3828
+app\core\performance_monitor.py                                238    238     70      0     0%   8-532
+app\core\positronic_mesh.py                                    283    283     76      0     0%   14-899
+app\core\postgres_fts.py                                        97     97     24      0     0%   16-380
+app\core\preview_generator.py                                  292    218     48      0    22%   54, 69, 83-109, 119-124, 129-136, 141-192, 197-250, 254-280, 284-301, 305-341, 345-375, 379-431, 435-469, 473-491, 495-515, 519-523, 527-533, 537-545, 549, 569-572, 577-578, 582-583, 587-588, 592-593, 597-598
+app\core\process_registry.py                                    39      2      0      0    95%   369, 374
+app\core\production_init.py                                     88     88     28      0     0%   6-145
+app\core\rate_limit.py                                          40     16      4      0    55%   24-36, 86-97, 119, 124, 129, 134, 139
+app\core\role_validation.py                                    128    128     50      0     0%   14-510
+app\core\route_guards.py                                       156    156     54      0     0%   9-344
+app\core\search_engine.py                                      291    210     76      0    22%   49, 70, 91, 111-124, 135-141, 146-148, 152-165, 171-176, 180-205, 209-242, 246-310, 314-341, 346-379, 383-407, 411, 426-430, 441-467, 471-477, 484-525, 534-543, 547, 554-575, 584-587, 594-595, 600-601, 605-606, 610-611, 615-616
+app\core\security.py                                           604    490    238      0    14%   76-77, 82-85, 90-105, 122-126, 137-150, 164-167, 171-172, 176-179, 183-187, 191, 198-214, 221-231, 240-242, 247-250, 255-256, 265, 270-274, 289-303, 307-311, 315-318, 326-341, 345-354, 358-368, 378-393, 402-415, 429-468, 488-530, 540-549, 554-565, 570-579, 594-612, 617-622, 627-632, 637, 651-652, 661, 666, 681-684, 688-689, 693-696, 700-704, 717-764, 773-775, 786, 798-811, 820-822, 840-854, 879-881, 889-907, 915-917, 927-942, 952-961, 969-987, 1001-1019, 1045-1105, 1125-1149, 1166-1180, 1199-1210, 1222-1233, 1243-1282, 1294-1297, 1318-1321, 1334-1344, 1359, 1367-1378, 1398-1422, 1430-1433
+app\core\security_config.py                                     65      7     16      8    81%   98->122, 102, 105, 108, 111, 114, 117, 120
+app\core\security_headers.py                                    44     34     16      0    17%   35-41, 48, 61-94, 104-112, 115-133
+app\core\security_middleware.py                                 67     67     20      0     0%   6-146
+app\core\sessions.py                                           118    118     20      0     0%   8-221
+app\core\shutdown.py                                           110    110     28      0     0%   8-225
+app\core\storage_middleware.py                                 106     92     54      0     9%   104-116, 129-171, 194-195, 198-369
+app\core\telemetry_hooks.py                                    114    114     22      0     0%   11-416
+app\core\tenant_briefcase.py                                   274    274     66      0     0%   24-695
+app\core\testing_framework.py                                  367    249     58      0    28%   58-59, 62, 78, 81, 105-106, 109, 130-133, 136, 148-156, 171-181, 191-195, 200-209, 214-287, 291-339, 343-360, 364-375, 379, 383, 387, 407-411, 434-449, 453-474, 478-513, 517-536, 540-551, 555-566, 570-581, 585-596, 600-610, 614-623, 627, 631-641, 661-667, 673-676, 680-846, 858-859, 864-865, 869-870, 874-875, 879-880, 884-885, 889-890, 894-895, 899-900
+app\core\timeout.py                                             42     26     12      0    30%   44-45, 50-59, 62-86, 106-107, 110-134
+app\core\trusted_config.py                                      68     68     12      0     0%   6-167
+app\core\user_context.py                                        94     25      8      0    68%   296, 301, 306-314, 349-350, 354, 358, 362, 366, 370, 374, 378, 382, 420, 434, 452, 514, 525
+app\core\user_id.py                                             76     36     10      0    47%   118-125, 142-159, 175-182, 187-188, 193-194, 212-215, 224-225, 235-240, 245
+app\core\utc.py                                                 16     11      2      0    28%   29, 43, 59-64, 83-91
+app\core\validation.py                                          88     88     28      0     0%   8-222
+app\core\vault_paths.py                                         22      0      0      0   100%
+app\core\versioning.py                                          32     14      2      0    53%   34-35, 41, 46, 51, 56, 61, 70, 100, 118, 121-124
+app\core\websocket_manager.py                                  244    178     84      0    20%   40, 59, 72-93, 97-137, 141-166, 170-181, 185-200, 204-220, 224-234, 238-248, 252-259, 263, 271-283, 287-298, 302-315, 319-329, 333-337, 341-363, 367-387, 391-410, 414, 425-433, 437-449, 458-461, 466-467, 471-472, 476-477, 481-482, 486-487
+app\core\workflow_engine.py                                    105     60     24      0    35%   114-116, 121-152, 175-221, 248-250, 270-300, 314-333
+app\main.py                                                   1468    987    444     69    29%   11->17, 19-30, 32-38, 69, 81-83, 311-635, 642, 896, 1276, 1678-1700, 1712->1724, 1719-1721, 1764-1768, 1786->1790, 1790->1794, 1794->1798, 1798->1802, 1802->1806, 1807, 1811, 1817-1820, 1826-1831, 1854-1857, 1871->1875, 1875->1879, 1879->1883, 1883->1896, 1913, 1915, 1917, 1919, 1921, 1923, 1925, 1927, 1929, 1931, 1933, 1934->1936, 1937, 1939, 1940->1942, 1942->1944, 1945, 1946->1948, 1949, 1951, 1952->1954, 1955, 1956->1958, 1959, 1961, 1963, 1965, 1967, 1968->1970, 1970->1973, 1974, 1976, 1981->1985, 1985->1989, 1989->1993, 1993->1998, 1999-2000, 2004-2005, 2009-2010, 2014-2015, 2019-2024, 2029->2031, 2032, 2034, 2039-2040, 2044-2045, 2049-2050, 2054-2055, 2059->2064, 2066-2068, 2077-2078, 2085-2086, 2096-2097, 2104-2105, 2112-2113, 2118-2119, 2128-2129, 2136-2137, 2140->2143, 2153-2154, 2165->2170, 2171->2194, 2181, 2186, 2197-2216, 2221-2240, 2245-2264, 2269-2288, 2293-2325, 2330, 2335-2360, 2373-2395, 2400-2422, 2427-2449, 2455-2489, 2494-2507, 2512, 2517-2530, 2535-2548, 2553-2566, 2571-2584, 2589-2602, 2610-2619, 2632-2695, 2705-2717, 2730-2755, 2767, 2776-2780, 2788-2812, 2821, 2830, 2841-2853, 2867-2879, 2891-2895, 2909-2925, 2936-2949, 2960-2990, 2994-2999, 3003-3043, 3049-3066, 3078-3121, 3129-3164, 3176-3177, 3183-3209, 3215-3228, 3234-3242, 3248-3256, 3262-3270, 3275-3295, 3305-3321, 3326-3343, 3349-3362, 3372-3388, 3393-3423, 3429-3442, 3452-3468, 3473-3503, 3509-3522, 3528-3541, 3550, 3703-3745
+app\models\__init__.py                                           0      0      0      0   100%
+app\models\communication_models.py                             158    158      0      0     0%   12-257
+app\models\document_delivery_models.py                          89     89      0      0     0%   14-164
+app\models\functionx_models.py                                  25     25      0      0     0%   1-46
+app\models\legal_filing_models.py                               20     20      0      0     0%   2-23
+app\models\models.py                                           462     32     10      0    91%   20-44, 1167-1169, 1174-1180, 1185-1187
+app\models\unified_overlay_models.py                           174      4      2      0    97%   59-61, 65
+app\modules\__init__.py                                          2      0      0      0   100%
+app\modules\case_builder.py                                    225    225     12      0     0%   19-787
+app\modules\complaint_wizard_module.py                         182    182     60      0     0%   16-633
+app\modules\document_converter.py                              535    461    176      0    10%   83-85, 100-131, 135-156, 160-191, 195-259, 263-272, 276-277, 281-333, 337-353, 358-368, 372-378, 382-410, 414-429, 433-441, 459-463, 480-500, 504-521, 525-628, 632-647, 651-652, 656-689, 693-737, 741-750, 754-764, 768-778, 784-812, 841-1118, 1122, 1173-1175, 1190-1196, 1213-1219, 1224, 1230, 1241-1250, 1270-1278, 1294-1302
+app\modules\example_payment_tracking.py                         73     73      8      0     0%   11-344
+app\modules\free_api_pack.py                                    38     11      0      0    71%   25, 33, 47, 54, 67, 74, 87, 95, 108, 115, 129
+app\modules\legal_filing_module.py                               3      3      0      0     0%   2-7
+app\modules\litigation_intelligence\__init__.py                  9      5      0      0    44%   13-18
+app\modules\litigation_intelligence\court_scraper.py           189    149     48      0    17%   22-24, 42, 58-59, 65-107, 112-151, 155-185, 190-204, 209-223, 227-247, 251-269, 273-290, 296, 300-316, 321, 326-343
+app\modules\litigation_intelligence\entity_normalizer.py       121     91     48      0    18%   32-35, 39, 69, 94, 124-154, 159-165, 169-220, 231-251, 262-282, 294-299, 310-317, 330-336, 348-369, 373, 384
+app\modules\litigation_intelligence\gui_butler.py              171    171     66      0     0%   9-570
+app\modules\litigation_intelligence\intelligence_engine.py     259    180    108      0    22%   74-77, 81, 101-163, 169-221, 226-251, 255-286, 292-314, 318, 322-330, 344-439, 454-514, 524, 531, 538, 545, 552, 559, 566, 571, 576-611
+app\modules\litigation_intelligence\reporting_layer.py         202    202     46      0     0%   9-490
+app\modules\litigation_intelligence\scheduler.py               225    225     70      0     0%   9-451
+app\modules\litigation_intelligence\storage_layer.py           235    235     40      0     0%   9-536
+app\modules\research_module.py                                 329    329    106      0     0%   19-1245
+app\modules\tenant_defense.py                                  370    370     52      0     0%   16-1247
+app\routers\__init__.py                                          6      2      0      0    67%   9-11
+app\routers\actions.py                                          72     72      2      0     0%   10-235
+app\routers\adaptive_ui.py                                      39     39      4      0     0%   9-126
+app\routers\analytics.py                                       162    162      2      0     0%   13-487
+app\routers\auth.py                                             31      5      0      0    84%   54, 68, 84, 99, 114
+app\routers\auto_mode.py                                       117    117     24      0     0%   7-299
+app\routers\batch.py                                           185    141     44      0    19%   70-111, 121-146, 156-181, 191-207, 227-258, 267-301, 318-368, 378-407, 421-464, 479-524, 535
+app\routers\brain.py                                           100    100     14      0     0%   7-320
+app\routers\briefcase.py                                       667    483    238      0    20%   29-30, 121, 136-150, 160-171, 177-194, 200-222, 227-239, 245-267, 273-284, 304-394, 399-412, 418-423, 436-460, 470-475, 487-507, 513-518, 524-533, 539-557, 569-601, 607-612, 618-625, 632-636, 642-644, 650-662, 671-683, 703-772, 778-798, 821-852, 858-860, 866-868, 874-886, 892-903, 923-942, 948-970, 976-984, 990-992, 998-1002, 1008-1016, 1055-1091, 1101-1113, 1124-1126, 1132-1144, 1150-1154, 1163-1170, 1176-1193, 1207-1223, 1259-1290, 1301-1315, 1321-1332, 1341-1361, 1367-1376, 1385-1413, 1427-1472, 1480-1496, 1502-1519
+app\routers\calendar.py                                        241    159     40      0    29%   90-93, 98, 135-182, 194-219, 233-263, 276-289, 299-325, 334-348, 379-399, 431-507, 528-564, 596-633
+app\routers\campaign.py                                        121    121     18      0     0%   5-293
+app\routers\case_builder.py                                    696    696    230      0     0%   12-1936
+app\routers\cloud_sync.py                                      338    338     44      0     0%   10-895
+app\routers\communication.py                                   130    130     22      0     0%   11-505
+app\routers\complaints.py                                      193    193     40      0     0%   8-571
+app\routers\components.py                                      207    119      8      0    41%   123-236, 246-262, 272-289, 303-319, 329-345, 355-371, 385-401, 411-427, 443-460, 472-490, 502-520, 531-548, 561-579, 588-605, 619-661
+app\routers\contacts.py                                        272    120     42      0    48%   179, 211-231, 253-283, 297-325, 335-346, 357-377, 387-401, 411-425, 440-456, 484-521, 553-601, 622-643, 657-674, 691-714, 737
+app\routers\context_loop.py                                     62     62      4      0     0%   8-296
+app\routers\copilot.py                                         465    374    186      0    14%   141-170, 178-212, 220-242, 250-279, 287-322, 330-361, 376-409, 435-467, 487-566, 595, 617-751, 777-834, 856-980, 1035-1119, 1141-1146, 1199-1262
+app\routers\core_system.py                                     145     90     16      0    34%   54, 58, 67-79, 83-92, 96-108, 113-121, 125, 163-180, 189-200, 205-220, 226-237, 242-258, 263-275, 281-297, 303-319, 327-343, 348-363
+app\routers\court_forms.py                                     223    223     52      0     0%   14-600
+app\routers\court_packet.py                                    206    206     70      0     0%   7-597
+app\routers\crawler.py                                         124    124     14      0     0%   6-446
+app\routers\dashboard.py                                        88     88     22      0     0%   13-303
+app\routers\development.py                                     205    152     48      0    21%   86-128, 132-140, 144-147, 167-195, 206-231, 241-265, 272-295, 309-351, 359-389, 393-419, 423-452
+app\routers\document_converter.py                              157    100     32      0    30%   87-93, 98-107, 112-119, 140-167, 182-205, 213-246, 263-294, 304-330, 338-351, 363-375, 386-394
+app\routers\document_delivery.py                                89     89     12      0     0%   16-324
+app\routers\documentation.py                                   143    108     18      0    22%   36-49, 58-71, 80-91, 100-111, 120-131, 144-190, 201-221, 237-266, 277-296, 309-407, 420-456, 465-581, 594-619
+app\routers\documents.py                                       664    434    148      0    28%   67-69, 81-83, 95-97, 109-111, 123-125, 157, 577-1167, 1277-1345, 1375-1413, 1459-1495, 1537-1559, 1611-1659, 1685-1691, 1719-1763, 1819-1849, 1879-1937, 1955-1995, 2013-2057, 2075-2115, 2147-2355, 2375-2383, 2395-2403, 2421-2453, 2473-2497, 2509-2521, 2641-2693, 2761-2923, 2961-3095, 3163-3201, 3237-3271, 3297-3303, 3323-3329
+app\routers\emotion.py                                          60     60     10      0     0%   7-280
+app\routers\enterprise_dashboard.py                            139    139     12      0     0%   6-600
+app\routers\eviction\__init__.py                                 6      6      0      0     0%   13-19
+app\routers\eviction\case.py                                   100    100     12      0     0%   13-374
+app\routers\eviction\flows.py                                  129    129      4      0     0%   6-882
+app\routers\eviction\forms.py                                  261    261     70      0     0%   6-887
+app\routers\eviction\learning.py                               108    108      6      0     0%   10-429
+app\routers\eviction\procedures.py                             160    160     10      0     0%   14-543
+app\routers\eviction_defense.py                                299    299     78      0     0%   9-1322
+app\routers\export_import.py                                   202    149     36      0    22%   80-121, 131-163, 173-189, 199-247, 265-291, 301-329, 357-399, 410-450, 461-489, 502-531, 538, 617-628
+app\routers\extraction.py                                      116    116     52      0     0%   10-366
+app\routers\form_data.py                                       172    172     14      0     0%   7-425
+app\routers\fraud_exposure.py                                  110    110     22      0     0%   8-244
+app\routers\free_api.py                                         36     11      0      0    69%   20, 26, 34, 40, 48, 54, 62, 68, 76, 82, 90
+app\routers\functionx.py                                        63     63      8      0     0%   1-133
+app\routers\funding_search.py                                  179    179     52      0     0%   5-902
+app\routers\guided_intake.py                                    97     97     26      0     0%   6-230
+app\routers\health.py                                          113     84     26      0    21%   39, 48, 54, 60, 70-155, 173-227, 235-242, 248-608, 616
+app\routers\housing_accountability.py                          273    178     68      0    28%   80-106, 110-139, 143-169, 173-187, 191-224, 238-245, 249-253, 260-280, 284-305, 309-330, 334-354, 358-368, 376, 380-384, 388, 392-396, 400-401, 409, 413-417, 427-447, 453-483, 489-512, 518-539, 545-567, 573-598, 603-620, 624, 633, 637, 641, 650, 659, 668, 672, 676, 680, 684, 688, 692, 700
+app\routers\hud_funding.py                                     112    112     14      0     0%   9-437
+app\routers\intake.py                                          512    323    116      0    30%   39-40, 45, 53-55, 69, 255-335, 389-544, 571-605, 634-740, 759-799, 809-815, 832-842, 850-856, 866-875, 898-907, 925-934, 952-961, 979-988, 1008-1032, 1046-1067, 1078-1102, 1130-1162, 1184-1221, 1234, 1240, 1246, 1252, 1261-1323
+app\routers\invite_codes.py                                    121    121     24      0     0%   16-296
+app\routers\law_library.py                                     170     95     40      0    36%   1503-1514, 1527-1530, 1542-1547, 1560-1563, 1576-1584, 1596-1603, 1609, 1681-2161, 2176-2224
+app\routers\legal_analysis.py                                  285    218    106      0    17%   30-32, 37-39, 86-89, 106-123, 152-162, 176-186, 203-206, 216-235, 250-266, 291-294, 305-338, 343-362, 384-387, 397-423, 435-472, 494-523, 546-580, 603-654, 662-683, 688-703, 708-724, 729-752, 762, 772-781, 787, 797-805, 811-812
+app\routers\legal_filing.py                                     54     54      6      0     0%   2-85
+app\routers\legal_trails.py                                    252    252     30      0     0%   6-590
+app\routers\litigation_intelligence.py                         227    219     24      0     3%   19-492
+app\routers\location.py                                        100    100     10      0     0%   8-321
+app\routers\mesh.py                                            137    137     42      0     0%   12-303
+app\routers\mesh_network.py                                     91     91      0      0     0%   12-363
+app\routers\module_hub.py                                      152    152     16      0     0%   17-419
+app\routers\onboarding.py                                      127     86     36      0    25%   50-65, 185, 259-296, 326, 348, 378, 403, 630, 663-667, 672, 679, 684, 689, 697-715, 720-723, 873-928, 940-956
+app\routers\overlays.py                                        365    365     70      0     0%   20-929
+app\routers\page_index.py                                      151    120     50      0    15%   37-52, 57-64, 76-128, 141-181, 194-223, 234-239, 252-292
+app\routers\pdf_tools.py                                       235    195     66      0    13%   21, 26-67, 73-91, 103-120, 130-148, 157-171, 180-195, 208-238, 251-279, 290-294, 300-326, 335-358, 367-398, 409-433, 447-470
+app\routers\plan_maker.py                                      125    125     20      0     0%   20-294
+app\routers\plugins.py                                         123     79     24      0    30%   85-128, 138-165, 175-188, 198-211, 223-253, 268, 288-297
+app\routers\positronic_mesh.py                                 119    119     14      0     0%   9-332
+app\routers\preview.py                                         187    143     44      0    19%   67-128, 137-181, 193-229, 240-287, 297-323, 332-338, 349-420, 431-449, 456-467
+app\routers\progress.py                                         98     98     18      0     0%   9-270
+app\routers\public_exposure.py                                 108    108     10      0     0%   8-265
+app\routers\recognition.py                                     322    322     40      0     0%   9-939
+app\routers\registry.py                                        275    275     70      0     0%   13-659
+app\routers\research.py                                        169    169     16      0     0%   15-380
+app\routers\role_ui.py                                         106     82     44      0    16%   41-50, 58-86, 119-138, 148-155, 166-176, 197-212, 230-294, 309-372
+app\routers\role_upgrade.py                                     77     77     12      0     0%   6-250
+app\routers\search.py                                          202    156     42      0    19%   131-153, 158-179, 184-217, 239-404, 430-471, 487-499, 512-520, 534-570, 583-595, 609-621
+app\routers\security.py                                        213    206     24      0     3%   23-620
+app\routers\setup.py                                           294    186     40      0    32%   128-146, 161-164, 176-185, 198-210, 224-233, 254-277, 289-290, 307-359, 372-373, 393-405, 418-419, 450-497, 513-519, 546-579, 596-625, 640-654, 687-771, 780-828
+app\routers\state_laws.py                                       76     36      8      0    48%   22-30, 70-80, 99-105, 129-179, 200
+app\routers\storage.py                                         952    823    354      0    10%   33-36, 65, 127-165, 176-206, 221-254, 267-335, 350-400, 409-411, 416-419, 424-452, 465-496, 526-535, 544-559, 564-567, 572-575, 584-590, 599-607, 619-658, 686-689, 693-699, 703-709, 730-736, 753-778, 801-830, 835-896, 1041-1046, 1051-1087, 1102-1171, 1420-1456, 1484-1598, 1612-1879, 1886-1931, 1942-2009, 2038-2055, 2065-2087, 2111-2232, 2237, 2266, 2277-2299, 2315-2322, 2354-2393, 2409-2452, 2464-2515, 2531-2567, 2583-2597, 2609-2667, 2697-2763, 2780-2783, 2793-2806, 2823-2831, 2850-2861, 2878-2894, 2903-2905, 2929-2948, 2967-2985, 3000
+app\routers\tactics.py                                         162    162     22      0     0%   12-394
+app\routers\tenancy_hub.py                                     345    345     44      0     0%   8-781
+app\routers\testing.py                                         197    150     30      0    21%   62-212, 222-234, 243-258, 275-299, 309-321, 334-400, 409-425, 441-464, 478-499, 509-521, 530-545, 553-584, 588-617, 621-672
+app\routers\timeline.py                                        409    300    104      0    21%   81-84, 89-90, 110, 119, 145-189, 209-294, 304-317, 327-358, 367-381, 392-409, 472-522, 545-555, 577-632, 658-697, 730-847, 865-911, 928-1030, 1047-1069, 1086-1146
+app\routers\timeline_unified.py                                304    213    110      0    22%   184-209, 214-216, 224-277, 286-298, 309-361, 373-437, 448-505, 517-581, 614-693, 719-760
+app\routers\tools_api.py                                        85     85      8      0     0%   12-236
+app\routers\unified_overlays.py                                 88     88     14      0     0%   9-335
+app\routers\vault.py                                           492    391    142      0    16%   38-39, 46-47, 116, 121-122, 127-130, 164-391, 432-644, 674-722, 741-772, 791-817, 831-852, 889-910, 923-932, 947-962, 986-1012, 1023-1050, 1064-1185, 1192-1214, 1232-1273, 1281-1298
+app\routers\vault_all_in_one.py                                217    217     20      0     0%   20-689
+app\routers\vault_engine.py                                    110     60     16      0    40%   82-101, 124-141, 162-178, 200-218, 240-250, 265-274, 292-306, 325-331, 343, 353, 361
+app\routers\websocket.py                                        86     66     12      0    20%   22-23, 37-136, 142-145, 163-166, 175-192, 201-217
+app\routers\workflow.py                                        399    272    124      0    24%   71-85, 96-118, 130-148, 159-179, 277-296, 301-314, 318-327, 339-409, 466-502, 515-526, 543-587, 605-714, 737-856, 881-890, 913, 933-939, 962-968, 981-998, 1002-1007, 1016-1052
+app\routers\workflow_validator.py                               45     35      8      0    19%   26-319, 329-332
+app\routers\zoom_court.py                                        5      5      0      0     0%   1-7
+app\routers\zoom_court_prep.py                                   5      5      0      0     0%   1-7
+app\sdk\__init__.py                                              4      0      0      0   100%
+app\sdk\flask_converter.py                                     285    214     88      0    19%   82-90, 94-97, 111-113, 116-119, 123-142, 146-189, 193-221, 232-234, 238-251, 254, 266-294, 298-307, 341, 350-363, 367-397, 401-437, 455, 466, 478-489, 494-535, 545, 559-560, 586-596, 605-619, 623, 627-635, 663-747
+app\sdk\generate_module.py                                      36     36      6      0     0%   15-386
+app\sdk\module_sdk.py                                          191     85     28      0    48%   147, 177, 216-223, 247-274, 286, 301-306, 321-342, 351-358, 371-383, 393-400, 411-455, 459, 504-512, 521-522, 526, 553-562, 579-746
+app\sdk\phase2_sdk.py                                          188    188     58      0     0%   9-574
+app\sdk\plugin_manager.py                                      330    242     94      2    21%   94, 114, 148, 174->177, 181, 207, 215-229, 234-270, 278-290, 294-361, 365-395, 399-411, 415-423, 428-445, 453-488, 492-493, 501, 505-508, 512, 516, 520-525, 544-672, 684-759
+app\services\__init__.py                                         3      0      0      0   100%
+app\services\action_router.py                                  186    186     62      0     0%   15-635
+app\services\adaptive_ui.py                                    201    201     68      0     0%   14-621
+app\services\auto_mode_orchestrator.py                          89     89     10      0     0%   15-187
+app\services\auto_mode_summary_service.py                      197    197     78      0     0%   9-448
+app\services\azure_ai.py                                       405    356    166      0     9%   58-64, 78-144, 166-185, 198-212, 216-230, 239-271, 283-315, 319-342, 346-371, 375-414, 427-841, 854-855, 865-867
+app\services\brain_integrations.py                              90     90     22      0     0%   7-347
+app\services\calendar_service.py                                92     92     42      0     0%   6-156
+app\services\case_auto_creation.py                             301    271    138      0     7%   58, 63, 72, 81-104, 109-122, 127-129, 139-172, 185-200, 205-221, 226-237, 242-253, 258-282, 288-307, 312-326, 344-467, 472-493, 522-614, 619-633, 662-735, 745-792
+app\services\communication_service.py                          211    211     64      0     0%   12-624
+app\services\complaint_wizard.py                               252    252     54      0     0%   8-885
+app\services\context_loop.py                                   421    312    188      0    18%   70, 118, 214-269, 273-297, 301-310, 314-324, 328-357, 366-396, 435-448, 457-463, 467-506, 510-522, 531-542, 546-550, 563-565, 569, 573, 587-617, 625-674, 678-689, 693-710, 714-733, 737-745, 751-752, 759-761, 770-784, 788-846, 854-857, 878-918, 922-939, 951-980
+app\services\court_form_generator.py                            99     99     34      0     0%   17-622
+app\services\crawler.py                                        285    285     94      0     0%   14-679
+app\services\document_delivery_service.py                      186    186     64      0     0%   9-498
+app\services\document_distributor.py                           226    151     74      0    25%   84-101, 104, 138, 166, 183, 205-214, 218-228, 232-240, 244-264, 281-284, 287-298, 302-306, 310-316, 354-401, 405-429, 433-468, 472, 476-477, 481-482, 486-487, 491-492, 498-499, 503-504, 508-509, 513-533, 555-557
+app\services\document_flow_orchestrator.py                     165    159     56      0     3%   19-461
+app\services\document_intake.py                                512    313    142      0    30%   109, 130, 144, 159, 176-180, 212, 264, 349-392, 440-493, 498-513, 518-520, 525-552, 557-579, 584-592, 597-640, 645-646, 767-814, 827-845, 856-881, 899-903, 907-922, 926-929, 955-989, 1002-1089, 1094-1158, 1162-1182, 1186, 1190, 1194-1198, 1216-1218
+app\services\document_intelligence.py                          222    134     72      0    30%   88, 117, 146, 204, 361-362, 389-417, 442-471, 475-498, 502-511, 515-561, 565-598, 606-682, 691-721, 730-783, 796-798, 817-818
+app\services\document_notarization.py                          129     73     22      0    37%   34-36, 93-96, 100-102, 106-114, 154-155, 201-268, 288-341, 356-381, 385, 389-391, 404-406
+app\services\document_pipeline.py                              342    260    120      0    18%   25-26, 37-38, 44-45, 51-52, 63-64, 118-130, 135-145, 155-173, 177-186, 190-205, 212-245, 259-295, 299-302, 311-495, 505-506, 510, 514, 525, 535-562, 566-578, 592-606, 623-654, 662-687, 697-699
+app\services\document_recognition.py                           543    428    258      0    14%   142, 909, 930-1052, 1061-1096, 1108-1216, 1220-1265, 1269-1307, 1311-1317, 1321-1355, 1359-1428, 1433-1452, 1456-1493, 1497-1543, 1547-1573, 1577-1600, 1604-1637, 1641-1687, 1702-1785, 1789-1792, 1798-1873, 1877-1898, 1902-1940, 1953-1955, 1969-1970
+app\services\document_registry.py                              438    276    106      0    30%   107, 129, 149, 211, 261-274, 279-287, 292, 305-309, 314, 320-321, 326-327, 338-345, 350-352, 377-408, 413-447, 452-491, 501-513, 518-538, 543-557, 584-587, 590-603, 607-639, 643-646, 670-785, 789-850, 854-857, 861-862, 866-867, 871-874, 878, 888-914, 924-946, 957-971, 975-978, 982-988, 1008-1010
+app\services\document_training.py                              133    133     44      0     0%   7-318
+app\services\emotion_engine.py                                 342    342    142      0     0%   25-800
+app\services\event_extractor.py                                135    135     44      0     0%   6-329
+app\services\eviction\__init__.py                                6      6      0      0     0%   12-43
+app\services\eviction\case_builder.py                          261    261     50      0     0%   22-784
+app\services\eviction\court_learning.py                        265    265     98      0     0%   27-625
+app\services\eviction\court_procedures.py                      199    199     10      0     0%   8-1169
+app\services\eviction\i18n.py                                   12     12      2      0     0%   6-392
+app\services\eviction\pdf.py                                    58     58     16      0     0%   6-427
+app\services\eviction\seed_court_data.py                       100    100     28      0     0%   12-414
+app\services\form_data.py                                      244    244     86      0     0%   7-466
+app\services\form_field_extractor.py                           359    359    156      0     0%   12-899
+app\services\fraud_exposure.py                                 201    201     86      0     0%   12-702
+app\services\functionx_service.py                               85     85     14      0     0%   1-172
+app\services\gemini_ai.py                                       87     87     20      0     0%   7-300
+app\services\groq_ai.py                                        115    115     30      0     0%   7-316
+app\services\hud_funding_guide.py                              154    154     34      0     0%   16-1421
+app\services\law_engine.py                                     198    133     66      0    25%   54-56, 60-62, 85-92, 96-104, 108-111, 115-296, 300-301, 305, 309, 313, 325-349, 362-379, 385-412, 435-523, 529-561, 571-573
+app\services\legal_analysis_engine.py                          510    379    220      0    18%   105, 132, 157, 180, 206, 346-348, 358-379, 392-416, 420-437, 441-489, 498-533, 537-557, 571-606, 611-632, 642-691, 696-706, 720-782, 793-804, 809-815, 819, 834-884, 902-907, 911-927, 935-959, 967-997, 1005-1014, 1028-1166, 1180-1193, 1206-1208
+app\services\legal_filing_service.py                            51     51     10      0     0%   2-69
+app\services\location_service.py                               129    129     24      0     0%   10-516
+app\services\mesh_handlers.py                                  247    247     32      0     0%   17-933
+app\services\module_actions.py                                 204    204     26      0     0%   9-957
+app\services\module_registration.py                            107    107     34      0     0%   12-470
+app\services\ocr_service.py                                    172    172     46      0     0%   12-352
+app\services\ollama_ai.py                                      132    132     34      0     0%   7-288
+app\services\pdf_extractor.py                                  240    240     72      0     0%   12-477
+app\services\plan_maker_service.py                             125    125     34      0     0%   18-287
+app\services\positronic_brain.py                               245    115     50      2    45%   131, 171->174, 178, 234-251, 255, 259, 276-277, 281-282, 287-305, 309-325, 333-335, 339-343, 355-363, 375-396, 408-485, 496-512, 516-541, 545-555, 563, 576, 583-611, 625
+app\services\preview_service.py                                242    242     54      0     0%   19-576
+app\services\proactive_tactics.py                              198    198     86      0     0%   13-568
+app\services\progress_tracker.py                               245    245     72      0     0%   10-722
+app\services\public_exposure.py                                122    122     28      0     0%   12-385
+app\services\recognition\__init__.py                             9      9      0      0     0%   28-67
+app\services\recognition\confidence_scorer.py                  364    364    162      0     0%   10-793
+app\services\recognition\context_analyzer.py                   231    231    120      0     0%   10-552
+app\services\recognition\engine.py                             260    260    120      0     0%   19-767
+app\services\recognition\handwriting_analyzer.py               445    445    158      0     0%   15-1190
+app\services\recognition\legal_dictionary.py                   162    162     60      0     0%   12-840
+app\services\recognition\legal_expert.py                       175    175     60      0     0%   22-884
+app\services\recognition\models.py                             389    389     26      0     0%   12-886
+app\services\recognition\multi_pass_reasoner.py                337    337    152      0     0%   16-945
+app\services\recognition\relationship_mapper.py                211    211     82      0     0%   13-672
+app\services\recognition\text_preprocessor.py                  137    137     64      0     0%   15-326
+app\services\recognition\tone_analyzer.py                      330    330    128      0     0%   11-906
+app\services\recognition_service.py                            130    130     54      0     0%   15-377
+app\services\research_module.py                                192    192     38      0     0%   12-517
+app\services\storage\__init__.py                                12      5      2      0    50%   20-34
+app\services\storage\base.py                                    65     35      8      0    41%   105-110, 117-128, 135-142, 146-147, 164-169, 181-188
+app\services\storage\certificate_generator.py                   75     75      0      0     0%   23-729
+app\services\storage\dropbox.py                                 84     64     20      0    19%   25-26, 30, 33, 40-49, 53-57, 67-99, 103-118, 122-132, 140-198, 202-214, 218-233
+app\services\storage\google_drive.py                           152    131     52      0    10%   26-28, 32, 35, 42-52, 56-111, 121-231, 236-265, 269-294, 302-343, 347-370, 374-375
+app\services\storage\legal_integrity.py                        177    177     32      0     0%   36-555
+app\services\storage\onedrive.py                               106     87     26      0    14%   24-25, 29, 32, 39-48, 52-55, 65-107, 111-126, 130-141, 149-213, 217-230, 235-264
+app\services\storage\r2.py                                      93     69     12      0    23%   25-27, 44-49, 53, 57-64, 68, 79-87, 97-108, 119-122, 126-133, 141-167, 171-177, 181, 189-190, 199-203
+app\services\storage\vault_manager.py                          206    206     24      0     0%   24-937
+app\services\tenancy_hub.py                                    627    277    178      0    43%   202, 256, 327, 388, 447, 512, 577, 649, 716, 738, 763-764, 768-780, 784, 788, 796-821, 829-847, 855-874, 882-899, 907-924, 932-948, 966-1013, 1017-1032, 1036-1048, 1057-1128, 1142-1159, 1167-1208, 1212-1236, 1240-1276, 1280-1301, 1305-1324, 1328-1347, 1355-1356, 1360-1365, 1369-1376, 1380-1384, 1397-1399
+app\services\timeline_builder.py                               231    166     88      0    20%   64, 94, 188-189, 210-255, 270-306, 315-333, 337-364, 368-386, 401-415, 436-457, 461-473, 477-491, 500-535, 540-544, 551-572, 589-591, 602-604
+app\services\timeline_chronology.py                             78     78     36      0     0%   8-182
+app\services\timeline_extraction.py                            156    104     34      0    27%   53, 100, 114-157, 161-185, 191, 195-206, 210-220, 226-250, 264-265, 270-282, 286, 290-298, 302-320, 341-356
+app\services\unified_overlay_manager.py                        167    138     44      0    14%   52-53, 69-122, 141-181, 190-201, 215-247, 251-274, 292-322, 335-339, 343-350, 354-356, 360-363, 367-368, 377-378, 387, 391-394, 399-401, 405-413, 422
+app\services\user_cloud_sync.py                                315    315     30      0     0%   29-612
+app\services\user_service.py                                    88     88     20      0     0%   10-223
+app\services\vault_engine.py                                   248    143     62      0    34%   185-187, 230-238, 251-285, 294-311, 329-358, 371-430, 443-496, 508-533, 542-563, 577-605, 614-631, 660-677, 685-686, 708-710, 729-752
+app\services\vault_ingestion.py                                135    135     38      0     0%   24-522
+app\services\vault_search.py                                   160    160     40      0     0%   20-500
+app\services\vault_upload_service.py                           270    189     66      0    24%   41-43, 49-51, 93, 98, 101, 105, 130-135, 139-154, 158-164, 168-173, 177, 181-182, 186-190, 194-204, 208-217, 235, 239, 243-244, 248-267, 283-307, 311-317, 352-466, 479-494, 510-544, 548-563, 571, 579, 590-607, 617-631, 641-651, 667-670
+--------------------------------------------------------------------------------------------------------
+TOTAL                                                        54323  45763  14088    103    13%
+Coverage HTML written to dir htmlcov
+FAIL Required test coverage of 40% not reached. Total coverage: 12.68%
+=========================== short test summary info ===========================
+ERROR tests/test_core_4step_flow.py::TestStep1Welcome::test_welcome_page_loads
+ERROR tests/test_core_4step_flow.py::TestStep1Welcome::test_welcome_no_bypass_to_home
+ERROR tests/test_core_4step_flow.py::TestStep2RoleSelect::test_role_select_page_loads
+ERROR tests/test_core_4step_flow.py::TestStep2RoleSelect::test_tenant_role_available
+ERROR tests/test_core_4step_flow.py::TestStep2RoleSelect::test_role_selection_flow
+ERROR tests/test_core_4step_flow.py::TestStep3StorageMandatory::test_storage_select_page_loads
+ERROR tests/test_core_4step_flow.py::TestStep3StorageMandatory::test_no_skip_button_exists
+ERROR tests/test_core_4step_flow.py::TestStep3StorageMandatory::test_storage_connect_buttons_present
+ERROR tests/test_core_4step_flow.py::TestStep3StorageMandatory::test_cannot_access_home_without_storage
+ERROR tests/test_core_4step_flow.py::TestStep4TenantHome::test_tenant_home_requires_auth
+ERROR tests/test_core_4step_flow.py::TestCompleteFlowIntegration::test_flow_redirection_chain
+ERROR tests/test_core_4step_flow.py::TestCompleteFlowIntegration::test_api_health
+======================== 12 errors in 68.34s (0:01:08) ========================
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: I/O operation on closed file.
+Call stack:
+  File "C:\Semptify\Semptify-FastAPI\app\core\websocket_manager.py", line 491, in <lambda>
+    atexit.register(lambda: asyncio.run(get_websocket_manager().shutdown()))
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 195, in run
+    return runner.run(main)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", line 712, in run_until_complete
+    self.run_forever()
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", line 683, in run_forever
+    self._run_once()
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\base_events.py", line 2061, in _run_once
+    handle._run()
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\asyncio\events.py", line 89, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Semptify\Semptify-FastAPI\app\core\websocket_manager.py", line 449, in shutdown
+    logger.info("WebSocket manager shutdown complete")
+Message: 'WebSocket manager shutdown complete'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: I/O operation on closed file.
+Call stack:
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 595, in <lambda>
+    atexit.register(lambda: get_job_processor().stop())
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 460, in get_job_processor
+    _job_processor.start()
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 189, in start
+    logger.info(f"Started job processor with {self.max_workers} workers")
+Message: 'Started job processor with 4 workers'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: I/O operation on closed file.
+Call stack:
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 595, in <lambda>
+    atexit.register(lambda: get_job_processor().stop())
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 463, in get_job_processor
+    register_default_handlers(_job_processor)
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 543, in register_default_handlers
+    processor.register_handler("document_analysis", document_analysis_handler)
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 155, in register_handler
+    logger.info(f"Registered job handler for type: {job_type}")
+Message: 'Registered job handler for type: document_analysis'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: I/O operation on closed file.
+Call stack:
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 595, in <lambda>
+    atexit.register(lambda: get_job_processor().stop())
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 463, in get_job_processor
+    register_default_handlers(_job_processor)
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 544, in register_default_handlers
+    processor.register_handler("thumbnail_generation", thumbnail_generation_handler)
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 155, in register_handler
+    logger.info(f"Registered job handler for type: {job_type}")
+Message: 'Registered job handler for type: thumbnail_generation'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: I/O operation on closed file.
+Call stack:
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 595, in <lambda>
+    atexit.register(lambda: get_job_processor().stop())
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 463, in get_job_processor
+    register_default_handlers(_job_processor)
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 545, in register_default_handlers
+    processor.register_handler("document_indexing", document_indexing_handler)
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 155, in register_handler
+    logger.info(f"Registered job handler for type: {job_type}")
+Message: 'Registered job handler for type: document_indexing'
+Arguments: ()
+--- Logging error ---
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.13_3.13.3568.0_x64__qbz5n2kfra8p0\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: I/O operation on closed file.
+Call stack:
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 595, in <lambda>
+    atexit.register(lambda: get_job_processor().stop())
+  File "C:\Semptify\Semptify-FastAPI\app\core\job_processor.py", line 200, in stop
+    logger.info("Stopped job processor")
+Message: 'Stopped job processor'
+Arguments: ()
