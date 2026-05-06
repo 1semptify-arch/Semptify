@@ -139,19 +139,28 @@ async def get_session_status(
         
         user_id = session_data["user_id"]
         
-        # Check if user ID is valid
+        # Check if user ID is valid format
         if not is_valid_storage_user(user_id):
+            return SessionStatusResponse(has_session=True, is_valid=False, user_id=user_id)
+        
+        # CRITICAL: Verify session actually exists in database and has valid token
+        session = await get_session_from_db(db, user_id)
+        if not session or not session.get("access_token"):
+            return SessionStatusResponse(has_session=True, is_valid=False, user_id=user_id)
+        
+        # Check if user has storage configured in database
+        storage_config = await db.execute(
+            select(StorageConfig).where(StorageConfig.user_id == user_id)
+        )
+        has_storage = storage_config.scalar_one_or_none() is not None
+        
+        # Only report valid session if user actually has storage configured
+        if not has_storage:
             return SessionStatusResponse(has_session=True, is_valid=False, user_id=user_id)
         
         # Extract role and provider from user ID
         role = get_role_from_user_id(user_id)
         provider = get_provider_from_user_id(user_id)
-        
-        # Check if user has storage configured
-        storage_config = await db.execute(
-            select(StorageConfig).where(StorageConfig.user_id == user_id)
-        )
-        has_storage = storage_config.scalar_one_or_none() is not None
         
         return SessionStatusResponse(
             has_session=True,
