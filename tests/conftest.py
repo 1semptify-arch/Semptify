@@ -18,6 +18,7 @@ os.environ["ADMIN_PIN"] = "TEST-PIN"
 
 from app.main import app
 from app.core.config import get_settings
+from app.core.database import close_db
 
 
 # =============================================================================
@@ -41,6 +42,11 @@ async def setup_test_database():
         yield
         return
 
+    # Reset cached engine so the SQLite DATABASE_URL override is used,
+    # not a stale PostgreSQL engine from a previous import or run.
+    get_settings.cache_clear()
+    await close_db()
+
     engine = get_engine()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -51,7 +57,7 @@ async def setup_test_database():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
-    await engine.dispose()
+    await close_db()
 
 
 @pytest.fixture

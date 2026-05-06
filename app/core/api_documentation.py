@@ -806,7 +806,7 @@ async function loginAndGetDocuments() {{
         // Get documents
         const docsResponse = await fetch('https://api.semptify.org/api/v1/documents', {{
             headers: {{
-                'Authorization': \`Bearer \${token}\`,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }}
         }});
