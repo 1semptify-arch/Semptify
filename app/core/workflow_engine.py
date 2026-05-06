@@ -280,10 +280,13 @@ def route_user(
 
     role_str = get_role_from_user_id(user_id) or "user"
 
+    # Strip HMAC signature for database operations (user_id may include HMAC from cookie)
+    db_user_id = user_id.split('.')[0] if '.' in user_id else user_id
+
     if documents_present is None:
         try:
             from app.services.vault_upload_service import get_vault_service
-            docs = get_vault_service().get_user_documents(user_id)
+            docs = get_vault_service().get_user_documents(db_user_id)
             documents_present = len(docs) > 0
         except Exception:
             documents_present = False
