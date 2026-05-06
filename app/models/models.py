@@ -1209,3 +1209,181 @@ class InviteCode(Base):
 # Update User model to include new relationships
 User.vault_items = relationship("VaultItem", back_populates="user", cascade="all, delete-orphan")
 User.incidents = relationship("Incident", back_populates="user", cascade="all, delete-orphan")
+
+
+# =============================================================================
+# MNDES Exhibit Package - Persistent storage for exhibit packages
+# =============================================================================
+
+class MNDESExhibitPackageDB(Base):
+    """
+    MNDES exhibit package stored in database for persistence.
+    
+    Replaces in-memory _packages dict in mndes_exhibit_service.py
+    Packages survive server restarts and are queryable by user/case.
+    """
+    __tablename__ = "mndes_exhibit_packages"
+    
+    # Primary key - package ID (matches the in-memory package ID)
+    package_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    
+    # Ownership
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    
+    # Case information
+    mn_case_number: Mapped[str] = mapped_column(String(50), index=True)
+    case_type: Mapped[str] = mapped_column(String(50), default="eviction")
+    case_caption: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    
+    # Package metadata
+    package_name: Mapped[str] = mapped_column(String(255))
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    # Exhibits (stored as JSON array)
+    exhibits_json: Mapped[str] = mapped_column(Text)
+    
+    # Compliance tracking
+    requires_attestation: Mapped[bool] = mapped_column(Boolean, default=True)
+    attestation_provided: Mapped[bool] = mapped_column(Boolean, default=False)
+    attestation_date: Mapped[Optional[datetime]] = mapped_column(DateTimeTZ, nullable=True)
+    attested_by: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    
+    # Status workflow
+    status: Mapped[str] = mapped_column(String(50), default="draft")  # draft, ready, submitted, confirmed
+    
+    # Submission tracking
+    is_sealed_case: Mapped[bool] = mapped_column(Boolean, default=False)
+    submitted_at: Mapped[Optional[datetime]] = mapped_column(DateTimeTZ, nullable=True)
+    confirmation_number: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
+
+
+class MNDESExhibitItemDB(Base):
+    """
+    Individual exhibit within a package (denormalized for queryability).
+    
+    Allows querying individual exhibits across packages.
+    """
+    __tablename__ = "mndes_exhibit_items"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    
+    # References
+    package_id: Mapped[str] = mapped_column(String(36), ForeignKey("mndes_exhibit_packages.package_id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    vault_id: Mapped[str] = mapped_column(String(36), index=True)
+    
+    # Exhibit details
+    exhibit_number: Mapped[str] = mapped_column(String(20))
+    exhibit_name: Mapped[str] = mapped_column(String(255))
+    filename: Mapped[str] = mapped_column(String(255))
+    file_size_bytes: Mapped[int] = mapped_column(Integer)
+    
+    # Validation results (JSON)
+    validation_json: Mapped[str] = mapped_column(Text)
+    
+    # Compliance flags
+    is_compliant: Mapped[bool] = mapped_column(Boolean, default=False)
+    issues_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    # Timestamps
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+
+
+# =============================================================================
+# Vault Index - Persistent index for vault documents
+# =============================================================================
+
+class VaultIndexDB(Base):
+    """
+    Persistent vault document index stored in database.
+    
+    Replaces in-memory _documents dict in vault_upload_service.py.
+    Enables fast document lookup without relying on in-memory cache.
+    """
+    __tablename__ = "vault_index"
+    
+    # Primary key - vault_id (matches VaultDocument.vault_id)
+    vault_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    
+    # Ownership
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    
+    # File information
+    filename: Mapped[str] = mapped_column(String(255))
+    safe_filename: Mapped[str] = mapped_column(String(255))
+    sha256_hash: Mapped[str] = mapped_column(String(64), index=True)
+    file_size: Mapped[int] = mapped_column(Integer)
+    mime_type: Mapped[str] = mapped_column(String(100))
+    
+    # Cloud storage location
+    storage_path: Mapped[str] = mapped_column(String(500))
+    storage_provider: Mapped[str] = mapped_column(String(50))  # google_drive, dropbox, onedrive, local
+    
+    # Classification
+    document_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    tags: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)  # comma-separated
+    
+    # Certification and integrity
+    certificate_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    registry_id: Mapped[Optional[str]] = mapped_column(String(24), nullable=True, index=True)
+    integrity_status: Mapped[str] = mapped_column(String(20), default="unverified")  # verified, tampered, unverified
+    
+    # Processing state
+    processed: Mapped[bool] = mapped_column(Boolean, default=False)
+    extracted_data_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    
+    # Source tracking
+    source_module: Mapped[str] = mapped_column(String(50), default="direct")
+    
+    # Timestamps
+    uploaded_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
+    
+    @property
+    def is_certified(self) -> bool:
+        """Check if document has completed registration."""
+        return self.registry_id is not None and self.integrity_status == "verified"
+
+
+class VaultUserIndexDB(Base):
+    """
+    Per-user vault index for fast user document listing.
+    
+    Replaces in-memory _user_index dict in vault_upload_service.py.
+    """
+    __tablename__ = "vault_user_index"
+    
+    # Composite primary key
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), primary_key=True)
+    vault_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    
+    # Ordering
+    added_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+
+
+class VaultHashIndexDB(Base):
+    """
+    SHA256 hash deduplication index.
+    
+    Replaces in-memory _hash_index dict in vault_upload_service.py.
+    Maps content hash to vault_id for deduplication.
+    """
+    __tablename__ = "vault_hash_index"
+    
+    # Primary key - content hash
+    sha256_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    
+    # First vault document with this hash
+    vault_id: Mapped[str] = mapped_column(String(36), ForeignKey("vault_index.vault_id"))
+    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"))
+    
+    # Reference count (how many times this hash appears)
+    ref_count: Mapped[int] = mapped_column(Integer, default=1)
+    
+    # Timestamp
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
