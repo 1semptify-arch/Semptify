@@ -1947,10 +1947,10 @@ async def oauth_callback(
                 import uuid
                 import hashlib
                 
-                # Strip HMAC signature for database operations
+                # Strip HMAC signature for database operations and vault access
                 db_user_id = user_id.split('.')[0] if '.' in user_id else user_id
                 
-                vault = await get_vault_client(db, user_id)
+                vault = await get_vault_client(db, db_user_id)
                 if vault:
                     # Create test document content
                     test_content = b"Semptify vault verification document - This confirms your storage is working correctly."
