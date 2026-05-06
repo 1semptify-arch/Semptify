@@ -11,6 +11,17 @@
 - [x] No manual shell access needed — migrations run before app serves requests
 - [x] Safe fallback: app starts even if migrations fail (logs warning)
 
+### User Flow Continuity E2E Tests — CREATED
+- [x] **Created `user_flow_continuity_test.js`** — Comprehensive GUI tests using Playwright
+- [x] **Flow 1**: New User Onboarding (Welcome → Role → Storage → Home)
+- [x] **Flow 2**: Returning User (Reconnect → Home with return_to)
+- [x] **Flow 3**: Document Upload (Home → Upload → Vault)
+- [x] **Flow 4**: Navigation Consistency (All paths use SSOT)
+- [x] **Flow 5**: Core API Flows (Legal Analysis, Timeline, Briefcase)
+- [x] **Flow 6**: Non-Core Routers Disabled Check
+- [x] **SSOT Compliance Check**: Detects hardcoded URLs in navigation
+- [x] **Updated runner**: Added `--flows` flag to `run_e2e_tests.sh`
+
 ### Core 5.0 Release Verification — COMPLETE
 - [x] **Document upload to vault** — `/api/documents/upload` endpoint verified
 - [x] **Timeline/Briefcase viewers** — `/api/timeline-unified/*`, `/api/briefcase/*` verified
@@ -241,7 +252,8 @@ Set these in Render Dashboard > Service > Environment:
 1. ✅ **DONE:** Render deploy successful
 2. ✅ **DONE:** Database migrations applied automatically
 3. ✅ **DONE:** Core 5.0 is LIVE
-4. Run MNDES unit tests locally: `pytest tests/test_mndes_service.py -v`
+4. Run E2E user flow tests: `cd tests/e2e && ./run_e2e_tests.sh --flows`
+5. Run MNDES unit tests locally: `pytest tests/test_mndes_service.py -v`
 
 ---
 

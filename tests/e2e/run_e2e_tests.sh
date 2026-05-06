@@ -7,6 +7,7 @@
 #   ./run_e2e_tests.sh              # Run all tests
 #   ./run_e2e_tests.sh --quick      # Run quick smoke test only
 #   ./run_e2e_tests.sh --ci          # Run in CI mode (headless)
+#   ./run_e2e_tests.sh --flows       # Run user flow continuity tests
 #   ./run_e2e_tests.sh --url http://localhost:8000  # Custom URL
 #
 
@@ -35,6 +36,10 @@ while [[ $# -gt 0 ]]; do
       HEADLESS="true"
       shift
       ;;
+    --flows)
+      MODE="flows"
+      shift
+      ;;
     --url)
       URL="$2"
       shift 2
@@ -45,6 +50,7 @@ while [[ $# -gt 0 ]]; do
       echo "Options:"
       echo "  --quick     Run quick smoke test only"
       echo "  --ci        Run in CI mode (headless, no browser window)"
+      echo "  --flows     Run user flow continuity tests"
       echo "  --url URL   Set target URL (default: http://localhost:8000)"
       echo "  --help      Show this help"
       exit 0
@@ -96,6 +102,11 @@ elif [ "$MODE" == "ci" ]; then
   echo -e "${YELLOW}Running CI tests (headless)...${NC}"
   export HEADLESS="true"
   node tests/e2e/playwright_full_system_test.js
+elif [ "$MODE" == "flows" ]; then
+  echo -e "${YELLOW}Running user flow continuity tests...${NC}"
+  echo "Browser window will open. Press Ctrl+C to stop."
+  echo ""
+  node tests/e2e/user_flow_continuity_test.js
 else
   echo -e "${YELLOW}Running full system test...${NC}"
   echo "Browser window will open. Press Ctrl+C to stop."
