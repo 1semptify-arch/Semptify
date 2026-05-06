@@ -2031,6 +2031,19 @@ async def oauth_callback(
 
         response = HTMLResponse(content=html_content)
         set_auth_cookie(response, user_id)
+        
+        # Set storage provider cookie for storage gate verification
+        from app.core.user_id import COOKIE_STORAGE_PROVIDER
+        response.set_cookie(
+            key=COOKIE_STORAGE_PROVIDER,
+            value=provider,
+            max_age=365 * 24 * 60 * 60,  # 1 year
+            path="/",
+            samesite="lax",
+            httponly=False,  # Allow JavaScript access
+        )
+        logger.info("Storage provider cookie set: %s", provider)
+        
         logger.info("Auth cookie set for user: %s", user_id[:6] + "***")
         response.delete_cookie("semptify_redirect_loop_count")
 
