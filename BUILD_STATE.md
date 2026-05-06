@@ -4,15 +4,33 @@
 ---
 
 ## Last Deployed Commit
-- **Hash**: `e0201ad`
-- **Date**: 2026-05-05 14:57 UTC-05
+- **Hash**: `516ce2b`
+- **Date**: 2026-05-05 23:18 UTC-05
 - **Branch**: `main`
 - **Repo**: https://github.com/1semptify-arch/Semptify.git
 - **Render auto-deploy**: YES — triggers on every push to main
 
 ---
 
-## Shipped This Session (8dd6ec9)
+## Shipped This Session (516ce2b)
+
+### Critical Bug Fixes — DEPLOYED
+- [x] **Test Engine Caching** — Fixed `tests/conftest.py` to clear `get_settings` cache and reset engine between tests. All 12 tests now pass on SQLite instead of failing on stale PostgreSQL engine.
+- [x] **Dashboard Real Data** — `static/tenant/dashboard.html` now fetches live data from `/api/tenancy/cases`, `/deadlines`, `/timeline`, `/documents` instead of showing hardcoded 2025 mock dates and fake stats.
+- [x] **SyntaxWarning Fix** — Fixed invalid `\`` escape sequence in `app/core/api_documentation.py` (line 809).
+- [x] **Security Hardening** — Added `.env.production` and `.env.backup` to `.gitignore` to prevent secret exposure.
+
+### Dashboard Improvements — LIVE
+- [x] Real crisis hotline: Minnesota Legal Aid 1-800-292-4150 (was placeholder `XXX-XXXX`)
+- [x] Dynamic deadline cards with urgency color-coding (red ≤7 days, amber ≤30)
+- [x] Live timeline events with type icons
+- [x] Real document count and most recent filename
+- [x] Graceful "Sign in to see your dashboard" message for unauthenticated users
+- [x] "No case data yet" empty state for new users
+
+---
+
+## Shipped Previous Session (e0201ad)
 
 ### Email — FULLY LIVE
 - [x] Resend API wired (`app/services/email_service.py`)
