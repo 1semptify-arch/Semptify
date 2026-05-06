@@ -115,7 +115,7 @@
     <div>
       <div class="hero">
         <h1>Welcome back</h1>
-        <p>You have <strong>2 pending actions</strong> and <strong>1 urgent deadline</strong> this week.</p>
+        <p id="hero-summary">Loading your case summary…</p>
       </div>
 
       <div class="grid-2">
@@ -124,69 +124,21 @@
             <span class="card-title">⏰ Upcoming Deadlines</span>
             <span class="card-icon">🚨</span>
           </div>
-          <div class="card-body">
-            <div class="deadline-item">
-              <span class="deadline-dot dot-urgent"></span>
-              <div class="deadline-info">
-                <div>Respond to Settlement Agreement</div>
-                <div class="deadline-date">Due April 25, 2025 — 4 days</div>
-              </div>
-            </div>
-            <div class="deadline-item">
-              <span class="deadline-dot dot-soon"></span>
-              <div class="deadline-info">
-                <div>Lease Renewal Decision</div>
-                <div class="deadline-date">Due May 15, 2025 — 24 days</div>
-              </div>
-            </div>
-            <div class="deadline-item">
-              <span class="deadline-dot dot-ok"></span>
-              <div class="deadline-info">
-                <div>Court Hearing — Unlawful Detainer</div>
-                <div class="deadline-date">June 3, 2025 — 43 days</div>
-              </div>
-            </div>
+          <div class="card-body" id="deadlines-body">
+            <div class="activity-item" style="color:#888;font-size:0.85rem;">Loading…</div>
           </div>
           <a href="/tools/calculators.html#deadline" class="card-action">Deadline calculator →</a>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <span class="card-title">📨 Messages</span>
-            <span class="card-icon">💬</span>
+            <span class="card-title">� Document Vault</span>
+            <span class="card-icon">�</span>
           </div>
-          <div class="card-body">
-            <div class="activity-item">
-              <span class="activity-icon">⚖️</span>
-              <span class="activity-text">Legal Aid sent a document to sign</span>
-              <span class="activity-time">Today</span>
-            </div>
-            <div class="activity-item">
-              <span class="activity-icon">🌿</span>
-              <span class="activity-text">Maria reviewed your repair request</span>
-              <span class="activity-time">Yesterday</span>
-            </div>
-            <div class="activity-item">
-              <span class="activity-icon">🔔</span>
-              <span class="activity-text">Your document was timestamped</span>
-              <span class="activity-time">Apr 19</span>
-            </div>
+          <div class="card-body" id="documents-body">
+            <div class="activity-item" style="color:#888;font-size:0.85rem;">Loading…</div>
           </div>
-          <a href="/office/inbox.html" class="card-action">Open inbox →</a>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">📁 Document Vault</span>
-            <span class="card-icon">🔒</span>
-          </div>
-          <div class="card-body">
-            <div class="stat-row"><span>Documents</span><span class="stat-val">12</span></div>
-            <div class="stat-row"><span>Timestamped</span><span class="stat-val">8</span></div>
-            <div class="stat-row"><span>Shared</span><span class="stat-val">3</span></div>
-            <div class="stat-row"><span>Storage used</span><span class="stat-val">4.2 MB</span></div>
-          </div>
-          <a href="/office/vault.html" class="card-action">Open vault →</a>
+          <a href="/tenant/documents" class="card-action">Open vault →</a>
         </div>
 
         <div class="card">
@@ -194,24 +146,10 @@
             <span class="card-title">📅 Timeline</span>
             <span class="card-icon">🕐</span>
           </div>
-          <div class="card-body">
-            <div class="activity-item">
-              <span class="activity-icon">📋</span>
-              <span class="activity-text">Received 3-Day Notice</span>
-              <span class="activity-time">Apr 19</span>
-            </div>
-            <div class="activity-item">
-              <span class="activity-icon">📬</span>
-              <span class="activity-text">Sent Repair Request Letter</span>
-              <span class="activity-time">Apr 14</span>
-            </div>
-            <div class="activity-item">
-              <span class="activity-icon">🔧</span>
-              <span class="activity-text">Discovered mold in bathroom</span>
-              <span class="activity-time">Jan 13</span>
-            </div>
+          <div class="card-body" id="timeline-body">
+            <div class="activity-item" style="color:#888;font-size:0.85rem;">Loading…</div>
           </div>
-          <a href="/office/timeline.html" class="card-action">View timeline →</a>
+          <a href="/tenant/journal" class="card-action">View timeline →</a>
         </div>
 
         <div class="card" style="border-left: 4px solid #1d4ed8;">
@@ -240,17 +178,16 @@
       <div class="card">
         <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem;">🆘 Crisis Resources</div>
         <div style="font-size:0.85rem;color:#555;line-height:1.6;">
-          <p style="margin-bottom:0.5rem;"><strong>Eviction Defense Hotline</strong><br>1-800-XXX-XXXX<br><span style="font-size:0.75rem;color:#888;">24/7 · Free · Confidential</span></p>
+          <p style="margin-bottom:0.5rem;"><strong>Minnesota Legal Aid</strong><br><a href="tel:18002924150" style="color:var(--accent);font-weight:700;">1-800-292-4150</a><br><span style="font-size:0.75rem;color:#888;">Mon–Fri 9am–4pm · Free · Confidential</span></p>
           <p><strong>Legal Aid Society</strong><br>Your assigned advocate: Maria Gonzalez<br><a href="/office/inbox.html" style="color:var(--accent);font-size:0.82rem;">Send message →</a></p>
         </div>
       </div>
 
       <div class="card">
         <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem;">📊 Case Summary</div>
-        <div class="stat-row"><span>Case opened</span><span class="stat-val">Jan 2025</span></div>
-        <div class="stat-row"><span>Advocate</span><span class="stat-val">Maria G.</span></div>
-        <div class="stat-row"><span>Status</span><span class="stat-val" style="color:#22c55e;">Active</span></div>
-        <div class="stat-row"><span>Next action</span><span class="stat-val">Sign doc</span></div>
+        <div id="case-summary-body">
+          <div class="stat-row"><span>Loading…</span></div>
+        </div>
       </div>
     </aside>
   </div>
@@ -268,10 +205,137 @@
     <div style="margin-top:0.5rem;">Tenant view · Royal theme · Your data stays in your cloud</div>
   </footer>
 
-  <script src="/js/core/vault-portal.js"></script>
+  <script src="/js/core/vault-portal.js" onerror="console.warn('vault-portal.js not available')"></script>
   <script>
     function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
     function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
+
+    function relativeDate(dateStr) {
+      if (!dateStr) return '';
+      const d = new Date(dateStr);
+      const now = new Date();
+      const diff = Math.round((d - now) / 86400000);
+      if (diff < 0) return `${Math.abs(diff)} days ago`;
+      if (diff === 0) return 'Today';
+      if (diff === 1) return 'Tomorrow';
+      return `in ${diff} days`;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '';
+      return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function urgencyClass(dateStr) {
+      if (!dateStr) return 'dot-ok';
+      const days = Math.round((new Date(dateStr) - new Date()) / 86400000);
+      if (days < 0) return 'dot-urgent';
+      if (days <= 7) return 'dot-urgent';
+      if (days <= 30) return 'dot-soon';
+      return 'dot-ok';
+    }
+
+    function eventIcon(eventType) {
+      const icons = { notice: '📋', hearing: '🏛️', payment: '💰', maintenance: '🔧', communication: '📬', court: '⚖️', move_in: '🏠', move_out: '📦' };
+      return icons[eventType] || '📌';
+    }
+
+    async function loadDashboard() {
+      try {
+        const casesRes = await fetch('/api/tenancy/cases');
+        if (!casesRes.ok) throw new Error('Not authenticated');
+        const casesData = await casesRes.json();
+        const cases = casesData.cases || [];
+
+        if (cases.length === 0) {
+          document.getElementById('hero-summary').innerHTML = 'No active case yet. <a href="/tenant/journal" style="color:#fbbf24;">Start your case →</a>';
+          ['deadlines-body', 'timeline-body', 'documents-body', 'case-summary-body'].forEach(id => {
+            document.getElementById(id).innerHTML = '<div class="activity-item" style="color:#888;font-size:0.85rem;">No case data yet.</div>';
+          });
+          return;
+        }
+
+        const caseId = cases[0].id;
+
+        const [deadlinesRes, timelineRes, docsRes] = await Promise.all([
+          fetch(`/api/tenancy/cases/${caseId}/deadlines`),
+          fetch(`/api/tenancy/cases/${caseId}/timeline`),
+          fetch(`/api/tenancy/cases/${caseId}/documents`),
+        ]);
+
+        // --- Deadlines ---
+        const deadlinesEl = document.getElementById('deadlines-body');
+        if (deadlinesRes.ok) {
+          const { deadlines } = await deadlinesRes.json();
+          const upcoming = (deadlines || []).slice(0, 4);
+          if (upcoming.length === 0) {
+            deadlinesEl.innerHTML = '<div class="activity-item" style="color:#888;font-size:0.85rem;">No upcoming deadlines.</div>';
+          } else {
+            deadlinesEl.innerHTML = upcoming.map(d => `
+              <div class="deadline-item">
+                <span class="deadline-dot ${urgencyClass(d.deadline_date || d.event_date)}"></span>
+                <div class="deadline-info">
+                  <div>${d.title || d.event_type}</div>
+                  <div class="deadline-date">Due ${formatDate(d.deadline_date || d.event_date)} — ${relativeDate(d.deadline_date || d.event_date)}</div>
+                </div>
+              </div>`).join('');
+          }
+          const urgent = (deadlines || []).filter(d => {
+            const days = Math.round((new Date(d.deadline_date || d.event_date) - new Date()) / 86400000);
+            return days >= 0 && days <= 7;
+          }).length;
+          document.getElementById('hero-summary').innerHTML =
+            `You have <strong>${deadlines.length} deadline${deadlines.length !== 1 ? 's' : ''}</strong>${urgent ? ` and <strong>${urgent} urgent</strong> this week` : ''}.`;
+        } else {
+          deadlinesEl.innerHTML = '<div class="activity-item" style="color:#888;font-size:0.85rem;">Could not load deadlines.</div>';
+        }
+
+        // --- Timeline ---
+        const timelineEl = document.getElementById('timeline-body');
+        if (timelineRes.ok) {
+          const { timeline } = await timelineRes.json();
+          const recent = (timeline || []).slice(0, 4);
+          if (recent.length === 0) {
+            timelineEl.innerHTML = '<div class="activity-item" style="color:#888;font-size:0.85rem;">No events recorded yet.</div>';
+          } else {
+            timelineEl.innerHTML = recent.map(e => `
+              <div class="activity-item">
+                <span class="activity-icon">${eventIcon(e.event_type)}</span>
+                <span class="activity-text">${e.title || e.event_type}</span>
+                <span class="activity-time">${formatDate(e.event_date)}</span>
+              </div>`).join('');
+          }
+        } else {
+          timelineEl.innerHTML = '<div class="activity-item" style="color:#888;font-size:0.85rem;">Could not load timeline.</div>';
+        }
+
+        // --- Documents ---
+        const docsEl = document.getElementById('documents-body');
+        if (docsRes.ok) {
+          const { count, documents } = await docsRes.json();
+          docsEl.innerHTML = `
+            <div class="stat-row"><span>Documents</span><span class="stat-val">${count || 0}</span></div>
+            <div class="stat-row"><span>Most recent</span><span class="stat-val">${documents && documents[0] ? documents[0].title || documents[0].filename : '—'}</span></div>`;
+        } else {
+          docsEl.innerHTML = '<div class="stat-row"><span style="color:#888;">Could not load vault data.</span></div>';
+        }
+
+        // --- Case Summary sidebar ---
+        const c = cases[0];
+        const summary = c.summary || {};
+        document.getElementById('case-summary-body').innerHTML = `
+          <div class="stat-row"><span>Case opened</span><span class="stat-val">${formatDate(c.created_at) || '—'}</span></div>
+          <div class="stat-row"><span>Status</span><span class="stat-val" style="color:#22c55e;">${c.status || 'Active'}</span></div>
+          <div class="stat-row"><span>Documents</span><span class="stat-val">${summary.document_count ?? '—'}</span></div>
+          <div class="stat-row"><span>Events</span><span class="stat-val">${summary.event_count ?? '—'}</span></div>`;
+
+      } catch (err) {
+        console.error('Dashboard load error:', err);
+        document.getElementById('hero-summary').innerHTML = 'Sign in to see your case dashboard.';
+      }
+    }
+
+    loadDashboard();
   </script>
 </body>
 </html>
