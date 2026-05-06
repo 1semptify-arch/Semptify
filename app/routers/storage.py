@@ -2019,8 +2019,6 @@ async def oauth_callback(
         </head>
         <body>
             <script>
-                // Set cookie via JavaScript (already set by server, but ensure it's available)
-                document.cookie = 'semptify_uid={user_id}; path=/; SameSite=Lax';
                 // Redirect to landing page
                 window.location.href = '{landing}';
             </script>
