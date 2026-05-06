@@ -1782,9 +1782,18 @@ async def oauth_callback(
             refresh_token=refresh_token,
             expires_at=expires_at,
         )
-        if user:
-            user_id = str(user.id)
-        is_new_user = True
+        # Create or update user record with email from OAuth
+        await create_or_update_user(
+            db=db,
+            user_id=user_id,
+            provider=provider,
+            email=identity_email,
+            display_name=identity_display_name,
+            storage_user_id=provider_subject,
+        )
+        # A user is "new" only if they had no existing_uid in state AND were not
+        # matched to an existing DB account by provider subject during this callback.
+        is_new_user = not state_data.get("existing_uid") and not matched_user
         await get_or_create_storage_config(db, user_id, provider)
 
         # Permanently record that storage authentication is complete.
@@ -1837,9 +1846,6 @@ async def oauth_callback(
         # Returning users use route_user() as normal.
         # If vault provisioning failed, send to onboarding/status for retry.
         return_to = state_data.get("return_to")
-        # A user is "new" only if they had no existing_uid in state AND were not
-        # matched to an existing DB account by provider subject during this callback.
-        is_new_user = not state_data.get("existing_uid") and not matched_user
 
         if not vault_ok:
             landing = "/onboarding/status?storage_setup=retry_required&provider=" + provider
