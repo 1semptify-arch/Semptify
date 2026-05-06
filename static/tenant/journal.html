@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenant Journal – Semptify</title>
+    <style>
+        :root {
+            --primary: #1e3a5f;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #1e293b;
+            --text-light: #475569;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary), #2d5a87);
+            color: #fff;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo { font-weight: 800; font-size: 1.3rem; text-decoration: none; color: #fff; }
+        .nav-links { display: flex; gap: 1.5rem; }
+        .nav-links a { color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.95rem; }
+        .nav-links a:hover { color: #fff; }
+        .nav-links a.active { color: #fff; font-weight: 600; }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        .page-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .page-subtitle { color: var(--text-light); margin-bottom: 2rem; }
+
+        /* Entry Form */
+        .entry-form {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .form-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+        @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+        label { display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 0.4rem; color: var(--text); }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        textarea { resize: vertical; min-height: 100px; }
+        .btn {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-secondary {
+            background: var(--text-light);
+        }
+        .btn-danger {
+            background: var(--danger);
+        }
+        .form-actions { display: flex; gap: 0.75rem; margin-top: 1rem; }
+
+        /* Timeline */
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .timeline-title { font-size: 1.2rem; font-weight: 600; }
+        .entry-count { color: var(--text-light); font-size: 0.9rem; }
+
+        .timeline {
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .timeline-empty {
+            padding: 3rem;
+            text-align: center;
+            color: var(--text-light);
+        }
+        .timeline-empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+
+        .entry {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+        .entry:last-child { border-bottom: none; }
+        .entry:hover { background: #f8fafc; }
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+        .entry-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+        }
+        .entry-type.rent { background: #dbeafe; color: #1e40af; }
+        .entry-type.maintenance { background: #fef3c7; color: #92400e; }
+        .entry-type.communication { background: #e0e7ff; color: #3730a3; }
+        .entry-type.general { background: #f3f4f6; color: #4b5563; }
+        .entry-type.court { background: #fee2e2; color: #991b1b; }
+
+        .entry-date {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+        .entry-title {
+            font-weight: 600;
+            font-size: 1.05rem;
+            margin-bottom: 0.25rem;
+        }
+        .entry-desc {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .entry-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+        .entry-actions button {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.75rem;
+        }
+
+        /* Loading/Error States */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-light);
+        }
+        .error {
+            background: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        /* Edit Mode */
+        .entry.editing {
+            background: #eff6ff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="/tenant/home" class="logo">Semptify</a>
+        <nav class="nav-links">
+            <a href="/tenant/home">Dashboard</a>
+            <a href="/tenant/journal" class="active">Journal</a>
+            <a href="/tenant/documents">Documents</a>
+            <a href="/tenant/law-library">Rights</a>
+            <a href="/tenant/tools">Tools</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h1 class="page-title">Tenant Journal</h1>
+        <p class="page-subtitle">Log rent payments, maintenance requests, and all important communications with your landlord.</p>
+
+        <div class="entry-form">
+            <h2 class="form-title">Add New Entry</h2>
+            <form id="entryForm">
+                <div class="form-row">
+                    <div>
+                        <label for="entryDate">Date *</label>
+                        <input type="date" id="entryDate" required>
+                    </div>
+                    <div>
+                        <label for="entryType">Category *</label>
+                        <select id="entryType" required>
+                            <option value="rent_payment">Rent Payment</option>
+                            <option value="maintenance_request">Maintenance Request</option>
+                            <option value="landlord_communication">Landlord Communication</option>
+                            <option value="general_note">General Note</option>
+                            <option value="notice">Notice Received/Sent</option>
+                            <option value="court">Court Event</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label for="entryTitle">Title *</label>
+                    <input type="text" id="entryTitle" placeholder="e.g., 'Paid February Rent' or 'Requested Heating Repair'" required>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <label for="entryDesc">Details</label>
+                    <textarea id="entryDesc" placeholder="Add any important details, amounts, names, or context..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn">Save Entry</button>
+                    <button type="button" class="btn btn-secondary" id="cancelEdit" style="display:none;">Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="timeline-header">
+            <h2 class="timeline-title">Your Timeline</h2>
+            <span class="entry-count" id="entryCount">Loading...</span>
+        </div>
+
+        <div class="timeline" id="timeline">
+            <div class="loading">Loading your journal entries...</div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/tenancy';
+        let editingEntryId = null;
+
+        // Set default date to today
+        document.getElementById('entryDate').valueAsDate = new Date();
+
+        // Load entries on page load
+        loadEntries();
+
+        // Form submission
+        document.getElementById('entryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await saveEntry();
+        });
+
+        // Cancel edit button
+        document.getElementById('cancelEdit').addEventListener('click', () => {
+            resetForm();
+        });
+
+        async function loadEntries() {
+            const timeline = document.getElementById('timeline');
+            const countEl = document.getElementById('entryCount');
+
+            try {
+                // First get user's case
+                const casesResp = await fetch(`${API_BASE}/cases`);
+                if (!casesResp.ok) throw new Error('Failed to load cases');
+                const casesData = await casesResp.json();
+
+                if (!casesData.cases || casesData.cases.length === 0) {
+                    timeline.innerHTML = `
+                        <div class="timeline-empty">
+                            <div class="timeline-empty-icon">📝</div>
+                            <h3>No entries yet</h3>
+                            <p>Your journal is empty. Add your first entry above to start building your timeline.</p>
+                        </div>
+                    `;
+                    countEl.textContent = '0 entries';
+                    return;
+                }
+
+                const caseId = casesData.cases[0].id;
+
+                // Get timeline events
+                const eventsResp = await fetch(`${API_BASE}/cases/${caseId}/timeline`);
+                if (!eventsResp.ok) throw new Error('Failed to load timeline');
+                const eventsData = await eventsResp.json();
+
+                const entries = eventsData.timeline || [];
+
+                if (entries.length === 0) {
+                    timeline.innerHTML = `
+                        <div class="timeline-empty">
+                            <div class="timeline-empty-icon">📝</div>
+                            <h3>No entries yet</h3>
+                            <p>Your journal is empty. Add your first entry above to start building your timeline.</p>
+                        </div>
+                    `;
+                    countEl.textContent = '0 entries';
+                    return;
+                }
+
+                countEl.textContent = `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`;
+
+                // Sort by date descending
+                entries.sort((a, b) => new Date(b.event_date || b.date) - new Date(a.event_date || a.date));
+
+                timeline.innerHTML = entries.map(entry => renderEntry(entry, caseId)).join('');
+
+            } catch (err) {
+                timeline.innerHTML = `
+                    <div class="timeline-empty">
+                        <div class="timeline-empty-icon">⚠️</div>
+                        <h3>Could not load entries</h3>
+                        <p>${err.message}. <button onclick="loadEntries()" class="btn">Try Again</button></p>
+                    </div>
+                `;
+                countEl.textContent = 'Error loading';
+            }
+        }
+
+        function renderEntry(entry, caseId) {
+            const date = new Date(entry.event_date || entry.date);
+            const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const typeClass = getTypeClass(entry.event_type || entry.type);
+            const typeLabel = getTypeLabel(entry.event_type || entry.type);
+
+            return `
+                <div class="entry" data-id="${entry.id || entry.event_id}" data-case="${caseId}">
+                    <div class="entry-header">
+                        <span class="entry-type ${typeClass}">${typeLabel}</span>
+                        <span class="entry-date">${formattedDate}</span>
+                    </div>
+                    <div class="entry-title">${escapeHtml(entry.title)}</div>
+                    ${entry.description ? `<div class="entry-desc">${escapeHtml(entry.description)}</div>` : ''}
+                    <div class="entry-actions">
+                        <button class="btn btn-secondary" onclick="editEntry('${entry.id || entry.event_id}')">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteEntry('${entry.id || entry.event_id}', '${caseId}')">Delete</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getTypeClass(type) {
+            const map = {
+                'payment': 'rent',
+                'rent_payment': 'rent',
+                'maintenance': 'maintenance',
+                'maintenance_request': 'maintenance',
+                'repair': 'maintenance',
+                'communication': 'communication',
+                'landlord_communication': 'communication',
+                'notice': 'court',
+                'court': 'court',
+                'hearing': 'court',
+                'general': 'general',
+                'general_note': 'general',
+                'other': 'general'
+            };
+            return map[type] || 'general';
+        }
+
+        function getTypeLabel(type) {
+            const map = {
+                'payment': 'Rent Payment',
+                'rent_payment': 'Rent Payment',
+                'maintenance': 'Maintenance',
+                'maintenance_request': 'Maintenance',
+                'repair': 'Maintenance',
+                'communication': 'Communication',
+                'landlord_communication': 'Communication',
+                'notice': 'Notice',
+                'court': 'Court',
+                'hearing': 'Court',
+                'general': 'Note',
+                'general_note': 'Note',
+                'other': 'Note'
+            };
+            return map[type] || 'Note';
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function saveEntry() {
+            const date = document.getElementById('entryDate').value;
+            const type = document.getElementById('entryType').value;
+            const title = document.getElementById('entryTitle').value;
+            const desc = document.getElementById('entryDesc').value;
+
+            try {
+                // Get case ID
+                const casesResp = await fetch(`${API_BASE}/cases`);
+                const casesData = await casesResp.json();
+                let caseId;
+
+                if (casesData.cases && casesData.cases.length > 0) {
+                    caseId = casesData.cases[0].id;
+                } else {
+                    // Create a new case if none exists
+                    const createResp = await fetch(`${API_BASE}/cases`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            title: 'My Tenancy',
+                            description: 'Created from journal entry'
+                        })
+                    });
+                    const createData = await createResp.json();
+                    caseId = createData.case.id;
+                }
+
+                const payload = {
+                    title: title,
+                    description: desc,
+                    event_date: date,
+                    event_type: type,
+                    is_deadline: false
+                };
+
+                let url = `${API_BASE}/cases/${caseId}/timeline`;
+                let method = 'POST';
+
+                if (editingEntryId) {
+                    url = `${API_BASE}/cases/${caseId}/timeline/${editingEntryId}`;
+                    method = 'PUT';
+                }
+
+                const resp = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!resp.ok) throw new Error('Failed to save entry');
+
+                resetForm();
+                loadEntries();
+
+            } catch (err) {
+                alert('Error saving entry: ' + err.message);
+            }
+        }
+
+        async function editEntry(entryId) {
+            const entryEl = document.querySelector(`[data-id="${entryId}"]`);
+            if (!entryEl) return;
+
+            const title = entryEl.querySelector('.entry-title').textContent;
+            const desc = entryEl.querySelector('.entry-desc')?.textContent || '';
+            const dateText = entryEl.querySelector('.entry-date').textContent;
+            const typeClass = entryEl.querySelector('.entry-type').className;
+
+            // Parse date back to YYYY-MM-DD
+            const date = new Date(dateText);
+            const dateStr = date.toISOString().split('T')[0];
+
+            // Fill form
+            document.getElementById('entryDate').value = dateStr;
+            document.getElementById('entryTitle').value = title;
+            document.getElementById('entryDesc').value = desc;
+
+            // Determine type from class
+            let type = 'general_note';
+            if (typeClass.includes('rent')) type = 'rent_payment';
+            else if (typeClass.includes('maintenance')) type = 'maintenance_request';
+            else if (typeClass.includes('communication')) type = 'landlord_communication';
+            else if (typeClass.includes('court')) type = 'notice';
+
+            document.getElementById('entryType').value = type;
+
+            editingEntryId = entryId;
+            document.getElementById('cancelEdit').style.display = 'inline-block';
+            document.querySelector('.form-title').textContent = 'Edit Entry';
+
+            // Highlight editing entry
+            document.querySelectorAll('.entry').forEach(e => e.classList.remove('editing'));
+            entryEl.classList.add('editing');
+        }
+
+        async function deleteEntry(entryId, caseId) {
+            if (!confirm('Are you sure you want to delete this entry? This cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const resp = await fetch(`${API_BASE}/cases/${caseId}/timeline/${entryId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!resp.ok) throw new Error('Failed to delete entry');
+
+                loadEntries();
+
+            } catch (err) {
+                alert('Error deleting entry: ' + err.message);
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('entryForm').reset();
+            document.getElementById('entryDate').valueAsDate = new Date();
+            editingEntryId = null;
+            document.getElementById('cancelEdit').style.display = 'none';
+            document.querySelector('.form-title').textContent = 'Add New Entry';
+            document.querySelectorAll('.entry').forEach(e => e.classList.remove('editing'));
+        }
+    </script>
+</body>
+</html>
