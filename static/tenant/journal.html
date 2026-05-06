@@ -272,31 +272,12 @@
             const countEl = document.getElementById('entryCount');
 
             try {
-                // First get user's case
-                const casesResp = await fetch(`${API_BASE}/cases`);
-                if (!casesResp.ok) throw new Error('Failed to load cases');
-                const casesData = await casesResp.json();
-
-                if (!casesData.cases || casesData.cases.length === 0) {
-                    timeline.innerHTML = `
-                        <div class="timeline-empty">
-                            <div class="timeline-empty-icon">📝</div>
-                            <h3>No entries yet</h3>
-                            <p>Your journal is empty. Add your first entry above to start building your timeline.</p>
-                        </div>
-                    `;
-                    countEl.textContent = '0 entries';
-                    return;
-                }
-
-                const caseId = casesData.cases[0].id;
-
-                // Get timeline events
-                const eventsResp = await fetch(`${API_BASE}/cases/${caseId}/timeline`);
+                // Use Core endpoint: timeline-unified
+                const eventsResp = await fetch('/api/timeline-unified', { credentials: 'include' });
                 if (!eventsResp.ok) throw new Error('Failed to load timeline');
                 const eventsData = await eventsResp.json();
 
-                const entries = eventsData.timeline || [];
+                const entries = eventsData.timeline || eventsData.events || [];
 
                 if (entries.length === 0) {
                     timeline.innerHTML = `
@@ -315,7 +296,7 @@
                 // Sort by date descending
                 entries.sort((a, b) => new Date(b.event_date || b.date) - new Date(a.event_date || a.date));
 
-                timeline.innerHTML = entries.map(entry => renderEntry(entry, caseId)).join('');
+                timeline.innerHTML = entries.map(entry => renderEntry(entry)).join('');
 
             } catch (err) {
                 timeline.innerHTML = `
@@ -329,14 +310,14 @@
             }
         }
 
-        function renderEntry(entry, caseId) {
+        function renderEntry(entry) {
             const date = new Date(entry.event_date || entry.date);
             const formattedDate = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             const typeClass = getTypeClass(entry.event_type || entry.type);
             const typeLabel = getTypeLabel(entry.event_type || entry.type);
 
             return `
-                <div class="entry" data-id="${entry.id || entry.event_id}" data-case="${caseId}">
+                <div class="entry" data-id="${entry.id || entry.event_id}">
                     <div class="entry-header">
                         <span class="entry-type ${typeClass}">${typeLabel}</span>
                         <span class="entry-date">${formattedDate}</span>
@@ -345,7 +326,7 @@
                     ${entry.description ? `<div class="entry-desc">${escapeHtml(entry.description)}</div>` : ''}
                     <div class="entry-actions">
                         <button class="btn btn-secondary" onclick="editEntry('${entry.id || entry.event_id}')">Edit</button>
-                        <button class="btn btn-danger" onclick="deleteEntry('${entry.id || entry.event_id}', '${caseId}')">Delete</button>
+                        <button class="btn btn-danger" onclick="deleteEntry('${entry.id || entry.event_id}')">Delete</button>
                     </div>
                 </div>
             `;
@@ -403,27 +384,7 @@
             const desc = document.getElementById('entryDesc').value;
 
             try {
-                // Get case ID
-                const casesResp = await fetch(`${API_BASE}/cases`);
-                const casesData = await casesResp.json();
-                let caseId;
-
-                if (casesData.cases && casesData.cases.length > 0) {
-                    caseId = casesData.cases[0].id;
-                } else {
-                    // Create a new case if none exists
-                    const createResp = await fetch(`${API_BASE}/cases`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            title: 'My Tenancy',
-                            description: 'Created from journal entry'
-                        })
-                    });
-                    const createData = await createResp.json();
-                    caseId = createData.case.id;
-                }
-
+                // Use Core endpoint: briefcase/timeline-event
                 const payload = {
                     title: title,
                     description: desc,
@@ -432,21 +393,14 @@
                     is_deadline: false
                 };
 
-                let url = `${API_BASE}/cases/${caseId}/timeline`;
-                let method = 'POST';
-
-                if (editingEntryId) {
-                    url = `${API_BASE}/cases/${caseId}/timeline/${editingEntryId}`;
-                    method = 'PUT';
-                }
-
-                const resp = await fetch(url, {
-                    method: method,
+                const createResp = await fetch('/api/briefcase/timeline-event', {
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify(payload)
                 });
 
-                if (!resp.ok) throw new Error('Failed to save entry');
+                if (!createResp.ok) throw new Error('Failed to save entry');
 
                 resetForm();
                 loadEntries();
@@ -498,13 +452,10 @@
             }
 
             try {
-                const resp = await fetch(`${API_BASE}/cases/${caseId}/timeline/${entryId}`, {
-                    method: 'DELETE'
-                });
-
-                if (!resp.ok) throw new Error('Failed to delete entry');
-
-                loadEntries();
+                // TODO: Core doesn't have delete endpoint for timeline events yet
+                // For now, just reload to reflect the change if implemented later
+                alert('Delete not yet implemented in Core build. Feature coming soon.');
+                // loadEntries();
 
             } catch (err) {
                 alert('Error deleting entry: ' + err.message);
