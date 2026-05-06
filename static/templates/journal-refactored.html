@@ -1,0 +1,324 @@
+<!--
+  SSOT Design System Example: Journal Page (Refactored)
+  
+  This demonstrates how to use the SSOT design system.
+  Compare with original journal.html to see the improvements:
+  - Consistent styling via CSS variables
+  - Utility classes for layout
+  - Component classes for UI elements
+  - Better accessibility
+  - Cleaner, maintainable code
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Journal | Semptify</title>
+  <link rel="stylesheet" href="/static/css/ssot-design-system.css">
+  <style>
+    /* Page-specific styles only */
+    .journal-entry {
+      border-left: 4px solid var(--color-gray-300);
+      transition: border-color var(--transition-fast);
+    }
+    .journal-entry:hover {
+      border-left-color: var(--color-primary-light);
+    }
+    .journal-entry--urgent {
+      border-left-color: var(--color-error);
+    }
+    .journal-entry--notice {
+      border-left-color: var(--color-warning);
+    }
+    .journal-entry--court {
+      border-left-color: var(--color-primary);
+    }
+  </style>
+</head>
+<body>
+  
+  <!-- Skip Link -->
+  <a href="#main-content" class="sr-only focus-visible">Skip to main content</a>
+  
+  <!-- Drawer Backdrop -->
+  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
+  
+  <!-- Mobile Nav Drawer -->
+  <nav class="nav-drawer" id="nav-drawer">
+    <div class="drawer-header">
+      <strong>Semptify</strong>
+      <button onclick="closeDrawer()" class="drawer-close">✕</button>
+    </div>
+    <a href="/tenant/home">🏠 Home</a>
+    <a href="/tenant/journal" class="active-link">📝 Journal</a>
+    <a href="/tenant/documents">📁 Documents</a>
+    <a href="/law-library">⚖️ Rights</a>
+    <a href="/tenant/help">🆘 Help</a>
+  </nav>
+  
+  <!-- Header -->
+  <header class="page-header">
+    <div class="container">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <button class="hamburger hide-desktop" onclick="openDrawer()">☰</button>
+          <a href="/" class="text-2xl font-bold text-inverse" style="text-decoration: none;">Semptify</a>
+        </div>
+        <nav class="core-nav hide-mobile">
+          <a href="/tenant/home" class="nav__link">🏠 Home</a>
+          <a href="/tenant/journal" class="nav__link nav__link--active">📝 Journal</a>
+          <a href="/tenant/documents" class="nav__link">📁 Documents</a>
+          <a href="/law-library" class="nav__link">⚖️ Rights</a>
+          <a href="/tenant/help" class="nav__link">🆘 Help</a>
+        </nav>
+        <div class="flex items-center gap-3">
+          <button class="btn btn--ghost text-inverse">🔒 Vault</button>
+          <button class="btn btn--ghost text-inverse">👤 Tenant</button>
+        </div>
+      </div>
+      <div class="mt-6">
+        <h1 class="page-header__title">Journal</h1>
+        <p class="page-header__subtitle">Record and track your tenancy timeline</p>
+      </div>
+    </div>
+  </header>
+  
+  <!-- Main Content -->
+  <main id="main-content" class="container py-6">
+    <div class="page-layout">
+      
+      <!-- Sidebar -->
+      <aside class="sidebar hide-mobile">
+        <div class="sidebar__section">
+          <h3 class="sidebar__title">Actions</h3>
+          <button class="btn btn--primary w-full mb-2" onclick="showAddModal()">
+            ➕ New Entry
+          </button>
+          <button class="btn btn--secondary w-full" onclick="exportJournal()">
+            📤 Export
+          </button>
+        </div>
+        
+        <div class="sidebar__section">
+          <h3 class="sidebar__title">Categories</h3>
+          <nav class="nav nav--vertical">
+            <a href="#" class="nav__link nav__link--active">All Entries</a>
+            <a href="#" class="nav__link">🏠 Maintenance</a>
+            <a href="#" class="nav__link">💬 Communication</a>
+            <a href="#" class="nav__link">⚖️ Legal</a>
+            <a href="#" class="nav__link">💰 Payments</a>
+          </nav>
+        </div>
+        
+        <div class="sidebar__section">
+          <h3 class="sidebar__title">Stats</h3>
+          <div class="flex items-center justify-between text-sm mb-2">
+            <span class="text-secondary">Total Entries</span>
+            <span class="badge badge--secondary" id="entry-count">0</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-secondary">This Month</span>
+            <span class="badge badge--primary" id="month-count">0</span>
+          </div>
+        </div>
+      </aside>
+      
+      <!-- Main Content Area -->
+      <section class="main-content">
+        
+        <!-- Mobile Actions -->
+        <div class="hide-desktop mb-4 flex gap-2">
+          <button class="btn btn--primary flex-1" onclick="showAddModal()">➕ New Entry</button>
+          <button class="btn btn--secondary" onclick="exportJournal()">📤</button>
+        </div>
+        
+        <!-- Empty State -->
+        <div id="empty-state" class="text-center py-12">
+          <div class="text-6xl mb-4">📝</div>
+          <h3 class="text-xl font-semibold mb-2">No journal entries yet</h3>
+          <p class="text-secondary mb-4">Start documenting your tenancy journey</p>
+          <button class="btn btn--primary" onclick="showAddModal()">
+            Create First Entry
+          </button>
+        </div>
+        
+        <!-- Journal Entries List -->
+        <div id="journal-list" class="flex flex-col gap-4" style="display: none;">
+          <!-- Entry Card -->
+          <article class="card journal-entry">
+            <div class="card__body">
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="badge badge--warning">🏠 Maintenance</span>
+                    <span class="text-sm text-muted">Jan 15, 2026</span>
+                  </div>
+                  <h4 class="font-semibold text-lg mb-1">Reported leaking faucet</h4>
+                  <p class="text-secondary text-sm">Submitted maintenance request through tenant portal. Attached photos of the leak under kitchen sink.</p>
+                </div>
+                <div class="flex gap-2">
+                  <button class="btn btn--ghost btn--sm" onclick="editEntry(1)">✏️</button>
+                  <button class="btn btn--ghost btn--sm" onclick="deleteEntry(1)">🗑️</button>
+                </div>
+              </div>
+            </div>
+          </article>
+          
+          <!-- Another Entry -->
+          <article class="card journal-entry journal-entry--notice">
+            <div class="card__body">
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="badge badge--accent">⚠️ Notice</span>
+                    <span class="text-sm text-muted">Jan 10, 2026</span>
+                  </div>
+                  <h4 class="font-semibold text-lg mb-1">Received rent increase notice</h4>
+                  <p class="text-secondary text-sm">Landlord provided 60-day notice of rent increase effective March 1st. Increase is 5% which is within legal limits.</p>
+                </div>
+                <div class="flex gap-2">
+                  <button class="btn btn--ghost btn--sm">✏️</button>
+                  <button class="btn btn--ghost btn--sm">🗑️</button>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+        
+      </section>
+    </div>
+  </main>
+  
+  <!-- Add/Edit Modal -->
+  <div id="entry-modal" class="modal" style="display: none;">
+    <div class="modal-backdrop" onclick="closeModal()"></div>
+    <div class="modal-content card" style="max-width: var(--max-width-lg); margin: 2rem auto;">
+      <div class="card__header flex items-center justify-between">
+        <h3 class="card__title">New Journal Entry</h3>
+        <button onclick="closeModal()" class="btn btn--ghost btn--sm">✕</button>
+      </div>
+      <div class="card__body">
+        <form id="entry-form" onsubmit="saveEntry(event)">
+          <div class="form-group">
+            <label class="form-label form-label--required" for="entry-date">Date</label>
+            <input type="date" id="entry-date" class="form-input" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label form-label--required" for="entry-category">Category</label>
+            <select id="entry-category" class="form-select" required>
+              <option value="">Select category...</option>
+              <option value="maintenance">🏠 Maintenance Request</option>
+              <option value="communication">💬 Landlord Communication</option>
+              <option value="payment">💰 Rent Payment</option>
+              <option value="notice">⚠️ Notice Received</option>
+              <option value="court">⚖️ Court/Legal</option>
+              <option value="general">📝 General Note</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label form-label--required" for="entry-title">Title</label>
+            <input type="text" id="entry-title" class="form-input" placeholder="Brief summary..." required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label" for="entry-description">Description</label>
+            <textarea id="entry-description" class="form-textarea" placeholder="Add details..." rows="4"></textarea>
+          </div>
+          
+          <div class="card__footer" style="margin: 0 -1.5rem -1.5rem;">
+            <button type="button" class="btn btn--secondary" onclick="closeModal()">Cancel</button>
+            <button type="submit" class="btn btn--primary">Save Entry</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Footer -->
+  <footer class="page-footer">
+    <div class="container">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="text-sm">© 2026 Semptify. Free forever. No ads.</div>
+        <nav class="flex flex-wrap gap-4 text-sm">
+          <a href="/public/privacy.html">Privacy</a>
+          <a href="/public/terms.html">Terms</a>
+          <a href="/public/disclaimer.html">Disclaimer</a>
+        </nav>
+      </div>
+    </div>
+  </footer>
+  
+  <!-- Scripts -->
+  <script>
+    // Mobile Drawer
+    function openDrawer() {
+      document.getElementById('nav-drawer').classList.add('open');
+      document.getElementById('drawer-backdrop').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    
+    function closeDrawer() {
+      document.getElementById('nav-drawer').classList.remove('open');
+      document.getElementById('drawer-backdrop').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    
+    // Modal
+    function showAddModal() {
+      document.getElementById('entry-modal').style.display = 'block';
+      document.getElementById('entry-date').valueAsDate = new Date();
+    }
+    
+    function closeModal() {
+      document.getElementById('entry-modal').style.display = 'none';
+      document.getElementById('entry-form').reset();
+    }
+    
+    // Entry CRUD
+    function saveEntry(e) {
+      e.preventDefault();
+      const date = document.getElementById('entry-date').value;
+      const category = document.getElementById('entry-category').value;
+      const title = document.getElementById('entry-title').value;
+      const description = document.getElementById('entry-description').value;
+      
+      // In real app: POST to API
+      console.log('Saving entry:', { date, category, title, description });
+      
+      // Show list, hide empty state
+      document.getElementById('empty-state').style.display = 'none';
+      document.getElementById('journal-list').style.display = 'flex';
+      
+      closeModal();
+    }
+    
+    function editEntry(id) {
+      console.log('Editing entry', id);
+      showAddModal();
+    }
+    
+    function deleteEntry(id) {
+      if (confirm('Delete this entry?')) {
+        console.log('Deleting entry', id);
+      }
+    }
+    
+    function exportJournal() {
+      console.log('Exporting journal...');
+      alert('Journal export coming soon!');
+    }
+    
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeDrawer();
+        closeModal();
+      }
+    });
+  </script>
+  
+</body>
+</html>

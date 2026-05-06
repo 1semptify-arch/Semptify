@@ -1372,78 +1372,36 @@ async def list_documents(
 
     """List all documents for the authenticated user."""
 
+    if not HAS_VAULT_SERVICE:
+        raise HTTPException(status_code=503, detail="Vault service not available")
+
     user_id = user.user_id
+    vault_service = get_vault_service()
 
-    pipeline = get_document_pipeline()
+    # Get documents from vault (DB-backed, SSOT)
+    docs = await vault_service.get_user_documents(user_id, document_type=doc_type)
 
-    
-
-    if doc_type:
-
-        try:
-
-            dtype = DocumentType(doc_type)
-
-            docs = pipeline.get_user_documents_by_type(user_id, dtype)
-
-        except ValueError:
-
-            docs = pipeline.get_user_documents(user_id)
-
-    else:
-
-        docs = pipeline.get_user_documents(user_id)
-
-    
-
+    # Filter by status if provided
     if status:
-
-        try:
-
-            pstatus = ProcessingStatus(status)
-
-            docs = [d for d in docs if d.status == pstatus]
-
-        except ValueError:
-
-            pass
-
-    
+        docs = [d for d in docs if (d.processed and status == "processed") or (not d.processed and status == "pending")]
 
     return [
-
         DocumentResponse(
-
-            id=d.id,
-
+            id=d.vault_id,
             filename=d.filename,
-
-            original_filename=getattr(d, 'original_filename', None) or d.filename,
-
-            status=d.status.value,
-
-            doc_type=d.doc_type.value if d.doc_type else None,
-
-            document_type=d.doc_type.value if d.doc_type else None,
-
-            mime_type=getattr(d, 'mime_type', None),
-
-            confidence=d.confidence,
-
-            title=d.title,
-
-            summary=d.summary,
-
-            uploaded_at=d.uploaded_at.isoformat() if d.uploaded_at else None,
-
-            analyzed_at=d.analyzed_at.isoformat() if d.analyzed_at else None,
-
-            certificate_path=getattr(d, 'certificate_path', None),
-
+            original_filename=d.filename,
+            status="processed" if d.processed else "pending",
+            doc_type=d.document_type,
+            document_type=d.document_type,
+            mime_type=d.mime_type,
+            confidence=None,
+            title=d.description,
+            summary=d.description,
+            uploaded_at=d.uploaded_at,
+            analyzed_at=d.uploaded_at if d.processed else None,
+            certificate_path=d.certificate_id,
         )
-
         for d in docs
-
     ]
 
 

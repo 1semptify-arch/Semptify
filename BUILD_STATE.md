@@ -3,7 +3,56 @@
 
 ---
 
-## Shipped This Session (988d353)
+## Shipped This Session (4208d0c)
+
+### Tenant GUI Core Compliance — BUILD_GUIDE_SSOT.md COMPLIANT ✅
+- [x] **Dashboard updated to Core endpoints** — Changed from `/api/tenancy/cases` (Extended) to `/api/documents/`, `/api/timeline-unified`, `/api/briefcase` (Core)
+- [x] **Documents page updated** — Changed from `/api/intake/upload/auto` (Extended) to `/api/documents/upload` (Core)
+- [x] **Journal page updated** — Changed from `/api/tenancy/cases` (Extended) to `/api/timeline-unified` and `/api/briefcase/timeline-event` (Core)
+- [x] **Removed Extended 'case' concept** — Core uses document/timeline model only
+- [x] **Delete timeline event marked as TODO** — Core doesn't have delete endpoint yet (future work)
+
+**Core Philosophy Compliance:** "Lightweight tenant journal + document vault + rights education. No AI, no legal filing, no campaigns, no multi-user."
+
+---
+
+## Previous Shipped This Session (87e822d)
+
+### Tenant GUI Backend Connectivity — CRITICAL FIX
+- [x] **Added /api/tenancy prefix to tenancy_hub router** — Dashboard now connects to `/api/tenancy/cases`
+- [x] **Enabled intake_router and added /api/intake prefix** — Document upload now connects to `/api/intake/upload/auto`
+- [x] **Enabled all case management routers** — intake, case_builder, actions, progress, plan_maker, tools_api
+- [x] **Verified all tenant GUI pages have working backends**:
+  - Dashboard → `/api/tenancy/cases`, `/api/tenancy/cases/{id}/deadlines`, `/api/tenancy/cases/{id}/timeline`, `/api/tenancy/cases/{id}/documents`
+  - Documents → `/api/vault/`, `/api/intake/upload/auto`
+  - Journal → `/api/tenancy/cases`, `/api/tenancy/cases/{id}/timeline`
+  - Law Library → static content (no API needed)
+  - Deadlines → static content (no API needed)
+
+---
+
+## Previous Shipped This Session (85f7cde)
+
+### OAuth Callback Bug Fixes — CRITICAL
+- [x] **Added 'user' to ALLOWED_ROLES** — Fixes role naming inconsistency between user/tenant/client
+- [x] **Fixed undefined 'role' variable** — Role now extracted from user_id for returning users in oauth_callback
+- [x] **Removed duplicate provider parameter** — Fixed create_or_update_user call that passed provider twice
+- [x] **Fixed SSOT redirect paths** — Added trailing slashes to /onboarding redirects
+- [x] **Added error banner display** — OAuth failures now show user-friendly error messages on storage providers page
+
+---
+
+## Last Deployed Commit
+- **Hash**: `85f7cde`
+- **Date**: 2026-05-06 01:36 UTC-05
+- **Status**: ✅ **DEPLOYING** (check Render dashboard)
+- **Branch**: `main`
+- **Repo**: https://github.com/1semptify-arch/Semptify.git
+- **Render auto-deploy**: YES — triggers on every push to main
+
+---
+
+## Previous Shipped (988d353)
 
 ### Auto-Migration on Deploy — ADDED
 - [x] Added `run_migrations()` stage to app lifespan (Stage 3b)
