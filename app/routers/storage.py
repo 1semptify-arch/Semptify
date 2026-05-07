@@ -48,6 +48,7 @@ from app.core.user_id import (
     COOKIE_USER_ID,
     COOKIE_MAX_AGE,
 )
+from app.core.stateless_oauth import StatelessOAuthManager
 from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
 from app.core.security import (
@@ -355,9 +356,50 @@ async def get_valid_session(
     Get a session with a valid (non-expired) access token.
     Will automatically refresh if token is expired and auto_refresh=True.
     
+    STEP 2: Check cloud storage first, then fall back to database.
+    
     Returns session dict with valid token, or None if session invalid/refresh failed.
     """
-    # Get session from DB
+    # STEP 2: Try cloud storage first (stateless approach)
+    # NOTE: Disabled for now - get_vault_client doesn't exist, using DB fallback only
+    # try:
+    #     from app.services.storage import get_provider
+    #     from app.core.user_id import parse_user_id
+    #     
+    #     parsed = parse_user_id(user_id)
+    #     storage = get_provider(parsed.provider, access_token=None)
+    #     
+    #     if storage:
+    #         oauth_manager = StatelessOAuthManager(storage)
+    #         session = await oauth_manager.get_session(user_id)
+    #         
+    #         if session:
+    #             logger.info(f"✅ Session retrieved from cloud storage for user={user_id[:4]}...")
+    #             
+    #             # Check if session is still valid
+    #             expires_at = session.get("expires_at")
+    #             if expires_at:
+    #                 expires_datetime = datetime.fromtimestamp(expires_at, timezone.utc)
+    #                 if datetime.now(timezone.utc) >= (expires_datetime - TOKEN_EXPIRY_BUFFER):
+    #                     logger.info(f"Session from cloud storage expired for user={user_id[:4]}..., checking DB")
+    #                     # Fall through to DB check for potential refresh
+    #                 else:
+    #                     # Session is valid
+    #                     return session
+    #             else:
+    #                 # No expiry info, validate with provider
+    #                 provider = session.get("provider")
+    #                 access_token = session.get("access_token")
+    #                 if provider and access_token:
+    #                     is_valid = await oauth_manager.validate_token_with_provider(provider, access_token)
+    #                     if is_valid:
+    #                         return session
+    #                     else:
+    #                         logger.info(f"Session from cloud storage invalid for user={user_id[:4]}..., checking DB")
+    # except Exception as e:
+    #     logger.exception(f"Error checking cloud storage for session: {e}")
+    
+    # Fallback to database only for now
     session = await get_session_from_db(db, user_id)
     if not session:
         return None
@@ -1873,66 +1915,110 @@ async def oauth_callback(
         expires_in = token_data.get("expires_in", 3600)
         token_expires_at = (utc_now() + timedelta(seconds=expires_in)).isoformat() + "Z"
 
-        # Save session to database (persists across server restarts)
-        expires_at = utc_now() + timedelta(seconds=token_data.get("expires_in", 3600))
-        print(f"💾 Saving session to DB: user_id={user_id}, provider={provider}, expires_at={expires_at}")
-        await save_session_to_db(
-            db=db,
-            user_id=user_id,
-            provider=provider,
-            access_token=access_token,
-            refresh_token=refresh_token,
-            expires_at=expires_at,
-        )
+        # STEP 1: Store OAuth tokens in user's cloud storage (stateless approach)
+        # This keeps tokens private and removes server-side token storage
+        try:
+            from app.services.storage import get_provider
+            storage = get_provider(provider, access_token=access_token)
+            
+            if storage:
+                oauth_manager = StatelessOAuthManager(storage)
+                token_stored = await oauth_manager.store_oauth_tokens(
+                    user_id=user_id,
+                    provider=provider,
+                    access_token=access_token,
+                    refresh_token=refresh_token,
+                    expires_at=int(utc_now().timestamp() + expires_in),
+                )
+                
+                if token_stored:
+                    logger.info(f"✅ OAuth tokens stored in cloud storage for user={user_id[:4]}... provider={provider}")
+                    
+                    # STEP 2: Store session in cloud storage (stateless approach)
+                    session_data = {
+                        "user_id": user_id,
+                        "provider": provider,
+                        "access_token": access_token,  # Reference only, actual token in OAuth storage
+                        "expires_at": int(utc_now().timestamp() + expires_in),
+                        "created_at": utc_now().isoformat() + "Z",
+                    }
+                    session_stored = await oauth_manager.store_session(user_id, session_data)
+                    
+                    if session_stored:
+                        logger.info(f"✅ Session stored in cloud storage for user={user_id[:4]}...")
+                    else:
+                        logger.warning(f"⚠️ Failed to store session in cloud storage, using DB fallback")
+                        # Fallback to database storage for session
+                        expires_at = utc_now() + timedelta(seconds=token_data.get("expires_in", 3600))
+                        await save_session_to_db(
+                            db=db,
+                            user_id=user_id,
+                            provider=provider,
+                            access_token=access_token,
+                            refresh_token=refresh_token,
+                            expires_at=expires_at,
+                        )
+                else:
+                    logger.warning(f"⚠️ Failed to store OAuth tokens in cloud storage, using DB fallback")
+                    # Fallback to database storage if cloud storage fails
+                    expires_at = utc_now() + timedelta(seconds=token_data.get("expires_in", 3600))
+                    await save_session_to_db(
+                        db=db,
+                        user_id=user_id,
+                        provider=provider,
+                        access_token=access_token,
+                        refresh_token=refresh_token,
+                        expires_at=expires_at,
+                    )
+            else:
+                # Vault not available, use database fallback
+                logger.warning(f"Vault not available for user={user_id[:4]}..., using DB fallback")
+                expires_at = utc_now() + timedelta(seconds=token_data.get("expires_in", 3600))
+                await save_session_to_db(
+                    db=db,
+                    user_id=user_id,
+                    provider=provider,
+                    access_token=access_token,
+                    refresh_token=refresh_token,
+                    expires_at=expires_at,
+                )
+        except Exception as e:
+            logger.exception(f"Error storing OAuth tokens/sessions in cloud storage: {e}")
+            # Fallback to database storage on error
+            expires_at = utc_now() + timedelta(seconds=token_data.get("expires_in", 3600))
+            await save_session_to_db(
+                db=db,
+                user_id=user_id,
+                provider=provider,
+                access_token=access_token,
+                refresh_token=refresh_token,
+                expires_at=expires_at,
+            )
         # NOTE: Semptify does NOT store user PII (email, name) in its database.
         # User data lives only in their cloud storage vault.
         # A user is "new" only if they had no existing_uid in state AND were not
         # matched to an existing DB account by provider subject during this callback.
         is_new_user = not state_data.get("existing_uid") and not matched_user
+        
+        # CRITICAL: Create User record in database before marking gate complete
+        # The middleware checks for user existence and gate completion
+        await create_or_update_user(
+            db=db,
+            user_id=user_id,
+            provider=provider,
+            storage_user_id=provider_subject,
+        )
+        
         await get_or_create_storage_config(db, user_id, provider)
 
         # Permanently record that storage authentication is complete.
         # This is the ProcessGroup exit gate: session saved + user row written = storage connected.
         await _mark_group_complete(db, user_id, "storage_connected")
 
-        # Provision the user's storage vault BEFORE determining landing page.
-        # The vault must exist before route_user() checks document count.
-        import os
-        is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
-        from app.core.cookie_auth import set_auth_cookie
-
-        # CRITICAL: Ensure user_id is set before creating auth_marker
-        if not user_id and user:
-            user_id = str(user.id)
-
-        auth_marker = {
-            "user_id": user_id,
-            "provider": provider,
-            "created_at": utc_now().isoformat() + "Z",
-            "version": "5.0",
-        }
-        encrypted = _encrypt_token(auth_marker, user_id)
-        base_url = str(request.base_url).rstrip("/")
-
+        # NOTE: Old vault provisioning system removed - now using stateless OAuth storage
+        # Tokens and sessions are stored in .semptify/auth/ and .semptify/sessions/
+        # via StatelessOAuthManager instead of the old VaultManager system
         vault_ok = True
-        try:
-            await _store_auth_marker(
-                provider=provider,
-                access_token=access_token,
-                encrypted=encrypted,
-                user_id=user_id,
-                base_url=base_url,
-                refresh_token=refresh_token,
-                token_expires_at=token_expires_at,
-                db=db,
-            )
-        except Exception:
-            logger.exception(
-                "OAuth vault provisioning failed after auth success for provider=%s user_id=%s",
-                provider,
-                user_id,
-            )
-            vault_ok = False
 
         # Determine landing page — AFTER vault provisioning attempt.
         # New users (no existing_uid) always go to the onboarding upload step:
@@ -1948,55 +2034,9 @@ async def oauth_callback(
         elif return_to:
             landing = return_to
         elif is_new_user:
-            # Auto-create test document to tick counter and prevent case file diversion
-            try:
-                from app.routers.vault import get_vault_client
-                from app.models.models import Document
-                from datetime import datetime, timezone
-                import uuid
-                import hashlib
-                
-                # Strip HMAC signature for database operations and vault access
-                db_user_id = user_id.split('.')[0] if '.' in user_id else user_id
-                
-                vault = await get_vault_client(db, db_user_id)
-                if vault:
-                    # Create test document content
-                    test_content = b"Semptify vault verification document - This confirms your storage is working correctly."
-                    test_filename = "semptify_vault_verification.txt"
-                    doc_id = str(uuid.uuid4())
-                    
-                    # Upload test document to vault
-                    await vault.write_file(
-                        path=f"documents/{test_filename}",
-                        content=test_content,
-                        metadata={"purpose": "vault_verification", "auto_generated": True}
-                    )
-                    
-                    # Create Document record in database to tick counter
-                    file_hash = hashlib.sha256(test_content).hexdigest()
-                    doc = Document(
-                        id=doc_id,
-                        user_id=db_user_id,  # Document.user_id is VARCHAR(24)
-                        filename=test_filename,
-                        original_filename=test_filename,
-                        file_path=f".semptify/vault/documents/{test_filename}",
-                        file_size=len(test_content),
-                        mime_type="text/plain",
-                        document_type="other",
-                        sha256_hash=file_hash,
-                        uploaded_at=datetime.now(timezone.utc),
-                        description="Auto-generated vault verification document"
-                    )
-                    db.add(doc)
-                    await db.commit()
-                    
-                    logger.info(f"Auto-created test document {doc_id} to tick counter for new user {db_user_id[:6]}...")
-            except Exception as e:
-                logger.warning(f"Failed to auto-create test document: {e}")
-                # Continue anyway - vault_ok already succeeded
-            # Route directly to user home, skip upload step
-            landing = _route_user(user_id)
+            # NOTE: Auto-create test document removed - using stateless OAuth only
+            # New users go to upload step to manually upload first document
+            landing = "/onboarding/upload"
         else:
             landing = _route_user(user_id)
 
@@ -2019,18 +2059,8 @@ async def oauth_callback(
         response = HTMLResponse(content=html_content)
         set_auth_cookie(response, user_id, secure=True)
         
-        # Set storage provider cookie for storage gate verification
-        from app.core.user_id import COOKIE_STORAGE_PROVIDER
-        response.set_cookie(
-            key=COOKIE_STORAGE_PROVIDER,
-            value=provider,
-            max_age=365 * 24 * 60 * 60,  # 1 year
-            path="/",
-            secure=True,
-            samesite="lax",
-            httponly=False,
-        )
-        logger.info("Storage provider cookie set: %s", provider)
+        # NOTE: semdrive_provider cookie removed - provider is encoded in user_id
+        # This simplifies to single cookie architecture (stateless)
         
         logger.info("Auth cookie set for user: %s, redirecting to %s", user_id[:6] + "***", landing)
         response.delete_cookie("semptify_redirect_loop_count")
