@@ -106,181 +106,377 @@ ONBOARDING_TEMPLATE = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get Started with Semptify</title>
+    <title>Get Started — Semptify</title>
     <style>
         * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        
+
+        :root {{
+            --primary: #1e3a5f;
+            --primary-light: #2d5a87;
+            --accent: #3b82f6;
+            --warm: #f59e0b;
+            --text: #1e293b;
+            --text-light: #475569;
+            --bg: #fdfcfa;
+            --paper: #ffffff;
+            --border: #e2e8f0;
+            --success: #166534;
+            --success-bg: #f0fdf4;
+            --success-border: #bbf7d0;
+        }}
+
         body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
-            color: #fff;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
-            padding: 2rem;
+            line-height: 1.6;
         }}
-        
+
+        .page-header {{
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 2.5rem 2rem;
+            text-align: center;
+        }}
+
+        .page-header h1 {{
+            font-size: 2rem;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.25rem;
+        }}
+
+        .page-header .subtitle {{
+            font-size: 1rem;
+            font-weight: 300;
+            opacity: 0.85;
+            font-style: italic;
+        }}
+
+        .page-header .brand {{
+            font-size: 0.85rem;
+            opacity: 0.65;
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }}
+
         .container {{
-            max-width: 600px;
+            max-width: 680px;
             margin: 0 auto;
-            background: rgba(255,255,255,0.05);
-            border-radius: 16px;
             padding: 2rem;
-            backdrop-filter: blur(10px);
         }}
-        
-        h1 {{ margin-bottom: 0.5rem; font-size: 2rem; }}
-        .subtitle {{ color: #a7f3d0; margin-bottom: 2rem; }}
-        
-        .step-section {{ margin-bottom: 2rem; }}
-        .step-title {{ font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; }}
-        
-        .button-grid {{
+
+        .step-indicator {{
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-bottom: 2rem;
+            font-size: 0.85rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }}
+
+        .step {{
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--text-light);
+        }}
+
+        .step.active {{ color: var(--primary); font-weight: 600; }}
+        .step.done {{ color: var(--success); }}
+
+        .step-num {{
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }}
+
+        .step.active .step-num {{ background: var(--primary); color: white; border-color: var(--primary); }}
+        .step.done .step-num {{ background: var(--success); color: white; border-color: var(--success); }}
+
+        .step-sep {{
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+            margin: 0 0.5rem;
+        }}
+
+        .step-sep.done {{ background: var(--success); }}
+
+        .card-grid {{
             display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 1rem;
             margin-bottom: 1.5rem;
         }}
-        
-        .btn {{
-            padding: 1rem;
-            border: 2px solid transparent;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.1);
-            color: #fff;
+
+        @media (max-width: 520px) {{
+            .card-grid {{ grid-template-columns: 1fr; }}
+        }}
+
+        .role-card {{
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+            background: var(--paper);
             cursor: pointer;
-            transition: all 0.3s;
+            transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
             text-align: left;
-            font-size: 1rem;
+            position: relative;
+            font-family: inherit;
         }}
-        
-        .btn:hover {{
-            background: rgba(255,255,255,0.15);
-            border-color: #10b981;
-            transform: translateX(4px);
+
+        .role-card:hover:not(.disabled) {{
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(59,130,246,0.12);
+            transform: translateY(-2px);
         }}
-        
-        .btn-icon {{ font-size: 1.5rem; margin-right: 1rem; }}
-        .btn-label {{ font-weight: 600; }}
-        .btn-desc {{ font-size: 0.9rem; color: #a7f3d0; margin-top: 0.25rem; }}
-        
-        .progress {{
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
+
+        .role-card.disabled {{
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #f8fafc;
         }}
-        
-        .progress-dot {{
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.3);
+
+        .role-icon {{
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+            display: block;
         }}
-        
-        .progress-dot.active {{ background: #10b981; }}
-        
+
+        .role-name {{
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin-bottom: 0.2rem;
+        }}
+
+        .role-desc {{
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.4;
+        }}
+
+        .badge {{
+            display: inline-block;
+            font-size: 0.7rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+        }}
+
+        .badge-soon {{
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }}
+
+        .badge-active {{
+            background: var(--success-bg);
+            color: var(--success);
+            border: 1px solid var(--success-border);
+        }}
+
         .status-box {{
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid #10b981;
+            background: var(--success-bg);
+            border: 1px solid var(--success-border);
             border-radius: 8px;
-            padding: 1rem;
-            margin: 1.5rem 0;
-            color: #d1fae5;
+            padding: 0.875rem 1rem;
+            margin-bottom: 1.5rem;
+            color: var(--success);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 0.9rem;
         }}
-        
+
         .error-box {{
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid #ef4444;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
             border-radius: 8px;
-            padding: 1rem;
-            margin: 1.5rem 0;
-            color: #fca5a5;
+            padding: 0.875rem 1rem;
+            margin-bottom: 1.5rem;
+            color: #991b1b;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 0.9rem;
         }}
-        
-        .loading {{ text-align: center; padding: 2rem; }}
+
+        .provider-btn {{
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            background: var(--paper);
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            text-align: left;
+            margin-bottom: 0.75rem;
+            font-family: inherit;
+        }}
+
+        .provider-btn:hover {{
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(59,130,246,0.12);
+        }}
+
+        .provider-icon {{ font-size: 1.5rem; flex-shrink: 0; }}
+
+        .provider-name {{
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }}
+
+        .provider-desc {{
+            font-size: 0.83rem;
+            color: var(--text-light);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }}
+
+        .section-label {{
+            font-size: 0.85rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }}
+
+        .loading {{ text-align: center; padding: 3rem 2rem; }}
         .spinner {{
             display: inline-block;
-            width: 30px;
-            height: 30px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top-color: #10b981;
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }}
         @keyframes spin {{ to {{ transform: rotate(360deg); }} }}
+
+        .footer-note {{
+            margin-top: 2.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--text-light);
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }}
     </style>
 </head>
 <body>
+    <div class="page-header">
+        <div class="brand">Semptify</div>
+        <h1>__HEADER_TITLE__</h1>
+        <p class="subtitle">__HEADER_SUBTITLE__</p>
+    </div>
     <div class="container">
-        {content}
+        __CONTENT__
+        <div class="footer-note">
+            Free forever &middot; No advertising &middot; Privacy-first &middot; Not legal advice
+        </div>
     </div>
 </body>
 </html>
 """
 
+
+def _render_page(content: str, header_title: str = "Get Started", header_subtitle: str = "Protecting your housing rights.") -> str:
+    """Render an onboarding page using the shared template."""
+    return (
+        ONBOARDING_TEMPLATE
+        .replace("__HEADER_TITLE__", header_title)
+        .replace("__HEADER_SUBTITLE__", header_subtitle)
+        .replace("__CONTENT__", content)
+    )
+
 def _render_role_selection():
     """Role Selection Page with all 6 roles"""
-    return ONBOARDING_TEMPLATE.format(content="""
-        <div class="progress">
-            <div class="progress-dot active"></div>
-            <div class="progress-dot"></div>
-            <div class="progress-dot"></div>
-        </div>
-        
-        <h1>🏠 Welcome to Semptify</h1>
-        <p class="subtitle">Protect housing rights with organized evidence</p>
-        
-        <div class="step-section">
-            <p style="margin-bottom: 1.5rem;">What best describes you?</p>
-            
-            <div class="button-grid">
-                <button class="btn" onclick="selectRole('tenant')">
-                    <span class="btn-icon">🏠</span>
-                    <div>
-                        <div class="btn-label">Tenant</div>
-                        <div class="btn-desc">Organizing my own case</div>
-                    </div>
-                </button>
-                
-                <button class="btn" onclick="selectRole('advocate')">
-                    <span class="btn-icon">🤝</span>
-                    <div>
-                        <div class="btn-label">Advocate</div>
-                        <div class="btn-desc">Helping multiple clients</div>
-                    </div>
-                </button>
-                
-                <button class="btn" onclick="selectRole('legal')">
-                    <span class="btn-icon">⚖️</span>
-                    <div>
-                        <div class="btn-label">Legal Professional</div>
-                        <div class="btn-desc">Attorney or legal aid</div>
-                    </div>
-                </button>
-                
-                <button class="btn" onclick="selectRole('judge')">
-                    <span class="btn-icon">👨‍⚖️</span>
-                    <div>
-                        <div class="btn-label">Judge / Mediator</div>
-                        <div class="btn-desc">Neutral review & dispute resolution</div>
-                    </div>
-                </button>
-                
-                <button class="btn" onclick="selectRole('manager')">
-                    <span class="btn-icon">📋</span>
-                    <div>
-                        <div class="btn-label">Property Manager</div>
-                        <div class="btn-desc">Managing tenant relations</div>
-                    </div>
-                </button>
-                
-                <button class="btn" onclick="selectRole('admin')">
-                    <span class="btn-icon">🔧</span>
-                    <div>
-                        <div class="btn-label">System Admin</div>
-                        <div class="btn-desc">Platform administration</div>
-                    </div>
-                </button>
+    return _render_page(
+        header_title="Who are you here for?",
+        header_subtitle="Protecting housing rights, one record at a time.",
+        content="""
+        <div class="step-indicator">
+            <div class="step active">
+                <div class="step-num">1</div>
+                <span>Your Role</span>
+            </div>
+            <div class="step-sep"></div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <span>Connect Storage</span>
+            </div>
+            <div class="step-sep"></div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <span>First Document</span>
             </div>
         </div>
-        
+
+        <p class="section-label">Select your role to get started</p>
+
+        <div class="card-grid">
+            <button class="role-card" onclick="selectRole('tenant')">
+                <span class="role-icon">🏠</span>
+                <div class="role-name">Tenant</div>
+                <div class="role-desc">Organize your own housing case, documents, and evidence.</div>
+                <span class="badge badge-active">Available now</span>
+            </button>
+
+            <button class="role-card disabled" disabled>
+                <span class="role-icon">🤝</span>
+                <div class="role-name">Advocate</div>
+                <div class="role-desc">Support multiple clients and manage cases on their behalf.</div>
+                <span class="badge badge-soon">Coming soon</span>
+            </button>
+
+            <button class="role-card disabled" disabled>
+                <span class="role-icon">⚖️</span>
+                <div class="role-name">Legal Professional</div>
+                <div class="role-desc">Attorney or legal aid worker with multi-case access.</div>
+                <span class="badge badge-soon">Coming soon</span>
+            </button>
+
+            <button class="role-card disabled" disabled>
+                <span class="role-icon">👨‍⚖️</span>
+                <div class="role-name">Judge / Mediator</div>
+                <div class="role-desc">Neutral review and dispute resolution tools.</div>
+                <span class="badge badge-soon">Coming soon</span>
+            </button>
+
+            <button class="role-card disabled" disabled>
+                <span class="role-icon">📋</span>
+                <div class="role-name">Property Manager</div>
+                <div class="role-desc">Manage tenant relations and maintenance records.</div>
+                <span class="badge badge-soon">Coming soon</span>
+            </button>
+
+            <button class="role-card disabled" disabled>
+                <span class="role-icon">🔧</span>
+                <div class="role-name">System Admin</div>
+                <div class="role-desc">Platform administration and oversight tools.</div>
+                <span class="badge badge-soon">Coming soon</span>
+            </button>
+        </div>
+
         <script>
         function selectRole(role) {
             localStorage.setItem('selectedRole', role);
@@ -292,65 +488,79 @@ def _render_role_selection():
 def _render_storage_selection():
     """Step 2: Storage Provider Selection"""
     settings = get_settings()
-    
+
     providers_html = ""
-    
+
     if settings.google_drive_client_id:
         providers_html += """
-        <button class="btn" onclick="selectProvider('google_drive')">
-            <span class="btn-icon">📁</span>
+        <button class="provider-btn" onclick="selectProvider('google_drive')">
+            <span class="provider-icon">📁</span>
             <div>
-                <div class="btn-label">Google Drive</div>
-                <div class="btn-desc">Connect your Google account</div>
+                <div class="provider-name">Google Drive</div>
+                <div class="provider-desc">Store documents in your Google account</div>
             </div>
         </button>
         """
-    
+
     if settings.dropbox_app_key:
         providers_html += """
-        <button class="btn" onclick="selectProvider('dropbox')">
-            <span class="btn-icon">☁️</span>
+        <button class="provider-btn" onclick="selectProvider('dropbox')">
+            <span class="provider-icon">☁️</span>
             <div>
-                <div class="btn-label">Dropbox</div>
-                <div class="btn-desc">Connect your Dropbox account</div>
+                <div class="provider-name">Dropbox</div>
+                <div class="provider-desc">Store documents in your Dropbox account</div>
             </div>
         </button>
         """
-    
+
     if settings.onedrive_client_id:
         providers_html += """
-        <button class="btn" onclick="selectProvider('onedrive')">
-            <span class="btn-icon">🔵</span>
+        <button class="provider-btn" onclick="selectProvider('onedrive')">
+            <span class="provider-icon">🔵</span>
             <div>
-                <div class="btn-label">OneDrive</div>
-                <div class="btn-desc">Connect your Microsoft account</div>
+                <div class="provider-name">OneDrive</div>
+                <div class="provider-desc">Store documents in your Microsoft account</div>
             </div>
         </button>
         """
-    
-    return ONBOARDING_TEMPLATE.format(content=f"""
-        <div class="progress">
-            <div class="progress-dot active"></div>
-            <div class="progress-dot active"></div>
-            <div class="progress-dot"></div>
+
+    if not providers_html:
+        providers_html = """
+        <div class="error-box">
+            No storage providers are configured. Please contact support.
         </div>
-        
-        <h1>☁️ Connect Storage</h1>
-        <p class="subtitle">Choose where to store your documents securely</p>
-        
-        <div class="status-box">
-            ✓ Role selected. Now connect your cloud storage.
-        </div>
-        
-        <div class="step-section">
-            <div class="button-grid">
-                {providers_html}
+        """
+
+    return _render_page(
+        header_title="Connect your storage",
+        header_subtitle="Your documents stay in your account — we never store them.",
+        content=f"""
+        <div class="step-indicator">
+            <div class="step done">
+                <div class="step-num">✓</div>
+                <span>Your Role</span>
+            </div>
+            <div class="step-sep done"></div>
+            <div class="step active">
+                <div class="step-num">2</div>
+                <span>Connect Storage</span>
+            </div>
+            <div class="step-sep"></div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <span>First Document</span>
             </div>
         </div>
-        
+
+        <div class="status-box">&#10003; Role selected. Choose where to store your documents securely.</div>
+
+        <p class="section-label">Choose a storage provider</p>
+
+        {providers_html}
+
         <script>
         function selectProvider(provider) {{
-            const role = new URLSearchParams(window.location.search).get('role') || 'user';
+            const role = new URLSearchParams(window.location.search).get('role') || 'tenant';
             window.location.href = '/onboarding/connect?provider=' + provider + '&role=' + role;
         }}
         </script>
@@ -358,59 +568,40 @@ def _render_storage_selection():
 
 def _render_connecting():
     """Step 3: Connecting (redirect to OAuth)"""
-    return ONBOARDING_TEMPLATE.format(content="""
-        <div class="progress">
-            <div class="progress-dot active"></div>
-            <div class="progress-dot active"></div>
-            <div class="progress-dot"></div>
-        </div>
-        
-        <h1>Connecting...</h1>
-        <p class="subtitle">Setting up your storage connection</p>
-        
+    return _render_page(content="""
         <div class="loading">
             <div class="spinner"></div>
-            <p style="margin-top: 1.5rem;">Redirecting to your storage provider...</p>
+            <p style="margin-top: 1.5rem; font-family: sans-serif;">Redirecting to your storage provider...</p>
         </div>
-        
         <div class="status-box" style="margin-top: 2rem;">
-            You'll be asked to authorize Semptify to access your storage.
-        </div>
-    """)
+            You will be asked to authorize Semptify to access your storage.
+        </div>""",
+        header_title="Connecting...",
+        header_subtitle="Setting up your storage connection.",
+    )
 
 def _render_storage_connected():
     """Gate 1: storage_connected ✓"""
-    return ONBOARDING_TEMPLATE.format(content="""
-        <div class="progress">
-            <div class="progress-dot active"></div>
-            <div class="progress-dot active"></div>
-            <div class="progress-dot active"></div>
-        </div>
-        
-        <h1>✓ Storage Connected!</h1>
-        <p class="subtitle">Your vault is ready</p>
-        
-        <div class="status-box">
-            <strong>Gate 1/3 Complete:</strong> storage_connected ✓<br>
-            Your storage account is authenticated and secure.
-        </div>
-        
-        <div class="step-section">
-            <p style="margin-bottom: 1.5rem;">What's next?</p>
-            <button class="btn" onclick="window.location.href='/onboarding/upload'" style="width: 100%;">
-                📄 Upload Your First Document
-                <div class="btn-desc" style="margin-top: 0.5rem;">This activates your workspace</div>
-            </button>
-        </div>
-        
-        <div style="color: #a7f3d0; font-size: 0.9rem; margin-top: 2rem; text-align: center;">
-            Semptify is securely storing your connection. Your documents are yours alone.
-        </div>
+    return _render_page(header_title="Storage Connected", header_subtitle="Your vault is ready.", content="""
+        <div class="status-box" style="margin-bottom:1.5rem;">&#10003; Gate 1 of 3 complete — storage authenticated and secure.</div>
+
+        <button class="provider-btn" onclick="window.location.href='/onboarding/upload'">
+            <span class="provider-icon">📄</span>
+            <div>
+                <div class="provider-name">Upload Your First Document</div>
+                <div class="provider-desc">This activates your workspace</div>
+            </div>
+        </button>
+
+        <p style="font-size:0.82rem;color:var(--text-light);text-align:center;margin-top:1.5rem;font-family:sans-serif;">
+            Semptify stores only your encrypted token. Your documents stay in your account.
+        </p>
+
     """)
 
 def _render_vault_initialized():
     """Gate 2: vault_initialized ✓"""
-    return ONBOARDING_TEMPLATE.format(content="""
+    return _render_page(header_title="Vault Ready", header_subtitle="Your secure workspace is verified.", content="""
         <div class="progress">
             <div class="progress-dot active"></div>
             <div class="progress-dot active"></div>
@@ -435,7 +626,7 @@ def _render_vault_initialized():
 
 def _render_simple_onboarding():
     """Simplified linear onboarding flow."""
-    return ONBOARDING_TEMPLATE.format(content="""
+    return _render_page(content="""
         <div class="progress">
             <div class="progress-fill" id="progress_fill"></div>
         </div>
@@ -662,7 +853,7 @@ def _render_simple_onboarding():
 
 def _render_client_activated():
     """Gate 3: client_activated ✓"""
-    return ONBOARDING_TEMPLATE.format(content="""
+    return _render_page(header_title="You're All Set!", header_subtitle="All activation gates complete.", content="""
         <div class="progress">
             <div class="progress-dot active"></div>
             <div class="progress-dot active"></div>
@@ -759,7 +950,7 @@ async def upload_prompt(semptify_uid: Optional[str] = Cookie(None)):
     if not semptify_uid:
         return ssot_redirect("/onboarding/", context="upload_prompt no cookie")
 
-    return HTMLResponse(content=ONBOARDING_TEMPLATE.format(content="""
+    return HTMLResponse(content=_render_page(header_title="Add Your First Document", header_subtitle="This activates your workspace.", content="""
         <div class="progress">
             <div class="progress-dot active"></div>
             <div class="progress-dot active"></div>
