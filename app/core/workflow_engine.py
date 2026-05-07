@@ -284,12 +284,10 @@ def route_user(
     db_user_id = user_id.split('.')[0] if '.' in user_id else user_id
 
     if documents_present is None:
-        try:
-            from app.services.vault_upload_service import get_vault_service
-            docs = get_vault_service().get_user_documents(db_user_id)
-            documents_present = len(docs) > 0
-        except Exception:
-            documents_present = False
+        # get_user_documents is async — cannot be awaited from this sync function.
+        # Callers that need accurate document presence should pass documents_present
+        # explicitly. Default to False so returning users without docs go to upload.
+        documents_present = False
 
     try:
         decision = evaluate_from_params(
