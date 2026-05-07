@@ -125,8 +125,8 @@ class User(Base):
     """
     __tablename__ = "users"
 
-    # Primary key: derived from provider:storage_user_id hash (24 chars)
-    id: Mapped[str] = mapped_column(String(24), primary_key=True)
+    # Primary key: stateless user_id (~66 chars), widened to 128
+    id: Mapped[str] = mapped_column(String(128), primary_key=True)
     
     # Storage provider info (to know where to look for token on return)
     primary_provider: Mapped[str] = mapped_column(String(20), index=True)  # google_drive, dropbox, onedrive
@@ -174,7 +174,7 @@ class LinkedProvider(Base):
     __tablename__ = "linked_providers"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     
     # Provider info
     provider: Mapped[str] = mapped_column(String(20))  # google_drive, dropbox, onedrive
@@ -209,7 +209,7 @@ class Document(Base):
     __tablename__ = "documents"
     
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     
     # File info
     filename: Mapped[str] = mapped_column(String(255))
@@ -280,7 +280,7 @@ class TimelineEvent(Base):
     __tablename__ = "timeline_events"
     
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     
     # Event details
     event_type: Mapped[str] = mapped_column(String(50))  # notice, payment, maintenance, communication, court
@@ -331,7 +331,7 @@ class RentPayment(Base):
     __tablename__ = "rent_payments"
     
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     
     # Payment details
     amount: Mapped[int] = mapped_column(Integer)  # Store in cents to avoid float issues
@@ -368,7 +368,7 @@ class CalendarEvent(Base):
     __tablename__ = "calendar_events"
     
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     
     # Event details
     title: Mapped[str] = mapped_column(String(255))
@@ -402,7 +402,7 @@ class Complaint(Base):
     __tablename__ = "complaints"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
 
     # Agency info
     agency_id: Mapped[str] = mapped_column(String(50), index=True)  # e.g., mn_ag_consumer, hud_fair_housing
@@ -457,7 +457,7 @@ class WitnessStatement(Base):
     __tablename__ = "witness_statements"
     
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     
     # Witness info
     witness_name: Mapped[str] = mapped_column(String(255))
@@ -487,7 +487,7 @@ class CertifiedMail(Base):
     __tablename__ = "certified_mail"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
 
     # Mail details
     tracking_number: Mapped[str] = mapped_column(String(50))
@@ -561,8 +561,8 @@ class StorageConfig(Base):
     """
     __tablename__ = "storage_configs"
 
-    # Primary key is the user_id (one config per user)
-    user_id: Mapped[str] = mapped_column(String(24), primary_key=True)
+    # Primary key is the user_id (one config per user), widened to 128
+    user_id: Mapped[str] = mapped_column(String(128), primary_key=True)
 
     # Primary storage provider (where auth_token.enc lives)
     primary_provider: Mapped[str] = mapped_column(String(20))  # google_drive, dropbox, onedrive
@@ -629,7 +629,7 @@ class FraudAnalysisResult(Base):
     __tablename__ = "fraud_analysis_results"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     
     # Analysis target
     analysis_type: Mapped[str] = mapped_column(String(50))  # hud, mortgage, habitability, eviction
@@ -666,7 +666,7 @@ class PressReleaseRecord(Base):
     __tablename__ = "press_release_records"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     
     # Content
     release_type: Mapped[str] = mapped_column(String(50))  # discrimination, code_violations, fraud, etc.
@@ -703,7 +703,7 @@ class ResearchProfile(Base):
     __tablename__ = "research_profiles"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     
     # Entity identification
     entity_type: Mapped[str] = mapped_column(String(50))  # landlord, llc, property_manager
@@ -749,7 +749,7 @@ class Contact(Base):
     __tablename__ = "contacts"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
 
     # Contact Type
     contact_type: Mapped[str] = mapped_column(String(50), index=True)
@@ -810,7 +810,7 @@ class ContactInteraction(Base):
     __tablename__ = "contact_interactions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     contact_id: Mapped[str] = mapped_column(String(36), ForeignKey("contacts.id"), index=True)
 
     # Interaction details
@@ -854,7 +854,7 @@ class DocumentAnnotation(Base):
     
     id: Mapped[str] = mapped_column(String(36), primary_key=True)
     document_id: Mapped[str] = mapped_column(String(36), index=True)  # Briefcase document ID
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     
     # Footnote numbering (dual system)
     footnote_number: Mapped[int] = mapped_column(Integer)           # Global: 1, 2, 3...
@@ -911,7 +911,7 @@ class VaultItem(Base):
     
     # Primary key
     item_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     
     # ==========================================================================
     # THREE TIMESTAMPS (NON-NEGOTIABLE)
@@ -1039,7 +1039,7 @@ class Incident(Base):
     __tablename__ = "incidents"
     
     incident_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     
     # Incident details
     title: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -1228,7 +1228,7 @@ class MNDESExhibitPackageDB(Base):
     package_id: Mapped[str] = mapped_column(String(36), primary_key=True)
     
     # Ownership
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     
     # Case information
     mn_case_number: Mapped[str] = mapped_column(String(50), index=True)
@@ -1273,7 +1273,7 @@ class MNDESExhibitItemDB(Base):
     
     # References
     package_id: Mapped[str] = mapped_column(String(36), ForeignKey("mndes_exhibit_packages.package_id"), index=True)
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     vault_id: Mapped[str] = mapped_column(String(36), index=True)
     
     # Exhibit details
@@ -1310,7 +1310,7 @@ class VaultIndexDB(Base):
     vault_id: Mapped[str] = mapped_column(String(36), primary_key=True)
     
     # Ownership
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), index=True)
+    user_id: Mapped[str] = mapped_column(String(128), ForeignKey("users.id"), index=True)
     
     # File information
     filename: Mapped[str] = mapped_column(String(255))
