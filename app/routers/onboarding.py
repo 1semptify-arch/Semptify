@@ -711,23 +711,11 @@ async def role_select_redirect():
 @router.get("/select-role.html")
 async def role_select_static():
     """
-    Serve the static role selection page directly.
+    Generate role selection page HTML dynamically.
     
-    This route shadows the static file mount at /onboarding-assets/
-    to provide a cleaner URL while still serving the same content.
+    Static file removed due to conflicts - router generates HTML now.
     """
-    from fastapi.responses import FileResponse
-    from pathlib import Path
-    
-    base_path = Path(__file__).parent.parent.parent
-    file_path = base_path / "static" / "onboarding" / "select-role.html"
-    
-    if file_path.exists():
-        return FileResponse(str(file_path))
-    
-    # Fallback to SSOT path if file not found
-    role_stage = navigation.get_stage("role_select")
-    return ssot_redirect(role_stage.path, context="role_select_static fallback")
+    return HTMLResponse(content=_render_role_selection())
 
 @router.get("/providers", response_class=HTMLResponse)
 async def storage_providers(role: Optional[str] = Query("tenant")):
