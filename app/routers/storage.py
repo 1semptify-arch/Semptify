@@ -51,6 +51,7 @@ from app.core.user_id import (
 from app.core.stateless_oauth import StatelessOAuthManager
 from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
+from app.core.cookie_auth import set_auth_cookie
 from app.core.security import (
     issue_function_access_token,
     verify_function_access_token,
@@ -2495,7 +2496,6 @@ async def rehome_device(
 </body>
 </html>''')
     
-    from app.core.cookie_auth import set_auth_cookie
     set_auth_cookie(response, user_id)
     
     return response
@@ -2693,9 +2693,6 @@ async def restore_session(
         if session:
             # Valid session exists - restore cookie and redirect
             # Set secure cookie - secure=False for localhost HTTP, True for HTTPS production
-            import os
-            is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
-            from app.core.cookie_auth import set_auth_cookie
             set_auth_cookie(response, user_id)
             
             # Route to role-appropriate dashboard
@@ -3023,10 +3020,6 @@ async def switch_role(
     invalidate_function_access_tokens(semptify_uid)
 
     # Update cookie - use secure=False for localhost
-    import os
-    is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
-    is_secure = False if is_localhost else True
-    from app.core.cookie_auth import set_auth_cookie
     set_auth_cookie(response, new_uid)
 
     return {
