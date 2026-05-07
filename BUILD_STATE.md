@@ -3,7 +3,50 @@
 
 ---
 
-## Shipped This Session (4208d0c)
+## Shipped This Session (372a369) — 2026-05-07
+
+### Unified Footer System, Interactive Tools, and Mandated Navigation
+
+#### Unified Footer (SSOT)
+- [x] `static/components/unified-footer.html` — Single source of truth for all footers
+- [x] `static/js/unified-footer-loader.js` — JS injection script for static pages
+- [x] `static/css/ssot-design-system.css` — Section 9 (footer) + Section 10 (main nav) added
+- [x] `static/public/welcome.html` — Switched to unified footer loader
+- [x] `static/tenant/dashboard.html` — Switched to unified footer loader
+
+#### Mandated 5-Link Navigation: Home | Library | Office | Tools | Help
+- [x] `app/templates/base_ssot.html` — 5-link main-nav now mandatory on all Jinja2 pages
+- [x] `static/components/main-navigation.html` — Reusable nav component for static pages
+- [x] Active state highlighting based on current URL path
+
+#### Interactive Admin Tools
+- [x] `static/admin/page-editor.html` — Browser-based editor for static HTML and Jinja2 templates
+- [x] `app/routers/page_editor.py` — Backend API (list/read/save/preview/search files)
+- [x] `static/admin/review-checklist.html` — Contracts & routes verification checklist with live test buttons
+- [x] `static/admin/dashboard.html` — Quick Actions updated with Page Editor + Review Checklist links
+
+#### OAuth / Storage Prep
+- [x] `app/core/stateless_oauth.py` — New stateless OAuth module
+- [x] `app/routers/onboarding.py` — Modified for stateless OAuth
+- [x] `app/routers/storage.py` — Modified for stateless OAuth
+- [x] `static/onboarding/select-role.html` — Intentionally deleted
+- [x] `static/onboarding/storage-select.html` — Intentionally deleted
+
+**Known Working:**
+- Unified footer loads on all updated static pages
+- Mandated nav renders on all Jinja2 pages via base_ssot.html
+- Page editor API endpoints respond at /api/editor/*
+- Admin dashboard shows all tools in Quick Actions
+
+**Pending Next Session:**
+- Add unified footer to remaining static pages that still have old `<footer>` tags
+- Verify /office, /tools, /help routes serve correct pages
+- Test stateless OAuth flow end-to-end
+- Add navigation to static pages (non-Jinja2) via main-navigation component
+
+---
+
+## Previous Session (4208d0c)
 
 ### Tenant GUI Core Compliance — BUILD_GUIDE_SSOT.md COMPLIANT ✅
 - [x] **Dashboard updated to Core endpoints** — Changed from `/api/tenancy/cases` (Extended) to `/api/documents/`, `/api/timeline-unified`, `/api/briefcase` (Core)
