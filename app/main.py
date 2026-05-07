@@ -507,17 +507,27 @@ async def lifespan(_app: FastAPI):
         # --- STAGE 3b: Run Database Migrations (Alembic) ---
         async def run_migrations():
             """Auto-run Alembic migrations on startup for Render deploys."""
-            try:
+            import asyncio, os
+            
+            # Only run auto-migration in production (Render sets RENDER=true)
+            if not os.environ.get("RENDER"):
+                logger.info("   ⏭️  Auto-migration skipped (local dev)")
+                return
+            
+            def _sync_migrate():
                 from alembic.config import Config
                 from alembic import command
-                
-                # Create Alembic config pointing to alembic.ini
                 alembic_cfg = Config("alembic.ini")
-                
-                # Run upgrade to head (non-destructive, idempotent)
                 command.upgrade(alembic_cfg, "head")
+            
+            try:
+                # Run in thread executor to avoid blocking the async event loop
+                loop = asyncio.get_event_loop()
+                await asyncio.wait_for(loop.run_in_executor(None, _sync_migrate), timeout=30)
                 logger.info("   ✅ Database migrations applied")
                 
+            except asyncio.TimeoutError:
+                logger.warning("   ⚠️  Migration timed out after 30s - continuing startup")
             except Exception as e:
                 logger.warning("   ⚠️  Migration check failed (may be first run): %s", e)
                 # Don't fail startup - migrations can be run manually if needed
@@ -2815,7 +2825,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         documents_template_path = BASE_PATH / "app" / "templates" / "pages" / "documents.html"
         if documents_template_path.exists():
             try:
-                return templates.TemplateResponse(request, "pages/documents.html")
+                return templates.TemplateResponse(request, "pages/documents.html", {"documents": []})
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Documents template error, falling back to static: %s", e)
 
