@@ -89,7 +89,7 @@ class NavigationRegistry:
         "storage_select": FlowStage(
             id="storage_select",
             name="Connect Storage",
-            path="/onboarding-assets/storage-select.html",
+            path="/onboarding/providers",
             next_stage="providers",
             requires_checkpoint=True
         ),
