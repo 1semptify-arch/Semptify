@@ -936,7 +936,7 @@ def _render_vault_setup():
         .icon-running { color: #3b82f6; animation: spin 1s linear infinite; }
         .icon-ok { color: #16a34a; }
         .icon-fail { color: #dc2626; }
-        @keyframes spin { to { transform: rotate(360deg); display: inline-block; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         </style>
 
         <script>
@@ -977,7 +977,8 @@ def _render_vault_setup():
                 const r = await fetch('/api/vault/init', { method: 'POST', credentials: 'include' });
                 if (!r.ok) {
                     const d = await r.json().catch(() => ({}));
-                    throw new Error(d.detail || d.message || 'folder init failed');
+                    const msg = (d.detail && typeof d.detail === 'object') ? d.detail.message : (d.detail || d.message || 'folder init failed');
+                    throw new Error(msg);
                 }
                 setItem('folders', 'ok', CHECK);
             } catch(e) {
@@ -1021,7 +1022,8 @@ async def onboarding_root(request: Request, semptify_uid: Optional[str] = Cookie
         role_stage = navigation.get_stage("role_select")
         return ssot_redirect(role_stage.path, context="onboarding_root role_select")
     else:
-        return ssot_redirect("/onboarding/status", context="onboarding_root status")
+        vault_stage = navigation.get_stage("vault_setup")
+        return ssot_redirect(vault_stage.path, context="onboarding_root vault_setup")
 
 @router.get("/role-select")
 async def role_select_redirect():
@@ -1066,7 +1068,8 @@ async def onboarding_complete(semptify_uid: Optional[str] = Cookie(None)):
         return ssot_redirect(role_stage.path, context="onboarding_complete no cookie")
     from app.core.cookie_auth import verify_user_id
     from app.core.workflow_engine import route_user
-    raw_uid = verify_user_id(semptify_uid) or semptify_uid
+    verified = verify_user_id(semptify_uid)
+    raw_uid = verified if verified else semptify_uid.split('.')[0]
     destination = route_user(raw_uid)
     return ssot_redirect(destination, context="onboarding_complete route_user")
 

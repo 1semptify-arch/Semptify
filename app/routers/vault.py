@@ -1339,20 +1339,16 @@ async def vault_init(user: StorageUser = Depends(require_user)):
             detail={"error": "no_token", "message": "Storage token missing — please reconnect your storage."},
         )
 
-    provider_str = str(getattr(user, "provider", "")).replace("StorageProvider.", "")
-    if hasattr(getattr(user, "provider", None), "value"):
-        provider_str = user.provider.value
-
     try:
-        storage = get_provider(provider_str, access_token=access_token)
-        await ensure_vault_folders(storage, provider_str)
+        storage = get_provider(user.provider, access_token=access_token)
+        await ensure_vault_folders(storage, user.provider)
     except Exception as exc:
         raise HTTPException(
             status_code=502,
             detail={"error": "folder_init_failed", "message": str(exc)},
         )
 
-    return {"ok": True, "message": "Vault folders created", "provider": provider_str}
+    return {"ok": True, "message": "Vault folders created", "provider": str(user.provider)}
 
 
 @router.get("/verify")
@@ -1374,13 +1370,12 @@ async def vault_verify(user: StorageUser = Depends(require_user)):
             detail={"error": "no_token", "message": "Storage token missing — please reconnect your storage."},
         )
 
-    provider_str = str(getattr(user, "provider", "")).replace("StorageProvider.", "")
-    if hasattr(getattr(user, "provider", None), "value"):
-        provider_str = user.provider.value
-
     try:
-        storage = get_provider(provider_str, access_token=access_token)
-        await storage.create_folder(SEMPTIFY_ROOT)
+        storage = get_provider(user.provider, access_token=access_token)
+        await ensure_vault_folders(storage, user.provider)
+        items = await storage.list_files(VAULT_ROOT)
+        if items is None:
+            raise RuntimeError("Vault root folder not accessible after init")
     except Exception as exc:
         raise HTTPException(
             status_code=502,
