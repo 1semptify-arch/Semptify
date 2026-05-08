@@ -463,13 +463,6 @@ def _render_role_selection():
             </button>
 
             <button class="role-card disabled" disabled>
-                <span class="role-icon">📋</span>
-                <div class="role-name">Property Manager</div>
-                <div class="role-desc">Manage tenant relations and maintenance records.</div>
-                <span class="badge badge-soon">Coming soon</span>
-            </button>
-
-            <button class="role-card disabled" disabled>
                 <span class="role-icon">🔧</span>
                 <div class="role-name">System Admin</div>
                 <div class="role-desc">Platform administration and oversight tools.</div>
