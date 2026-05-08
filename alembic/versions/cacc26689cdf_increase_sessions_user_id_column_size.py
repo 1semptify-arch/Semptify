@@ -20,13 +20,9 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.alter_column('sessions', 'user_id',
-                   existing_type=sa.String(24),
-                   type_=sa.String(100))
+    op.execute("ALTER TABLE IF EXISTS sessions ALTER COLUMN user_id TYPE VARCHAR(256)")
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.alter_column('sessions', 'user_id',
-                   existing_type=sa.String(100),
-                   type_=sa.String(24))
+    op.execute("ALTER TABLE IF EXISTS sessions ALTER COLUMN user_id TYPE VARCHAR(24)")

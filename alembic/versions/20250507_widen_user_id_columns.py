@@ -53,17 +53,17 @@ def _alter_nullable(table: str, column: str, from_len: int = 24) -> None:
 
 
 def upgrade() -> None:
-    # Primary keys
-    _alter('users', 'id')
-    _alter('storage_configs', 'user_id')
-    # sessions was already widened to 100 by cacc26689cdf — extend to 128
-    op.alter_column('sessions', 'user_id',
-                    existing_type=sa.String(100),
-                    type_=TARGET,
-                    existing_nullable=False)
+    # Use raw SQL with IF EXISTS so missing tables never block the migration.
+    # VARCHAR(256) is safe regardless of current column width.
+    id_tables = [
+        'users',
+    ]
+    for table in id_tables:
+        op.execute(f"ALTER TABLE IF EXISTS {table} ALTER COLUMN id TYPE VARCHAR(256)")
 
-    # FK columns — all tables referencing users.id
-    fk_tables = [
+    user_id_tables = [
+        'sessions',
+        'storage_configs',
         'linked_providers',
         'documents',
         'document_pipeline_index',
@@ -80,16 +80,14 @@ def upgrade() -> None:
         'contact_interactions',
         'footnote_anchors',
         'vault_items',
+        'vault_audit_logs',
         'incidents',
         'mndes_exhibit_packages',
         'mndes_exhibit_items',
         'vault_index',
     ]
-    for table in fk_tables:
-        _alter(table, 'user_id')
-
-    # vault_audit_logs.user_id is nullable
-    _alter_nullable('vault_audit_logs', 'user_id')
+    for table in user_id_tables:
+        op.execute(f"ALTER TABLE IF EXISTS {table} ALTER COLUMN user_id TYPE VARCHAR(256)")
 
 
 def downgrade() -> None:
