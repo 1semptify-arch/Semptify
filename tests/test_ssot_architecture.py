@@ -220,8 +220,9 @@ def test_ssot_api_endpoint_exists():
         # Check routes for ssot-navigation endpoint
         routes = [route.path for route in router.routes]
         
-        assert "/ssot-navigation" in routes, \
-            "SSOT navigation API endpoint /ssot-navigation not found in onboarding router"
+        # Route has /onboarding prefix from router
+        assert "/onboarding/ssot-navigation" in routes, \
+            f"SSOT navigation API endpoint not found. Routes: {routes}"
             
     except ImportError as e:
         raise SSOTViolation(f"Cannot verify SSOT endpoint: {e}")

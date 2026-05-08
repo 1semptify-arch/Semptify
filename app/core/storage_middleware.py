@@ -121,10 +121,15 @@ def is_public_path(path: str) -> bool:
         if path.startswith(prefix):
             return True
     
-    # Static assets
+    # Static assets (by extension)
     if path.endswith(('.css', '.js', '.png', '.jpg', '.ico', '.svg', '.woff', '.woff2')):
         return True
-    
+
+    # Root-level static HTML pages — auth is enforced client-side via JS.
+    # These pages redirect to onboarding themselves when no valid cookie exists.
+    if path.endswith('.html'):
+        return True
+
     return False
 
 

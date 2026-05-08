@@ -56,6 +56,17 @@ repos:
     hooks:
       - id: validate-pyproject
 
+  # SSOT Architecture Compliance Check - MANDATORY
+  - repo: local
+    hooks:
+      - id: ssot-architecture-check
+        name: SSOT Architecture Verification
+        entry: python scripts/verify_ssot.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        description: "Enforces Single Source of Truth architecture - no hardcoded URLs allowed"
+
 # Configuration for specific hooks
 default_language_version:
   python: python3.12
