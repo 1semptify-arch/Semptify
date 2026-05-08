@@ -872,6 +872,143 @@ def _render_client_activated():
         </div>
     """)
 
+def _render_vault_setup():
+    """Vault Setup page — runs folder init + verification, then releases to home."""
+    return _render_page(
+        header_title="Setting up your vault",
+        header_subtitle="Just a moment — preparing your secure workspace.",
+        content="""
+        <div class="step-indicator">
+            <div class="step done">
+                <div class="step-num">&#10003;</div>
+                <span>Your Role</span>
+            </div>
+            <div class="step-sep done"></div>
+            <div class="step done">
+                <div class="step-num">&#10003;</div>
+                <span>Connect Storage</span>
+            </div>
+            <div class="step-sep done"></div>
+            <div class="step active">
+                <div class="step-num">3</div>
+                <span>Vault Setup</span>
+            </div>
+        </div>
+
+        <div id="setup-list" style="margin: 1.5rem 0;">
+            <div class="setup-item" id="item-auth">
+                <span class="setup-icon" id="icon-auth">&#9711;</span>
+                <span>Verifying your account</span>
+            </div>
+            <div class="setup-item" id="item-folders">
+                <span class="setup-icon" id="icon-folders">&#9711;</span>
+                <span>Creating vault folders in your storage</span>
+            </div>
+            <div class="setup-item" id="item-verify">
+                <span class="setup-icon" id="icon-verify">&#9711;</span>
+                <span>Verifying vault access</span>
+            </div>
+            <div class="setup-item" id="item-done">
+                <span class="setup-icon" id="icon-done">&#9711;</span>
+                <span>All systems ready</span>
+            </div>
+        </div>
+
+        <div id="setup-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;
+             border-radius:8px;padding:1rem;margin-top:1rem;color:#b91c1c;font-size:0.9rem;">
+        </div>
+
+        <style>
+        .setup-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: rgba(255,255,255,0.6);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 0.95rem;
+            color: #1e3a5f;
+        }
+        .setup-icon { font-size: 1.2rem; width: 1.4rem; text-align: center; }
+        .icon-pending { color: #94a3b8; }
+        .icon-running { color: #3b82f6; animation: spin 1s linear infinite; }
+        .icon-ok { color: #16a34a; }
+        .icon-fail { color: #dc2626; }
+        @keyframes spin { to { transform: rotate(360deg); display: inline-block; } }
+        </style>
+
+        <script>
+        const CHECK = '&#10003;';
+        const FAIL  = '&#10007;';
+        const SPIN  = '&#8635;';
+
+        function setItem(id, state, symbol) {
+            const el = document.getElementById('icon-' + id);
+            if (!el) return;
+            el.innerHTML = symbol;
+            el.className = 'setup-icon icon-' + state;
+        }
+
+        function showError(msg) {
+            const box = document.getElementById('setup-error');
+            box.style.display = 'block';
+            box.innerHTML = '<strong>Setup problem:</strong> ' + msg +
+                '<br><br><a href="/storage/reconnect" style="color:#1e3a5f;font-weight:600;">Reconnect storage</a> and try again.';
+        }
+
+        async function runSetup() {
+            // Step 1: verify auth
+            setItem('auth', 'running', SPIN);
+            try {
+                const r = await fetch('/api/vault/status', { credentials: 'include' });
+                if (!r.ok) throw new Error('auth');
+                setItem('auth', 'ok', CHECK);
+            } catch(e) {
+                setItem('auth', 'fail', FAIL);
+                showError('Could not verify your account. Please reconnect.');
+                return;
+            }
+
+            // Step 2: init vault folders
+            setItem('folders', 'running', SPIN);
+            try {
+                const r = await fetch('/api/vault/init', { method: 'POST', credentials: 'include' });
+                if (!r.ok) {
+                    const d = await r.json().catch(() => ({}));
+                    throw new Error(d.detail || d.message || 'folder init failed');
+                }
+                setItem('folders', 'ok', CHECK);
+            } catch(e) {
+                setItem('folders', 'fail', FAIL);
+                showError('Vault folder creation failed: ' + e.message);
+                return;
+            }
+
+            // Step 3: verify vault
+            setItem('verify', 'running', SPIN);
+            try {
+                const r = await fetch('/api/vault/verify', { credentials: 'include' });
+                if (!r.ok) throw new Error('verify failed');
+                setItem('verify', 'ok', CHECK);
+            } catch(e) {
+                setItem('verify', 'fail', FAIL);
+                showError('Vault verification failed. Your storage may need reconnecting.');
+                return;
+            }
+
+            // Step 4: all done
+            setItem('done', 'ok', CHECK);
+            await new Promise(r => setTimeout(r, 800));
+            window.location.href = '/home.html';
+        }
+
+        window.addEventListener('load', runSetup);
+        </script>
+    """)
+
+
 # ============================================================================
 # ROUTES
 # ============================================================================
@@ -911,6 +1048,14 @@ async def connect_storage(provider: str = Query(...), role: str = Query("tenant"
     """Redirect to OAuth flow."""
     auth_url = f"/storage/auth/{provider}?role={role}&from=onboarding"
     return ssot_redirect(auth_url, context="connect_storage oauth")
+
+@router.get("/vault-setup", response_class=HTMLResponse)
+async def vault_setup(semptify_uid: Optional[str] = Cookie(None)):
+    """Post-OAuth vault initialisation and verification. Releases to /home.html on success."""
+    if not semptify_uid:
+        role_stage = navigation.get_stage("role_select")
+        return ssot_redirect(role_stage.path, context="vault_setup no cookie")
+    return HTMLResponse(content=_render_vault_setup())
 
 @router.get("/status", response_class=HTMLResponse)
 async def onboarding_status(semptify_uid: Optional[str] = Cookie(None), db: AsyncSession = Depends(get_db)):
