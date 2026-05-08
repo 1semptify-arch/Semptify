@@ -250,3 +250,11 @@ run_server.py
 server.log
 server_error.log
 server_output.log
+
+# Node / Playwright
+node_modules/
+package-lock.json
+test-results/
+tests/e2e/node_modules/
+tests/e2e/test-results/
+playwright-report/

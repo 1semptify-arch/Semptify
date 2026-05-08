@@ -149,12 +149,14 @@ class NavigationRegistry:
     }
 
     # --- Main Navigation (SSOT) ---
+    # The 5 base navigation links present on EVERY page:
+    # Home, Library, Office, Tools, Help
     MAIN_NAV: ClassVar[List[NavItem]] = [
-        NavItem(name="Home", path="/home", icon="🏠", order=0, requires="auth"),
-        NavItem(name="Cases", path="/cases", icon="📁", order=1, requires="auth"),
-        NavItem(name="Documents", path="/documents", icon="📄", order=2, requires="storage"),
-        NavItem(name="Timeline", path="/timeline", icon="📅", order=3, requires="storage"),
-        NavItem(name="Settings", path="/settings", icon="⚙️", order=10, requires="auth"),
+        NavItem(name="Home", path="/home.html", icon="🏠", order=0, requires=""),
+        NavItem(name="Library", path="/library.html", icon="📚", order=1, requires=""),
+        NavItem(name="Office", path="/office.html", icon="🏢", order=2, requires=""),
+        NavItem(name="Tools", path="/tools.html", icon="🔧", order=3, requires=""),
+        NavItem(name="Help", path="/help.html", icon="🆘", order=4, requires=""),
     ]
     
     # --- Utility Methods ---

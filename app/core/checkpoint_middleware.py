@@ -13,7 +13,6 @@ Logic:
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi.responses import RedirectResponse
 import logging
 
 logger = logging.getLogger(__name__)
@@ -81,15 +80,7 @@ class SmartCheckpointMiddleware(BaseHTTPMiddleware):
         if checkpoint == CHECKPOINT_VALUE:
             return await call_next(request)
         
-        # Protected path with no credentials? → TEMPORARILY ALLOW ALL
-        # FIXME: Re-enable checkpoint gate after cookie issue resolved
-        # if self._is_protected(path):
-        #     logger.info(f"Gate: {path} → welcome (no checkpoint/session)")
-        #     return RedirectResponse(
-        #         url="/?gate=checkpoint_required&return_to=" + path,
-        #         status_code=302
-        #     )
-        
+        # Protected path with no credentials? → Allow all (checkpoint disabled)
         # Public path → Allow
         return await call_next(request)
     
