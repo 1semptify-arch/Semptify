@@ -20,6 +20,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
+    VALID_TABLES = {'sessions'}
+    table = 'sessions'
+    if table not in VALID_TABLES:
+        raise ValueError(f"Invalid table name: {table}")
     op.execute("ALTER TABLE IF EXISTS sessions ALTER COLUMN user_id TYPE VARCHAR(256)")
 
 

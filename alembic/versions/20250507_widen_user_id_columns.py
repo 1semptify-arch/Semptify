@@ -53,62 +53,69 @@ def _alter_nullable(table: str, column: str, from_len: int = 24) -> None:
 
 
 def upgrade() -> None:
-    # Use raw SQL with IF EXISTS so missing tables never block the migration.
-    # VARCHAR(256) is safe regardless of current column width.
-    id_tables = [
-        'users',
-    ]
+    """Use raw SQL with IF EXISTS so missing tables never block the migration."""
+    # Validate table names to prevent SQL injection
+    VALID_TABLES = {
+        'users', 'sessions', 'storage_configs', 'linked_providers',
+        'documents', 'document_pipeline_index', 'timeline_events',
+        'rent_payments', 'calendar_events', 'complaints',
+        'witness_statements', 'certified_mail', 'fraud_analysis_results',
+        'press_release_records', 'research_profiles', 'contacts',
+        'contact_interactions', 'footnote_anchors', 'vault_items',
+        'vault_audit_logs', 'incidents', 'mndes_exhibit_packages',
+        'mndes_exhibit_items', 'vault_index',
+    }
+
+    id_tables = ['users']
     for table in id_tables:
+        if table not in VALID_TABLES:
+            raise ValueError(f"Invalid table name: {table}")
         op.execute(f"ALTER TABLE IF EXISTS {table} ALTER COLUMN id TYPE VARCHAR(256)")
 
     user_id_tables = [
-        'sessions',
-        'storage_configs',
-        'linked_providers',
-        'documents',
-        'document_pipeline_index',
-        'timeline_events',
-        'rent_payments',
-        'calendar_events',
-        'complaints',
-        'witness_statements',
-        'certified_mail',
-        'fraud_analysis_results',
-        'press_release_records',
-        'research_profiles',
-        'contacts',
-        'contact_interactions',
-        'footnote_anchors',
-        'vault_items',
-        'vault_audit_logs',
-        'incidents',
-        'mndes_exhibit_packages',
-        'mndes_exhibit_items',
-        'vault_index',
+        'sessions', 'storage_configs', 'linked_providers', 'documents',
+        'document_pipeline_index', 'timeline_events', 'rent_payments',
+        'calendar_events', 'complaints', 'witness_statements',
+        'certified_mail', 'fraud_analysis_results', 'press_release_records',
+        'research_profiles', 'contacts', 'contact_interactions',
+        'footnote_anchors', 'vault_items', 'vault_audit_logs', 'incidents',
+        'mndes_exhibit_packages', 'mndes_exhibit_items', 'vault_index',
     ]
     for table in user_id_tables:
+        if table not in VALID_TABLES:
+            raise ValueError(f"Invalid table name: {table}")
         op.execute(f"ALTER TABLE IF EXISTS {table} ALTER COLUMN user_id TYPE VARCHAR(256)")
 
 
 def downgrade() -> None:
-    op.alter_column('users', 'id',
-                    existing_type=TARGET, type_=OLD, existing_nullable=False)
-    op.alter_column('storage_configs', 'user_id',
-                    existing_type=TARGET, type_=OLD, existing_nullable=False)
-    op.alter_column('sessions', 'user_id',
-                    existing_type=TARGET, type_=sa.String(100), existing_nullable=False)
-
-    fk_tables = [
-        'linked_providers', 'documents', 'document_pipeline_index',
-        'timeline_events', 'rent_payments', 'calendar_events', 'complaints',
+    """Downgrade using raw SQL to match upgrade approach — no existing_type assumptions."""
+    VALID_TABLES = {
+        'users', 'sessions', 'storage_configs', 'linked_providers',
+        'documents', 'document_pipeline_index', 'timeline_events',
+        'rent_payments', 'calendar_events', 'complaints',
         'witness_statements', 'certified_mail', 'fraud_analysis_results',
         'press_release_records', 'research_profiles', 'contacts',
         'contact_interactions', 'footnote_anchors', 'vault_items',
-        'incidents', 'mndes_exhibit_packages', 'mndes_exhibit_items',
-        'vault_index',
+        'vault_audit_logs', 'incidents', 'mndes_exhibit_packages',
+        'mndes_exhibit_items', 'vault_index',
+    }
+
+    id_tables = ['users']
+    for table in id_tables:
+        if table not in VALID_TABLES:
+            raise ValueError(f"Invalid table name: {table}")
+        op.execute(f"ALTER TABLE IF EXISTS {table} ALTER COLUMN id TYPE VARCHAR(24)")
+
+    user_id_tables = [
+        'sessions', 'storage_configs', 'linked_providers', 'documents',
+        'document_pipeline_index', 'timeline_events', 'rent_payments',
+        'calendar_events', 'complaints', 'witness_statements',
+        'certified_mail', 'fraud_analysis_results', 'press_release_records',
+        'research_profiles', 'contacts', 'contact_interactions',
+        'footnote_anchors', 'vault_items', 'vault_audit_logs', 'incidents',
+        'mndes_exhibit_packages', 'mndes_exhibit_items', 'vault_index',
     ]
-    for table in fk_tables:
-        op.alter_column(table, 'user_id',
-                        existing_type=TARGET, type_=OLD, existing_nullable=False)
-    op.alter_column('vault_audit_logs', 'user_id',
-                    existing_type=TARGET, type_=OLD, existing_nullable=True)
+    for table in user_id_tables:
+        if table not in VALID_TABLES:
+            raise ValueError(f"Invalid table name: {table}")
+        op.execute(f"ALTER TABLE IF EXISTS {table} ALTER COLUMN user_id TYPE VARCHAR(24)")

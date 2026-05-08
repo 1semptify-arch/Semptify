@@ -59,6 +59,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import get_settings
 from app.core.compliance import validate_app_compliance
+from app.core.cookie_auth import extract_user_id
 from app.core.database import init_db, close_db
 from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
@@ -3290,11 +3291,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             }
         )
 
-    from app.core.cookie_auth import extract_user_id as _extract_user_id
-
     async def _get_tenant_briefcase(user_id: str, user_name: Optional[str] = None):
         """Fetch complete tenant briefcase - unified vault, timeline, journal, inbox."""
-        from app.core.tenant_briefcase import get_tenant_briefcase
         return await get_tenant_briefcase(user_id, user_name)
 
     @fastapi_app.get("/tenant/home", response_class=HTMLResponse)
@@ -3306,7 +3304,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return guard_redirect
         
         # Get user from cookie/session
-        user_id = _extract_user_id(request) or ""
+        user_id = extract_user_id(request) or ""
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
         
         # Try tenant home template first, then fall back to main tenant template
@@ -3337,7 +3335,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if guard_redirect:
             return guard_redirect
         
-        user_id = _extract_user_id(request) or ""
+        user_id = extract_user_id(request) or ""
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
         
         context = {
@@ -3356,7 +3354,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if guard_redirect:
             return guard_redirect
 
-        user_id = _extract_user_id(request) or ""
+        user_id = extract_user_id(request) or ""
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
 
         entries = []
@@ -3389,7 +3387,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if guard_redirect:
             return guard_redirect
         
-        user_id = _extract_user_id(request) or ""
+        user_id = extract_user_id(request) or ""
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
         
         context = {"briefcase": briefcase}
@@ -3403,7 +3401,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if guard_redirect:
             return guard_redirect
 
-        user_id = _extract_user_id(request) or ""
+        user_id = extract_user_id(request) or ""
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
 
         context = {"briefcase": briefcase}
