@@ -1308,3 +1308,83 @@ def _get_file_category(filename: str) -> str:
         return 'video'
     else:
         return 'other'
+
+
+# =============================================================================
+# Vault Setup Endpoints (used by /onboarding/vault-setup page)
+# =============================================================================
+
+@router.get("/status")
+async def vault_status(user: StorageUser = Depends(require_user)):
+    """Check that the user is authenticated and has a storage provider configured."""
+    return {"ok": True, "user_id": user.user_id[:6] + "***", "provider": str(getattr(user, "provider", "unknown"))}
+
+
+@router.post("/init")
+async def vault_init(user: StorageUser = Depends(require_user)):
+    """
+    Create the Semptify vault folder structure in the user's cloud storage.
+    Called once during onboarding vault-setup. Idempotent — safe to call again.
+    """
+    try:
+        from app.core.oauth_token_manager import get_valid_token_for_user as _get_token
+    except ImportError:
+        def _get_token(uid: str):  # type: ignore[misc]
+            return None
+
+    access_token = getattr(user, "access_token", None) or _get_token(user.user_id)
+    if not access_token or access_token == "no-token":
+        raise HTTPException(
+            status_code=401,
+            detail={"error": "no_token", "message": "Storage token missing — please reconnect your storage."},
+        )
+
+    provider_str = str(getattr(user, "provider", "")).replace("StorageProvider.", "")
+    if hasattr(getattr(user, "provider", None), "value"):
+        provider_str = user.provider.value
+
+    try:
+        storage = get_provider(provider_str, access_token=access_token)
+        await ensure_vault_folders(storage, provider_str)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail={"error": "folder_init_failed", "message": str(exc)},
+        )
+
+    return {"ok": True, "message": "Vault folders created", "provider": provider_str}
+
+
+@router.get("/verify")
+async def vault_verify(user: StorageUser = Depends(require_user)):
+    """
+    Verify that the vault folder structure is accessible in the user's cloud storage.
+    Called after /init to confirm everything is ready.
+    """
+    try:
+        from app.core.oauth_token_manager import get_valid_token_for_user as _get_token
+    except ImportError:
+        def _get_token(uid: str):  # type: ignore[misc]
+            return None
+
+    access_token = getattr(user, "access_token", None) or _get_token(user.user_id)
+    if not access_token or access_token == "no-token":
+        raise HTTPException(
+            status_code=401,
+            detail={"error": "no_token", "message": "Storage token missing — please reconnect your storage."},
+        )
+
+    provider_str = str(getattr(user, "provider", "")).replace("StorageProvider.", "")
+    if hasattr(getattr(user, "provider", None), "value"):
+        provider_str = user.provider.value
+
+    try:
+        storage = get_provider(provider_str, access_token=access_token)
+        await storage.create_folder(SEMPTIFY_ROOT)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail={"error": "vault_verify_failed", "message": str(exc)},
+        )
+
+    return {"ok": True, "message": "Vault verified and accessible"}

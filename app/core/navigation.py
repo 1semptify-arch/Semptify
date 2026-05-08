@@ -104,6 +104,20 @@ class NavigationRegistry:
             id="status",
             name="Onboarding Status",
             path="/onboarding/status",
+            next_stage="vault_setup",
+            requires_checkpoint=False
+        ),
+        "vault_setup": FlowStage(
+            id="vault_setup",
+            name="Vault Setup",
+            path="/onboarding/vault-setup",
+            next_stage="dashboard",
+            requires_checkpoint=False
+        ),
+        "dashboard": FlowStage(
+            id="dashboard",
+            name="Home",
+            path="/home.html",
             next_stage=None,
             requires_checkpoint=False
         ),

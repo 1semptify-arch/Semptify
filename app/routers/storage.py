@@ -2035,9 +2035,9 @@ async def oauth_callback(
         elif return_to:
             landing = return_to
         elif is_new_user:
-            # NOTE: Auto-create test document removed - using stateless OAuth only
-            # New users go to upload step to manually upload first document
-            landing = "/onboarding/upload"
+            # New users go to vault-setup: initialises folders, verifies, then releases to /home.html
+            vault_setup_stage = navigation.get_stage("vault_setup")
+            landing = vault_setup_stage.path if vault_setup_stage else "/onboarding/vault-setup"
         else:
             landing = _route_user(user_id)
 
