@@ -91,6 +91,14 @@ jobs:
           DATABASE_URL: sqlite+aiosqlite:///./test.db
           SECRET_KEY: test-secret-key-for-ci-only
 
+      - name: Run SSOT Architecture Compliance Gate (mandatory)
+        run: |
+          pytest tests/test_ssot_architecture.py -v --tb=short
+        env:
+          SECURITY_MODE: enforced
+          DATABASE_URL: sqlite+aiosqlite:///./test.db
+          SECRET_KEY: test-secret-key-for-ci-only
+
       - name: Run tests with coverage
         run: |
           pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing

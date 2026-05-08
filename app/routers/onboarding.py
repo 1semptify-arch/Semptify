@@ -108,9 +108,9 @@ ONBOARDING_TEMPLATE = """<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Get Started — Semptify</title>
     <style>
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        :root {{
+        :root {
             --primary: #1e3a5f;
             --primary-light: #2d5a87;
             --accent: #3b82f6;
@@ -123,71 +123,71 @@ ONBOARDING_TEMPLATE = """<!DOCTYPE html>
             --success: #166534;
             --success-bg: #f0fdf4;
             --success-border: #bbf7d0;
-        }}
+        }
 
-        body {{
+        body {
             font-family: 'Georgia', 'Times New Roman', serif;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
             line-height: 1.6;
-        }}
+        }
 
-        .page-header {{
+        .page-header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             color: white;
             padding: 2.5rem 2rem;
             text-align: center;
-        }}
+        }
 
-        .page-header h1 {{
+        .page-header h1 {
             font-size: 2rem;
             font-weight: 400;
             letter-spacing: -0.02em;
             margin-bottom: 0.25rem;
-        }}
+        }
 
-        .page-header .subtitle {{
+        .page-header .subtitle {
             font-size: 1rem;
             font-weight: 300;
             opacity: 0.85;
             font-style: italic;
-        }}
+        }
 
-        .page-header .brand {{
+        .page-header .brand {
             font-size: 0.85rem;
             opacity: 0.65;
             margin-bottom: 0.75rem;
             letter-spacing: 0.05em;
             text-transform: uppercase;
-        }}
+        }
 
-        .container {{
+        .container {
             max-width: 680px;
             margin: 0 auto;
             padding: 2rem;
-        }}
+        }
 
-        .step-indicator {{
+        .step-indicator {
             display: flex;
             align-items: center;
             gap: 0;
             margin-bottom: 2rem;
             font-size: 0.85rem;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }}
+        }
 
-        .step {{
+        .step {
             display: flex;
             align-items: center;
             gap: 0.4rem;
             color: var(--text-light);
-        }}
+        }
 
-        .step.active {{ color: var(--primary); font-weight: 600; }}
-        .step.done {{ color: var(--success); }}
+        .step.active { color: var(--primary); font-weight: 600; }
+        .step.done { color: var(--success); }
 
-        .step-num {{
+        .step-num {
             width: 24px;
             height: 24px;
             border-radius: 50%;
@@ -197,32 +197,32 @@ ONBOARDING_TEMPLATE = """<!DOCTYPE html>
             justify-content: center;
             font-size: 0.75rem;
             flex-shrink: 0;
-        }}
+        }
 
-        .step.active .step-num {{ background: var(--primary); color: white; border-color: var(--primary); }}
-        .step.done .step-num {{ background: var(--success); color: white; border-color: var(--success); }}
+        .step.active .step-num { background: var(--primary); color: white; border-color: var(--primary); }
+        .step.done .step-num { background: var(--success); color: white; border-color: var(--success); }
 
-        .step-sep {{
+        .step-sep {
             flex: 1;
             height: 2px;
             background: var(--border);
             margin: 0 0.5rem;
-        }}
+        }
 
-        .step-sep.done {{ background: var(--success); }}
+        .step-sep.done { background: var(--success); }
 
-        .card-grid {{
+        .card-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1rem;
             margin-bottom: 1.5rem;
-        }}
+        }
 
-        @media (max-width: 520px) {{
-            .card-grid {{ grid-template-columns: 1fr; }}
-        }}
+        @media (max-width: 520px) {
+            .card-grid { grid-template-columns: 1fr; }
+        }
 
-        .role-card {{
+        .role-card {
             border: 2px solid var(--border);
             border-radius: 10px;
             padding: 1.25rem;
@@ -232,42 +232,42 @@ ONBOARDING_TEMPLATE = """<!DOCTYPE html>
             text-align: left;
             position: relative;
             font-family: inherit;
-        }}
+        }
 
-        .role-card:hover:not(.disabled) {{
+        .role-card:hover:not(.disabled) {
             border-color: var(--accent);
             box-shadow: 0 4px 12px rgba(59,130,246,0.12);
             transform: translateY(-2px);
-        }}
+        }
 
-        .role-card.disabled {{
+        .role-card.disabled {
             opacity: 0.6;
             cursor: not-allowed;
             background: #f8fafc;
-        }}
+        }
 
-        .role-icon {{
+        .role-icon {
             font-size: 1.75rem;
             margin-bottom: 0.5rem;
             display: block;
-        }}
+        }
 
-        .role-name {{
+        .role-name {
             font-size: 1.05rem;
             font-weight: 600;
             color: var(--primary);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             margin-bottom: 0.2rem;
-        }}
+        }
 
-        .role-desc {{
+        .role-desc {
             font-size: 0.85rem;
             color: var(--text-light);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             line-height: 1.4;
-        }}
+        }
 
-        .badge {{
+        .badge {
             display: inline-block;
             font-size: 0.7rem;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -277,21 +277,21 @@ ONBOARDING_TEMPLATE = """<!DOCTYPE html>
             padding: 0.2rem 0.5rem;
             border-radius: 4px;
             margin-top: 0.5rem;
-        }}
+        }
 
-        .badge-soon {{
+        .badge-soon {
             background: #fef3c7;
             color: #92400e;
             border: 1px solid #fde68a;
-        }}
+        }
 
-        .badge-active {{
+        .badge-active {
             background: var(--success-bg);
             color: var(--success);
             border: 1px solid var(--success-border);
-        }}
+        }
 
-        .status-box {{
+        .status-box {
             background: var(--success-bg);
             border: 1px solid var(--success-border);
             border-radius: 8px;
@@ -300,9 +300,9 @@ ONBOARDING_TEMPLATE = """<!DOCTYPE html>
             color: var(--success);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             font-size: 0.9rem;
-        }}
+        }
 
-        .error-box {{
+        .error-box {
             background: #fef2f2;
             border: 1px solid #fecaca;
             border-radius: 8px;
@@ -311,9 +311,9 @@ ONBOARDING_TEMPLATE = """<!DOCTYPE html>
             color: #991b1b;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             font-size: 0.9rem;
-        }}
+        }
 
-        .provider-btn {{
+        .provider-btn {
             display: flex;
             align-items: center;
             gap: 1rem;
@@ -327,29 +327,29 @@ ONBOARDING_TEMPLATE = """<!DOCTYPE html>
             text-align: left;
             margin-bottom: 0.75rem;
             font-family: inherit;
-        }}
+        }
 
-        .provider-btn:hover {{
+        .provider-btn:hover {
             border-color: var(--accent);
             box-shadow: 0 4px 12px rgba(59,130,246,0.12);
-        }}
+        }
 
-        .provider-icon {{ font-size: 1.5rem; flex-shrink: 0; }}
+        .provider-icon { font-size: 1.5rem; flex-shrink: 0; }
 
-        .provider-name {{
+        .provider-name {
             font-size: 1rem;
             font-weight: 600;
             color: var(--primary);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }}
+        }
 
-        .provider-desc {{
+        .provider-desc {
             font-size: 0.83rem;
             color: var(--text-light);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }}
+        }
 
-        .section-label {{
+        .section-label {
             font-size: 0.85rem;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             color: var(--text-light);
@@ -357,10 +357,10 @@ ONBOARDING_TEMPLATE = """<!DOCTYPE html>
             letter-spacing: 0.06em;
             margin-bottom: 1rem;
             font-weight: 600;
-        }}
+        }
 
-        .loading {{ text-align: center; padding: 3rem 2rem; }}
-        .spinner {{
+        .loading { text-align: center; padding: 3rem 2rem; }
+        .spinner {
             display: inline-block;
             width: 32px;
             height: 32px;
@@ -368,10 +368,10 @@ ONBOARDING_TEMPLATE = """<!DOCTYPE html>
             border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-        }}
-        @keyframes spin {{ to {{ transform: rotate(360deg); }} }}
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        .footer-note {{
+        .footer-note {
             margin-top: 2.5rem;
             padding-top: 1.5rem;
             border-top: 1px solid var(--border);
@@ -379,7 +379,7 @@ ONBOARDING_TEMPLATE = """<!DOCTYPE html>
             color: var(--text-light);
             text-align: center;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }}
+        }
     </style>
 </head>
 <body>

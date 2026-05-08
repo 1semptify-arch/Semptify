@@ -2232,6 +2232,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if onboarding_static_path.exists():
         fastapi_app.mount("/onboarding-assets", StaticFiles(directory=str(onboarding_static_path)), name="onboarding_static")
 
+    # Shortcut mounts so pages can use /js/... and /css/... without /static prefix
+    js_path = BASE_PATH / "static" / "js"
+    if js_path.exists():
+        fastapi_app.mount("/js", StaticFiles(directory=str(js_path)), name="js_static")
+
+    css_path = BASE_PATH / "static" / "css"
+    if css_path.exists():
+        fastapi_app.mount("/css", StaticFiles(directory=str(css_path)), name="css_static")
+
     # =========================================================================
     # Onboarding Redirect (before catch-all)
     # =========================================================================
