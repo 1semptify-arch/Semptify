@@ -3290,6 +3290,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             }
         )
 
+    from app.core.cookie_auth import extract_user_id as _extract_user_id
+
     async def _get_tenant_briefcase(user_id: str, user_name: Optional[str] = None):
         """Fetch complete tenant briefcase - unified vault, timeline, journal, inbox."""
         from app.core.tenant_briefcase import get_tenant_briefcase
@@ -3304,7 +3306,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return guard_redirect
         
         # Get user from cookie/session
-        user_id = request.cookies.get("semptify_uid", "")
+        user_id = _extract_user_id(request) or ""
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
         
         # Try tenant home template first, then fall back to main tenant template
@@ -3335,7 +3337,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if guard_redirect:
             return guard_redirect
         
-        user_id = request.cookies.get("semptify_uid", "")
+        user_id = _extract_user_id(request) or ""
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
         
         context = {
@@ -3354,7 +3356,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if guard_redirect:
             return guard_redirect
 
-        user_id = request.cookies.get("semptify_uid", "")
+        user_id = _extract_user_id(request) or ""
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
 
         entries = []
@@ -3387,7 +3389,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if guard_redirect:
             return guard_redirect
         
-        user_id = request.cookies.get("semptify_uid", "")
+        user_id = _extract_user_id(request) or ""
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
         
         context = {"briefcase": briefcase}
@@ -3401,7 +3403,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if guard_redirect:
             return guard_redirect
 
-        user_id = request.cookies.get("semptify_uid", "")
+        user_id = _extract_user_id(request) or ""
         briefcase = await _get_tenant_briefcase(user_id) if user_id else None
 
         context = {"briefcase": briefcase}
