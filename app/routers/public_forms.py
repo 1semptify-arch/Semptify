@@ -15,7 +15,7 @@ so the form still shows success to the user (no broken UX in dev).
 import logging
 from typing import Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, field_validator
 
@@ -103,6 +103,39 @@ async def submit_feedback(body: FeedbackRequest):
         )
 
     return JSONResponse({"status": "ok", "received": True})
+
+
+@router.get("/tenant/autofill")
+async def tenant_autofill(request: Request):
+    """
+    Return pre-fill data for the letter forms based on the tenant's case.
+    Reads user_id from cookie, then pulls the best available case data.
+    Returns empty strings for any field that cannot be resolved so the form
+    still works — the user just fills those fields manually.
+    """
+    from app.core.cookie_auth import extract_user_id
+    user_id = extract_user_id(request) or ""
+    result = {
+        "tenant_name": "",
+        "property_address": "",
+        "landlord_name": "",
+        "email": "",
+        "found": False,
+    }
+
+    if not user_id:
+        return JSONResponse(result)
+
+    try:
+        from app.core.tenant_briefcase import get_tenant_briefcase
+        briefcase = await get_tenant_briefcase(user_id)
+        if briefcase and briefcase.user_name:
+            result["tenant_name"] = briefcase.user_name
+            result["found"] = True
+    except Exception as exc:  # pylint: disable=broad-exception-caught
+        logger.warning("autofill: briefcase load failed for %s: %s", user_id, exc)
+
+    return JSONResponse(result)
 
 
 @router.post("/contact")
