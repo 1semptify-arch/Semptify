@@ -47,11 +47,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         """
         return "; ".join([
             "default-src 'self'",
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://static.cloudflareinsights.com",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net",
             "font-src 'self' https://fonts.gstatic.com data:",
             "img-src 'self' data: https: blob:",
-            "connect-src 'self' https://api.openai.com https://api.anthropic.com wss:",
+            "connect-src 'self' https://api.openai.com https://api.anthropic.com https://cloudflareinsights.com wss:",
             "frame-ancestors 'self'",
             "form-action 'self'",
             "base-uri 'self'",
