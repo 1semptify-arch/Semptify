@@ -54,6 +54,15 @@ from app.services.law_engine import get_law_engine
 
 from app.routers.storage import _mark_group_complete
 
+try:
+
+    from app.core.oauth_token_manager import get_valid_token_for_user as _get_valid_token
+
+except ImportError:
+
+    def _get_valid_token(user_id: str):  # type: ignore[misc]
+        return None
+
 
 
 # Import vault upload service - ALL uploads go through here first
@@ -636,9 +645,9 @@ async def upload_document(
 
         vault_service = get_vault_service()
 
-        # Get access token from session (not form) - user is authenticated
+        # Resolve access token: user object → token manager → form field
 
-        session_token = getattr(user, 'access_token', None) or access_token
+        session_token = getattr(user, 'access_token', None) or _get_valid_token(user_id) or access_token
 
         session_provider = getattr(user, 'provider', storage_provider)
 

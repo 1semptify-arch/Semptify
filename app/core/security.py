@@ -1134,14 +1134,27 @@ async def get_current_user(
         
         # Only create context if we have valid provider and role codes
         if provider and role:
-            # Get real access token from database
+            # Get real access token: in-memory cache first, then DB (survives server restarts)
             real_token = None
             try:
                 from app.core.oauth_token_manager import get_valid_token_for_user
                 real_token = get_valid_token_for_user(semptify_uid)
             except Exception:
-                pass  # If token fetch fails, still return context (will be caught by require_user)
-            
+                pass
+
+            if not real_token:
+                # In-memory cache empty (e.g. after server restart) — load from DB
+                try:
+                    from app.routers.storage import get_session_from_db
+                    from app.core.database import get_session_factory
+                    _factory = get_session_factory()
+                    async with _factory() as _db:
+                        _session = await get_session_from_db(_db, semptify_uid)
+                        if _session:
+                            real_token = _session.get("access_token")
+                except Exception:
+                    pass
+
             return UserContext(
                 user_id=semptify_uid,
                 provider=provider,
