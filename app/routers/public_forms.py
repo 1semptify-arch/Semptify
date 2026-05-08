@@ -19,6 +19,8 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, field_validator
 
+from app.core.rate_limit import limiter
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["Public Forms"])
@@ -105,13 +107,24 @@ async def submit_feedback(body: FeedbackRequest):
     return JSONResponse({"status": "ok", "received": True})
 
 
-@router.get("/tenant/autofill")
+@router.post("/tenant/autofill")
+@limiter.limit("30/minute")
 async def tenant_autofill(request: Request):
     """
     Return pre-fill data for the letter forms based on the tenant's case.
     Reads user_id from cookie, then pulls the best available case data.
     Returns empty strings for any field that cannot be resolved so the form
     still works — the user just fills those fields manually.
+
+    POST method to prevent CSRF attacks.
+
+    Currently populated:
+    - tenant_name: from briefcase.user_name (if available)
+
+    Not yet implemented (returns empty string):
+    - property_address: TODO - needs document parsing or user profile
+    - landlord_name: TODO - needs document parsing or user profile
+    - email: TODO - User.email column was dropped in PII migration
     """
     from app.core.cookie_auth import extract_user_id
     user_id = extract_user_id(request) or ""
@@ -120,7 +133,6 @@ async def tenant_autofill(request: Request):
         "property_address": "",
         "landlord_name": "",
         "email": "",
-        "found": False,
     }
 
     if not user_id:
@@ -131,9 +143,10 @@ async def tenant_autofill(request: Request):
         briefcase = await get_tenant_briefcase(user_id)
         if briefcase and briefcase.user_name:
             result["tenant_name"] = briefcase.user_name
-            result["found"] = True
+    except (ConnectionError, TimeoutError) as exc:
+        logger.warning("autofill: network error for %s: %s", user_id[:8] if user_id else "none", exc)
     except Exception as exc:  # pylint: disable=broad-exception-caught
-        logger.warning("autofill: briefcase load failed for %s: %s", user_id, exc)
+        logger.error("autofill: unexpected error for %s: %s", user_id[:8] if user_id else "none", exc, exc_info=True)
 
     return JSONResponse(result)
 

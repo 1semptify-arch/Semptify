@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Template Letters – Semptify</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Pinyon+Script&family=Great+Vibes&display=swap" rel="stylesheet">
   <style>
     :root {
       --hdr1: #4c1d95; --hdr2: #5b21b6; --accent: #7c3aed;
@@ -83,6 +85,59 @@
     .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
     .drawer-backdrop.open { display: block; }
 
+    /* Sign button */
+    .btn-sign { background: #1d4ed8; color: #fff; border: none; }
+    .btn-sign:hover { background: #1e40af; }
+    .btn-print-signed { background: #0f766e; color: #fff; border: none; }
+    .btn-print-signed:hover { background: #0d6b62; }
+    .sign-row { display: none; margin-top: 0.75rem; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+    .sign-row.visible { display: flex; }
+    .sig-preview-img { height: 40px; border-bottom: 1px solid #94a3b8; margin-left: 0.5rem; }
+
+    /* Signature modal */
+    .sig-modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 2000; align-items: center; justify-content: center; }
+    .sig-modal-backdrop.open { display: flex; }
+    .sig-modal { background: #fff; border-radius: 16px; padding: 1.5rem; width: min(520px, 95vw); box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+    .sig-modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: var(--hdr1); }
+    .sig-tabs { display: flex; gap: 0; margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .sig-tab { flex: 1; padding: 0.55rem; background: #f8fafc; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer; color: var(--muted); }
+    .sig-tab.active { background: var(--hdr1); color: #fff; }
+    .sig-panel { display: none; }
+    .sig-panel.active { display: block; }
+    /* Draw panel */
+    #sig-canvas { display: block; width: 100%; height: 140px; border: 2px solid #c7d2fe; border-radius: 8px; background: #f8f9ff; touch-action: none; cursor: crosshair; }
+    .sig-draw-actions { display: flex; justify-content: flex-end; margin-top: 0.4rem; }
+    .btn-clear-sig { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.7rem; font-size: 0.8rem; cursor: pointer; color: var(--muted); }
+    /* Type panel */
+    .sig-type-input { width: 100%; padding: 0.6rem 0.8rem; border: 1px solid #d1d5db; border-radius: 7px; font-size: 1.6rem; font-family: 'Dancing Script', cursive; margin-bottom: 0.75rem; }
+    .sig-font-options { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+    .sig-font-btn { padding: 0.4rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; background: #fff; font-size: 1.1rem; }
+    .sig-font-btn.selected { border-color: var(--accent); background: #ede9fe; }
+    .sig-font-btn[data-font="Dancing Script"] { font-family: 'Dancing Script', cursive; }
+    .sig-font-btn[data-font="Great Vibes"] { font-family: 'Great Vibes', cursive; }
+    .sig-font-btn[data-font="Pinyon Script"] { font-family: 'Pinyon Script', cursive; }
+    /* Modal actions */
+    .sig-modal-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; justify-content: flex-end; }
+    .btn-apply-sig { background: var(--hdr1); color: #fff; border: none; padding: 0.65rem 1.4rem; border-radius: 8px; font-size: 0.9rem; font-weight: 700; cursor: pointer; }
+    .btn-cancel-sig { background: #f1f5f9; color: var(--muted); border: none; padding: 0.65rem 1.1rem; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
+
+    /* Print styles */
+    @media print {
+      header, footer, .autofill-bar, .disclaimer, .btn-row, .sign-row,
+      nav, .nav-drawer, .drawer-backdrop, .sig-modal-backdrop,
+      .letter-card:not(.printing) { display: none !important; }
+      body { background: #fff; }
+      .letter-card.printing { border: none !important; box-shadow: none !important; display: block !important; page-break-inside: avoid; }
+      .letter-card-header.printing-header { background: none !important; color: #000 !important; padding: 0 0 0.5rem !important; border-bottom: 1px solid #ccc; margin-bottom: 1rem; }
+      .preview-box { display: block !important; border: none !important; background: none !important; padding: 0 !important; font-size: 11pt !important; }
+      .print-sig-block { display: block !important; }
+      .letter-card-body > p, .form-group, .letter-card-header p { display: none !important; }
+      .container { padding: 0 !important; }
+      .letter-grid { display: block !important; }
+    }
+    .print-sig-block { display: none; margin-top: 2rem; }
+    .print-sig-block img { max-height: 60px; display: block; margin-top: 0.25rem; }
+
     @media (max-width: 768px) {
       nav.core-nav { display: none; }
       .hamburger { display: block; }
@@ -123,6 +178,40 @@
     <div class="hero-inner">
       <h1>✉️ Template Letters</h1>
       <p>Professional letters you can edit and send to your landlord. Every letter creates a paper trail that protects you.</p>
+    </div>
+  </div>
+
+  <!-- Signature Modal -->
+  <div class="sig-modal-backdrop" id="sig-modal-backdrop">
+    <div class="sig-modal">
+      <h2>✍️ Add Your Signature</h2>
+      <div class="sig-tabs">
+        <button class="sig-tab active" onclick="switchSigTab('draw')">✏️ Draw</button>
+        <button class="sig-tab" onclick="switchSigTab('type')">⌨️ Type</button>
+      </div>
+
+      <!-- Draw panel -->
+      <div class="sig-panel active" id="sig-panel-draw">
+        <canvas id="sig-canvas" width="480" height="140"></canvas>
+        <div class="sig-draw-actions">
+          <button class="btn-clear-sig" onclick="clearCanvas()">Clear</button>
+        </div>
+      </div>
+
+      <!-- Type panel -->
+      <div class="sig-panel" id="sig-panel-type">
+        <input class="sig-type-input" id="sig-type-text" placeholder="Your name" oninput="updateTypeSigPreview()">
+        <div class="sig-font-options" id="sig-font-options">
+          <button class="sig-font-btn selected" data-font="Dancing Script" onclick="selectFont(this)">Signature</button>
+          <button class="sig-font-btn" data-font="Great Vibes" onclick="selectFont(this)">Signature</button>
+          <button class="sig-font-btn" data-font="Pinyon Script" onclick="selectFont(this)">Signature</button>
+        </div>
+      </div>
+
+      <div class="sig-modal-actions">
+        <button class="btn-cancel-sig" onclick="closeSigModal()">Cancel</button>
+        <button class="btn-apply-sig" onclick="applySig()">Apply Signature →</button>
+      </div>
     </div>
   </div>
 
@@ -176,6 +265,12 @@
           </div>
           <div class="copy-confirm" id="maint-confirm">✅ Copied to clipboard</div>
           <div class="preview-box" id="maint-preview"></div>
+          <div class="sign-row" id="maint-sign-row">
+            <button class="btn btn-sign" onclick="openSigModal('maint')">✍️ Sign</button>
+            <button class="btn btn-print-signed" onclick="printSigned('maint')" id="maint-print-btn" style="display:none">🖨️ Print / Save PDF</button>
+            <img class="sig-preview-img" id="maint-sig-img" style="display:none" alt="signature">
+          </div>
+          <div class="print-sig-block" id="maint-print-sig"></div>
         </div>
       </div>
 
@@ -221,6 +316,12 @@
           </div>
           <div class="copy-confirm" id="dep-confirm">✅ Copied to clipboard</div>
           <div class="preview-box" id="dep-preview"></div>
+          <div class="sign-row" id="dep-sign-row">
+            <button class="btn btn-sign" onclick="openSigModal('dep')">✍️ Sign</button>
+            <button class="btn btn-print-signed" onclick="printSigned('dep')" id="dep-print-btn" style="display:none">🖨️ Print / Save PDF</button>
+            <img class="sig-preview-img" id="dep-sig-img" style="display:none" alt="signature">
+          </div>
+          <div class="print-sig-block" id="dep-print-sig"></div>
         </div>
       </div>
 
@@ -262,6 +363,12 @@
           </div>
           <div class="copy-confirm" id="hab-confirm">✅ Copied to clipboard</div>
           <div class="preview-box" id="hab-preview"></div>
+          <div class="sign-row" id="hab-sign-row">
+            <button class="btn btn-sign" onclick="openSigModal('hab')">✍️ Sign</button>
+            <button class="btn btn-print-signed" onclick="printSigned('hab')" id="hab-print-btn" style="display:none">🖨️ Print / Save PDF</button>
+            <img class="sig-preview-img" id="hab-sig-img" style="display:none" alt="signature">
+          </div>
+          <div class="print-sig-block" id="hab-print-sig"></div>
         </div>
       </div>
 
@@ -303,6 +410,12 @@
           </div>
           <div class="copy-confirm" id="nr-confirm">✅ Copied to clipboard</div>
           <div class="preview-box" id="nr-preview"></div>
+          <div class="sign-row" id="nr-sign-row">
+            <button class="btn btn-sign" onclick="openSigModal('nr')">✍️ Sign</button>
+            <button class="btn btn-print-signed" onclick="printSigned('nr')" id="nr-print-btn" style="display:none">🖨️ Print / Save PDF</button>
+            <img class="sig-preview-img" id="nr-sig-img" style="display:none" alt="signature">
+          </div>
+          <div class="print-sig-block" id="nr-print-sig"></div>
         </div>
       </div>
 
@@ -321,6 +434,153 @@
   </footer>
 
   <script>
+    // =========================================================
+    // Signature modal
+    // =========================================================
+    let _currentLetterKey = null;
+    let _sigCanvas, _sigCtx, _sigDrawing = false;
+    let _selectedFont = 'Dancing Script';
+    let _currentTab = 'draw';
+
+    function openSigModal(key) {
+      _currentLetterKey = key;
+      document.getElementById('sig-modal-backdrop').classList.add('open');
+      initCanvas();
+    }
+    function closeSigModal() {
+      document.getElementById('sig-modal-backdrop').classList.remove('open');
+    }
+
+    function switchSigTab(tab) {
+      _currentTab = tab;
+      document.querySelectorAll('.sig-tab').forEach((t,i) => t.classList.toggle('active', (i===0 && tab==='draw') || (i===1 && tab==='type')));
+      document.getElementById('sig-panel-draw').classList.toggle('active', tab==='draw');
+      document.getElementById('sig-panel-type').classList.toggle('active', tab==='type');
+      if (tab==='draw') initCanvas();
+    }
+
+    function initCanvas() {
+      _sigCanvas = document.getElementById('sig-canvas');
+      _sigCtx = _sigCanvas.getContext('2d');
+      _sigCtx.strokeStyle = '#1a1a2e';
+      _sigCtx.lineWidth = 2.5;
+      _sigCtx.lineCap = 'round';
+      _sigCtx.lineJoin = 'round';
+
+      const getPos = (e) => {
+        const r = _sigCanvas.getBoundingClientRect();
+        const scaleX = _sigCanvas.width / r.width;
+        const scaleY = _sigCanvas.height / r.height;
+        const src = e.touches ? e.touches[0] : e;
+        return { x: (src.clientX - r.left) * scaleX, y: (src.clientY - r.top) * scaleY };
+      };
+      const start = (e) => { e.preventDefault(); _sigDrawing = true; const p = getPos(e); _sigCtx.beginPath(); _sigCtx.moveTo(p.x, p.y); };
+      const move  = (e) => { e.preventDefault(); if (!_sigDrawing) return; const p = getPos(e); _sigCtx.lineTo(p.x, p.y); _sigCtx.stroke(); };
+      const stop  = ()  => { _sigDrawing = false; };
+
+      _sigCanvas.removeEventListener('mousedown', _sigCanvas._sd);
+      _sigCanvas.removeEventListener('mousemove', _sigCanvas._sm);
+      _sigCanvas.removeEventListener('mouseup',   _sigCanvas._su);
+      _sigCanvas.removeEventListener('touchstart', _sigCanvas._ts);
+      _sigCanvas.removeEventListener('touchmove',  _sigCanvas._tm);
+      _sigCanvas.removeEventListener('touchend',   _sigCanvas._te);
+      _sigCanvas._sd = start; _sigCanvas._sm = move; _sigCanvas._su = stop;
+      _sigCanvas._ts = start; _sigCanvas._tm = move; _sigCanvas._te = stop;
+      _sigCanvas.addEventListener('mousedown', start);
+      _sigCanvas.addEventListener('mousemove', move);
+      _sigCanvas.addEventListener('mouseup',   stop);
+      _sigCanvas.addEventListener('touchstart', start, {passive:false});
+      _sigCanvas.addEventListener('touchmove',  move,  {passive:false});
+      _sigCanvas.addEventListener('touchend',   stop);
+    }
+
+    function clearCanvas() {
+      if (!_sigCtx) return;
+      _sigCtx.clearRect(0, 0, _sigCanvas.width, _sigCanvas.height);
+    }
+
+    function selectFont(btn) {
+      document.querySelectorAll('.sig-font-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      _selectedFont = btn.dataset.font;
+      document.getElementById('sig-type-input') && (document.getElementById('sig-type-input').style.fontFamily = `'${_selectedFont}', cursive`);
+      updateTypeSigPreview();
+    }
+
+    function updateTypeSigPreview() {
+      const inp = document.getElementById('sig-type-text');
+      if (inp) inp.style.fontFamily = `'${_selectedFont}', cursive`;
+    }
+
+    function getTypeSigDataURL() {
+      const text = (document.getElementById('sig-type-text').value || '').trim();
+      if (!text) return null;
+      const c = document.createElement('canvas');
+      c.width = 480; c.height = 140;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#f8f9ff';
+      ctx.fillRect(0,0,c.width,c.height);
+      ctx.font = `56px '${_selectedFont}', cursive`;
+      ctx.fillStyle = '#1a1a2e';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, c.width/2, c.height/2);
+      return c.toDataURL();
+    }
+
+    function isCanvasEmpty() {
+      const data = _sigCtx.getImageData(0,0,_sigCanvas.width,_sigCanvas.height).data;
+      return !data.some(v => v !== 0);
+    }
+
+    function applySig() {
+      let dataURL;
+      if (_currentTab === 'draw') {
+        if (isCanvasEmpty()) { alert('Please draw your signature first.'); return; }
+        dataURL = _sigCanvas.toDataURL();
+      } else {
+        dataURL = getTypeSigDataURL();
+        if (!dataURL) { alert('Please type your name first.'); return; }
+      }
+
+      // Show thumbnail next to sign button
+      const imgEl = document.getElementById(_currentLetterKey + '-sig-img');
+      if (imgEl) { imgEl.src = dataURL; imgEl.style.display = 'inline-block'; }
+
+      // Show print button
+      const printBtn = document.getElementById(_currentLetterKey + '-print-btn');
+      if (printBtn) printBtn.style.display = 'inline-block';
+
+      // Store in print sig block
+      const block = document.getElementById(_currentLetterKey + '-print-sig');
+      if (block) { block.innerHTML = '<img src="'+dataURL+'" style="max-height:60px;display:block;margin-top:0.5rem" alt="signature">'; }
+
+      closeSigModal();
+    }
+
+    function printSigned(key) {
+      // Mark only this card for printing
+      document.querySelectorAll('.letter-card').forEach(c => c.classList.remove('printing'));
+      const card = document.getElementById('card-'+key);
+      if (card) {
+        card.classList.add('printing');
+        // Show sig block for print
+        const block = document.getElementById(key+'-print-sig');
+        if (block) block.style.display = 'block';
+        const preview = document.getElementById(key+'-preview');
+        if (preview) preview.classList.add('visible');
+      }
+      setTimeout(() => {
+        window.print();
+        // Cleanup after print dialog closes
+        setTimeout(() => {
+          if (card) card.classList.remove('printing');
+          const block = document.getElementById(key+'-print-sig');
+          if (block) block.style.display = 'none';
+        }, 1000);
+      }, 100);
+    }
+
     function openDrawer() { document.getElementById('nav-drawer').classList.add('open'); document.getElementById('drawer-backdrop').classList.add('open'); }
     function closeDrawer() { document.getElementById('nav-drawer').classList.remove('open'); document.getElementById('drawer-backdrop').classList.remove('open'); }
 
@@ -464,14 +724,8 @@ ${a}
       btn.disabled = true;
       btn.textContent = '⏳ Loading...';
       try {
-        const res = await fetch('/api/tenant/autofill');
+        const res = await fetch('/api/tenant/autofill', { method: 'POST' });
         const data = await res.json();
-        if (!data.found && !data.email) {
-          status.textContent = 'No case data found — fill fields manually.';
-          btn.textContent = '⚡ Fill from my case';
-          btn.disabled = false;
-          return;
-        }
         const name = data.tenant_name || '';
         const addr = data.property_address || '';
         const ll   = data.landlord_name || '';
