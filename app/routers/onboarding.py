@@ -1001,7 +1001,7 @@ def _render_vault_setup():
             // Step 4: all done
             setItem('done', 'ok', CHECK);
             await new Promise(r => setTimeout(r, 800));
-            window.location.href = '/home.html';
+            window.location.href = '/onboarding/complete';
         }
 
         window.addEventListener('load', runSetup);
@@ -1051,11 +1051,24 @@ async def connect_storage(provider: str = Query(...), role: str = Query("tenant"
 
 @router.get("/vault-setup", response_class=HTMLResponse)
 async def vault_setup(semptify_uid: Optional[str] = Cookie(None)):
-    """Post-OAuth vault initialisation and verification. Releases to /home.html on success."""
+    """Post-OAuth vault initialisation and verification. Releases to /onboarding/complete on success."""
     if not semptify_uid:
         role_stage = navigation.get_stage("role_select")
         return ssot_redirect(role_stage.path, context="vault_setup no cookie")
     return HTMLResponse(content=_render_vault_setup())
+
+
+@router.get("/complete")
+async def onboarding_complete(semptify_uid: Optional[str] = Cookie(None)):
+    """SSOT routing terminus — delegates to workflow engine to determine user's home page."""
+    if not semptify_uid:
+        role_stage = navigation.get_stage("role_select")
+        return ssot_redirect(role_stage.path, context="onboarding_complete no cookie")
+    from app.core.cookie_auth import verify_user_id
+    from app.core.workflow_engine import route_user
+    raw_uid = verify_user_id(semptify_uid) or semptify_uid
+    destination = route_user(raw_uid)
+    return ssot_redirect(destination, context="onboarding_complete route_user")
 
 @router.get("/status", response_class=HTMLResponse)
 async def onboarding_status(semptify_uid: Optional[str] = Cookie(None), db: AsyncSession = Depends(get_db)):

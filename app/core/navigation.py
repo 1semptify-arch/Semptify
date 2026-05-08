@@ -117,7 +117,7 @@ class NavigationRegistry:
         "dashboard": FlowStage(
             id="dashboard",
             name="Home",
-            path="/home.html",
+            path="/onboarding/complete",
             next_stage=None,
             requires_checkpoint=False
         ),
