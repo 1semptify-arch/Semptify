@@ -3,6 +3,43 @@
 
 ---
 
+## Shipped This Session — 2026-05-08 (Early AM) — Commit `63dafcb`
+
+### Onboarding Flow — Vault Setup + SSOT Routing Fix
+
+#### New: Vault Setup Page & SSOT Terminus
+- [x] `app/core/navigation.py` — Added `vault_setup` FlowStage (`/onboarding/vault-setup`) and `dashboard` stage pointing to `/onboarding/complete`
+- [x] `app/routers/onboarding.py` — Added `_render_vault_setup()` page with 3-step auto-init (auth → folders → verify) and progress UI
+- [x] `app/routers/onboarding.py` — Added `/onboarding/complete` route: SSOT terminus that calls `route_user()` from workflow engine to determine correct landing page per user state
+- [x] `app/routers/onboarding.py` — `onboarding_root` now routes authenticated users to `vault_setup` via SSOT (was hardcoded `/onboarding/status`)
+- [x] `app/routers/storage.py` — OAuth callback for new users lands on `vault_setup` instead of old `/onboarding/upload`
+- [x] `app/routers/vault.py` — Added `/api/vault/status`, `/api/vault/init`, `/api/vault/verify` endpoints for vault-setup page
+
+#### Bug Fixes (Code Review — 5 bugs)
+- [x] **Bug #3** `onboarding.py` — `onboarding_complete` was passing HMAC-signed cookie value directly to `route_user()`, causing `parse_user_id()` to fail → loop to `/storage/providers`. Fixed: `verify_user_id()` strips HMAC; fallback splits on `.`
+- [x] **Bug #2** `onboarding.py` — JS error extraction produced `[object Object]` because FastAPI `detail` is a dict. Fixed: `typeof d.detail === 'object' ? d.detail.message : d.detail`
+- [x] **Bug #1** `vault.py` — `vault_verify` was calling `create_folder(SEMPTIFY_ROOT)` (same as init — no real verification). Fixed: calls `ensure_vault_folders` + `storage.list_files(VAULT_ROOT)` to confirm access
+- [x] **Bug #4** `vault.py` — `vault_init` and `vault_verify` used fragile string `.replace()` / `hasattr` pattern for provider. Fixed: use `user.provider` directly, matching `upload_document` pattern
+- [x] **Bug #5** `onboarding.py` — CSS `@keyframes spin` missing `from` clause — no actual animation. Fixed: added `from { transform: rotate(0deg); }`
+
+#### Help Page Dead Links Fixed
+- [x] `static/help.html` — `My Account` in nav drawer pointed to `/onboarding/select-role.html`. Fixed: → `/storage/reconnect`
+- [x] `static/help.html` — `/help/crisis.html` (dead ×2) → `#crisis` anchor
+- [x] `static/help.html` — `/help/contact.html` (dead) → `/public/contact.html`
+- [x] `static/help.html` — `/help/faq.html` (dead) → `#faq-list` anchor
+
+**Known Working:**
+- Onboarding completes: OAuth → vault-setup (auto-init) → `/onboarding/complete` → `route_user()` → `/office.html`
+- No hardcoded landing URLs in onboarding flow — all routing through workflow engine
+- Help page has no dead links
+
+**Pending Next Session:**
+- End-to-end test: full OAuth login → vault-setup → `/office.html` on `semptify.org`
+- Verify `storage.list_files(VAULT_ROOT)` works on Google Drive and Dropbox providers
+- Remove dead `_render_storage_connected`, `_render_vault_initialized`, `_render_client_activated` functions in `onboarding.py` (replaced by vault-setup flow)
+
+---
+
 ## Shipped This Session — 2026-05-07 (Evening)
 
 ### CSP Fixes and Navigation Routing Corrections
