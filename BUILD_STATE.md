@@ -3,6 +3,38 @@
 
 ---
 
+## Shipped This Session — 2026-05-07 (Evening)
+
+### CSP Fixes and Navigation Routing Corrections
+
+#### Security & CSP
+- [x] `app/core/security_headers.py` — Added Cloudflare Insights to script-src and connect-src CSP
+- [x] `app/core/security_middleware.py` — Updated CSP policy with Cloudflare domains
+
+#### SSOT Navigation Registry
+- [x] `app/core/navigation.py` — Updated MAIN_NAV to 5 base links: Home, Library, Office, Tools, Help
+
+#### Workflow Routing Fixes
+- [x] `app/core/workflow_engine.py` — Fixed PROCESS_ROUTES to serve correct static pages:
+  - Process A → /home.html
+  - Process B1/B2/B4 → /office.html
+
+#### Testing
+- [x] `tests/e2e/navigation_consistency.spec.js` — Playwright E2E tests for navigation
+- [x] `tests/e2e/navigation_consistency_test.js` — Standalone Node.js test
+
+**Known Working:**
+- CSP no longer blocks Cloudflare Insights beacon script
+- All workflow routes serve pages with consistent 5-link navigation
+- SSOT registry matches actual static pages
+
+**Pending Next Session:**
+- Run Playwright tests to verify all navigation links
+- Test OAuth flow end-to-end with corrected routing
+- Verify mobile drawer navigation on all pages
+
+---
+
 ## Shipped This Session (372a369) — 2026-05-07
 
 ### Unified Footer System, Interactive Tools, and Mandated Navigation

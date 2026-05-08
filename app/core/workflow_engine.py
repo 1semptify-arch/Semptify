@@ -51,12 +51,13 @@ class ProcessCode(str, Enum):
 
 
 # Mapping of process codes to route paths
+# SSOT: These must match the 5 base navigation pages (home.html, library.html, office.html, tools.html, help.html)
 PROCESS_ROUTES: dict[ProcessCode, str] = {
-    ProcessCode.A: "/",
-    ProcessCode.B1: "/tenant/home",
-    ProcessCode.B2: "/tenant/home",
+    ProcessCode.A: "/home.html",
+    ProcessCode.B1: "/office.html",
+    ProcessCode.B2: "/office.html",
     ProcessCode.B3: "/static/eviction_answer.html",
-    ProcessCode.B4: "/advocate",
+    ProcessCode.B4: "/office.html",  # Advocate role -> Office page
 }
 
 # Role-specific portal routes
