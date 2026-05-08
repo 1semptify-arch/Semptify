@@ -66,6 +66,13 @@
     .copy-confirm { display: none; color: var(--success); font-size: 0.8rem; margin-top: 0.35rem; font-weight: 600; }
     .copy-confirm.visible { display: block; }
 
+    .autofill-bar { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 0.85rem 1.1rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; }
+    .autofill-bar p { font-size: 0.85rem; color: #166534; margin: 0; }
+    .btn-autofill { background: #16a34a; color: #fff; border: none; padding: 0.55rem 1.1rem; border-radius: 7px; font-size: 0.85rem; font-weight: 700; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 0.4rem; }
+    .btn-autofill:hover { background: #15803d; }
+    .btn-autofill:disabled { background: #86efac; cursor: default; }
+    .autofill-status { font-size: 0.8rem; color: var(--muted); margin-top: 0.3rem; }
+
     footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 3rem; }
     footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
 
@@ -120,6 +127,14 @@
   </div>
 
   <div class="container">
+
+    <div class="autofill-bar">
+      <div>
+        <p>🗂️ <strong>Have a case on file?</strong> Fill all letter fields with one click.</p>
+        <div class="autofill-status" id="autofill-status"></div>
+      </div>
+      <button class="btn-autofill" id="btn-autofill" onclick="doAutofill()">⚡ Fill from my case</button>
+    </div>
 
     <div class="disclaimer">
       <strong>⚖️ Not Legal Advice —</strong> These templates are starting points. Adapt them to your exact situation. For complex or high-stakes situations, contact a licensed attorney or free legal aid. <a href="/public/disclaimer.html" style="color:#92400e;">Full disclaimer →</a>
@@ -441,6 +456,40 @@ Sincerely,
 ${t}
 ${a}
 `);
+    }
+
+    async function doAutofill() {
+      const btn = document.getElementById('btn-autofill');
+      const status = document.getElementById('autofill-status');
+      btn.disabled = true;
+      btn.textContent = '⏳ Loading...';
+      try {
+        const res = await fetch('/api/tenant/autofill');
+        const data = await res.json();
+        if (!data.found && !data.email) {
+          status.textContent = 'No case data found — fill fields manually.';
+          btn.textContent = '⚡ Fill from my case';
+          btn.disabled = false;
+          return;
+        }
+        const name = data.tenant_name || '';
+        const addr = data.property_address || '';
+        const ll   = data.landlord_name || '';
+        const fill = (id, val) => { if (val) { const el = document.getElementById(id); if (el) el.value = val; } };
+        fill('maint-tenant', name);    fill('maint-address', addr);   fill('maint-landlord', ll);
+        fill('dep-tenant',   name);    fill('dep-old-address', addr); fill('dep-landlord',   ll);
+        fill('hab-tenant',   name);    fill('hab-address',     addr); fill('hab-landlord',   ll);
+        fill('nr-tenant',    name);    fill('nr-address',      addr); fill('nr-landlord',    ll);
+        const filled = [name && 'name', addr && 'address', ll && 'landlord'].filter(Boolean);
+        status.textContent = filled.length
+          ? `✅ Filled: ${filled.join(', ')} — review each field before sending.`
+          : '⚠️ Logged in but no case details yet — fill fields manually.';
+        btn.textContent = '✅ Filled';
+      } catch(e) {
+        status.textContent = 'Could not load case data. Fill fields manually.';
+        btn.textContent = '⚡ Fill from my case';
+        btn.disabled = false;
+      }
     }
 
     function generateNonRenewal() {
