@@ -368,16 +368,20 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                     # to unlock full Semptify functionality
                     if "client_activated" not in completed.split(","):
                         # User has storage connected but no documents uploaded yet
-                        # Allow access to document upload and basic vault operations only
-                        if path.startswith("/api/documents/upload") or path.startswith("/api/vault/upload"):
-                            # Allow document uploads to activate the client
+                        # Allow access to document upload, vault operations, and setup endpoints
+                        ALLOWED_PREFIXES_BEFORE_ACTIVATION = (
+                            "/api/documents/upload",
+                            "/api/vault/",       # ALL vault operations (init, verify, status, upload)
+                            "/api/setup/",       # Setup flow endpoints
+                            "/api/health",
+                            "/api/version",
+                            "/api/roles",
+                        )
+                        if any(path.startswith(p) for p in ALLOWED_PREFIXES_BEFORE_ACTIVATION):
+                            # Allow these endpoints before client activation
                             pass
-                        elif path.startswith("/api/") and not (
-                            path.startswith("/api/health") or
-                            path.startswith("/api/version") or
-                            path.startswith("/api/roles")
-                        ):
-                            # Block most API endpoints until client activation
+                        elif path.startswith("/api/"):
+                            # Block other API endpoints until client activation
                             return JSONResponse(
                                 status_code=403,
                                 content={
@@ -387,8 +391,8 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                                     "redirect_url": "/documents",
                                 },
                             )
-                        elif not path.startswith("/static/") and not path.startswith("/documents"):
-                            # Block most HTML pages until client activation
+                        elif not path.startswith("/static/") and not path.startswith("/documents") and not path.startswith("/onboarding"):
+                            # Block most HTML pages until client activation (but allow onboarding)
                             documents_stage = navigation.get_stage("documents")
                             documents_path = documents_stage.path if documents_stage else "/documents"
                             return ssot_redirect(documents_path, context="storage_middleware client activation required")
