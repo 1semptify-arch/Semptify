@@ -1110,9 +1110,18 @@ async def get_current_user(
     # SECURITY: Only accept UIDs that look like valid connected users
     # Valid format: <provider><role><8-char-random> (minimum 10 chars)
     # Do NOT create fallback contexts - user must complete OAuth
+    #
+    # CRITICAL: The cookie is HMAC-signed (e.g. "GT7x9kM2pQ.hmac_hash").
+    # We must strip the signature to get the raw user_id for token lookups.
     if semptify_uid and len(semptify_uid) >= 10:
-        provider_code = semptify_uid[0].upper()
-        role_code = semptify_uid[1].upper()
+        from app.core.cookie_auth import verify_user_id
+        raw_uid = verify_user_id(semptify_uid)
+        if not raw_uid:
+            # Signature invalid — fall through to unauthenticated
+            return None
+
+        provider_code = raw_uid[0].upper()
+        role_code = raw_uid[1].upper()
         
         # Map provider code to StorageProvider
         provider_map = {
@@ -1135,10 +1144,11 @@ async def get_current_user(
         # Only create context if we have valid provider and role codes
         if provider and role:
             # Get real access token: in-memory cache first, then DB (survives server restarts)
+            # Use raw_uid (unsigned) — token manager and session DB key on raw user_id
             real_token = None
             try:
                 from app.core.oauth_token_manager import get_valid_token_for_user
-                real_token = get_valid_token_for_user(semptify_uid)
+                real_token = get_valid_token_for_user(raw_uid)
             except Exception:
                 pass
 
@@ -1149,16 +1159,16 @@ async def get_current_user(
                     from app.core.database import get_session_factory
                     _factory = get_session_factory()
                     async with _factory() as _db:
-                        _session = await get_session_from_db(_db, semptify_uid)
+                        _session = await get_session_from_db(_db, raw_uid)
                         if _session:
                             real_token = _session.get("access_token")
                 except Exception:
                     pass
 
             return UserContext(
-                user_id=semptify_uid,
+                user_id=raw_uid,
                 provider=provider,
-                storage_user_id=semptify_uid,
+                storage_user_id=raw_uid,
                 access_token=real_token or "no-token",
                 role=role,
             )
