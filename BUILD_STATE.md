@@ -3,7 +3,33 @@
 
 ---
 
-## Shipped This Session — 2026-05-08 (Early AM) — Commit `63dafcb`
+## Shipped This Session — 2026-05-08 (9:30 PM UTC-05) — Commit `f724779`
+
+### Document Upload Bug Fixes — COMPLETED
+
+#### Fixed Document Upload Internal Error
+- [x] **Database Schema Fix** — Applied alembic migration `20250507_widen_user_id_columns` to widen user_id columns from VARCHAR(24) to VARCHAR(128)
+- [x] **ID Sequence Fix** — Created `documents_id_seq` sequence and set default value for documents.id column (was missing auto-increment)
+- [x] **Authentication Flow** — Updated `/api/setup/documents/upload` to use `require_setup_user` dependency allowing uploads during onboarding
+- [x] **Storage Middleware** — Removed `/api/setup/documents/upload` from PUBLIC_PATHS (was incorrectly added)
+
+#### Root Cause Identified
+- [x] **Foreign Key Violation** — Document upload was failing because user didn't exist in `users` table (FK constraint)
+- [x] **Missing Sequence** — documents.id had no auto-increment sequence causing NullViolationError
+- [x] **User ID Format** — New stateless user_id format (~66 chars) exceeded old VARCHAR(24) limit
+
+**Known Working:**
+- Document upload endpoint accessible at `/api/setup/documents/upload`
+- Database schema properly supports auto-incrementing document IDs
+- User ID columns widened to support new stateless format
+- Alembic migrations applied successfully
+
+**Pending Next Session:**
+- Test document upload with authenticated user (requires OAuth flow completion)
+- Verify document processing pipeline works end-to-end
+- Clean up any remaining debug logging
+
+---
 
 ### Onboarding Flow — Vault Setup + SSOT Routing Fix
 
