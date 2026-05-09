@@ -3,18 +3,24 @@
 
 ---
 
-## Shipped This Session — 2026-05-09 (12:59 AM UTC-05) — Commit `261c306`
+## Shipped This Session — 2026-05-09 (3:10 PM UTC-05) — Commit `69bcb94`
 
-### Session Summary — Code Review & Ship Complete
+### Session Summary — Fix Vault Gating Bug + Separate Onboarding/Reconnect
 
-#### Code Review Completed
-- [x] **Review Findings** — 3 minor issues identified (P2: vault gate error handling, autofill empty strings, P3: canvas cleanup)
-- [x] **Verdict: APPROVE** — All changes are solid and follow project patterns
+#### Critical Bug Fixed (P0)
+- [x] **Vault Gating Bug** — `client_activated` gate in `StorageRequirementMiddleware` was blocking `/api/vault/init`, `/api/vault/status`, `/api/vault/verify` — new users could NOT complete vault setup after OAuth. Root cause: only `/api/vault/upload` and `/api/documents/upload` were allowed before activation, but vault init/verify were also needed.
+- [x] **Fix** — Added `ALLOWED_PREFIXES_BEFORE_ACTIVATION` tuple allowing `/api/vault/`, `/api/setup/`, and standard health endpoints. Also allow `/onboarding` HTML pages before activation.
 
-#### Ship Status — Already Deployed
-- [x] **Working Tree Clean** — All changes already committed and pushed
-- [x] **Latest Commit** — `261c306` - BUILD_STATE.md update
-- [x] **Render Status** — Deploying latest commit
+#### Onboarding/Reconnect Separation
+- [x] **`storage_entry()`** — Cookieless users now go to `/onboarding/start` (not `/storage/providers`)
+- [x] **`/storage/connect`** — New route for future new-user-only flow (additive, not yet wired)
+- [x] **SSOT Fix** — `get_stage("onboarding_start")` → `get_onboarding_start()` (stage ID didn't exist)
+
+#### SSOT Documentation
+- [x] **`docs/SSOT_EXPORT.md`** — Added section 1.1 Document Upload Flow Analysis
+
+#### Code Review
+- [x] **Verdict: APPROVE** — All changes clean, one SSOT violation caught and fixed during review
 
 #### Previous Session Fixes (Still Valid)
 - [x] **Database Schema Fix** — Applied alembic migration `20250507_widen_user_id_columns` to widen user_id columns from VARCHAR(24) to VARCHAR(128)
