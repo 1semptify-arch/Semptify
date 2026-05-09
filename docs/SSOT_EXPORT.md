@@ -45,7 +45,48 @@ VAULT_TIMELINE_EVENTS_FILE = f"{VAULT_TIMELINE}/{VAULT_TIMELINE_EVENTS_FILENAME}
 
 ---
 
-## 1.1 Unified Vault + Registry Document Flow
+## 1.1 Document Upload Flow Analysis
+
+### Path (4 Steps)
+```
+Step 0: [Entry - HTTP POST /api/setup/documents/upload]
+Step 1: [Vault Upload Service - upload()]
+Step 2: [Document Processing - _process_document()]
+Step 3: [Form Data Hub Update]
+```
+
+### Storage Locations
+| Type | Primary | Backup | Cache |
+|------|---------|--------|-------|
+| Original File | User's cloud storage (Semptify5.0/Vault/documents/) | None | None |
+| Document Metadata | PostgreSQL (documents table) | None | In-memory |
+| Timeline Events | PostgreSQL (timeline_events table) | None | None |
+| Form Data | PostgreSQL (form_data_hub table) | None | None |
+
+### SSOT Rule
+> **"Every document upload is a single atomic operation: store → process → certify"**
+
+### Certification States
+| State | vault_id | registry_id | is_valid | Meaning |
+|-------|----------|-------------|----------|---------|
+| Valid | ✅ | ✅ | `True` | Successfully uploaded and processed |
+| Partial | ✅ | ❌ | `False` | Uploaded but processing failed |
+| Invalid | ❌ | - | `False` | Upload failed (no file stored) |
+
+### Code Pattern
+```python
+# OLD: Upload then process separately (potential partial state)
+vault_doc = await vault_service.upload(...)
+extracted = await _process_document(...)  # Separate call
+
+# NEW: Atomic upload with processing
+certified_doc = await vault_service.upload_and_process(...)
+# All in one transaction, no partial states
+```
+
+---
+
+## 1.2 Unified Vault + Registry Document Flow
 
 **Files:** `app/services/vault_upload_service.py`, `app/services/document_registry.py`
 

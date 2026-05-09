@@ -773,22 +773,47 @@ async def storage_entry(
     return_to: Optional[str] = None,
 ):
     """
-    Entry point for returning users.
-    Redirects to reconnect if cookie exists, otherwise to provider selection.
+    Entry point for returning users ONLY.
+    Redirects to reconnect if cookie exists, otherwise to onboarding start.
 
     Args:
         return_to: Optional URL to return to after reconnect (for task continuation)
     """
     # Build reconnect URL with return_to if provided
-    providers_stage = navigation.get_stage("providers")
-    providers_path = providers_stage.path if providers_stage else "/storage/providers"
-
     if semptify_uid:
         reconnect_url = "/storage/reconnect"
         if return_to:
             reconnect_url = f"/storage/reconnect?return_to={return_to}"
         return ssot_redirect(reconnect_url, context="storage_entry reconnect")
-    return ssot_redirect(providers_path, context="storage_entry providers")
+    
+    # No cookie - send to onboarding start (NOT provider selection)
+    start_path = navigation.get_onboarding_start()
+    return ssot_redirect(start_path, context="storage_entry no cookie")
+
+
+@router.get("/connect")
+async def storage_connect(
+    request: Request,
+    role: str = Query(...),
+):
+    """
+    Entry point for NEW users only.
+    Shows provider selection for users who have selected a role.
+    
+    Args:
+        role: The role selected by the user (tenant, manager, advocate, etc.)
+    """
+    # Validate role
+    if role not in ALLOWED_ROLES:
+        role = "tenant"
+    
+    # Store role in session/temp storage for OAuth flow
+    # This will be retrieved in OAuth callback
+    from app.core.checkpoint_middleware import set_checkpoint_cookie
+    
+    response = HTMLResponse(content=_generate_connect_page(role=role))
+    set_checkpoint_cookie(response)
+    return response
 
 
 @router.get("/")
@@ -884,6 +909,131 @@ async def reconnect_storage(
 
     # Last resort: can't determine provider or no valid cookie — show picker with return_to
     return HTMLResponse(content=_generate_reconnect_html(existing_uid=raw_uid, return_to=safe_return_to))
+
+
+def _generate_connect_page(role: str) -> str:
+    """Generate the provider selection page for NEW users."""
+    settings = _get_settings()
+    
+    # Provider button configurations
+    PROVIDER_CONFIG = {
+        "google_drive": ("📁", "Google Drive", settings.google_drive_client_id),
+        "dropbox": ("☁️", "Dropbox", settings.dropbox_app_key),
+        "onedrive": ("🔵", "OneDrive", settings.onedrive_client_id),
+    }
+    
+    # Generate HTML
+    html = f'''
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Storage - Semptify</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }}
+        .container {{
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }}
+        .icon {{ font-size: 3rem; margin-bottom: 1rem; text-align: center; }}
+        h1 {{ text-align: center; margin-bottom: 0.5rem; color: #1a1a2e; }}
+        .subtitle {{ text-align: center; color: #64748b; margin-bottom: 2rem; }}
+        .provider-btn {{
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }}
+        .provider-btn:hover {{
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }}
+        .provider-btn:disabled {{
+            opacity: 0.5;
+            cursor: not-allowed;
+        }}
+        .provider-icon {{ font-size: 1.5rem; margin-right: 1rem; }}
+        .provider-info {{ flex: 1; }}
+        .provider-name {{ font-weight: 600; color: #1a1a2e; }}
+        .provider-desc {{ font-size: 0.85rem; color: #64748b; margin-top: 0.25rem; }}
+        .role-badge {{
+            display: inline-block;
+            background: #f0f9ff;
+            color: #0369a1;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🔐</div>
+        <h1>Connect Your Storage</h1>
+        <div class="role-badge">Role: {role.title()}</div>
+        <p class="subtitle">Choose where to store your documents. Your data stays private and under your control.</p>
+        
+        <div class="provider-buttons">
+    '''
+    
+    # Add provider buttons
+    for pid, (icon, name, enabled) in PROVIDER_CONFIG.items():
+        if enabled:
+            html += f'''
+            <a href="/storage/auth/{pid}?role={role}" class="provider-btn">
+                <span class="provider-icon">{icon}</span>
+                <div class="provider-info">
+                    <div class="provider-name">{name}</div>
+                    <div class="provider-desc">Secure cloud storage</div>
+                </div>
+            </a>
+            '''
+        else:
+            html += f'''
+            <button class="provider-btn" disabled>
+                <span class="provider-icon">{icon}</span>
+                <div class="provider-info">
+                    <div class="provider-name">{name}</div>
+                    <div class="provider-desc">Coming soon</div>
+                </div>
+            </button>
+            '''
+    
+    html += '''
+        </div>
+    </div>
+</body>
+</html>
+    '''
+    
+    return html
 
 
 def _generate_reconnect_html(existing_uid: Optional[str] = None, return_to: Optional[str] = None) -> str:
