@@ -31,9 +31,11 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.id_gen import make_id
 from app.core.config import Settings, get_settings
+from app.core.database import get_db
 from app.core.security import (
     require_user,
     rate_limit_dependency,
@@ -1321,10 +1323,11 @@ async def vault_status(user: StorageUser = Depends(require_user)):
 
 
 @router.post("/init")
-async def vault_init(user: StorageUser = Depends(require_user)):
+async def vault_init(user: StorageUser = Depends(require_user), db: AsyncSession = Depends(get_db)):
     """
     Create the Semptify vault folder structure in the user's cloud storage.
     Called once during onboarding vault-setup. Idempotent — safe to call again.
+    Marks vault_initialized gate after successful folder creation.
     """
     try:
         from app.core.oauth_token_manager import get_valid_token_for_user as _get_token
@@ -1347,6 +1350,23 @@ async def vault_init(user: StorageUser = Depends(require_user)):
             status_code=502,
             detail={"error": "folder_init_failed", "message": str(exc)},
         )
+
+    # Mark vault_initialized gate in database
+    try:
+        from app.models.models import User
+        from sqlalchemy import select
+        result = await db.execute(select(User).where(User.id == user.user_id))
+        db_user = result.scalar_one_or_none()
+        if db_user:
+            completed = set((db_user.completed_groups or "").split(","))
+            completed.discard("")
+            completed.add("vault_initialized")
+            db_user.completed_groups = ",".join(sorted(completed))
+            await db.commit()
+            logger.info("vault_initialized gate set for user=%s", user.user_id[:6] + "***")
+    except Exception as exc:
+        logger.warning("Failed to mark vault_initialized gate for user=%s: %s", user.user_id[:6] + "***", exc)
+        # Non-fatal: vault folders created but gate not marked
 
     return {"ok": True, "message": "Vault folders created", "provider": str(user.provider)}
 
