@@ -153,14 +153,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             user_id[:6] + "***", vault_initialized, landing,
         )
 
-        # Use HTML meta refresh so cookies are committed before navigation
-        html_content = f"""<!DOCTYPE html>
-<html><head><meta charset="UTF-8">
-<meta http-equiv="refresh" content="0;url={landing}">
-<title>Redirecting...</title>
-</head><body><p>Setting up your account...</p></body></html>"""
-
-        response = HTMLResponse(content=html_content)
+        response = RedirectResponse(url=landing, status_code=302)
         set_auth_cookie(response, user_id, secure=config.cookie_secure)
         return response
 
