@@ -2166,33 +2166,42 @@ async def oauth_callback(
         # This is the ProcessGroup exit gate: session saved + user row written = storage connected.
         await _mark_group_complete(db, user_id, "storage_connected")
 
-        # NOTE: Old vault provisioning system removed - now using stateless OAuth storage
-        # Tokens and sessions are stored in .semptify/auth/ and .semptify/sessions/
-        # via StatelessOAuthManager instead of the old VaultManager system
-        vault_ok = True
+        # Cache token in-memory so vault_init (called seconds later) can find it.
+        # Without this, get_current_user falls back to DB lookup which may race.
+        from app.core.oauth_token_manager import token_manager, OAuthToken
+        token_manager.store_token(user_id, OAuthToken(
+            access_token=access_token,
+            refresh_token=refresh_token or None,
+            expires_at=utc_now() + timedelta(seconds=expires_in),
+            provider=provider,
+        ))
 
-        # Determine landing page — AFTER vault provisioning attempt.
-        # New users (no existing_uid) always go to the onboarding upload step:
-        #   vault is now initialized, they upload one document to activate the account,
-        #   then route_user() correctly routes them to their role home with documents_present=True.
-        # Returning users use route_user() as normal.
-        # If vault provisioning failed, send to onboarding/status for retry.
+        # Check if vault has been initialized by reading completed_groups from DB.
+        # This is the ONLY reliable way to know — not new/returning status.
+        db_user = await get_user_from_db(db, user_id)
+        completed_groups = set((db_user.completed_groups or "").split(",")) if db_user else set()
+        completed_groups.discard("")
+        vault_initialized = "vault_initialized" in completed_groups
+
+        # Determine landing page.
+        # CRITICAL: If vault_initialized gate is NOT set, ALWAYS go to vault-setup,
+        # regardless of whether the user is new or returning. A returning user whose
+        # vault was never created (e.g. previous onboarding failure) must still set it up.
         return_to = state_data.get("return_to")
 
-        if not vault_ok:
-            status_stage = navigation.get_stage("status")
-            landing = f"{status_stage.path}?storage_setup=retry_required&provider={provider}"
-        elif return_to:
-            landing = return_to
-        elif is_new_user:
-            # New users go to vault-setup: initialises folders, verifies, then releases to /home.html
+        if not vault_initialized:
+            # Vault not set up yet — send to vault-setup page
             vault_setup_stage = navigation.get_stage("vault_setup")
             landing = vault_setup_stage.path if vault_setup_stage else "/onboarding/vault-setup"
+            logger.info("Routing to vault-setup: vault_initialized=%s is_new=%s user=%s",
+                        vault_initialized, is_new_user, user_id[:6] + "***")
+        elif return_to:
+            landing = return_to
         else:
             landing = _route_user(user_id)
 
-        logger.info("OAuth callback complete: user=%s new=%s vault_ok=%s landing=%s",
-                    user_id[:6] + "***" if user_id else "EMPTY", is_new_user, vault_ok, landing)
+        logger.info("OAuth callback complete: user=%s new=%s vault_initialized=%s landing=%s",
+                    user_id[:6] + "***" if user_id else "EMPTY", is_new_user, vault_initialized, landing)
 
         # DEBUG: Verify user_id before setting cookie
         if not user_id:
