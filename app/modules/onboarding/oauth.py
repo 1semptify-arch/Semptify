@@ -8,7 +8,7 @@ Reconnect (returning users refreshing tokens) is NOT handled here.
 
 import logging
 import secrets
-from datetime import timedelta
+from datetime import timedelta, timezone
 from typing import Optional
 from urllib.parse import urlencode
 
@@ -48,12 +48,13 @@ async def create_oauth_state(
     Returns the state string to include in the OAuth redirect URL.
     """
     state = secrets.token_urlsafe(32)
+    now = utc_now()
     oauth_state = OAuthState(
         id=state,
         provider=provider,
         role=role,
-        callback_url=callback_url,
-        created_at=utc_now(),
+        created_at=now,
+        expires_at=now + timedelta(minutes=15),
     )
     db.add(oauth_state)
     await db.commit()
