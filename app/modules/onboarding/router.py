@@ -52,6 +52,11 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         role_stage = navigation.get_stage("role_select")
         return ssot_redirect(role_stage.path, context="onboarding_root")
 
+    @router.get("/select-role.html", response_class=HTMLResponse)
+    async def role_selection_page():
+        """Show role selection page (Jinja2 template)."""
+        return HTMLResponse(content=_render_role_selection_page(config))
+
     @router.get("/start")
     async def onboarding_start(
         semptify_uid: Optional[str] = Cookie(None),
@@ -274,6 +279,44 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 # ============================================================================
 # Page Renderers (minimal — these generate the HTML that JS drives)
 # ============================================================================
+
+def _render_role_selection_page(config: OnboardingConfig) -> str:
+    """Render role selection page."""
+    # For now, only tenant role is supported
+    return f"""<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Select Your Role — {config.product_name}</title>
+<style>
+* {{ margin: 0; padding: 0; box-sizing: border-box; }}
+body {{ font-family: Georgia, serif; background: #fdfcfa; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }}
+.role-card {{ max-width: 500px; width: 90%; background: white; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 2.5rem; text-align: center; }}
+h1 {{ font-size: 1.5rem; font-weight: 400; color: #1e3a5f; margin-bottom: 1.5rem; }}
+p {{ color: #475569; margin-bottom: 2rem; line-height: 1.6; }}
+.role-option {{ background: #f0f9ff; border: 2px solid #3b82f6; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; cursor: pointer; transition: all 0.2s; }}
+.role-option:hover {{ background: #e0f2fe; transform: translateY(-2px); }}
+.role-icon {{ font-size: 2.5rem; margin-bottom: 0.5rem; }}
+.role-name {{ font-size: 1.25rem; font-weight: 500; color: #1e3a5f; margin-bottom: 0.5rem; }}
+.role-desc {{ font-size: 0.9rem; color: #475569; }}
+.continue-btn {{ background: #1e3a5f; color: white; padding: 1rem 2.5rem; border: none; border-radius: 8px; font-size: 1.1rem; cursor: pointer; transition: all 0.2s; }}
+.continue-btn:hover {{ background: #2d5a87; transform: translateY(-2px); }}
+</style>
+</head><body>
+<div class="role-card">
+<h1>Who are you?</h1>
+<p>Select your role to continue with {config.product_name}.</p>
+<div class="role-option" onclick="selectRole('tenant')">
+<div class="role-icon">🏠</div>
+<div class="role-name">Tenant</div>
+<div class="role-desc">I'm renting a home and want to protect my rights</div>
+</div>
+</div>
+<script>
+function selectRole(role) {{
+    window.location.href = '/onboarding/providers?role=' + role;
+}}
+</script>
+</body></html>"""
 
 def _render_providers_page(config: OnboardingConfig) -> str:
     """Render storage provider selection page."""
