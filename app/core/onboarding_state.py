@@ -60,8 +60,8 @@ class OnboardingState:
         try:
             from app.core.navigation import navigation
             gate_to_stage = {
-                "storage_connected": "providers",
-                "vault_initialized": "vault_setup",
+                "storage_connected": "storage_select",  # /onboarding/providers (new users)
+                "vault_initialized": "vault_setup",     # /onboarding/vault-setup
             }
             stage_id = gate_to_stage.get(gate)
             if stage_id:
