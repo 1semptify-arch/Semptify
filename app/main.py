@@ -1875,13 +1875,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if guided_intake_router:
         fastapi_app.include_router(guided_intake_router, tags=["Guided Intake"])
 
-    # Root route — sends all users through Preamble (the single decision point)
-    @fastapi_app.get("/")
-    async def root_redirect():
-        """Redirect to preamble — the one way in for all users."""
+    # Root route — serve the welcome page. User clicks "Get Started" → /preamble (routing logic).
+    @fastapi_app.get("/", response_class=HTMLResponse)
+    async def root_welcome():
+        """Serve the welcome page at /. Preamble is the routing decision, not the entry."""
+        welcome_path = BASE_PATH / "static" / "public" / "welcome.html"
+        if welcome_path.exists():
+            return FileResponse(str(welcome_path))
+        # Fallback: redirect to preamble if welcome page is missing
         preamble_stage = navigation.get_stage("preamble")
         preamble_path = preamble_stage.path if preamble_stage else "/preamble"
-        return ssot_redirect(preamble_path, context="root_redirect to preamble")
+        return ssot_redirect(preamble_path, context="root_welcome missing file")
 
     # Favicon - serve a simple SVG to prevent 404 errors
     @fastapi_app.get("/favicon.ico")

@@ -27,7 +27,8 @@ USER_COOKIE = "semptify_uid"
 
 # Always exempt - never check checkpoint
 EXEMPT_PATHS = {
-    "/",  # Welcome page itself
+    "/",          # Welcome page
+    "/preamble",  # Routing decision point — must always be reachable
     "/favicon.ico",
     "/robots.txt",
     "/static/",
