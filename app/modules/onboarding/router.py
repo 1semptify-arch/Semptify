@@ -346,6 +346,7 @@ body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans
 <div class="container">
 {role_cards}
 </div>
+<script src="/js/unified-footer-loader.js"></script>
 </body></html>"""
 
 def _render_providers_page(config: OnboardingConfig) -> str:
@@ -397,9 +398,11 @@ body {{ font-family: Georgia, serif; background: #fdfcfa; color: #1e293b; min-he
 </div>
 <script>
 function selectProvider(provider) {{
-    window.location.href = '{config.route_prefix}/auth/' + provider + '?role=' + (document.cookie.match(/semptify_role=([^;]+)/)?.[1] || 'tenant');
+    const role = new URLSearchParams(window.location.search).get('role') || 'tenant';
+    window.location.href = '{config.route_prefix}/auth/' + provider + '?role=' + role;
 }}
 </script>
+<script src="/js/unified-footer-loader.js"></script>
 </body></html>"""
 
 
@@ -503,6 +506,7 @@ async function setup() {{
 
 setup();
 </script>
+<script src="/js/unified-footer-loader.js"></script>
 </body></html>"""
 
 
