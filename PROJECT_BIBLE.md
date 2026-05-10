@@ -48,15 +48,42 @@ The canonical first-run onboarding flow is:
 
 1. Welcome screen (`/static/welcome.html`)
 2. Role selection (`/onboarding/select-role.html`) — Tenant only in Core
-3. **Storage connection (MANDATORY)** (`/onboarding/storage-select.html`)
-4. Vault activation (automatic post-OAuth)
+3. **Storage connection (MANDATORY)** (`/onboarding/providers`) → OAuth → callback
+4. **Vault setup** (`/onboarding/vault-setup`) — creates folders, marks `vault_initialized` gate
 5. Tenant home (`/tenant/home`)
 
 **Note:** Storage connection is mandatory for Core 5.0. There is no "skip" option.
 Documents are stored in user's cloud provider (Google Drive, Dropbox, or OneDrive).
 The aspirational 9-step Extended journey has been archived to `concepts/EXTENDED_USER_JOURNEY_CONCEPT.md`.
 
-The following files are the canonical onboarding assets:
+### Gate Chain
+
+Onboarding is gate-driven, not flag-driven. Each gate unlocks the next:
+
+```
+[nothing] → storage_connected → vault_initialized → [onboarding complete]
+```
+
+Post-onboarding, the `client_activated` gate is set by `documents.py` on first document upload.
+
+### Canonical Onboarding Implementation
+
+**Primary:** `app/modules/onboarding/` — self-contained, config-driven onboarding module.
+
+| File | Responsibility |
+|------|---------------|
+| `config.py` | Product-specific settings (roles, providers, folders, gates) |
+| `gates.py` | Gate check/mark/query — reads `User.completed_groups` |
+| `oauth.py` | Token exchange, identity verification, user creation |
+| `vault.py` | Vault folder creation and verification |
+| `router.py` | All routes (pages, OAuth, vault APIs) |
+| `middleware.py` | Gate enforcement for incomplete users |
+| `register.py` | Single-call wiring: `register_onboarding(app, config)` |
+
+**Legacy (being replaced):** `app/routers/onboarding.py` + onboarding logic in `app/routers/storage.py`.
+
+### Canonical Onboarding Assets
+
 - `static/onboarding/welcome.html`
 - `static/onboarding/select-role.html`
 - `static/onboarding/validate-advocate.html`

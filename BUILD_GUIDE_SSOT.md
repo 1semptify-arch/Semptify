@@ -2,9 +2,9 @@
 # Semptify 5.0 Build Guide (SSOT)
 
 **Purpose:** Single source of truth for build status, testing results, and known issues.  
-**Last Updated:** May 6, 2026  
+**Last Updated:** May 10, 2026  
 **Build Type:** Core (Tenant Role Only)  
-**Status:** Reconnect Flow VERIFIED ✅
+**Status:** Onboarding Module Built — Activation Pending ✅
 
 ---
 
@@ -38,9 +38,10 @@ No AI, no legal filing, no campaigns, no multi-user. Just quiet documentation.
   - ⏸️ Case-based analysis requires Extended (tenancy_hub)
 
 ### 🆘 Help (Onboarding)
-- [x] `onboarding.py` - Role selection, storage setup ✅ `/onboarding/*`
+- [x] `onboarding.py` - Role selection, storage setup ✅ `/onboarding/*` (LEGACY — being replaced)
 - [x] `role_ui.py` - UI routing ✅ Role-based navigation
 - [x] `workflow.py` - Process orchestration ✅ Workflow engine + Page Contracts
+- [x] **`app/modules/onboarding/`** - Self-contained onboarding module ✅ (NEW — activation pending)
 
 ---
 
@@ -199,7 +200,150 @@ User at /timeline/view/123 → Auth expires
 
 ---
 
+## 🧩 Onboarding Module (`app/modules/onboarding/`)
+
+### Purpose
+
+Self-contained, config-driven onboarding system. Reusable across any Semptify product.
+Replaces the scattered onboarding logic previously split between `onboarding.py`, `storage.py`,
+and `vault.py`.
+
+### Architecture
+
+```
+app/modules/onboarding/
+├── __init__.py      # register_onboarding() + OnboardingConfig exports
+├── config.py        # OnboardingConfig dataclass (product-customizable)
+├── gates.py         # check_gate, mark_gate, get_first_incomplete_gate
+├── oauth.py         # Token exchange, identity verification, user creation, session save
+├── vault.py         # create_vault_folders, verify_vault, init_vault
+├── router.py        # All routes: pages, OAuth, callback, vault APIs
+├── middleware.py     # OnboardingGateMiddleware (gate enforcement)
+└── register.py      # register_onboarding(app, config) — single wiring call
+```
+
+### Gate Chain (serial, each unlocks next)
+
+```
+[nothing] → storage_connected → vault_initialized → [ONBOARDING COMPLETE]
+                                                      ↓
+                                               client_activated (set by documents.py on first upload)
+                                                      ↓
+                                               [FULL ACCESS]
+```
+
+| Gate | Set By | Checked By |
+|------|--------|------------|
+| `storage_connected` | `onboarding/oauth.py` → `gates.mark_gate()` | `storage_middleware.py` |
+| `vault_initialized` | `onboarding/vault.py` → `gates.mark_gate()` | `storage_middleware.py` |
+| `client_activated` | `documents.py` → `_mark_group_complete()` | `storage_middleware.py` |
+
+### Routes (when activated)
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/onboarding/` | GET | Entry → role selection |
+| `/onboarding/start` | GET | Smart entry (new → role select, returning → reconnect) |
+| `/onboarding/providers` | GET | Storage provider selection page |
+| `/onboarding/auth/{provider}` | GET | Initiate OAuth (onboarding-specific callback) |
+| `/onboarding/callback/{provider}` | GET | OAuth callback → user creation → vault-setup |
+| `/onboarding/vault-setup` | GET | Vault setup page (JS calls init + verify) |
+| `/onboarding/api/vault/status` | GET | Check user auth status |
+| `/onboarding/api/vault/init` | POST | Create vault folders |
+| `/onboarding/api/vault/verify` | GET | Verify vault folders accessible |
+| `/onboarding/complete` | GET | Route to product home |
+| `/onboarding/status` | GET | Gate status check page |
+| `/onboarding/ssot-navigation` | GET | SSOT navigation export |
+
+### Vault Folder Alignment
+
+Module defaults import from `app/core/vault_paths.py` (canonical source):
+
+| Folder | Purpose | Used By |
+|--------|---------|---------|
+| `Semptify5.0` | Root | All systems |
+| `Semptify5.0/Vault` | Vault root | `vault.py` router |
+| `Semptify5.0/Vault/documents` | Document storage | `vault.py`, `documents.py` |
+| `Semptify5.0/Vault/certificates` | Certificate storage | `vault.py` |
+| `.Semptify5.0/vault` | Metadata | `vault_paths.py` |
+
+### Activation Steps
+
+```python
+# 1. Add to app/main.py:
+from app.modules.onboarding import register_onboarding, OnboardingConfig
+
+config = OnboardingConfig(
+    product_name="Semptify Tenant Rights",
+    allowed_roles=["tenant"],
+    allowed_providers=["google_drive", "dropbox", "onedrive"],
+    on_complete_redirect="/tenant/home",
+)
+register_onboarding(app, config)
+
+# 2. Disable old onboarding router in main.py:
+#    Comment out: app.include_router(onboarding_router)
+
+# 3. Remove onboarding OAuth callback from storage.py:
+#    The module has its own callback at /onboarding/callback/{provider}
+
+# 4. Test on Render:
+#    - New user: welcome → role → providers → OAuth → vault-setup → home
+#    - Returning user (vault missing): OAuth → vault-setup → home
+#    - Returning user (vault exists): OAuth → home directly
+```
+
+### SSOT Compliance
+
+- All redirects use `ssot_redirect()` from `app.core.ssot_guard`
+- All stage lookups use `navigation.get_stage()` from `app.core.navigation`
+- No hardcoded URL strings in any module file
+- Module's vault-setup page JS uses relative `PREFIX + '/api/vault/...'` paths
+
+### Integration Verification
+
+| System | Connected? | How |
+|--------|-----------|-----|
+| Vault router (`/api/vault/*`) | ✅ | Same folder paths from `vault_paths.py` |
+| Document upload (`documents.py`) | ✅ | Fills folders created by module |
+| Storage middleware | ✅ | Reads same `User.completed_groups` column |
+| Token manager | ✅ | `oauth.py` calls `token_manager.store_token()` |
+| Cookie auth | ✅ | Uses `set_auth_cookie()` and `verify_user_id()` |
+| Navigation SSOT | ✅ | All paths from navigation registry |
+
+### What Changes When Activated
+
+| Before (scattered) | After (module) |
+|--------------------|----------------|
+| OAuth callback in `storage.py` handles both new + returning | Module callback handles ONLY onboarding |
+| `is_new_user` flag decides vault routing (broken for returning users) | `vault_initialized` gate decides (always correct) |
+| Vault setup endpoints in `vault.py` router | Module has own vault API endpoints |
+| Gate logic duplicated in `storage.py` `_mark_group_complete()` | Centralized in `gates.py` |
+| Token not cached after OAuth | Token cached immediately via `token_manager.store_token()` |
+
+### Status: BUILT — NOT YET ACTIVATED
+
+All files compile clean. Integration verified. Waiting for manual activation and Render testing.
+
+---
+
 ## Build Log
+
+### May 10, 2026 - Onboarding Module Built
+- Created `app/modules/onboarding/` — self-contained, config-driven onboarding system
+- **7 files:** `__init__.py`, `config.py`, `gates.py`, `oauth.py`, `vault.py`, `router.py`, `middleware.py`, `register.py`
+- Config defaults import vault folder paths from canonical `app/core/vault_paths.py`
+- Module has its own OAuth callback at `/onboarding/callback/{provider}` (separate from storage.py reconnect)
+- Gate system uses same `User.completed_groups` DB column as existing middleware
+- Token cached in-memory immediately after OAuth exchange via `token_manager.store_token()`
+- All redirects use SSOT (`ssot_redirect()` + `navigation.get_stage()`)
+- Storage API calls use `list_files()` (matches provider base class, not nonexistent `list_folder()`)
+- **Integration verified:** vault folders, gates, document upload, middleware, SSOT all aligned
+
+### May 9, 2026 - Vault Creation Bug Fixed
+- **Root cause 1:** OAuth callback used `is_new_user` flag to decide vault-setup routing. Returning users whose vault was never created were sent to home, skipping vault-setup forever. Fixed: now checks `vault_initialized` gate in DB.
+- **Root cause 2:** Access token not cached in-memory during OAuth callback. When vault-setup called `/api/vault/init` seconds later, `get_current_user` couldn't find the token. Fixed: `token_manager.store_token()` called in callback.
+- **Root cause 3:** `get_current_user` used HMAC-signed cookie value for token/session lookups. Fixed: now calls `verify_user_id()` to strip HMAC before lookups.
 
 ### April 29, 2026 - Modular Core Restructure
 - Reorganized `main.py` into CORE / EXTENDED / OTHER DIVISION
