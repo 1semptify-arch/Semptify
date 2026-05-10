@@ -140,9 +140,6 @@ async def exchange_code_for_tokens(
     """
     settings = get_settings()
 
-    # Use the default configs from OnboardingConfig for token_url
-    default_config = OnboardingConfig.DEFAULT_OAUTH_CONFIGS.__func__(None)  # noqa: not ideal
-    # Better approach: just hardcode the well-known URLs
     TOKEN_URLS = {
         "google_drive": "https://oauth2.googleapis.com/token",
         "dropbox": "https://api.dropboxapi.com/oauth2/token",
