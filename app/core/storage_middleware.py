@@ -32,6 +32,7 @@ PUBLIC_PATHS: Set[str] = {
     "/health",
     "/metrics",
     "/api/version",
+    "/risc/google/webhook",  # Google Cross-Account Protection — no cookie
     
     # Preamble — single entry point, must always be reachable (no storage required)
     "/preamble",

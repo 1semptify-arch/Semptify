@@ -92,6 +92,7 @@ def _safe_router_import(module_path: str):
 from app.routers import health
 from app.routers import storage
 from app.routers import preamble
+from app.routers import risc
 # Legacy onboarding router (app/routers/onboarding.py) removed — replaced by
 # app/modules/onboarding/ registered via register_onboarding() below.
 from app.routers import plugins
@@ -1939,6 +1940,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Preamble — single entry point, routes new vs returning users
     if preamble.router:
         fastapi_app.include_router(preamble.router, tags=["Preamble"])
+
+    # Google Cross-Account Protection (RISC) webhook
+    if risc.router:
+        fastapi_app.include_router(risc.router, tags=["RISC"])
 
     # Storage OAuth (handles authentication)
     if storage.router:
