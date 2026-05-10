@@ -281,39 +281,67 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 # ============================================================================
 
 def _render_role_selection_page(config: OnboardingConfig) -> str:
-    """Render role selection page."""
-    # For now, only tenant role is supported
+    """Render role selection page — all 5 roles, non-tenant marked Coming Soon."""
+    providers_path = f"{config.route_prefix}/providers"
+
+    roles = [
+        ("tenant",   "🏠", "Tenant",          "I'm renting a home and need to protect my rights", True),
+        ("landlord", "🔑", "Landlord",         "I own rental property and need to manage it lawfully", False),
+        ("advocate", "⚖️", "Housing Advocate", "I help tenants navigate housing law", False),
+        ("legal",    "📋", "Legal Professional","I'm an attorney or paralegal working housing cases", False),
+        ("admin",    "🛡️", "Administrator",    "Platform administration and oversight", False),
+    ]
+
+    role_cards = ""
+    for role_id, icon, name, desc, active in roles:
+        if active:
+            role_cards += f"""
+<div class="role-option active" onclick="selectRole('{role_id}')">
+  <div class="role-icon">{icon}</div>
+  <div class="role-name">{name}</div>
+  <div class="role-desc">{desc}</div>
+</div>"""
+        else:
+            role_cards += f"""
+<div class="role-option coming-soon" title="Coming soon">
+  <div class="role-icon">{icon}</div>
+  <div class="role-name">{name} <span class="badge">Coming Soon</span></div>
+  <div class="role-desc">{desc}</div>
+</div>"""
+
     return f"""<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Select Your Role — {config.product_name}</title>
 <style>
 * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-body {{ font-family: Georgia, serif; background: #fdfcfa; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }}
-.role-card {{ max-width: 500px; width: 90%; background: white; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 2.5rem; text-align: center; }}
-h1 {{ font-size: 1.5rem; font-weight: 400; color: #1e3a5f; margin-bottom: 1.5rem; }}
-p {{ color: #475569; margin-bottom: 2rem; line-height: 1.6; }}
-.role-option {{ background: #f0f9ff; border: 2px solid #3b82f6; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; cursor: pointer; transition: all 0.2s; }}
-.role-option:hover {{ background: #e0f2fe; transform: translateY(-2px); }}
-.role-icon {{ font-size: 2.5rem; margin-bottom: 0.5rem; }}
-.role-name {{ font-size: 1.25rem; font-weight: 500; color: #1e3a5f; margin-bottom: 0.5rem; }}
-.role-desc {{ font-size: 0.9rem; color: #475569; }}
-.continue-btn {{ background: #1e3a5f; color: white; padding: 1rem 2.5rem; border: none; border-radius: 8px; font-size: 1.1rem; cursor: pointer; transition: all 0.2s; }}
-.continue-btn:hover {{ background: #2d5a87; transform: translateY(-2px); }}
+body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #fdfcfa; color: #1e293b; min-height: 100vh; }}
+.header {{ background: linear-gradient(135deg, #1e3a5f, #2d5a87); color: white; padding: 2.5rem 2rem; text-align: center; }}
+.header h1 {{ font-size: 2rem; font-weight: 400; letter-spacing: -0.02em; }}
+.header .sub {{ font-size: 0.95rem; opacity: 0.8; margin-top: 0.4rem; font-style: italic; }}
+.container {{ max-width: 560px; margin: 2rem auto; padding: 0 1.5rem 3rem; }}
+.role-option {{ border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; background: white; display: flex; align-items: center; gap: 1rem; transition: all 0.2s; }}
+.role-option.active {{ cursor: pointer; }}
+.role-option.active:hover {{ border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.15); transform: translateY(-2px); }}
+.role-option.coming-soon {{ opacity: 0.55; cursor: not-allowed; background: #f8fafc; }}
+.role-icon {{ font-size: 2rem; flex-shrink: 0; width: 2.5rem; text-align: center; }}
+.role-name {{ font-size: 1.05rem; font-weight: 600; color: #1e3a5f; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; }}
+.role-desc {{ font-size: 0.875rem; color: #64748b; line-height: 1.4; }}
+.badge {{ font-size: 0.65rem; font-weight: 600; background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; padding: 0.15rem 0.5rem; border-radius: 99px; letter-spacing: 0.04em; text-transform: uppercase; }}
+.note {{ margin-top: 1.5rem; font-size: 0.85rem; color: #94a3b8; text-align: center; }}
 </style>
 </head><body>
-<div class="role-card">
-<h1>Who are you?</h1>
-<p>Select your role to continue with {config.product_name}.</p>
-<div class="role-option" onclick="selectRole('tenant')">
-<div class="role-icon">🏠</div>
-<div class="role-name">Tenant</div>
-<div class="role-desc">I'm renting a home and want to protect my rights</div>
+<div class="header">
+  <h1>Who are you?</h1>
+  <div class="sub">Select your role to get started with {config.product_name}</div>
 </div>
+<div class="container">
+{role_cards}
+  <p class="note">More roles launching soon — built for everyone in the housing system.</p>
 </div>
 <script>
 function selectRole(role) {{
-    window.location.href = '/onboarding/providers?role=' + role;
+    window.location.href = '{providers_path}?role=' + role;
 }}
 </script>
 </body></html>"""
