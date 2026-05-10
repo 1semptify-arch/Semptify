@@ -37,8 +37,16 @@ def register_onboarding(app: FastAPI, config: OnboardingConfig) -> None:
     router = create_router(config)
     app.include_router(router)
 
-    # Add middleware (note: middleware is added in reverse order in Starlette)
-    app.add_middleware(OnboardingGateMiddleware, config=config)
+    # Add gate middleware only when not already covered by StorageRequirementMiddleware.
+    # When both run together they race and cause redirect loops.
+    if config.enable_gate_middleware:
+        app.add_middleware(OnboardingGateMiddleware, config=config)
+        logger.info("OnboardingGateMiddleware registered for prefix=%s", config.route_prefix)
+    else:
+        logger.info(
+            "OnboardingGateMiddleware SKIPPED (enable_gate_middleware=False) — "
+            "gate enforcement delegated to StorageRequirementMiddleware"
+        )
 
     logger.info(
         "Onboarding module registered: product=%s prefix=%s providers=%s gates=%s",

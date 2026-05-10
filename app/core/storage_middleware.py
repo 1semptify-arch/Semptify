@@ -267,29 +267,38 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
         if not raw_user_id:
             raw_user_id = user_id  # fallback
         
-        # Valid user - check permanent completion record before continuing.
-        # If "storage_connected" is in completed_groups, the ProcessGroup exit criteria
-        # were already verified at OAuth time. No cloud round-trip ever needed again.
+        # Valid user — check onboarding gate state via the canonical single reader.
+        # All gate decisions flow through get_onboarding_state(); nothing else reads
+        # User.completed_groups directly for enforcement in this middleware.
         if self.enforce:
             try:
-                import logging
-                from sqlalchemy import select as _select
+                import logging as _logging
                 from app.core.database import get_session_factory
-                from app.models.models import User as _User
+                from app.core.onboarding_state import get_onboarding_state
 
                 _factory = get_session_factory()
                 async with _factory() as _db:
-                    _result = await _db.execute(
-                        _select(_User.completed_groups).where(_User.id == raw_user_id)
-                    )
-                    _row = _result.scalar_one_or_none()
+                    ob_state = await get_onboarding_state(raw_user_id, _db)
+
+                # ── Stale cookie: valid format but no DB row ──────────────────
+                # get_onboarding_state returns all-False when user not found.
+                # Distinguish "not found" from "found but incomplete" by checking
+                # whether the storage gate was set — if everything is False AND
+                # the user ID looks valid, treat as stale.
+                if not ob_state.storage_connected and not ob_state.vault_initialized:
+                    # Re-query just to detect "no row" vs "row exists, gates empty"
+                    from sqlalchemy import select as _select
+                    from app.models.models import User as _User
+                    _stale_factory = get_session_factory()
+                    async with _stale_factory() as _check_db:
+                        _exists = await _check_db.execute(
+                            _select(_User.id).where(_User.id == raw_user_id)
+                        )
+                        _row = _exists.scalar_one_or_none()
+
                     if _row is None:
-                        # User cookie is valid-format but no DB row — stale cookie.
-                        # Redirect through logout-reset to clear the cookie first,
-                        # then land on provider selection for a fresh OAuth flow.
-                        _logger = logging.getLogger("semptify.security")
-                        _logger.warning(
-                            "User ID %s has valid format but no DB record — clearing stale cookie",
+                        _logging.getLogger("semptify.security").warning(
+                            "User ID %s valid format but no DB record — clearing stale cookie",
                             raw_user_id[:4] + "***",
                         )
                         if path.startswith("/api/"):
@@ -306,100 +315,89 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                         logout_reset_path = logout_reset_stage.path if logout_reset_stage else "/storage/logout-reset"
                         return ssot_redirect(logout_reset_path, context="storage_middleware session expired")
 
-                    completed = _row or ""
-                    if "storage_connected" not in completed.split(","):
-                        # User row exists but storage_connected not yet written —
-                        # Onboarding is incomplete; track redirect attempts
-                        
-                        # Get current redirect loop count
-                        loop_count_str = request.cookies.get(REDIRECT_LOOP_COOKIE, "0")
-                        try:
-                            loop_count = int(loop_count_str)
-                        except ValueError:
-                            loop_count = 0
-                        
-                        # Check if max redirects exceeded
-                        if loop_count >= MAX_REDIRECT_LOOPS:
-                            # Max redirects reached - show special instructions
-                            if path.startswith("/api/"):
-                                return JSONResponse(
-                                    status_code=401,
-                                    content={
-                                        "error": "redirect_loop_max",
-                                        "message": "Too many redirect attempts. Please review setup instructions.",
-                                        "action": "redirect",
-                                        "redirect_url": "/onboarding/max-redirects",
-                                    },
-                                )
-                            max_redirects_stage = navigation.get_stage("max_redirects")
-                            max_redirects_path = max_redirects_stage.path if max_redirects_stage else "/onboarding/max-redirects"
-                            response = ssot_redirect(max_redirects_path, context="storage_middleware redirect loop max")
-                            response.delete_cookie(REDIRECT_LOOP_COOKIE)
-                            return response
-                        
-                        # Increment loop count and redirect to welcome screen
-                        loop_count += 1
-                        
+                # ── Onboarding incomplete ─────────────────────────────────────
+                if not ob_state.is_fully_onboarded:
+                    loop_count_str = request.cookies.get(REDIRECT_LOOP_COOKIE, "0")
+                    try:
+                        loop_count = int(loop_count_str)
+                    except ValueError:
+                        loop_count = 0
+
+                    if loop_count >= MAX_REDIRECT_LOOPS:
                         if path.startswith("/api/"):
                             return JSONResponse(
                                 status_code=401,
                                 content={
-                                    "error": "onboarding_incomplete",
-                                    "message": "Please complete onboarding to continue",
+                                    "error": "redirect_loop_max",
+                                    "message": "Too many redirect attempts. Please review setup instructions.",
                                     "action": "redirect",
-                                    "redirect_url": "/",
+                                    "redirect_url": "/onboarding/max-redirects",
                                 },
                             )
-                        
-                        # Redirect to onboarding start directly to avoid redirect loop
-                        onboarding_start_stage = navigation.get_stage("onboarding_start")
-                        onboarding_start_path = onboarding_start_stage.path if onboarding_start_stage else "/onboarding/start"
-                        response = ssot_redirect(onboarding_start_path, context="storage_middleware incomplete onboarding")
-                        response.set_cookie(
-                            key=REDIRECT_LOOP_COOKIE,
-                            value=str(loop_count),
-                            max_age=3600,  # 1 hour
-                            httponly=True,
-                            samesite="lax",
-                        )
+                        max_redirects_stage = navigation.get_stage("max_redirects")
+                        max_redirects_path = max_redirects_stage.path if max_redirects_stage else "/onboarding/max-redirects"
+                        response = ssot_redirect(max_redirects_path, context="storage_middleware redirect loop max")
+                        response.delete_cookie(REDIRECT_LOOP_COOKIE)
                         return response
 
-                    # Check client_activated gate — user must have uploaded at least one document
-                    # to unlock full Semptify functionality
-                    if "client_activated" not in completed.split(","):
-                        # User has storage connected but no documents uploaded yet
-                        # Allow access to document upload, vault operations, and setup endpoints
-                        ALLOWED_PREFIXES_BEFORE_ACTIVATION = (
-                            "/api/documents/upload",
-                            "/api/vault/",       # ALL vault operations (init, verify, status, upload)
-                            "/api/setup/",       # Setup flow endpoints
-                            "/api/health",
-                            "/api/version",
-                            "/api/roles",
+                    loop_count += 1
+
+                    if path.startswith("/api/"):
+                        return JSONResponse(
+                            status_code=401,
+                            content={
+                                "error": "onboarding_incomplete",
+                                "message": "Please complete onboarding to continue",
+                                "action": "redirect",
+                                "redirect_url": ob_state.next_required_path or "/onboarding/",
+                            },
                         )
-                        if any(path.startswith(p) for p in ALLOWED_PREFIXES_BEFORE_ACTIVATION):
-                            # Allow these endpoints before client activation
-                            pass
-                        elif path.startswith("/api/"):
-                            # Block other API endpoints until client activation
-                            return JSONResponse(
-                                status_code=403,
-                                content={
-                                    "error": "client_activation_required",
-                                    "message": "Please upload your first document to activate your Semptify account",
-                                    "action": "redirect",
-                                    "redirect_url": "/documents",
-                                },
-                            )
-                        elif not path.startswith("/static/") and not path.startswith("/documents") and not path.startswith("/onboarding"):
-                            # Block most HTML pages until client activation (but allow onboarding)
-                            documents_stage = navigation.get_stage("documents")
-                            documents_path = documents_stage.path if documents_stage else "/documents"
-                            return ssot_redirect(documents_path, context="storage_middleware client activation required")
+
+                    # Send user to the exact next required step (not just /onboarding/start)
+                    next_path = ob_state.next_required_path
+                    if next_path is None:
+                        onboarding_start_stage = navigation.get_stage("onboarding_start")
+                        next_path = onboarding_start_stage.path if onboarding_start_stage else "/onboarding/start"
+
+                    response = ssot_redirect(next_path, context="storage_middleware incomplete onboarding")
+                    response.set_cookie(
+                        key=REDIRECT_LOOP_COOKIE,
+                        value=str(loop_count),
+                        max_age=3600,
+                        httponly=True,
+                        samesite="lax",
+                    )
+                    return response
+
+                # ── client_activated gate ────────────────────────────────────
+                if not ob_state.client_activated:
+                    ALLOWED_PREFIXES_BEFORE_ACTIVATION = (
+                        "/api/documents/upload",
+                        "/api/vault/",
+                        "/api/setup/",
+                        "/api/health",
+                        "/api/version",
+                        "/api/roles",
+                    )
+                    if any(path.startswith(p) for p in ALLOWED_PREFIXES_BEFORE_ACTIVATION):
+                        pass
+                    elif path.startswith("/api/"):
+                        return JSONResponse(
+                            status_code=403,
+                            content={
+                                "error": "client_activation_required",
+                                "message": "Please upload your first document to activate your Semptify account",
+                                "action": "redirect",
+                                "redirect_url": "/documents",
+                            },
+                        )
+                    elif not path.startswith("/static/") and not path.startswith("/documents") and not path.startswith("/onboarding"):
+                        documents_stage = navigation.get_stage("documents")
+                        documents_path = documents_stage.path if documents_stage else "/documents"
+                        return ssot_redirect(documents_path, context="storage_middleware client activation required")
 
             except Exception:
-                # If DB is unavailable, fall through — don't block the user on a DB error.
-                # This degrades gracefully: format validation still passed above.
+                # DB unavailable — degrade gracefully, format validation passed above.
                 pass
 
         return await call_next(request)

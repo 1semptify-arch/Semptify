@@ -1351,22 +1351,26 @@ async def vault_init(user: StorageUser = Depends(require_user), db: AsyncSession
             detail={"error": "folder_init_failed", "message": str(exc)},
         )
 
-    # Mark vault_initialized gate in database
+    # Mark vault_initialized gate in database via canonical gate writer.
+    # CRITICAL: if this fails, raise — the user will loop forever in onboarding
+    # if the gate is not written. Folders were created; the DB write must succeed.
     try:
-        from app.models.models import User
-        from sqlalchemy import select
-        result = await db.execute(select(User).where(User.id == user.user_id))
-        db_user = result.scalar_one_or_none()
-        if db_user:
-            completed = set((db_user.completed_groups or "").split(","))
-            completed.discard("")
-            completed.add("vault_initialized")
-            db_user.completed_groups = ",".join(sorted(completed))
-            await db.commit()
-            logger.info("vault_initialized gate set for user=%s", user.user_id[:6] + "***")
+        from app.modules.onboarding.gates import mark_gate
+        await mark_gate(db, user.user_id, "vault_initialized")
+        logger.info("vault_initialized gate set for user=%s", user.user_id[:6] + "***")
     except Exception as exc:
-        logger.warning("Failed to mark vault_initialized gate for user=%s: %s", user.user_id[:6] + "***", exc)
-        # Non-fatal: vault folders created but gate not marked
+        logger.error(
+            "CRITICAL: vault folders created but vault_initialized gate write failed "
+            "for user=%s: %s — raising 500 to prevent silent loop",
+            user.user_id[:6] + "***", exc,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "error": "gate_write_failed",
+                "message": "Vault folders were created but the completion record could not be saved. Please try again.",
+            },
+        )
 
     return {"ok": True, "message": "Vault folders created", "provider": str(user.provider)}
 
