@@ -1651,7 +1651,20 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             {"url": "/", "description": "Current server"},
         ],
     )
-    
+
+    # =========================================================================
+    # Onboarding Module (self-contained, config-driven onboarding system)
+    # =========================================================================
+    from app.modules.onboarding import register_onboarding, OnboardingConfig
+
+    onboarding_config = OnboardingConfig(
+        product_name="Semptify Tenant Rights",
+        allowed_roles=["tenant"],
+        allowed_providers=["google_drive", "dropbox", "onedrive"],
+        on_complete_redirect="/tenant/home",
+    )
+    register_onboarding(fastapi_app, onboarding_config)
+
     # =========================================================================
     # Rate Limiting
     # =========================================================================
@@ -1918,8 +1931,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     # Unified Onboarding (primary entry point for new users)
     # NOTE: onboarding.router already declares prefix="/onboarding" — no prefix here
-    if onboarding.router:
-        fastapi_app.include_router(onboarding.router, tags=["Onboarding"])
+    # DISABLED: Replaced by app/modules/onboarding/ (May 10, 2026)
+    # if onboarding.router:
+    #     fastapi_app.include_router(onboarding.router, tags=["Onboarding"])
 
     # Storage OAuth (handles authentication)
     if storage.router:

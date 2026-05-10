@@ -1904,7 +1904,15 @@ async def oauth_callback(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    OAuth callback. Creates/validates user and sets cookie.
+    OAuth callback for RECONNECT flow (returning users refreshing tokens).
+
+    NOTE: New user onboarding is handled by app/modules/onboarding/ callback at
+    /onboarding/callback/{provider}. This callback is ONLY for reconnect.
+
+    Handles:
+    - Token refresh for returning users
+    - Vault-setup routing for users whose vault was never created (gate check)
+    - return_to restoration for mid-task expiry
     """
     try:
         # Clean up any old states first.
