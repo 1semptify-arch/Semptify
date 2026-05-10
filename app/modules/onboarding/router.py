@@ -285,11 +285,11 @@ def _render_role_selection_page(config: OnboardingConfig) -> str:
     providers_path = f"{config.route_prefix}/providers"
 
     roles = [
-        ("tenant",   "🏠", "Tenant",          "I'm renting a home and need to protect my rights", True),
-        ("landlord", "🔑", "Landlord",         "I own rental property and need to manage it lawfully", False),
-        ("advocate", "⚖️", "Housing Advocate", "I help tenants navigate housing law", False),
-        ("legal",    "📋", "Legal Professional","I'm an attorney or paralegal working housing cases", False),
-        ("admin",    "🛡️", "Administrator",    "Platform administration and oversight", False),
+        ("tenant",  "🏠", "Tenant",             "I'm renting a home and need to protect my rights", True),
+        ("manager", "�", "Worker / Manager",    "I work with multiple clients across housing cases", False),
+        ("advocate","⚖️", "Housing Advocate",    "I help tenants navigate housing law", False),
+        ("legal",   "📋", "Legal Professional",  "I'm an attorney or paralegal working housing cases", False),
+        ("admin",   "🛡️", "Administrator",       "Platform administration and oversight", False),
     ]
 
     role_cards = ""
@@ -328,7 +328,6 @@ body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans
 .role-name {{ font-size: 1.05rem; font-weight: 600; color: #1e3a5f; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem; }}
 .role-desc {{ font-size: 0.875rem; color: #64748b; line-height: 1.4; }}
 .badge {{ font-size: 0.65rem; font-weight: 600; background: #f1f5f9; color: #94a3b8; border: 1px solid #e2e8f0; padding: 0.15rem 0.5rem; border-radius: 99px; letter-spacing: 0.04em; text-transform: uppercase; }}
-.note {{ margin-top: 1.5rem; font-size: 0.85rem; color: #94a3b8; text-align: center; }}
 </style>
 </head><body>
 <div class="header">
@@ -337,7 +336,6 @@ body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans
 </div>
 <div class="container">
 {role_cards}
-  <p class="note">More roles launching soon — built for everyone in the housing system.</p>
 </div>
 <script>
 function selectRole(role) {{
