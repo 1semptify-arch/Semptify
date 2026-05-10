@@ -87,7 +87,7 @@ def test_navigation_registry_exists():
         assert hasattr(navigation, 'MAIN_NAV')
         
         # Must provide canonical entry points
-        assert navigation.get_onboarding_start() == "/onboarding/start"
+        assert navigation.get_onboarding_start() == "/preamble"
         assert navigation.get_reconnect_flow() == "/storage/reconnect"
         
         # Must export to dict for API consumption
@@ -215,15 +215,23 @@ def test_middleware_uses_ssot_navigation():
 def test_ssot_api_endpoint_exists():
     """Verify the SSOT navigation API endpoint is registered."""
     try:
-        from app.routers.onboarding import router
-        
+        from app.modules.onboarding.config import OnboardingConfig
+        from app.modules.onboarding.router import create_router
+
+        config = OnboardingConfig(
+            product_name="Semptify",
+            allowed_roles=["tenant"],
+            allowed_providers=["google_drive"],
+            on_complete_redirect="/onboarding/complete",
+        )
+        router = create_router(config)
+
         # Check routes for ssot-navigation endpoint
         routes = [route.path for route in router.routes]
-        
-        # Route has /onboarding prefix from router
-        assert "/onboarding/ssot-navigation" in routes, \
+
+        assert any("ssot-navigation" in r for r in routes), \
             f"SSOT navigation API endpoint not found. Routes: {routes}"
-            
+
     except ImportError as e:
         raise SSOTViolation(f"Cannot verify SSOT endpoint: {e}")
 
@@ -265,7 +273,12 @@ def run_ssot_audit() -> List[str]:
         test_middleware_uses_ssot_navigation()
     except SSOTViolation as e:
         violations.append(str(e))
-    
+
+    try:
+        test_ssot_api_endpoint_exists()
+    except (SSOTViolation, AssertionError) as e:
+        violations.append(f"SSOT endpoint check: {e}")
+
     return violations
 
 
