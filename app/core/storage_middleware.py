@@ -98,6 +98,7 @@ PUBLIC_PREFIXES = (
     "/storage/",
     "/static/",   # All static files are public (HTML, CSS, JS)
     "/public/",   # Policy pages: privacy, terms, disclaimer, contact, feedback
+    "/onboarding/",  # All onboarding sub-routes public — new users have no cookie yet
     "/onboarding-assets/",  # Onboarding static files (storage-select, etc)
     # NOTE: /tenant is NOT public — requires valid storage user (enforced by this middleware)
     "/law-library",  # Law Library page
