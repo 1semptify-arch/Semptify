@@ -50,10 +50,19 @@ def _resolve_database_url() -> str:
         url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
     elif url.startswith("sqlite://") and "+aiosqlite" not in url:
         url = url.replace("sqlite://", "sqlite+aiosqlite://", 1)
-    # asyncpg does not support these query params — strip them
+    # asyncpg does not accept sslmode/channel_binding as query params — strip them.
+    # SSL for Neon is handled via connect_args in database.py (ssl=True).
     url = re.sub(r"[?&]sslmode=[^&]*", "", url)
     url = re.sub(r"[?&]channel_binding=[^&]*", "", url)
+    # Clean up any trailing ? or & left after stripping
+    url = re.sub(r"[?&]$", "", url)
     return url
+
+
+def _requires_ssl() -> bool:
+    """True if the DATABASE_URL originally contained sslmode=require (e.g. Neon)."""
+    raw = os.getenv("DATABASE_URL", "")
+    return "sslmode=require" in raw or "sslmode=verify-full" in raw
 
 
 class Settings:
