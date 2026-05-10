@@ -295,18 +295,23 @@ def _render_role_selection_page(config: OnboardingConfig) -> str:
     role_cards = ""
     for role_id, icon, name, desc, active in roles:
         if active:
+            dest = f"{providers_path}?role={role_id}"
             role_cards += f"""
-<div class="role-option active" onclick="selectRole('{role_id}')">
+<a class="role-option active" href="{dest}">
   <div class="role-icon">{icon}</div>
-  <div class="role-name">{name}</div>
-  <div class="role-desc">{desc}</div>
-</div>"""
+  <div class="role-info">
+    <div class="role-name">{name}</div>
+    <div class="role-desc">{desc}</div>
+  </div>
+</a>"""
         else:
             role_cards += f"""
 <div class="role-option coming-soon" title="Coming soon">
   <div class="role-icon">{icon}</div>
-  <div class="role-name">{name} <span class="badge">Coming Soon</span></div>
-  <div class="role-desc">{desc}</div>
+  <div class="role-info">
+    <div class="role-name">{name} <span class="badge">Coming Soon</span></div>
+    <div class="role-desc">{desc}</div>
+  </div>
 </div>"""
 
     return f"""<!DOCTYPE html>
@@ -321,7 +326,7 @@ body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans
 .header .sub {{ font-size: 0.95rem; opacity: 0.8; margin-top: 0.4rem; font-style: italic; }}
 .container {{ max-width: 560px; margin: 2rem auto; padding: 0 1.5rem 3rem; }}
 .role-option {{ border: 2px solid #e2e8f0; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; background: white; display: flex; align-items: center; gap: 1rem; transition: all 0.2s; }}
-.role-option.active {{ cursor: pointer; }}
+.role-option.active {{ cursor: pointer; text-decoration: none; color: inherit; }}
 .role-option.active:hover {{ border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.15); transform: translateY(-2px); }}
 .role-option.coming-soon {{ opacity: 0.55; cursor: not-allowed; background: #f8fafc; }}
 .role-icon {{ font-size: 2rem; flex-shrink: 0; width: 2.5rem; text-align: center; }}
@@ -337,11 +342,6 @@ body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans
 <div class="container">
 {role_cards}
 </div>
-<script>
-function selectRole(role) {{
-    window.location.href = '{providers_path}?role=' + role;
-}}
-</script>
 </body></html>"""
 
 def _render_providers_page(config: OnboardingConfig) -> str:
