@@ -74,6 +74,11 @@ class OnboardingConfig:
     cookie_secure: bool = True
     hmac_signed: bool = True
 
+    # --- Gate middleware ---
+    # Set to False when StorageRequirementMiddleware is already registered for
+    # the same app — avoids duplicate gate enforcement that causes redirect loops.
+    enable_gate_middleware: bool = True
+
     # --- Provider defaults (used when oauth_scopes not overridden) ---
     DEFAULT_OAUTH_CONFIGS: dict = field(default_factory=lambda: {
         "google_drive": {
