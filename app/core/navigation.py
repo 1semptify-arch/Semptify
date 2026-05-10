@@ -72,11 +72,18 @@ class NavigationRegistry:
     
     # --- Onboarding Flow (SSOT) ---
     ONBOARDING_FLOW: ClassVar[Dict[str, FlowStage]] = {
+        "preamble": FlowStage(
+            id="preamble",
+            name="Preamble",
+            path="/preamble",
+            next_stage="role_select",
+            requires_checkpoint=False
+        ),
         "welcome": FlowStage(
             id="welcome",
             name="Welcome",
             path="/",
-            next_stage="role_select",
+            next_stage="preamble",
             requires_checkpoint=False
         ),
         "role_select": FlowStage(
@@ -178,8 +185,8 @@ class NavigationRegistry:
     # --- Utility Methods ---
     @classmethod
     def get_onboarding_start(cls) -> str:
-        """Entry point for new users — SSOT."""
-        return "/onboarding/start"
+        """Entry point for all users — SSOT. Preamble determines new vs returning."""
+        return "/preamble"
     
     @classmethod
     def get_reconnect_flow(cls) -> str:

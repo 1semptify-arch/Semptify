@@ -91,6 +91,7 @@ def _safe_router_import(module_path: str):
 # =============================================================================
 from app.routers import health
 from app.routers import storage
+from app.routers import preamble
 # Legacy onboarding router (app/routers/onboarding.py) removed — replaced by
 # app/modules/onboarding/ registered via register_onboarding() below.
 from app.routers import plugins
@@ -1874,13 +1875,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if guided_intake_router:
         fastapi_app.include_router(guided_intake_router, tags=["Guided Intake"])
 
-    # Root route - redirect to role selection (onboarding entry point)
+    # Root route — sends all users through Preamble (the single decision point)
     @fastapi_app.get("/")
     async def root_redirect():
-        """Redirect to role selection — first step of onboarding."""
-        role_stage = navigation.get_stage("role_select")
-        role_path = role_stage.path if role_stage else "/onboarding/select-role.html"
-        return ssot_redirect(role_path, context="root_redirect to role_select")
+        """Redirect to preamble — the one way in for all users."""
+        preamble_stage = navigation.get_stage("preamble")
+        preamble_path = preamble_stage.path if preamble_stage else "/preamble"
+        return ssot_redirect(preamble_path, context="root_redirect to preamble")
 
     # Favicon - serve a simple SVG to prevent 404 errors
     @fastapi_app.get("/favicon.ico")
@@ -1930,6 +1931,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             response_class=HTMLResponse,
             tags=["Role Home"],
         )
+
+    # Preamble — single entry point, routes new vs returning users
+    if preamble.router:
+        fastapi_app.include_router(preamble.router, tags=["Preamble"])
 
     # Storage OAuth (handles authentication)
     if storage.router:

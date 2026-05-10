@@ -33,6 +33,9 @@ PUBLIC_PATHS: Set[str] = {
     "/metrics",
     "/api/version",
     
+    # Preamble — single entry point, must always be reachable (no storage required)
+    "/preamble",
+
     # Onboarding & special pages — all sub-routes must be public
     # (user has no cookie yet during onboarding)
     "/onboarding",
