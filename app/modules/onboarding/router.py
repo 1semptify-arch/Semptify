@@ -94,8 +94,11 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         if role not in allowed_roles:
             role = "tenant"
 
-        # Build callback URL using this module's route
-        base_url = str(request.base_url).rstrip("/")
+        # Build callback URL — use PUBLIC_BASE_URL when behind a proxy (e.g. Render)
+        # request.base_url returns the internal http:// address which Google rejects.
+        from app.core.config import get_settings as _get_settings
+        _settings = _get_settings()
+        base_url = (_settings.public_base_url or str(request.base_url)).rstrip("/")
         callback_url = f"{base_url}{config.route_prefix}/callback/{provider}"
 
         try:
@@ -127,7 +130,9 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         4. Marks storage_connected gate
         5. ALWAYS routes to vault-setup (onboarding callback = vault needed)
         """
-        base_url = str(request.base_url).rstrip("/")
+        from app.core.config import get_settings as _get_settings
+        _settings = _get_settings()
+        base_url = (_settings.public_base_url or str(request.base_url)).rstrip("/")
         callback_url = f"{base_url}{config.route_prefix}/callback/{provider}"
 
         result = await oauth_ops.handle_onboarding_callback(
