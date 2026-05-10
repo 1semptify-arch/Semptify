@@ -3,7 +3,31 @@
 
 ---
 
-## Shipped This Session — 2026-05-09 (3:10 PM UTC-05) — Commit `69bcb94`
+## Shipped This Session — 2026-05-10 (6:52 AM UTC-05) — Commit `9aebbaa`
+
+### Session Summary — Eliminate Onboarding Redirect Loop (Root Cause Fix)
+
+#### Root Cause Fixed (P0)
+- [x] **Redirect loop eliminated** — Three separate middleware layers (StorageRequirementMiddleware, OnboardingGateMiddleware, router-level checks) all enforced gates independently and could mutually trigger each other in an infinite redirect cycle.
+- [x] **`app/core/onboarding_state.py`** — CREATED. Single canonical gate reader (`OnboardingState` dataclass + `get_onboarding_state()`). This is now THE only place that reads `User.completed_groups` for gate enforcement decisions.
+- [x] **`app/core/storage_middleware.py`** — Replaced 130-line inline gate logic with single `get_onboarding_state()` call. Now routes users to the **exact** next required step via SSOT paths, not just `/onboarding/start`.
+- [x] **Duplicate enforcer disabled** — `OnboardingGateMiddleware` (from `app/modules/onboarding/`) now skipped via `enable_gate_middleware=False` in `main.py`. `StorageRequirementMiddleware` handles all enforcement.
+- [x] **Silent vault loop fixed** — `app/routers/vault.py` vault_initialized gate write is now fatal (raises 500) instead of silently continuing. Silent failure was the #2 cause of loops.
+- [x] **Dead import removed** — Legacy `from app.routers import onboarding` and commented-out router block removed from `main.py`.
+- [x] **Debug tool added** — `GET /api/debug/gates` (dev only, 404 in production) shows exact gate state for current user cookie.
+
+#### Known Working
+- Gate chain: storage_connected → vault_initialized → client_activated
+- Single enforcer pattern via onboarding_state.py
+- All 6 changed files compile clean, all imports pass
+
+#### Pending Next Session
+- End-to-end test of full onboarding flow on Render (new user + reconnect paths)
+- Monitor Render deploy log for any unexpected gate-related errors
+
+---
+
+## Previous Session — 2026-05-09 (3:10 PM UTC-05) — Commit `69bcb94`
 
 ### Session Summary — Fix Vault Gating Bug + Separate Onboarding/Reconnect
 
