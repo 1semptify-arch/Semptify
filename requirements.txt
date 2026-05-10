@@ -28,6 +28,7 @@ httpx>=0.26.0
 python-multipart>=0.0.6     # Form data / file uploads
 passlib[bcrypt]>=1.7.4      # Password hashing (if needed)
 cryptography>=41.0.0        # AES-256-GCM encryption for storage tokens
+python-jose[cryptography]>=3.3.0  # JWT verification for Google RISC webhooks
 slowapi>=0.1.9              # API rate limiting
 redis>=5.0.0                # Redis client for sessions (production)
 aioboto3>=13.0.0            # Async S3/R2 client (Cloudflare R2 system storage)
