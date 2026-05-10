@@ -1869,16 +1869,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     if guided_intake_router:
         fastapi_app.include_router(guided_intake_router, tags=["Guided Intake"])
 
-    # Root route - serve welcome page from static/public (outside onboarding flow)
-    @fastapi_app.get("/", response_class=HTMLResponse)
-    async def root_welcome():
-        """Serve welcome page as entry point."""
-        welcome_path = BASE_PATH / "static" / "public" / "welcome.html"
-        if welcome_path.exists():
-            return FileResponse(welcome_path)
-        onboarding_stage = navigation.get_stage("onboarding_start")
-        onboarding_path = onboarding_stage.path if onboarding_stage else "/onboarding"
-        return ssot_redirect(onboarding_path, context="root_welcome fallback")
+    # Root route - redirect to role selection (onboarding entry point)
+    @fastapi_app.get("/")
+    async def root_redirect():
+        """Redirect to role selection — first step of onboarding."""
+        role_stage = navigation.get_stage("role_select")
+        role_path = role_stage.path if role_stage else "/onboarding/select-role.html"
+        return ssot_redirect(role_path, context="root_redirect to role_select")
 
     # Favicon - serve a simple SVG to prevent 404 errors
     @fastapi_app.get("/favicon.ico")
