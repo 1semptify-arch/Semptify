@@ -94,11 +94,19 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         if role not in allowed_roles:
             role = "tenant"
 
-        # Build callback URL — use PUBLIC_BASE_URL when behind a proxy (e.g. Render)
-        # request.base_url returns the internal http:// address which Google rejects.
+        # Build callback URL — resolve the real public URL (Render proxy-aware)
         from app.core.config import get_settings as _get_settings
         _settings = _get_settings()
-        base_url = (_settings.public_base_url or str(request.base_url)).rstrip("/")
+        if _settings.public_base_url:
+            base_url = _settings.public_base_url.rstrip("/")
+        else:
+            # Render sets X-Forwarded-Host + X-Forwarded-Proto on every request
+            fwd_host = request.headers.get("x-forwarded-host")
+            fwd_proto = request.headers.get("x-forwarded-proto", "https")
+            if fwd_host:
+                base_url = f"{fwd_proto}://{fwd_host}"
+            else:
+                base_url = str(request.base_url).rstrip("/")
         callback_url = f"{base_url}{config.route_prefix}/callback/{provider}"
 
         try:
@@ -108,7 +116,10 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             logger.exception("OAuth initiation failed: provider=%s role=%s error=%s", provider, role, exc)
             raise HTTPException(status_code=500, detail="OAuth initiation failed") from exc
 
-        logger.info("Onboarding OAuth initiated: provider=%s role=%s callback=%s", provider, role, callback_url)
+        logger.info("Onboarding OAuth initiated: provider=%s role=%s callback=%s headers_host=%s headers_proto=%s",
+                    provider, role, callback_url,
+                    request.headers.get("x-forwarded-host", "NONE"),
+                    request.headers.get("x-forwarded-proto", "NONE"))
         return RedirectResponse(url=auth_url, status_code=302)
 
     # ------------------------------------------------------------------
@@ -132,7 +143,15 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         """
         from app.core.config import get_settings as _get_settings
         _settings = _get_settings()
-        base_url = (_settings.public_base_url or str(request.base_url)).rstrip("/")
+        if _settings.public_base_url:
+            base_url = _settings.public_base_url.rstrip("/")
+        else:
+            fwd_host = request.headers.get("x-forwarded-host")
+            fwd_proto = request.headers.get("x-forwarded-proto", "https")
+            if fwd_host:
+                base_url = f"{fwd_proto}://{fwd_host}"
+            else:
+                base_url = str(request.base_url).rstrip("/")
         callback_url = f"{base_url}{config.route_prefix}/callback/{provider}"
 
         result = await oauth_ops.handle_onboarding_callback(
