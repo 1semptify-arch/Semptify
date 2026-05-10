@@ -91,7 +91,8 @@ def _safe_router_import(module_path: str):
 # =============================================================================
 from app.routers import health
 from app.routers import storage
-from app.routers import onboarding
+# Legacy onboarding router (app/routers/onboarding.py) removed — replaced by
+# app/modules/onboarding/ registered via register_onboarding() below.
 from app.routers import plugins
 from app.routers import development
 
@@ -1662,6 +1663,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         allowed_roles=["tenant"],
         allowed_providers=["google_drive", "dropbox", "onedrive"],
         on_complete_redirect="/tenant/home",
+        # Disable duplicate gate middleware — StorageRequirementMiddleware already
+        # enforces all gates via app/core/onboarding_state.py (single source of truth).
+        # Running both causes redirect loops.
+        enable_gate_middleware=False,
     )
     register_onboarding(fastapi_app, onboarding_config)
 
@@ -1925,12 +1930,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             response_class=HTMLResponse,
             tags=["Role Home"],
         )
-
-    # Unified Onboarding (primary entry point for new users)
-    # NOTE: onboarding.router already declares prefix="/onboarding" — no prefix here
-    # DISABLED: Replaced by app/modules/onboarding/ (May 10, 2026)
-    # if onboarding.router:
-    #     fastapi_app.include_router(onboarding.router, tags=["Onboarding"])
 
     # Storage OAuth (handles authentication)
     if storage.router:
@@ -3869,6 +3868,49 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         </body>
         </html>
         """)
+
+    # =========================================================================
+    # Gate Debug Endpoint (dev only — blocked in production)
+    # =========================================================================
+
+    @fastapi_app.get("/api/debug/gates")
+    async def debug_gates(request: Request):
+        """
+        Dev-only: Show current onboarding gate state for the authenticated user.
+        Returns 404 in production. Use this to diagnose redirect loops.
+        """
+        if is_production:
+            from fastapi import HTTPException as _HTTPException
+            raise _HTTPException(status_code=404, detail="Not found")
+
+        from app.core.cookie_auth import verify_user_id as _verify
+        from app.core.user_id import COOKIE_USER_ID as _COOKIE
+        from app.core.onboarding_state import get_onboarding_state as _get_state
+        from app.core.database import get_session_factory as _factory
+
+        raw_cookie = request.cookies.get(_COOKIE)
+        if not raw_cookie:
+            return {"error": "no_cookie", "hint": "No semptify_uid cookie found"}
+
+        raw_uid = _verify(raw_cookie)
+        if not raw_uid:
+            return {"error": "invalid_cookie", "hint": "Cookie signature invalid or expired"}
+
+        try:
+            _sf = _factory()
+            async with _sf() as _db:
+                state = await _get_state(raw_uid, _db)
+            return {
+                "user_id_prefix": raw_uid[:6] + "***",
+                "storage_connected": state.storage_connected,
+                "vault_initialized": state.vault_initialized,
+                "client_activated": state.client_activated,
+                "is_fully_onboarded": state.is_fully_onboarded,
+                "next_required_gate": state.next_required_gate,
+                "next_required_path": state.next_required_path,
+            }
+        except Exception as exc:
+            return {"error": "db_error", "detail": str(exc)}
 
     # =========================================================================
     # Catch-All HTML Page Router
