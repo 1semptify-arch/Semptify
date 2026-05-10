@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 from app.core.user_context import UserRole, get_role_definition
+from app.core.navigation import navigation
 
 
 # =============================================================================
@@ -50,22 +51,34 @@ class ProcessCode(str, Enum):
     B4 = "B4"    # Professional Review Workspace
 
 
-# Mapping of process codes to route paths
-# SSOT: These must match the 5 base navigation pages (home.html, library.html, office.html, tools.html, help.html)
+def _nav_path(stage_id: str, fallback: str) -> str:
+    """Resolve a path from the SSOT navigation registry with a fallback."""
+    stage = navigation.get_stage(stage_id)
+    if stage:
+        return stage.path
+    item = next((n for n in navigation.MAIN_NAV if n.name.lower() == stage_id.lower()), None)
+    return item.path if item else fallback
+
+
+# Mapping of process codes to canonical SSOT paths.
+# All paths resolved from navigation registry — never hardcoded here.
+_home_item   = next((n for n in navigation.MAIN_NAV if n.name == "Home"),   None)
+_office_item = next((n for n in navigation.MAIN_NAV if n.name == "Office"), None)
+
 PROCESS_ROUTES: dict[ProcessCode, str] = {
-    ProcessCode.A: "/home.html",
-    ProcessCode.B1: "/office.html",
-    ProcessCode.B2: "/office.html",
-    ProcessCode.B3: "/static/eviction_answer.html",
-    ProcessCode.B4: "/office.html",  # Advocate role -> Office page
+    ProcessCode.A:  _home_item.path   if _home_item   else "/home.html",
+    ProcessCode.B1: _office_item.path if _office_item else "/office.html",
+    ProcessCode.B2: _office_item.path if _office_item else "/office.html",
+    ProcessCode.B3: _office_item.path if _office_item else "/office.html",
+    ProcessCode.B4: _office_item.path if _office_item else "/office.html",
 }
 
-# Role-specific portal routes
+# Role-specific portal routes — resolved from navigation registry.
 ROLE_SPECIFIC_ROUTES: dict[UserRole, str] = {
-    UserRole.LEGAL: "/legal",
-    UserRole.ADMIN: "/admin",
-    UserRole.MANAGER: "/manager",
-    UserRole.ADVOCATE: "/advocate",
+    UserRole.LEGAL:    _nav_path("legal",    "/legal"),
+    UserRole.ADMIN:    _nav_path("admin",    "/admin"),
+    UserRole.MANAGER:  _nav_path("manager",  "/manager"),
+    UserRole.ADVOCATE: _nav_path("advocate", "/advocate"),
 }
 
 
@@ -122,9 +135,11 @@ def _tenant_decision(state: WorkflowState) -> WorkflowDecision:
     warnings: list[str] = []
 
     if state.storage_state == StorageState.NEED_CONNECT:
+        _providers_stage = navigation.get_stage("providers")
+        _providers_path = _providers_stage.path if _providers_stage else "/storage/providers"
         return WorkflowDecision(
             next_process=ProcessCode.A,
-            next_route="/storage/providers",
+            next_route=_providers_path,
             allowed_actions=["select_role", "connect_storage"],
             blocked_actions=["upload_document", "start_case", "view_vault"],
             deterministic_reason=(
@@ -270,14 +285,17 @@ def route_user(
     """
     from app.core.user_id import get_role_from_user_id, parse_user_id
 
+    _preamble_stage = navigation.get_stage("preamble")
+    _preamble_path = _preamble_stage.path if _preamble_stage else "/preamble"
+
     if not user_id:
-        return "/storage/providers"
+        return _preamble_path
 
     # Validate format only — no HMAC check here because this function
     # is called server-side with a trusted raw user_id (not from cookie).
     provider, role, unique = parse_user_id(user_id)
     if not provider or not role or not unique:
-        return "/storage/providers"
+        return _preamble_path
 
     role_str = get_role_from_user_id(user_id) or "user"
 
@@ -299,7 +317,8 @@ def route_user(
         )
         return decision.next_route
     except ValueError:
-        return "/storage/providers"
+        _preamble_stage = navigation.get_stage("preamble")
+        return _preamble_stage.path if _preamble_stage else "/preamble"
 
 
 def evaluate_from_params(
