@@ -90,18 +90,22 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         """Initiate OAuth for onboarding. Uses onboarding callback URL."""
         if provider not in config.allowed_providers:
             raise HTTPException(status_code=400, detail=f"Provider '{provider}' not supported")
-        if role not in gate_ops.ALLOWED_ROLES if hasattr(gate_ops, 'ALLOWED_ROLES') else True:
+        allowed_roles = getattr(gate_ops, 'ALLOWED_ROLES', {"tenant"})
+        if role not in allowed_roles:
             role = "tenant"
 
         # Build callback URL using this module's route
         base_url = str(request.base_url).rstrip("/")
         callback_url = f"{base_url}{config.route_prefix}/callback/{provider}"
 
-        # Create state and build auth URL
-        state = await oauth_ops.create_oauth_state(db, provider, role, callback_url)
-        auth_url = oauth_ops.build_oauth_url(config, provider, state, callback_url)
+        try:
+            state = await oauth_ops.create_oauth_state(db, provider, role, callback_url)
+            auth_url = oauth_ops.build_oauth_url(config, provider, state, callback_url)
+        except Exception as exc:
+            logger.exception("OAuth initiation failed: provider=%s role=%s error=%s", provider, role, exc)
+            raise HTTPException(status_code=500, detail="OAuth initiation failed") from exc
 
-        logger.info("Onboarding OAuth initiated: provider=%s role=%s", provider, role)
+        logger.info("Onboarding OAuth initiated: provider=%s role=%s callback=%s", provider, role, callback_url)
         return RedirectResponse(url=auth_url, status_code=302)
 
     # ------------------------------------------------------------------
