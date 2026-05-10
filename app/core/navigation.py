@@ -90,14 +90,16 @@ class NavigationRegistry:
             id="storage_select",
             name="Connect Storage",
             path="/onboarding/providers",
-            next_stage="providers",
+            next_stage="vault_setup",
             requires_checkpoint=True
         ),
+        # NOTE: /storage/providers is the RECONNECT entry point (returning users)
+        # Onboarding flow goes directly: providers → vault_setup → home
         "providers": FlowStage(
             id="providers",
-            name="Storage Providers",
+            name="Storage Providers (Reconnect)",
             path="/storage/providers",
-            next_stage="dashboard",
+            next_stage="vault_setup",
             requires_checkpoint=True
         ),
         "status": FlowStage(
