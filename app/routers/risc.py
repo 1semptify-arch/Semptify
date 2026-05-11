@@ -55,6 +55,9 @@ async def _get_google_jwks() -> dict:
         return _jwks_cache
 
 
+_MAX_TOKEN_AGE_SECONDS = 300  # 5 minutes — reject replayed tokens
+
+
 async def _verify_risc_token(token: str, audience: str) -> dict:
     """
     Verify a Google RISC Security Event Token (SET).
@@ -62,7 +65,6 @@ async def _verify_risc_token(token: str, audience: str) -> dict:
     """
     try:
         jwks = await _get_google_jwks()
-        # jose expects JWKS as a list under 'keys'
         payload = jwt.decode(
             token,
             jwks,
@@ -70,6 +72,15 @@ async def _verify_risc_token(token: str, audience: str) -> dict:
             audience=audience,
             issuer=_GOOGLE_RISC_ISSUER,
         )
+
+        # Replay attack prevention: reject tokens older than 5 minutes
+        iat = payload.get("iat")
+        if iat is not None:
+            age = time.time() - float(iat)
+            if age > _MAX_TOKEN_AGE_SECONDS:
+                logger.warning("RISC token rejected: too old (age=%.0fs)", age)
+                raise HTTPException(status_code=400, detail="RISC token expired")
+
         return payload
     except JWTError as exc:
         logger.warning("RISC token verification failed: %s", exc)
