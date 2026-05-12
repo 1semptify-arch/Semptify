@@ -33,6 +33,7 @@ PUBLIC_PATHS: Set[str] = {
     "/metrics",
     "/api/version",
     "/risc/google/webhook",  # Google Cross-Account Protection — no cookie
+    "/debug/status",         # Temporary debug endpoint — remove after vault fix
     
     # Preamble — single entry point, must always be reachable (no storage required)
     "/preamble",

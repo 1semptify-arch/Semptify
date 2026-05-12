@@ -2836,6 +2836,58 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         )
 
     # =========================================================================
+    # Temporary Debug Endpoint — remove after vault issue is resolved
+    # =========================================================================
+
+    @fastapi_app.get("/debug/status")
+    async def debug_status(request: Request):
+        """Temporary: show user/gate/middleware state for debugging."""
+        import traceback as _tb
+        info = {"step": "init"}
+        try:
+            from app.core.user_id import COOKIE_USER_ID
+            raw_cookie = request.cookies.get(COOKIE_USER_ID, "")
+            info["cookie_present"] = bool(raw_cookie)
+            info["cookie_prefix"] = raw_cookie[:12] + "..." if raw_cookie else "NONE"
+
+            from app.core.cookie_auth import verify_user_id
+            raw_uid = verify_user_id(raw_cookie)
+            info["hmac_valid"] = raw_uid is not None
+            info["raw_user_id"] = raw_uid[:6] + "***" if raw_uid else "NONE"
+
+            from app.core.storage_middleware import is_valid_storage_user
+            info["is_valid_storage_user"] = is_valid_storage_user(raw_cookie)
+
+            if raw_uid:
+                from app.core.database import get_session_factory
+                from app.core.onboarding_state import get_onboarding_state
+                factory = get_session_factory()
+                async with factory() as db:
+                    ob = await get_onboarding_state(raw_uid, db)
+                    info["storage_connected"] = ob.storage_connected
+                    info["vault_initialized"] = ob.vault_initialized
+                    info["is_fully_onboarded"] = ob.is_fully_onboarded
+                    info["next_gate"] = ob.next_required_gate
+                    info["next_path"] = ob.next_required_path
+
+                    from app.models.models import User
+                    from sqlalchemy import select
+                    result = await db.execute(select(User).where(User.id == raw_uid))
+                    user = result.scalar_one_or_none()
+                    if user:
+                        info["user_found"] = True
+                        info["completed_groups"] = user.completed_groups
+                        info["primary_provider"] = user.primary_provider
+                    else:
+                        info["user_found"] = False
+
+            info["step"] = "done"
+        except Exception as exc:
+            info["error"] = str(exc)
+            info["traceback"] = _tb.format_exc()
+        return JSONResponse(content=info)
+
+    # =========================================================================
     # Documents Page
     # =========================================================================
 
