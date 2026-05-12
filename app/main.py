@@ -2894,36 +2894,44 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/documents", response_class=HTMLResponse)
     async def documents_page(request: Request):
         """Serve the document intake page."""
-        # Apply PageContract guard
-        guard_redirect = _guard_by_contract("documents", request)
-        if guard_redirect:
-            return guard_redirect
-
-        # Telemetry
+        import traceback as _tb
         try:
-            from app.core.telemetry_hooks import EMITTER
-            from app.core.user_id import COOKIE_USER_ID
-            EMITTER.emit("documents_page_load", "documents", request.cookies.get(COOKIE_USER_ID, "anon"))
-        except Exception:  # pylint: disable=broad-exception-caught
-            pass
+            # Apply PageContract guard
+            guard_redirect = _guard_by_contract("documents", request)
+            if guard_redirect:
+                return guard_redirect
 
-        # Try template first
-        documents_template_path = BASE_PATH / "app" / "templates" / "pages" / "documents.html"
-        if documents_template_path.exists():
+            # Telemetry
             try:
-                return templates.TemplateResponse(request, "pages/documents.html", {"documents": []})
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Documents template error, falling back to static: %s", e)
+                from app.core.telemetry_hooks import EMITTER
+                from app.core.user_id import COOKIE_USER_ID
+                EMITTER.emit("documents_page_load", "documents", request.cookies.get(COOKIE_USER_ID, "anon"))
+            except Exception:  # pylint: disable=broad-exception-caught
+                pass
 
-        # Fallback to static file
-        documents_path = BASE_PATH / "static" / "documents.html"
-        documents_fallback = _render_static_page(documents_path, inject_stage_model=True)
-        if documents_fallback:
-            return documents_fallback
-        return HTMLResponse(
-            content="<h1>Documents page not found</h1>",
-            status_code=404
-        )
+            # Try template first
+            documents_template_path = BASE_PATH / "app" / "templates" / "pages" / "documents.html"
+            if documents_template_path.exists():
+                try:
+                    return templates.TemplateResponse(request, "pages/documents.html", {"documents": []})
+                except Exception as e:  # pylint: disable=broad-exception-caught
+                    logger.warning("Documents template error, falling back to static: %s", e)
+
+            # Fallback to static file
+            documents_path = BASE_PATH / "static" / "documents.html"
+            documents_fallback = _render_static_page(documents_path, inject_stage_model=True)
+            if documents_fallback:
+                return documents_fallback
+            return HTMLResponse(
+                content="<h1>Documents page not found</h1>",
+                status_code=404
+            )
+        except Exception as exc:
+            logger.error("DOCUMENTS_DEBUG: %s\n%s", exc, _tb.format_exc())
+            return JSONResponse(
+                status_code=500,
+                content={"error": "documents_crash", "detail": str(exc), "traceback": _tb.format_exc()},
+            )
 
     # =========================================================================
     # Law Library Page
