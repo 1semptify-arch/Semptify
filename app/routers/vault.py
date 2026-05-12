@@ -204,9 +204,25 @@ async def upload_document(
     ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "bin"
     safe_filename = f"{document_id}.{ext}"
 
+    # Resolve real access token (form field may be "auto" placeholder from JS)
+    real_token = access_token
+    if not real_token or real_token == "auto":
+        real_token = getattr(user, "access_token", None)
+    if not real_token or real_token in ("auto", "no-token"):
+        try:
+            from app.core.oauth_token_manager import get_valid_token_for_user
+            real_token = get_valid_token_for_user(user.user_id) or real_token
+        except ImportError:
+            pass
+    if not real_token or real_token in ("auto", "no-token"):
+        raise HTTPException(
+            status_code=401,
+            detail="Storage session expired. Please reconnect your storage.",
+        )
+
     # Get storage provider for user
     try:
-        storage = get_provider(user.provider, access_token=access_token)
+        storage = get_provider(user.provider, access_token=real_token)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
