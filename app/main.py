@@ -2887,6 +2887,75 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             info["traceback"] = _tb.format_exc()
         return JSONResponse(content=info)
 
+    @fastapi_app.get("/debug/create-vault")
+    async def debug_create_vault(request: Request):
+        """Temporary: force vault folder creation for debugging."""
+        import traceback as _tb
+        info = {"step": "init"}
+        try:
+            from app.core.user_id import COOKIE_USER_ID
+            from app.core.cookie_auth import verify_user_id
+            raw_cookie = request.cookies.get(COOKIE_USER_ID, "")
+            raw_uid = verify_user_id(raw_cookie)
+            if not raw_uid:
+                return JSONResponse(content={"error": "no valid cookie"})
+
+            info["user_id"] = raw_uid[:6] + "***"
+
+            # Get token from token_manager
+            from app.core.oauth_token_manager import token_manager
+            cached = token_manager.get_token(raw_uid)
+            if cached:
+                access_token = cached.access_token
+                provider = cached.provider
+                info["token_source"] = "cache"
+                info["token_len"] = len(access_token)
+            else:
+                # Try DB
+                from app.core.database import get_session_factory
+                factory = get_session_factory()
+                async with factory() as db:
+                    from app.models.models import User
+                    from sqlalchemy import select
+                    result = await db.execute(select(User).where(User.id == raw_uid))
+                    user = result.scalar_one_or_none()
+                    provider = user.primary_provider if user else None
+                info["token_source"] = "none"
+                info["provider"] = provider
+                return JSONResponse(content={**info, "error": "no cached token — need fresh OAuth sign-in"})
+
+            info["provider"] = provider
+
+            # Force create vault folders (bypass gate check)
+            from app.services.storage import get_provider
+            from app.modules.onboarding.config import OnboardingConfig
+            config = OnboardingConfig()
+            info["vault_folders"] = config.vault_folders
+
+            storage = get_provider(provider, access_token=access_token)
+            results = []
+            for folder_path in config.vault_folders:
+                try:
+                    await storage.create_folder(folder_path)
+                    results.append({"folder": folder_path, "status": "ok"})
+                except Exception as exc:
+                    results.append({"folder": folder_path, "status": "error", "detail": str(exc)})
+            info["folder_results"] = results
+
+            # Mark gate
+            from app.core.database import get_session_factory
+            from app.modules.onboarding.gates import mark_gate
+            factory2 = get_session_factory()
+            async with factory2() as db2:
+                await mark_gate(db2, raw_uid, "vault_initialized")
+            info["gate_marked"] = True
+
+            info["step"] = "done"
+        except Exception as exc:
+            info["error"] = str(exc)
+            info["traceback"] = _tb.format_exc()
+        return JSONResponse(content=info)
+
     # =========================================================================
     # Documents Page
     # =========================================================================
