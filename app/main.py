@@ -2926,29 +2926,31 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
             info["provider"] = provider
 
-            # Force create vault folders (bypass gate check)
-            from app.services.storage import get_provider
-            from app.modules.onboarding.config import OnboardingConfig
-            config = OnboardingConfig()
-            info["vault_folders"] = config.vault_folders
+            # Use Vault SDK — isolated, no gate/DB dependencies
+            from app.sdk.vault import VaultClient, TENANT_VAULT
+            vault = VaultClient(
+                provider=provider,
+                access_token=access_token,
+                user_id=raw_uid,
+                folder_spec=TENANT_VAULT,
+            )
+            info["sdk_version"] = VaultClient.__version__
+            info["vault_folders"] = vault.list_expected_folders()
 
-            storage = get_provider(provider, access_token=access_token)
-            results = []
-            for folder_path in config.vault_folders:
-                try:
-                    await storage.create_folder(folder_path)
-                    results.append({"folder": folder_path, "status": "ok"})
-                except Exception as exc:
-                    results.append({"folder": folder_path, "status": "error", "detail": str(exc)})
-            info["folder_results"] = results
+            vault_result = await vault.create_folders()
+            info["folder_results"] = vault_result.to_dict()
 
-            # Mark gate
-            from app.core.database import get_session_factory
-            from app.modules.onboarding.gates import mark_gate
-            factory2 = get_session_factory()
-            async with factory2() as db2:
-                await mark_gate(db2, raw_uid, "vault_initialized")
-            info["gate_marked"] = True
+            # Only mark gate if ALL folders were created
+            if vault_result.all_ok:
+                from app.core.database import get_session_factory
+                from app.modules.onboarding.gates import mark_gate
+                factory2 = get_session_factory()
+                async with factory2() as db2:
+                    await mark_gate(db2, raw_uid, "vault_initialized")
+                info["gate_marked"] = True
+            else:
+                info["gate_marked"] = False
+                info["gate_reason"] = "folders failed — gate not marked"
 
             info["step"] = "done"
         except Exception as exc:
