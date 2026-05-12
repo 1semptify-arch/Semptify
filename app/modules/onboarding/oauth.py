@@ -391,6 +391,18 @@ async def handle_onboarding_callback(
     # 6. Mark storage_connected gate
     await mark_gate(db, user_id, "storage_connected")
 
+    # 6b. Create vault folders now (not deferred to JS)
+    from app.modules.onboarding.vault import init_vault
+    vault_result = await init_vault(
+        db=db,
+        user_id=user_id,
+        provider_name=provider,
+        access_token=access_token,
+        config=config,
+    )
+    if not vault_result["ok"]:
+        logger.warning("Vault creation failed during callback: %s", vault_result["message"])
+
     # 7. Determine routing
     from app.modules.onboarding.gates import check_gate
     vault_initialized = await check_gate(db, user_id, "vault_initialized")
