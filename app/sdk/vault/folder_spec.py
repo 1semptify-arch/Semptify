@@ -26,23 +26,20 @@ class VaultFolderSpec:
     """
     Declarative vault folder structure.
 
-    Attributes:
-        root:            Top-level folder name. From vault_paths.SEMPTIFY_ROOT.
-        core_folders:    Always created for every product. From vault_paths.
-        auth_folders:    Hidden auth/metadata folders. From vault_paths.
-        product_folders: Additional folders specific to a product.
+    Two layers:
+      1. base_folders — Universal. Created by SDK for every Semptify product.
+         Identity, auth, vault root. Nobody touches these.
+      2. product_folders — Product-specific. Each product registers its own.
+         Tenant adds "documents". Advocate adds "legal_filings". Etc.
+
+    Products ONLY interact with product_folders. The base is invisible to them.
     """
 
     root: str = SEMPTIFY_ROOT
 
-    core_folders: tuple = (
+    base_folders: tuple = (
         SEMPTIFY_ROOT,
         VAULT_ROOT,
-        VAULT_DOCUMENTS,
-        VAULT_CERTIFICATES,
-    )
-
-    auth_folders: tuple = (
         AUTH_FOLDER,
         VAULT_FOLDER,
     )
@@ -51,38 +48,50 @@ class VaultFolderSpec:
 
     @property
     def all_folders(self) -> List[str]:
-        """All folders that should exist, in creation order."""
-        return list(self.core_folders) + list(self.auth_folders) + list(self.product_folders)
+        """All folders that should exist, in creation order (base + product)."""
+        return list(self.base_folders) + list(self.product_folders)
 
     def extend(self, folders: List[str]) -> "VaultFolderSpec":
         """Return a new spec with additional product-specific folders."""
         return VaultFolderSpec(
             root=self.root,
-            core_folders=self.core_folders,
-            auth_folders=self.auth_folders,
+            base_folders=self.base_folders,
             product_folders=self.product_folders + tuple(folders),
         )
 
 
 # ============================================================================
-# Pre-built specs for each Semptify product
+# Universal base — what every Semptify product gets automatically.
+# SDK creates this. Products never think about it.
 # ============================================================================
 
-TENANT_VAULT = VaultFolderSpec()
+BASE_VAULT = VaultFolderSpec()
 
-ADVOCATE_VAULT = VaultFolderSpec(product_folders=(
+
+# ============================================================================
+# Product specs — each product adds ONLY its own subfolders.
+# ============================================================================
+
+TENANT_VAULT = BASE_VAULT.extend([
+    VAULT_DOCUMENTS,
+    VAULT_CERTIFICATES,
+])
+
+ADVOCATE_VAULT = BASE_VAULT.extend([
+    VAULT_DOCUMENTS,
     f"{VAULT_ROOT}/client_files",
     f"{VAULT_ROOT}/case_notes",
     f"{VAULT_ROOT}/legal_filings",
-))
+])
 
-LEGAL_VAULT = VaultFolderSpec(product_folders=(
+LEGAL_VAULT = BASE_VAULT.extend([
+    VAULT_DOCUMENTS,
     f"{VAULT_ROOT}/court_exhibits",
     f"{VAULT_ROOT}/case_files",
     f"{VAULT_ROOT}/discovery",
-))
+])
 
-RESEARCH_VAULT = VaultFolderSpec(product_folders=(
+RESEARCH_VAULT = BASE_VAULT.extend([
     f"{VAULT_ROOT}/research",
     f"{VAULT_ROOT}/dossiers",
-))
+])
