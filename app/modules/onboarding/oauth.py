@@ -393,13 +393,20 @@ async def handle_onboarding_callback(
 
     # 6b. Create vault folders now (not deferred to JS)
     from app.modules.onboarding.vault import init_vault
-    vault_result = await init_vault(
-        db=db,
-        user_id=user_id,
-        provider_name=provider,
-        access_token=access_token,
-        config=config,
-    )
+    logger.warning("VAULT_DEBUG: About to call init_vault user=%s provider=%s folders=%s token_len=%d",
+                   user_id[:6] + "***", provider, config.vault_folders, len(access_token or ""))
+    try:
+        vault_result = await init_vault(
+            db=db,
+            user_id=user_id,
+            provider_name=provider,
+            access_token=access_token,
+            config=config,
+        )
+        logger.warning("VAULT_DEBUG: init_vault returned: %s", vault_result)
+    except Exception as vault_exc:
+        logger.error("VAULT_DEBUG: init_vault CRASHED: %s", vault_exc, exc_info=True)
+        vault_result = {"ok": False, "message": str(vault_exc)}
     if not vault_result["ok"]:
         logger.warning("Vault creation failed during callback: %s", vault_result["message"])
 
