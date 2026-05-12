@@ -66,6 +66,8 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN groupadd --gid 1000 semptify && \
     useradd --uid 1000 --gid semptify --shell /bin/bash --create-home semptify
 
+# Cache-bust: forces fresh COPY on every deploy
+ARG CACHEBUST=1
 # Copy application code
 COPY --chown=semptify:semptify . .
 
