@@ -2194,12 +2194,12 @@ async def oauth_callback(
         # Create vault folders server-side if not yet initialized.
         # This replaces the old JS-based vault creation on /onboarding/vault-setup.
         if not vault_initialized:
+            print(f"🔑 VAULT_CREATE: Starting vault for user={user_id[:6]}*** provider={provider} token_len={len(access_token or '')}", flush=True)
             try:
                 from app.modules.onboarding.vault import init_vault
                 from app.modules.onboarding.config import OnboardingConfig as _OBConfig
                 _ob_config = _OBConfig()
-                logger.warning("VAULT_CREATE: Creating vault for user=%s provider=%s token_len=%d",
-                               user_id[:6] + "***", provider, len(access_token or ""))
+                print(f"🔑 VAULT_CREATE: vault_folders={_ob_config.vault_folders}", flush=True)
                 vault_result = await init_vault(
                     db=db,
                     user_id=user_id,
@@ -2207,13 +2207,16 @@ async def oauth_callback(
                     access_token=access_token,
                     config=_ob_config,
                 )
-                logger.warning("VAULT_CREATE: Result: %s", vault_result)
+                print(f"🔑 VAULT_CREATE: Result: {vault_result}", flush=True)
                 if vault_result.get("ok"):
                     vault_initialized = True
                 else:
-                    logger.warning("VAULT_CREATE: Failed: %s", vault_result.get("message"))
+                    print(f"🔑 VAULT_CREATE: Failed: {vault_result.get('message')}", flush=True)
             except Exception as vault_exc:
-                logger.error("VAULT_CREATE: Crashed: %s", vault_exc, exc_info=True)
+                import traceback
+                print(f"🔑 VAULT_CREATE: CRASHED: {vault_exc}\n{traceback.format_exc()}", flush=True)
+        else:
+            print(f"🔑 VAULT_CREATE: Skipped — already initialized for user={user_id[:6]}***", flush=True)
 
         # Determine landing page.
         return_to = state_data.get("return_to")
