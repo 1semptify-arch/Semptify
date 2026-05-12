@@ -355,3 +355,169 @@ The SDK is done when:
 5. Can be tested with a mock provider (no real API calls needed)
 6. `/debug/create-vault` endpoint uses VaultClient successfully
 7. Folders visible in user's Google Drive under Semptify5.0/
+
+---
+
+## 9. Decision Log (For Future Adapter Developers)
+
+This section explains WHY decisions were made — not just WHAT was built.
+Read this before building adapters for new products or providers.
+
+### Decision 1: BASE_VAULT vs Product Specs (Separation)
+
+**Question:** Should the SDK know what folders each product needs?
+
+**Answer:** No. The SDK creates ONLY the universal skeleton:
+- `Semptify5.0/` (root)
+- `Semptify5.0/Vault/` (vault root)
+- `.Semptify5.0/auth/` (identity + encryption)
+- `.Semptify5.0/vault/` (metadata + manifest)
+
+Each product adds its own subfolders via `register_folders()` or a pre-built spec.
+
+**Why:** If the SDK hardcodes "documents" or "certificates", then every product
+inherits folders it may not use. Advocate doesn't need "certificates". Research
+doesn't need "documents". Clean separation means each product is self-contained.
+A developer building Advocate never needs to know what Tenant's folders are.
+
+### Decision 2: Auth Folders Are Universal (Not Product-Specific)
+
+**Question:** Should each product have its own .auth/ folder?
+
+**Answer:** No. One user = one identity = one `.Semptify5.0/auth/` folder shared
+across all products.
+
+**Why:** The auth folder contains the encrypted master token — the proof of "who
+is this person." If Tenant and Advocate each had their own auth, you'd have two
+competing identity systems in one vault. When the token expires or rotates, which
+one is authoritative? Which one does Rehome.html point to? Conflicting auth is
+the #1 cause of "account locked out" bugs in multi-product systems. One auth,
+many products.
+
+### Decision 3: SDK Does NOT Touch Gates or Database
+
+**Question:** Should the SDK mark `vault_initialized` after creating folders?
+
+**Answer:** No. The SDK creates folders and reports success/failure. The CALLER
+marks the gate.
+
+**Why:** Gates are an application concern, not a storage concern. The SDK doesn't
+know what gates exist, what database schema is being used, or what the onboarding
+flow looks like. If a product doesn't use gates (e.g., a CLI tool), the SDK still
+works fine. Mixing storage and application state is exactly what caused the
+original bug (gate marked but folders missing).
+
+### Decision 4: Access Token Passed Directly (Not Looked Up)
+
+**Question:** Should the SDK look up the token from a cache or database?
+
+**Answer:** No. The token is passed as a constructor parameter.
+
+**Why:** Token lookup introduces dependencies on `token_manager`, database sessions,
+and cache state. It also creates race conditions — the token might not be cached
+yet when the SDK is called (this was the original vault creation bug). Passing the
+token directly means: if you have a token, vault works. Period. No timing issues,
+no cache misses, no DB queries.
+
+### Decision 5: All Paths From vault_paths.py (Never Duplicated)
+
+**Question:** Should the SDK define its own path constants?
+
+**Answer:** No. Every path is imported from `app/core/vault_paths.py`.
+
+**Why:** vault_paths.py is the single source of truth for folder names. If someone
+renames "Semptify5.0" to "Semptify6.0", it changes in ONE file and propagates
+everywhere — SDK, routers, middleware, vault_manager. If the SDK had its own
+strings, you'd have to update two places and pray they stay in sync.
+
+### Decision 6: Idempotent Operations (No "Already Exists" Errors)
+
+**Question:** What happens if create_folders() is called twice?
+
+**Answer:** Nothing bad. Every operation is idempotent. Creating an existing
+folder is a no-op. The SDK reports "ok" for existing folders, not "error: exists."
+
+**Why:** Multi-product environments. User installs Tenant (creates base + documents).
+Later installs Advocate (creates base + legal_filings). The base already exists
+from Tenant — Advocate's `create_folders()` should succeed, not crash. Also:
+network retries, interrupted flows, repair operations — all depend on idempotency.
+
+### Decision 7: Per-Folder Status (Not All-Or-Nothing)
+
+**Question:** Should create_folders() fail entirely if one folder fails?
+
+**Answer:** No. It creates everything it can and reports per-folder status.
+
+**Why:** Partial success is real. If 5/6 folders are created but the 6th hits a
+rate limit, you don't want to lose the 5 that worked. The caller can inspect
+`result.failed` and decide: retry? repair? alert user? This is especially
+important for `repair()` — you want to know WHAT is broken, not just "something
+is broken."
+
+### Decision 8: No Framework Dependency (Pure Library)
+
+**Question:** Should VaultClient use FastAPI's dependency injection or middleware?
+
+**Answer:** No. Zero framework imports.
+
+**Why:** Semptify Advocate might not use FastAPI. It might be a Django app, a CLI
+tool, or a serverless function. The vault SDK must work in ALL of these. If it
+imports FastAPI, it's locked to one framework forever. A developer building a
+Semptify mobile backend in Node.js can still use the Python SDK as a reference
+implementation or call it as a microservice — it has no opinions about HTTP.
+
+### Decision 9: VaultFolderSpec Is Frozen (Immutable)
+
+**Question:** Can products modify a spec after creation?
+
+**Answer:** No. `@dataclass(frozen=True)`. Use `.extend()` to get a NEW spec.
+
+**Why:** Specs are shared. TENANT_VAULT is a module-level constant. If one part
+of the code mutates it, every other part sees the mutation. Frozen dataclasses
+prevent accidental state corruption. `.extend()` returns a new object, leaving
+the original untouched. Safe for concurrent access, safe for testing.
+
+---
+
+## 10. How To Build A New Product Adapter
+
+When creating a new Semptify product (e.g., "Semptify Advocate"):
+
+```python
+# 1. Define your product's folders (in your product's config, NOT in the SDK)
+from app.sdk.vault import BASE_VAULT
+
+ADVOCATE_FOLDERS = [
+    "Semptify5.0/Vault/client_files",
+    "Semptify5.0/Vault/case_notes",
+    "Semptify5.0/Vault/legal_filings",
+]
+
+MY_VAULT = BASE_VAULT.extend(ADVOCATE_FOLDERS)
+
+# 2. After OAuth, create the vault
+from app.sdk.vault import VaultClient
+
+vault = VaultClient(
+    provider="google_drive",
+    access_token=token_from_oauth,
+    user_id=user_id,
+    folder_spec=MY_VAULT,
+)
+result = await vault.create_folders()
+
+# 3. Check result — mark your own gates however your product does it
+if result.all_ok:
+    # Your product's gate system (not the SDK's job)
+    mark_user_ready(user_id)
+else:
+    # Handle partial failure
+    log_failed_folders(result.failed)
+```
+
+You do NOT need to:
+- Understand auth folder encryption
+- Know about other products' folders
+- Import anything from app.routers or app.core.database
+- Worry about token caching or refresh timing
+- Care about SSOT navigation or middleware
