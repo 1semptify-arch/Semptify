@@ -22,6 +22,7 @@ __version__ = "1.0.0"
 from app.sdk.vault.client import VaultClient
 from app.sdk.vault.folder_spec import (
     VaultFolderSpec,
+    BASE_VAULT,
     TENANT_VAULT,
     ADVOCATE_VAULT,
     LEGAL_VAULT,
@@ -37,6 +38,7 @@ from app.sdk.vault.errors import (
 __all__ = [
     "VaultClient",
     "VaultFolderSpec",
+    "BASE_VAULT",
     "TENANT_VAULT",
     "ADVOCATE_VAULT",
     "LEGAL_VAULT",
