@@ -3208,63 +3208,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             status_code=404
         )
 
-    @fastapi_app.get("/documents", response_class=HTMLResponse)
-    async def documents_page(request: Request):
-        """Universal document page - same process for all roles.
-        
-        Permission check: Only verify we can access user's cloud storage.
-        No role-based restrictions - everyone uploads the same way.
-        """
-        from app.core.storage_middleware import is_valid_storage_user
-        from app.database import get_db
-        from app.models import User
-        from sqlalchemy import select
-        
-        # Check 1: Can we access the user's cloud storage?
-        user_id = request.cookies.get(COOKIE_USER_ID)
-        if not is_valid_storage_user(user_id):
-            # No storage access = can't read or write documents
-            providers_stage = navigation.get_stage("providers")
-            providers_path = providers_stage.path if providers_stage else "/storage/providers"
-            return ssot_redirect(providers_path, context="documents_list unauthenticated")
-        
-        # Check 2: Fetch document list from user's cloud storage
-        documents = []
-        try:
-            # Get user's storage session from database
-            async for db in get_db():
-                result = await db.execute(select(User).where(User.id == user_id))
-                user = result.scalar_one_or_none()
-                if user and user.storage_session:
-                    # Parse storage session to get provider and token
-                    session = json.loads(user.storage_session)
-                    provider = session.get("provider")
-                    access_token = session.get("access_token")
-                    
-                    if provider == "google_drive" and access_token:
-                        from app.services.storage.google_drive import GoogleDriveStorage
-                        storage = GoogleDriveStorage(access_token)
-                        vault_files = await storage.list_files("Semptify5.0/Vault/documents")
-                        
-                        # Convert to simple document list
-                        for file in vault_files:
-                            if not file.is_folder:
-                                documents.append({
-                                    "id": file.id,
-                                    "filename": file.name,
-                                    "uploaded_at": file.modified_at.strftime("%Y-%m-%d %H:%M"),
-                                    "size": file.size
-                                })
-                    # TODO: Add Dropbox and OneDrive support
-        except Exception as e:
-            logger.warning(f"Failed to list documents: {e}")
-            documents = []  # Empty list on error
-        
-        return templates.TemplateResponse(
-            "pages/documents.html",
-            {"request": request, "documents": documents, "user_id": user_id}
-        )
-
     @fastapi_app.get("/timeline", response_class=HTMLResponse)
     async def timeline_page(request: Request):
         """Universal timeline page - same for all roles."""
