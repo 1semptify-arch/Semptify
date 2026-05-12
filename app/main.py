@@ -3160,10 +3160,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             if not contract:
                 return None  # No contract = public access
 
-            # Check if anonymous allowed
-            if UserRole.ANONYMOUS in contract.roles_supported:
-                return None
-
             # Must be authenticated
             user_id = request.cookies.get(COOKIE_USER_ID)
             if not user_id:
