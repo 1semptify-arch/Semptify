@@ -33,7 +33,6 @@ PUBLIC_PATHS: Set[str] = {
     "/metrics",
     "/api/version",
     "/risc/google/webhook",  # Google Cross-Account Protection — no cookie
-    "/debug/status",         # Temporary debug endpoint — remove after vault fix
     
     # Preamble — single entry point, must always be reachable (no storage required)
     "/preamble",
@@ -114,6 +113,7 @@ PUBLIC_PREFIXES = (
     "/api/tenant/autofill",  # Letter form pre-fill — reads cookie, no storage gate
     # NOTE: ALL other /api/ endpoints REQUIRE storage authentication
     # The frontend pages (/static/*.html) will check auth and redirect
+    "/debug/",  # TEMPORARY: diagnostic endpoints — remove after vault issue resolved
 )
 
 
