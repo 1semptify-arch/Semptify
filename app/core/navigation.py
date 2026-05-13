@@ -174,12 +174,13 @@ class NavigationRegistry:
     # --- Main Navigation (SSOT) ---
     # The 5 base navigation links present on EVERY page:
     # Home, Library, Office, Tools, Help
+    # All paths are RENDERED routes (auth + gates) — never .html static files.
     MAIN_NAV: ClassVar[List[NavItem]] = [
-        NavItem(name="Home", path="/home.html", icon="🏠", order=0, requires=""),
-        NavItem(name="Library", path="/library.html", icon="📚", order=1, requires=""),
-        NavItem(name="Office", path="/office.html", icon="🏢", order=2, requires=""),
-        NavItem(name="Tools", path="/tools.html", icon="🔧", order=3, requires=""),
-        NavItem(name="Help", path="/help.html", icon="🆘", order=4, requires=""),
+        NavItem(name="Home", path="/home", icon="🏠", order=0, requires=""),
+        NavItem(name="Library", path="/library", icon="📚", order=1, requires=""),
+        NavItem(name="Office", path="/office", icon="🏢", order=2, requires=""),
+        NavItem(name="Tools", path="/tools", icon="🔧", order=3, requires=""),
+        NavItem(name="Help", path="/help", icon="🆘", order=4, requires=""),
     ]
     
     # --- Utility Methods ---
