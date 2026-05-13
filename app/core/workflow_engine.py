@@ -66,19 +66,20 @@ _home_item   = next((n for n in navigation.MAIN_NAV if n.name == "Home"),   None
 _office_item = next((n for n in navigation.MAIN_NAV if n.name == "Office"), None)
 
 PROCESS_ROUTES: dict[ProcessCode, str] = {
-    ProcessCode.A:  _home_item.path   if _home_item   else "/home.html",
-    ProcessCode.B1: _office_item.path if _office_item else "/office.html",
-    ProcessCode.B2: _office_item.path if _office_item else "/office.html",
-    ProcessCode.B3: _office_item.path if _office_item else "/office.html",
-    ProcessCode.B4: _office_item.path if _office_item else "/office.html",
+    ProcessCode.A:  _home_item.path   if _home_item   else "/home",
+    ProcessCode.B1: _office_item.path if _office_item else "/office",
+    ProcessCode.B2: _office_item.path if _office_item else "/office",
+    ProcessCode.B3: _office_item.path if _office_item else "/office",
+    ProcessCode.B4: _office_item.path if _office_item else "/office",
 }
 
 # Role-specific portal routes — resolved from navigation registry.
+# Each role lands on their /role/home rendered page after onboarding or reconnect.
 ROLE_SPECIFIC_ROUTES: dict[UserRole, str] = {
-    UserRole.LEGAL:    _nav_path("legal",    "/legal"),
-    UserRole.ADMIN:    _nav_path("admin",    "/admin"),
-    UserRole.MANAGER:  _nav_path("manager",  "/manager"),
-    UserRole.ADVOCATE: _nav_path("advocate", "/advocate"),
+    UserRole.LEGAL:    _nav_path("legal_home",    "/legal/home"),
+    UserRole.ADMIN:    _nav_path("admin_home",    "/admin/home"),
+    UserRole.MANAGER:  _nav_path("manager_home",  "/manager/home"),
+    UserRole.ADVOCATE: _nav_path("advocate_home", "/advocate/home"),
 }
 
 
@@ -152,22 +153,27 @@ def _tenant_decision(state: WorkflowState) -> WorkflowDecision:
     if state.storage_state == StorageState.REVIEW_ONLY:
         warnings.append("Review-only mode: document uploads are disabled.")
 
+    # All tenants land on their role home — upload CTA is built into the home page.
+    # No separate "upload wizard" detour; home page handles first-document flow.
+    _tenant_home_stage = navigation.get_stage("tenant_home")
+    _tenant_home_path = _tenant_home_stage.path if _tenant_home_stage else "/tenant/home"
+
     if not state.documents_present and state.storage_state != StorageState.REVIEW_ONLY:
         return WorkflowDecision(
             next_process=ProcessCode.B1,
-            next_route=PROCESS_ROUTES[ProcessCode.B1],
+            next_route=_tenant_home_path,
             allowed_actions=["upload_document", "connect_storage"],
             blocked_actions=["start_case", "view_timeline", "get_ai_analysis"],
             deterministic_reason=(
                 "Tenant has no documents in vault. "
-                "Routing to Process B1 (Document Upload Wizard) before triage."
+                "Routing to tenant home — upload CTA is on the home page."
             ),
             warnings=warnings,
         )
 
     return WorkflowDecision(
         next_process=ProcessCode.B2,
-        next_route=PROCESS_ROUTES[ProcessCode.B2],
+        next_route=_tenant_home_path,
         allowed_actions=[
             "view_vault",
             "upload_document",

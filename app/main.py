@@ -1900,42 +1900,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         return Response(content=svg, media_type="image/svg+xml")
 
     # ==========================================================================
-    # Role Home Routes — destinations from workflow_engine after auth/reconnect
     # ==========================================================================
-    _ROLE_STATIC_MAP = {
-        "/tenant/home":      "static/tenant/dashboard.html",
-        "/tenant/documents": "static/tenant/documents.html",
-        "/tenant":           "static/tenant/index.html",
-        "/advocate":         "static/advocate/index.html",
-        "/advocate/home":    "static/advocate/dashboard.html",
-        "/legal":            "static/legal/index.html",
-        "/legal/home":       "static/legal/dashboard.html",
-        "/manager":          "static/manager/index.html",
-        "/manager/home":     "static/manager/dashboard.html",
-        "/admin":            "static/admin/dashboard.html",
-        "/admin/home":       "static/admin/dashboard.html",
-        "/judge":            "static/legal/index.html",
-        "/judge/home":       "static/legal/dashboard.html",
-    }
-
-    def _make_role_handler(rel_path: str):
-        async def _handler():
-            p = BASE_PATH / rel_path
-            if p.exists():
-                return FileResponse(str(p))
-            root_stage = navigation.get_stage("root")
-            root_path = root_stage.path if root_stage else "/"
-            return ssot_redirect(root_path, context="static_fallback redirect")
-        return _handler
-
-    for _route, _file in _ROLE_STATIC_MAP.items():
-        fastapi_app.add_api_route(
-            _route,
-            _make_role_handler(_file),
-            methods=["GET"],
-            response_class=HTMLResponse,
-            tags=["Role Home"],
-        )
+    # Role Home Routes — REMOVED
+    # ==========================================================================
+    # Previously served raw static HTML via _ROLE_STATIC_MAP.
+    # All role home pages now use proper rendered routes with auth + gates:
+    #   /tenant/home  → tenant_home() handler (line ~3409)
+    #   /advocate/home → advocate_home() handler
+    #   /legal/home   → legal_home() handler
+    #   /manager/home → manager_home() handler
+    #   /admin/home   → admin_home() handler
+    # Static HTML must NEVER be served for authenticated pages.
+    # ==========================================================================
 
     # Preamble — single entry point, routes new vs returning users
     if preamble.router:
@@ -2241,6 +2217,23 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
     # Static Files (for any frontend assets)
     # =========================================================================
+
+    # Block direct HTML access from /static/ (except /static/public/ and /static/components/)
+    # All authenticated pages must use rendered routes, not raw static HTML.
+    @fastapi_app.middleware("http")
+    async def block_static_html(request: Request, call_next):
+        path = request.url.path
+        if (
+            path.startswith("/static/")
+            and path.endswith(".html")
+            and not path.startswith("/static/public/")
+            and not path.startswith("/static/components/")
+        ):
+            return JSONResponse(
+                content={"error": "forbidden", "message": "Static HTML pages are not served directly. Use the rendered route."},
+                status_code=403,
+            )
+        return await call_next(request)
 
     static_path = BASE_PATH / "static"
     if static_path.exists():
@@ -2564,68 +2557,40 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             logger.warning("Activity query failed: %s", e)
             return JSONResponse({"activity": []})
 
-    @fastapi_app.get("/dashboard", response_class=HTMLResponse)
+    @fastapi_app.get("/dashboard")
     async def dashboard_page(request: Request):
-        """Serve the main dashboard with onboarding modal for new users."""
-        # Apply PageContract guard
-        guard_redirect = _guard_by_contract("dashboard", request)
-        if guard_redirect:
-            return guard_redirect
-
-        # Telemetry
-        try:
-            from app.core.telemetry_hooks import EMITTER
-            from app.core.user_id import COOKIE_USER_ID
-            EMITTER.emit("dashboard_load", "dashboard", request.cookies.get(COOKIE_USER_ID, "anon"))
-        except Exception:  # pylint: disable=broad-exception-caught
-            pass
-
-        dashboard_template_path = BASE_PATH / "app" / "templates" / "pages" / "dashboard.html"
-        if dashboard_template_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/dashboard.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Dashboard template error, falling back to static: %s", e)
-
-        dashboard_path = BASE_PATH / "static" / "dashboard.html"
-        dashboard_fallback = _render_static_page(dashboard_path, inject_stage_model=True)
-        if dashboard_fallback:
-            return dashboard_fallback
-
-        # Fallback to enterprise dashboard
-        enterprise_template_path = BASE_PATH / "app" / "templates" / "pages" / "enterprise-dashboard.html"
-        if enterprise_template_path.exists():
-            return templates.TemplateResponse(request, "pages/enterprise-dashboard.html")
-
-        enterprise_path = BASE_PATH / "static" / "enterprise-dashboard.html"
-        enterprise_fallback = _render_static_page(enterprise_path, inject_stage_model=True)
-        if enterprise_fallback:
-            return enterprise_fallback
-
-        return HTMLResponse(content="<h1>Dashboard not found</h1>", status_code=404)
-
-    @fastapi_app.get("/gui", response_class=HTMLResponse)
-    async def gui_navigation_hub(request: Request):
-        """Serve the GUI Navigation Hub - central access to all interfaces."""
-        gui_template_path = BASE_PATH / "app" / "templates" / "pages" / "gui_navigation_hub.html"
-        if gui_template_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/gui_navigation_hub.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("GUI Navigation Hub template error, falling back to static: %s", e)
-
-        # Fallback to static file
-        gui_path = BASE_PATH / "static" / "admin" / "gui_navigation_hub.html"
-        gui_fallback = _render_static_page(gui_path)
-        if gui_fallback:
-            return gui_fallback
-
-        return HTMLResponse(content="<h1>GUI Navigation Hub not found</h1>", status_code=404)
+        """Redirect /dashboard to role-specific dashboard."""
+        return RedirectResponse(url="/tenant/dashboard", status_code=302)
 
     @fastapi_app.get("/home", response_class=HTMLResponse)
     async def semptify_home(request: Request):
         """Serve the Semptify Home — tenant front door."""
         return templates.TemplateResponse(request, "pages/semptify_hub.html")
+
+    # ------------------------------------------------------------------
+    # Main Navigation Routes (SSOT) — /office, /library, /tools, /help
+    # These are the 5 core nav links (Home is above). All rendered.
+    # ------------------------------------------------------------------
+
+    @fastapi_app.get("/office", response_class=HTMLResponse)
+    async def office_page(request: Request):
+        """Serve the Office — case management center."""
+        return templates.TemplateResponse(request, "pages/office.html")
+
+    @fastapi_app.get("/library", response_class=HTMLResponse)
+    async def library_page(request: Request):
+        """Serve the Library — legal resources and guides."""
+        return templates.TemplateResponse(request, "pages/library.html")
+
+    @fastapi_app.get("/tools", response_class=HTMLResponse)
+    async def tools_page(request: Request):
+        """Serve Tools — document generators and case utilities."""
+        return templates.TemplateResponse(request, "pages/tools.html")
+
+    @fastapi_app.get("/help", response_class=HTMLResponse)
+    async def help_page(request: Request):
+        """Serve Help — support, resources, and emergency contacts."""
+        return templates.TemplateResponse(request, "pages/help.html")
 
     @fastapi_app.get("/auto-mode", response_class=HTMLResponse)
     async def auto_mode_panel(request: Request):
@@ -2663,59 +2628,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         return HTMLResponse(content="<h1>Auto Analysis Summary not found</h1>", status_code=404)
 
-    @fastapi_app.get("/mode-selector", response_class=HTMLResponse)
-    async def mode_selector_page(request: Request):
-        """Serve the Mode Selector page."""
-        mode_selector_template_path = BASE_PATH / "app" / "templates" / "pages" / "mode_selector.html"
-        if mode_selector_template_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/mode_selector.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Mode Selector template error, falling back to static: %s", e)
-
-        # Fallback to static file
-        mode_selector_path = BASE_PATH / "static" / "admin" / "mode_selector.html"
-        mode_selector_fallback = _render_static_page(mode_selector_path)
-        if mode_selector_fallback:
-            return mode_selector_fallback
-
-        return HTMLResponse(content="<h1>Mode Selector not found</h1>", status_code=404)
-
-    @fastapi_app.get("/auto-mode-demo", response_class=HTMLResponse)
-    async def auto_mode_demo_page(request: Request):
-        """Serve the Auto Mode Demo page."""
-        auto_mode_demo_template_path = BASE_PATH / "app" / "templates" / "pages" / "auto_mode_demo.html"
-        if auto_mode_demo_template_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/auto_mode_demo.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Auto Mode Demo template error, falling back to static: %s", e)
-
-        # Fallback to static file
-        auto_mode_demo_path = BASE_PATH / "static" / "auto_mode_demo.html"
-        auto_mode_demo_fallback = _render_static_page(auto_mode_demo_path)
-        if auto_mode_demo_fallback:
-            return auto_mode_demo_fallback
-
-        return HTMLResponse(content="<h1>Auto Mode Demo not found</h1>", status_code=404)
-
-    @fastapi_app.get("/batch-analysis-results", response_class=HTMLResponse)
-    async def batch_analysis_results_page(request: Request):
-        """Serve the Batch Analysis Results page."""
-        batch_results_template_path = BASE_PATH / "app" / "templates" / "pages" / "batch_analysis_results.html"
-        if batch_results_template_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/batch_analysis_results.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Batch Analysis Results template error, falling back to static: %s", e)
-
-        # Fallback to static file
-        batch_results_path = BASE_PATH / "static" / "batch_analysis_results.html"
-        batch_results_fallback = _render_static_page(batch_results_path)
-        if batch_results_fallback:
-            return batch_results_fallback
-
-        return HTMLResponse(content="<h1>Batch Analysis Results not found</h1>", status_code=404)
 
     @fastapi_app.get("/dev/elbow", response_class=HTMLResponse)
     async def elbow_dev():
@@ -3033,35 +2945,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             status_code=404
         )
 
-    @fastapi_app.get("/functionx", response_class=HTMLResponse)
-    async def functionx_page(request: Request):
-        """Serve FunctionX workspace page."""
-        functionx_template_path = BASE_PATH / "app" / "templates" / "pages" / "functionx.html"
-        if functionx_template_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/functionx.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("FunctionX template error, falling back to static: %s", e)
-
-        fallback_html = """
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset=\"utf-8\" />
-    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
-    <title>FunctionX Workspace</title>
-</head>
-<body>
-    <main style=\"padding: 1rem;\">
-        <h1>FunctionX Workspace</h1>
-        <p>FunctionX UI is loading fallback mode.</p>
-        <a href=\"/api/functionx/sets\">Open FunctionX API</a>
-    </main>
-</body>
-</html>
-        """
-        return HTMLResponse(content=_inject_workspace_stage_model(fallback_html))
-
     # =========================================================================
     # Eviction Defense Page
     # =========================================================================
@@ -3079,58 +2962,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def zoom_court_page():
         """Serve the zoom court helper page."""
         return HTMLResponse(content=_inject_workspace_stage_model(generate_zoom_court_html()))
-
-    # =========================================================================
-    # Legal Analysis Page
-    # =========================================================================
-
-    @fastapi_app.get("/legal_analysis.html", response_class=HTMLResponse)
-    @fastapi_app.get("/legal-analysis", response_class=HTMLResponse)
-    async def legal_analysis_page(request: Request):
-        """Serve the legal analysis page."""
-        # Try template first
-        legal_analysis_template_path = BASE_PATH / "app" / "templates" / "pages" / "legal-analysis.html"
-        if legal_analysis_template_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/legal-analysis.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Legal analysis template error, falling back to static: %s", e)
-
-        # Fallback to static file
-        legal_analysis_path = BASE_PATH / "static" / "legal_analysis.html"
-        legal_analysis_fallback = _render_static_page(legal_analysis_path, inject_stage_model=True)
-        if legal_analysis_fallback:
-            return legal_analysis_fallback
-        return HTMLResponse(
-            content="<h1>Legal Analysis page not found</h1>",
-            status_code=404
-        )
-
-    # =========================================================================
-    # My Tenancy Page
-    # =========================================================================
-
-    @fastapi_app.get("/my_tenancy.html", response_class=HTMLResponse)
-    @fastapi_app.get("/my-tenancy", response_class=HTMLResponse)
-    async def my_tenancy_page(request: Request):
-        """Serve the my tenancy page."""
-        # Try template first
-        tenancy_template_path = BASE_PATH / "app" / "templates" / "pages" / "tenancy.html"
-        if tenancy_template_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/tenancy.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Tenancy template error, falling back to static: %s", e)
-
-        # Fallback to static file
-        tenancy_path = BASE_PATH / "static" / "my_tenancy.html"
-        tenancy_fallback = _render_static_page(tenancy_path)
-        if tenancy_fallback:
-            return tenancy_fallback
-        return HTMLResponse(
-            content="<h1>My Tenancy page not found</h1>",
-            status_code=404
-        )
 
     # =========================================================================
     # Invite Advocate Page (Tenant-facing)
@@ -3748,13 +3579,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return HTMLResponse(content="<h1>400 - Invalid Request</h1>", status_code=400)
 
         subpage_aliases = {
-            "users": "gui_navigation_hub",
             "system": "mission_control",
             "analytics": "documentation_hub",
             "logs": "documentation_hub",
             "mission-control": "mission_control",
-            "gui": "gui_navigation_hub",
-            "mode-selector": "mode_selector",
             "easy-mode": "easy_mode_selector",
             "docs": "documentation_hub",
         }
@@ -3997,63 +3825,44 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return {"error": "db_error", "detail": str(exc)}
 
     # =========================================================================
-    # Catch-All HTML Page Router
+    # Catch-All HTML Page Router (PUBLIC PAGES ONLY)
     # =========================================================================
+    # SSOT RULE: Only unauthenticated public pages are served as static HTML.
+    # All authenticated pages MUST go through rendered routes with auth + gates.
+    # Allowed: welcome, terms, privacy, disclaimer, about, contact, credits
+    # Everything else → 404 (must have a proper rendered route)
+    # =========================================================================
+
+    ALLOWED_STATIC_PAGES = frozenset({
+        "welcome", "terms", "privacy", "disclaimer",
+        "about", "contact", "credits",
+    })
 
     @fastapi_app.get("/{page_name}.html", response_class=HTMLResponse)
     async def serve_html_page(page_name: str, request: Request):
         """
-        Serve any HTML page from the static folder.
-        This catch-all route allows accessing pages like /dashboard.html, /documents.html, etc.
-        
-        High-priority pages are protected by PageContract guards.
+        Serve ONLY public static HTML pages (no auth required).
+        All other pages must use rendered template routes.
         """
-        # Security: prevent directory traversal
         if ".." in page_name or "/" in page_name or "\\" in page_name:
             return HTMLResponse(content="<h1>400 - Invalid Request</h1>", status_code=400)
-        
-        # Apply PageContract guards for high-priority pages
-        # Map file names to page_ids
-        high_priority_pages = {
-            "court_packet": "court_packet",
-            "eviction_answer": "eviction_answer",
-            "hearing_prep": "hearing_prep",
-            "storage_setup": "storage_setup",
-            "crisis_intake": "crisis_intake",
-        }
-        
-        if page_name in high_priority_pages:
-            page_id = high_priority_pages[page_name]
-            guard_redirect = _guard_by_contract(page_id, request)
-            if guard_redirect:
-                return guard_redirect
-            # Telemetry — map page_name to its load event
-            load_events = {
-                "court_packet": "court_packet_load",
-                "eviction_answer": "eviction_answer_load",
-                "hearing_prep": "hearing_prep_load",
-                "storage_setup": "storage_setup_load",
-                "crisis_intake": "crisis_intake_load",
-            }
-            try:
-                from app.core.telemetry_hooks import EMITTER
-                from app.core.user_id import COOKIE_USER_ID
-                EMITTER.emit(
-                    load_events[page_name],
-                    page_id,
-                    request.cookies.get(COOKIE_USER_ID, "anon"),
-                )
-            except Exception:  # pylint: disable=broad-exception-caught
-                pass
 
-        page_path = BASE_PATH / "static" / f"{page_name}.html"
+        if page_name not in ALLOWED_STATIC_PAGES:
+            return JSONResponse(
+                content={"error": "not_found", "message": f"Page '{page_name}.html' is not a public page. Use the rendered route instead."},
+                status_code=404,
+            )
+
+        page_path = BASE_PATH / "static" / "public" / f"{page_name}.html"
+        if not page_path.exists():
+            page_path = BASE_PATH / "static" / f"{page_name}.html"
         page_fallback = _render_static_page(page_path)
         if page_fallback:
             return page_fallback
-        
+
         return JSONResponse(
             content={"error": "not_found", "message": f"Page '{page_name}.html' not found"},
-            status_code=404
+            status_code=404,
         )
 
     return fastapi_app

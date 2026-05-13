@@ -1,0 +1,293 @@
+{# ================================================================= #}
+{# Semptify UI Macro Library                                        #}
+{# Reusable UI building blocks for all rendered pages.              #}
+{#                                                                   #}
+{# Usage in any page template:                                       #}
+{#   {% from "components/ui_macros.html" import hero, card_grid,     #}
+{#          info_box, service_card, quick_link, section_title,       #}
+{#          emergency_box, privacy_note, vault_cta, nav_bar %}       #}
+{#                                                                   #}
+{# Every macro is self-contained with its own CSS.                   #}
+{# CSS is scoped by class prefix to avoid collisions.                #}
+{# ================================================================= #}
+
+
+{# ----------------------------------------------------------------- #}
+{# HERO SECTION                                                      #}
+{# Page header with icon, title, and description.                    #}
+{#                                                                   #}
+{# Args:                                                             #}
+{#   icon: str     — emoji or icon (e.g. "🏢")                      #}
+{#   title: str    — page heading                                    #}
+{#   desc: str     — short description                               #}
+{#   color: str    — accent color for gradient (default: blue)       #}
+{#              options: "blue", "purple", "green", "red", "amber"   #}
+{# ----------------------------------------------------------------- #}
+{% macro hero(icon, title, desc, color="blue") %}
+{% set colors = {
+    "blue":   "rgba(59,130,246,0.08), rgba(16,185,129,0.04)",
+    "purple": "rgba(139,92,246,0.08), rgba(59,130,246,0.04)",
+    "green":  "rgba(16,185,129,0.08), rgba(59,130,246,0.04)",
+    "red":    "rgba(239,68,68,0.06), rgba(245,158,11,0.04)",
+    "amber":  "rgba(245,158,11,0.08), rgba(217,119,6,0.04)"
+} %}
+<div class="ui-hero" style="background: linear-gradient(135deg, {{ colors.get(color, colors.blue) }});">
+    <h1 class="ui-hero__title">{{ icon }} {{ title }}</h1>
+    <p class="ui-hero__desc">{{ desc }}</p>
+</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# SECTION TITLE                                                     #}
+{# Labeled divider for content sections.                             #}
+{#                                                                   #}
+{# Args:                                                             #}
+{#   icon: str  — emoji prefix                                      #}
+{#   text: str  — section heading                                   #}
+{# ----------------------------------------------------------------- #}
+{% macro section_title(icon, text) %}
+<div class="ui-section-title">{{ icon }} {{ text }}</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# SERVICE CARD                                                      #}
+{# Clickable card linking to a feature/page.                         #}
+{#                                                                   #}
+{# Args:                                                             #}
+{#   href: str       — link target                                  #}
+{#   icon: str       — large emoji                                  #}
+{#   title: str      — card heading                                 #}
+{#   desc: str       — short description                            #}
+{#   featured: bool  — highlighted border (default: false)           #}
+{#   badge: str      — optional top-right badge text                 #}
+{# ----------------------------------------------------------------- #}
+{% macro service_card(href, icon, title, desc, featured=false, badge="") %}
+<a href="{{ href }}" class="ui-scard{% if featured %} ui-scard--featured{% endif %}">
+    {% if badge %}<span class="ui-scard__badge">{{ badge }}</span>{% endif %}
+    <span class="ui-scard__icon">{{ icon }}</span>
+    <span class="ui-scard__title">{{ title }}</span>
+    <span class="ui-scard__desc">{{ desc }}</span>
+</a>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# CARD GRID                                                         #}
+{# Responsive grid container for service_card items.                 #}
+{# Wrap service_card calls inside this.                              #}
+{#                                                                   #}
+{# Args:                                                             #}
+{#   min_width: str — CSS min column width (default: "280px")        #}
+{# ----------------------------------------------------------------- #}
+{% macro card_grid(min_width="280px") %}
+<div class="ui-card-grid" style="grid-template-columns: repeat(auto-fill, minmax({{ min_width }}, 1fr));">
+    {{ caller() }}
+</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# QUICK LINK                                                        #}
+{# Small navigation pill for "quick tasks" sections.                 #}
+{#                                                                   #}
+{# Args:                                                             #}
+{#   href: str  — link target                                       #}
+{#   icon: str  — emoji prefix                                      #}
+{#   text: str  — link label                                        #}
+{# ----------------------------------------------------------------- #}
+{% macro quick_link(href, icon, text) %}
+<a href="{{ href }}" class="ui-qlink">{{ icon }} {{ text }}</a>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# QUICK GRID                                                        #}
+{# Responsive grid container for quick_link items.                   #}
+{# ----------------------------------------------------------------- #}
+{% macro quick_grid() %}
+<div class="ui-quick-grid">
+    {{ caller() }}
+</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# INFO BOX                                                          #}
+{# Left-bordered informational callout.                              #}
+{#                                                                   #}
+{# Args:                                                             #}
+{#   type: str — "info", "warning", "success", "error"               #}
+{# Content passed via caller().                                      #}
+{# ----------------------------------------------------------------- #}
+{% macro info_box(type="info") %}
+{% set box_colors = {
+    "info":    ("rgba(59,130,246,0.08)",  "var(--color-accent)"),
+    "warning": ("rgba(245,158,11,0.08)",  "var(--color-warning)"),
+    "success": ("rgba(16,185,129,0.08)",  "var(--color-success)"),
+    "error":   ("rgba(239,68,68,0.08)",   "var(--color-error)")
+} %}
+{% set bg, border = box_colors.get(type, box_colors.info) %}
+<div class="ui-infobox" style="background: {{ bg }}; border-left-color: {{ border }};">
+    {{ caller() }}
+</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# PRIVACY NOTE                                                      #}
+{# Standard privacy reminder callout (pre-written).                  #}
+{# ----------------------------------------------------------------- #}
+{% macro privacy_note() %}
+{% call info_box("info") %}
+    🔒 <strong>Privacy note:</strong> Your documents are stored in <em>your</em> cloud storage.
+    Semptify processes only a metadata overlay (key dates, parties, document type).
+    Full documents never touch our servers.
+{% endcall %}
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# VAULT CTA                                                         #}
+{# Vault upload call-to-action with dashed border.                   #}
+{#                                                                   #}
+{# Args:                                                             #}
+{#   title: str       — heading (default provided)                   #}
+{#   desc: str        — description (default provided)               #}
+{#   button_text: str — button label (default provided)              #}
+{# ----------------------------------------------------------------- #}
+{% macro vault_cta(title="🔒 Upload to Your Vault", desc="All documents go through the Vault Door. Your files go directly to your cloud storage — Semptify creates an overlay for search and timeline.", button_text="📤 Open Vault Door") %}
+<div class="ui-vault-cta">
+    <h3 class="ui-vault-cta__title">{{ title }}</h3>
+    <p class="ui-vault-cta__desc">{{ desc }}</p>
+    <button class="btn btn--primary btn--lg" onclick="openVaultUpload()">{{ button_text }}</button>
+</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# EMERGENCY BOX                                                     #}
+{# Red-bordered urgent help callout.                                 #}
+{#                                                                   #}
+{# Args:                                                             #}
+{#   title: str       — heading                                     #}
+{#   desc: str        — description                                 #}
+{#   button_text: str — CTA label                                   #}
+{#   button_href: str — CTA link target                             #}
+{# ----------------------------------------------------------------- #}
+{% macro emergency_box(title, desc, button_text="Get Emergency Help", button_href="/tenant/help") %}
+<div class="ui-emergency">
+    <h3 class="ui-emergency__title">{{ title }}</h3>
+    <p class="ui-emergency__desc">{{ desc }}</p>
+    <a href="{{ button_href }}" class="btn btn--danger btn--lg">{{ button_text }}</a>
+</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# PROGRESS WIDGET                                                   #}
+{# Horizontal step indicator for multi-step flows.                   #}
+{#                                                                   #}
+{# Args:                                                             #}
+{#   steps: list[str]    — step labels                               #}
+{#   current: int        — 0-indexed current step                    #}
+{# ----------------------------------------------------------------- #}
+{% macro progress_widget(steps, current=0) %}
+<div class="ui-progress">
+    {% for step in steps %}
+    <div class="ui-progress__step {% if loop.index0 < current %}ui-progress__step--done{% elif loop.index0 == current %}ui-progress__step--active{% endif %}">
+        <div class="ui-progress__dot">
+            {% if loop.index0 < current %}✓{% else %}{{ loop.index }}{% endif %}
+        </div>
+        <span class="ui-progress__label">{{ step }}</span>
+    </div>
+    {% if not loop.last %}
+    <div class="ui-progress__line {% if loop.index0 < current %}ui-progress__line--done{% endif %}"></div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# NAV BAR (5-link SSOT)                                             #}
+{# Standard navigation bar matching MAIN_NAV.                       #}
+{# Highlights the active page automatically.                        #}
+{#                                                                   #}
+{# Args:                                                             #}
+{#   active: str — one of "home","library","office","tools","help"   #}
+{# ----------------------------------------------------------------- #}
+{% macro nav_bar(active="") %}
+{% set links = [
+    ("Home",    "/home",    "home"),
+    ("Library", "/library", "library"),
+    ("Office",  "/office",  "office"),
+    ("Tools",   "/tools",   "tools"),
+    ("Help",    "/help",    "help"),
+] %}
+{% for label, href, key in links %}
+<a href="{{ href }}"{% if active == key %} class="active"{% endif %}>{{ label }}</a>
+{% endfor %}
+{% endmacro %}
+
+
+{# ================================================================= #}
+{# SHARED STYLES                                                     #}
+{# Include once per page: {% include "components/ui_macros_css.html" %}#}
+{# Or inline below — Jinja will deduplicate if using block styles.   #}
+{# ================================================================= #}
+{% macro ui_styles() %}
+<style>
+/* Hero */
+.ui-hero { text-align: center; margin-bottom: 2rem; padding: 2rem 1.5rem; border-radius: var(--radius-xl); border: 1px solid var(--color-border); }
+.ui-hero__title { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+.ui-hero__desc { color: var(--color-text-secondary); max-width: 560px; margin: 0 auto; }
+
+/* Section Title */
+.ui-section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; margin-top: 1.5rem; display: flex; align-items: center; gap: 0.5rem; }
+
+/* Service Card */
+.ui-scard { background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: 1.5rem; text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 0.5rem; transition: all 0.2s; position: relative; }
+.ui-scard:hover { border-color: var(--color-accent); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(59,130,246,0.1); }
+.ui-scard--featured { border-color: var(--color-warning); }
+.ui-scard__badge { position: absolute; top: 0.75rem; right: 0.75rem; background: var(--color-warning); color: #fff; padding: 0.15rem 0.5rem; border-radius: 8px; font-size: 0.7rem; font-weight: 700; }
+.ui-scard__icon { font-size: 2.2rem; }
+.ui-scard__title { font-weight: 700; font-size: 1rem; }
+.ui-scard__desc { font-size: 0.85rem; color: var(--color-text-secondary); line-height: 1.4; }
+
+/* Card Grid */
+.ui-card-grid { display: grid; gap: 1rem; margin-bottom: 2rem; }
+
+/* Quick Link */
+.ui-qlink { background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1rem; text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; font-weight: 500; transition: all 0.15s; }
+.ui-qlink:hover { border-color: var(--color-accent); color: var(--color-accent); }
+
+/* Quick Grid */
+.ui-quick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 2rem; }
+
+/* Info Box */
+.ui-infobox { border-left: 4px solid; border-radius: 0 var(--radius-md) var(--radius-md) 0; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--color-text-secondary); line-height: 1.5; }
+
+/* Vault CTA */
+.ui-vault-cta { background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(217,119,6,0.06)); border: 2px dashed var(--color-warning); border-radius: var(--radius-xl); padding: 2rem; text-align: center; margin-bottom: 2rem; }
+.ui-vault-cta__title { font-size: 1.2rem; color: var(--color-warning); margin-bottom: 0.5rem; }
+.ui-vault-cta__desc { color: var(--color-text-secondary); font-size: 0.9rem; max-width: 500px; margin: 0 auto 1.25rem; }
+
+/* Emergency Box */
+.ui-emergency { background: rgba(239,68,68,0.08); border: 2px solid var(--color-error); border-radius: var(--radius-xl); padding: 1.5rem; margin-bottom: 2rem; text-align: center; }
+.ui-emergency__title { color: var(--color-error); margin-bottom: 0.5rem; }
+.ui-emergency__desc { color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 1rem; }
+
+/* Progress Widget */
+.ui-progress { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 2rem; flex-wrap: wrap; }
+.ui-progress__step { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; min-width: 60px; }
+.ui-progress__dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; background: var(--color-bg-card); border: 2px solid var(--color-border); color: var(--color-text-muted); }
+.ui-progress__step--active .ui-progress__dot { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+.ui-progress__step--done .ui-progress__dot { background: var(--color-success); border-color: var(--color-success); color: #fff; }
+.ui-progress__label { font-size: 0.7rem; color: var(--color-text-muted); text-align: center; }
+.ui-progress__step--active .ui-progress__label { color: var(--color-accent); font-weight: 600; }
+.ui-progress__line { width: 40px; height: 2px; background: var(--color-border); margin: 0 0.25rem; margin-bottom: 1.2rem; }
+.ui-progress__line--done { background: var(--color-success); }
+</style>
+{% endmacro %}
