@@ -1663,7 +1663,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         product_name="Semptify Tenant Rights",
         allowed_roles=["tenant"],
         allowed_providers=["google_drive", "dropbox", "onedrive"],
-        on_complete_redirect="/tenant/home",
+        on_complete_redirect="/home",
         # Disable duplicate gate middleware — StorageRequirementMiddleware already
         # enforces all gates via app/core/onboarding_state.py (single source of truth).
         # Running both causes redirect loops.

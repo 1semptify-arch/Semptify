@@ -2200,7 +2200,7 @@ async def oauth_callback(
                     product_name="Semptify Tenant Rights",
                     allowed_roles=["tenant"],
                     allowed_providers=["google_drive", "dropbox", "onedrive"],
-                    on_complete_redirect="/tenant/home",
+                    on_complete_redirect="/home",
                 )
                 vault_result = await init_vault(
                     db=db,
