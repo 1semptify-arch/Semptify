@@ -3,7 +3,45 @@
 
 ---
 
-## Shipped This Session — 2026-05-10 (6:52 AM UTC-05) — Commit `9aebbaa`
+## Shipped This Session — 2026-05-12 (9:03 PM UTC-05) — Commit `bccda0c`
+
+### Session Summary — Template Cleanup + UI Macro System (net -2,637 lines)
+
+#### UI Macro System — NEW
+- [x] `app/templates/components/ui_macros.html` — Reusable Jinja macro library (hero, service_card, card_grid, quick_link, info_box, vault_cta, privacy_note, emergency_box, progress_widget, nav_bar, section_title, ui_styles)
+- [x] `app/templates/pages/office.html` — Refactored from 140 lines to 46 using macros
+- [x] `app/templates/pages/library.html` — New, macro-based
+- [x] `app/templates/pages/tools.html` — New, macro-based
+- [x] `app/templates/pages/help.html` — New nav page template
+
+#### Dead Template Purge — 15 files deleted, 8 routes removed
+- [x] Deleted: dashboard, auto_mode_demo, batch_analysis_results, mode_selector, functionx, tenancy, legal-analysis, gui_navigation_hub, onboarding-simple, dashboard_ssot, journal_ssot, base_ssot, page_recipe_template, legal/advocate_dashboard, legal/housing_manager_monitor
+- [x] Deleted: partials/workspace_stage_panel.html (only used by deleted pages)
+- [x] Removed empty legal/ and partials/ directories
+- [x] Removed 8 dead route handlers from main.py
+- [x] `/dashboard` now redirects to `/tenant/dashboard`
+
+#### Reference Cleanup
+- [x] Removed `{% include "partials/workspace_stage_panel.html" %}` from 7 templates (documents, tenant, timeline, tenant_dashboard, legal, advocate, admin)
+- [x] Cleaned admin subpage aliases for deleted gui_navigation_hub and mode_selector
+- [x] MAIN_NAV paths use rendered routes (no .html extensions)
+- [x] Tenant routing to /tenant/home after onboarding (workflow_engine.py)
+- [x] Dynamic routing via route_user() in onboarding callback
+
+#### Known Working
+- App loads clean with zero errors
+- 25 surviving templates all have routes and compile
+- UI macro system renders correctly via Jinja2 inheritance
+- All Python files compile clean
+
+#### Pending Next Session
+- Refactor help.html to use ui_macros (last nav page with old pattern)
+- Clean stale entries in page_manifest.py (data-only, non-breaking)
+- End-to-end test of onboarding flow on Render
+
+---
+
+## Previous Session — 2026-05-10 (6:52 AM UTC-05) — Commit `9aebbaa`
 
 ### Session Summary — Eliminate Onboarding Redirect Loop (Root Cause Fix)
 
