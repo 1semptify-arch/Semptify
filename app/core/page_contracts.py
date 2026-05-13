@@ -455,54 +455,6 @@ CONTRACT_LEGAL = PageContract(
 # HIGH-PRIORITY PAGE CONTRACTS (From Page Manifest)
 # =============================================================================
 
-CONTRACT_DASHBOARD = PageContract(
-    page_id="dashboard",
-    title="User Dashboard",
-    route="/dashboard",
-    roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.MANAGER, UserRole.LEGAL, UserRole.ADMIN],
-    primary_groups=["documentation", "functions_actions", "output_delivery"],
-    secondary_groups=["research_knowledge", "help_contacts", "security_validation"],
-    group_coverage=_full_coverage(
-        welcome=COVERAGE_LINKED,
-        security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_ACTIVE,
-        research_knowledge=COVERAGE_LINKED,
-        functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_ACTIVE,
-        help_contacts=COVERAGE_LINKED,
-        system_admin_monitoring=COVERAGE_NA,
-    ),
-    qualification="Authenticated tenant role. Optional — only used if this layout is chosen.",
-    expectations=(
-        "Optional home page variant for tenants. "
-        "Shows case summary, documents, deadlines, and quick actions in a richer layout than /home. "
-        "Used only if the dashboard layout is selected as the tenant home design. "
-        "Not a required page — /home is always the fallback and safety net. "
-        "NOTE: Each role has its own dedicated route (/tenant, /advocate, /legal, /admin etc). "
-        "This dashboard is not a shared multi-role page — it is a tenant-specific optional layout."
-    ),
-    scope_of_use=(
-        "Optional tenant home layout variant. "
-        "If not chosen as the design, this page is unused. "
-        "Role-specific dashboards are being developed separately for each role."
-    ),
-    entry_criteria=[
-        "Authenticated session",
-        "Role = user (tenant)",
-        "Dashboard layout selected as home variant",
-    ],
-    exit_criteria=[
-        "User navigates to specific module",
-        "Or initiates workflow action",
-    ],
-    telemetry_events=[
-        "dashboard_load",
-        "quick_action_clicked",
-        "deadline_viewed",
-        "case_summary_expanded",
-    ],
-)
-
 CONTRACT_DOCUMENTS = PageContract(
     page_id="documents",
     title="Documents Manager",
@@ -1049,71 +1001,9 @@ CONTRACT_MOTIONS = PageContract(
     ],
 )
 
-CONTRACT_LEGAL_ANALYSIS = PageContract(
-    page_id="legal_analysis",
-    title="Legal Analysis",
-    route="/legal-analysis",
-    roles_supported=[UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER],
-    primary_groups=["research_knowledge", "functions_actions"],
-    secondary_groups=["documentation"],
-    group_coverage=_full_coverage(
-        welcome=COVERAGE_LINKED,
-        security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_LINKED,
-        research_knowledge=COVERAGE_ACTIVE,
-        functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_ACTIVE,
-        help_contacts=COVERAGE_LINKED,
-        system_admin_monitoring=COVERAGE_NA,
-    ),
-    qualification="Advocate, Legal, or Manager roles.",
-    expectations="Analyze legal issues, research statutes, check precedents.",
-    scope_of_use="Legal research surface. Integrates with MN Revisor, case law.",
-    entry_criteria=[
-        "Authenticated session",
-        "Role in (advocate, legal, manager)",
-    ],
-    exit_criteria=[
-        "Analysis completed",
-        "Or memo generated",
-    ],
-    telemetry_events=[
-        "legal_analysis_load",
-        "statute_searched",
-        "precedent_checked",
-        "analysis_memo_generated",
-    ],
-)
-
-
 # =============================================================================
 # Group C: Guided Role Journeys
 # =============================================================================
-
-CONTRACT_TENANCY = PageContract(
-    page_id="tenancy",
-    title="My Tenancy",
-    route="/tenancy",
-    roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL],
-    primary_groups=["documentation", "functions_actions"],
-    secondary_groups=["research_knowledge", "output_delivery"],
-    group_coverage=_full_coverage(
-        welcome=COVERAGE_LINKED,
-        security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_ACTIVE,
-        research_knowledge=COVERAGE_LINKED,
-        functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_LINKED,
-        help_contacts=COVERAGE_LINKED,
-        system_admin_monitoring=COVERAGE_NA,
-    ),
-    qualification="Authenticated user with active case context.",
-    expectations="User reviews tenancy details, lease info, and case context.",
-    scope_of_use="Tenant-facing case overview and tenancy facts.",
-    entry_criteria=["User authenticated", "Active tenancy data available"],
-    exit_criteria=["Tenancy reviewed", "Next step selected"],
-    telemetry_events=["tenancy_load", "lease_viewed", "tenancy_fact_added", "tenancy_next_step"],
-)
 
 CONTRACT_ADVOCATE_PORTAL = PageContract(
     page_id="advocate",
@@ -2354,18 +2244,6 @@ CONTRACT_REGISTER_SUCCESS = PageContract(
 # Minimal admin/dev tool contracts
 _ADMIN_ROLES = [UserRole.ADMIN, UserRole.MANAGER]
 
-CONTRACT_AUTO_MODE_DEMO = PageContract(
-    page_id="auto_mode_demo", title="Auto Mode Demo", route="/auto-mode-demo",
-    roles_supported=_ADMIN_ROLES, primary_groups=["system_admin_monitoring"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_NA, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_LINKED,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_ACTIVE),
-    qualification="Admin only.", expectations="Admin tests auto-mode features.",
-    scope_of_use="Dev/admin demo tool.",
-    entry_criteria=["Admin authenticated"], exit_criteria=["Demo completed"],
-    telemetry_events=["auto_mode_demo_load", "demo_action_triggered"],
-)
-
 CONTRACT_AUTO_MODE_PANEL = PageContract(
     page_id="auto_mode_panel", title="Auto Mode Panel", route="/auto-mode-panel",
     roles_supported=_ADMIN_ROLES, primary_groups=["system_admin_monitoring"], secondary_groups=[],
@@ -2376,18 +2254,6 @@ CONTRACT_AUTO_MODE_PANEL = PageContract(
     scope_of_use="Auto-mode control panel.",
     entry_criteria=["Admin authenticated"], exit_criteria=["Mode configured"],
     telemetry_events=["auto_mode_panel_load", "mode_changed"],
-)
-
-CONTRACT_GUI_NAV_HUB = PageContract(
-    page_id="gui_navigation_hub", title="GUI Navigation Hub", route="/gui-navigation",
-    roles_supported=_ADMIN_ROLES, primary_groups=["system_admin_monitoring"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_LINKED,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_ACTIVE),
-    qualification="Admin only.", expectations="Admin navigates system modules.",
-    scope_of_use="Admin navigation hub.",
-    entry_criteria=["Admin authenticated"], exit_criteria=["Navigation complete"],
-    telemetry_events=["gui_nav_hub_load", "module_navigated"],
 )
 
 CONTRACT_PAGE_EDITOR = PageContract(
@@ -2450,19 +2316,6 @@ CONTRACT_COMPONENT_CONVERTER = PageContract(
     telemetry_events=["component_converter_load", "component_converted"],
 )
 
-CONTRACT_BATCH_ANALYSIS = PageContract(
-    page_id="batch_analysis_results", title="Batch Analysis Results", route="/batch-analysis",
-    roles_supported=[UserRole.ADMIN, UserRole.MANAGER, UserRole.LEGAL],
-    primary_groups=["output_delivery", "system_admin_monitoring"], secondary_groups=["documentation"],
-    group_coverage=_full_coverage(welcome=COVERAGE_NA, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_LINKED, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_NA,
-        output_delivery=COVERAGE_ACTIVE, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_ACTIVE),
-    qualification="Admin or manager.", expectations="Admin reviews batch document analysis results.",
-    scope_of_use="Batch analysis result review.",
-    entry_criteria=["Admin authenticated", "Batch job completed"], exit_criteria=["Results reviewed"],
-    telemetry_events=["batch_analysis_load", "batch_result_viewed", "batch_exported"],
-)
-
 CONTRACT_PAGE_INDEX = PageContract(
     page_id="page_index", title="Page Index", route="/page-index",
     roles_supported=_ADMIN_ROLES, primary_groups=["system_admin_monitoring"], secondary_groups=[],
@@ -2473,19 +2326,6 @@ CONTRACT_PAGE_INDEX = PageContract(
     scope_of_use="Internal page index/catalog.",
     entry_criteria=["Admin authenticated"], exit_criteria=["Page navigated"],
     telemetry_events=["page_index_load", "page_index_navigated"],
-)
-
-CONTRACT_MODE_SELECTOR = PageContract(
-    page_id="mode_selector", title="Mode Selector", route="/mode-selector",
-    roles_supported=list(UserRole),
-    primary_groups=["welcome"], secondary_groups=[],
-    group_coverage=_full_coverage(welcome=COVERAGE_ACTIVE, security_validation=COVERAGE_NA,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_LINKED,
-        output_delivery=COVERAGE_NA, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_NA),
-    qualification="Any user.", expectations="User selects application mode.",
-    scope_of_use="Mode selection UI.",
-    entry_criteria=["No auth required"], exit_criteria=["Mode selected"],
-    telemetry_events=["mode_selector_load", "mode_selected"],
 )
 
 CONTRACT_CRAWLER = PageContract(
@@ -2544,20 +2384,6 @@ CONTRACT_TENANT_DASHBOARD = PageContract(
     scope_of_use="Tenant-specific case dashboard.",
     entry_criteria=["User authenticated", "Tenant role"], exit_criteria=["Action taken or status reviewed"],
     telemetry_events=["tenant_dashboard_load", "case_status_viewed", "deadline_checked", "next_step_selected"],
-)
-
-CONTRACT_FUNCTIONX = PageContract(
-    page_id="functionx", title="Function X", route="/functionx",
-    roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL, UserRole.MANAGER, UserRole.ADMIN],
-    primary_groups=["functions_actions"], secondary_groups=["output_delivery"],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_NA, research_knowledge=COVERAGE_NA, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_LINKED, help_contacts=COVERAGE_NA, system_admin_monitoring=COVERAGE_NA),
-    qualification="Authenticated user.",
-    expectations="User accesses experimental or extended function module.",
-    scope_of_use="Extended function execution context.",
-    entry_criteria=["User authenticated"], exit_criteria=["Function executed"],
-    telemetry_events=["functionx_load", "function_executed", "function_result_viewed"],
 )
 
 CONTRACT_COURT_LEARNING = PageContract(
@@ -2642,20 +2468,6 @@ CONTRACT_DOCUMENT_CALENDAR = PageContract(
     scope_of_use="Calendar-based document and deadline visualization.",
     entry_criteria=["User authenticated"], exit_criteria=["Deadline or document reviewed"],
     telemetry_events=["document_calendar_load", "deadline_viewed", "document_opened_from_calendar"],
-)
-
-CONTRACT_MY_TENANCY = PageContract(
-    page_id="my_tenancy", title="My Tenancy", route="/my-tenancy",
-    roles_supported=[UserRole.USER, UserRole.ADVOCATE, UserRole.LEGAL],
-    primary_groups=["documentation", "functions_actions"], secondary_groups=["research_knowledge"],
-    group_coverage=_full_coverage(welcome=COVERAGE_LINKED, security_validation=COVERAGE_ACTIVE,
-        documentation=COVERAGE_ACTIVE, research_knowledge=COVERAGE_LINKED, functions_actions=COVERAGE_ACTIVE,
-        output_delivery=COVERAGE_LINKED, help_contacts=COVERAGE_LINKED, system_admin_monitoring=COVERAGE_NA),
-    qualification="Authenticated tenant user.",
-    expectations="User reviews and manages their tenancy profile and facts.",
-    scope_of_use="Tenancy profile management page.",
-    entry_criteria=["User authenticated"], exit_criteria=["Tenancy facts reviewed or updated"],
-    telemetry_events=["my_tenancy_load", "tenancy_fact_updated", "lease_viewed", "tenancy_saved"],
 )
 
 CONTRACT_SAMPLE_CERTIFICATE = PageContract(
@@ -2989,8 +2801,6 @@ PAGE_CONTRACTS: dict[str, PageContract] = {
         CONTRACT_PROFESSIONAL,
         CONTRACT_ADMIN,
         CONTRACT_LEGAL,
-        CONTRACT_FUNCTIONX,
-        CONTRACT_DASHBOARD,
         CONTRACT_DOCUMENTS,
         CONTRACT_VAULT,
         CONTRACT_COURT_PACKET,
@@ -3003,9 +2813,7 @@ PAGE_CONTRACTS: dict[str, PageContract] = {
         CONTRACT_DOCUMENT_VIEWER,
         CONTRACT_ZOOM_COURT,
         CONTRACT_MOTIONS,
-        CONTRACT_LEGAL_ANALYSIS,
         # Guided journeys
-        CONTRACT_TENANCY,
         CONTRACT_ADVOCATE_PORTAL,
         CONTRACT_ADMIN_PORTAL,
         CONTRACT_MANAGER_PORTAL,
@@ -3055,17 +2863,13 @@ PAGE_CONTRACTS: dict[str, PageContract] = {
         CONTRACT_REGISTER_SUCCESS,
         CONTRACT_HOME,
         CONTRACT_INDEX,
-        CONTRACT_MODE_SELECTOR,
         # Admin / dev tools
-        CONTRACT_AUTO_MODE_DEMO,
         CONTRACT_AUTO_MODE_PANEL,
-        CONTRACT_GUI_NAV_HUB,
         CONTRACT_PAGE_EDITOR,
         CONTRACT_LAYOUT_BUILDER,
         CONTRACT_STYLE_EDITOR,
         CONTRACT_MODULE_CONVERTER,
         CONTRACT_COMPONENT_CONVERTER,
-        CONTRACT_BATCH_ANALYSIS,
         CONTRACT_PAGE_INDEX,
         CONTRACT_AUTO_ANALYSIS,
         CONTRACT_EVALUATION_REPORT,
@@ -3081,14 +2885,12 @@ PAGE_CONTRACTS: dict[str, PageContract] = {
         CONTRACT_STORAGE_CONNECTING,
         # Remaining manifest pages
         CONTRACT_TENANT_DASHBOARD,
-        CONTRACT_FUNCTIONX,
         CONTRACT_COURT_LEARNING,
         CONTRACT_COMPLETE_JOURNEY,
         CONTRACT_INTERACTIVE_TIMELINE,
         CONTRACT_TIMELINE_BUILDER,
         CONTRACT_TIMELINE_AUTO_BUILD,
         CONTRACT_DOCUMENT_CALENDAR,
-        CONTRACT_MY_TENANCY,
         CONTRACT_SAMPLE_CERTIFICATE,
         CONTRACT_SIDEBAR_AUTO_MODE,
         CONTRACT_ROLES,
