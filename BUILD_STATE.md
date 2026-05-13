@@ -3,7 +3,30 @@
 
 ---
 
-## Shipped This Session — 2026-05-12 (10:35 PM UTC-05) — Commit `b46d172`
+## Shipped This Session — 2026-05-12 (10:52 PM UTC-05) — Commit `d956a83`
+
+### Session Summary — Contract Cleanup + Help Macro Refactor (net -304 lines)
+
+#### Dead Contract Removal
+- [x] `app/core/page_contracts.py` — Removed 9 dead contracts (dashboard, tenancy, legal_analysis, auto_mode_demo, gui_navigation_hub, functionx, mode_selector, batch_analysis_results, my_tenancy) + all registry entries. 88 contracts remain, all unique.
+
+#### Help Page Macro Refactor
+- [x] `app/templates/pages/help.html` — Refactored from 126 lines inline HTML/CSS to 42 lines using ui_macros. All 4 nav pages (office, library, tools, help) now use the macro system.
+
+#### Known Working
+- App compiles clean, 88 unique contracts
+- Zero references to deleted contract names anywhere in codebase
+- SSOT analysis: no violations, macro pattern consistent across all nav pages
+- Deploy `b46d172` (encrypted token backup) confirmed live on Render
+
+#### Pending Next Session
+- End-to-end test of full onboarding flow on Render (new user → OAuth → vault init → token backup → dashboard)
+- Verify help.html renders correctly on Render after macro refactor
+- Continue dead code cleanup if any other stale references found
+
+---
+
+## Previous Session — 2026-05-12 (10:35 PM UTC-05) — Commit `b46d172`
 
 ### Session Summary — Dead Code Cleanup + Encrypted Token Backup (net -1,581 lines)
 
@@ -15,25 +38,6 @@
 #### Encrypted Token Backup — NEW
 - [x] `app/modules/onboarding/vault.py` — Added `_store_encrypted_token_backup()`: AES-GCM encrypts OAuth token → writes `token.enc` + `token.enc.backup` + `device_keys.json` to `.auth/` folder, with read-back decrypt verification. Wired as step 3 (non-fatal) in `init_vault()` 5-step flow.
 - [x] `app/modules/onboarding/config.py` — Added `AUTH_FOLDER` (`.Semptify5.0/auth`) to `CANONICAL_VAULT_FOLDERS` so the folder is created during vault setup.
-
-#### init_vault() Flow (5 steps)
-1. Create folders (including `.auth/`)
-2. Place system files (Rehome.html, README.txt, vault manifest.json)
-3. Store encrypted token backup (non-fatal)
-4. Read-back verification (vault manifest)
-5. Mark `vault_initialized` gate
-
-#### Known Working
-- App loads clean with zero errors
-- All Python files compile clean
-- SSOT analysis: no violations, single writer for all vault paths
-- `mark_gate()` idempotent — no race conditions between callers
-- Token backup uses existing `MasterToken` / `encrypt_token` / `decrypt_token` from vault_manager.py
-
-#### Pending Next Session
-- End-to-end test of full onboarding flow on Render (new user → OAuth → vault init → token backup → dashboard)
-- Clean stale entries in `page_contracts.py` for deleted pages (data-only, non-breaking)
-- Refactor help.html to use ui_macros
 
 ---
 
