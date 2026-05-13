@@ -201,7 +201,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         return {
             "ok": True,
             "user_id": user.user_id[:6] + "***",
-            "provider": str(getattr(user, "provider", "unknown")),
+            "provider": user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
         }
 
     # ------------------------------------------------------------------
@@ -220,7 +220,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         result = await vault_ops.init_vault(
             db=db,
             user_id=user.user_id,
-            provider_name=str(user.provider),
+            provider_name=user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
             access_token=access_token,
             config=config,
         )
@@ -242,7 +242,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         result = await vault_ops.verify_vault(
             user_id=user.user_id,
-            provider_name=str(user.provider),
+            provider_name=user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
             access_token=access_token,
             config=config,
         )
