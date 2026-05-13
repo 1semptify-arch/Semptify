@@ -391,10 +391,10 @@ async def handle_onboarding_callback(
     # 6. Mark storage_connected gate
     await mark_gate(db, user_id, "storage_connected")
 
-    # 6b. Create vault folders now (not deferred to JS)
+    # 6b. Create vault folders + system files + verification
     from app.modules.onboarding.vault import init_vault
-    logger.warning("VAULT_DEBUG: About to call init_vault user=%s provider=%s folders=%s token_len=%d",
-                   user_id[:6] + "***", provider, config.vault_folders, len(access_token or ""))
+    # Extract base_url from callback_url (e.g. "https://semptify.com/onboarding/callback/google_drive")
+    _base_url = callback_url.split(config.route_prefix)[0] if config.route_prefix in callback_url else ""
     try:
         vault_result = await init_vault(
             db=db,
@@ -402,10 +402,11 @@ async def handle_onboarding_callback(
             provider_name=provider,
             access_token=access_token,
             config=config,
+            base_url=_base_url,
         )
-        logger.warning("VAULT_DEBUG: init_vault returned: %s", vault_result)
+        logger.info("init_vault result for user %s: %s", user_id[:6] + "***", vault_result)
     except Exception as vault_exc:
-        logger.error("VAULT_DEBUG: init_vault CRASHED: %s", vault_exc, exc_info=True)
+        logger.error("init_vault crashed for user %s: %s", user_id[:6] + "***", vault_exc, exc_info=True)
         vault_result = {"ok": False, "message": str(vault_exc)}
     if not vault_result["ok"]:
         logger.warning("Vault creation failed during callback: %s", vault_result["message"])

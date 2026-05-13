@@ -4,13 +4,13 @@ Handles role, storage provider, and permissions for each user session.
 
 Architecture Principles (ONE SOURCE OF TRUTH):
 - ROLE = stable identity (USER, JUDGE, ADVOCATE, LEGAL, MANAGER, ADMIN)
-- GATE = state flag (storage_connected, vault_initialized, client_activated)
+- GATE = state flag (storage_connected, vault_initialized)
 - Do NOT conflate role with gate
 - USER role displays as "Tenant" in UI for housing context
 
 Clean Separation:
   role == UserRole.USER:           Who they are
-  "client_activated" in gates:     What they've done (state)
+  "vault_initialized" in gates:    What they've done (state)
 
 Design Principles:
 - User ID is stable (derived from first storage provider used)

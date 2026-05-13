@@ -679,23 +679,6 @@ async def upload_document(
 
 
 
-        # =========================================================================
-
-        # CLIENT ACTIVATION GATE: First vault upload activates the user as a client
-
-        # =========================================================================
-
-        # This is the final gate in the serial gating sequence:
-
-        # storage_connected → vault_initialized → client_activated
-
-        # Once this gate is passed, the user has full access to all Semptify tools
-
-        await _mark_group_complete(db, user_id, "client_activated")
-
-        logger.info(f"🎉 User {user_id} activated as client after first vault upload")
-
-
 
     except HTTPException:
 

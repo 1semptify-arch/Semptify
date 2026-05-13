@@ -2192,14 +2192,11 @@ async def oauth_callback(
         vault_initialized = "vault_initialized" in completed_groups
 
         # Create vault folders server-side if not yet initialized.
-        # This replaces the old JS-based vault creation on /onboarding/vault-setup.
         if not vault_initialized:
-            print(f"🔑 VAULT_CREATE: Starting vault for user={user_id[:6]}*** provider={provider} token_len={len(access_token or '')}", flush=True)
             try:
                 from app.modules.onboarding.vault import init_vault
                 from app.modules.onboarding.config import OnboardingConfig as _OBConfig
                 _ob_config = _OBConfig()
-                print(f"🔑 VAULT_CREATE: vault_folders={_ob_config.vault_folders}", flush=True)
                 vault_result = await init_vault(
                     db=db,
                     user_id=user_id,
@@ -2207,16 +2204,12 @@ async def oauth_callback(
                     access_token=access_token,
                     config=_ob_config,
                 )
-                print(f"🔑 VAULT_CREATE: Result: {vault_result}", flush=True)
                 if vault_result.get("ok"):
                     vault_initialized = True
                 else:
-                    print(f"🔑 VAULT_CREATE: Failed: {vault_result.get('message')}", flush=True)
+                    logger.warning("Vault creation failed for user %s: %s", user_id[:6] + "***", vault_result.get("message"))
             except Exception as vault_exc:
-                import traceback
-                print(f"🔑 VAULT_CREATE: CRASHED: {vault_exc}\n{traceback.format_exc()}", flush=True)
-        else:
-            print(f"🔑 VAULT_CREATE: Skipped — already initialized for user={user_id[:6]}***", flush=True)
+                logger.error("Vault creation crashed for user %s: %s", user_id[:6] + "***", vault_exc, exc_info=True)
 
         # Determine landing page.
         return_to = state_data.get("return_to")
@@ -2474,46 +2467,6 @@ async def _fetch_oauth_identity(provider: str, access_token: str) -> dict:
                 "message": "Unable to verify storage account identity from OAuth provider.",
             },
         )
-
-
-# NOTE: _generate_sync_html removed - now using VaultManager.generate_rehome_html()
-
-
-async def _store_auth_marker(
-    provider: str,
-    access_token: str,
-    encrypted: bytes,
-    user_id: str,
-    base_url: str,
-    refresh_token: str = "",
-    token_expires_at: str = "",
-    db: Optional[AsyncSession] = None,
-) -> None:
-    """
-    Initialize complete Semptify5.0 vault structure in user's cloud storage.
-    Uses VaultManager to create folder structure, store encrypted token, and Rehome script.
-    
-    The OAuth credentials (access_token, refresh_token) are stored encrypted in cloud
-    as a BACKUP. Primary storage is the database for fast API access.
-    """
-    from app.services.storage import get_provider
-    from app.services.storage.vault_manager import get_vault_manager
-
-    storage = get_provider(provider, access_token=access_token)
-    vault = get_vault_manager(storage, user_id, base_url)
-
-    # Initialize full vault structure with OAuth credentials backup
-    await vault.initialize_vault(
-        provider_name=provider,
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_expires_at=token_expires_at,
-    )
-
-    # Vault proven: folders created, token encrypted+written, decrypt verified.
-    # Write the permanent completion badge — serial gate is met.
-    if db is not None:
-        await _mark_group_complete(db, user_id, "vault_initialized")
 
 
 async def _vault_access_ready(
