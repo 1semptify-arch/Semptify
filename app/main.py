@@ -63,6 +63,7 @@ from app.core.cookie_auth import extract_user_id
 from app.core.database import init_db, close_db
 from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
+from app.core.tenant_briefcase import get_tenant_briefcase
 
 # PyInstaller frozen executable detection
 def get_base_path() -> Path:
