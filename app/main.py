@@ -3229,7 +3229,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         
         # Get user from cookie/session
         user_id = extract_user_id(request) or ""
-        briefcase = await _get_tenant_briefcase(user_id) if user_id else None
+        briefcase = None
+        if user_id:
+            try:
+                briefcase = await _get_tenant_briefcase(user_id)
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Tenant briefcase load failed for %s: %s", user_id[:6] + "***", e)
         
         # Try tenant home template first, then fall back to main tenant template
         tenant_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "tenant_home.html"

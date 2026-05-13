@@ -517,18 +517,10 @@
         {% block content %}{% endblock %}
     </main>
     
-    <!-- Footer -->
+    <!-- Footer (Unified — single source of truth) -->
     {% block footer %}
-    <footer class="footer">
-        <div class="container">
-            <p>© {{ current_year or '2025' }} Semptify. Helping tenants protect their rights.</p>
-            <p class="mt-sm">
-                <a href="/privacy">Privacy</a> · 
-                <a href="/terms">Terms</a> · 
-                <a href="/api/docs">API Docs</a>
-            </p>
-        </div>
-    </footer>
+    <div id="unified-footer-mount"></div>
+    <script src="/js/unified-footer-loader.js"></script>
     {% endblock %}
     
     <!-- Base Scripts -->
