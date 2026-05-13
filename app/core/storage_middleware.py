@@ -82,11 +82,18 @@ PUBLIC_PATHS: Set[str] = {
     
     # GUI Navigation Hub
     "/gui",
-    
+
     # Auto Mode Features
     "/auto-mode",
     "/auto-analysis",
-    
+
+    # Core navigation pages (public landing pages)
+    "/home",
+    "/library",
+    "/office",
+    "/tools",
+    "/help",
+
     # Static assets
     "/static",
     "/css",
