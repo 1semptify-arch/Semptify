@@ -1388,7 +1388,7 @@ async def vault_init(user: StorageUser = Depends(require_user), db: AsyncSession
             },
         )
 
-    return {"ok": True, "message": "Vault folders created", "provider": str(user.provider)}
+    return {"ok": True, "message": "Vault folders created", "provider": user.provider.value if hasattr(user.provider, 'value') else str(user.provider)}
 
 
 @router.get("/verify")

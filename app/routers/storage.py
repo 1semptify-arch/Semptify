@@ -2196,7 +2196,12 @@ async def oauth_callback(
             try:
                 from app.modules.onboarding.vault import init_vault
                 from app.modules.onboarding.config import OnboardingConfig as _OBConfig
-                _ob_config = _OBConfig()
+                _ob_config = _OBConfig(
+                    product_name="Semptify Tenant Rights",
+                    allowed_roles=["tenant"],
+                    allowed_providers=["google_drive", "dropbox", "onedrive"],
+                    on_complete_redirect="/tenant/home",
+                )
                 vault_result = await init_vault(
                     db=db,
                     user_id=user_id,
