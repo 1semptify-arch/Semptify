@@ -293,48 +293,6 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     ),
     
     PageManifestEntry(
-        page_id="dashboard",
-        route="/dashboard",
-        source_file="static/dashboard.html",
-        page_type="static",
-        page_contract=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "CONTRACT_DASHBOARD registered in page_contracts.py"
-        ),
-        route_guards=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Served as static file, no explicit guards"
-        ),
-        module_links=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "DASHBOARD_MODULE_LINKS defined in module_links.py (3 modules)"
-        ),
-        action_map=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "DASHBOARD_QUICK_ACTIONS defined in action_maps.py (9 actions)"
-        ),
-        object_set_inputs=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "User context, case data implied"
-        ),
-        output_objects=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Case summaries, deadline lists displayed"
-        ),
-        telemetry_hooks=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "dashboard_load, quick_action_clicked, deadline_viewed, case_summary_expanded in telemetry_hooks.py"
-        ),
-        mesh_binding=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "dashboard_load could trigger context_sync workflow"
-        ),
-        overall_coverage=CoverageStatus.PARTIAL,
-        missing_object_sets=[],
-        recommended_priority="high"
-    ),
-    
-    PageManifestEntry(
         page_id="documents",
         route="/documents",
         source_file="static/documents.html",
@@ -464,48 +422,6 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     # PROCESS C: GUIDED JOURNEYS
     #
     PageManifestEntry(
-        page_id="tenancy",
-        route="/tenancy",
-        source_file="app/templates/pages/tenancy.html",
-        page_type="template",
-        page_contract=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "PageContract registered"
-        ),
-        route_guards=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "require_user"
-        ),
-        module_links=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Tenancy module implied"
-        ),
-        action_map=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Tenancy actions present"
-        ),
-        object_set_inputs=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Tenancy data implied"
-        ),
-        output_objects=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Tenancy workflow progression"
-        ),
-        telemetry_hooks=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "Telemetry events defined in PageContract"
-        ),
-        mesh_binding=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Could trigger tenancy workflow"
-        ),
-        overall_coverage=CoverageStatus.COMPLETE,
-        missing_object_sets=[],
-        recommended_priority="medium"
-    ),
-    
-    PageManifestEntry(
         page_id="advocate",
         route="/advocate",
         source_file="app/templates/pages/advocate.html",
@@ -630,48 +546,6 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
             "Law library actions in mesh"
         ),
         overall_coverage=CoverageStatus.COMPLETE,
-        missing_object_sets=[],
-        recommended_priority="medium"
-    ),
-    
-    PageManifestEntry(
-        page_id="legal_analysis",
-        route="/legal-analysis",
-        source_file="static/legal_analysis.html",
-        page_type="static",
-        page_contract=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "CONTRACT_LEGAL_ANALYSIS registered in page_contracts.py"
-        ),
-        route_guards=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Served as static"
-        ),
-        module_links=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Legal analysis module implied"
-        ),
-        action_map=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Analysis actions present"
-        ),
-        object_set_inputs=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Document data implied"
-        ),
-        output_objects=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Analysis results"
-        ),
-        telemetry_hooks=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "legal_analysis_load, statute_searched, precedent_checked, analysis_memo_generated in telemetry_hooks.py"
-        ),
-        mesh_binding=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Could trigger research workflow"
-        ),
-        overall_coverage=CoverageStatus.PARTIAL,
         missing_object_sets=[],
         recommended_priority="medium"
     ),
@@ -2387,48 +2261,6 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     # DEVELOPER / ADMIN TOOLS
     #
     PageManifestEntry(
-        page_id="auto_mode_demo",
-        route="/auto-mode-demo",
-        source_file="app/templates/pages/auto_mode_demo.html",
-        page_type="template",
-        page_contract=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "PageContract registered"
-        ),
-        route_guards=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Template rendered"
-        ),
-        module_links=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Auto mode module"
-        ),
-        action_map=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Demo actions"
-        ),
-        object_set_inputs=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Demo data"
-        ),
-        output_objects=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Demo output"
-        ),
-        telemetry_hooks=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "Telemetry events defined in PageContract"
-        ),
-        mesh_binding=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Could trigger demo workflows"
-        ),
-        overall_coverage=CoverageStatus.COMPLETE,
-        missing_object_sets=[],
-        recommended_priority="low"
-    ),
-    
-    PageManifestEntry(
         page_id="auto_mode_panel",
         route="/auto-mode-panel",
         source_file="app/templates/pages/auto_mode_panel.html",
@@ -2468,132 +2300,6 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         overall_coverage=CoverageStatus.COMPLETE,
         missing_object_sets=[],
         recommended_priority="medium"
-    ),
-    
-    PageManifestEntry(
-        page_id="gui_navigation_hub",
-        route="/gui-navigation",
-        source_file="app/templates/pages/gui_navigation_hub.html",
-        page_type="template",
-        page_contract=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "PageContract registered"
-        ),
-        route_guards=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Template rendered"
-        ),
-        module_links=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Navigation module"
-        ),
-        action_map=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Navigation actions"
-        ),
-        object_set_inputs=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Navigation context"
-        ),
-        output_objects=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Navigation display"
-        ),
-        telemetry_hooks=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "Telemetry events defined in PageContract"
-        ),
-        mesh_binding=ObjectSetCoverage(
-            CoverageStatus.MISSING,
-            "No mesh binding"
-        ),
-        overall_coverage=CoverageStatus.COMPLETE,
-        missing_object_sets=[],
-        recommended_priority="low"
-    ),
-    
-    PageManifestEntry(
-        page_id="functionx",
-        route="/functionx",
-        source_file="app/templates/pages/functionx.html",
-        page_type="template",
-        page_contract=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "PageContract registered"
-        ),
-        route_guards=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Template rendered"
-        ),
-        module_links=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "FunctionX module"
-        ),
-        action_map=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "FunctionX actions"
-        ),
-        object_set_inputs=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Function parameters"
-        ),
-        output_objects=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Function output"
-        ),
-        telemetry_hooks=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "Telemetry events defined in PageContract"
-        ),
-        mesh_binding=ObjectSetCoverage(
-            CoverageStatus.MISSING,
-            "No mesh binding"
-        ),
-        overall_coverage=CoverageStatus.COMPLETE,
-        missing_object_sets=[],
-        recommended_priority="low"
-    ),
-    
-    PageManifestEntry(
-        page_id="mode_selector",
-        route="/mode-selector",
-        source_file="app/templates/pages/mode_selector.html",
-        page_type="template",
-        page_contract=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "PageContract registered"
-        ),
-        route_guards=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Template rendered"
-        ),
-        module_links=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Mode selection module"
-        ),
-        action_map=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Mode selection actions"
-        ),
-        object_set_inputs=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Mode options"
-        ),
-        output_objects=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Selected mode"
-        ),
-        telemetry_hooks=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "Telemetry events defined in PageContract"
-        ),
-        mesh_binding=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Could trigger mode workflows"
-        ),
-        overall_coverage=CoverageStatus.COMPLETE,
-        missing_object_sets=[],
-        recommended_priority="low"
     ),
     
     PageManifestEntry(
@@ -2800,48 +2506,6 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         mesh_binding=ObjectSetCoverage(
             CoverageStatus.MISSING,
             "No mesh binding"
-        ),
-        overall_coverage=CoverageStatus.COMPLETE,
-        missing_object_sets=[],
-        recommended_priority="low"
-    ),
-    
-    PageManifestEntry(
-        page_id="batch_analysis_results",
-        route="/batch-analysis",
-        source_file="app/templates/pages/batch_analysis_results.html",
-        page_type="template",
-        page_contract=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "PageContract registered"
-        ),
-        route_guards=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Template rendered"
-        ),
-        module_links=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Batch module"
-        ),
-        action_map=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Batch actions"
-        ),
-        object_set_inputs=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Batch data"
-        ),
-        output_objects=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Batch results"
-        ),
-        telemetry_hooks=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "Telemetry events defined in PageContract"
-        ),
-        mesh_binding=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Could trigger batch workflows"
         ),
         overall_coverage=CoverageStatus.COMPLETE,
         missing_object_sets=[],
@@ -3395,48 +3059,6 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
         overall_coverage=CoverageStatus.COMPLETE,
         missing_object_sets=[],
         recommended_priority="medium"
-    ),
-    
-    PageManifestEntry(
-        page_id="my_tenancy",
-        route="/my-tenancy",
-        source_file="static/my_tenancy.html",
-        page_type="static",
-        page_contract=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "PageContract registered"
-        ),
-        route_guards=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Served as static"
-        ),
-        module_links=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Tenancy module"
-        ),
-        action_map=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Tenancy actions"
-        ),
-        object_set_inputs=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Tenancy data"
-        ),
-        output_objects=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Tenancy display"
-        ),
-        telemetry_hooks=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "Telemetry events defined in PageContract"
-        ),
-        mesh_binding=ObjectSetCoverage(
-            CoverageStatus.MISSING,
-            "No mesh binding"
-        ),
-        overall_coverage=CoverageStatus.COMPLETE,
-        missing_object_sets=[],
-        recommended_priority="low"
     ),
     
     PageManifestEntry(

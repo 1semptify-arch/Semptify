@@ -93,8 +93,6 @@ from app.routers import health
 from app.routers import storage
 from app.routers import preamble
 from app.routers import risc
-# Legacy onboarding router (app/routers/onboarding.py) removed — replaced by
-# app/modules/onboarding/ registered via register_onboarding() below.
 from app.routers import plugins
 from app.routers import development
 

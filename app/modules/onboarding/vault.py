@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.storage import get_provider
 from app.modules.onboarding.config import OnboardingConfig
 from app.modules.onboarding.gates import mark_gate, check_gate
-from app.core.vault_paths import SEMPTIFY_ROOT, VAULT_FOLDER
+from app.core.vault_paths import SEMPTIFY_ROOT, VAULT_FOLDER, AUTH_FOLDER
 
 logger = logging.getLogger(__name__)
 
@@ -133,6 +133,79 @@ async def _place_system_files(
 
 
 # ---------------------------------------------------------------------------
+# Encrypted token backup
+# ---------------------------------------------------------------------------
+
+async def _store_encrypted_token_backup(
+    provider_name: str,
+    access_token: str,
+    user_id: str,
+) -> None:
+    """
+    Encrypt the OAuth token and store it as a backup in .auth/.
+
+    Files written:
+      - .Semptify5.0/auth/token.enc         (primary)
+      - .Semptify5.0/auth/token.enc.backup   (redundant copy)
+      - .Semptify5.0/auth/device_keys.json   (authorized devices list)
+
+    The encrypted backup allows token recovery via Rehome if the
+    database is lost. Uses AES-GCM from vault_manager helpers.
+    """
+    from app.services.storage.vault_manager import (
+        MasterToken,
+        encrypt_token,
+        decrypt_token,
+    )
+    import secrets as _secrets
+
+    storage = get_provider(provider_name, access_token=access_token)
+
+    # Build master token with current OAuth credentials
+    token = MasterToken(
+        token_id=_secrets.token_urlsafe(32),
+        user_id=user_id,
+        created_at=datetime.now(timezone.utc).isoformat(),
+        provider=provider_name,
+        access_token=access_token,
+    )
+
+    encrypted = encrypt_token(token, user_id)
+
+    # Write primary + backup
+    await storage.upload_file(
+        file_content=encrypted,
+        destination_path=AUTH_FOLDER,
+        filename="token.enc",
+        mime_type="application/octet-stream",
+    )
+    await storage.upload_file(
+        file_content=encrypted,
+        destination_path=AUTH_FOLDER,
+        filename="token.enc.backup",
+        mime_type="application/octet-stream",
+    )
+
+    # Verify the primary can be read back and decrypted
+    from app.core.vault_paths import TOKEN_FILE
+    read_back = await storage.download_file(TOKEN_FILE)
+    decrypted = decrypt_token(read_back, user_id)
+    if decrypted.user_id != user_id:
+        raise ValueError("Token backup read-back: user_id mismatch after decrypt")
+
+    # Initialize empty device keys
+    device_keys = {"devices": [], "created_at": datetime.now(timezone.utc).isoformat()}
+    await storage.upload_file(
+        file_content=json.dumps(device_keys, indent=2).encode(),
+        destination_path=AUTH_FOLDER,
+        filename="device_keys.json",
+        mime_type="application/json",
+    )
+
+    logger.info("Encrypted token backup stored for user %s", user_id[:6] + "***")
+
+
+# ---------------------------------------------------------------------------
 # Read-back verification
 # ---------------------------------------------------------------------------
 
@@ -181,10 +254,11 @@ async def init_vault(
 ) -> dict:
     """
     Full vault initialization:
-    1. Create folders
+    1. Create folders (including .auth/)
     2. Place system files (Rehome, README, vault manifest)
-    3. Read-back verification (prove provider accepted writes)
-    4. Mark vault_initialized gate (only after verified)
+    3. Store encrypted token backup (.auth/token.enc + backup)
+    4. Read-back verification (prove provider accepted writes)
+    5. Mark vault_initialized gate (only after verified)
 
     Args:
         base_url: Public Semptify URL for Rehome script. Falls back to settings.
@@ -219,12 +293,21 @@ async def init_vault(
         logger.error("System file provisioning failed for user %s: %s", user_id[:6] + "***", exc)
         return {"ok": False, "message": f"System file provisioning failed: {exc}"}
 
-    # 3. Read-back verification
+    # 3. Encrypted token backup (non-fatal — vault works without it)
+    try:
+        await _store_encrypted_token_backup(provider_name, access_token, user_id)
+    except Exception as exc:
+        logger.warning(
+            "Encrypted token backup failed for user %s: %s (non-fatal, continuing)",
+            user_id[:6] + "***", exc,
+        )
+
+    # 4. Read-back verification
     verified = await _verify_system_check(provider_name, access_token, user_id)
     if not verified:
         return {"ok": False, "message": "Vault write+read verification failed — storage may not be accepting writes"}
 
-    # 4. Mark gate — vault creation IS activation
+    # 5. Mark gate — vault creation IS activation
     await mark_gate(db, user_id, "vault_initialized")
 
     return {"ok": True, "message": "Vault created, provisioned, and verified"}
