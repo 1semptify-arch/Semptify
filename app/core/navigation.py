@@ -137,6 +137,13 @@ class NavigationRegistry:
             next_stage=None,
             requires_checkpoint=True
         ),
+        "tenant_home": FlowStage(
+            id="tenant_home",
+            name="Tenant Home",
+            path="/home",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
     }
     
     # --- Court Integration Paths (SSOT) ---
