@@ -2,9 +2,8 @@
 Semptify 5.0 - Unified Onboarding Router
 
 Single entry point for user progression through gates:
-1. storage_connected (OAuth + vault initialized)
-2. vault_initialized (vault structure verified)
-3. client_activated (first document uploaded)
+1. storage_connected (OAuth completed, provider connected)
+2. vault_initialized (vault folders created, user fully activated)
 
 Sequential, no dead ends, clear feedback at each stage.
 """
@@ -844,34 +843,6 @@ def _render_simple_onboarding():
     </script>
     """)
 
-def _render_client_activated():
-    """Gate 3: client_activated ✓"""
-    return _render_page(header_title="You're All Set!", header_subtitle="All activation gates complete.", content="""
-        <div class="progress">
-            <div class="progress-dot active"></div>
-            <div class="progress-dot active"></div>
-            <div class="progress-dot active"></div>
-        </div>
-        
-        <h1>🎉 You're All Set!</h1>
-        <p class="subtitle">All activation gates complete</p>
-        
-        <div class="status-box">
-            <strong>Gate 3/3 Complete:</strong> client_activated ✓<br>
-            You're now a full Semptify client with access to all tools.
-        </div>
-        
-        <div class="step-section">
-            <button class="btn" onclick="window.location.href='/ui/route'" style="width: 100%; padding: 1.5rem; font-size: 1.1rem;">
-                ✓ Enter Semptify
-            </button>
-        </div>
-        
-        <div style="color: #a7f3d0; font-size: 0.9rem; margin-top: 2rem; text-align: center;">
-            Your evidence is protected, organized, and ready for any situation.
-        </div>
-    """)
-
 def _render_vault_setup():
     """Vault Setup page — runs folder init + verification, then releases to home."""
     return _render_page(
@@ -1087,9 +1058,7 @@ async def onboarding_status(semptify_uid: Optional[str] = Cookie(None), db: Asyn
 
     completed = (user.completed_groups or "").split(",")
 
-    if "client_activated" in completed:
-        return HTMLResponse(content=_render_client_activated())
-    elif "vault_initialized" in completed:
+    if "vault_initialized" in completed:
         return HTMLResponse(content=_render_vault_initialized())
     elif "storage_connected" in completed:
         return HTMLResponse(content=_render_storage_connected())
@@ -1315,26 +1284,3 @@ async def verify_vault(
         })
 
 
-@router.post("/activate")
-async def activate_client(
-    semptify_uid: Optional[str] = Cookie(None),
-    db: AsyncSession = Depends(get_db),
-):
-    """Mark client_activated gate complete. Called after verify-vault passes."""
-    if not semptify_uid:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-
-    result = await db.execute(select(User).where(User.id == semptify_uid))
-    user = result.scalar_one_or_none()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    completed = set((user.completed_groups or "").split(","))
-    completed.discard("")
-    completed.add("vault_initialized")
-    completed.add("client_activated")
-    user.completed_groups = ",".join(sorted(completed))
-    await db.commit()
-
-    logger.info("client_activated gate set for user=%s", semptify_uid[:6] + "***")
-    return {"ok": True}

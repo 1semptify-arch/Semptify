@@ -377,7 +377,7 @@ def generate_vault_manifest(user_id: str, created_at: str) -> str:
 
     This file is the permanent record of what this vault contains, what every
     folder is for, and what must never be deleted. Its presence and readability
-    is the client_activated gate: if this file exists and can be read, the vault
+    is the vault completion proof: if this file exists and can be read, the vault
     is live and the user is a client.
 
     DO NOT DELETE OR MODIFY THIS FILE.
@@ -715,9 +715,8 @@ class VaultManager:
                 vault_enabled=True,
             )
 
-            # Write the vault manifest — the first document in the vault.
-            # This is the client_activated gate file: its presence + readability
-            # means the vault is live and the user is now a client.
+            # Write the vault manifest — the completion record for the vault.
+            # Its presence + readability means the vault is live.
             # Written AFTER vault_enabled=True so it only exists when the vault
             # is provably complete.
             manifest = generate_vault_manifest(

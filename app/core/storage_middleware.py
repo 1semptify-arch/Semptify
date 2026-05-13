@@ -375,33 +375,6 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                     )
                     return response
 
-                # ── client_activated gate ────────────────────────────────────
-                if not ob_state.client_activated:
-                    ALLOWED_PREFIXES_BEFORE_ACTIVATION = (
-                        "/api/documents/upload",
-                        "/api/vault/",
-                        "/api/setup/",
-                        "/api/health",
-                        "/api/version",
-                        "/api/roles",
-                    )
-                    if any(path.startswith(p) for p in ALLOWED_PREFIXES_BEFORE_ACTIVATION):
-                        pass
-                    elif path.startswith("/api/"):
-                        return JSONResponse(
-                            status_code=403,
-                            content={
-                                "error": "client_activation_required",
-                                "message": "Please upload your first document to activate your Semptify account",
-                                "action": "redirect",
-                                "redirect_url": "/documents",
-                            },
-                        )
-                    elif not path.startswith("/static/") and not path.startswith("/documents") and not path.startswith("/onboarding"):
-                        documents_stage = navigation.get_stage("documents")
-                        documents_path = documents_stage.path if documents_stage else "/documents"
-                        return ssot_redirect(documents_path, context="storage_middleware client activation required")
-
             except Exception:
                 # DB unavailable — degrade gracefully, format validation passed above.
                 pass
