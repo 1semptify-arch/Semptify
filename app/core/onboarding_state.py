@@ -7,8 +7,7 @@ No other code should read User.completed_groups directly for gate checks.
 
 Gates (in order):
   storage_connected  — OAuth completed, provider connected
-  vault_initialized  — Vault folders created in cloud storage
-  client_activated   — First document uploaded (post-onboarding)
+  vault_initialized  — Vault folders created in cloud storage, user fully activated
 """
 
 import logging
@@ -27,7 +26,6 @@ class OnboardingState:
     user_id: str
     storage_connected: bool
     vault_initialized: bool
-    client_activated: bool
 
     @property
     def is_fully_onboarded(self) -> bool:
@@ -112,7 +110,6 @@ async def get_onboarding_state(
             user_id=user_id,
             storage_connected=False,
             vault_initialized=False,
-            client_activated=False,
         )
 
     completed = set(g.strip() for g in row.split(",") if g.strip())
@@ -121,7 +118,6 @@ async def get_onboarding_state(
         user_id=user_id,
         storage_connected="storage_connected" in completed,
         vault_initialized="vault_initialized" in completed,
-        client_activated="client_activated" in completed,
     )
 
 
@@ -139,5 +135,4 @@ async def get_onboarding_state_no_db(completed_groups_str: Optional[str], user_i
         user_id=user_id,
         storage_connected="storage_connected" in completed,
         vault_initialized="vault_initialized" in completed,
-        client_activated="client_activated" in completed,
     )

@@ -161,7 +161,7 @@ class VaultClient:
 
         for folder_path in self._folder_spec.all_folders:
             try:
-                print(f"  VAULT_SDK: Creating folder: {folder_path}", flush=True)
+                logger.debug("Creating vault folder: %s", folder_path)
                 created = await storage.create_folder(folder_path)
                 if created:
                     result.folders.append(FolderResult(path=folder_path, status="ok"))
@@ -184,9 +184,9 @@ class VaultClient:
                 await asyncio.sleep(self._inter_call_delay)
 
         if result.all_ok:
-            print(f"  VAULT_SDK: All {len(result.folders)} folders created successfully", flush=True)
+            logger.info("All %d vault folders created successfully", len(result.folders))
         else:
-            print(f"  VAULT_SDK: {len(result.failed)} folders failed: {[f.path for f in result.failed]}", flush=True)
+            logger.warning("%d vault folders failed: %s", len(result.failed), [f.path for f in result.failed])
 
         return result
 

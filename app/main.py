@@ -3816,7 +3816,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "user_id_prefix": raw_uid[:6] + "***",
                 "storage_connected": state.storage_connected,
                 "vault_initialized": state.vault_initialized,
-                "client_activated": state.client_activated,
                 "is_fully_onboarded": state.is_fully_onboarded,
                 "next_required_gate": state.next_required_gate,
                 "next_required_path": state.next_required_path,

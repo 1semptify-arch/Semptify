@@ -21,7 +21,7 @@ Role Codes (1 char):
 
 Architecture Note:
 - Role = stable identity throughout Semptify lifetime
-- Gates (storage_connected, vault_initialized, client_activated) = state, separate from role
+- Gates (storage_connected, vault_initialized) = state, separate from role
 - One cookie, one ID, clean separation of concerns
 """
 
