@@ -2564,7 +2564,63 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/home", response_class=HTMLResponse)
     async def semptify_home(request: Request):
         """Serve the Semptify Home — tenant front door."""
-        return templates.TemplateResponse(request, "pages/semptify_hub.html")
+        user_id = extract_user_id(request) or ""
+        user_name = None
+        briefcase = None
+        if user_id:
+            try:
+                briefcase = await _get_tenant_briefcase(user_id)
+                user_name = briefcase.user_name
+            except Exception:  # pylint: disable=broad-exception-caught
+                pass
+
+        # Flatten briefcase into template variables tenant_home.html expects
+        ctx = {
+            "user_name": user_name,
+            "next_deadline": None,
+            "document_count": 0,
+            "last_document_date": None,
+            "journal_count": 0,
+            "last_journal_date": None,
+            "recent_activity": [],
+        }
+        if briefcase:
+            ctx["user_name"] = briefcase.user_name
+            ctx["document_count"] = briefcase.vault.total_documents if briefcase.vault else 0
+            ctx["journal_count"] = briefcase.journal.total_entries if briefcase.journal else 0
+            if briefcase.timeline and briefcase.timeline.next_deadline:
+                ctx["next_deadline"] = {
+                    "title": briefcase.timeline.next_deadline.title,
+                    "date": briefcase.timeline.next_deadline.date,
+                    "days_remaining": briefcase.timeline.next_deadline.days_until,
+                }
+            # Build recent activity from vault docs + journal entries + timeline events
+            activity = []
+            if briefcase.vault and briefcase.vault.documents:
+                for doc in briefcase.vault.documents[:3]:
+                    activity.append({
+                        "icon": "📄",
+                        "description": f"Document: {doc.get('title', 'Uploaded')}",
+                        "time_ago": doc.get("uploaded_at", "Recently"),
+                    })
+            if briefcase.journal and briefcase.journal.recent_entries:
+                for entry in briefcase.journal.recent_entries[:3]:
+                    activity.append({
+                        "icon": entry.icon or "📝",
+                        "description": entry.description,
+                        "time_ago": entry.created_at,
+                    })
+            if briefcase.timeline and briefcase.timeline.recent_events:
+                for event in briefcase.timeline.recent_events[:3]:
+                    activity.append({
+                        "icon": event.icon or "📅",
+                        "description": event.title,
+                        "time_ago": event.date or "Recently",
+                    })
+            # Sort by time (newest first) and limit to 5
+            ctx["recent_activity"] = activity[:5]
+
+        return templates.TemplateResponse(request, "pages/tenant_home.html", ctx)
 
     # ------------------------------------------------------------------
     # Main Navigation Routes (SSOT) — /office, /library, /tools, /help
