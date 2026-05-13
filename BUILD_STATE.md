@@ -3,7 +3,41 @@
 
 ---
 
-## Shipped This Session — 2026-05-12 (9:03 PM UTC-05) — Commit `bccda0c`
+## Shipped This Session — 2026-05-12 (10:35 PM UTC-05) — Commit `b46d172`
+
+### Session Summary — Dead Code Cleanup + Encrypted Token Backup (net -1,581 lines)
+
+#### Dead Code Removed
+- [x] `app/routers/onboarding.py` — DELETED (1,286 lines). Dead router replaced by `app/modules/onboarding/`. Zero imports remained.
+- [x] `app/core/page_manifest.py` — Removed 9 entries for deleted templates (dashboard, tenancy, legal_analysis, auto_mode_demo, gui_navigation_hub, functionx, mode_selector, batch_analysis_results, my_tenancy). Manifest 86 → 77 pages.
+- [x] `app/main.py` — Removed stale comment referencing deleted onboarding router.
+
+#### Encrypted Token Backup — NEW
+- [x] `app/modules/onboarding/vault.py` — Added `_store_encrypted_token_backup()`: AES-GCM encrypts OAuth token → writes `token.enc` + `token.enc.backup` + `device_keys.json` to `.auth/` folder, with read-back decrypt verification. Wired as step 3 (non-fatal) in `init_vault()` 5-step flow.
+- [x] `app/modules/onboarding/config.py` — Added `AUTH_FOLDER` (`.Semptify5.0/auth`) to `CANONICAL_VAULT_FOLDERS` so the folder is created during vault setup.
+
+#### init_vault() Flow (5 steps)
+1. Create folders (including `.auth/`)
+2. Place system files (Rehome.html, README.txt, vault manifest.json)
+3. Store encrypted token backup (non-fatal)
+4. Read-back verification (vault manifest)
+5. Mark `vault_initialized` gate
+
+#### Known Working
+- App loads clean with zero errors
+- All Python files compile clean
+- SSOT analysis: no violations, single writer for all vault paths
+- `mark_gate()` idempotent — no race conditions between callers
+- Token backup uses existing `MasterToken` / `encrypt_token` / `decrypt_token` from vault_manager.py
+
+#### Pending Next Session
+- End-to-end test of full onboarding flow on Render (new user → OAuth → vault init → token backup → dashboard)
+- Clean stale entries in `page_contracts.py` for deleted pages (data-only, non-breaking)
+- Refactor help.html to use ui_macros
+
+---
+
+## Previous Session — 2026-05-12 (9:03 PM UTC-05) — Commit `bccda0c`
 
 ### Session Summary — Template Cleanup + UI Macro System (net -2,637 lines)
 
@@ -27,17 +61,6 @@
 - [x] MAIN_NAV paths use rendered routes (no .html extensions)
 - [x] Tenant routing to /tenant/home after onboarding (workflow_engine.py)
 - [x] Dynamic routing via route_user() in onboarding callback
-
-#### Known Working
-- App loads clean with zero errors
-- 25 surviving templates all have routes and compile
-- UI macro system renders correctly via Jinja2 inheritance
-- All Python files compile clean
-
-#### Pending Next Session
-- Refactor help.html to use ui_macros (last nav page with old pattern)
-- Clean stale entries in page_manifest.py (data-only, non-breaking)
-- End-to-end test of onboarding flow on Render
 
 ---
 
