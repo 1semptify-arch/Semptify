@@ -10,6 +10,7 @@ from typing import List, Optional
 
 from app.core.vault_paths import (
     SEMPTIFY_ROOT,
+    AUTH_FOLDER,
     VAULT_ROOT,
     VAULT_DOCUMENTS,
     VAULT_CERTIFICATES,
@@ -24,6 +25,7 @@ CANONICAL_VAULT_FOLDERS = [
     VAULT_DOCUMENTS,        # "Semptify5.0/Vault/documents"
     VAULT_CERTIFICATES,     # "Semptify5.0/Vault/certificates"
     VAULT_METADATA_FOLDER,  # ".Semptify5.0/vault"
+    AUTH_FOLDER,            # ".Semptify5.0/auth"
 ]
 
 
