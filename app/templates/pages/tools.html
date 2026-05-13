@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "components/ui_macros.html" import hero, section_title, service_card, card_grid, nav_bar, ui_styles %}
+
+{% block title %}Tools – Semptify{% endblock %}
+{% block description %}Document generators, analysis tools, and case management utilities.{% endblock %}
+
+{% block nav %}{{ nav_bar("tools") }}{% endblock %}
+
+{% block styles %}{{ ui_styles() }}
+<style>.tools-page { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem; }</style>
+{% endblock %}
+
+{% block content %}
+<div class="tools-page">
+
+    {{ hero("🔧", "Tools", "Document generators, analysis tools, and case management utilities to help build your case.", "green") }}
+
+    {{ section_title("📝", "Document Tools") }}
+    {% call card_grid() %}
+        {{ service_card("/tenant/tools/letters", "✉️", "Letter Builder", "Generate maintenance requests, deposit demands, and formal notices.") }}
+        {{ service_card("/tenant/tools/deadlines", "⏰", "Deadline Tracker", "Track rent due dates, lease end dates, and legal response deadlines.") }}
+        {{ service_card("/timeline", "📅", "Timeline Builder", "Create chronological records linking events to documents and evidence.") }}
+    {% endcall %}
+
+    {{ section_title("⚖️", "Legal Tools") }}
+    {% call card_grid() %}
+        {{ service_card("/eviction-defense", "🛡️", "Eviction Defense Kit", "Step-by-step tools for responding to eviction proceedings.") }}
+        {{ service_card("/zoom-court", "💻", "Zoom Court Prep", "Prepare for virtual hearings with checklists and guides.") }}
+        {{ service_card("/law-library", "📖", "Law Library", "Search tenant protection statutes and regulations.") }}
+    {% endcall %}
+
+</div>
+{% endblock %}

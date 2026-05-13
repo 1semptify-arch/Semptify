@@ -166,9 +166,9 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         user_id = result["user_id"]
         vault_initialized = result["vault_initialized"]
 
-        # Determine landing
+        # Determine landing — always route to selected role's home page
         if vault_initialized:
-            landing = config.on_complete_redirect
+            landing = route_user(user_id)
         else:
             landing = f"{config.route_prefix}/vault-setup"
 
