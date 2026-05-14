@@ -722,13 +722,13 @@
 
         // Continue to storage selection
         function continueToStorage() {
-            window.location.href = '/onboarding/storage-select.html?role=legal&validated=true';
+            window.location.href = '/onboarding/providers?role=legal&validated=true';
         }
 
         // Continue as tenant (for pending verification)
         function continueAsTenant() {
             localStorage.setItem('semptify_role', 'user');
-            window.location.href = '/onboarding/storage-select.html?role=user&pending_legal=true';
+            window.location.href = '/onboarding/providers?role=user&pending_legal=true';
         }
 
         // Check URL params on load

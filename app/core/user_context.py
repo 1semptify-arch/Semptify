@@ -336,10 +336,9 @@ class UserContext:
     role: UserRole = UserRole.USER        # Active role for this session
     permissions: set[str] = field(default_factory=set)
     
-    # Optional info
-    email: Optional[str] = None
-    display_name: Optional[str] = None
-    
+    # SSOT PRIVACY: No email or display_name stored.
+    # User PII lives only in their cloud vault.
+
     # Session tracking
     session_id: Optional[str] = None
     authenticated_at: Optional[datetime] = None
@@ -407,10 +406,8 @@ class StoredSession:
     # Role (can be switched)
     role: str = "user"  # UserRole value
     
-    # Profile
-    email: Optional[str] = None
-    display_name: Optional[str] = None
-    
+    # SSOT PRIVACY: No email or display_name stored.
+
     # Timestamps
     created_at: datetime = field(default_factory=datetime.utcnow)
     expires_at: Optional[datetime] = None
@@ -423,8 +420,6 @@ class StoredSession:
             storage_user_id=self.storage_user_id,
             access_token=self.access_token,
             role=UserRole(self.role),
-            email=self.email,
-            display_name=self.display_name,
             session_id=self.session_id,
             authenticated_at=self.created_at,
         )
@@ -440,8 +435,6 @@ class StoredSession:
             "refresh_token": self.refresh_token,
             "token_expires_at": self.token_expires_at.isoformat() if self.token_expires_at else None,
             "role": self.role,
-            "email": self.email,
-            "display_name": self.display_name,
             "created_at": self.created_at.isoformat(),
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
         }
@@ -458,8 +451,6 @@ class StoredSession:
             refresh_token=data.get("refresh_token"),
             token_expires_at=datetime.fromisoformat(data["token_expires_at"]) if data.get("token_expires_at") else None,
             role=data.get("role", "user"),
-            email=data.get("email"),
-            display_name=data.get("display_name"),
             created_at=datetime.fromisoformat(data["created_at"]),
             expires_at=datetime.fromisoformat(data["expires_at"]) if data.get("expires_at") else None,
         )

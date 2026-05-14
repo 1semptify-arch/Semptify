@@ -621,14 +621,6 @@ async def get_user_from_db(db: AsyncSession, user_id: str) -> Optional[User]:
     return result.scalar_one_or_none()
 
 
-async def get_user_by_email(db: AsyncSession, email: str) -> Optional[User]:
-    """Find user by email for session recovery."""
-    result = await db.execute(
-        select(User).where(User.email == email)
-    )
-    return result.scalar_one_or_none()
-
-
 async def get_user_by_provider_subject(
     db: AsyncSession,
     provider: str,
@@ -665,11 +657,13 @@ async def create_or_update_user(
     db: AsyncSession,
     user_id: str,
     provider: str,
-    email: Optional[str] = None,
-    display_name: Optional[str] = None,
     storage_user_id: Optional[str] = None,
 ) -> User:
-    """Create new user or update existing one."""
+    """Create new user or update existing one.
+
+    SSOT PRIVACY RULE: No email, display_name, or PII is written.
+    User identity is provider + storage_user_id only.
+    """
     # Strip HMAC signature for database operations (User.id is VARCHAR(24))
     db_user_id = user_id.split('.')[0] if '.' in user_id else user_id
     user = await get_user_from_db(db, db_user_id)
@@ -677,24 +671,11 @@ async def create_or_update_user(
     _, role, _ = parse_user_id(user_id)
     now = utc_now()
 
-    if not user and email:
-        # Check for existing user by email (e.g. prior failed attempt with different user_id)
-        result = await db.execute(select(User).where(User.email == email))
-        email_match = result.scalar_one_or_none()
-        if email_match and email_match.id != db_user_id:
-            # Found a row under a different user_id — treat as new user so the
-            # correct user_id (matching the cookie) gets its own DB row.
-            # The old row is kept; a new one is created under the current user_id.
-            email_match = None
-        user = email_match
-
     if user:
         # Update last login
         user.last_login = now
         if storage_user_id and user.storage_user_id != storage_user_id:
             user.storage_user_id = storage_user_id
-        if email and not user.email:
-            user.email = email
     else:
         # Create new user
         user = User(
@@ -702,11 +683,10 @@ async def create_or_update_user(
             primary_provider=provider,
             storage_user_id=storage_user_id or db_user_id,
             default_role=role,
-            email=email,
             last_login=now,
         )
         db.add(user)
-    
+
     await db.commit()
     return user
 
@@ -2432,21 +2412,12 @@ async def _fetch_oauth_identity(provider: str, access_token: str) -> dict:
 
         if provider == "google_drive":
             provider_subject = payload.get("id")
-            email = payload.get("email")
-            display_name = payload.get("name")
         elif provider == "dropbox":
             provider_subject = payload.get("account_id")
-            email = payload.get("email")
-            name_obj = payload.get("name") if isinstance(payload.get("name"), dict) else {}
-            display_name = name_obj.get("display_name") or payload.get("display_name")
         elif provider == "onedrive":
             provider_subject = payload.get("id")
-            email = payload.get("mail") or payload.get("userPrincipalName")
-            display_name = payload.get("displayName")
         else:
             provider_subject = None
-            email = None
-            display_name = None
 
         if not provider_subject:
             raise HTTPException(
@@ -2457,10 +2428,10 @@ async def _fetch_oauth_identity(provider: str, access_token: str) -> dict:
                 },
             )
 
+        # SSOT PRIVACY: Only provider_subject is returned.
+        # Email, name, and all PII remain at the provider; Semptify is stateless.
         return {
             "provider_subject": provider_subject,
-            "email": email,
-            "display_name": display_name,
         }
     except HTTPException:
         raise
