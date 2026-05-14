@@ -3,6 +3,47 @@
 
 ---
 
+## Shipped This Session — 2026-05-13 (9:56 PM UTC-05) — Commit `f381133`
+
+### Session Summary — Static Page Refactor for Core Navigation (5 pages)
+
+#### Static HTML → Route Mapping
+- [x] `/home` → serves `static/home.html` (was `templates/pages/tenant_home.html`)
+- [x] `/library` → serves `static/library.html` (was `templates/pages/library.html`)
+- [x] `/office` → serves `static/office.html` (was `templates/pages/office.html`)
+- [x] `/tools` → serves `static/tools.html` (was `templates/pages/tools.html`)
+- [x] `/help` → serves `static/help.html` (was `templates/pages/help.html`)
+- [x] All 5 static files updated: internal nav links use clean URLs (`/home`, not `/home.html`)
+
+#### SSOT Compliance
+- [x] No hardcoded redirects in the 5 route handlers — uses `_render_static_page()` helper
+- [x] Static files consume navigation via clean URLs matching the navigation registry
+- [x] Onboarding routes untouched and verified working
+
+#### Known Working (Live Verified)
+- `/home` — 200, "Home – Semptify", nav present
+- `/library` — 200, "Library – Semptify", nav present
+- `/office` — 200, "Office – Semptify", nav present
+- `/tools` — 200, "Tools – Semptify", nav present
+- `/help` — 200, "Help – Semptify", nav present
+- `/` — 200, root landing page
+- `/preamble` — 200, onboarding entry
+- `/onboarding/select-role.html` — 200
+- `/public/welcome.html` — 200
+
+#### Pre-existing Issues Found (Not Introduced This Session)
+- `static/office.html` contains dead links to non-existent routes: `/office/vault.html`, `/office/inbox.html`, `/office/timeline.html`, `/office/delivery.html`, `/office/signer.html`, `/tools/generators.html`, `/library/forms.html`
+- `static/tenant/documents.html` has `window.location.href = '/welcome.html'` (may not be a valid route)
+- Some onboarding validation pages still use `.html` extensions in hardcoded JS navigation
+- User explicitly requested NOT to remove any links/routes
+
+#### Pending Next Session
+- Fix dead sub-page routes OR create route stubs for `/office/vault`, `/office/inbox`, `/office/timeline`, etc.
+- Verify full onboarding flow end-to-end on Render (new user → OAuth → vault init → home)
+- Address remaining `.html` extensions in onboarding static pages
+
+---
+
 ## Shipped This Session — 2026-05-12 (10:52 PM UTC-05) — Commit `d956a83`
 
 ### Session Summary — Contract Cleanup + Help Macro Refactor (net -304 lines)
