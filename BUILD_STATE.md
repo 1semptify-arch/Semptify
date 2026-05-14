@@ -3,6 +3,38 @@
 
 ---
 
+## Shipped This Session — 2026-05-14 (8:36 AM UTC-05) — Commit `7a0e461`
+
+### Session Summary — SSOT Privacy Enforcement + Onboarding Redirect Fix
+
+#### PII Removal (Database + Code)
+- [x] `app/models/models.py` — Removed `email` from `User`, removed `email`/`display_name` from `LinkedProvider`
+- [x] `app/routers/storage.py` — `_fetch_oauth_identity` returns only `provider_subject`; `create_or_update_user` writes no PII
+- [x] `app/core/user_context.py` — Removed `email`/`display_name` from `UserContext` and `StoredSession` dataclasses
+- [x] `app/core/security.py` — Deleted orphan `create_session()` function with email param
+- [x] `app/core/manager_dashboard.py` — Replaced all `user.email` with privacy-safe `id[:8]` labels
+- [x] `app/routers/auth.py` — Removed `email` from `UserProfileResponse` and `/me` endpoint
+- [x] `app/routers/invite_codes.py` — Removed `user.email` reference
+
+#### Onboarding Bug Fix
+- [x] `static/onboarding/validation/validate-legal.html` — Fixed `continueToStorage()` redirect from broken `/storage-select.html` to `/onboarding/providers`
+- [x] `static/onboarding/validation/validate-advocate.html` — Same fix
+
+#### Verification
+- [x] All modified files pass `python -m py_compile`
+- [x] `python tests/test_ssot_architecture.py` — all tests passed
+
+#### Known Working
+- OAuth callback flows (both `/storage/callback/` and `/onboarding/callback/`)
+- Vault creation via `init_vault()`
+- Cookie auth (`set_auth_cookie`)
+
+#### Known Pending
+- `app/services/user_service.py` has dead code referencing `User.email` — file is orphaned (no imports)
+- `app/sdk/` and `app/templates/services/` files reference removed fields but are not in active import paths
+
+---
+
 ## Shipped This Session — 2026-05-13 (9:56 PM UTC-05) — Commit `f381133`
 
 ### Session Summary — Static Page Refactor for Core Navigation (5 pages)
