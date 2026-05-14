@@ -579,39 +579,6 @@ def get_session(session_id: str) -> Optional[StoredSession]:
     return session
 
 
-def create_session(
-    user_id: str,
-    provider: str,
-    storage_user_id: str,
-    access_token: str,
-    refresh_token: Optional[str] = None,
-    email: Optional[str] = None,
-    display_name: Optional[str] = None,
-    role: str = "user",
-    ttl_hours: int = 24,
-) -> StoredSession:
-    """Create a new session for an authenticated user."""
-    session_id = secrets.token_urlsafe(32)
-    now = datetime.now(timezone.utc)
-
-    session = StoredSession(
-        session_id=session_id,
-        user_id=user_id,
-        provider=provider,
-        storage_user_id=storage_user_id,
-        access_token=access_token,
-        refresh_token=refresh_token,
-        role=role,
-        email=email,
-        display_name=display_name,
-        created_at=now,
-        expires_at=now + timedelta(hours=ttl_hours),
-    )
-    
-    _store_session(session_id, session)
-    return session
-
-
 def update_session_role(session_id: str, role: str) -> Optional[StoredSession]:
     """Update the role for an existing session."""
     session = _load_session(session_id)
@@ -1517,7 +1484,6 @@ __all__ = [
     # Session management
     "ACTIVE_SESSIONS",
     "get_session",
-    "create_session",
     "update_session_role",
     "update_session_token",
     "invalidate_session",

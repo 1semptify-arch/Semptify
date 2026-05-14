@@ -114,31 +114,29 @@ class UrgencyLevel(enum.Enum):
 class User(Base):
     """
     User account - storage-based authentication.
-    
+
     Identity comes from cloud storage (Google Drive, Dropbox, OneDrive).
     The user_id is derived from provider:storage_user_id hash.
-    
+
     This table stores:
     - Which provider they primarily use (for re-auth)
     - Their preferred role (to restore on return)
-    - Profile info from the storage provider
+
+    SSOT PRIVACY RULE: No PII is stored in Semptify's database.
+    Email, name, and all personal data live only in the user's cloud
+    storage vault, accessed via overlay. Semptify is stateless.
     """
     __tablename__ = "users"
 
     # Primary key: stateless user_id (~66 chars), widened to 128
     id: Mapped[str] = mapped_column(String(128), primary_key=True)
-    
+
     # Storage provider info (to know where to look for token on return)
     primary_provider: Mapped[str] = mapped_column(String(20), index=True)  # google_drive, dropbox, onedrive
     storage_user_id: Mapped[str] = mapped_column(String(100))  # ID in the storage provider
-    
+
     # Role preference (restored on return)
     default_role: Mapped[str] = mapped_column(String(20), default="user")  # user, manager, advocate, legal, admin
-    
-    # Profile (from storage provider — stored as pointers only, not cached PII)
-    # email/display_name/avatar are fetched from the provider at login, never stored here.
-    # Keeping email as nullable index only for admin dedup — must not be used for profiling.
-    email: Mapped[Optional[str]] = mapped_column(String(255), unique=True, nullable=True)
 
     # Intensity Engine (tenant-specific feature)
     intensity_level: Mapped[str] = mapped_column(String(10), default="low")  # low, medium, high
@@ -179,11 +177,10 @@ class LinkedProvider(Base):
     # Provider info
     provider: Mapped[str] = mapped_column(String(20))  # google_drive, dropbox, onedrive
     storage_user_id: Mapped[str] = mapped_column(String(100))  # ID in this provider
-    
-    # Profile from this provider
-    email: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    display_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    
+
+    # SSOT PRIVACY RULE: No email or display_name stored.
+    # Personal data lives only in the user's cloud vault.
+
     # Status
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     
