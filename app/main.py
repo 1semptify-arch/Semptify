@@ -2563,12 +2563,61 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/home", response_class=HTMLResponse)
     async def semptify_home(request: Request):
-        """Serve the Semptify Home — static page (the refactored GUI)."""
-        static_path = BASE_PATH / "static" / "home.html"
-        content = _render_static_page(static_path, inject_stage_model=False)
-        if content:
-            return content
-        return HTMLResponse(content="<h1>Home page not found</h1>", status_code=500)
+        """Serve the Semptify Home — tenant front door."""
+        user_id = extract_user_id(request) or ""
+        user_name = None
+        briefcase = None
+        if user_id:
+            try:
+                briefcase = await _get_tenant_briefcase(user_id)
+                user_name = briefcase.user_name
+            except Exception:  # pylint: disable=broad-exception-caught
+                pass
+
+        ctx = {
+            "user_name": user_name,
+            "next_deadline": None,
+            "document_count": 0,
+            "last_document_date": None,
+            "journal_count": 0,
+            "last_journal_date": None,
+            "recent_activity": [],
+        }
+        if briefcase:
+            ctx["user_name"] = briefcase.user_name
+            ctx["document_count"] = briefcase.vault.total_documents if briefcase.vault else 0
+            ctx["journal_count"] = briefcase.journal.total_entries if briefcase.journal else 0
+            if briefcase.timeline and briefcase.timeline.next_deadline:
+                ctx["next_deadline"] = {
+                    "title": briefcase.timeline.next_deadline.title,
+                    "date": briefcase.timeline.next_deadline.date,
+                    "days_remaining": briefcase.timeline.next_deadline.days_until,
+                }
+            activity = []
+            if briefcase.vault and briefcase.vault.documents:
+                for doc in briefcase.vault.documents[:3]:
+                    activity.append({
+                        "icon": "📄",
+                        "description": f"Document: {doc.get('title', 'Uploaded')}",
+                        "time_ago": doc.get("uploaded_at", "Recently"),
+                    })
+            if briefcase.journal and briefcase.journal.recent_entries:
+                for entry in briefcase.journal.recent_entries[:3]:
+                    activity.append({
+                        "icon": entry.icon or "📝",
+                        "description": entry.description,
+                        "time_ago": entry.created_at,
+                    })
+            if briefcase.timeline and briefcase.timeline.recent_events:
+                for event in briefcase.timeline.recent_events[:3]:
+                    activity.append({
+                        "icon": event.icon or "📅",
+                        "description": event.title,
+                        "time_ago": event.date or "Recently",
+                    })
+            ctx["recent_activity"] = activity[:5]
+
+        return templates.TemplateResponse(request, "pages/tenant_home.html", ctx)
 
     # ------------------------------------------------------------------
     # Main Navigation Routes (SSOT) — /office, /library, /tools, /help
@@ -2577,39 +2626,23 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/office", response_class=HTMLResponse)
     async def office_page(request: Request):
-        """Serve the Office — static page (the refactored GUI)."""
-        static_path = BASE_PATH / "static" / "office.html"
-        content = _render_static_page(static_path, inject_stage_model=False)
-        if content:
-            return content
-        return HTMLResponse(content="<h1>Office page not found</h1>", status_code=500)
+        """Serve the Office — case management center."""
+        return templates.TemplateResponse(request, "pages/office.html")
 
     @fastapi_app.get("/library", response_class=HTMLResponse)
     async def library_page(request: Request):
-        """Serve the Library — static page (the refactored GUI)."""
-        static_path = BASE_PATH / "static" / "library.html"
-        content = _render_static_page(static_path, inject_stage_model=False)
-        if content:
-            return content
-        return HTMLResponse(content="<h1>Library page not found</h1>", status_code=500)
+        """Serve the Library — legal resources and guides."""
+        return templates.TemplateResponse(request, "pages/library.html")
 
     @fastapi_app.get("/tools", response_class=HTMLResponse)
     async def tools_page(request: Request):
-        """Serve Tools — static page (the refactored GUI)."""
-        static_path = BASE_PATH / "static" / "tools.html"
-        content = _render_static_page(static_path, inject_stage_model=False)
-        if content:
-            return content
-        return HTMLResponse(content="<h1>Tools page not found</h1>", status_code=500)
+        """Serve Tools — document generators and case utilities."""
+        return templates.TemplateResponse(request, "pages/tools.html")
 
     @fastapi_app.get("/help", response_class=HTMLResponse)
     async def help_page(request: Request):
-        """Serve Help — static page (the refactored GUI)."""
-        static_path = BASE_PATH / "static" / "help.html"
-        content = _render_static_page(static_path, inject_stage_model=False)
-        if content:
-            return content
-        return HTMLResponse(content="<h1>Help page not found</h1>", status_code=500)
+        """Serve Help — support, resources, and emergency contacts."""
+        return templates.TemplateResponse(request, "pages/help.html")
 
     @fastapi_app.get("/auto-mode", response_class=HTMLResponse)
     async def auto_mode_panel(request: Request):

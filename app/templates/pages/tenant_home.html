@@ -1,15 +1,10 @@
 {% extends "base.html" %}
+{% from "components/ui_macros.html" import nav_bar %}
 
 {% block title %}My Home - Semptify{% endblock %}
 {% block description %}Your safe space to organize your housing situation and protect your rights.{% endblock %}
 
-{% block nav %}
-<a href="/home" class="active">🏠 Home</a>
-<a href="/library">📚 Library</a>
-<a href="/office">🏢 Office</a>
-<a href="/tools">🔧 Tools</a>
-<a href="/help">🆘 Help</a>
-{% endblock %}
+{% block nav %}{{ nav_bar("home") }}{% endblock %}
 
 {% block styles %}
 <style>
