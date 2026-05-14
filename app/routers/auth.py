@@ -34,10 +34,13 @@ class AuthInfoResponse(BaseModel):
 
 
 class UserProfileResponse(BaseModel):
-    """Current user profile."""
+    """Current user profile.
+
+    SSOT PRIVACY: No email or display_name returned.
+    User PII lives only in their cloud vault.
+    """
     user_id: str
     provider: str
-    email: str | None = None
     authenticated_at: str | None = None
 
 
@@ -103,7 +106,6 @@ async def get_current_user_profile(
     return UserProfileResponse(
         user_id=user.user_id,
         provider=user.provider,
-        email=user.email,
         authenticated_at=user.authenticated_at.isoformat() if user.authenticated_at else None,
     )
 
