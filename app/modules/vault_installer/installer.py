@@ -82,7 +82,10 @@ class VaultInstaller:
             # Step 3: Create data files
             await self._create_data_files(results)
             
-            # Step 4: Verify installation
+            # Step 4: Create encrypted token backup and device keys
+            await self._create_token_backup(results)
+            
+            # Step 5: Verify installation
             verification = await self._verify_installation()
             if not verification["ok"]:
                 results["errors"].append(f"Verification failed: {verification['message']}")
@@ -155,19 +158,95 @@ class VaultInstaller:
                 results["errors"].append(f"Failed to create {file_path}: {str(e)}")
 
     async def _verify_installation(self) -> Dict:
-        """Verify the vault was installed correctly."""
+        """Comprehensive system test - proves the vault is fully operational."""
         try:
-            # Check root folder exists
-            root_files = await self.storage.list_files(SEMPTIFY_ROOT)
-            if not root_files:
-                return {"ok": False, "message": "Root folder not accessible"}
+            import secrets as _secrets
+            details = []
             
-            # Check manifest exists
-            manifest_files = await self.storage.list_files(VAULT_FOLDER)
-            if "manifest.json" not in [f.get("name", "") for f in manifest_files]:
-                return {"ok": False, "message": "Manifest file missing"}
+            # 1. Check all folders are accessible
+            for folder_path in self.vault_structure.keys():
+                try:
+                    files = await self.storage.list_files(folder_path)
+                    details.append(f"folder_access: {folder_path} OK")
+                except Exception as exc:
+                    return {
+                        "ok": False,
+                        "message": f"Folder not accessible: {folder_path}",
+                        "details": details,
+                    }
             
-            return {"ok": True, "message": "Installation verified"}
+            # 2. Write test
+            test_filename = f"_system_test_{_secrets.token_hex(4)}.txt"
+            test_content = f"Semptify vault system test | user={self.user_id} | ts={utc_now().isoformat()}".encode()
+            try:
+                await self.storage.upload_file(
+                    file_content=test_content,
+                    destination_path=VAULT_DOCUMENTS,
+                    filename=test_filename,
+                    mime_type="text/plain",
+                )
+                details.append(f"write_test: uploaded {test_filename}")
+            except Exception as exc:
+                return {
+                    "ok": False,
+                    "message": f"Write test failed: {exc}",
+                    "details": details,
+                }
+            
+            # 3. Read test
+            try:
+                read_back = await self.storage.download_file(f"{VAULT_DOCUMENTS}/{test_filename}")
+                if read_back != test_content:
+                    raise ValueError("Content mismatch")
+                details.append("read_test: content verified")
+            except Exception as exc:
+                return {
+                    "ok": False,
+                    "message": f"Read test failed: {exc}",
+                    "details": details,
+                }
+            
+            # 4. Delete test
+            try:
+                await self.storage.delete_file(VAULT_DOCUMENTS, test_filename)
+                details.append("delete_test: cleaned up")
+            except Exception as exc:
+                return {
+                    "ok": False,
+                    "message": f"Delete test failed: {exc}",
+                    "details": details,
+                }
+            
+            # 5. System file integrity
+            system_files = {
+                f"{SEMPTIFY_ROOT}/README.txt": "README",
+                f"{VAULT_FOLDER}/manifest.json": "manifest",
+                f"{VAULT_TIMELINE}/{VAULT_TIMELINE_EVENTS_FILENAME}": "timeline_events",
+                f"{VAULT_OVERLAYS}/registry.json": "overlay_registry",
+                f"{AUTH_FOLDER}/token.enc": "encrypted_token",
+                f"{AUTH_FOLDER}/device_keys.json": "device_keys",
+            }
+            
+            for file_path, desc in system_files.items():
+                try:
+                    folder, filename = file_path.rsplit("/", 1)
+                    files = await self.storage.list_files(folder)
+                    if filename not in [f.get("name", "") for f in files]:
+                        raise ValueError(f"{desc} file missing")
+                    details.append(f"integrity_check: {desc} OK")
+                except Exception as exc:
+                    return {
+                        "ok": False,
+                        "message": f"System file check failed ({desc}): {exc}",
+                        "details": details,
+                    }
+            
+            return {
+                "ok": True,
+                "message": "Vault fully operational - all tests passed",
+                "details": details,
+            }
+            
         except Exception as e:
             return {"ok": False, "message": f"Verification error: {str(e)}"}
 
@@ -249,6 +328,67 @@ Generated by Semptify Vault Installer v1.0
                 "available_types": ["evidence", "legal", "timeline"],
             },
         }
+
+    async def _create_token_backup(self, results: Dict):
+        """Create encrypted token backup and device keys."""
+        try:
+            from app.services.storage.vault_manager import (
+                MasterToken,
+                encrypt_token,
+                decrypt_token,
+            )
+            from app.core.vault_paths import TOKEN_FILE
+            import secrets as _secrets
+
+            # Build master token with current OAuth credentials
+            token = MasterToken(
+                token_id=_secrets.token_urlsafe(32),
+                user_id=self.user_id,
+                created_at=utc_now().isoformat(),
+                provider=self.provider_name,
+                access_token=self.access_token,
+            )
+
+            encrypted = encrypt_token(token, self.user_id)
+
+            # Write primary + backup
+            await self.storage.upload_file(
+                file_content=encrypted,
+                destination_path=AUTH_FOLDER,
+                filename="token.enc",
+                mime_type="application/octet-stream",
+            )
+            results["files_created"].append(f"{AUTH_FOLDER}/token.enc")
+            
+            await self.storage.upload_file(
+                file_content=encrypted,
+                destination_path=AUTH_FOLDER,
+                filename="token.enc.backup",
+                mime_type="application/octet-stream",
+            )
+            results["files_created"].append(f"{AUTH_FOLDER}/token.enc.backup")
+
+            # Verify the primary can be read back and decrypted
+            read_back = await self.storage.download_file(TOKEN_FILE)
+            decrypted = decrypt_token(read_back, self.user_id)
+            if decrypted.user_id != self.user_id:
+                raise ValueError("Token backup read-back: user_id mismatch after decrypt")
+
+            # Initialize empty device keys
+            device_keys = {"devices": [], "created_at": utc_now().isoformat()}
+            await self.storage.upload_file(
+                file_content=json.dumps(device_keys, indent=2).encode(),
+                destination_path=AUTH_FOLDER,
+                filename="device_keys.json",
+                mime_type="application/json",
+            )
+            results["files_created"].append(f"{AUTH_FOLDER}/device_keys.json")
+
+            logger.info("Encrypted token backup stored for user %s", self.user_id[:6] + "***")
+            
+        except Exception as e:
+            results["errors"].append(f"Token backup failed: {str(e)}")
+            raise
 
 
 async def install_vault_for_user(
