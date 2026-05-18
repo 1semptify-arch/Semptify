@@ -3,6 +3,25 @@
 
 ---
 
+## Shipped This Session — 2026-05-18 (3:59 AM UTC-05) — Commit `aa52236`
+
+### Session Summary — Fix Vault Verification + Vault-Setup JS Gate
+
+#### Problem
+- `verify_vault_folders()` was failing because `documents/` and `certificates/` are empty after init. `list_files()` correctly returns `[]` for empty folders, but the old code treated `[]` as "not found" and returned `False`.
+- `vault-setup` page JS only threw an error if BOTH `accessible === false` AND `ok === false`. Since `vault_verify` returns `ok: True` on exception-less failure, unverified vaults were passing and redirecting users home.
+
+#### Files Fixed
+- [x] `app/modules/onboarding/vault.py` — `verify_vault_folders()` now accepts empty folders. Only fails if `list_files()` throws (folder inaccessible).
+- [x] `app/modules/onboarding/router.py` — JS vault-setup now fails if `!accessible || !ok` (was `&&`).
+
+#### Result
+- All Python files compile clean
+- Vault init + verify now correctly allows empty new folders
+- Vault-setup page blocks navigation if verification actually fails
+
+---
+
 ## Shipped This Session — 2026-05-18 (2:46 AM UTC-05) — Commit `a7140ba`
 
 ### Session Summary — Fix Circular Import from Migrated Storage Router
