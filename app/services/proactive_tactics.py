@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional, List, Dict, Any
 import logging
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -160,7 +161,7 @@ class ProactiveTacticsEngine:
         """
         Auto-flag rent escrow when 3+ habitability tags within 30 days.
         """
-        cutoff = datetime.now() - timedelta(days=self.HABITABILITY_WINDOW_DAYS)
+        cutoff = utc_now() - timedelta(days=self.HABITABILITY_WINDOW_DAYS)
         
         # Count habitability-related events in window
         habitability_events = []
@@ -302,8 +303,8 @@ class ProactiveTacticsEngine:
         reasons = []
         evidence = []
         
-        if pending_inspection and pending_inspection > datetime.now():
-            days_until = (pending_inspection - datetime.now()).days
+        if pending_inspection and pending_inspection > utc_now():
+            days_until = (pending_inspection - utc_now()).days
             if days_until <= 7:
                 reasons.append(f"Inspection scheduled in {days_until} days - need objective report")
                 evidence.append("Scheduled inspection confirmation")
@@ -499,7 +500,7 @@ class ProactiveTacticsEngine:
         """
         Generate pre-hearing tactical timeline.
         """
-        now = datetime.now()
+        now = utc_now()
         days_until = (hearing_date - now).days
         
         actions = [

@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field
 
 from app.core.config import get_settings
 from app.core.security import require_user, rate_limit_dependency, StorageUser
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -98,11 +99,11 @@ async def run_crawler_tool(fix_issues: bool = False, verbose: bool = False, targ
         )
         
         # Run crawl
-        start_time = datetime.now()
+        start_time = utc_now()
         results = await asyncio.get_event_loop().run_in_executor(
             None, crawler.crawl, fix_issues
         )
-        end_time = datetime.now()
+        end_time = utc_now()
         
         # Generate report
         report_id = f"crawl_{int(start_time.timestamp())}"
@@ -255,7 +256,7 @@ async def run_analysis(
             success=True,
             analysis_type=request.analysis_type,
             results=results,
-            timestamp=datetime.now().isoformat(),
+            timestamp=utc_now().isoformat(),
         )
         
     except HTTPException:
@@ -343,7 +344,7 @@ async def get_dev_metrics(
             "crawl_statistics": crawl_stats,
             "available_tools": get_available_tools(),
             "system_info": get_system_info(),
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": utc_now().isoformat(),
         }
         
     except Exception as e:

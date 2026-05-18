@@ -224,6 +224,7 @@ __all__ = [
 ROUTER_TEMPLATE = '''
 from fastapi import APIRouter, Cookie, HTTPException
 from pydantic import BaseModel
+from app.core.utc import utc_now
 
 router = APIRouter()
 
@@ -280,7 +281,7 @@ def generate_module(
         module_name=module_name,
         display_name=display_name,
         description=description,
-        timestamp=datetime.now().isoformat(),
+        timestamp=utc_now().isoformat(),
         category=category.upper(),
         has_ui=str(has_ui),
         has_background_tasks=str(has_background_tasks),

@@ -12,6 +12,7 @@ import logging
 
 from app.core.user_context import UserContext
 from app.core.security import get_current_user
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +69,7 @@ async def save_intake(
             available_documents=intake.get('documents', []),
             desired_outcome=intake.get('goals'),
             additional_info=intake.get('additionalInfo'),
-            completed_at=data.completed_at or datetime.now().isoformat()
+            completed_at=data.completed_at or utc_now().isoformat()
         )
         
         # Get user ID (from cookie if not authenticated)

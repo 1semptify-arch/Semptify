@@ -26,6 +26,7 @@ from typing import List, Dict, Any, Optional, Tuple, Set
 from enum import Enum
 
 from .models import (
+from app.core.utc import utc_now
     LegalIssue, IssueSeverity, DocumentType, DocumentCategory,
     ExtractedEntity, EntityType, PartyRole,
     ReasoningChain, ReasoningStep, ReasoningType,
@@ -569,7 +570,7 @@ class MinnesotaTenantLawExpert:
         # Step 5: Calculate urgency and deadlines
         await self._calculate_urgency(issues, timeline, reasoning)
         
-        reasoning.completed_at = datetime.now()
+        reasoning.completed_at = utc_now()
         reasoning.conclusion = f"Found {len(issues)} legal issues, {len(defense_options)} potential defenses"
         reasoning.new_findings = [issue.title for issue in issues[:5]]
         

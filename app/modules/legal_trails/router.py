@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime, date
 from enum import Enum
+from app.core.utc import utc_now
 
 router = APIRouter(prefix="/legal-trails", tags=["Legal Trails"])
 
@@ -235,7 +236,7 @@ async def add_violation(violation: Violation):
     """Log a new violation"""
     from app.core.id_gen import make_id
     violation.id = make_id("vio")
-    violation.created_at = datetime.now()
+    violation.created_at = utc_now()
     violations_db[violation.id] = violation.dict()
     return {
         "message": "Violation logged",
@@ -273,7 +274,7 @@ async def add_eviction_threat(threat: EvictionThreat):
     """Log an eviction threat"""
     from app.core.id_gen import make_id
     threat.id = make_id("thr")
-    threat.created_at = datetime.now()
+    threat.created_at = utc_now()
     eviction_threats_db[threat.id] = threat.dict()
     return {
         "message": "Eviction threat logged",
@@ -300,7 +301,7 @@ async def add_late_fee_violation(fee: LateFeeViolation):
     """Log a late fee violation"""
     from app.core.id_gen import make_id
     fee.id = make_id("fee")
-    fee.created_at = datetime.now()
+    fee.created_at = utc_now()
     
     # Calculate legal max (8% of rent per MN 504B.177)
     fee.legal_max_fee = round(fee.rent_amount * 0.08, 2)
@@ -405,7 +406,7 @@ async def create_legal_claim(claim: LegalClaim):
     """Create a formal legal claim"""
     from app.core.id_gen import make_id
     claim.id = make_id("clm")
-    claim.created_at = datetime.now()
+    claim.created_at = utc_now()
     legal_claims_db[claim.id] = claim.dict()
     return {
         "message": "Legal claim created",

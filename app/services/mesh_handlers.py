@@ -25,6 +25,7 @@ from app.core.mesh_network import (
     mesh_contributor
 )
 from app.core.mesh_integration import service_mesh
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +134,7 @@ def register_all_mesh_handlers():
     @mesh_handler("calendar", "get_case_summary")
     async def calendar_get_case_summary(payload: dict) -> dict:
         """Get calendar-based case info."""
-        today = datetime.now()
+        today = utc_now()
         return {
             "upcoming_deadlines": [
                 {
@@ -156,7 +157,7 @@ def register_all_mesh_handlers():
     @mesh_handler("calendar", "get_deadlines")
     async def calendar_get_deadlines(payload: dict) -> dict:
         """Get all deadlines."""
-        today = datetime.now()
+        today = utc_now()
         return {
             "calendar_deadlines": [
                 {"name": "Answer Due", "date": (today + timedelta(days=5)).strftime("%Y-%m-%d"), "critical": True},
@@ -168,7 +169,7 @@ def register_all_mesh_handlers():
     @mesh_handler("calendar", "calculate_dates")
     async def calendar_calculate_dates(payload: dict) -> dict:
         """Calculate important dates."""
-        base_date = payload.get("base_date", datetime.now().strftime("%Y-%m-%d"))
+        base_date = payload.get("base_date", utc_now().strftime("%Y-%m-%d"))
         return {
             "calculated_dates": {
                 "answer_deadline": "2025-12-09",
@@ -180,7 +181,7 @@ def register_all_mesh_handlers():
     @mesh_contributor("calendar")
     async def calendar_contribute(context: dict, goal: str) -> dict:
         """Contribute deadline info to collaborative request."""
-        today = datetime.now()
+        today = utc_now()
         if goal == "build_defense":
             return {
                 "critical_deadlines": {
@@ -854,7 +855,7 @@ def register_all_mesh_handlers():
                 "statutes_violated": payload.get("statutes_violated", []),
                 "evidence_ids": payload.get("evidence_ids", []),
                 "witnesses": payload.get("witnesses", []),
-                "created_at": datetime.now().isoformat()
+                "created_at": utc_now().isoformat()
             }
             violations_db[violation_id] = violation_data
             return {"success": True, "violation_id": violation_id}

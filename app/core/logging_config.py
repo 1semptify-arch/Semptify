@@ -10,6 +10,7 @@ import sys
 import json
 from datetime import datetime, timezone
 from typing import Any
+from app.core.utc import utc_now
 
 
 class JSONFormatter(logging.Formatter):
@@ -82,7 +83,7 @@ class ColoredFormatter(logging.Formatter):
         color = self.COLORS.get(record.levelname, "")
         
         # Format timestamp
-        timestamp = datetime.now().strftime("%H:%M:%S")
+        timestamp = utc_now().strftime("%H:%M:%S")
         
         # Build log message
         level_str = f"{color}{record.levelname:8}{self.RESET}"

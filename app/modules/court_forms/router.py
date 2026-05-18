@@ -22,6 +22,7 @@ from app.core.security import require_user, StorageUser
 from .service import form_generator
 from app.core.event_bus import event_bus, EventType as BusEventType
 from app.core.document_hub import get_document_hub
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -317,11 +318,11 @@ async def download_form_pdf(
     # Determine content type
     if isinstance(content, bytes):
         media_type = "application/pdf"
-        filename = f"{form_type}_{datetime.now().strftime('%Y%m%d')}.pdf"
+        filename = f"{form_type}_{utc_now().strftime('%Y%m%d')}.pdf"
     else:
         # Fallback to HTML
         media_type = "text/html"
-        filename = f"{form_type}_{datetime.now().strftime('%Y%m%d')}.html"
+        filename = f"{form_type}_{utc_now().strftime('%Y%m%d')}.html"
         content = content.encode('utf-8')
     
     return Response(

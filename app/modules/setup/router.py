@@ -14,6 +14,7 @@ from app.core.security import require_user, StorageUser
 from app.core.database import get_db_session
 from app.models.models import User, Document
 from sqlalchemy import select, update
+from app.core.utc import utc_now
 
 
 router = APIRouter()
@@ -180,7 +181,7 @@ async def skip_setup():
     os.makedirs(os.path.dirname(marker_path), exist_ok=True)
     
     with open(marker_path, "w") as f:
-        f.write(f"Setup skipped at {datetime.now().isoformat()}")
+        f.write(f"Setup skipped at {utc_now().isoformat()}")
     
     return {
         "status": "skipped",
@@ -620,7 +621,7 @@ async def complete_setup(
     marker_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", ".setup_complete")
     os.makedirs(os.path.dirname(marker_path), exist_ok=True)
     with open(marker_path, "w") as f:
-        f.write(f"Setup completed by user {user.user_id} at {datetime.now().isoformat()}")
+        f.write(f"Setup completed by user {user.user_id} at {utc_now().isoformat()}")
 
     return {
         "status": "complete",

@@ -23,6 +23,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 from datetime import datetime
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -257,7 +258,7 @@ class FastAPIGenerator:
 
 Auto-converted from Flask to FastAPI Semptify Module
 Original Flask app: {self.analysis.app_name}
-Converted: {datetime.now().isoformat()}
+Converted: {utc_now().isoformat()}
 
 This module integrates with the Semptify Positronic Mesh.
 """'''

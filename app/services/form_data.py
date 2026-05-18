@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db_session
 from app.core.event_bus import event_bus, EventType
 from app.models.models import Document, TimelineEvent, CalendarEvent
+from app.core.utc import utc_now
 
 
 class CaseStage(str, Enum):
@@ -282,13 +283,13 @@ class FormDataService:
         
         if case.hearing_date:
             hearing = datetime.fromisoformat(case.hearing_date)
-            if hearing < datetime.now():
+            if hearing < utc_now():
                 case.stage = CaseStage.HEARING_COMPLETE
             else:
                 case.stage = CaseStage.HEARING_SCHEDULED
         elif case.answer_deadline:
             deadline = datetime.fromisoformat(case.answer_deadline)
-            if deadline < datetime.now():
+            if deadline < utc_now():
                 case.stage = CaseStage.ANSWER_FILED  # Assume filed if past
             else:
                 case.stage = CaseStage.ANSWER_DUE
@@ -381,7 +382,7 @@ class FormDataService:
             "plaintiff_name": case.landlord.name,
             "defendant_name": case.tenant.name,
             "property_address": case.property_address,
-            "filing_date": datetime.now().strftime("%Y-%m-%d"),
+            "filing_date": utc_now().strftime("%Y-%m-%d"),
         }
         
         if motion_type == "continuance":
@@ -431,7 +432,7 @@ class FormDataService:
         if case.hearing_date:
             try:
                 hearing = datetime.fromisoformat(case.hearing_date)
-                days_to_hearing = (hearing - datetime.now()).days
+                days_to_hearing = (hearing - utc_now()).days
             except:
                 pass
         
