@@ -3,7 +3,7 @@
 
 ---
 
-## Shipped This Session — 2026-05-18 (3:59 AM UTC-05) — Commit `aa52236`
+## Shipped This Session — 2026-05-18 (3:59 AM UTC-05) — Commit `fced91f`
 
 ### Session Summary — Fix Vault Verification + Vault-Setup JS Gate
 
