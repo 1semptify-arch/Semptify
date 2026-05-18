@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.storage import get_provider
 from app.modules.onboarding.config import OnboardingConfig
 from app.modules.onboarding.gates import mark_gate, check_gate
-from app.utils.utc_now import utc_now
+from app.core.utc import utc_now
 from app.core.vault_paths import (
     SEMPTIFY_ROOT,
     VAULT_FOLDER,
