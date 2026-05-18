@@ -216,11 +216,11 @@ class DropboxProvider(StorageProvider):
     async def create_folder(self, folder_path: str) -> bool:
         """Create folder in Dropbox."""
         full_path = self._normalize_path(folder_path)
-        
+
         # Check if already exists
         if await self.file_exists(folder_path):
             return True
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{self.API_URL}/files/create_folder_v2",
@@ -228,6 +228,17 @@ class DropboxProvider(StorageProvider):
                 json={"path": full_path, "autorename": False},
                 timeout=10.0,
             )
-            
-            # 409 means folder already exists (race condition), which is fine
-            return response.status_code in (200, 409)
+
+            if response.status_code == 200:
+                return True
+
+            if response.status_code == 409:
+                data = response.json()
+                error_tag = data.get("error", {}).get(".tag", "")
+                # 409 "folder_name_exists" means already there (race condition) — OK
+                if error_tag == "folder_name_exists":
+                    return True
+                # Any other 409 (path_lookup, path, etc.) is a real failure
+                raise Exception(f"Dropbox folder creation failed for {full_path}: {error_tag}")
+
+            raise Exception(f"Dropbox folder creation failed for {full_path}: HTTP {response.status_code}")
