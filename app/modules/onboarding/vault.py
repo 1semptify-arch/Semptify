@@ -19,7 +19,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.storage import get_provider
 from app.modules.onboarding.config import OnboardingConfig
 from app.modules.onboarding.gates import mark_gate, check_gate
-from app.core.vault_paths import SEMPTIFY_ROOT, VAULT_FOLDER, AUTH_FOLDER
+from app.core.vault_paths import (
+    SEMPTIFY_ROOT,
+    VAULT_FOLDER,
+    AUTH_FOLDER,
+    VAULT_DOCUMENTS,
+    VAULT_TIMELINE,
+    VAULT_TIMELINE_EVENTS_FILENAME,
+    VAULT_OVERLAYS,
+    VAULT_OVERLAY_REGISTRY,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -143,6 +152,53 @@ async def _place_system_files(
     return placed
 
 
+async def _initialize_vault_data_files(
+    provider_name: str,
+    access_token: str,
+    user_id: str,
+) -> List[dict]:
+    """
+    Initialize empty data files that Semptify products expect:
+      - timeline/events.json          → empty array (event log)
+      - overlays/registry.json        → empty object (overlay index)
+
+    These are created once during onboarding so downstream code
+    never has to handle "file does not exist" race conditions.
+    """
+    storage = get_provider(provider_name, access_token=access_token)
+    placed = []
+
+    # --- timeline/events.json ---
+    events_data = {"events": [], "version": "1.0", "created_by": user_id}
+    await storage.upload_file(
+        file_content=json.dumps(events_data, indent=2).encode(),
+        destination_path=VAULT_TIMELINE,
+        filename=VAULT_TIMELINE_EVENTS_FILENAME,
+        mime_type="application/json",
+    )
+    placed.append({"type": "data_file", "path": f"{VAULT_TIMELINE}/{VAULT_TIMELINE_EVENTS_FILENAME}"})
+
+    # --- overlays/registry.json ---
+    registry_data = {
+        "version": "1.0",
+        "created_by": user_id,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "overlays": {},
+    }
+    await storage.upload_file(
+        file_content=json.dumps(registry_data, indent=2).encode(),
+        destination_path=VAULT_OVERLAYS,
+        filename="registry.json",
+        mime_type="application/json",
+    )
+    placed.append({"type": "data_file", "path": f"{VAULT_OVERLAY_REGISTRY}"})
+
+    logger.info(
+        "Initialized %d vault data files for user %s", len(placed), user_id[:6] + "***"
+    )
+    return placed
+
+
 # ---------------------------------------------------------------------------
 # Encrypted token backup
 # ---------------------------------------------------------------------------
@@ -224,31 +280,102 @@ async def _verify_system_check(
     provider_name: str,
     access_token: str,
     user_id: str,
-) -> bool:
+    config: OnboardingConfig,
+) -> dict:
     """
-    Read back the vault manifest and confirm the content is valid.
-    This proves the provider accepted the write AND the data is retrievable.
-    """
-    storage = get_provider(provider_name, access_token=access_token)
-    manifest_path = f"{VAULT_FOLDER}/manifest.json"
+    Comprehensive system test — proves the vault is fully operational:
 
+    1. Folder accessibility: list_files() on every vault folder
+    2. Write test: upload a temporary file to the documents folder
+    3. Read test: download the temporary file back
+    4. Delete test: remove the temporary file
+    5. System file integrity: manifest.json, events.json, registry.json
+
+    Returns {"ok": bool, "message": str, "details": list}.
+    """
+    import secrets as _secrets
+
+    storage = get_provider(provider_name, access_token=access_token)
+    details = []
+
+    # --- 1. Folder accessibility ---
+    for folder_path in config.vault_folders:
+        try:
+            await storage.list_files(folder_path)
+            details.append(f"folder_accessible: {folder_path}")
+        except Exception as exc:
+            logger.error("Folder access failed for %s: %s", folder_path, exc)
+            return {
+                "ok": False,
+                "message": f"Folder not accessible: {folder_path}",
+                "details": details,
+            }
+
+    # --- 2. Write test ---
+    test_filename = f"_system_test_{_secrets.token_hex(4)}.txt"
+    test_content = f"Semptify vault system test | user={user_id} | ts={datetime.now(timezone.utc).isoformat()}".encode()
     try:
-        content = await storage.download_file(manifest_path)
-        data = json.loads(content.decode())
-        if data.get("user_id") != user_id:
-            logger.error(
-                "Vault manifest read-back: user_id mismatch (expected %s, got %s)",
-                user_id[:6] + "***", str(data.get("user_id", ""))[:6] + "***",
-            )
-            return False
-        if data.get("vault_status") != "active":
-            logger.error("Vault manifest read-back: vault_status is not 'active'")
-            return False
-        logger.info("Vault manifest read-back verified for user %s", user_id[:6] + "***")
-        return True
+        await storage.upload_file(
+            file_content=test_content,
+            destination_path=VAULT_DOCUMENTS,
+            filename=test_filename,
+            mime_type="text/plain",
+        )
+        details.append(f"write_test: uploaded {test_filename}")
     except Exception as exc:
-        logger.error("Vault manifest read-back failed for user %s: %s", user_id[:6] + "***", exc)
-        return False
+        logger.error("Write test failed for user %s: %s", user_id[:6] + "***", exc)
+        return {"ok": False, "message": f"Write test failed: {exc}", "details": details}
+
+    # --- 3. Read test ---
+    try:
+        read_back = await storage.download_file(f"{VAULT_DOCUMENTS}/{test_filename}")
+        if read_back != test_content:
+            return {
+                "ok": False,
+                "message": "Read-back content mismatch",
+                "details": details,
+            }
+        details.append("read_test: content matches")
+    except Exception as exc:
+        logger.error("Read test failed for user %s: %s", user_id[:6] + "***", exc)
+        return {"ok": False, "message": f"Read test failed: {exc}", "details": details}
+
+    # --- 4. Delete test ---
+    try:
+        await storage.delete_file(f"{VAULT_DOCUMENTS}/{test_filename}")
+        details.append("delete_test: cleanup succeeded")
+    except Exception as exc:
+        # Non-fatal: some providers don't support delete, but we log it
+        logger.warning("Delete test failed for user %s: %s", user_id[:6] + "***", exc)
+        details.append(f"delete_test: skipped ({exc})")
+
+    # --- 5. System file integrity ---
+    critical_files = [
+        (f"{VAULT_FOLDER}/manifest.json", "vault_manifest"),
+        (f"{VAULT_TIMELINE}/{VAULT_TIMELINE_EVENTS_FILENAME}", "timeline_events"),
+        (VAULT_OVERLAY_REGISTRY, "overlay_registry"),
+    ]
+    for file_path, label in critical_files:
+        try:
+            content = await storage.download_file(file_path)
+            data = json.loads(content.decode())
+            if data.get("user_id") and data.get("user_id") != user_id:
+                return {
+                    "ok": False,
+                    "message": f"{label} user_id mismatch",
+                    "details": details,
+                }
+            details.append(f"integrity_check: {label} OK")
+        except Exception as exc:
+            logger.error("Integrity check failed for %s: %s", label, exc)
+            return {
+                "ok": False,
+                "message": f"System file missing or corrupt: {label}",
+                "details": details,
+            }
+
+    logger.info("Vault system test passed for user %s", user_id[:6] + "***")
+    return {"ok": True, "message": "Vault fully operational", "details": details}
 
 
 # ---------------------------------------------------------------------------
@@ -304,7 +431,14 @@ async def init_vault(
         logger.error("System file provisioning failed for user %s: %s", user_id[:6] + "***", exc)
         return {"ok": False, "message": f"System file provisioning failed: {exc}"}
 
-    # 3. Encrypted token backup (non-fatal — vault works without it)
+    # 3. Initialize vault data files (timeline events, overlay registry)
+    try:
+        await _initialize_vault_data_files(provider_name, access_token, user_id)
+    except Exception as exc:
+        logger.error("Vault data file initialization failed for user %s: %s", user_id[:6] + "***", exc)
+        return {"ok": False, "message": f"Data file initialization failed: {exc}"}
+
+    # 4. Encrypted token backup (non-fatal — vault works without it)
     try:
         await _store_encrypted_token_backup(provider_name, access_token, user_id)
     except Exception as exc:
@@ -313,15 +447,19 @@ async def init_vault(
             user_id[:6] + "***", exc,
         )
 
-    # 4. Read-back verification
-    verified = await _verify_system_check(provider_name, access_token, user_id)
-    if not verified:
-        return {"ok": False, "message": "Vault write+read verification failed — storage may not be accepting writes"}
+    # 5. Comprehensive system test (write + read + delete + integrity)
+    test_result = await _verify_system_check(provider_name, access_token, user_id, config)
+    if not test_result["ok"]:
+        return {"ok": False, "message": test_result["message"]}
 
-    # 5. Mark gate — vault creation IS activation
+    # 6. Mark gate — vault creation IS activation
     await mark_gate(db, user_id, "vault_initialized")
 
-    return {"ok": True, "message": "Vault created, provisioned, and verified"}
+    return {
+        "ok": True,
+        "message": "Vault created, provisioned, and verified",
+        "details": test_result.get("details", []),
+    }
 
 
 async def verify_vault(
@@ -332,11 +470,22 @@ async def verify_vault(
 ) -> dict:
     """
     Verify vault is accessible. Called by the vault-setup page after init.
-    Returns: {"ok": True/False, "accessible": bool}
+    Runs the full system test if vault has been initialized.
+    Returns: {"ok": True/False, "accessible": bool, "details": list}
     """
     try:
+        # Quick folder check first
         accessible = await verify_vault_folders(provider_name, access_token, config.vault_folders)
-        return {"ok": True, "accessible": accessible}
+        if not accessible:
+            return {"ok": True, "accessible": False, "details": ["folder_access_check: failed"]}
+
+        # Full system test for initialized vaults
+        test_result = await _verify_system_check(provider_name, access_token, user_id, config)
+        return {
+            "ok": test_result["ok"],
+            "accessible": test_result["ok"],
+            "details": test_result.get("details", []),
+        }
     except Exception as exc:
         logger.error("Vault verification failed for user %s: %s", user_id[:6] + "***", exc)
         return {"ok": False, "accessible": False, "error": str(exc)}
