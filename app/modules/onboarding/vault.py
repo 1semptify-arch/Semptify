@@ -261,7 +261,7 @@ async def _store_encrypted_token_backup(
         raise ValueError("Token backup read-back: user_id mismatch after decrypt")
 
     # Initialize empty device keys
-    device_keys = {"devices": [], "created_at": datetime.now(timezone.utc).isoformat()}
+    device_keys = {"devices": [], "created_at": utc_now().isoformat()}
     await storage.upload_file(
         file_content=json.dumps(device_keys, indent=2).encode(),
         destination_path=AUTH_FOLDER,
