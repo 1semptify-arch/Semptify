@@ -30,25 +30,38 @@ Plugins:
 from app.sdk.module_sdk import (
     # Main SDK class
     ModuleSDK,
-    
+
     # Definition classes
     ModuleDefinition,
     ActionDefinition,
     InfoPack,
     ModuleRequest,
-    
+
     # Enums
     ModuleCategory,
     DocumentType,
     PackType,
-    
+
     # Base class (alternative to SDK)
     BaseModule,
-    
+
     # Helper functions
     create_module,
     generate_module_template,
 )
+
+from app.core.module_sdk import (
+    # Core module SDK (product manifest integration)
+    ModuleCapability,
+    ModuleManifest,
+    InstalledModule,
+    ModuleRegistry,
+    module_registry,
+    register_module,
+    register_tier_modules,
+    get_module_status,
+)
+from app.core.product_manifest import ProductTier
 
 from app.sdk.flask_converter import (
     FlaskConverter,
@@ -77,12 +90,23 @@ __all__ = [
     "BaseModule",
     "create_module",
     "generate_module_template",
-    
+
+    # Module SDK (product manifest integration)
+    "ModuleCapability",
+    "ModuleManifest",
+    "InstalledModule",
+    "ModuleRegistry",
+    "module_registry",
+    "register_module",
+    "register_tier_modules",
+    "get_module_status",
+    "ProductTier",
+
     # Flask Converter
     "FlaskConverter",
     "FlaskAnalyzer",
     "FlaskAnalysis",
-    
+
     # Plugin System
     "PluginManager",
     "Plugin",
