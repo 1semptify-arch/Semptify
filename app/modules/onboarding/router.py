@@ -193,60 +193,25 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         return HTMLResponse(content=_render_vault_setup_page(config))
 
     # ------------------------------------------------------------------
-    # API: Vault Status
+    # API: Vault Status (auto-installed during OAuth)
     # ------------------------------------------------------------------
     @router.get("/api/vault/status")
-    async def vault_status(user: StorageUser = Depends(require_user)):
-        """Check user is authenticated and has a storage provider configured."""
-        return {
-            "ok": True,
-            "user_id": user.user_id[:6] + "***",
-            "provider": user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
-        }
-
-    # ------------------------------------------------------------------
-    # API: Vault Init
-    # ------------------------------------------------------------------
-    @router.post("/api/vault/init")
-    async def vault_init(
+    async def vault_status(
         user: StorageUser = Depends(require_user),
         db: AsyncSession = Depends(get_db),
     ):
-        """Create vault folder structure in user's cloud storage."""
-        access_token = getattr(user, "access_token", None)
-        if not access_token or access_token == "no-token":
-            raise HTTPException(status_code=401, detail="Storage token missing — please reconnect")
-
-        result = await vault_ops.init_vault(
-            db=db,
-            user_id=user.user_id,
-            provider_name=user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
-            access_token=access_token,
-            config=config,
-        )
-
-        if not result["ok"]:
-            raise HTTPException(status_code=502, detail=result["message"])
-
-        return result
-
-    # ------------------------------------------------------------------
-    # API: Vault Verify
-    # ------------------------------------------------------------------
-    @router.get("/api/vault/verify")
-    async def vault_verify(user: StorageUser = Depends(require_user)):
-        """Verify vault folders are accessible."""
-        access_token = getattr(user, "access_token", None)
-        if not access_token or access_token == "no-token":
-            raise HTTPException(status_code=401, detail="Storage token missing")
-
-        result = await vault_ops.verify_vault(
-            user_id=user.user_id,
-            provider_name=user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
-            access_token=access_token,
-            config=config,
-        )
-        return result
+        """Check vault installation status - auto-installed during OAuth."""
+        from app.modules.onboarding.gates import check_gate
+        
+        vault_initialized = await check_gate(db, user.user_id, "vault_initialized")
+        
+        return {
+            "vault_installed": vault_initialized,
+            "storage_connected": True,
+            "provider": user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
+            "message": "Vault auto-installed during OAuth" if vault_initialized else "Vault installation pending",
+            "next_action": "use_vault" if vault_initialized else "oauth_callback_pending",
+        }
 
     # ------------------------------------------------------------------
     # Page: Complete
