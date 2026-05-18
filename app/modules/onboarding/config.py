@@ -19,11 +19,14 @@ from app.core.vault_paths import (
 
 # Canonical vault folders — matches what vault.py router expects.
 # These MUST stay in sync with app/core/vault_paths.py.
+# .Semptify5.0 is REQUIRED before .Semptify5.0/vault and .Semptify5.0/auth
+# because Dropbox create_folder_v2 does NOT auto-create parent folders.
 CANONICAL_VAULT_FOLDERS = [
     SEMPTIFY_ROOT,          # "Semptify5.0"
     VAULT_ROOT,             # "Semptify5.0/Vault"
     VAULT_DOCUMENTS,        # "Semptify5.0/Vault/documents"
     VAULT_CERTIFICATES,     # "Semptify5.0/Vault/certificates"
+    f".{SEMPTIFY_ROOT}",    # ".Semptify5.0"  ← parent for auth/ and vault/
     VAULT_METADATA_FOLDER,  # ".Semptify5.0/vault"
     AUTH_FOLDER,            # ".Semptify5.0/auth"
 ]

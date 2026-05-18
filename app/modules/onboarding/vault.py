@@ -56,8 +56,10 @@ async def verify_vault_folders(
     for folder_path in folders:
         try:
             items = await storage.list_files(folder_path)
-            if items is None:
-                logger.warning("Vault folder not found: %s", folder_path)
+            # All providers return [] (not None) for missing folders, so check emptiness.
+            # This is correct because vault folders always contain system files after init.
+            if not items:
+                logger.warning("Vault folder not found or empty: %s", folder_path)
                 return False
         except Exception as exc:
             logger.warning("Vault folder verification failed for %s: %s", folder_path, exc)
