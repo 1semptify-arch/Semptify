@@ -1122,7 +1122,7 @@ async def get_current_user(
             if not real_token:
                 # In-memory cache empty (e.g. after server restart) — load from DB
                 try:
-                    from app.routers.storage import get_session_from_db
+                    from app.modules.storage.router import get_session_from_db
                     from app.core.database import get_session_factory
                     _factory = get_session_factory()
                     async with _factory() as _db:

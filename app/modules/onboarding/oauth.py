@@ -317,7 +317,7 @@ async def save_session(
     """
     Save OAuth session to DB and cache token in memory.
     """
-    from app.routers.storage import save_session_to_db
+    from app.modules.storage.router import save_session_to_db
 
     expires_at = utc_now() + timedelta(seconds=expires_in)
 

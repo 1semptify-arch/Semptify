@@ -144,7 +144,7 @@ async def get_storage_client(user: StorageUser, db: AsyncSession, settings: Sett
     NOTE: Even in open mode, we use REAL storage if user has connected.
     Mock storage is only used as fallback when no real connection exists.
     """
-    from app.routers.storage import get_valid_session
+    from app.modules.storage.router import get_valid_session
 
     # Get a valid session with real storage provider
     session = await get_valid_session(db, user.user_id)

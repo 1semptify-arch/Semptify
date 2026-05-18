@@ -316,7 +316,7 @@ async def upload_document(
     # Get access_token from session if not provided and we have a real storage provider
     if not access_token and storage_provider != "local":
         try:
-            from app.routers.storage import get_valid_session
+            from app.modules.storage.router import get_valid_session
             from app.core.database import get_db
             db = next(get_db())
             session = await get_valid_session(db, user_id)
