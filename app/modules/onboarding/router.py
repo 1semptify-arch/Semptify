@@ -504,7 +504,9 @@ async function setup() {{
         const verifyResp = await fetch(PREFIX + '/api/vault/verify');
         if (!verifyResp.ok) {{ throw new Error('Vault verification failed'); }}
         const verifyData = await verifyResp.json();
-        if (!verifyData.accessible && !verifyData.ok) {{ throw new Error('Vault folders not accessible'); }}
+        if (!verifyData.accessible || !verifyData.ok) {{
+            throw new Error(verifyData.error || 'Vault folders not accessible');
+        }}
         setStep('verify', 'done');
 
         // Step 4: Done

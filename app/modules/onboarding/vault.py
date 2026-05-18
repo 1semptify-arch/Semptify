@@ -51,16 +51,18 @@ async def verify_vault_folders(
     """
     Verify that vault folders exist and are accessible.
     Returns True if all folders are accessible, False otherwise.
+
+    NOTE: Empty folders are OK after init (documents/, certificates/ have no
+    files yet). Only fail if list_files throws, which means the folder path
+    is not accessible.
     """
     storage = get_provider(provider_name, access_token=access_token)
     for folder_path in folders:
         try:
-            items = await storage.list_files(folder_path)
-            # All providers return [] (not None) for missing folders, so check emptiness.
-            # This is correct because vault folders always contain system files after init.
-            if not items:
-                logger.warning("Vault folder not found or empty: %s", folder_path)
-                return False
+            # list_files throws if the folder path is not accessible.
+            # An empty list [] means the folder exists but has no items —
+            # this is expected for documents/ and certificates/ before upload.
+            await storage.list_files(folder_path)
         except Exception as exc:
             logger.warning("Vault folder verification failed for %s: %s", folder_path, exc)
             return False
