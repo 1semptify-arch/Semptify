@@ -137,7 +137,7 @@ async def _place_system_files(
         "semptify_version": "5.0",
         "user_id": user_id,
         "provider": provider_name,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": utc_now().isoformat(),
         "vault_status": "active",
     }
     manifest_bytes = json.dumps(manifest, indent=2).encode()
@@ -183,7 +183,7 @@ async def _initialize_vault_data_files(
     registry_data = {
         "version": "1.0",
         "created_by": user_id,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": utc_now().isoformat(),
         "overlays": {},
     }
     await storage.upload_file(
@@ -233,7 +233,7 @@ async def _store_encrypted_token_backup(
     token = MasterToken(
         token_id=_secrets.token_urlsafe(32),
         user_id=user_id,
-        created_at=datetime.now(timezone.utc).isoformat(),
+        created_at=utc_now().isoformat(),
         provider=provider_name,
         access_token=access_token,
     )
@@ -314,7 +314,7 @@ async def _verify_system_check(
 
     # --- 2. Write test ---
     test_filename = f"_system_test_{_secrets.token_hex(4)}.txt"
-    test_content = f"Semptify vault system test | user={user_id} | ts={datetime.now(timezone.utc).isoformat()}".encode()
+    test_content = f"Semptify vault system test | user={user_id} | ts={utc_now().isoformat()}".encode()
     try:
         await storage.upload_file(
             file_content=test_content,
