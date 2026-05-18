@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activate Semptify Vault</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .logo {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .status {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .status-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: white;
+        }
+        
+        .status-icon.connected {
+            background: #28a745;
+        }
+        
+        .status-icon.pending {
+            background: #ffc107;
+        }
+        
+        .status-icon.error {
+            background: #dc3545;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 15px;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">📓 Semptify</div>
+        <div class="subtitle">Activate Your Vault</div>
+        
+        <div class="status" id="status">
+            <div class="status-item">
+                <div class="status-icon connected" id="storage-status">✓</div>
+                <span>Storage Connected</span>
+            </div>
+            <div class="status-item">
+                <div class="status-icon pending" id="vault-status">⏳</div>
+                <span>Vault Installation</span>
+            </div>
+        </div>
+        
+        <button class="btn btn-primary" id="install-btn" onclick="installVault()">
+            Install Semptify Vault
+        </button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>Installing vault folders and files...</div>
+        </div>
+        
+        <div class="error" id="error"></div>
+        <div class="success" id="success"></div>
+    </div>
+
+    <script>
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/vault-installer/status');
+                const data = await response.json();
+                
+                // Update storage status
+                const storageStatus = document.getElementById('storage-status');
+                if (data.storage_connected) {
+                    storageStatus.className = 'status-icon connected';
+                    storageStatus.textContent = '✓';
+                } else {
+                    storageStatus.className = 'status-icon error';
+                    storageStatus.textContent = '✗';
+                    window.location.href = '/onboarding/providers';
+                    return;
+                }
+                
+                // Update vault status
+                const vaultStatus = document.getElementById('vault-status');
+                const installBtn = document.getElementById('install-btn');
+                
+                if (data.vault_installed) {
+                    vaultStatus.className = 'status-icon connected';
+                    vaultStatus.textContent = '✓';
+                    installBtn.textContent = 'Vault Ready - Continue to Home';
+                    installBtn.onclick = () => window.location.href = '/tenant/home';
+                } else {
+                    vaultStatus.className = 'status-icon pending';
+                    vaultStatus.textContent = '⏳';
+                    installBtn.style.display = 'block';
+                }
+                
+            } catch (error) {
+                console.error('Status check failed:', error);
+            }
+        }
+        
+        async function installVault() {
+            const installBtn = document.getElementById('install-btn');
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const success = document.getElementById('success');
+            
+            // Hide previous messages
+            error.style.display = 'none';
+            success.style.display = 'none';
+            
+            // Show loading
+            installBtn.style.display = 'none';
+            loading.style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/vault-installer/install', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Success
+                    loading.style.display = 'none';
+                    success.style.display = 'block';
+                    success.innerHTML = `
+                        <strong>✅ Vault Installed Successfully!</strong><br>
+                        Activation Code: ${data.activation_code}<br>
+                        Created ${data.folders_created.length} folders and ${data.files_created.length} files.<br><br>
+                        <button class="btn btn-primary" onclick="window.location.href='/tenant/home'">
+                            Go to Your Vault
+                        </button>
+                    `;
+                    
+                    // Update status
+                    document.getElementById('vault-status').className = 'status-icon connected';
+                    document.getElementById('vault-status').textContent = '✓';
+                    
+                } else {
+                    // Error
+                    loading.style.display = 'none';
+                    error.style.display = 'block';
+                    error.innerHTML = `<strong>Installation Failed</strong><br>${data.detail.error || 'Unknown error'}`;
+                    installBtn.style.display = 'block';
+                }
+                
+            } catch (err) {
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                error.innerHTML = `<strong>Network Error</strong><br>${err.message}`;
+                installBtn.style.display = 'block';
+            }
+        }
+        
+        // Check status on page load
+        checkStatus();
+    </script>
+</body>
+</html>

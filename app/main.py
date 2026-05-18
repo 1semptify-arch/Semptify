@@ -48,7 +48,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, APIRouter
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -1460,6 +1460,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         enable_gate_middleware=False,
     )
     register_onboarding(fastapi_app, onboarding_config)
+
+    # =========================================================================
+    # Vault Installer - Simple Direct Installation
+    # =========================================================================
+    from app.modules.vault_installer import register_vault_installer
+    register_vault_installer(fastapi_app)
 
     # =========================================================================
     # Rate Limiting
@@ -3384,6 +3390,19 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             content={"error": "not_found", "message": f"Page '{page_name}.html' not found"},
             status_code=404,
         )
+
+    # Vault Activation Page
+    @fastapi_app.get("/activate-vault", response_class=HTMLResponse)
+    async def activate_vault_page():
+        """Serve the vault activation page."""
+        from fastapi.responses import FileResponse
+        from pathlib import Path
+        
+        page_path = BASE_PATH / "static" / "onboarding" / "activate-vault.html"
+        if page_path.exists():
+            return FileResponse(page_path)
+        
+        return HTMLResponse("<h1>Vault activation page not found</h1>", status_code=404)
 
     return fastapi_app
 # Create the app instance
