@@ -3,6 +3,36 @@
 
 ---
 
+## Shipped This Session — 2026-05-18 (6:07 AM UTC-05) — Commit `42e9134`
+
+### Session Summary — Complete Vault Creation + Comprehensive System Test
+
+#### Problem
+- Onboarding was missing critical vault folders (`timeline/`, `overlays/` and sub-folders) from `CANONICAL_VAULT_FOLDERS`
+- No initial data files created (`timeline/events.json`, `overlays/registry.json`) — downstream code had to handle missing file race conditions
+- System test (`_verify_system_check`) only read back `manifest.json` — it did NOT test actual write/read/delete capability
+- If a provider accepted writes but silently corrupted them, the old test would pass
+
+#### Files Fixed
+- [x] `app/modules/onboarding/config.py` — Added `VAULT_TIMELINE`, `VAULT_OVERLAYS`, `VAULT_OVERLAY_DOCUMENTS`, `VAULT_OVERLAY_QUERIES`, `VAULT_OVERLAYS_FORMS`, `VAULT_OVERLAY_REDACTIONS` to `CANONICAL_VAULT_FOLDERS`
+- [x] `app/modules/onboarding/vault.py` — New `_initialize_vault_data_files()` creates `timeline/events.json` and `overlays/registry.json` with proper schema during onboarding
+- [x] `app/modules/onboarding/vault.py` — `_verify_system_check()` is now a 5-step comprehensive system test:
+  1. Folder accessibility — `list_files()` on every vault folder
+  2. Write test — upload temporary file to `documents/`
+  3. Read test — download and verify content matches
+  4. Delete test — clean up temporary file
+  5. System file integrity — verify manifest, events, registry are readable and valid
+- [x] `app/modules/onboarding/vault.py` — `verify_vault()` now runs the full system test, returns detailed step-by-step results
+
+#### Result
+- All vault folders are created during onboarding (13 total)
+- Initial data files are in place before any product code touches them
+- Vault is proven fully operational (write + read + delete + integrity) before `vault_initialized` gate is marked
+- If storage provider has write issues, the specific failing step is logged and returned
+- All Python files compile clean
+
+---
+
 ## Shipped This Session — 2026-05-18 (5:19 AM UTC-05) — Commit `e9a797f`
 
 ### Session Summary — Fix `create_vault_folders` Silent Failures
