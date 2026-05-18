@@ -20,6 +20,7 @@ from typing import List, Dict, Any, Optional, Tuple, Set
 from collections import defaultdict
 
 from .models import (
+from app.core.utc import utc_now
     ReasoningChain, ReasoningStep, ReasoningType,
     ExtractedEntity, EntityType, PartyRole,
     DocumentType, DocumentCategory, DocumentContext,
@@ -382,7 +383,7 @@ class MultiPassReasoner:
             confidence_impact=10 if total_candidates > 5 else 5
         )
         
-        chain.completed_at = datetime.now()
+        chain.completed_at = utc_now()
         chain.conclusion = f"Found {total_candidates} candidate entities across {len(context.candidates)} types"
         chain.new_findings = [f"{et.value}: {len(c)}" for et, c in context.candidates.items() if c]
         
@@ -458,7 +459,7 @@ class MultiPassReasoner:
         # Check relationships between entities
         self._check_entity_relationships(context)
         
-        chain.completed_at = datetime.now()
+        chain.completed_at = utc_now()
         chain.conclusion = f"Cross-validation complete: {validated_count} validated"
         chain.findings_confirmed = [f"{e.entity_type.value}: {e.value}" 
                                      for e in context.validated_entities[:5]]
@@ -684,7 +685,7 @@ class MultiPassReasoner:
             {"timeline_count": len(context.timeline_entries)},
         )
         
-        chain.completed_at = datetime.now()
+        chain.completed_at = utc_now()
         chain.conclusion = f"Legal analysis complete: {doc_type.value}"
         chain.new_findings = [f"Document type: {doc_type.value}"]
         
@@ -895,7 +896,7 @@ class MultiPassReasoner:
             confidence_impact=0
         )
         
-        chain.completed_at = datetime.now()
+        chain.completed_at = utc_now()
         chain.conclusion = f"Final confidence: {metrics.overall_score:.1f}% ({metrics.level.value})"
         chain.confidence_delta = metrics.overall_score
         

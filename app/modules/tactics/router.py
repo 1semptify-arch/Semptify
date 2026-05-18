@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 
 from app.core.security import require_user
 from .service import get_tactics_engine, TacticType, UrgencyLevel
+from app.core.utc import utc_now
 
 
 router = APIRouter()
@@ -280,7 +281,7 @@ async def get_pre_hearing_timeline(
         raise HTTPException(status_code=400, detail="Invalid hearing_date format. Use ISO format (YYYY-MM-DD)")
     
     actions = engine.get_pre_hearing_timeline(hearing_dt)
-    days_until = (hearing_dt - datetime.now()).days
+    days_until = (hearing_dt - utc_now()).days
     overdue = sum(1 for a in actions if a.get("overdue", False))
     
     return PreHearingTimelineResponse(

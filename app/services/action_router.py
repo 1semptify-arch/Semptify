@@ -17,6 +17,7 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Optional, Any
 from enum import Enum
 import logging
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -513,7 +514,7 @@ class SmartActionRouter:
             
             # Deadline urgency
             if action.deadline:
-                days_until = (action.deadline - datetime.now()).days
+                days_until = (action.deadline - utc_now()).days
                 if days_until <= 0:
                     score += 200  # Past due!
                 elif days_until <= 3:

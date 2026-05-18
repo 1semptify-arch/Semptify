@@ -80,6 +80,7 @@ templates = Jinja2Templates(directory=str(BASE_PATH / "app" / "templates"))
 
 # Product Manifest — replaces the 200+ line router-import block
 from app.core.product_manifest import ProductTier, register_tiers
+from app.core.utc import utc_now
 
 
 # =============================================================================
@@ -2784,7 +2785,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         context = {
             "briefcase": briefcase,
             "capture_type": type,
-            "today": datetime.now().strftime("%Y-%m-%d"),
+            "today": utc_now().strftime("%Y-%m-%d"),
             "csrf_token": request.state.csrf_token if hasattr(request.state, "csrf_token") else "",
         }
         return templates.TemplateResponse(request, "pages/tenant_capture.html", context)
@@ -2811,12 +2812,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             "entries_this_month": sum(
                 1 for e in entries
                 if hasattr(e, "created_at") and e.created_at and
-                e.created_at.month == datetime.now().month and
-                e.created_at.year == datetime.now().year
+                e.created_at.month == utc_now().month and
+                e.created_at.year == utc_now().year
             ) if entries else 0,
             "urgent_count": sum(1 for e in entries if getattr(e, "is_urgent", False)),
             "days_since_start": (
-                (datetime.now() - min(e.created_at for e in entries if hasattr(e, "created_at") and e.created_at)).days
+                (utc_now() - min(e.created_at for e in entries if hasattr(e, "created_at") and e.created_at)).days
                 if entries else 0
             ),
         }

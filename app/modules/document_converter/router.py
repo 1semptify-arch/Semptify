@@ -26,6 +26,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
 from app.modules.document_converter import (
+from app.core.utc import utc_now
     DocumentConverter,
     DocumentMetadata,
     DocumentStyle,
@@ -104,7 +105,7 @@ def build_metadata(request: ConvertRequest) -> Optional[DocumentMetadata]:
             court=request.court,
             parties=request.parties,
             author=request.author,
-            date=datetime.now().strftime("%B %d, %Y"),
+            date=utc_now().strftime("%B %d, %Y"),
         )
     return None
 
@@ -114,7 +115,7 @@ def generate_filename(request: ConvertRequest) -> str:
     if request.filename:
         return request.filename.rsplit('.', 1)[0]
     
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = utc_now().strftime("%Y%m%d_%H%M%S")
     if request.case_number:
         safe_case = request.case_number.replace(' ', '_').replace('/', '_')
         return f"document_{safe_case}_{timestamp}"
@@ -385,7 +386,7 @@ async def cleanup_old_documents(days_old: int = Query(7, ge=1, le=365)):
     """
     Clean up converted documents older than specified days
     """
-    cutoff = datetime.now().timestamp() - (days_old * 24 * 60 * 60)
+    cutoff = utc_now().timestamp() - (days_old * 24 * 60 * 60)
     deleted = []
     
     for file_path in CONVERT_OUTPUT_DIR.iterdir():

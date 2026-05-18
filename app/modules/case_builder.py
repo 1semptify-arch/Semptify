@@ -24,6 +24,7 @@ from enum import Enum
 from pydantic import BaseModel
 
 from app.sdk import (
+from app.core.utc import utc_now
     ModuleSDK,
     ModuleDefinition,
     ModuleCategory,
@@ -216,8 +217,8 @@ class FullCase(BaseModel):
     
     # Case notes
     notes: List[str] = []
-    created_at: datetime = datetime.now()
-    updated_at: datetime = datetime.now()
+    created_at: datetime = utc_now()
+    updated_at: datetime = utc_now()
 
 
 # =============================================================================
@@ -494,7 +495,7 @@ async def add_timeline_event(
     context: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Add a timeline event."""
-    event_id = f"evt_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    event_id = f"evt_{utc_now().strftime('%Y%m%d%H%M%S')}"
     
     event = TimelineEvent(
         id=event_id,
@@ -527,13 +528,13 @@ async def add_evidence(
     context: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Add evidence to a case."""
-    evidence_id = f"evi_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    evidence_id = f"evi_{utc_now().strftime('%Y%m%d%H%M%S')}"
     
     evidence = Evidence(
         id=evidence_id,
         title=params["title"],
         evidence_type=EvidenceType(params["evidence_type"]),
-        date_obtained=datetime.strptime(params.get("date_obtained", datetime.now().strftime("%Y-%m-%d")), "%Y-%m-%d").date(),
+        date_obtained=datetime.strptime(params.get("date_obtained", utc_now().strftime("%Y-%m-%d")), "%Y-%m-%d").date(),
         date_of_event=datetime.strptime(params["date_of_event"], "%Y-%m-%d").date() if params.get("date_of_event") else None,
         description=params["description"],
         file_path=params.get("file_path"),
@@ -562,7 +563,7 @@ async def add_counterclaim(
     context: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Add a counterclaim."""
-    claim_id = f"clm_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    claim_id = f"clm_{utc_now().strftime('%Y%m%d%H%M%S')}"
     
     # Get template data
     claim_type = params["claim_type"]
@@ -599,7 +600,7 @@ async def add_deadline(
     context: Dict[str, Any],
 ) -> Dict[str, Any]:
     """Add a deadline."""
-    deadline_id = f"ddl_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    deadline_id = f"ddl_{utc_now().strftime('%Y%m%d%H%M%S')}"
     
     deadline = CourtDeadline(
         id=deadline_id,

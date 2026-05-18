@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from app.core.security import get_optional_user_id
 from ..services.progress_tracker import progress_tracker, MilestoneCategory
 from ..services.emotion_engine import emotion_engine
+from app.core.utc import utc_now
 
 
 router = APIRouter(prefix="/progress", tags=["Progress Tracker"])
@@ -221,7 +222,7 @@ async def get_journey_overview(user_id: str = Depends(resolve_user_id)):
         journey_days = (progress.last_active - progress.journey_started).days + 1 if progress.last_active else 1
     if progress.court_date:
         from datetime import datetime
-        days_to_court = (progress.court_date - datetime.now()).days
+        days_to_court = (progress.court_date - utc_now()).days
     
     return {
         "case_type": progress.case_type,

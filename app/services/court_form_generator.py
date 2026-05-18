@@ -19,6 +19,7 @@ import logging
 from datetime import datetime, date
 from typing import Optional, Dict, Any, List
 from pathlib import Path
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -214,7 +215,7 @@ class CourtFormGenerator:
             "format": output_format,
             "content": content,
             "fields_used": list(form_data.keys()),
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": utc_now().isoformat(),
         }
     
     def _map_fields(
@@ -350,7 +351,7 @@ class CourtFormGenerator:
     </div>
     
     <div class="signature-block">
-        <p>Dated: {data.get('signature_date', datetime.now().strftime('%B %d, %Y'))}</p>
+        <p>Dated: {data.get('signature_date', utc_now().strftime('%B %d, %Y'))}</p>
         <div class="signature-line"></div>
         <p>{data.get('defendant_name', '[DEFENDANT NAME]')}<br>
         Pro Se Defendant<br>
@@ -417,7 +418,7 @@ class CourtFormGenerator:
     </div>
     
     <div style="margin-top: 3em;">
-        <p>Dated: {datetime.now().strftime('%B %d, %Y')}</p>
+        <p>Dated: {utc_now().strftime('%B %d, %Y')}</p>
         <div style="border-top: 1px solid #000; width: 250px; margin-top: 3em;"></div>
         <p>{data.get('defendant_name', '[DEFENDANT]')}, Pro Se</p>
     </div>
@@ -459,7 +460,7 @@ class CourtFormGenerator:
     adequately prepare for the hearing.</p>
     
     <div style="margin-top: 3em;">
-        <p>Dated: {datetime.now().strftime('%B %d, %Y')}</p>
+        <p>Dated: {utc_now().strftime('%B %d, %Y')}</p>
         <div style="border-top: 1px solid #000; width: 250px; margin-top: 3em;"></div>
         <p>{data.get('defendant_name', '[DEFENDANT]')}, Pro Se</p>
     </div>
@@ -511,7 +512,7 @@ class CourtFormGenerator:
     </ol>
     
     <div style="margin-top: 3em;">
-        <p>Dated: {datetime.now().strftime('%B %d, %Y')}</p>
+        <p>Dated: {utc_now().strftime('%B %d, %Y')}</p>
         <div style="border-top: 1px solid #000; width: 250px; margin-top: 3em;"></div>
         <p>{data.get('defendant_name', '[DEFENDANT]')}, Pro Se</p>
     </div>

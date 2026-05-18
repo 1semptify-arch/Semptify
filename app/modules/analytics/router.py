@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 from app.core.security import require_user, StorageUser, require_admin
 from app.core.analytics_engine import (
+from app.core.utc import utc_now
     get_analytics_engine,
     AnalyticsEventType,
     TimePeriod,
@@ -363,7 +364,7 @@ async def export_json(
             content=json_data,
             media_type="application/json",
             headers={
-                "Content-Disposition": f"attachment; filename=analytics_export_{datetime.now().strftime('%Y%m%d')}.json",
+                "Content-Disposition": f"attachment; filename=analytics_export_{utc_now().strftime('%Y%m%d')}.json",
                 "Cache-Control": "no-cache"
             }
         )
@@ -392,7 +393,7 @@ async def export_csv(
             content=csv_data,
             media_type="text/csv",
             headers={
-                "Content-Disposition": f"attachment; filename=analytics_export_{datetime.now().strftime('%Y%m%d')}.csv",
+                "Content-Disposition": f"attachment; filename=analytics_export_{utc_now().strftime('%Y%m%d')}.csv",
                 "Cache-Control": "no-cache"
             }
         )

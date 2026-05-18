@@ -14,6 +14,7 @@ from enum import Enum
 import json
 import logging
 from pathlib import Path
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -384,8 +385,8 @@ class ProgressTracker:
         # Create new progress
         progress = UserProgress(
             user_id=user_id,
-            journey_started=datetime.now(),
-            last_active=datetime.now()
+            journey_started=utc_now(),
+            last_active=utc_now()
         )
         self._progress_cache[user_id] = progress
         return progress
@@ -466,13 +467,13 @@ class ProgressTracker:
         # Complete the milestone
         completed = CompletedMilestone(
             milestone_id=milestone_id,
-            completed_at=datetime.now(),
+            completed_at=utc_now(),
             notes=notes,
             evidence_ids=evidence_ids or []
         )
         progress.completed_milestones[milestone_id] = completed
         progress.tasks_completed += 1
-        progress.last_active = datetime.now()
+        progress.last_active = utc_now()
         
         # Update streak
         self._update_streak(progress)
@@ -496,7 +497,7 @@ class ProgressTracker:
     def _update_streak(self, progress: UserProgress):
         """Update user's activity streak"""
         if progress.last_active:
-            days_since = (datetime.now() - progress.last_active).days
+            days_since = (utc_now() - progress.last_active).days
             if days_since <= 1:
                 progress.streak_days += 1
             elif days_since > 1:
@@ -713,7 +714,7 @@ class ProgressTracker:
         elif stat == "forms_generated":
             progress.forms_generated += amount
         
-        progress.last_active = datetime.now()
+        progress.last_active = utc_now()
         self._update_streak(progress)
         return self.save_progress(user_id)
 

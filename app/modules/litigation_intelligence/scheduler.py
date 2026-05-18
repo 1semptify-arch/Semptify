@@ -12,6 +12,7 @@ from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass
 import asyncio
 import json
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -255,7 +256,7 @@ class LitigationScheduler:
             
             if storage_health != "healthy" or external_health != "healthy":
                 alert = WatchdogAlert(
-                    alert_id=f"system_health_{datetime.now().timestamp()}",
+                    alert_id=f"system_health_{utc_now().timestamp()}",
                     alert_type="system_health",
                     severity="critical",
                     message="System health check failed",

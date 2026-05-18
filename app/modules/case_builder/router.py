@@ -25,6 +25,7 @@ from enum import Enum
 from app.core.security import require_user, StorageUser
 from app.core.database import get_db
 from app.core.document_hub import get_document_hub, CaseData
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -154,7 +155,7 @@ def save_case(case_id: str, case_data: Dict, user_id: str):
     """Save case to file in user's directory."""
     # Ensure user_id is set in case data
     case_data["user_id"] = user_id
-    case_data["updated_at"] = datetime.now().isoformat()
+    case_data["updated_at"] = utc_now().isoformat()
     
     file_path = get_case_file(case_id, user_id)
     with open(file_path, 'w') as f:
@@ -703,8 +704,8 @@ async def create_case(case: CaseCreate, user: StorageUser = Depends(require_user
         "deadlines": [],
         "defenses": [],
         "notes": [case.notes] if case.notes else [],
-        "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat()
+        "created_at": utc_now().isoformat(),
+        "updated_at": utc_now().isoformat()
     }
     
     save_case(case.case_number, case_data, user_id)
@@ -745,7 +746,7 @@ async def intake_complaint(intake: ComplaintIntake, user: StorageUser = Depends(
     
     # Calculate deadlines
     from datetime import datetime, timedelta
-    today = datetime.now()
+    today = utc_now()
     
     # Parse filing date
     filing_date = None
@@ -799,7 +800,7 @@ async def intake_complaint(intake: ComplaintIntake, user: StorageUser = Depends(
         
         # Initialize case components
         "timeline": [{
-            "id": f"evt_{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "id": f"evt_{utc_now().strftime('%Y%m%d%H%M%S')}",
             "date": filing_date.strftime("%Y-%m-%d"),
             "title": "Complaint Filed",
             "description": f"Eviction complaint filed: {intake.complaint_type}",
@@ -826,8 +827,8 @@ async def intake_complaint(intake: ComplaintIntake, user: StorageUser = Depends(
         ],
         
         "notes": [intake.notes] if intake.notes else [],
-        "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat(),
+        "created_at": utc_now().isoformat(),
+        "updated_at": utc_now().isoformat(),
         "source": "complaint_intake"
     }
     
@@ -927,7 +928,7 @@ async def add_timeline_event(case_id: str, event: TimelineEventCreate, user: Sto
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
-    event_id = f"evt_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    event_id = f"evt_{utc_now().strftime('%Y%m%d%H%M%S')}"
     event_data = {
         "id": event_id,
         "date": event.date,
@@ -937,7 +938,7 @@ async def add_timeline_event(case_id: str, event: TimelineEventCreate, user: Sto
         "importance": event.importance,
         "evidence_ids": event.evidence_ids,
         "source": event.source,
-        "created_at": datetime.now().isoformat()
+        "created_at": utc_now().isoformat()
     }
     
     if "timeline" not in case:
@@ -985,19 +986,19 @@ async def add_evidence(case_id: str, evidence: EvidenceCreate, user: StorageUser
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
-    evidence_id = f"evi_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    evidence_id = f"evi_{utc_now().strftime('%Y%m%d%H%M%S')}"
     evidence_data = {
         "id": evidence_id,
         "title": evidence.title,
         "evidence_type": evidence.evidence_type,
-        "date_obtained": evidence.date_obtained or datetime.now().strftime("%Y-%m-%d"),
+        "date_obtained": evidence.date_obtained or utc_now().strftime("%Y-%m-%d"),
         "date_of_event": evidence.date_of_event,
         "description": evidence.description,
         "source": evidence.source,
         "relevance": evidence.relevance,
         "file_path": evidence.file_path,
         "notes": evidence.notes,
-        "created_at": datetime.now().isoformat()
+        "created_at": utc_now().isoformat()
     }
     
     if "evidence" not in case:
@@ -1034,7 +1035,7 @@ async def add_counterclaim(case_id: str, claim: CounterclaimCreate, user: Storag
     # Get template info
     template = MN_COUNTERCLAIMS.get(claim.claim_type, {})
     
-    claim_id = f"clm_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    claim_id = f"clm_{utc_now().strftime('%Y%m%d%H%M%S')}"
     claim_data = {
         "id": claim_id,
         "claim_type": claim.claim_type,
@@ -1047,7 +1048,7 @@ async def add_counterclaim(case_id: str, claim: CounterclaimCreate, user: Storag
         "damages_sought": claim.damages_sought,
         "evidence_ids": claim.evidence_ids,
         "notes": claim.notes,
-        "created_at": datetime.now().isoformat()
+        "created_at": utc_now().isoformat()
     }
     
     if "counterclaims" not in case:
@@ -1084,7 +1085,7 @@ async def add_motion(case_id: str, motion: MotionCreate, user: StorageUser = Dep
     # Get template info
     template = MOTION_TEMPLATES.get(motion.motion_type, {})
     
-    motion_id = f"mot_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    motion_id = f"mot_{utc_now().strftime('%Y%m%d%H%M%S')}"
     motion_data = {
         "id": motion_id,
         "motion_type": motion.motion_type,
@@ -1099,7 +1100,7 @@ async def add_motion(case_id: str, motion: MotionCreate, user: StorageUser = Dep
         "status": "pending",
         "filed": False,
         "notes": motion.notes,
-        "created_at": datetime.now().isoformat()
+        "created_at": utc_now().isoformat()
     }
     
     if "motions" not in case:
@@ -1156,7 +1157,7 @@ async def add_deadline(case_id: str, deadline: DeadlineCreate, user: StorageUser
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
-    deadline_id = f"ddl_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    deadline_id = f"ddl_{utc_now().strftime('%Y%m%d%H%M%S')}"
     deadline_data = {
         "id": deadline_id,
         "title": deadline.title,
@@ -1166,7 +1167,7 @@ async def add_deadline(case_id: str, deadline: DeadlineCreate, user: StorageUser
         "reminder_days": deadline.reminder_days,
         "notes": deadline.notes,
         "completed": False,
-        "created_at": datetime.now().isoformat()
+        "created_at": utc_now().isoformat()
     }
     
     if "deadlines" not in case:
@@ -1188,7 +1189,7 @@ async def complete_deadline(case_id: str, deadline_id: str, user: StorageUser = 
     for d in case.get("deadlines", []):
         if d.get("id") == deadline_id:
             d["completed"] = True
-            d["completed_at"] = datetime.now().isoformat()
+            d["completed_at"] = utc_now().isoformat()
     
     save_case(case_id, case, user_id)
     return {"success": True}
@@ -1220,7 +1221,7 @@ async def add_defense(case_id: str, defense: DefenseCreate, user: StorageUser = 
     # Get template info
     template = MN_DEFENSES.get(defense.defense_type, {})
     
-    defense_id = f"def_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    defense_id = f"def_{utc_now().strftime('%Y%m%d%H%M%S')}"
     defense_data = {
         "id": defense_id,
         "defense_type": defense.defense_type,
@@ -1231,7 +1232,7 @@ async def add_defense(case_id: str, defense: DefenseCreate, user: StorageUser = 
         "facts_supporting": defense.facts_supporting,
         "evidence_ids": defense.evidence_ids,
         "strength": defense.strength,
-        "created_at": datetime.now().isoformat()
+        "created_at": utc_now().isoformat()
     }
     
     if "defenses" not in case:
@@ -1342,7 +1343,7 @@ async def generate_counterclaim_doc(case_id: str, user: StorageUser = Depends(re
     doc_lines.append("6. Grant such other relief as the Court deems just and equitable.")
     doc_lines.append("")
     doc_lines.append("")
-    doc_lines.append(f"Dated: {datetime.now().strftime('%B %d, %Y')}")
+    doc_lines.append(f"Dated: {utc_now().strftime('%B %d, %Y')}")
     doc_lines.append("")
     doc_lines.append("")
     doc_lines.append("_______________________________")
@@ -1389,7 +1390,7 @@ async def generate_motion_doc(case_id: str, motion_type: str, params: Dict[str, 
         "{case_number}": case.get("case_number", ""),
         "{defendant_address}": case.get("property_address", ""),
         "{defendant_phone}": "",
-        "{today_date}": datetime.now().strftime("%B %d, %Y"),
+        "{today_date}": utc_now().strftime("%B %d, %Y"),
         "{hearing_date}": case.get("hearing_date", ""),
         "{current_hearing_date}": case.get("hearing_date", ""),
     }
@@ -1626,8 +1627,8 @@ async def auto_create_case_from_documents(
         "deadlines": [],
         "defenses": [],
         "notes": ["Case auto-created from uploaded documents"],
-        "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat(),
+        "created_at": utc_now().isoformat(),
+        "updated_at": utc_now().isoformat(),
         "auto_populated": True,
         "source_documents": case_data.document_count,
         "matched_statutes": case_data.matched_statutes,
@@ -1829,7 +1830,7 @@ async def populate_case_from_documents(
             })
             fields_updated.append("deadlines.hearing")
     
-    case["updated_at"] = datetime.now().isoformat()
+    case["updated_at"] = utc_now().isoformat()
     case["document_populated"] = True
     case["document_count"] = doc_data.document_count
     

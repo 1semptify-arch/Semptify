@@ -26,6 +26,7 @@ import re
 from datetime import datetime
 from typing import Optional, Dict, Any, List, Tuple
 from glob import glob
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -356,7 +357,7 @@ async def create_case_from_document(
     
     # Generate case number if not found
     if not case_number:
-        case_number = f"AUTO-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        case_number = f"AUTO-{utc_now().strftime('%Y%m%d%H%M%S')}"
         logger.warning(f"Could not extract case number, using generated: {case_number}")
     
     # Determine case type
@@ -396,7 +397,7 @@ async def create_case_from_document(
         "timeline": [
             {
                 "id": f"evt_doc_{document_id[:8]}",
-                "date": datetime.now().strftime("%Y-%m-%d"),
+                "date": utc_now().strftime("%Y-%m-%d"),
                 "title": f"Document Received: {filename}",
                 "description": f"Court document '{filename}' uploaded and case auto-created",
                 "category": "court",
@@ -408,7 +409,7 @@ async def create_case_from_document(
                 "id": f"evi_{document_id[:8]}",
                 "title": filename,
                 "evidence_type": "document",
-                "date_obtained": datetime.now().strftime("%Y-%m-%d"),
+                "date_obtained": utc_now().strftime("%Y-%m-%d"),
                 "description": f"Original court filing: {doc_type}",
                 "source": "document_intake",
                 "relevance": "Primary court document",
@@ -420,15 +421,15 @@ async def create_case_from_document(
         "motions": [],
         "deadlines": [],
         "notes": [f"Case auto-created from uploaded document: {filename}"],
-        "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat(),
+        "created_at": utc_now().isoformat(),
+        "updated_at": utc_now().isoformat(),
         "auto_created": True,
     }
     
     # Add deadline for answer if found
     if answer_deadline:
         case_data["deadlines"].append({
-            "id": f"ddl_answer_{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "id": f"ddl_answer_{utc_now().strftime('%Y%m%d%H%M%S')}",
             "title": "File Answer",
             "deadline": answer_deadline,
             "description": "Deadline to file answer to complaint",
@@ -439,7 +440,7 @@ async def create_case_from_document(
     # Add deadline for hearing if found
     if hearing_date:
         case_data["deadlines"].append({
-            "id": f"ddl_hearing_{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "id": f"ddl_hearing_{utc_now().strftime('%Y%m%d%H%M%S')}",
             "title": "Court Hearing",
             "deadline": hearing_date,
             "description": "Court hearing date",
@@ -530,10 +531,10 @@ async def add_document_to_case(
     
     # Add to evidence
     evidence_entry = {
-        "id": f"evi_{document_id[:8]}_{datetime.now().strftime('%H%M%S')}",
+        "id": f"evi_{document_id[:8]}_{utc_now().strftime('%H%M%S')}",
         "title": filename,
         "evidence_type": "document",
-        "date_obtained": datetime.now().strftime("%Y-%m-%d"),
+        "date_obtained": utc_now().strftime("%Y-%m-%d"),
         "description": f"Document type: {doc_type}",
         "source": "document_intake",
         "relevance": "Related to case",
@@ -547,8 +548,8 @@ async def add_document_to_case(
     
     # Add timeline event
     timeline_entry = {
-        "id": f"evt_{document_id[:8]}_{datetime.now().strftime('%H%M%S')}",
-        "date": datetime.now().strftime("%Y-%m-%d"),
+        "id": f"evt_{document_id[:8]}_{utc_now().strftime('%H%M%S')}",
+        "date": utc_now().strftime("%Y-%m-%d"),
         "title": f"Document Added: {filename}",
         "description": f"Document '{filename}' ({doc_type}) added to case",
         "category": "document",
@@ -571,7 +572,7 @@ async def add_document_to_case(
         
         if hearing_date and hearing_date not in existing_deadlines:
             case_data["deadlines"].append({
-                "id": f"ddl_hearing_{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                "id": f"ddl_hearing_{utc_now().strftime('%Y%m%d%H%M%S')}",
                 "title": f"Hearing (from {filename})",
                 "deadline": hearing_date,
                 "description": f"Extracted from document: {filename}",
@@ -581,7 +582,7 @@ async def add_document_to_case(
         
         if answer_deadline and answer_deadline not in existing_deadlines:
             case_data["deadlines"].append({
-                "id": f"ddl_answer_{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                "id": f"ddl_answer_{utc_now().strftime('%Y%m%d%H%M%S')}",
                 "title": f"Answer Deadline (from {filename})",
                 "deadline": answer_deadline,
                 "description": f"Extracted from document: {filename}",
@@ -591,14 +592,14 @@ async def add_document_to_case(
     
     # Mark case for re-evaluation
     case_data["needs_evaluation"] = True
-    case_data["last_document_added"] = datetime.now().isoformat()
-    case_data["updated_at"] = datetime.now().isoformat()
+    case_data["last_document_added"] = utc_now().isoformat()
+    case_data["updated_at"] = utc_now().isoformat()
     
     # Add note about document addition
     if "notes" not in case_data:
         case_data["notes"] = []
     case_data["notes"].append(
-        f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}] Document auto-added: {filename}"
+        f"[{utc_now().strftime('%Y-%m-%d %H:%M')}] Document auto-added: {filename}"
     )
     
     # Save updated case
