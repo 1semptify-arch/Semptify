@@ -19,6 +19,7 @@ from app.core.security import get_optional_user_id
 from app.services.emotion_engine import emotion_engine
 from .service import progress_tracker
 from .service import action_router
+from app.core.utc import utc_now
 
 
 router = APIRouter(prefix="/api/dashboard", tags=["Unified Dashboard"])
@@ -84,13 +85,13 @@ async def get_unified_dashboard(user_id: str = Depends(resolve_user_id)):
     journey_days = 0
     days_to_court = None
     if progress.journey_started:
-        journey_days = (datetime.now() - progress.journey_started).days + 1
+        journey_days = (utc_now() - progress.journey_started).days + 1
     if progress.court_date:
-        days_to_court = (progress.court_date - datetime.now()).days
+        days_to_court = (progress.court_date - utc_now()).days
     
     return {
         "success": True,
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": utc_now().isoformat(),
         
         # Emotional Layer
         "emotion": {
@@ -211,7 +212,7 @@ async def get_status_bar(user_id: str = Depends(resolve_user_id)):
     days_to_court = None
     urgent_count = 0
     if progress.court_date:
-        days_to_court = (progress.court_date - datetime.now()).days
+        days_to_court = (progress.court_date - utc_now()).days
         # Count as urgent if court date is within 14 days
         if days_to_court is not None and 0 < days_to_court <= 14:
             urgent_count = 1
@@ -250,7 +251,7 @@ async def get_personalized_greeting(user_id: str = Depends(resolve_user_id)):
     mode = action_router.get_dashboard_mode(emotional_dict)
     
     # Time-based greeting
-    hour = datetime.now().hour
+    hour = utc_now().hour
     if hour < 12:
         time_greeting = "Good morning"
     elif hour < 17:
@@ -277,7 +278,7 @@ async def get_personalized_greeting(user_id: str = Depends(resolve_user_id)):
     # Court urgency
     urgency_message = ""
     if progress.court_date:
-        days_to_court = (progress.court_date - datetime.now()).days
+        days_to_court = (progress.court_date - utc_now()).days
         if days_to_court <= 3:
             urgency_message = "⚠️ Court is very soon. Let's make sure you're ready."
         elif days_to_court <= 7:
@@ -305,7 +306,7 @@ async def get_quick_stats(user_id: str = Depends(resolve_user_id)):
         "violations_found": progress.violations_found,
         "case_readiness": readiness["percent"],
         "days_active": (
-            (datetime.now() - progress.journey_started).days + 1
+            (utc_now() - progress.journey_started).days + 1
             if progress.journey_started else 0
         ),
         "streak_days": progress.streak_days,

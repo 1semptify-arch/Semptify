@@ -20,6 +20,7 @@ from app.core.security import require_user, StorageUser
 from app.services.law_engine import get_law_engine
 from app.services.form_data import get_form_data_service
 from app.core.document_hub import get_document_hub
+from app.core.utc import utc_now
 
 
 router = APIRouter(prefix="/api/eviction-defense", tags=["Eviction Defense"])
@@ -1029,7 +1030,7 @@ async def analyze_case(
     if case.hearing_date:
         try:
             hearing = datetime.fromisoformat(case.hearing_date)
-            days_until = (hearing - datetime.now()).days
+            days_until = (hearing - utc_now()).days
             if days_until <= 3:
                 urgency = "critical"
             elif days_until <= 7:

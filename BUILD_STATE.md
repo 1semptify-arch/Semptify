@@ -3,6 +3,23 @@
 
 ---
 
+## Cleaned — 2026-05-18 (7:16 AM UTC-05) — Delete Dead Code Directories
+
+### Action: Removed `app/routers/_migrated/` and `app/templates/services/`
+
+**Why:** These directories contained ~194 naive `datetime.now()` calls. No active code imported from either directory.
+
+- `app/routers/_migrated/` — Old router files migrated to `app/modules/` in previous sessions. Confirmed: zero `from app.routers._migrated` imports in active code.
+- `app/templates/services/` — Duplicate copies of service files inside templates directory. Confirmed: zero `from app.templates.services` imports in active code.
+
+**Result:** Zero naive `datetime.now()` calls remain anywhere in `app/`. All active code already uses `utc_now()` or `datetime.now(timezone.utc)`.
+
+**Verification:**
+- `grep -r 'datetime\.now()' app/ --include='*.py'` → no results
+- Active code compiles clean (verified in previous session)
+
+---
+
 ## Shipped This Session — 2026-05-18 (6:07 AM UTC-05) — Commit `42e9134`
 
 ### Session Summary — Complete Vault Creation + Comprehensive System Test

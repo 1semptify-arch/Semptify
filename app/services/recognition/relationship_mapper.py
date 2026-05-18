@@ -236,7 +236,7 @@ class RelationshipMapper:
         # Step 7: Link entities based on proximity
         self._link_by_proximity(entities, text, reasoning)
         
-        reasoning.completed_at = datetime.now()
+        reasoning.completed_at = utc_now()
         reasoning.conclusion = (
             f"Mapped {len(rel_map.party_relationships)} party relationships, "
             f"{len(rel_map.amount_relationships)} financial relationships"
@@ -670,3 +670,4 @@ class RelationshipMapper:
 
 # Import for type hints
 from datetime import timedelta
+from app.core.utc import utc_now

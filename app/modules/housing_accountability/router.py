@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 import logging
 
 from app.core.security import get_current_user
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -518,7 +519,7 @@ async def process_evidence_intake(request: EvidenceIntakeRequest,
     try:
         # Process evidence based on type
         processed_evidence = {
-            "evidence_id": f"evidence_{datetime.now().timestamp()}",
+            "evidence_id": f"evidence_{utc_now().timestamp()}",
             "evidence_type": request.evidence_type,
             "processed_data": self._process_evidence_data(request.evidence_data, request.evidence_type),
             "case_context": request.case_context,
@@ -545,7 +546,7 @@ async def search_public_records(request: PublicRecordsRequest,
     try:
         # Simulate public records search
         search_results = {
-            "search_id": f"search_{datetime.now().timestamp()}",
+            "search_id": f"search_{utc_now().timestamp()}",
             "record_type": request.record_type,
             "search_criteria": request.search_criteria,
             "jurisdiction": request.jurisdiction,
@@ -573,7 +574,7 @@ async def build_press_release(request: PressBuilderRequest,
     try:
         # Generate press release
         press_release = {
-            "press_id": f"press_{datetime.now().timestamp()}",
+            "press_id": f"press_{utc_now().timestamp()}",
             "story_type": request.story_type,
             "headline": self._generate_headline(request.key_facts, request.story_type),
             "lead_paragraph": self._generate_lead_paragraph(request.key_facts, request.affected_parties),

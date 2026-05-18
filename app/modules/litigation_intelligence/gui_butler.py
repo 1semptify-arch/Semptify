@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from dataclasses import dataclass
 import json
 import asyncio
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -450,10 +451,10 @@ class GUIButlerIntegration:
         # This would need database connection string
         # For now, return mock responses
         if command.command_id == "store_case":
-            return {"case_id": f"stored_case_{datetime.now().timestamp()}"}
+            return {"case_id": f"stored_case_{utc_now().timestamp()}"}
         
         elif command.command_id == "store_entity":
-            return {"entity_id": f"stored_entity_{datetime.now().timestamp()}"}
+            return {"entity_id": f"stored_entity_{utc_now().timestamp()}"}
         
         elif command.command_id == "search_cases":
             return {"cases": [], "total": 0}

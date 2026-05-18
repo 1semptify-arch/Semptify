@@ -14,6 +14,7 @@ from collections import defaultdict
 import math
 
 from .models import (
+from app.core.utc import utc_now
     ConfidenceMetrics, ConfidenceLevel,
     ExtractedEntity, EntityType,
     ReasoningChain, ReasoningStep, ReasoningType,
@@ -174,7 +175,7 @@ class ConfidenceScorer:
             confidence_impact=0
         )
         
-        reasoning.completed_at = datetime.now()
+        reasoning.completed_at = utc_now()
         reasoning.conclusion = f"Confidence: {metrics.overall_score:.1f}% ({metrics.level.value})"
         
         return metrics, reasoning

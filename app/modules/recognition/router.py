@@ -40,6 +40,7 @@ from app.services.positronic_brain import (
     ModuleType,
 )
 from app.core.security import require_user, StorageUser
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -450,7 +451,7 @@ async def analyze_text(
     engine = get_engine()
     brain = get_brain()
     
-    start_time = datetime.now()
+    start_time = utc_now()
     
     try:
         # Run document analysis
@@ -476,7 +477,7 @@ async def analyze_text(
                 user.user_id,
             )
         
-        processing_time = (datetime.now() - start_time).total_seconds() * 1000
+        processing_time = (utc_now() - start_time).total_seconds() * 1000
         
         # Emit analysis event
         background_tasks.add_task(
@@ -527,7 +528,7 @@ async def analyze_file(
     if len(content) > 20 * 1024 * 1024:  # 20MB limit
         raise HTTPException(status_code=400, detail="File too large. Maximum size is 20MB.")
     
-    start_time = datetime.now()
+    start_time = utc_now()
     
     try:
         # Extract text based on file type
@@ -629,7 +630,7 @@ async def analyze_file(
             user.user_id,
         )
         
-        processing_time = (datetime.now() - start_time).total_seconds() * 1000
+        processing_time = (utc_now() - start_time).total_seconds() * 1000
         
         # Emit analysis event
         background_tasks.add_task(
@@ -877,7 +878,7 @@ async def batch_analyze(
     analyzer = get_handwriting_analyzer()
     brain = get_brain()
     
-    start_time = datetime.now()
+    start_time = utc_now()
     results = []
     successful = 0
     failed = 0
@@ -891,10 +892,10 @@ async def batch_analyze(
                 failed += 1
                 continue
             
-            doc_start = datetime.now()
+            doc_start = utc_now()
             result = await engine.analyze(text, filename=filename)
             handwriting_result = await analyzer.analyze(text)
-            doc_time = (datetime.now() - doc_start).total_seconds() * 1000
+            doc_time = (utc_now() - doc_start).total_seconds() * 1000
             
             results.append(result_to_response(result, doc_time, handwriting_result))
             successful += 1
@@ -905,7 +906,7 @@ async def batch_analyze(
             logger.error(f"Batch item failed: {e}")
             failed += 1
     
-    total_time = (datetime.now() - start_time).total_seconds() * 1000
+    total_time = (utc_now() - start_time).total_seconds() * 1000
     
     return BatchAnalyzeResponse(
         results=results,

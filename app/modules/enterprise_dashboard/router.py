@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel
 import asyncio
 import json
+from app.core.utc import utc_now
 
 router = APIRouter()
 
@@ -135,7 +136,7 @@ async def get_recent_activity(limit: int = 10):
             type="document_upload",
             title="Document Uploaded",
             description="Lease Agreement - 2024.pdf",
-            timestamp=datetime.now() - timedelta(hours=2),
+            timestamp=utc_now() - timedelta(hours=2),
             icon="file-upload",
             color="#3b82f6"
         ),
@@ -144,7 +145,7 @@ async def get_recent_activity(limit: int = 10):
             type="task_complete",
             title="Task Completed",
             description="Document analysis finished",
-            timestamp=datetime.now() - timedelta(hours=5),
+            timestamp=utc_now() - timedelta(hours=5),
             icon="check",
             color="#10b981"
         ),
@@ -153,7 +154,7 @@ async def get_recent_activity(limit: int = 10):
             type="deadline_added",
             title="Deadline Added",
             description="Court hearing scheduled",
-            timestamp=datetime.now() - timedelta(days=1),
+            timestamp=utc_now() - timedelta(days=1),
             icon="calendar-plus",
             color="#f59e0b"
         ),
@@ -162,7 +163,7 @@ async def get_recent_activity(limit: int = 10):
             type="ai_analysis",
             title="AI Analysis Complete",
             description="Case strength updated to 92%",
-            timestamp=datetime.now() - timedelta(days=1, hours=3),
+            timestamp=utc_now() - timedelta(days=1, hours=3),
             icon="brain",
             color="#7c3aed"
         ),
@@ -171,7 +172,7 @@ async def get_recent_activity(limit: int = 10):
             type="document_verified",
             title="Document Verified",
             description="Property photos authenticated",
-            timestamp=datetime.now() - timedelta(days=1, hours=8),
+            timestamp=utc_now() - timedelta(days=1, hours=8),
             icon="shield-check",
             color="#10b981"
         ),
@@ -205,7 +206,7 @@ async def get_recent_documents(limit: int = 10):
             name="Lease Agreement 2024",
             type="Contract",
             status="Verified",
-            date_added=datetime.now() - timedelta(hours=2),
+            date_added=utc_now() - timedelta(hours=2),
             file_type="pdf",
             size=2458000
         ),
@@ -214,7 +215,7 @@ async def get_recent_documents(limit: int = 10):
             name="Property Photos",
             type="Evidence",
             status="Verified",
-            date_added=datetime.now() - timedelta(days=1),
+            date_added=utc_now() - timedelta(days=1),
             file_type="images",
             size=8450000
         ),
@@ -223,7 +224,7 @@ async def get_recent_documents(limit: int = 10):
             name="Notice to Vacate",
             type="Legal Notice",
             status="Processing",
-            date_added=datetime.now() - timedelta(days=2),
+            date_added=utc_now() - timedelta(days=2),
             file_type="pdf",
             size=1250000
         ),
@@ -232,7 +233,7 @@ async def get_recent_documents(limit: int = 10):
             name="Rent Payment Records",
             type="Financial",
             status="Verified",
-            date_added=datetime.now() - timedelta(days=3),
+            date_added=utc_now() - timedelta(days=3),
             file_type="excel",
             size=450000
         ),
@@ -241,7 +242,7 @@ async def get_recent_documents(limit: int = 10):
             name="Communication Log",
             type="Correspondence",
             status="Verified",
-            date_added=datetime.now() - timedelta(days=5),
+            date_added=utc_now() - timedelta(days=5),
             file_type="pdf",
             size=980000
         ),
@@ -385,7 +386,7 @@ async def get_notifications(unread_only: bool = False):
             "type": "deadline",
             "title": "Court Deadline Approaching",
             "message": "Your answer is due in 5 days",
-            "timestamp": datetime.now() - timedelta(hours=1),
+            "timestamp": utc_now() - timedelta(hours=1),
             "read": False,
             "priority": "high"
         },
@@ -394,7 +395,7 @@ async def get_notifications(unread_only: bool = False):
             "type": "document",
             "title": "Document Analysis Complete",
             "message": "Your lease agreement has been analyzed",
-            "timestamp": datetime.now() - timedelta(hours=5),
+            "timestamp": utc_now() - timedelta(hours=5),
             "read": False,
             "priority": "medium"
         },
@@ -403,7 +404,7 @@ async def get_notifications(unread_only: bool = False):
             "type": "ai_insight",
             "title": "New AI Insight Available",
             "message": "Habitability defense opportunity detected",
-            "timestamp": datetime.now() - timedelta(days=1),
+            "timestamp": utc_now() - timedelta(days=1),
             "read": True,
             "priority": "medium"
         },
@@ -412,7 +413,7 @@ async def get_notifications(unread_only: bool = False):
             "type": "success",
             "title": "Document Uploaded Successfully",
             "message": "Property photos have been verified",
-            "timestamp": datetime.now() - timedelta(days=1),
+            "timestamp": utc_now() - timedelta(days=1),
             "read": True,
             "priority": "low"
         },
@@ -421,7 +422,7 @@ async def get_notifications(unread_only: bool = False):
             "type": "update",
             "title": "System Update",
             "message": "New features added to Law Library",
-            "timestamp": datetime.now() - timedelta(days=2),
+            "timestamp": utc_now() - timedelta(days=2),
             "read": True,
             "priority": "low"
         },
@@ -473,7 +474,7 @@ async def websocket_dashboard(websocket: WebSocket):
                     "tasks_completed": 8,
                     "upcoming_deadlines": 3,
                     "case_strength": 92.0,
-                    "timestamp": datetime.now().isoformat()
+                    "timestamp": utc_now().isoformat()
                 }
             })
             
@@ -572,8 +573,8 @@ async def export_dashboard_report(format: str = "pdf"):
     return {
         "status": "success",
         "format": format,
-        "download_url": f"/api/downloads/dashboard-report-{datetime.now().strftime('%Y%m%d')}.{format}",
-        "expires_at": (datetime.now() + timedelta(hours=1)).isoformat()
+        "download_url": f"/api/downloads/dashboard-report-{utc_now().strftime('%Y%m%d')}.{format}",
+        "expires_at": (utc_now() + timedelta(hours=1)).isoformat()
     }
 
 

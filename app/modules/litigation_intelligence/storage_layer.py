@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from dataclasses import dataclass, asdict
 import json
 import asyncio
+from app.core.utc import utc_now
 
 try:
     import asyncpg
@@ -168,7 +169,7 @@ class LitigationStorageLayer:
         
         try:
             async with self.pool.acquire() as conn:
-                case_id = case_data.get("case_number", f"case_{datetime.now().timestamp()}")
+                case_id = case_data.get("case_number", f"case_{utc_now().timestamp()}")
                 
                 await conn.execute("""
                     INSERT INTO litigation_cases (
@@ -213,7 +214,7 @@ class LitigationStorageLayer:
         
         try:
             async with self.pool.acquire() as conn:
-                entity_id = entity_data.get("id", f"entity_{datetime.now().timestamp()}")
+                entity_id = entity_data.get("id", f"entity_{utc_now().timestamp()}")
                 
                 await conn.execute("""
                     INSERT INTO litigation_entities (

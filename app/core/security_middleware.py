@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ class RateLimiter:
     
     def is_allowed(self, client_id: str) -> bool:
         """Check if client is allowed to make request"""
-        now = datetime.now()
+        now = utc_now()
         cutoff = now - timedelta(seconds=self.period)
         
         # Clean old requests

@@ -23,6 +23,7 @@ from ..modules.litigation_intelligence.storage_layer import create_storage_layer
 from ..modules.litigation_intelligence.reporting_layer import create_reporting_layer
 from ..modules.litigation_intelligence.gui_butler import create_gui_butler
 from ..modules.litigation_intelligence.scheduler import create_litigation_scheduler
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -368,7 +369,7 @@ async def schedule_task(request: ScheduledTaskRequest,
         from ..modules.litigation_intelligence.scheduler import ScheduledTask
         
         task = ScheduledTask(
-            task_id=f"task_{datetime.now().timestamp()}",
+            task_id=f"task_{utc_now().timestamp()}",
             task_name=request.task_name,
             schedule_type=request.schedule_type,
             schedule_expression=request.schedule_expression,

@@ -12,6 +12,7 @@ from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, asdict
 import json
 from enum import Enum
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +82,7 @@ class ReportingLayer:
         recommendations = self._generate_case_recommendations(case_metrics)
         
         report = LitigationReport(
-            report_id=f"case_summary_{datetime.now().timestamp()}",
+            report_id=f"case_summary_{utc_now().timestamp()}",
             report_type=ReportType.CASE_SUMMARY,
             generated_at=datetime.now(timezone.utc),
             time_period=time_period,
@@ -114,7 +115,7 @@ class ReportingLayer:
         recommendations = self._generate_entity_recommendations(entity_metrics, entity_type)
         
         report = LitigationReport(
-            report_id=f"entity_analysis_{entity_type}_{datetime.now().timestamp()}",
+            report_id=f"entity_analysis_{entity_type}_{utc_now().timestamp()}",
             report_type=ReportType.ENTITY_ANALYSIS,
             generated_at=datetime.now(timezone.utc),
             time_period=time_period,
@@ -146,7 +147,7 @@ class ReportingLayer:
         recommendations = self._generate_pattern_recommendations(pattern_metrics)
         
         report = LitigationReport(
-            report_id=f"pattern_trends_{datetime.now().timestamp()}",
+            report_id=f"pattern_trends_{utc_now().timestamp()}",
             report_type=ReportType.PATTERN_TRENDS,
             generated_at=datetime.now(timezone.utc),
             time_period=time_period,
@@ -178,7 +179,7 @@ class ReportingLayer:
         recommendations = self._generate_success_recommendations(success_metrics)
         
         report = LitigationReport(
-            report_id=f"success_metrics_{datetime.now().timestamp()}",
+            report_id=f"success_metrics_{utc_now().timestamp()}",
             report_type=ReportType.SUCCESS_METRICS,
             generated_at=datetime.now(timezone.utc),
             time_period=time_period,

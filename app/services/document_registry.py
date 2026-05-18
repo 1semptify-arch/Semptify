@@ -431,7 +431,7 @@ class ForgeryDetector:
                     continue
         
         # Check for future dates (suspicious for historical documents)
-        now = datetime.now()
+        now = utc_now()
         for d in dates_found:
             if d > now + timedelta(days=365):  # More than a year in future
                 alerts.append(ForgeryAlert(
@@ -559,6 +559,7 @@ class ForgeryDetector:
 
 # Import timedelta for use in ForgeryDetector
 from datetime import timedelta
+from app.core.utc import utc_now
 
 
 # =============================================================================

@@ -10,6 +10,7 @@ import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from dataclasses import dataclass, field
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +92,7 @@ class AutoModeSummaryService:
         summary = AnalysisSummary(
             doc_id=doc_id,
             filename=filename,
-            analysis_timestamp=datetime.now().isoformat()
+            analysis_timestamp=utc_now().isoformat()
         )
 
         try:

@@ -12,6 +12,7 @@ import base64
 import os
 import tempfile
 from datetime import datetime
+from app.core.utc import utc_now
 
 router = APIRouter(prefix="/api/pdf", tags=["PDF Tools"])
 
@@ -36,14 +37,14 @@ async def upload_pdf(file: UploadFile = File(...)):
         page_count = len(doc)
         
         # Generate unique ID
-        pdf_id = f"pdf_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(content) & 0xFFFFFF:06x}"
+        pdf_id = f"pdf_{utc_now().strftime('%Y%m%d_%H%M%S')}_{hash(content) & 0xFFFFFF:06x}"
         
         # Store in cache
         pdf_cache[pdf_id] = {
             "filename": file.filename,
             "content": content,
             "page_count": page_count,
-            "uploaded_at": datetime.now().isoformat()
+            "uploaded_at": utc_now().isoformat()
         }
         
         # Get metadata

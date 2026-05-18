@@ -13,6 +13,7 @@ from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 
 from .models import (
+from app.core.utc import utc_now
     DocumentContext, DocumentSection, ConfidenceMetrics,
     ReasoningChain, ReasoningStep, ReasoningType
 )
@@ -194,7 +195,7 @@ class ContextAnalyzer:
         )
         context = self._detect_special_characteristics(text, context)
         
-        reasoning.completed_at = datetime.now()
+        reasoning.completed_at = utc_now()
         reasoning.conclusion = f"Document type: {context.document_flow_type}, Quality: {context.ocr_quality:.1f}"
         
         return context, reasoning

@@ -17,6 +17,7 @@ import csv
 import os
 
 from app.services.eviction.court_learning import (
+from app.core.utc import utc_now
     CourtLearningEngine,
     CaseOutcome,
     CaseOutcomeRecord,
@@ -237,7 +238,7 @@ class CourtDataSeeder:
         
         # Random date in the past 2 years
         days_ago = random.randint(30, 730)
-        case_date = datetime.now() - timedelta(days=days_ago)
+        case_date = utc_now() - timedelta(days=days_ago)
         
         # Pick outcome based on distribution
         outcome = self._weighted_choice(MN_OUTCOME_DISTRIBUTION)

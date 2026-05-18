@@ -21,6 +21,7 @@ import hashlib
 import base64
 import zipfile
 from app.core.id_gen import make_id
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ briefcase_data = {
             "id": "root",
             "name": "My Briefcase",
             "parent_id": None,
-            "created_at": datetime.now().isoformat(),
+            "created_at": utc_now().isoformat(),
             "color": "#4ade80",
             "icon": "briefcase"
         },
@@ -48,7 +49,7 @@ briefcase_data = {
             "id": "extracted",
             "name": "📄 Extracted Pages",
             "parent_id": "root",
-            "created_at": datetime.now().isoformat(),
+            "created_at": utc_now().isoformat(),
             "color": "#f59e0b",
             "icon": "file-export",
             "system": True
@@ -57,7 +58,7 @@ briefcase_data = {
             "id": "highlights",
             "name": "🖍️ Highlights & Notes",
             "parent_id": "root",
-            "created_at": datetime.now().isoformat(),
+            "created_at": utc_now().isoformat(),
             "color": "#ec4899",
             "icon": "highlighter",
             "system": True
@@ -66,7 +67,7 @@ briefcase_data = {
             "id": "evidence",
             "name": "📸 Evidence",
             "parent_id": "root",
-            "created_at": datetime.now().isoformat(),
+            "created_at": utc_now().isoformat(),
             "color": "#ef4444",
             "icon": "gavel",
             "system": True
@@ -75,7 +76,7 @@ briefcase_data = {
             "id": "converted",
             "name": "📄 Converted Documents",
             "parent_id": "root",
-            "created_at": datetime.now().isoformat(),
+            "created_at": utc_now().isoformat(),
             "color": "#22c55e",
             "icon": "file-earmark-arrow-up",
             "system": True
@@ -84,7 +85,7 @@ briefcase_data = {
             "id": "court_packets",
             "name": "⚖️ Court Packets",
             "parent_id": "root",
-            "created_at": datetime.now().isoformat(),
+            "created_at": utc_now().isoformat(),
             "color": "#3b82f6",
             "icon": "folder-check",
             "system": True
@@ -179,7 +180,7 @@ async def create_folder(folder: FolderCreate):
     if folder.parent_id != "root" and folder.parent_id not in briefcase_data["folders"]:
         raise HTTPException(status_code=404, detail="Parent folder not found")
     
-    folder_id = f"folder_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(folder.name) & 0xFFFF:04x}"
+    folder_id = f"folder_{utc_now().strftime('%Y%m%d_%H%M%S')}_{hash(folder.name) & 0xFFFF:04x}"
     
     new_folder = {
         "id": folder_id,
@@ -187,8 +188,8 @@ async def create_folder(folder: FolderCreate):
         "parent_id": folder.parent_id,
         "color": folder.color,
         "icon": folder.icon,
-        "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat()
+        "created_at": utc_now().isoformat(),
+        "updated_at": utc_now().isoformat()
     }
     
     briefcase_data["folders"][folder_id] = new_folder
@@ -219,7 +220,7 @@ async def update_folder(folder_id: str, update: FolderUpdate):
             raise HTTPException(status_code=400, detail="Cannot move folder to its own subfolder")
         folder["parent_id"] = update.parent_id
     
-    folder["updated_at"] = datetime.now().isoformat()
+    folder["updated_at"] = utc_now().isoformat()
     
     return {"success": True, "folder": folder}
 
@@ -362,7 +363,7 @@ async def upload_document(
             logger.warning(f"Vault upload failed: {e}")
     
     # Generate document ID and hash
-    doc_id = vault_id or f"doc_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(content) & 0xFFFFFF:06x}"
+    doc_id = vault_id or f"doc_{utc_now().strftime('%Y%m%d_%H%M%S')}_{hash(content) & 0xFFFFFF:06x}"
     file_hash = hashlib.sha256(content).hexdigest()[:16]
     
     # Store document reference in briefcase (not content - that's in vault)
@@ -380,8 +381,8 @@ async def upload_document(
         "tags": tag_list,
         "notes": notes,
         "starred": False,
-        "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat(),
+        "created_at": utc_now().isoformat(),
+        "updated_at": utc_now().isoformat(),
         # Keep a local fallback copy so briefcase download still works
         # when vault retrieval requires additional auth context.
         "content": base64.b64encode(content).decode('utf-8'),
@@ -504,7 +505,7 @@ async def update_document(doc_id: str, update: DocumentUpdate):
     if update.starred is not None:
         doc["starred"] = update.starred
     
-    doc["updated_at"] = datetime.now().isoformat()
+    doc["updated_at"] = utc_now().isoformat()
     
     return {"success": True, "document": {k: v for k, v in doc.items() if k != "content"}}
 
@@ -530,7 +531,7 @@ async def move_document(doc_id: str, folder_id: str = Form(...)):
         raise HTTPException(status_code=404, detail="Target folder not found")
     
     briefcase_data["documents"][doc_id]["folder_id"] = folder_id
-    briefcase_data["documents"][doc_id]["updated_at"] = datetime.now().isoformat()
+    briefcase_data["documents"][doc_id]["updated_at"] = utc_now().isoformat()
     
     return {"success": True, "message": "Document moved"}
 
@@ -545,14 +546,14 @@ async def copy_document(doc_id: str, folder_id: str = Form(...)):
         raise HTTPException(status_code=404, detail="Target folder not found")
     
     original = briefcase_data["documents"][doc_id]
-    new_id = f"doc_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{hash(original['name']) & 0xFFFF:04x}"
+    new_id = f"doc_{utc_now().strftime('%Y%m%d_%H%M%S')}_{hash(original['name']) & 0xFFFF:04x}"
     
     copy = original.copy()
     copy["id"] = new_id
     copy["folder_id"] = folder_id
     copy["name"] = f"Copy of {original['name']}"
-    copy["created_at"] = datetime.now().isoformat()
-    copy["updated_at"] = datetime.now().isoformat()
+    copy["created_at"] = utc_now().isoformat()
+    copy["updated_at"] = utc_now().isoformat()
     
     briefcase_data["documents"][new_id] = copy
     
@@ -748,10 +749,10 @@ async def save_converted_document(data: ConvertedDocumentSave):
             "type": mime_types.get(data.doc_type, 'application/octet-stream'),
             "size": len(file_content),
             "content": base64.b64encode(file_content).decode('utf-8'),
-            "created_at": datetime.now().isoformat(),
+            "created_at": utc_now().isoformat(),
             "tags": ["Converted"],
             "starred": False,
-            "notes": f"Converted from {data.original_name or 'markdown'} on {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+            "notes": f"Converted from {data.original_name or 'markdown'} on {utc_now().strftime('%Y-%m-%d %H:%M')}",
             "source": "document_converter"
         }
         
@@ -831,7 +832,7 @@ async def save_extraction(
         "pages": page_list,
         "page_count": len(page_list),
         "notes": notes,
-        "created_at": datetime.now().isoformat(),
+        "created_at": utc_now().isoformat(),
         "folder_id": "extracted"
     }
     
@@ -935,7 +936,7 @@ async def save_highlight(
         "text": text,
         "note": note,
         "coords": json.loads(coords) if coords else None,
-        "created_at": datetime.now().isoformat(),
+        "created_at": utc_now().isoformat(),
         "folder_id": "highlights"
     }
     
@@ -963,7 +964,7 @@ async def save_highlights_batch(request: Request):
             "text": h.get("text", ""),
             "note": h.get("note", ""),
             "coords": h.get("coords"),
-            "created_at": datetime.now().isoformat(),
+            "created_at": utc_now().isoformat(),
             "folder_id": "highlights"
         }
         briefcase_data["highlights"][highlight_id] = highlight
@@ -1084,8 +1085,8 @@ async def create_annotation(annotation: AnnotationCreate):
         "detection_method": annotation.detection_method,
         "confidence": annotation.confidence,
         "linked_event_id": annotation.linked_event_id,
-        "created_at": datetime.now().isoformat(),
-        "updated_at": datetime.now().isoformat()
+        "created_at": utc_now().isoformat(),
+        "updated_at": utc_now().isoformat()
     }
     
     annotation_data["annotations"][annotation_id] = new_annotation
@@ -1141,7 +1142,7 @@ async def update_annotation(annotation_id: str, update: AnnotationUpdate):
     if update.linked_event_id is not None:
         annotation["linked_event_id"] = update.linked_event_id
     
-    annotation["updated_at"] = datetime.now().isoformat()
+    annotation["updated_at"] = utc_now().isoformat()
     
     return {"success": True, "annotation": annotation}
 
@@ -1167,7 +1168,7 @@ async def link_annotation_to_event(
     
     annotation = annotation_data["annotations"][annotation_id]
     annotation["linked_event_id"] = event_id
-    annotation["updated_at"] = datetime.now().isoformat()
+    annotation["updated_at"] = utc_now().isoformat()
     
     return {"success": True, "annotation": annotation}
 
@@ -1284,7 +1285,7 @@ async def create_timeline_event(event: TimelineEventCreate):
         "is_deadline": event.is_deadline,
         "is_evidence": event.is_evidence,
         "linked_annotations": [],
-        "created_at": datetime.now().isoformat()
+        "created_at": utc_now().isoformat()
     }
     
     timeline_events_data[event_id] = new_event
@@ -1358,7 +1359,7 @@ async def update_timeline_event(event_id: str, update: TimelineEventUpdate):
     if update.is_deadline is not None:
         event["is_deadline"] = update.is_deadline
     
-    event["updated_at"] = datetime.now().isoformat()
+    event["updated_at"] = utc_now().isoformat()
     
     return {"success": True, "event": event}
 
@@ -1453,7 +1454,7 @@ async def create_event_from_annotation(annotation_id: str):
         "id": event_id,
         "title": annotation["highlight_text"][:100],
         "event_type": event_type,
-        "event_date": datetime.now().isoformat(),
+        "event_date": utc_now().isoformat(),
         "description": annotation.get("annotation_note"),
         "event_status": "start",
         "source_extraction_id": annotation["marker_id"],
@@ -1462,14 +1463,14 @@ async def create_event_from_annotation(annotation_id: str):
         "is_deadline": is_deadline,
         "is_evidence": False,
         "linked_annotations": [annotation_id],
-        "created_at": datetime.now().isoformat()
+        "created_at": utc_now().isoformat()
     }
     
     timeline_events_data[event_id] = new_event
     
     # Link annotation back to event
     annotation["linked_event_id"] = event_id
-    annotation["updated_at"] = datetime.now().isoformat()
+    annotation["updated_at"] = utc_now().isoformat()
     
     return {"success": True, "event": new_event, "annotation_linked": True}
 

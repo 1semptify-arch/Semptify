@@ -24,6 +24,7 @@ from app.services.legal_analysis_engine import LegalAnalysisEngine
 from app.services.complaint_wizard import ComplaintWizardService
 from app.services.proactive_tactics import ProactiveTacticsEngine
 from app.services.auto_mode_summary_service import AutoModeSummaryService
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +66,7 @@ class AutoModeOrchestrator:
             'rights_assessment': {},
             'legal_missteps': [],
             'proactive_tactics': [],
-            'analysis_timestamp': datetime.now().isoformat(),
+            'analysis_timestamp': utc_now().isoformat(),
             'summary': None,
             'status': 'processing'
         }

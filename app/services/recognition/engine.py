@@ -35,6 +35,7 @@ from .confidence_scorer import ConfidenceScorer
 from .text_preprocessor import get_preprocessor
 from .legal_dictionary import get_legal_dictionary
 from .tone_analyzer import get_tone_analyzer
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -266,7 +267,7 @@ class DocumentRecognitionEngine:
         
         # Record processing time
         result.processing_time_ms = (time.time() - start_time) * 1000
-        result.analyzed_at = datetime.now()
+        result.analyzed_at = utc_now()
         
         logger.info(
             f"Analysis complete: {result.document_type.value}, "

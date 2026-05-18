@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
 from datetime import datetime, timedelta
+from app.core.utc import utc_now
 
 
 # =============================================================================
@@ -1068,7 +1069,7 @@ vs.
 
 {template.template_text}
 
-Dated: {datetime.now().strftime('%B %d, %Y')}
+Dated: {utc_now().strftime('%B %d, %Y')}
 
                                     Respectfully submitted,
 
