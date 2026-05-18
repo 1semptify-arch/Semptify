@@ -3,6 +3,64 @@
 
 ---
 
+## Shipped — 2026-05-18 (12:51 PM UTC-05) — Commit PENDING
+
+### What Was Shipped
+
+1. **Fixed missing `utc_now` import in `vault.py`** — Added `from app.utils.utc_now import utc_now` at line 22. This was causing `NameError` during encrypted token backup, which crashed vault initialization and prevented `vault_initialized` gate from being marked.
+
+### What Is Known Working
+
+- All onboarding module files compile clean
+- Vault initialization can now complete full 6-step flow:
+  1. Create folders (13 canonical paths)
+  2. Place system files (Rehome.html, README.txt, manifest.json)
+  3. Initialize data files (timeline/events.json, overlays/registry.json)
+  4. Store encrypted token backup (was failing here)
+  5. System verification test
+  6. Mark `vault_initialized` gate
+
+### What Is Pending
+
+- Live OAuth test on Render to verify end-to-end flow
+- Verify vault folders actually appear in Google Drive/Dropbox/OneDrive
+
+---
+
+## Shipped — 2026-05-18 (8:05 AM UTC-05) — Commit `60fc0c9`
+
+### What Was Shipped
+
+1. **Fixed `utc_now()` inconsistency in `vault.py`** — `datetime.now(timezone.utc)` → `utc_now()` in `_store_encrypted_token_backup`. Aligns with project convention.
+2. **Fixed SSOT redirect in `router.py`** — `/onboarding/start` now uses `navigation.get_reconnect_flow()` instead of hardcoded `/storage/reconnect`.
+3. **Fixed double-slash guard in `main.py`** — `/onboarding` redirect prevents `/onboarding//` when navigation path already ends with `/`.
+4. **Deleted dead code directories** — `app/routers/_migrated/` and `app/templates/services/` contained ~194 naive `datetime.now()` calls. Zero active imports. Active code was already timezone-safe.
+5. **Logged clock drift risk** — Server clock drift vs. timezone handling documented in BUILD_STATE.
+
+### What Is Known Working
+
+- Onboarding module compiles clean
+- 12 routes defined: `/` → `/start` → `/providers` → `/auth/{provider}` → `/callback/{provider}` → `/vault-setup` → `/api/vault/init` + `/api/vault/verify`
+- OAuth callback → `init_vault()` inline → 13 folders + system files + data files + 5-step system test
+- Gate marking: `storage_connected` (OAuth success), `vault_initialized` (vault passes)
+- All datetime handling: UTC-only (zero naive `datetime.now()` calls remain in active code)
+- SSOT compliance: all redirects use `navigation.get_stage()`
+
+### What Is Pending
+
+- **Live OAuth test** — need to verify actual Google Drive / Dropbox / OneDrive handshake
+- **7 review findings** documented (see Onboarding Audit section below):
+  - vault_setup_page cookie verification
+  - Token refresh in callback path
+  - verify_vault vs _verify_system_check divergence
+  - storage_connected race condition with vault_init
+  - Delete step non-fatal in system test
+  - create_vault_folders per-folder status lost
+
+---
+
+---
+
 ## Onboarding Audit + Fixes — 2026-05-18 (7:34 AM UTC-05)
 
 ### Assessment: Onboarding Module is Structurally Sound
