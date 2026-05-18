@@ -120,6 +120,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                     provider, role, callback_url,
                     request.headers.get("x-forwarded-host", "NONE"),
                     request.headers.get("x-forwarded-proto", "NONE"))
+        # OAuth is external - use direct redirect
         return RedirectResponse(url=auth_url, status_code=302)
 
     # ------------------------------------------------------------------
@@ -177,7 +178,9 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             user_id[:6] + "***", vault_initialized, landing,
         )
 
-        response = RedirectResponse(url=landing, status_code=302)
+        # Use SSOT-compliant redirect
+        from app.core.ssot_guard import ssot_redirect
+        response = ssot_redirect(landing, context="onboarding_oauth_callback")
         set_auth_cookie(response, user_id, secure=config.cookie_secure)
         return response
 
