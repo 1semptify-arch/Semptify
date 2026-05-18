@@ -3,6 +3,29 @@
 
 ---
 
+## Shipped This Session — 2026-05-18 (2:46 AM UTC-05) — Commit `a7140ba`
+
+### Session Summary — Fix Circular Import from Migrated Storage Router
+
+#### Problem
+- `app/modules/documents/router.py` failed to load with:
+  `cannot import name 'auth' from partially initialized module 'app.routers'`
+- Root cause: `app/routers/storage.py` was migrated to `_migrated/`, but active modules still imported from the old path
+
+#### Files Fixed
+- [x] `app/modules/documents/router.py` — `_mark_group_complete` now from `app.modules.storage.router`
+- [x] `app/modules/onboarding/oauth.py` — `save_session_to_db` now from `app.modules.storage.router`
+- [x] `app/core/security.py` — `get_session_from_db` now from `app.modules.storage.router`
+- [x] `app/modules/cloud_sync/router.py` — `get_valid_session` now from `app.modules.storage.router`
+- [x] `app/modules/briefcase/router.py` — `get_valid_session` now from `app.modules.storage.router`
+
+#### Result
+- App startup: **33 modules registered, 3 skipped, 0 errors** (was 32 reg, 1 error)
+- Documents router loads correctly
+- All Python files compile clean
+
+---
+
 ## Shipped This Session — 2026-05-17 (10:22 PM UTC-05) — Commit `0491044`
 
 ### Session Summary — Zero-Cost Research API Integration
