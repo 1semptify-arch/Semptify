@@ -3,6 +3,43 @@
 
 ---
 
+## Shipped This Session — 2026-05-17 (10:22 PM UTC-05) — Commit `0491044`
+
+### Session Summary — Zero-Cost Research API Integration
+
+#### Real Free API Endpoints Added
+- [x] `fetch_assessor()` — Hennepin County ArcGIS REST (no API key, public parcel data)
+- [x] `fetch_dispatch()` — Minneapolis Open Data Socrata API (no API key, 911 calls)
+- [x] `fetch_news()` — NewsAPI free tier (100 req/day) + Google News RSS fallback (no key)
+- [x] `fetch_bankruptcy()` — CourtListener REST API (free token, no CC required)
+- [x] `fetch_sos()` — Ethical web crawler on MN SOS public search pages (no API)
+
+#### Honest Status for No-Free-API Sources
+- [x] `fetch_recorder_deeds()` — Returns `status: "no_free_api"` with honest note
+- [x] `fetch_ucc()` — Returns `status: "no_free_api"` with honest note
+- [x] `fetch_insurance()` — Returns `status: "no_free_api"` with honest note
+
+#### Bug Fixes from Code Review
+- [x] ArcGIS WHERE clause escaping (`'` → `''`) to prevent query breakage
+- [x] Google News RSS URL encoding via `urllib.parse.quote_plus`
+- [x] MN SOS search URL encoding via `urllib.parse.quote_plus`
+- [x] Socrata dispatch parsing — dynamic column mapping from metadata + safe list indexing
+
+#### Config
+- [x] `.env` — `USE_MOCK_DATA=false`, `ENABLE_REAL_APIS=true`, all free endpoints documented
+
+#### Known Working
+- All Python files compile clean (`python -m py_compile`)
+- Research service imports correctly
+- No paid API dependencies
+
+#### Pending Next Session
+- End-to-end test Research module on Render with real property IDs
+- Verify ArcGIS REST response schema matches Hennepin County field names
+- Test Google News RSS fallback with actual entity queries
+
+---
+
 ## Shipped This Session — 2026-05-14 (8:36 AM UTC-05) — Commit `7a0e461`
 
 ### Session Summary — SSOT Privacy Enforcement + Onboarding Redirect Fix
