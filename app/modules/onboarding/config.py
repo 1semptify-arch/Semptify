@@ -14,6 +14,12 @@ from app.core.vault_paths import (
     VAULT_ROOT,
     VAULT_DOCUMENTS,
     VAULT_CERTIFICATES,
+    VAULT_TIMELINE,
+    VAULT_OVERLAYS,
+    VAULT_OVERLAY_DOCUMENTS,
+    VAULT_OVERLAY_QUERIES,
+    VAULT_OVERLAYS_FORMS,
+    VAULT_OVERLAY_REDACTIONS,
     VAULT_FOLDER as VAULT_METADATA_FOLDER,
 )
 
@@ -22,13 +28,19 @@ from app.core.vault_paths import (
 # .Semptify5.0 is REQUIRED before .Semptify5.0/vault and .Semptify5.0/auth
 # because Dropbox create_folder_v2 does NOT auto-create parent folders.
 CANONICAL_VAULT_FOLDERS = [
-    SEMPTIFY_ROOT,          # "Semptify5.0"
-    VAULT_ROOT,             # "Semptify5.0/Vault"
-    VAULT_DOCUMENTS,        # "Semptify5.0/Vault/documents"
-    VAULT_CERTIFICATES,     # "Semptify5.0/Vault/certificates"
-    f".{SEMPTIFY_ROOT}",    # ".Semptify5.0"  ← parent for auth/ and vault/
-    VAULT_METADATA_FOLDER,  # ".Semptify5.0/vault"
-    AUTH_FOLDER,            # ".Semptify5.0/auth"
+    SEMPTIFY_ROOT,              # "Semptify5.0"
+    VAULT_ROOT,                 # "Semptify5.0/Vault"
+    VAULT_DOCUMENTS,            # "Semptify5.0/Vault/documents"
+    VAULT_CERTIFICATES,         # "Semptify5.0/Vault/certificates"
+    VAULT_TIMELINE,             # "Semptify5.0/Vault/timeline"
+    VAULT_OVERLAYS,             # "Semptify5.0/Vault/overlays"
+    VAULT_OVERLAY_DOCUMENTS,    # "Semptify5.0/Vault/overlays/documents"
+    VAULT_OVERLAY_QUERIES,      # "Semptify5.0/Vault/overlays/queries"
+    VAULT_OVERLAYS_FORMS,       # "Semptify5.0/Vault/overlays/forms"
+    VAULT_OVERLAY_REDACTIONS,   # "Semptify5.0/Vault/overlays/redactions"
+    f".{SEMPTIFY_ROOT}",        # ".Semptify5.0"  ← parent for auth/ and vault/
+    VAULT_METADATA_FOLDER,      # ".Semptify5.0/vault"
+    AUTH_FOLDER,                # ".Semptify5.0/auth"
 ]
 
 
