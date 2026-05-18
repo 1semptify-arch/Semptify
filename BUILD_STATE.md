@@ -3,6 +3,31 @@
 
 ---
 
+## Onboarding Audit + Fixes — 2026-05-18 (7:34 AM UTC-05)
+
+### Assessment: Onboarding Module is Structurally Sound
+
+**End-to-end flow verified:**
+1. `/onboarding/` → role selection page
+2. `/onboarding/providers?role=tenant` → provider selection page
+3. `/onboarding/auth/{provider}` → OAuth redirect to Google/Dropbox/OneDrive
+4. Provider redirects to `/onboarding/callback/{provider}` → exchanges code, creates user, marks `storage_connected`
+5. Callback calls `init_vault()` → creates 13 folders, places system files + data files, runs 5-step system test
+6. If vault init passes → marks `vault_initialized` → redirects to `/home`
+7. If vault init fails → redirects to `/onboarding/vault-setup` → JS retries via `/api/vault/init` + `/api/vault/verify`
+
+**12 routes defined:** `/`, `/select-role.html`, `/start`, `/providers`, `/auth/{provider}`, `/callback/{provider}`, `/vault-setup`, `/api/vault/status`, `/api/vault/init`, `/api/vault/verify`, `/complete`, `/status`, `/ssot-navigation`
+
+**Bugs Fixed This Session:**
+1. `router.py:68` — `/onboarding/start` used hardcoded `/storage/reconnect` instead of `navigation.get_reconnect_flow()` (SSOT violation)
+2. `main.py:1735` — `/onboarding` redirect could create double-slash (`/onboarding//`) if navigation path already ended with `/`
+
+**Files Modified:**
+- `app/modules/onboarding/router.py` — fixed SSOT redirect
+- `app/main.py` — fixed double-slash guard
+
+---
+
 ## Cleaned — 2026-05-18 (7:16 AM UTC-05) — Delete Dead Code Directories
 
 ### Action: Removed `app/routers/_migrated/` and `app/templates/services/`

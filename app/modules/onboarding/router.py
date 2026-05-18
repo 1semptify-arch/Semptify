@@ -65,7 +65,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         if semptify_uid:
             raw_uid = verify_user_id(semptify_uid)
             if raw_uid:
-                return ssot_redirect("/storage/reconnect", context="onboarding_start reconnect")
+                return ssot_redirect(navigation.get_reconnect_flow(), context="onboarding_start reconnect")
         role_stage = navigation.get_stage("role_select")
         return ssot_redirect(role_stage.path, context="onboarding_start new_user")
 

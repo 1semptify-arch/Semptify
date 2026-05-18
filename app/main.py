@@ -1732,7 +1732,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         async def onboarding_redirect():
             """Redirect /onboarding to /onboarding/ for the router."""
             onboarding_stage = navigation.get_stage("onboarding_start")
-            onboarding_path = (onboarding_stage.path if onboarding_stage else "/onboarding") + "/"
+            onboarding_path = (onboarding_stage.path if onboarding_stage else "/onboarding")
+            if not onboarding_path.endswith("/"):
+                onboarding_path += "/"
             return ssot_redirect(onboarding_path, context="onboarding_redirect trailing slash")
 
         @fastapi_app.get("/welcome.html", response_class=HTMLResponse)
