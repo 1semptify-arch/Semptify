@@ -33,6 +33,24 @@
 
 ---
 
+## Known Issue Logged — 2026-05-18 (7:15 AM UTC-05)
+
+### Time/Clock Risk: Server Clock Drift vs. Timezone Handling
+
+**Finding:** Cookie expiry and token expiry logic are timezone-safe (all UTC). The real risk is **server clock drift on Render**.
+
+- Cookies use `max_age` (relative seconds), not absolute `expires` — unaffected by client/server clock mismatch
+- All token timestamps use `utc_now()` or `datetime.now(timezone.utc)` — all comparisons are UTC-to-UTC
+- SQLite naive datetime issue already handled (`storage/router.py:1935` adds `tzinfo=timezone.utc` if missing)
+
+**Risk:** If Render's clock drifts relative to Google's OAuth servers (or Dropbox, OneDrive), tokens may appear valid locally but be rejected by the provider. Current 5-minute buffer in `OAuthToken.is_expired()` usually covers this.
+
+**Remaining Inconsistency:** `app/core/oauth_token_manager.py` uses `datetime.now(timezone.utc)` directly instead of canonical `utc_now()`. Should be switched for consistency but functionally equivalent.
+
+**Action if drift symptoms appear:** Increase `buffer_minutes` in `OAuthToken.is_expired()` from 5 to 10.
+
+---
+
 ## Shipped This Session — 2026-05-18 (5:19 AM UTC-05) — Commit `e9a797f`
 
 ### Session Summary — Fix `create_vault_folders` Silent Failures
