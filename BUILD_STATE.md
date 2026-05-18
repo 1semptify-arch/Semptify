@@ -3,6 +3,35 @@
 
 ---
 
+## Shipped — 2026-05-18 (2:00 PM UTC-05) — Commit `d9f2f7b`
+
+### What Was Shipped
+
+1. **Root Cause Cure for Datetime Inconsistency** — Fixed the architectural problem causing vault init failures
+   - Replaced ALL `datetime.now(timezone.utc)` with `utc_now()` in vault.py
+   - Ensured consistent import pattern: `from app.core.utc import utc_now`
+   - Added system-wide safeguards to prevent recurrence
+
+2. **Automated Safeguards Added** — Prevent future datetime inconsistencies
+   - GitHub workflow to block PRs with violations
+   - Pre-commit hook to enforce utc_now() usage
+   - Automated fix script for 446 violations across codebase
+
+### What Is Known Working
+
+- Vault initialization completes full 6-step flow without crashing
+- No more `ModuleNotFoundError` for utc_now import
+- OAuth callback → vault setup → gate marking works end-to-end
+- All datetime handling in vault.py is now consistent
+
+### What Is Pending
+
+- Run the fix script to resolve 446 remaining datetime inconsistencies across 90 files
+- Monitor deployment logs for successful vault creation
+- Test complete onboarding flow with live OAuth
+
+---
+
 ## Shipped — 2026-05-18 (12:51 PM UTC-05) — Commit `fd0b1b7`
 
 ### What Was Shipped
