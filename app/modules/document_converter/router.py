@@ -25,8 +25,8 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Query
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
-from app.modules.document_converter import (
 from app.core.utc import utc_now
+from app.modules.document_converter import (
     DocumentConverter,
     DocumentMetadata,
     DocumentStyle,
