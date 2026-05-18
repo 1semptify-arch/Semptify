@@ -3,7 +3,7 @@
 
 ---
 
-## Shipped — 2026-05-18 (12:51 PM UTC-05) — Commit PENDING
+## Shipped — 2026-05-18 (12:51 PM UTC-05) — Commit `fd0b1b7`
 
 ### What Was Shipped
 
