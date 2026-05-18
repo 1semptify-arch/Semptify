@@ -36,10 +36,17 @@ async def create_vault_folders(
     """
     Create all vault folders in the user's cloud storage.
     Idempotent — safe to call multiple times.
+
+    Raises RuntimeError if any folder cannot be created.
     """
     storage = get_provider(provider_name, access_token=access_token)
     for folder_path in folders:
-        await storage.create_folder(folder_path)
+        ok = await storage.create_folder(folder_path)
+        if not ok:
+            raise RuntimeError(
+                f"Provider {provider_name} refused to create folder: {folder_path}"
+            )
+        logger.info("Vault folder ensured: %s", folder_path)
     logger.info("Created %d vault folders for provider=%s", len(folders), provider_name)
 
 
