@@ -3,6 +3,25 @@
 
 ---
 
+## Shipped This Session — 2026-05-18 (5:19 AM UTC-05) — Commit `426a760`
+
+### Session Summary — Fix `create_vault_folders` Silent Failures
+
+#### Problem
+- `create_vault_folders()` called `storage.create_folder()` for each vault folder but never checked the boolean return value.
+- If a provider silently refused to create a folder (permission denied, API error, invalid token), the function logged "Created N folders" and continued.
+- This caused `init_vault()` to fail later at `_verify_system_check()` with a generic "write+read verification failed" message, hiding the real root cause.
+
+#### Files Fixed
+- [x] `app/modules/onboarding/vault.py` — `create_vault_folders()` now checks every `create_folder()` return value. Raises `RuntimeError` with the specific folder path on failure, making the root cause visible in logs and the vault-setup UI.
+
+#### Result
+- Specific error messages instead of generic "verification failed"
+- If a provider truly cannot create folders, the user sees exactly which folder and why
+- All Python files compile clean
+
+---
+
 ## Shipped This Session — 2026-05-18 (3:59 AM UTC-05) — Commit `fced91f`
 
 ### Session Summary — Fix Vault Verification + Vault-Setup JS Gate
