@@ -391,25 +391,21 @@ async def handle_onboarding_callback(
     # 6. Mark storage_connected gate
     await mark_gate(db, user_id, "storage_connected")
 
-    # 6b. Create vault folders + system files + verification
-    from app.modules.onboarding.vault import init_vault
-    # Extract base_url from callback_url (e.g. "https://semptify.com/onboarding/callback/google_drive")
-    _base_url = callback_url.split(config.route_prefix)[0] if config.route_prefix in callback_url else ""
+    # 6b. Auto-install vault using new vault installer
+    from app.modules.vault_installer import install_vault_for_user
     try:
-        vault_result = await init_vault(
+        vault_result = await install_vault_for_user(
             db=db,
             user_id=user_id,
             provider_name=provider,
             access_token=access_token,
-            config=config,
-            base_url=_base_url,
         )
-        logger.info("init_vault result for user %s: %s", user_id[:6] + "***", vault_result)
+        logger.info("Vault auto-install result for user %s: %s", user_id[:6] + "***", vault_result)
     except Exception as vault_exc:
-        logger.error("init_vault crashed for user %s: %s", user_id[:6] + "***", vault_exc, exc_info=True)
-        vault_result = {"ok": False, "message": str(vault_exc)}
-    if not vault_result["ok"]:
-        logger.warning("Vault creation failed during callback: %s", vault_result["message"])
+        logger.error("Vault auto-install crashed for user %s: %s", user_id[:6] + "***", vault_exc, exc_info=True)
+        vault_result = {"success": False, "errors": [str(vault_exc)]}
+    if not vault_result.get("success", False):
+        logger.warning("Vault auto-install failed during callback: %s", vault_result.get("errors", []))
 
     # 7. Determine routing
     from app.modules.onboarding.gates import check_gate
