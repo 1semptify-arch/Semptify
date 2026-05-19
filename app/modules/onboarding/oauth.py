@@ -132,7 +132,7 @@ def build_oauth_url(config: OnboardingConfig, provider: str, state: str, callbac
             "state": state,
         }
     else:
-        raise HTTPException(status_code=400, detail=f"Unsupported provider: {provider}")
+        raise ValueError(f"Unsupported provider: {provider}")
 
     return f"{oauth_config['auth_url']}?{urlencode(params)}"
 
@@ -159,7 +159,7 @@ async def exchange_code_for_tokens(
     }
     token_url = TOKEN_URLS.get(provider)
     if not token_url:
-        raise HTTPException(status_code=400, detail=f"No token URL for provider: {provider}")
+        raise ValueError(f"No token URL for provider: {provider}")
 
     async with httpx.AsyncClient(timeout=30.0) as client:
         if provider == "google_drive":
@@ -185,7 +185,7 @@ async def exchange_code_for_tokens(
                 "grant_type": "authorization_code",
             })
         else:
-            raise HTTPException(status_code=400, detail="Provider not implemented")
+            raise ValueError(f"Provider not implemented: {provider}")
 
     if response.status_code != 200:
         provider_error = "token_exchange_failed"
@@ -196,10 +196,8 @@ async def exchange_code_for_tokens(
             if response.text:
                 provider_error = response.text[:200]
 
-        raise HTTPException(
-            status_code=400,
-            detail={"error": "token_exchange_failed", "message": f"Token exchange failed: {provider_error}"},
-        )
+        logger.error("Token exchange failed: provider=%s status=%s error=%s", provider, response.status_code, provider_error)
+        raise RuntimeError(f"Token exchange failed ({provider}): {provider_error}")
 
     return response.json()
 
@@ -221,7 +219,7 @@ async def fetch_provider_identity(provider: str, access_token: str) -> dict:
     }
     url = USERINFO_URLS.get(provider)
     if not url:
-        raise HTTPException(status_code=400, detail="Identity endpoint unavailable")
+        raise ValueError(f"Identity endpoint unavailable for provider: {provider}")
 
     try:
         async with httpx.AsyncClient(timeout=15.0) as client:
@@ -235,7 +233,8 @@ async def fetch_provider_identity(provider: str, access_token: str) -> dict:
                 response = await client.get(url, headers={"Authorization": f"Bearer {access_token}"})
 
         if response.status_code != 200:
-            raise HTTPException(status_code=401, detail="OAuth identity verification failed")
+            logger.error("Identity verification failed: provider=%s status=%s body=%s", provider, response.status_code, response.text[:200])
+            raise RuntimeError(f"OAuth identity verification failed ({provider}): HTTP {response.status_code}")
 
         payload = response.json()
 
@@ -256,14 +255,15 @@ async def fetch_provider_identity(provider: str, access_token: str) -> dict:
             subject, email, name = None, None, None
 
         if not subject:
-            raise HTTPException(status_code=401, detail="Provider did not return a subject ID")
+            raise RuntimeError(f"Provider did not return a subject ID for: {provider}")
 
         return {"provider_subject": subject, "email": email, "display_name": name}
 
-    except HTTPException:
+    except (RuntimeError, ValueError):
         raise
-    except Exception:
-        raise HTTPException(status_code=401, detail="Unable to verify storage account identity")
+    except Exception as e:
+        logger.error("Identity verification exception: provider=%s error=%s", provider, str(e), exc_info=True)
+        raise RuntimeError(f"Unable to verify storage account identity ({provider}): {e}") from e
 
 
 # ============================================================================
