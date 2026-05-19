@@ -429,7 +429,8 @@ def _render_vault_setup_page(config: OnboardingConfig) -> str:
 * {{ margin: 0; padding: 0; box-sizing: border-box; }}
 body {{ font-family: Georgia, serif; background: #fdfcfa; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }}
 .setup-card {{ max-width: 500px; width: 90%; background: white; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 2.5rem; text-align: center; }}
-h1 {{ font-size: 1.5rem; font-weight: 400; color: #1e3a5f; margin-bottom: 1.5rem; }}
+h1 {{ font-size: 1.5rem; font-weight: 400; color: #1e3a5f; margin-bottom: 0.5rem; }}
+.subtitle {{ font-size: 0.95rem; color: #64748b; margin-bottom: 1.5rem; font-style: italic; }}
 .step {{ display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9; text-align: left; }}
 .step:last-child {{ border: none; }}
 .step-icon {{ width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; background: #f1f5f9; color: #94a3b8; }}
@@ -437,11 +438,16 @@ h1 {{ font-size: 1.5rem; font-weight: 400; color: #1e3a5f; margin-bottom: 1.5rem
 .step-icon.done {{ background: #dcfce7; color: #16a34a; }}
 .step-icon.error {{ background: #fef2f2; color: #dc2626; }}
 .step-label {{ font-size: 0.95rem; }}
+.fact-box {{ margin-top: 1.5rem; padding: 1rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 0.9rem; color: #166534; line-height: 1.5; min-height: 60px; }}
+.fact-box .label {{ font-weight: 600; display: block; margin-bottom: 0.25rem; color: #15803d; }}
 .error-msg {{ color: #dc2626; font-size: 0.85rem; margin-top: 1rem; padding: 0.75rem; background: #fef2f2; border-radius: 8px; display: none; }}
 @keyframes pulse {{ 0%,100% {{ opacity: 1; }} 50% {{ opacity: 0.5; }} }}
+@keyframes fade {{ 0% {{ opacity: 0; transform: translateY(10px); }} 100% {{ opacity: 1; transform: translateY(0); }} }}
+.fact-content {{ animation: fade 0.5s ease-out; }}
 </style></head><body>
 <div class="setup-card">
     <h1>Setting Up Your Secure Vault</h1>
+    <div class="subtitle">Please be patient — this usually takes 10–30 seconds</div>
     <div class="step" id="step-auth">
         <div class="step-icon" id="icon-auth">1</div>
         <div class="step-label">Verifying your account</div>
@@ -458,11 +464,39 @@ h1 {{ font-size: 1.5rem; font-weight: 400; color: #1e3a5f; margin-bottom: 1.5rem
         <div class="step-icon" id="icon-done">4</div>
         <div class="step-label">Ready to go</div>
     </div>
+    <div class="fact-box" id="fact-box">
+        <span class="label">Did you know?</span>
+        <span class="fact-content" id="fact-content">Loading...</span>
+    </div>
     <div class="error-msg" id="error-msg"></div>
 </div>
 <script>
 const PREFIX = '{config.route_prefix}';
 const COMPLETE_URL = '{config.route_prefix}/complete';
+
+const FACTS = [
+    "Minnesota has one of the strongest tenant protection laws in the U.S., including the Just Cause Eviction Act.",
+    "Landlords must give you 14 days' notice before filing for eviction in most cases.",
+    "You have the right to a habitable home — heat, water, and working locks are legally required.",
+    "Retaliatory eviction (evicting you for complaining) is illegal in Minnesota.",
+    "Security deposits must be returned within 21 days after you move out, with an itemized list of deductions.",
+    "You can withhold rent for serious habitability issues, but you must follow specific legal procedures first.",
+    "Landlords cannot enter your home without 24 hours' notice, except in emergencies.",
+    "Discrimination based on race, disability, or having children is illegal under federal and state law.",
+    "You have the right to organize with other tenants to address building-wide issues.",
+    "Semptify stores all your documents in YOUR cloud storage — we never see your files."
+];
+
+let factIndex = 0;
+function rotateFact() {{
+    const el = document.getElementById('fact-content');
+    el.style.opacity = '0';
+    setTimeout(() => {{
+        el.textContent = FACTS[factIndex];
+        el.style.opacity = '1';
+        factIndex = (factIndex + 1) % FACTS.length;
+    }}, 200);
+}}
 
 function setStep(id, state) {{
     const icon = document.getElementById('icon-' + id);
@@ -479,6 +513,9 @@ function showError(msg) {{
 }}
 
 async function setup() {{
+    rotateFact();
+    setInterval(rotateFact, 5000);
+
     try {{
         // Step 1: Verify auth
         setStep('auth', 'running');
@@ -507,6 +544,7 @@ async function setup() {{
 
         // Step 4: Done
         setStep('done', 'done');
+        document.getElementById('fact-box').style.display = 'none';
         setTimeout(() => {{ window.location.href = COMPLETE_URL; }}, 800);
 
     }} catch(e) {{
