@@ -224,14 +224,14 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         return HTMLResponse(content=_render_vault_setup_page(config))
 
     # ------------------------------------------------------------------
-    # API: Vault Status (auto-installed during OAuth)
+    # API: Vault Status
     # ------------------------------------------------------------------
     @router.get("/api/vault/status")
     async def vault_status(
         user: StorageUser = Depends(require_user),
         db: AsyncSession = Depends(get_db),
     ):
-        """Check vault installation status - auto-installed during OAuth."""
+        """Check vault installation status."""
         from app.modules.onboarding.gates import check_gate
         
         vault_initialized = await check_gate(db, user.user_id, "vault_initialized")
@@ -240,25 +240,149 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             "vault_installed": vault_initialized,
             "storage_connected": True,
             "provider": user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
-            "message": "Vault auto-installed during OAuth" if vault_initialized else "Vault installation pending",
-            "next_action": "use_vault" if vault_initialized else "oauth_callback_pending",
+            "message": "Vault ready for use" if vault_initialized else "Vault setup required",
+            "next_action": "use_vault" if vault_initialized else "run_vault_setup",
         }
+
+    # ------------------------------------------------------------------
+    # API: Initialize Vault
+    # ------------------------------------------------------------------
+    @router.post("/api/vault/init")
+    async def vault_init(
+        user: StorageUser = Depends(require_user),
+        db: AsyncSession = Depends(get_db),
+    ):
+        """Initialize vault folders for the user."""
+        from app.modules.vault_installer import install_vault_for_user
+        from app.modules.onboarding.gates import mark_gate
+        
+        try:
+            result = await install_vault_for_user(
+                db=db,
+                user_id=user.user_id,
+                provider_name=user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
+                access_token=user.access_token,
+            )
+            
+            if result.get("success", False):
+                # Mark vault_initialized gate only on success
+                await mark_gate(db, user.user_id, "vault_initialized")
+                return {
+                    "success": True,
+                    "folders_created": result.get("created", []),
+                    "failed_folders": result.get("failed", []),
+                    "message": "Vault folders created successfully"
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": result.get("errors", ["Unknown error"]),
+                    "message": "Failed to create some vault folders"
+                }
+                
+        except Exception as e:
+            logger.error("Vault initialization failed for user %s: %s", user.user_id[:6] + "***", str(e))
+            return {
+                "success": False,
+                "error": str(e),
+                "message": "Vault initialization failed"
+            }
+
+    # ------------------------------------------------------------------
+    # API: Verify Vault
+    # ------------------------------------------------------------------
+    @router.get("/api/vault/verify")
+    async def vault_verify(
+        user: StorageUser = Depends(require_user),
+        db: AsyncSession = Depends(get_db),
+    ):
+        """Verify vault folder accessibility and functionality."""
+        from app.modules.onboarding.gates import check_gate
+        from app.sdk.vault import VaultClient, TENANT_VAULT
+        
+        # Check if vault is marked as initialized
+        vault_initialized = await check_gate(db, user.user_id, "vault_initialized")
+        if not vault_initialized:
+            return {
+                "accessible": False,
+                "ok": False,
+                "error": "Vault not initialized - run setup first"
+            }
+        
+        try:
+            # Test vault accessibility
+            client = VaultClient(
+                provider=user.provider,
+                access_token=user.access_token,
+                user_id=user.user_id,
+                folder_spec=TENANT_VAULT
+            )
+            
+            # Run health check
+            health_result = await client.health_check()
+            
+            if health_result.get("accessible", False):
+                return {
+                    "accessible": True,
+                    "ok": True,
+                    "test_results": {
+                        "write_test": "passed",
+                        "read_test": "passed", 
+                        "list_test": "passed"
+                    },
+                    "error": None
+                }
+            else:
+                return {
+                    "accessible": False,
+                    "ok": False,
+                    "error": health_result.get("error", "Vault accessibility check failed")
+                }
+                
+        except Exception as e:
+            logger.error("Vault verification failed for user %s: %s", user.user_id[:6] + "***", str(e))
+            return {
+                "accessible": False,
+                "ok": False,
+                "error": f"Verification error: {str(e)}"
+            }
 
     # ------------------------------------------------------------------
     # Page: Complete
     # ------------------------------------------------------------------
     @router.get("/complete")
-    async def onboarding_complete(semptify_uid: Optional[str] = Cookie(None)):
-        """Route to product home page after onboarding."""
+    async def onboarding_complete(
+        semptify_uid: Optional[str] = Cookie(None),
+        db: AsyncSession = Depends(get_db)
+    ):
+        """Validate onboarding completion and route to product home page."""
+        from app.modules.onboarding.gates import check_gate
+        
         if not semptify_uid:
             role_stage = navigation.get_stage("role_select")
             return ssot_redirect(role_stage.path, context="onboarding_complete no cookie")
+        
         raw_uid = verify_user_id(semptify_uid)
         if not raw_uid:
             role_stage = navigation.get_stage("role_select")
             return ssot_redirect(role_stage.path, context="onboarding_complete bad cookie")
+        
+        # Verify both gates are marked before completing onboarding
+        storage_connected = await check_gate(db, raw_uid, "storage_connected")
+        vault_initialized = await check_gate(db, raw_uid, "vault_initialized")
+        
+        if not storage_connected:
+            # Fallback: storage not connected - send back to provider selection
+            return ssot_redirect(f"{config.route_prefix}/providers", context="onboarding_complete storage_missing")
+        
+        if not vault_initialized:
+            # Fallback: vault not initialized - send to vault setup
+            return ssot_redirect(f"{config.route_prefix}/vault-setup", context="onboarding_complete vault_missing")
+        
+        # All gates passed - route to role-specific homepage
         destination = route_user(raw_uid)
-        return ssot_redirect(destination, context="onboarding_complete route_user")
+        logger.info("Onboarding completed successfully for user %s → %s", raw_uid[:6] + "***", destination)
+        return ssot_redirect(destination, context="onboarding_complete success")
 
     # ------------------------------------------------------------------
     # Page: Gate Status
