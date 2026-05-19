@@ -11,10 +11,10 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
+from app.core.utc import utc_now
 import logging
 
 from app.core.security import get_current_user
-from app.core.utc import utc_now
 from app.core.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
@@ -241,7 +241,7 @@ class PatternDetectionService:
             },
             "patterns": all_patterns,
             "recommendations": recommendations,
-            "generated_at": datetime.now(timezone.utc).isoformat()
+            "generated_at": utc_now().isoformat()
         }
     
     def _calculate_risk_level(self, score: int) -> str:
@@ -286,7 +286,7 @@ class OversightPacketService:
                 "Payment history",
                 "Violation documentation"
             ],
-            "generated_at": datetime.now(timezone.utc).isoformat()
+            "generated_at": utc_now().isoformat()
         }
         return packet
     
@@ -311,7 +311,7 @@ class OversightPacketService:
                 "Communication records",
                 "Housing application records"
             ],
-            "generated_at": datetime.now(timezone.utc).isoformat()
+            "generated_at": utc_now().isoformat()
         }
         return packet
     
@@ -336,7 +336,7 @@ class OversightPacketService:
                 "Communication records",
                 "Housing records"
             ],
-            "generated_at": datetime.now(timezone.utc).isoformat()
+            "generated_at": utc_now().isoformat()
         }
         return packet
     
@@ -360,7 +360,7 @@ class OversightPacketService:
                 "Communication records",
                 "Payment history"
             ],
-            "generated_at": datetime.now(timezone.utc).isoformat()
+            "generated_at": utc_now().isoformat()
         }
         return packet
     
@@ -450,7 +450,7 @@ async def detect_patterns(request: PatternDetectionRequest,
             "success": True,
             "pattern_analysis": pattern_summary,
             "analysis_type": request.analysis_type,
-            "analyzed_at": datetime.now(timezone.utc).isoformat()
+            "analyzed_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -486,7 +486,7 @@ async def generate_oversight_packet(request: OversightPacketRequest,
             "success": True,
             "oversight_packet": packet,
             "urgency_level": request.urgency_level,
-            "generated_at": datetime.now(timezone.utc).isoformat()
+            "generated_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -509,13 +509,13 @@ async def build_coalition_action(request: CoalitionRequest,
             "timeline": _generate_coalition_timeline(request.action_type),
             "resources_needed": _identify_coalition_resources(request.coalition_type),
             "success_metrics": _define_coalition_metrics(request.coalition_type),
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": utc_now().isoformat()
         }
         
         return JSONResponse(content={
             "success": True,
             "coalition_action": action_plan,
-            "generated_at": datetime.now(timezone.utc).isoformat()
+            "generated_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -536,13 +536,13 @@ async def process_evidence_intake(request: EvidenceIntakeRequest,
             "priority": request.priority,
             "analysis_results": _analyze_evidence(request.evidence_data, request.evidence_type),
             "recommendations": _generate_evidence_recommendations(request.evidence_type),
-            "processed_at": datetime.now(timezone.utc).isoformat()
+            "processed_at": utc_now().isoformat()
         }
         
         return JSONResponse(content={
             "success": True,
             "processed_evidence": processed_evidence,
-            "processed_at": datetime.now(timezone.utc).isoformat()
+            "processed_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -564,13 +564,13 @@ async def search_public_records(request: PublicRecordsRequest,
             "results": _simulate_public_records_search(request.record_type, request.search_criteria),
             "total_results": 0,  # Would be populated by actual search
             "search_duration": "2.3 seconds",
-            "searched_at": datetime.now(timezone.utc).isoformat()
+            "searched_at": utc_now().isoformat()
         }
         
         return JSONResponse(content={
             "success": True,
             "search_results": search_results,
-            "searched_at": datetime.now(timezone.utc).isoformat()
+            "searched_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -595,13 +595,13 @@ async def build_press_release(request: PressBuilderRequest,
             "contact_information": _generate_media_contact(),
             "urgency": request.urgency,
             "distribution_plan": _generate_distribution_plan(request.media_targets),
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": utc_now().isoformat()
         }
         
         return JSONResponse(content={
             "success": True,
             "press_release": press_release,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -634,7 +634,7 @@ async def get_dashboard(
     calendar_result = await db.execute(
         select(func.count()).select_from(CalendarEvent)
         .where(CalendarEvent.user_id == user_id)
-        .where(CalendarEvent.event_date >= datetime.now(timezone.utc))
+        .where(CalendarEvent.event_date >= utc_now())
     )
     upcoming_count = calendar_result.scalar() or 0
 
