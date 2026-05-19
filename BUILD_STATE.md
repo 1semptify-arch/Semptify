@@ -3,6 +3,40 @@
 
 ---
 
+## Shipped — 2026-05-19 (2:00 PM UTC-05) — Commit `dfc22a5`
+
+### What Was Shipped
+
+1. **Fixed Housing Accountability Router Runtime Bugs** — 15 `self.` reference crashes fixed
+   - Module-level endpoints incorrectly called helper methods via `self._generate_*`
+   - Fixed in: `build_coalition_action`, `process_evidence_intake`, `search_public_records`, `build_press_release`
+   - Also fixed unguarded `datetime.fromisoformat("")` crash in pattern detection
+
+2. **Added Automation Layer Endpoints** — Real database integration for housing accountability
+   - `GET /api/housing-accountability/dashboard` — Live counts from TimelineEvent, CalendarEvent, Complaint, VaultItem, Incident, Document + 5 recent events
+   - `GET /api/housing-accountability/analyst` — Rule-based risk scoring from real DB data
+   - Both use `get_current_user` dependency and filter by user_id
+
+3. **Fixed Flask-to-FastAPI Converter** — Generated code now Semptify-compliant
+   - `datetime.utcnow()` → `utc_now()` (Semptify standard)
+   - `request.dict()` → `request.model_dump()` (Pydantic v2)
+   - Blueprint routes now include `url_prefix` in generated paths
+   - Event handler f-string syntax fixed (was generating invalid Python)
+   - Generated router now uses `get_current_user` instead of raw cookie auth
+
+### What Is Known Working
+
+- Housing accountability `/dashboard` and `/analyst` endpoints query DB successfully
+- Flask converter generates syntactically valid Python with blueprint prefix support
+- All router endpoints compile clean (py_compile verified)
+
+### What Is Pending
+
+- Migrate remaining `datetime.now(timezone.utc)` → `utc_now()` in housing_accountability/router.py (14 occurrences)
+- Consider pattern persistence (PatternRecord model) if pattern history is needed
+
+---
+
 ## Shipped — 2026-05-19 (1:28 AM UTC-05) — Commit `903ebd7`
 
 ### What Was Shipped
