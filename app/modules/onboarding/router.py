@@ -198,12 +198,19 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             return response
             
         except Exception as e:
-            logger.error("OAuth callback failed: %s", str(e), exc_info=True)
-            # Fallback redirect to role selection on error
-            from app.core.ssot_guard import ssot_redirect
-            role_stage = navigation.get_stage("role_select")
-            fallback_path = role_stage.path if role_stage else "/onboarding/role-select"
-            return ssot_redirect(fallback_path, context="oauth_callback_error")
+            import traceback
+            tb = traceback.format_exc()
+            logger.error("OAuth callback failed: %s\n%s", str(e), tb)
+            return HTMLResponse(
+                content=f"""<pre style="font-family:monospace;padding:2rem;background:#1e1e1e;color:#f44;max-width:100%;overflow:auto">
+<b>OAuth Callback Error (debug mode)</b>
+
+{str(e)}
+
+{tb}
+</pre>""",
+                status_code=500,
+            )
 
     # ------------------------------------------------------------------
     # Page: Vault Setup
