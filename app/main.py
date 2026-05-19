@@ -115,7 +115,7 @@ async def lifespan(_app: FastAPI):
     logger = logging.getLogger(__name__)
     
     # Configuration
-    TOTAL_TIMEOUT = 20  # Total seconds allowed for setup
+    TOTAL_TIMEOUT = 120  # Total seconds allowed for setup (increased for slow migrations)
     MAX_RETRIES = 3     # Max retries per stage
     STAGE_DELAY = 0.5   # Delay between retries
     
@@ -316,7 +316,7 @@ async def lifespan(_app: FastAPI):
             try:
                 # Run in thread executor to avoid blocking the async event loop
                 loop = asyncio.get_event_loop()
-                await asyncio.wait_for(loop.run_in_executor(None, _sync_migrate), timeout=30)
+                await asyncio.wait_for(loop.run_in_executor(None, _sync_migrate), timeout=120)
                 logger.info("   ✅ Database migrations applied")
                 
             except asyncio.TimeoutError:

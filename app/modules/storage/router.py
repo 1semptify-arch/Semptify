@@ -3194,6 +3194,53 @@ async def logout(
     return {"success": True}
 
 
+@router.post("/regenerate-rehome")
+async def regenerate_rehome(
+    request: Request,
+    semptify_uid: Optional[str] = Cookie(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Regenerate the Rehome.html file in user's cloud storage.
+    This is useful if the file is missing or was deleted.
+    """
+    if not semptify_uid:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+    
+    session = await get_valid_session(db, semptify_uid, auto_refresh=True)
+    if not session:
+        raise HTTPException(status_code=401, detail="Session expired")
+    
+    provider = session.get("provider")
+    access_token = session.get("access_token")
+    base_url = str(request.base_url).rstrip("/")
+    
+    try:
+        from app.services.storage import get_provider
+        from app.services.storage.vault_manager import get_vault_manager
+        
+        storage = get_provider(provider, access_token=access_token)
+        vault = get_vault_manager(storage, semptify_uid, base_url)
+        
+        success = await vault.regenerate_rehome_file()
+        
+        if success:
+            return {
+                "success": True,
+                "message": "Rehome.html file regenerated successfully in your cloud storage"
+            }
+        else:
+            return {
+                "success": False,
+                "message": "Failed to regenerate rehome file. Check that your vault is properly initialized."
+            }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Error regenerating rehome file: {str(e)}"
+        }
+
+
 # ============================================================================
 # Legal Integrity Endpoints
 # ============================================================================

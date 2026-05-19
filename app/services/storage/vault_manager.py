@@ -859,6 +859,35 @@ class VaultManager:
         except Exception:
             return False
 
+    async def regenerate_rehome_file(self) -> bool:
+        """
+        Regenerate the Rehome.html file if it's missing or outdated.
+        This is useful for vaults created before rehome was added,
+        or if the file was accidentally deleted.
+        """
+        try:
+            # Get provider name from token
+            token = await self.get_token()
+            if not token:
+                return False
+            
+            provider_name = token.provider or "google_drive"
+            
+            # Generate rehome HTML
+            rehome_html = generate_rehome_html(self.user_id, provider_name, self.base_url)
+            
+            # Upload to storage
+            await self.storage.upload_file(
+                file_content=rehome_html.encode(),
+                destination_path=SEMPTIFY_ROOT,
+                filename="Rehome.html",
+                mime_type="text/html",
+            )
+            return True
+        except Exception as e:
+            logger.error("Failed to regenerate rehome file: %s", e)
+            return False
+
     async def authorize_module(self, module: str) -> bool:
         """
         Check if token authorizes access to a specific module.
