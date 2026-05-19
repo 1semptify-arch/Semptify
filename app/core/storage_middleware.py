@@ -237,7 +237,7 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
         _raw_cookie = request.cookies.get(COOKIE_USER_ID)
         user_id = _raw_cookie
 
-        # Check if valid storage user
+        # Check if valid storage user format
         if not is_valid_storage_user(user_id):
             # Log the issue
             import logging
@@ -279,6 +279,38 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
         raw_user_id = verify_user_id(user_id)
         if not raw_user_id:
             raw_user_id = user_id  # fallback
+        
+        # ── Silent Token Refresh ─────────────────────────────────────────────
+        # Try to silently refresh expired tokens before proceeding.
+        # If refresh fails, user will be redirected to reconnect flow.
+        from app.core.auto_refresh import get_valid_token_or_redirect
+        from app.core.database import get_session_factory
+        
+        factory = get_session_factory()
+        async with factory() as refresh_db:
+            token, reconnect_url = await get_valid_token_or_redirect(
+                raw_user_id,
+                return_to=path,
+                db=refresh_db
+            )
+            
+            if reconnect_url:
+                # Silent refresh failed - need full reauth
+                if path.startswith("/api/"):
+                    return JSONResponse(
+                        status_code=401,
+                        content={
+                            "error": "token_expired",
+                            "message": "Your storage connection expired. Please reconnect.",
+                            "action": "redirect",
+                            "redirect_url": reconnect_url
+                        }
+                    )
+                
+                return RedirectResponse(url=reconnect_url, status_code=302)
+            
+            # Token refreshed successfully or already valid - continue
+            logger.debug(f"Silent refresh succeeded or token valid for user {raw_user_id[:6]}***")
         
         # Valid user — check onboarding gate state via the canonical single reader.
         # All gate decisions flow through get_onboarding_state(); nothing else reads

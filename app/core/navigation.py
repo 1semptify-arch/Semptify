@@ -109,6 +109,13 @@ class NavigationRegistry:
             next_stage="vault_setup",
             requires_checkpoint=True
         ),
+        "reconnect": FlowStage(
+            id="reconnect",
+            name="Token Reconnect",
+            path="/storage/reconnect",
+            next_stage=None,  # Returns to return_to after reconnect
+            requires_checkpoint=False
+        ),
         "status": FlowStage(
             id="status",
             name="Onboarding Status",
