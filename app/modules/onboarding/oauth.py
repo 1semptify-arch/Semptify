@@ -64,18 +64,29 @@ async def create_oauth_state(
 async def consume_oauth_state(db: AsyncSession, state: str) -> dict:
     """
     Validate and consume an OAuth state token. Returns the state data.
-    Raises HTTPException if state is invalid or expired.
+    Raises ValueError if state is invalid or expired.
     """
     result = await db.execute(select(OAuthState).where(OAuthState.id == state))
     row = result.scalar_one_or_none()
     if not row:
-        raise HTTPException(status_code=400, detail="Invalid or expired OAuth state")
+        logger.error("consume_oauth_state: state not found in DB: %s", state[:12] + "***")
+        raise ValueError("Invalid or expired OAuth state — token not found")
+
+    # Check expiry
+    now = utc_now()
+    if row.expires_at and row.expires_at < now:
+        logger.error("consume_oauth_state: state expired at %s (now=%s)", row.expires_at, now)
+        await db.delete(row)
+        await db.commit()
+        raise ValueError("OAuth state token expired — please start the OAuth flow again")
 
     data = {
         "provider": row.provider,
         "role": getattr(row, "role", "tenant") or "tenant",
         "callback_url": getattr(row, "callback_url", None),
     }
+
+    logger.info("consume_oauth_state: valid state consumed for provider=%s role=%s", data["provider"], data["role"])
 
     # Consume (delete) the state — single use
     await db.delete(row)
