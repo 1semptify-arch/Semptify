@@ -197,8 +197,8 @@ _register("app.modules.preamble.router", tags=("Preamble",), tier=ProductTier.CO
 _register("app.modules.risc.router", tags=("RISC",), tier=ProductTier.CORE)
 _register("app.modules.role_ui.router", tags=("Role UI",), tier=ProductTier.CORE)
 
-# Storage & identity
-_register("app.modules.storage.router", tags=("Storage Auth",), tier=ProductTier.CORE)
+# Storage & identity (temporarily disabled to test onboarding callback)
+# _register("app.modules.storage.router", tags=("Storage Auth",), tier=ProductTier.CORE)
 
 # Document & vault system
 _register("app.modules.documents.router", tags=("Documents",), tier=ProductTier.CORE)
