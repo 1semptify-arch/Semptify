@@ -142,47 +142,68 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         4. Marks storage_connected gate
         5. ALWAYS routes to vault-setup (onboarding callback = vault needed)
         """
-        from app.core.config import get_settings as _get_settings
-        _settings = _get_settings()
-        if _settings.public_base_url:
-            base_url = _settings.public_base_url.rstrip("/")
-        else:
-            fwd_host = request.headers.get("x-forwarded-host")
-            fwd_proto = request.headers.get("x-forwarded-proto", "https")
-            if fwd_host:
-                base_url = f"{fwd_proto}://{fwd_host}"
+        try:
+            logger.info("OAuth callback started: provider=%s state=%s", provider, state[:8] + "***")
+            
+            from app.core.config import get_settings as _get_settings
+            _settings = _get_settings()
+            if _settings.public_base_url:
+                base_url = _settings.public_base_url.rstrip("/")
             else:
-                base_url = str(request.base_url).rstrip("/")
-        callback_url = f"{base_url}{config.route_prefix}/callback/{provider}"
+                fwd_host = request.headers.get("x-forwarded-host")
+                fwd_proto = request.headers.get("x-forwarded-proto", "https")
+                if fwd_host:
+                    base_url = f"{fwd_proto}://{fwd_host}"
+                else:
+                    base_url = str(request.base_url).rstrip("/")
+            callback_url = f"{base_url}{config.route_prefix}/callback/{provider}"
+            
+            logger.info("OAuth callback: built callback_url=%s", callback_url)
 
-        result = await oauth_ops.handle_onboarding_callback(
-            db=db,
-            provider=provider,
-            code=code,
-            state=state,
-            callback_url=callback_url,
-            config=config,
-        )
+            result = await oauth_ops.handle_onboarding_callback(
+                db=db,
+                provider=provider,
+                code=code,
+                state=state,
+                callback_url=callback_url,
+                config=config,
+            )
+            
+            logger.info("OAuth callback: handle_onboarding_callback completed")
 
-        user_id = result["user_id"]
-        vault_initialized = result["vault_initialized"]
+            user_id = result["user_id"]
+            vault_initialized = result["vault_initialized"]
+            
+            logger.info("OAuth callback: user_id=%s vault_initialized=%s", user_id[:6] + "***", vault_initialized)
 
-        # Determine landing — always route to selected role's home page
-        if vault_initialized:
-            landing = route_user(user_id)
-        else:
-            landing = f"{config.route_prefix}/vault-setup"
+            # Determine landing — always route to selected role's home page
+            if vault_initialized:
+                landing = route_user(user_id)
+            else:
+                landing = f"{config.route_prefix}/vault-setup"
 
-        logger.info(
-            "Onboarding callback complete: user=%s vault=%s → %s",
-            user_id[:6] + "***", vault_initialized, landing,
-        )
+            logger.info(
+                "Onboarding callback complete: user=%s vault=%s → %s",
+                user_id[:6] + "***", vault_initialized, landing,
+            )
 
-        # Use SSOT-compliant redirect
-        from app.core.ssot_guard import ssot_redirect
-        response = ssot_redirect(landing, context="onboarding_oauth_callback")
-        set_auth_cookie(response, user_id, secure=config.cookie_secure)
-        return response
+            # Use SSOT-compliant redirect
+            from app.core.ssot_guard import ssot_redirect
+            response = ssot_redirect(landing, context="onboarding_oauth_callback")
+            
+            logger.info("OAuth callback: about to set cookie for user=%s", user_id[:6] + "***")
+            set_auth_cookie(response, user_id, secure=config.cookie_secure)
+            logger.info("OAuth callback: cookie set successfully")
+            
+            return response
+            
+        except Exception as e:
+            logger.error("OAuth callback failed: %s", str(e), exc_info=True)
+            # Fallback redirect to role selection on error
+            from app.core.ssot_guard import ssot_redirect
+            role_stage = navigation.get_stage("role_select")
+            fallback_path = role_stage.path if role_stage else "/onboarding/role-select"
+            return ssot_redirect(fallback_path, context="oauth_callback_error")
 
     # ------------------------------------------------------------------
     # Page: Vault Setup
