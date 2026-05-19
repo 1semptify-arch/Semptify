@@ -1,8 +1,8 @@
 """
-Semptify Vault SDK
-==================
+Vault SDK - Isolated, reusable vault management for all Semptify products.
 
-Isolated, reusable vault management for any Semptify product.
+Zero dependencies on FastAPI, SQLAlchemy, middleware, or navigation.
+Takes a provider name, access token, and user ID. Does storage operations.
 
 Usage:
     from app.sdk.vault import VaultClient, TENANT_VAULT
@@ -11,15 +11,14 @@ Usage:
         provider="google_drive",
         access_token="ya29.xxxxx",
         user_id="GU2L3wyfBy",
+        folder_spec=TENANT_VAULT,
     )
     result = await vault.create_folders()
-
-No database, no FastAPI, no middleware dependencies.
 """
 
 __version__ = "1.0.0"
 
-from app.sdk.vault.client import VaultClient, VaultResult
+from app.sdk.vault.client import VaultClient
 from app.sdk.vault.folder_spec import (
     VaultFolderSpec,
     BASE_VAULT,
@@ -34,10 +33,15 @@ from app.sdk.vault.errors import (
     VaultFolderError,
     VaultTokenError,
 )
+from app.sdk.vault.client import VaultResult
+from app.sdk.vault.encryption import (
+    MasterToken,
+    encrypt_token,
+    decrypt_token,
+)
 
 __all__ = [
     "VaultClient",
-    "VaultResult",
     "VaultFolderSpec",
     "BASE_VAULT",
     "TENANT_VAULT",
@@ -48,4 +52,8 @@ __all__ = [
     "VaultProviderError",
     "VaultFolderError",
     "VaultTokenError",
+    "VaultResult",
+    "MasterToken",
+    "encrypt_token",
+    "decrypt_token",
 ]
