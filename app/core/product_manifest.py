@@ -201,7 +201,7 @@ _register("app.modules.role_ui.router", tags=("Role UI",), tier=ProductTier.CORE
 # _register("app.modules.storage.router", tags=("Storage Auth",), tier=ProductTier.CORE)
 
 # Document & vault system
-_register("app.modules.documents.router", tags=("Documents",), tier=ProductTier.CORE)
+# _register("app.modules.documents.router", tags=("Documents",), tier=ProductTier.CORE)  # TEMP: Import failure in production - debugging
 _register("app.modules.vault.router", prefix="/api/vault", tags=("Document Vault",), tier=ProductTier.CORE)
 _register("app.modules.vault_engine.router", tags=("Vault Engine",), tier=ProductTier.CORE)
 _register("app.modules.timeline.router", prefix="/api/timeline", tags=("Unified Timeline",), tier=ProductTier.CORE)
