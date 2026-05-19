@@ -402,33 +402,18 @@ async def handle_onboarding_callback(
     # 6. Mark storage_connected gate
     await mark_gate(db, user_id, "storage_connected")
 
-    # 6b. Auto-install vault using new vault installer
-    from app.modules.vault_installer import install_vault_for_user
-    try:
-        vault_result = await install_vault_for_user(
-            db=db,
-            user_id=user_id,
-            provider_name=provider,
-            access_token=access_token,
-        )
-        logger.info("Vault auto-install result for user %s: %s", user_id[:6] + "***", vault_result)
-    except Exception as vault_exc:
-        logger.error("Vault auto-install crashed for user %s: %s", user_id[:6] + "***", vault_exc, exc_info=True)
-        vault_result = {"success": False, "errors": [str(vault_exc)]}
-    if not vault_result.get("success", False):
-        logger.warning("Vault auto-install failed during callback: %s", vault_result.get("errors", []))
+    # Vault installation now happens on vault-setup page (async, with loading screen)
+    # Do NOT install here — it blocks the HTTP response and creates poor UX
 
-    # 7. Determine routing
-    from app.modules.onboarding.gates import check_gate
-    vault_initialized = await check_gate(db, user_id, "vault_initialized")
-
+    # 7. Determine routing — always route to vault-setup page for first-time setup
+    # This shows loading screen with "Did you know" facts during folder creation
     logger.info(
-        "Onboarding callback complete: user=%s new=%s vault_initialized=%s",
-        user_id[:6] + "***", is_new, vault_initialized,
+        "Onboarding callback complete: user=%s new=%s → vault-setup page",
+        user_id[:6] + "***", is_new,
     )
 
     return {
         "user_id": user_id,
         "is_new": is_new,
-        "vault_initialized": vault_initialized,
+        "vault_initialized": False,  # Force vault-setup page for first-time users
     }
