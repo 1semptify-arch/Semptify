@@ -235,7 +235,7 @@ test_doc.txt
 test_notice.txt
 bsimpotrrttd/
 staticbac/
-DOCUMENTS/
+./DOCUMENTS/
 MASTER_INDEX.md
 
 # Loose test files in root (proper tests live in tests/)
