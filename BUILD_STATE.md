@@ -3,37 +3,37 @@
 
 ---
 
-## Shipped — 2026-05-19 (2:00 PM UTC-05) — Commit `dfc22a5`
+## Shipped — 2026-05-19 (5:30 PM UTC-05) — Commit `4e62442`
 
 ### What Was Shipped
 
-1. **Fixed Housing Accountability Router Runtime Bugs** — 15 `self.` reference crashes fixed
-   - Module-level endpoints incorrectly called helper methods via `self._generate_*`
-   - Fixed in: `build_coalition_action`, `process_evidence_intake`, `search_public_records`, `build_press_release`
-   - Also fixed unguarded `datetime.fromisoformat("")` crash in pattern detection
+1. **Completed Datetime Consistency** — All `datetime.now(timezone.utc)` → `utc_now()` migrated
+   - Fixed 14 remaining occurrences in housing_accountability/router.py
+   - Added proper `from app.core.utc import utc_now` import
+   - All timestamp generation now uses Semptify standard
 
-2. **Added Automation Layer Endpoints** — Real database integration for housing accountability
-   - `GET /api/housing-accountability/dashboard` — Live counts from TimelineEvent, CalendarEvent, Complaint, VaultItem, Incident, Document + 5 recent events
-   - `GET /api/housing-accountability/analyst` — Rule-based risk scoring from real DB data
-   - Both use `get_current_user` dependency and filter by user_id
+2. **Enhanced Onboarding Flow with Vault Verification** — Complete end-to-end contracts
+   - Created comprehensive onboarding contracts document (`docs/onboarding-contracts.md`)
+   - Added vault verification APIs: `/api/vault/init`, `/api/vault/verify`
+   - Enhanced onboarding completion validation with gate checks
+   - Moved vault installation to dedicated vault-setup page with loading screen
 
-3. **Fixed Flask-to-FastAPI Converter** — Generated code now Semptify-compliant
-   - `datetime.utcnow()` → `utc_now()` (Semptify standard)
-   - `request.dict()` → `request.model_dump()` (Pydantic v2)
-   - Blueprint routes now include `url_prefix` in generated paths
-   - Event handler f-string syntax fixed (was generating invalid Python)
-   - Generated router now uses `get_current_user` instead of raw cookie auth
+3. **Fixed Vault SDK Import** — Added missing `VaultResult` to vault SDK exports
+   - Fixed import error in vault_installer module
+   - All vault operations now import correctly
 
 ### What Is Known Working
 
-- Housing accountability `/dashboard` and `/analyst` endpoints query DB successfully
-- Flask converter generates syntactically valid Python with blueprint prefix support
-- All router endpoints compile clean (py_compile verified)
+- All datetime handling consistent across housing accountability module
+- Onboarding flow properly redirects without authentication
+- Vault verification APIs require authentication (401 without auth)
+- Vault-setup page redirects unauthenticated users to role selection
+- App imports successfully with 31 modules registered, 4 skipped, 0 errors
 
 ### What Is Pending
 
-- Migrate remaining `datetime.now(timezone.utc)` → `utc_now()` in housing_accountability/router.py (14 occurrences)
 - Consider pattern persistence (PatternRecord model) if pattern history is needed
+- Test full OAuth flow on production (requires live provider credentials)
 
 ---
 
