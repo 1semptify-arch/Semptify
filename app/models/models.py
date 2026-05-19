@@ -1356,7 +1356,7 @@ class VaultUserIndexDB(Base):
     __tablename__ = "vault_user_index"
     
     # Composite primary key
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(256), ForeignKey("users.id"), primary_key=True)
     vault_id: Mapped[str] = mapped_column(String(36), primary_key=True)
     
     # Ordering
@@ -1377,7 +1377,7 @@ class VaultHashIndexDB(Base):
     
     # First vault document with this hash
     vault_id: Mapped[str] = mapped_column(String(36), ForeignKey("vault_index.vault_id"))
-    user_id: Mapped[str] = mapped_column(String(24), ForeignKey("users.id"))
+    user_id: Mapped[str] = mapped_column(String(256), ForeignKey("users.id"))
     
     # Reference count (how many times this hash appears)
     ref_count: Mapped[int] = mapped_column(Integer, default=1)
