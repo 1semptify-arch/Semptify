@@ -15,6 +15,9 @@ import logging
 
 from app.core.security import get_current_user
 from app.core.utc import utc_now
+from app.core.database import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
 
 logger = logging.getLogger(__name__)
 
@@ -90,9 +93,12 @@ class PatternDetectionService:
                 next_fee = fee_history[i + 1]
                 
                 # Check for similar fee amounts and timing
+                current_date = current_fee.get("date", "")
+                next_date = next_fee.get("date", "")
                 if (abs(current_fee.get("amount", 0) - next_fee.get("amount", 0)) < 5 and
-                    abs((datetime.fromisoformat(current_fee.get("date", "")) - 
-                         datetime.fromisoformat(next_fee.get("date", ""))).days) <= 35):
+                    current_date and next_date and
+                    abs((datetime.fromisoformat(current_date) -
+                         datetime.fromisoformat(next_date)).days) <= 35):
                     recurring_fees.append(current_fee)
             
             if recurring_fees:
@@ -124,11 +130,15 @@ class PatternDetectionService:
         # Check for timing patterns
         if eviction_history:
             for eviction in eviction_history:
-                filing_date = datetime.fromisoformat(eviction.get("filing_date", ""))
-                complaint_date = datetime.fromisoformat(eviction.get("complaint_date", ""))
-                
+                filing_date_str = eviction.get("filing_date", "")
+                complaint_date_str = eviction.get("complaint_date", "")
+                if not filing_date_str or not complaint_date_str:
+                    continue
+                filing_date = datetime.fromisoformat(filing_date_str)
+                complaint_date = datetime.fromisoformat(complaint_date_str)
+
                 # Check if eviction followed complaint filing
-                if complaint_date and filing_date and (filing_date - complaint_date).days <= 30:
+                if (filing_date - complaint_date).days <= 30:
                     patterns.append({
                         "type": "retaliatory_eviction",
                         "severity": "high",
@@ -495,10 +505,10 @@ async def build_coalition_action(request: CoalitionRequest,
             "message": request.message_data,
             "contacts": request.contact_list,
             "action_type": request.action_type,
-            "strategy": self._generate_coalition_strategy(request.coalition_type),
-            "timeline": self._generate_coalition_timeline(request.action_type),
-            "resources_needed": self._identify_coalition_resources(request.coalition_type),
-            "success_metrics": self._define_coalition_metrics(request.coalition_type),
+            "strategy": _generate_coalition_strategy(request.coalition_type),
+            "timeline": _generate_coalition_timeline(request.action_type),
+            "resources_needed": _identify_coalition_resources(request.coalition_type),
+            "success_metrics": _define_coalition_metrics(request.coalition_type),
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         
@@ -521,11 +531,11 @@ async def process_evidence_intake(request: EvidenceIntakeRequest,
         processed_evidence = {
             "evidence_id": f"evidence_{utc_now().timestamp()}",
             "evidence_type": request.evidence_type,
-            "processed_data": self._process_evidence_data(request.evidence_data, request.evidence_type),
+            "processed_data": _process_evidence_data(request.evidence_data, request.evidence_type),
             "case_context": request.case_context,
             "priority": request.priority,
-            "analysis_results": self._analyze_evidence(request.evidence_data, request.evidence_type),
-            "recommendations": self._generate_evidence_recommendations(request.evidence_type),
+            "analysis_results": _analyze_evidence(request.evidence_data, request.evidence_type),
+            "recommendations": _generate_evidence_recommendations(request.evidence_type),
             "processed_at": datetime.now(timezone.utc).isoformat()
         }
         
@@ -551,7 +561,7 @@ async def search_public_records(request: PublicRecordsRequest,
             "search_criteria": request.search_criteria,
             "jurisdiction": request.jurisdiction,
             "time_range": request.time_range,
-            "results": self._simulate_public_records_search(request.record_type, request.search_criteria),
+            "results": _simulate_public_records_search(request.record_type, request.search_criteria),
             "total_results": 0,  # Would be populated by actual search
             "search_duration": "2.3 seconds",
             "searched_at": datetime.now(timezone.utc).isoformat()
@@ -576,15 +586,15 @@ async def build_press_release(request: PressBuilderRequest,
         press_release = {
             "press_id": f"press_{utc_now().timestamp()}",
             "story_type": request.story_type,
-            "headline": self._generate_headline(request.key_facts, request.story_type),
-            "lead_paragraph": self._generate_lead_paragraph(request.key_facts, request.affected_parties),
-            "body_content": self._generate_body_content(request.key_facts, request.legal_context),
-            "quotes": self._generate_quotes(request.affected_parties),
-            "call_to_action": self._generate_call_to_action(request.story_type),
+            "headline": _generate_headline(request.key_facts, request.story_type),
+            "lead_paragraph": _generate_lead_paragraph(request.key_facts, request.affected_parties),
+            "body_content": _generate_body_content(request.key_facts, request.legal_context),
+            "quotes": _generate_quotes(request.affected_parties),
+            "call_to_action": _generate_call_to_action(request.story_type),
             "media_targets": request.media_targets,
-            "contact_information": self._generate_media_contact(),
+            "contact_information": _generate_media_contact(),
             "urgency": request.urgency,
-            "distribution_plan": self._generate_distribution_plan(request.media_targets),
+            "distribution_plan": _generate_distribution_plan(request.media_targets),
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         
@@ -597,6 +607,174 @@ async def build_press_release(request: PressBuilderRequest,
     except Exception as e:
         logger.error(f"Press release building failed: {e}")
         raise HTTPException(status_code=500, detail=f"Press release building failed: {str(e)}")
+
+# =============================================================================
+# Dashboard & Analyst Endpoints (Engine Layer)
+# =============================================================================
+
+@accountability_router.get("/dashboard")
+async def get_dashboard(
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Unified dashboard summary using real database data."""
+    from app.models.models import (
+        TimelineEvent, CalendarEvent, Complaint,
+        VaultItem, Incident, Document
+    )
+    user_id = current_user.user_id if current_user else "anonymous"
+
+    # Count timeline events
+    timeline_result = await db.execute(
+        select(func.count()).select_from(TimelineEvent).where(TimelineEvent.user_id == user_id)
+    )
+    timeline_count = timeline_result.scalar() or 0
+
+    # Count upcoming calendar events
+    calendar_result = await db.execute(
+        select(func.count()).select_from(CalendarEvent)
+        .where(CalendarEvent.user_id == user_id)
+        .where(CalendarEvent.event_date >= datetime.now(timezone.utc))
+    )
+    upcoming_count = calendar_result.scalar() or 0
+
+    # Count complaints
+    complaint_result = await db.execute(
+        select(func.count()).select_from(Complaint).where(Complaint.user_id == user_id)
+    )
+    complaint_count = complaint_result.scalar() or 0
+
+    # Count vault items (evidence)
+    vault_result = await db.execute(
+        select(func.count()).select_from(VaultItem).where(VaultItem.user_id == user_id)
+    )
+    vault_count = vault_result.scalar() or 0
+
+    # Count incidents
+    incident_result = await db.execute(
+        select(func.count()).select_from(Incident).where(Incident.user_id == user_id)
+    )
+    incident_count = incident_result.scalar() or 0
+
+    # Count documents
+    doc_result = await db.execute(
+        select(func.count()).select_from(Document).where(Document.user_id == user_id)
+    )
+    doc_count = doc_result.scalar() or 0
+
+    # Recent timeline events
+    recent_events = await db.execute(
+        select(TimelineEvent)
+        .where(TimelineEvent.user_id == user_id)
+        .order_by(TimelineEvent.event_date.desc())
+        .limit(5)
+    )
+    events = recent_events.scalars().all()
+
+    return JSONResponse(content={
+        "user_id": user_id,
+        "counts": {
+            "timeline_events": timeline_count,
+            "upcoming_deadlines": upcoming_count,
+            "complaints": complaint_count,
+            "vault_items": vault_count,
+            "incidents": incident_count,
+            "documents": doc_count,
+        },
+        "recent_events": [
+            {
+                "id": e.id,
+                "type": e.event_type,
+                "date": e.event_date.isoformat() if e.event_date else None,
+                "status": e.status.value if e.status else None,
+            }
+            for e in events
+        ],
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+
+@accountability_router.get("/analyst")
+async def get_analyst(
+    current_user = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """AI Case Analyst — rule-based risk assessment from database."""
+    from app.models.models import (
+        TimelineEvent, CalendarEvent, Complaint, VaultItem, Incident
+    )
+    user_id = current_user.user_id if current_user else "anonymous"
+
+    # Gather counts
+    timeline_result = await db.execute(
+        select(func.count()).select_from(TimelineEvent).where(TimelineEvent.user_id == user_id)
+    )
+    timeline_count = timeline_result.scalar() or 0
+
+    complaint_result = await db.execute(
+        select(func.count()).select_from(Complaint).where(Complaint.user_id == user_id)
+    )
+    complaint_count = complaint_result.scalar() or 0
+
+    vault_result = await db.execute(
+        select(func.count()).select_from(VaultItem).where(VaultItem.user_id == user_id)
+    )
+    vault_count = vault_result.scalar() or 0
+
+    incident_result = await db.execute(
+        select(func.count()).select_from(Incident).where(Incident.user_id == user_id)
+    )
+    incident_count = incident_result.scalar() or 0
+
+    # Risk scoring
+    risk_score = 0
+    risk_factors = []
+
+    if incident_count >= 2:
+        risk_score += 25
+        risk_factors.append("Multiple incidents recorded")
+    if complaint_count == 0 and vault_count >= 5:
+        risk_score += 20
+        risk_factors.append("Substantial evidence but no formal complaints filed")
+    if timeline_count >= 10:
+        risk_score += 15
+        risk_factors.append("Extensive timeline — prolonged dispute")
+
+    risk_score = min(risk_score, 100)
+    if risk_score >= 60:
+        risk_level = "High"
+    elif risk_score >= 30:
+        risk_level = "Moderate"
+    else:
+        risk_level = "Low"
+
+    # Recommendations
+    actions = []
+    if complaint_count == 0:
+        actions.append("File your first formal complaint to establish a paper trail.")
+    if incident_count >= 2:
+        actions.append("Pattern of multiple incidents — consider multi-venue filing.")
+    if vault_count >= 5:
+        actions.append("You have strong evidence documentation — prioritize filing.")
+    if not actions:
+        actions.append("Continue documenting evidence and maintain your timeline.")
+
+    return JSONResponse(content={
+        "user_id": user_id,
+        "summary": f"{vault_count} evidence items, {incident_count} incidents, {complaint_count} complaints.",
+        "risk_level": risk_level,
+        "risk_score": risk_score,
+        "risk_factors": risk_factors,
+        "recommended_actions": actions,
+        "counts": {
+            "timeline_events": timeline_count,
+            "complaints": complaint_count,
+            "vault_items": vault_count,
+            "incidents": incident_count,
+        },
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    })
+
 
 # Helper methods
 def _generate_coalition_strategy(coalition_type: str) -> Dict[str, Any]:
