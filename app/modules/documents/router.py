@@ -1,5 +1,57 @@
 """
-Semptify 5.0 - Documents API Router
+Semptify 5.0 - Documents API Router            "message": f"Error regenerating rehome file: {str(e)}"
+        }
+ 
+ 
+# ============================================================================
+
+13 more
+Add function to regenerate missing rehome file in user vault
+
+15
+Commit and push startup timeout and rehome fixes
+
+1 more
+Command cd, git in …/Semptify-FastAPI
+
+cd c:\Semptify\Semptify-FastAPI && git add app/main.py app/services/storage/vault_manager.py app/modules/storage/router.py
+warning: in the working copy of 'app/main.py', CRLF will be replaced by LF the next time Git touches it
+
+Command cd, git in …/Semptify-FastAPI
+
+cd c:\Semptify\Semptify-FastAPI && git commit -m "fix: increase startup timeout and add rehome file regeneration
+ 
+- Increase TOTAL_TIMEOUT from 20s to 120s to prevent 504 Gateway Timeout during slow migrations
+- Increase migration timeout from 30s to 120s to match total timeout
+- Add regenerate_rehome_file() method to VaultManager for missing rehome files
+- Add /storage/regenerate-rehome endpoint to trigger rehome file regeneration"
+[main 33343ca] fix: increase startup timeout and add rehome file regeneration
+ 3 files changed, 78 insertions(+), 2 deletions(-)
+
+Command cd, git in …/Semptify-FastAPI
+
+149 x 10
+I've fixed both issues:
+
+1. 504 Gateway Timeout - Increased startup timeout from 20s to 120s in app/main.py to prevent Cloudflare timeout during slow database migrations.
+
+2. Missing Rehome File - Added a function to regenerate missing rehome files:
+
+Added regenerate_rehome_file() method to VaultManager class in app/services/storage/vault_manager.py
+Added /storage/regenerate-rehome endpoint in app/modules/storage/router.py
+To regenerate your missing rehome file: Call the new endpoint from your browser or API:
+
+POST /storage/regenerate-rehome
+This will recreate the Rehome.html file in your cloud storage (Semptify5.0 folder) which is used for device reconnection.
+
+Changes committed and pushed (commit 33343ca). Deployment should be starting now.
+
+Feedback submitted
+
+
+
+
+
 
 Fresh API for document management, processing, and law cross-referencing.
 Enhanced with world-class document intelligence endpoints.

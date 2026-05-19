@@ -19,7 +19,7 @@ No database, no FastAPI, no middleware dependencies.
 
 __version__ = "1.0.0"
 
-from app.sdk.vault.client import VaultClient
+from app.sdk.vault.client import VaultClient, VaultResult
 from app.sdk.vault.folder_spec import (
     VaultFolderSpec,
     BASE_VAULT,
@@ -37,6 +37,7 @@ from app.sdk.vault.errors import (
 
 __all__ = [
     "VaultClient",
+    "VaultResult",
     "VaultFolderSpec",
     "BASE_VAULT",
     "TENANT_VAULT",

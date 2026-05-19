@@ -280,6 +280,7 @@ This module integrates with the Semptify Positronic Mesh.
             '    DocumentType,',
             '    PackType,',
             ')',
+            'from app.core.utc import utc_now',
         ]
         
         # Add database imports if needed
@@ -391,7 +392,7 @@ async def get_state(
         "{self.module_name}_state": {{
             "active": True,
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": utc_now().isoformat(),
         }}
     }}''')
         
@@ -428,7 +429,7 @@ async def get_state(
         body_lines.append('    result = {')
         body_lines.append(f'        "action": "{action_name}",')
         body_lines.append('        "success": True,')
-        body_lines.append('        "timestamp": datetime.utcnow().isoformat(),')
+        body_lines.append('        "timestamp": utc_now().isoformat(),')
         body_lines.append('    }')
         body_lines.append('')
         body_lines.append('    return {"result": result}')
@@ -461,7 +462,7 @@ async def {action_name}(
 @sdk.on_event("workflow_started")
 async def on_workflow_started(event_type: str, data: Dict[str, Any]):
     """React when workflows start"""
-    logger.debug(f"{module_definition.name}: Workflow started - {data.get(\'workflow_id\')}")'''
+    logger.debug(f"{module_definition.name}: Workflow started - {data.get('workflow_id')}")'''
     
     def _generate_init_function(self) -> str:
         return '''
@@ -481,26 +482,40 @@ def initialize():
 # FASTAPI ROUTER (REST API Endpoints)
 # =============================================================================
 
+from app.core.security import get_current_user
+
 router = APIRouter()''']
         
+        # Direct app routes
         for route in self.analysis.routes:
             endpoint = self._convert_route_to_endpoint(route)
             router_code.append(endpoint)
         
+        # Blueprint routes (with url_prefix)
+        for bp in self.analysis.blueprints:
+            for route in bp.routes:
+                endpoint = self._convert_route_to_endpoint(route, bp.url_prefix)
+                router_code.append(endpoint)
+        
         return '\n'.join(router_code)
     
-    def _convert_route_to_endpoint(self, route: FlaskRoute) -> str:
+    def _convert_route_to_endpoint(self, route: FlaskRoute, url_prefix: str = "") -> str:
         """Convert Flask route to FastAPI endpoint"""
         # Convert Flask path params to FastAPI style
         path = route.path
         path = re.sub(r'<(\w+):(\w+)>', r'{\2}', path)  # <type:name> -> {name}
         path = re.sub(r'<(\w+)>', r'{\1}', path)  # <name> -> {name}
         
+        # Prepend blueprint url_prefix
+        if url_prefix:
+            prefix = url_prefix.rstrip('/')
+            path = prefix + path
+        
         method = route.methods[0].lower()
         func_name = f"api_{route.function_name}"
         
-        # Build parameters
-        params = ['semptify_uid: Optional[str] = Cookie(default=None)']
+        # Build parameters using Semptify auth
+        params = ['current_user = Depends(get_current_user)']
         
         # Add path parameters
         path_params = re.findall(r'\{(\w+)\}', path)
@@ -517,11 +532,11 @@ router = APIRouter()''']
         
         # Build body
         body_lines = [
-            '    user_id = semptify_uid or "anonymous"',
+            '    user_id = current_user.user_id if current_user else "anonymous"',
         ]
         
         if method in ['post', 'put', 'patch'] and route.has_request_data:
-            body_lines.append('    result = await {}(user_id, {{"data": request.dict()}}, {{}})'.format(
+            body_lines.append('    result = await {}(user_id, {{"data": request.model_dump()}}, {{}})'.format(
                 route.function_name
             ))
         else:

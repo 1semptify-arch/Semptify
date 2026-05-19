@@ -3,6 +3,29 @@
 
 ---
 
+## Shipped — 2026-05-19 (1:28 AM UTC-05) — Commit `903ebd7`
+
+### What Was Shipped
+
+1. **Fixed Document Module Import Failure in Production** — Root cause was overly broad `.gitignore` pattern
+   - Changed `.gitignore` entry from `DOCUMENTS/` to `./DOCUMENTS/` to only ignore root-level directory
+   - This was preventing `app/modules/documents/` from being tracked in Git and included in Docker builds
+   - Re-enabled documents router in `app/core/product_manifest.py` (was temporarily disabled for debugging)
+   - Fixed syntax error in vault_engine registration line
+
+### What Is Known Working
+
+- Documents router loads successfully in production (31 registered, 4 skipped, 0 errors)
+- `/api/documents` endpoint responds with 401 Unauthorized (expected for protected endpoint, confirms route exists)
+- Deployment is live on Render at https://semptify.org
+
+### What Is Pending
+
+- Test document upload endpoint with authenticated user
+- Address visual layout and style framework after contracts are defined (low priority)
+
+---
+
 ## Shipped — 2026-05-18 (2:00 PM UTC-05) — Commit `d9f2f7b`
 
 ### What Was Shipped
