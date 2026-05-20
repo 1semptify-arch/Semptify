@@ -2014,29 +2014,33 @@ async def oauth_callback(
         existing_uid = state_data.get("existing_uid")
         matched_user = None  # set below if a returning user is found by provider subject
         if existing_uid:
-            # Returning user - keep their ID
+            # Check if this existing_uid actually exists in database and matches current OAuth subject
             existing_provider, _, _ = parse_user_id(existing_uid)
             if existing_provider != provider:
                 raise HTTPException(status_code=400, detail="existing_uid/provider mismatch in callback")
-            user_id = existing_uid
-
-            # Returning-user guard: OAuth subject must match the bound account.
-            bound_user = await get_user_from_db(db, user_id)
-            if bound_user and bound_user.storage_user_id:
-                # Backward compatibility: old rows used user_id as placeholder subject.
-                is_placeholder_subject = bound_user.storage_user_id == user_id
-                if not is_placeholder_subject and bound_user.storage_user_id != provider_subject:
-                    raise HTTPException(
-                        status_code=403,
-                        detail={
-                            "error": "identity_mismatch",
-                            "message": (
-                                "The connected storage account does not match this Semptify user. "
-                                "Please sign in with the originally linked storage account."
-                            ),
-                        },
-                    )
-            print(f"🔄 OAuth callback: Returning user with existing ID: {user_id}")
+            
+            bound_user = await get_user_from_db(db, existing_uid)
+            
+            # Only reuse existing_uid if the user exists AND OAuth subject matches
+            if bound_user and bound_user.storage_user_id == provider_subject:
+                user_id = existing_uid
+                print(f"🔄 OAuth callback: Returning user with existing ID: {user_id}")
+            else:
+                # existing_uid doesn't match current OAuth account - treat as new user
+                matched_user = await get_user_by_provider_subject(db, provider, provider_subject)
+                if matched_user:
+                    # Found a different user account for this OAuth subject
+                    user_id = matched_user.id
+                    _, role, _ = parse_user_id(user_id)
+                    role = role or "tenant"
+                    print(f"🔄 OAuth callback: Matched existing user by provider subject (different from existing_uid): {user_id}")
+                else:
+                    # Completely new user - generate new ID
+                    role = (state_data.get("role") or "tenant").strip().lower()
+                    if role not in ALLOWED_ROLES:
+                        role = "tenant"
+                    user_id = generate_user_id(provider, role)
+                    print(f"🆕 OAuth callback: New user (existing_uid didn't match OAuth subject): {user_id}")
         else:
             # First check if this OAuth subject already has a Semptify account.
             matched_user = await get_user_by_provider_subject(db, provider, provider_subject)
