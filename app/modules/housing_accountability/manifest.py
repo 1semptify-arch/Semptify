@@ -10,10 +10,11 @@ from app.sdk import ModuleManifest, ModuleCapability, ProductTier
 MANIFEST = ModuleManifest(
     name="housing_accountability",
     display_name="Housing Accountability",
-    description="Housing accountability tracking",
-    version="1.0.0",
+    description="Housing accountability tracking with optional pattern persistence",
+    version="1.1.0",
     tier=ProductTier.EXTENDED,
     capabilities=(ModuleCapability.ROUTER,),
     router_module="app.modules.housing_accountability.router",
-    tags=("Housing Accountability",),
+    additional_routers=["app.modules.housing_accountability.pattern_history"],
+    tags=("Housing Accountability", "Pattern Analysis", "Trends"),
 )
