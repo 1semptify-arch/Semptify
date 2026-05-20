@@ -610,6 +610,7 @@ class OAuthState(Base):
     role: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     existing_uid: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
     return_to: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+    force_fresh: Mapped[Optional[bool]] = mapped_column(Boolean, nullable=True, default=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
     expires_at: Mapped[datetime] = mapped_column(DateTimeTZ)

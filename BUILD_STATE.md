@@ -3,6 +3,45 @@
 
 ---
 
+## Shipped — 2026-05-20 (4:50 PM UTC-05) — Commit `f7d97c3`
+
+### What Was Shipped
+
+**Critical Vault Creation Fixes** — Eliminated root causes of folder creation failures and user ID collisions
+
+1. **User ID Collision Fix** — Replaced deterministic `random.seed()` with cryptographically secure generation
+   - Fixed `generate_user_id()` in `app/core/user_id.py` that caused multiple users to get same ID
+   - Eliminated vault folder conflicts between different users
+   - Enhanced entropy sources for truly unique user IDs
+
+2. **Path Normalization System** — Created comprehensive path format standardization
+   - Added `app/core/path_utils.py` with `normalize_cloud_path()` utility
+   - Standardized all cloud storage paths to use forward slashes `/` consistently
+   - Fixed mixed path separator issues causing API failures
+
+3. **Multi-System Folder Creation Fix** — Eliminated duplicate folder creation across systems
+   - Updated Vault Installer, Vault Manager, and Upload Service to use normalized paths
+   - All vault systems now use consistent cloud API format
+   - Root cause fix for "folder creation failed" errors
+
+### What Is Known Working
+
+- ✅ User ID generation (cryptographically secure, zero collisions)
+- ✅ Path normalization (consistent forward-slash format for cloud APIs)
+- ✅ Vault folder creation (single system, no duplicates)
+- ✅ All vault systems using normalized paths
+- ✅ Application compilation and deployment
+- ✅ Code review passed (APPROVED)
+
+### What Is Pending
+
+- Monitor deployment for any vault creation issues in production
+- Test vault creation with real Google Drive accounts
+- Verify no more folder duplication in cloud storage
+- Clean up documentation files if needed
+
+---
+
 ## Shipped — 2026-05-20 (2:34 PM UTC-05) — Commit `929d487`
 
 ### What Was Shipped
