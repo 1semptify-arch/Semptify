@@ -117,3 +117,15 @@ def set_auth_cookie(
         secure=secure,
         samesite="lax",
     )
+
+
+def clear_auth_cookie(response):
+    """Clear the authentication cookie."""
+    from app.core.user_id import COOKIE_USER_ID
+    response.delete_cookie(
+        key=COOKIE_USER_ID,
+        path="/",
+        httponly=False,
+        secure=True,  # Assume secure for deletion
+        samesite="lax",
+    )

@@ -46,11 +46,19 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     # ------------------------------------------------------------------
     # Page: Role Selection (entry point)
     # ------------------------------------------------------------------
-    @router.get("/", response_class=HTMLResponse)
-    async def onboarding_root():
-        """Redirect to role selection."""
-        role_stage = navigation.get_stage("role_select")
-        return ssot_redirect(role_stage.path, context="onboarding_root")
+    @router.get("/role-select", response_class=HTMLResponse)
+    async def role_select_static(request: Request, fresh: Optional[str] = Query(None)):
+        """Serve the role selection page (static)."""
+        # If fresh=true, clear the auth cookie to force new registration
+        if fresh == "true":
+            response = FileResponse(str(BASE_PATH / "static" / "onboarding" / "role-select.html"))
+            clear_auth_cookie(response)
+            return response
+        
+        role_select_path = BASE_PATH / "static" / "onboarding" / "role-select.html"
+        if not role_select_path.exists():
+            raise HTTPException(status_code=404, detail="Role selection page not found")
+        return FileResponse(str(role_select_path))
 
     @router.get("/select-role.html", response_class=HTMLResponse)
     async def role_selection_page():
@@ -255,13 +263,18 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         """Initialize vault folders for the user."""
         from app.modules.vault_installer import install_vault_for_user
         from app.modules.onboarding.gates import mark_gate
+        import asyncio
         
         try:
-            result = await install_vault_for_user(
-                db=db,
-                user_id=user.user_id,
-                provider_name=user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
-                access_token=user.access_token,
+            # Add timeout to prevent 504 errors
+            result = await asyncio.wait_for(
+                install_vault_for_user(
+                    db=db,
+                    user_id=user.user_id,
+                    provider_name=user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
+                    access_token=user.access_token,
+                ),
+                timeout=30.0  # 30 second timeout
             )
             
             if result.get("success", False):
@@ -269,8 +282,8 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                 await mark_gate(db, user.user_id, "vault_initialized")
                 return {
                     "success": True,
-                    "folders_created": result.get("created", []),
-                    "failed_folders": result.get("failed", []),
+                    "folders_created": result.get("folders_created", []),
+                    "files_created": result.get("files_created", []),
                     "message": "Vault folders created successfully"
                 }
             else:
@@ -280,6 +293,13 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                     "message": "Failed to create some vault folders"
                 }
                 
+        except asyncio.TimeoutError:
+            logger.error("Vault initialization timed out for user %s", user.user_id[:6] + "***")
+            return {
+                "success": False,
+                "error": "Vault creation timed out. Please try again.",
+                "message": "Vault initialization timed out - please retry"
+            }
         except Exception as e:
             logger.error("Vault initialization failed for user %s: %s", user.user_id[:6] + "***", str(e))
             return {
