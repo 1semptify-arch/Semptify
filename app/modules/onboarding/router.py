@@ -321,7 +321,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             # Run health check
             health_result = await client.health_check()
             
-            if health_result.get("accessible", False):
+            if health_result.healthy:
                 return {
                     "accessible": True,
                     "ok": True,
@@ -336,7 +336,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                 return {
                     "accessible": False,
                     "ok": False,
-                    "error": health_result.get("error", "Vault accessibility check failed")
+                    "error": f"Vault health check failed. Missing folders: {len(health_result.folders_missing)}"
                 }
                 
         except Exception as e:
