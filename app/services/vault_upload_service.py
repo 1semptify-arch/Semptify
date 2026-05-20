@@ -482,11 +482,12 @@ class VaultUploadService:
     
     async def _ensure_folders(self, storage) -> None:
         """Ensure vault folders exist in storage."""
+        from app.core.path_utils import normalize_cloud_path
         try:
-            await storage.create_folder("Semptify5.0")
-            await storage.create_folder(self.VAULT_ROOT_FOLDER)
-            await storage.create_folder(self.VAULT_FOLDER)
-            await storage.create_folder(self.CERTS_FOLDER)
+            await storage.create_folder(normalize_cloud_path("Semptify5.0"))
+            await storage.create_folder(normalize_cloud_path(self.VAULT_ROOT_FOLDER))
+            await storage.create_folder(normalize_cloud_path(self.VAULT_FOLDER))
+            await storage.create_folder(normalize_cloud_path(self.CERTS_FOLDER))
         except Exception as e:
             logger.warning("Could not create folders: %s", e)
     

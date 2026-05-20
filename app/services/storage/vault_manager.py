@@ -27,14 +27,27 @@ from app.core.vault_paths import (
     SEMPTIFY_ROOT,
     AUTH_FOLDER,
     VAULT_FOLDER,
+    VAULT_ROOT,
+    VAULT_DOCUMENTS,
+    VAULT_CERTIFICATES,
+    VAULT_TIMELINE,
+    VAULT_TIMELINE_EVENTS_FILENAME,
+    VAULT_TIMELINE_EVENTS_FILE,
+    VAULT_OVERLAYS,
+    VAULT_OVERLAY_REGISTRY,
+    VAULT_OVERLAY_DOCUMENTS,
+    VAULT_OVERLAY_QUERIES,
+    VAULT_OVERLAYS_FORMS,
+    VAULT_OVERLAY_REDACTIONS,
     TOKEN_FILE,
     TOKEN_BACKUP,
     DEVICE_KEYS_FILE,
     PROVISIONING_FILE,
     REHOME_FILE,
     README_FILE,
-    VAULT_MANIFEST as MANIFEST_FILE,
+    VAULT_MANIFEST,
 )
+from app.core.path_utils import normalize_cloud_path
 
 settings = get_settings()
 
@@ -601,12 +614,12 @@ class VaultManager:
 
         # Create folder structure
         folders = [
-            SEMPTIFY_ROOT,
-            AUTH_FOLDER,
-            VAULT_FOLDER,
-            f"{VAULT_FOLDER}/documents",
-            f"{VAULT_FOLDER}/forms",
-            f"{VAULT_FOLDER}/exports",
+            normalize_cloud_path(SEMPTIFY_ROOT),
+            normalize_cloud_path(AUTH_FOLDER),
+            normalize_cloud_path(VAULT_FOLDER),
+            normalize_cloud_path(VAULT_ROOT),
+            normalize_cloud_path(VAULT_DOCUMENTS),
+            normalize_cloud_path(VAULT_CERTIFICATES),
         ]
 
         for folder in folders:

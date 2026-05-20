@@ -27,6 +27,7 @@ from app.core.vault_paths import (
     VAULT_OVERLAY_REGISTRY,
     VAULT_ROOT,
 )
+from app.core.path_utils import normalize_cloud_path
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -59,9 +60,9 @@ class VaultInstaller:
         self.additional_folders = [
             VAULT_TIMELINE,
             VAULT_OVERLAYS,
-            f"{VAULT_OVERLAYS}/evidence",
-            f"{VAULT_OVERLAYS}/legal",
-            f"{VAULT_OVERLAYS}/timeline",
+            normalize_cloud_path(f"{VAULT_OVERLAYS}/evidence"),
+            normalize_cloud_path(f"{VAULT_OVERLAYS}/legal"),
+            normalize_cloud_path(f"{VAULT_OVERLAYS}/timeline"),
             AUTH_FOLDER,
         ]
         
@@ -123,9 +124,9 @@ class VaultInstaller:
     async def _create_system_files(self, results: Dict):
         """Create essential system files using Vault SDK."""
         system_files = {
-            (SEMPTIFY_ROOT.replace(f"{VAULT_ROOT}/", ""), "README.txt"): self._readme_content(),
-            (VAULT_FOLDER.replace(f"{VAULT_ROOT}/", ""), "manifest.json"): self._manifest_content(),
-            (VAULT_FOLDER.replace(f"{VAULT_ROOT}/", ""), "vault_status.json"): self._status_content("installed"),
+            (normalize_cloud_path(SEMPTIFY_ROOT.replace(f"{VAULT_ROOT}/", "")), "README.txt"): self._readme_content(),
+            (normalize_cloud_path(VAULT_FOLDER.replace(f"{VAULT_ROOT}/", "")), "manifest.json"): self._manifest_content(),
+            (normalize_cloud_path(VAULT_FOLDER.replace(f"{VAULT_ROOT}/", "")), "vault_status.json"): self._status_content("installed"),
         }
         
         for (subfolder, filename), content in system_files.items():
@@ -148,23 +149,23 @@ class VaultInstaller:
         
         try:
             await self.vault_client.upload(
-                subfolder=VAULT_TIMELINE.replace(f"{VAULT_ROOT}/", ""),
+                subfolder=normalize_cloud_path(VAULT_TIMELINE.replace(f"{VAULT_ROOT}/", "")),
                 filename=VAULT_TIMELINE_EVENTS_FILENAME,
                 content=json.dumps(timeline_events, indent=2).encode(),
                 mime_type="application/json"
             )
-            results["files_created"].append(f"{VAULT_TIMELINE}/{VAULT_TIMELINE_EVENTS_FILENAME}")
+            results["files_created"].append(normalize_cloud_path(f"{VAULT_TIMELINE}/{VAULT_TIMELINE_EVENTS_FILENAME}"))
         except Exception as e:
             results["errors"].append(f"Failed to create timeline events: {str(e)}")
         
         try:
             await self.vault_client.upload(
-                subfolder=VAULT_OVERLAYS.replace(f"{VAULT_ROOT}/", ""),
+                subfolder=normalize_cloud_path(VAULT_OVERLAYS.replace(f"{VAULT_ROOT}/", "")),
                 filename="registry.json",
                 content=json.dumps(overlay_registry, indent=2).encode(),
                 mime_type="application/json"
             )
-            results["files_created"].append(f"{VAULT_OVERLAYS}/registry.json")
+            results["files_created"].append(normalize_cloud_path(f"{VAULT_OVERLAYS}/registry.json"))
         except Exception as e:
             results["errors"].append(f"Failed to create overlay registry: {str(e)}")
 
@@ -189,7 +190,7 @@ class VaultInstaller:
             test_content = f"Semptify vault system test | user={self.user_id} | ts={utc_now().isoformat()}".encode()
             try:
                 await self.vault_client.upload(
-                    subfolder=VAULT_DOCUMENTS.replace(f"{VAULT_ROOT}/", ""),
+                    subfolder=normalize_cloud_path(VAULT_DOCUMENTS.replace(f"{VAULT_ROOT}/", "")),
                     filename=test_filename,
                     content=test_content,
                     mime_type="text/plain",
@@ -205,7 +206,7 @@ class VaultInstaller:
             # 3. Read test using Vault SDK
             try:
                 read_back = await self.vault_client.download(
-                    subfolder=VAULT_DOCUMENTS.replace(f"{VAULT_ROOT}/", ""),
+                    subfolder=normalize_cloud_path(VAULT_DOCUMENTS.replace(f"{VAULT_ROOT}/", "")),
                     filename=test_filename
                 )
                 if read_back != test_content:
@@ -221,7 +222,7 @@ class VaultInstaller:
             # 4. Delete test using Vault SDK
             try:
                 await self.vault_client.delete(
-                    subfolder=VAULT_DOCUMENTS.replace(f"{VAULT_ROOT}/", ""),
+                    subfolder=normalize_cloud_path(VAULT_DOCUMENTS.replace(f"{VAULT_ROOT}/", "")),
                     filename=test_filename
                 )
                 details.append("delete_test: cleaned up")
@@ -234,12 +235,12 @@ class VaultInstaller:
             
             # 5. System file integrity using Vault SDK
             system_files = {
-                (SEMPTIFY_ROOT.replace(f"{VAULT_ROOT}/", ""), "README.txt"): "README",
-                (VAULT_FOLDER.replace(f"{VAULT_ROOT}/", ""), "manifest.json"): "manifest",
-                (VAULT_TIMELINE.replace(f"{VAULT_ROOT}/", ""), VAULT_TIMELINE_EVENTS_FILENAME): "timeline_events",
-                (VAULT_OVERLAYS.replace(f"{VAULT_ROOT}/", ""), "registry.json"): "overlay_registry",
-                (AUTH_FOLDER.replace(f"{VAULT_ROOT}/", ""), "token.enc"): "encrypted_token",
-                (AUTH_FOLDER.replace(f"{VAULT_ROOT}/", ""), "device_keys.json"): "device_keys",
+                (normalize_cloud_path(SEMPTIFY_ROOT.replace(f"{VAULT_ROOT}/", "")), "README.txt"): "README",
+                (normalize_cloud_path(VAULT_FOLDER.replace(f"{VAULT_ROOT}/", "")), "manifest.json"): "manifest",
+                (normalize_cloud_path(VAULT_TIMELINE.replace(f"{VAULT_ROOT}/", "")), VAULT_TIMELINE_EVENTS_FILENAME): "timeline_events",
+                (normalize_cloud_path(VAULT_OVERLAYS.replace(f"{VAULT_ROOT}/", "")), "registry.json"): "overlay_registry",
+                (normalize_cloud_path(AUTH_FOLDER.replace(f"{VAULT_ROOT}/", "")), "token.enc"): "encrypted_token",
+                (normalize_cloud_path(AUTH_FOLDER.replace(f"{VAULT_ROOT}/", "")), "device_keys.json"): "device_keys",
             }
             
             for (subfolder, filename), desc in system_files.items():
@@ -371,25 +372,25 @@ Generated by Semptify Vault Installer v1.0
 
             # Write primary using Vault SDK
             await self.vault_client.upload(
-                subfolder=AUTH_FOLDER.replace(f"{VAULT_ROOT}/", ""),
+                subfolder=normalize_cloud_path(AUTH_FOLDER.replace(f"{VAULT_ROOT}/", "")),
                 filename="token.enc",
                 content=encrypted,
                 mime_type="application/octet-stream",
             )
-            results["files_created"].append(f"{AUTH_FOLDER}/token.enc")
+            results["files_created"].append(normalize_cloud_path(f"{AUTH_FOLDER}/token.enc"))
             
             # Write backup using Vault SDK
             await self.vault_client.upload(
-                subfolder=AUTH_FOLDER.replace(f"{VAULT_ROOT}/", ""),
+                subfolder=normalize_cloud_path(AUTH_FOLDER.replace(f"{VAULT_ROOT}/", "")),
                 filename="token.enc.backup",
                 content=encrypted,
                 mime_type="application/octet-stream",
             )
-            results["files_created"].append(f"{AUTH_FOLDER}/token.enc.backup")
+            results["files_created"].append(normalize_cloud_path(f"{AUTH_FOLDER}/token.enc.backup"))
 
             # Verify the primary can be read back and decrypted using Vault SDK
             read_back = await self.vault_client.download(
-                subfolder=AUTH_FOLDER.replace(f"{VAULT_ROOT}/", ""),
+                subfolder=normalize_cloud_path(AUTH_FOLDER.replace(f"{VAULT_ROOT}/", "")),
                 filename="token.enc"
             )
             decrypted = decrypt_token(read_back, self.user_id, secret_key)
@@ -399,12 +400,12 @@ Generated by Semptify Vault Installer v1.0
             # Initialize empty device keys using Vault SDK
             device_keys = {"devices": [], "created_at": utc_now().isoformat()}
             await self.vault_client.upload(
-                subfolder=AUTH_FOLDER.replace(f"{VAULT_ROOT}/", ""),
+                subfolder=normalize_cloud_path(AUTH_FOLDER.replace(f"{VAULT_ROOT}/", "")),
                 filename="device_keys.json",
                 content=json.dumps(device_keys, indent=2).encode(),
                 mime_type="application/json",
             )
-            results["files_created"].append(f"{AUTH_FOLDER}/device_keys.json")
+            results["files_created"].append(normalize_cloud_path(f"{AUTH_FOLDER}/device_keys.json"))
 
             logger.info("Encrypted token backup stored for user %s", self.user_id[:6] + "***")
             
