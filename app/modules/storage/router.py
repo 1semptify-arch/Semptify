@@ -1787,10 +1787,15 @@ async def initiate_oauth(
             # Ignore mismatched query input to prevent UID swapping attempts.
             existing_uid = None
 
-        if not existing_uid and cookie_uid:
-            cookie_provider, _, _ = parse_user_id(cookie_uid)
-            if cookie_provider == provider:
-                existing_uid = cookie_uid
+        # Only reuse cookie_uid if this is explicitly a reauth flow (existing_uid present)
+        # For fresh OAuth flows (no existing_uid), always generate new ID
+        if existing_uid and not cookie_uid:
+            # Reauth flow with existing_uid but no cookie - proceed with existing_uid
+            pass
+        elif existing_uid and cookie_uid and existing_uid == cookie_uid:
+            # Reauth flow with matching cookie - proceed with existing_uid
+            pass
+        # DO NOT automatically set existing_uid from cookie_uid for fresh flows
 
         if existing_uid:
             existing_provider, _, _ = parse_user_id(existing_uid)
