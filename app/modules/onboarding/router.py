@@ -92,6 +92,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     async def onboarding_oauth_start(
         provider: str,
         role: str = Query("tenant"),
+        force_fresh: bool = Query(False),
         db: AsyncSession = Depends(get_db),
         request: Request = None,
     ):
@@ -118,7 +119,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         callback_url = f"{base_url}{config.route_prefix}/callback/{provider}"
 
         try:
-            state = await oauth_ops.create_oauth_state(db, provider, role, callback_url)
+            state = await oauth_ops.create_oauth_state(db, provider, role, callback_url, force_fresh)
             auth_url = oauth_ops.build_oauth_url(config, provider, state, callback_url)
         except Exception as exc:
             logger.exception("OAuth initiation failed: provider=%s role=%s error=%s", provider, role, exc)
