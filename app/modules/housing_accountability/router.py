@@ -446,6 +446,29 @@ async def detect_patterns(request: PatternDetectionRequest,
         # Generate pattern summary
         pattern_summary = pattern_service.generate_pattern_summary(analysis_data)
         
+        # Save pattern record if persistence is enabled
+        try:
+            from app.models.pattern_record import save_pattern_record
+            saved_record = save_pattern_record(
+                db=db,
+                user_id=current_user.id,
+                analysis_type=request.analysis_type,
+                pattern_data=pattern_summary,
+                data_sources={
+                    "tenant_data_keys": list(request.tenant_data.keys()),
+                    "property_data_keys": list(request.property_data.keys()),
+                    "evidence_count": len(request.evidence_data)
+                }
+            )
+            if saved_record:
+                pattern_summary["record_id"] = saved_record.id
+        except ImportError:
+            # Pattern record model not available - continue without persistence
+            pass
+        except Exception as e:
+            # Log error but don't fail the request
+            logger.warning(f"Failed to save pattern record: {e}")
+        
         return JSONResponse(content={
             "success": True,
             "pattern_analysis": pattern_summary,
