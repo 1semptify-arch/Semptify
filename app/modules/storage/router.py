@@ -2057,6 +2057,9 @@ async def oauth_callback(
                     role = "tenant"
                 user_id = generate_user_id(provider, role)
                 print(f"🆕 OAuth callback: New user - generated ID: {user_id} (provider={provider}, role={role})")
+                print(f"   Provider subject: {provider_subject}")
+                print(f"   No existing_uid in state: {not state_data.get('existing_uid')}")
+                print(f"   No matched user by subject: {matched_user is None}")
 
         refresh_token = token_data.get("refresh_token", "")
         expires_in = token_data.get("expires_in", 3600)

@@ -119,9 +119,9 @@ class VaultClient:
         provider: str,
         access_token: str,
         user_id: str,
-        folder_spec: Optional[VaultFolderSpec] = None,
-        token_refresher: Optional[Callable[[str], Coroutine[Any, Any, str]]] = None,
-        inter_call_delay: float = 0.1,
+        folder_spec: VaultFolderSpec,
+        token_refresher: Optional[Callable] = None,
+        inter_call_delay: float = 0.5,  # Increased to avoid rate limiting
     ):
         self._provider_name = provider
         self._access_token = access_token
