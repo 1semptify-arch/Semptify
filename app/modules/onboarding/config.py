@@ -38,9 +38,8 @@ CANONICAL_VAULT_FOLDERS = [
     VAULT_OVERLAY_QUERIES,      # "Semptify5.0/Vault/overlays/queries"
     VAULT_OVERLAYS_FORMS,       # "Semptify5.0/Vault/overlays/forms"
     VAULT_OVERLAY_REDACTIONS,   # "Semptify5.0/Vault/overlays/redactions"
-    f".{SEMPTIFY_ROOT}",        # ".Semptify5.0"  ← parent for auth/ and vault/
-    VAULT_METADATA_FOLDER,      # ".Semptify5.0/vault"
     AUTH_FOLDER,                # ".Semptify5.0/auth"
+    VAULT_METADATA_FOLDER,      # ".Semptify5.0/vault"
 ]
 
 
