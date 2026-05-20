@@ -1,24 +1,18 @@
 """
-Semptify 5.0 - Vault Manager
-Manages the Semptify5.0 folder structure in user's cloud storage.
+Semptify 5.0 - Vault Manager (DEPRECATED)
 
-Folder Structure:
-    Semptify5.0/
-    ├── .auth/                      # Hidden auth files
-    │   ├── token.enc               # Encrypted master token
-    │   ├── token.enc.backup        # Token backup
-    │   └── device_keys.json        # Authorized devices
-    ├── Vault/                      # User documents
-    │   ├── documents/
-    │   ├── forms/
-    │   └── exports/
-    ├── Rehome.html                 # Reconnection script
-    └── README.txt                  # Don't delete notice
+⚠️ DEPRECATED: This module is being replaced by the Vault SDK + Vault Installer architecture.
+New architecture:
+- Vault SDK (app/sdk/vault/): Isolated storage operations
+- Vault Installer (app/modules/vault_installer/): Orchestrates vault creation
+- Onboarding (app/modules/onboarding/): User flow integration
 
-The master token NEVER leaves storage - it's used for:
-- Encrypting/decrypting vault files
-- Authorizing module access
-- Validating user identity across devices
+Migration:
+- Use VaultClient from app.sdk.vault for storage operations
+- Use VaultInstaller from app.modules.vault_installer for vault creation
+- Encryption functions moved to app.sdk.vault.encryption
+
+This file is kept for backward compatibility during migration.
 """
 
 import json
