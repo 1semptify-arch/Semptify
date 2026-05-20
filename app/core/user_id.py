@@ -114,41 +114,28 @@ def generate_user_id(provider: str, role: str = "user") -> str:
         >>> generate_user_id("google_drive", "user")
         'GUa8Km3xPq'
     """
-    import time
-    import os
-    
     # Get codes
     provider_code = PROVIDER_TO_CODE.get(provider, ProviderCode.GOOGLE_DRIVE)
     role_code = ROLE_TO_CODE.get(role, RoleCode.USER)
     
-    # Generate 8-char random suffix (alphanumeric, easy to read)
+    # Generate cryptographically secure 8-char random suffix
+    # Use token_urlsafe for URL-safe characters, then convert to alphanumeric
+    random_bytes = secrets.token_bytes(6)  # 48 bits = ~8 base64 chars
+    random_part = secrets.token_urlsafe(6)[:8]  # Take first 8 chars
+    
+    # Ensure all characters are alphanumeric (replace URL-safe chars if needed)
     alphabet = string.ascii_letters + string.digits
+    # If any non-alphanumeric chars appear, replace them with random alphanumeric
+    random_part = ''.join(
+        c if c in alphabet else secrets.choice(alphabet) 
+        for c in random_part
+    )
     
-    # Add entropy from time and process ID to prevent any seeding issues
-    entropy_sources = [
-        str(time.time_ns()),
-        str(os.getpid()),
-        str(id(alphabet)),
-        str(secrets.randbits(64))
-    ]
-    
-    # Combine entropy sources
-    combined_entropy = ''.join(entropy_sources)
-    
-    # Use combined entropy as additional seed
-    random.seed(hash(combined_entropy) % (2**32))
-    
-    # Generate random part
-    random_part = ''.join(secrets.choice(alphabet) for _ in range(8))
+    # Ensure exactly 8 characters
+    while len(random_part) < 8:
+        random_part += secrets.choice(alphabet)
     
     user_id = f"{provider_code.value}{role_code.value}{random_part}"
-    
-    # Debug logging
-    print(f"DEBUG: generate_user_id called with provider={provider}, role={role}")
-    print(f"DEBUG: entropy sources: {entropy_sources}")
-    print(f"DEBUG: combined entropy hash: {hash(combined_entropy) % (2**32)}")
-    print(f"DEBUG: generated random_part: {random_part}")
-    print(f"DEBUG: final user_id: {user_id}")
     
     return user_id
 
