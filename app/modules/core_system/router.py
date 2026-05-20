@@ -20,7 +20,10 @@ from app.core.security import get_current_user
 logger = logging.getLogger(__name__)
 
 # Initialize core system router
-core_router = APIRouter(prefix="/api/core", tags=["Core System"])
+router = APIRouter(prefix="/api/core", tags=["Core System"])
+
+# Keep backward compatibility
+core_router = router
 
 # Pydantic Models
 class SystemConfigRequest(BaseModel):

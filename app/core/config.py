@@ -117,6 +117,9 @@ class Settings:
     azure_ai_region: str = os.getenv("AZURE_AI_REGION", "eastus")
     github_token: str = os.getenv("GITHUB_TOKEN", "")
 
+    # Database SSL mode
+    db_ssl_mode: str = os.getenv("DB_SSL_MODE", "prefer")
+
     # Email (Resend)
     resend_api_key: str = os.getenv("RESEND_API_KEY", "")
     from_email: str = os.getenv("FROM_EMAIL", "noreply@semptify.org")

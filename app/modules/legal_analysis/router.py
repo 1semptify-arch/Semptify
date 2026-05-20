@@ -15,15 +15,51 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 import logging
 
-from ..services.legal_analysis_engine import (
-    get_legal_analysis_engine,
-    EvidenceType,
-    DocumentLegalStatus,
-    CredibilityLevel,
-    ConsistencyStatus,
-    LegalMeritLevel,
-    NoticeComplianceStatus,
-)
+# Import legal analysis engine with fallback
+try:
+    from ..services.legal_analysis_engine import (
+        get_legal_analysis_engine,
+        EvidenceType,
+        DocumentLegalStatus,
+        CredibilityLevel,
+        ConsistencyStatus,
+        LegalMeritLevel,
+        NoticeComplianceStatus,
+    )
+except ImportError:
+    # Services module not available - create stubs
+    def get_legal_analysis_engine():
+        return None
+    
+    class EvidenceType:
+        DOCUMENT = "document"
+        TESTIMONY = "testimony"
+        PHOTOGRAPH = "photograph"
+    
+    class DocumentLegalStatus:
+        VALID = "valid"
+        QUESTIONABLE = "questionable"
+        INVALID = "invalid"
+    
+    class CredibilityLevel:
+        HIGH = "high"
+        MEDIUM = "medium"
+        LOW = "low"
+    
+    class ConsistencyStatus:
+        CONSISTENT = "consistent"
+        INCONSISTENT = "inconsistent"
+        UNKNOWN = "unknown"
+    
+    class LegalMeritLevel:
+        STRONG = "strong"
+        MODERATE = "moderate"
+        WEAK = "weak"
+    
+    class NoticeComplianceStatus:
+        COMPLIANT = "compliant"
+        NON_COMPLIANT = "non_compliant"
+        UNKNOWN = "unknown"
 
 # Optional service dependencies for lightweight builds
 try:
