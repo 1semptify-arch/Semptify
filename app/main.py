@@ -232,8 +232,8 @@ async def lifespan(_app: FastAPI):
     
     try:
         # --- STAGE 1: Verify Requirements ---
-        missing_required = []
-        missing_optional = []
+        missing_required: list[str] = []
+        missing_optional: list[str] = []
         
         def check_requirements():
             nonlocal missing_required, missing_optional

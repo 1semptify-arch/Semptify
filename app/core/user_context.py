@@ -505,6 +505,16 @@ def get_ui_config(role: UserRole) -> dict:
     return ROLE_UI_CONFIG.get(role, ROLE_UI_CONFIG[UserRole.TENANT])
 
 
+def get_role_from_user_id(user_id: str) -> UserRole:
+    """Get role for a user ID from their stored context."""
+    if not user_id:
+        return UserRole.USER
+    
+    # In a real implementation, this would look up the user's role from storage
+    # For now, default to USER role since role assignment happens during onboarding
+    return UserRole.USER
+
+
 async def get_user_context(
     storage_provider: Optional[str] = None,
     semptify_uid: Optional[str] = None,
