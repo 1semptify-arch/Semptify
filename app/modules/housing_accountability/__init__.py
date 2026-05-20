@@ -8,5 +8,6 @@ Public API:
 
 from .manifest import MANIFEST
 from .router import accountability_router as router
+from .pattern_history import pattern_history_router
 
-__all__ = ["MANIFEST", "router"]
+__all__ = ["MANIFEST", "router", "pattern_history_router"]
