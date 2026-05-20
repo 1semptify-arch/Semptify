@@ -41,6 +41,7 @@ async def create_oauth_state(
     provider: str,
     role: str,
     callback_url: str,
+    force_fresh: bool = False,
 ) -> str:
     """
     Create a CSRF-safe OAuth state token and persist it.
@@ -55,6 +56,7 @@ async def create_oauth_state(
         role=role,
         created_at=now,
         expires_at=now + timedelta(minutes=15),
+        force_fresh=force_fresh,
     )
     db.add(oauth_state)
     await db.commit()
@@ -289,9 +291,15 @@ async def find_or_create_user(
     )
     existing = result.scalar_one_or_none()
 
-    if existing:
+    # Check for fresh session parameter to bypass existing user lookup
+    force_fresh = state_data.get("force_fresh", False)
+    
+    if existing and not force_fresh:
         logger.info("Matched existing user %s by provider subject", existing.id[:6] + "***")
         return existing.id, False
+    
+    if existing and force_fresh:
+        logger.info("Force fresh: bypassing existing user %s for new ID generation", existing.id[:6] + "***")
 
     # New user
     if role not in ALLOWED_ROLES:
