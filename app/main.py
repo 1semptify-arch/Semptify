@@ -1638,8 +1638,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
     # Exception Handlers
     # =========================================================================
-    from app.core.errors import setup_exception_handlers
-    setup_exception_handlers(fastapi_app)
+    # NOTE: Exception handlers are already registered above (lines 1517-1521)
+    # from app.core.error_handling import semptify_exception_handler
+    # The setup_exception_handlers from app.core.errors is NOT called here
+    # because it would overwrite the detailed error handlers.
     
     # =========================================================================
     # Register Routers via Product Manifest
