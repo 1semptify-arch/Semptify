@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.security import get_current_user
 from app.core.user_context import get_user_context
-from .installer import install_vault_for_user
+from .installer import install_vault_for_user, install_vault_folders_only
 
 router = APIRouter(prefix="/api/vault-installer", tags=["vault-installer"])
 
@@ -47,8 +47,8 @@ async def install_vault(
         access_token = user_context["access_token"]
         user_id = current_user["user_id"]
         
-        # Install the vault
-        result = await install_vault_for_user(
+        # Install vault folders only (fast, avoids Cloudflare timeout)
+        result = await install_vault_folders_only(
             db=db,
             user_id=user_id,
             provider_name=provider,
