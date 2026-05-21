@@ -3,6 +3,19 @@
 
 ---
 
+## Shipped — 2026-05-21 (7:08 AM UTC-05) — Commit `1ad94fe`
+
+### What Was Shipped
+
+**JSON Truncation Fix** — Fixed "unterminated string in JSON" error during upload
+
+1. **Traceback Size Limit** — Truncate error tracebacks to 3000 characters
+   - Proxy buffers (Cloudflare/Render) truncate responses at ~4KB
+   - Caused JSON parsing errors at position 3949
+   - Now tracebacks are truncated with "[truncated for response size]" notice
+
+---
+
 ## Shipped — 2026-05-21 (6:54 AM UTC-05) — Commit `901385a`
 
 ### What Was Shipped
