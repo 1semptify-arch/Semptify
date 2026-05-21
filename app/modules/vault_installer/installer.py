@@ -450,26 +450,26 @@ async def install_vault_folders_only(
     user_id: str,
     provider_name: str,
     access_token: str,
+    include_content: bool = True,
 ) -> Dict:
     """
-    Install vault folders only (no files) to avoid Cloudflare timeout.
+    Install vault folders and essential content.
     
-    This creates the folder structure quickly and marks vault as initialized.
-    Files are created later via background process.
+    This creates the folder structure and essential system files.
+    Files are created quickly to stay within Cloudflare timeout.
     """
     installer = VaultInstaller(provider_name, access_token, user_id)
     
-    # Only create folders, skip file creation
     results = {
         "success": False,
         "folders_created": [],
-        "files_created": [],  # No files created in this mode
+        "files_created": [],
         "errors": [],
         "activation_code": None,
     }
     
     try:
-        logger.info("Creating vault folders only for user %s", user_id[:6] + "***")
+        logger.info("Creating vault folders for user %s", user_id[:6] + "***")
         
         # Step 1: Create all folders using Vault SDK
         vault_result = await installer.vault_client.create_folders()
@@ -481,6 +481,17 @@ async def install_vault_folders_only(
         results["folders_created"] = [f.path for f in vault_result.succeeded]
         logger.info(f"Created {len(results['folders_created'])} vault folders via SDK")
         
+        # Step 2: Create essential system files (fast, small files)
+        if include_content:
+            logger.info("Creating essential system files...")
+            await installer._create_system_files(results)
+            logger.info(f"Created {len(results['files_created'])} system files")
+            
+            # Step 3: Create essential data files
+            logger.info("Creating essential data files...")
+            await installer._create_data_files(results)
+            logger.info(f"Total files created: {len(results['files_created'])}")
+        
         # Generate activation code
         results["activation_code"] = installer._generate_activation_code()
         results["success"] = True
@@ -490,10 +501,10 @@ async def install_vault_folders_only(
         await mark_gate(db, user_id, "vault_initialized")
         logger.info(f"Vault gate marked as initialized for user {user_id[:6]}***")
         
-        logger.info(f"Vault folders created successfully for user {user_id[:6]}***")
+        logger.info(f"Vault created successfully for user {user_id[:6]}*** with {len(results['files_created'])} files")
         
     except Exception as e:
-        results["errors"].append(f"Folder creation failed: {str(e)}")
-        logger.error("Vault folder creation error: %s", str(e))
+        results["errors"].append(f"Vault creation failed: {str(e)}")
+        logger.error("Vault creation error: %s", str(e))
     
     return results
