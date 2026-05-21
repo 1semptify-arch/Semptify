@@ -107,20 +107,9 @@ PUBLIC_PREFIXES = (
     "/static/",   # All static files are public (HTML, CSS, JS)
     "/public/",   # Policy pages: privacy, terms, disclaimer, contact, feedback
     "/onboarding/",  # All onboarding sub-routes public — new users have no cookie yet
-    "/onboarding-assets/",  # Onboarding static files (storage-select, etc)
-    # NOTE: /tenant is NOT public — requires valid storage user (enforced by this middleware)
-    "/law-library",  # Law Library page
-    "/eviction-defense",  # Eviction Defense page
-    "/zoom-court",  # Zoom Court page
-    "/api/health",
-    "/api/version",
-    "/api/roles",  # Role validation API - public for upgrade requests
-    "/api/feedback",       # Public feedback form — no auth required
-    "/api/contact",        # Public contact form — no auth required
-    "/api/tenant/autofill",  # Letter form pre-fill — reads cookie, no storage gate
-    # NOTE: ALL other /api/ endpoints REQUIRE storage authentication
-    # The frontend pages (/static/*.html) will check auth and redirect
-    "/debug/",  # TEMPORARY: diagnostic endpoints — remove after vault issue resolved
+    "/onboarding-assets/",  # Onboarding static files
+    "/api/vault-installer/",  # Vault installer — auth checked by route
+    "/debug/",  # TEMPORARY: diagnostic endpoints
 )
 
 
