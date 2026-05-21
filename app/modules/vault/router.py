@@ -1139,9 +1139,8 @@ async def sidebar_upload(
                 
                 # Route through certified upload path so SHA-256, cert,
                 # overlay, timeline extraction, and mesh workflow all fire.
+                # Access token resolution is handled by upload_document (tries metadata -> user -> oauth_token_manager)
                 access_token_val = metadata_dict.get("access_token") or getattr(user, "access_token", None)
-                if not access_token_val:
-                    raise ValueError("access_token required in sidebar metadata for certified upload")
 
                 certified_response = await upload_document(
                     file=uploaded_file,
