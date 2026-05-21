@@ -338,6 +338,7 @@ async def find_or_create_user(
     
     if existing and force_fresh:
         logger.info("Force fresh: bypassing existing user %s for new ID generation", existing.id[:6] + "***")
+        # Don't return existing user - continue to create new user below
 
     # New user
     if role not in ALLOWED_ROLES:
