@@ -132,10 +132,20 @@ async def secure_middleware(request: Request, call_next: Callable):
     try:
         response = await call_next(request)
     except Exception as e:
-        logger.error(f"Request error: {str(e)}")
+        import traceback
+        error_msg = str(e)
+        traceback_str = traceback.format_exc()
+        logger.error(f"Request error: {error_msg}")
+        logger.error(f"Traceback: {traceback_str}")
+        # Return detailed error for debugging
         return JSONResponse(
             status_code=500,
-            content={"error": "Internal server error", "message": "An error occurred processing your request"}
+            content={
+                "error": "Internal server error",
+                "message": error_msg,
+                "type": type(e).__name__,
+                "traceback": traceback_str
+            }
         )
     
     # Calculate elapsed time
