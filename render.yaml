@@ -21,6 +21,9 @@ services:
     # Auto Deploy on Push
     autoDeploy: true
 
+    # Build Script
+    buildCommand: "./build.sh"
+
     # Environment Variables
     # IMPORTANT: Set sync:false values in Render Dashboard > Environment
     # Never put real secrets in this file — it lives in your git repo
