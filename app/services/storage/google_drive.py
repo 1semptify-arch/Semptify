@@ -103,6 +103,24 @@ class GoogleDriveProvider(StorageProvider):
                         if create_response.status_code in (200, 201):
                             parent_id = create_response.json()["id"]
                             self._folder_cache[current_path] = parent_id
+                        elif create_response.status_code == 409:
+                            # 409 = folder already exists (keys in use), which is fine
+                            # Search again to get the existing folder ID
+                            search_response = await client.get(
+                                f"{self.BASE_URL}/files",
+                                headers=self._headers(),
+                                params={"q": query, "fields": "files(id,name)"},
+                                timeout=10.0,
+                            )
+                            if search_response.status_code == 200:
+                                existing_files = search_response.json().get("files", [])
+                                if existing_files:
+                                    parent_id = existing_files[0]["id"]
+                                    self._folder_cache[current_path] = parent_id
+                                else:
+                                    return None
+                            else:
+                                return None
                         else:
                             return None
                 else:
