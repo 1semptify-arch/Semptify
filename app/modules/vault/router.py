@@ -1347,6 +1347,20 @@ async def sidebar_upload(
         if upload_errors:
             response_data["errors"] = upload_errors
             response_data["message"] = f"Uploaded {len(uploaded_files)} files with {len(upload_errors)} errors"
+            
+            # Check for auth errors - return 401 for auto-redirect
+            auth_error_types = {"token_expired", "storage_required", "authentication_required"}
+            auth_errors = [e for e in upload_errors if e.get("error_type") in auth_error_types]
+            if auth_errors:
+                return JSONResponse(
+                    status_code=401,
+                    content={
+                        "error": auth_errors[0].get("error_type"),
+                        "message": auth_errors[0].get("error_message", "Storage session expired"),
+                        "redirect_url": "/storage/reconnect?return_to=/vault",
+                        "needs_reconnect": True,
+                    }
+                )
         
         return JSONResponse(response_data)
         
