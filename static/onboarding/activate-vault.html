@@ -222,29 +222,34 @@
         }
         
         async function installVault() {
+            console.log('Install vault button clicked');
             const installBtn = document.getElementById('install-btn');
             const loading = document.getElementById('loading');
             const error = document.getElementById('error');
             const success = document.getElementById('success');
-            
+
             // Hide previous messages
             error.style.display = 'none';
             success.style.display = 'none';
-            
+
             // Show loading
             installBtn.style.display = 'none';
             loading.style.display = 'block';
-            
+
             try {
+                console.log('Making API call to /api/vault-installer/install');
                 const response = await fetch('/api/vault-installer/install', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     }
                 });
+                console.log('API response received:', response.status);
                 
+                console.log('Parsing response JSON...');
                 const data = await response.json();
-                
+                console.log('Response data:', data);
+
                 if (response.ok) {
                     // Success
                     loading.style.display = 'none';
@@ -271,6 +276,7 @@
                 }
                 
             } catch (err) {
+                console.error('Install vault error:', err);
                 loading.style.display = 'none';
                 error.style.display = 'block';
                 error.innerHTML = `<strong>Network Error</strong><br>${err.message}`;
