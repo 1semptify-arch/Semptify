@@ -698,13 +698,18 @@ async function setup() {{
         if (!statusResp.ok) {{ throw new Error('Authentication failed — please reconnect storage'); }}
         setStep('auth', 'done');
 
-        // Step 2: Create folders
+        // Step 2: Create folders (using fast vault-installer API)
         setStep('folders', 'running');
-        const initResp = await fetch(PREFIX + '/api/vault/init', {{ method: 'POST' }});
+        console.log('Calling vault installer API...');
+        const initResp = await fetch('/api/vault-installer/install', {{ method: 'POST' }});
+        console.log('Vault installer response:', initResp.status);
         if (!initResp.ok) {{
             const data = await initResp.json().catch(() => ({{}}));
-            throw new Error(data.detail || data.message || 'Failed to create vault folders');
+            console.error('Vault installer failed:', data);
+            throw new Error(data.detail?.error || data.detail || data.message || 'Failed to create vault folders');
         }}
+        const initData = await initResp.json();
+        console.log('Vault created:', initData.folders_created?.length, 'folders');
         setStep('folders', 'done');
 
         // Step 3: Verify
