@@ -317,7 +317,7 @@ async def upload_document(
                 document_id=document_id,
                 overlay_id=overlay_id,
                 provider=provider_name,
-                access_token=access_token,
+                access_token=real_token,  # Use resolved token, not raw parameter
             )
             certificate["timeline_events_extracted"] = len(timeline_events)
         except Exception as e:
@@ -460,9 +460,25 @@ async def copy_from_sync_to_vault(
     This is used when the original File object is no longer available (e.g., after page refresh)
     but the document was already uploaded to cloud storage via the sync endpoint.
     """
+    # Resolve real access token (form field may be "auto" placeholder from JS)
+    real_token = access_token
+    if not real_token or real_token == "auto":
+        real_token = getattr(user, "access_token", None)
+    if not real_token or real_token in ("auto", "no-token"):
+        try:
+            from app.core.oauth_token_manager import get_valid_token_for_user
+            real_token = get_valid_token_for_user(user.user_id) or real_token
+        except ImportError:
+            pass
+    if not real_token or real_token in ("auto", "no-token"):
+        raise HTTPException(
+            status_code=401,
+            detail="Storage session expired. Please reconnect your storage.",
+        )
+
     # Get storage provider for user
     try:
-        storage = get_provider(user.provider, access_token=access_token)
+        storage = get_provider(user.provider, access_token=real_token)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -602,7 +618,7 @@ async def copy_from_sync_to_vault(
                 document_id=document_id,
                 overlay_id=overlay_id,
                 provider=provider_name,
-                access_token=access_token,
+                access_token=real_token,  # Use resolved token
             )
             certificate["timeline_events_extracted"] = len(timeline_events)
         except Exception as e:
@@ -1139,20 +1155,139 @@ async def sidebar_upload(
                 
                 # Route through certified upload path so SHA-256, cert,
                 # overlay, timeline extraction, and mesh workflow all fire.
-                # Access token resolution is handled by upload_document (tries metadata -> user -> oauth_token_manager)
+                # Using already-read file_content (NOT re-reading from uploaded_file)
                 access_token_val = metadata_dict.get("access_token") or getattr(user, "access_token", None)
 
-                certified_response = await upload_document(
-                    file=uploaded_file,
-                    document_type=metadata_dict.get("document_type"),
-                    description=metadata_dict.get("description"),
-                    tags=metadata_dict.get("tags"),
-                    access_token=access_token_val,
-                    user=user,
-                    settings=get_settings(),
+                # Resolve real access token with fallback chain
+                real_token = access_token_val
+                if not real_token or real_token == "auto":
+                    real_token = getattr(user, "access_token", None)
+                if not real_token or real_token in ("auto", "no-token"):
+                    try:
+                        from app.core.oauth_token_manager import get_valid_token_for_user
+                        real_token = get_valid_token_for_user(user.user_id) or real_token
+                    except ImportError:
+                        pass
+                if not real_token or real_token in ("auto", "no-token"):
+                    raise HTTPException(
+                        status_code=401,
+                        detail="Storage session expired. Please reconnect your storage.",
+                    )
+
+                # Generate document ID and hash from already-read content
+                document_id = make_id("doc")
+                sha256_hash = compute_sha256(file_content)
+                ext = uploaded_file.filename.rsplit(".", 1)[-1].lower() if "." in uploaded_file.filename else "bin"
+                safe_filename = f"{document_id}.{ext}"
+
+                # Get storage provider
+                try:
+                    storage = get_provider(user.provider, access_token=real_token)
+                except ValueError as e:
+                    raise HTTPException(status_code=400, detail=str(e))
+
+                # Ensure vault folders and upload file
+                try:
+                    await ensure_vault_folders(storage, user.provider)
+                    storage_path = f"{VAULT_FOLDER}/{safe_filename}"
+                    await storage.upload_file(
+                        file_content=file_content,
+                        destination_path=VAULT_FOLDER,
+                        filename=safe_filename,
+                        mime_type=uploaded_file.content_type or "application/octet-stream",
+                    )
+                except Exception as e:
+                    error_msg = str(e)
+                    if "401" in error_msg or "Unauthorized" in error_msg or "access" in error_msg.lower():
+                        raise HTTPException(status_code=401, detail=f"Storage authentication failed: {error_msg}")
+                    elif "403" in error_msg or "Forbidden" in error_msg:
+                        raise HTTPException(status_code=403, detail=f"Storage access denied: {error_msg}")
+                    else:
+                        raise HTTPException(status_code=500, detail=f"Storage error: {error_msg}")
+
+                # Create and upload certificate
+                certificate_id = make_id("cert")
+                certificate = {
+                    "certificate_id": certificate_id,
+                    "document_id": document_id,
+                    "sha256": sha256_hash,
+                    "original_filename": uploaded_file.filename,
+                    "file_size": len(file_content),
+                    "mime_type": uploaded_file.content_type or "application/octet-stream",
+                    "document_type": metadata_dict.get("document_type"),
+                    "description": metadata_dict.get("description"),
+                    "tags": [],
+                    "certified_at": datetime.now(timezone.utc).isoformat(),
+                    "request_id": make_id("req"),
+                    "storage_path": storage_path,
+                    "storage_provider": user.provider,
+                    "user_id": user.user_id,
+                    "version": "5.0",
+                    "platform": "Semptify FastAPI Cloud Storage",
+                }
+
+                cert_content = json.dumps(certificate, indent=2).encode("utf-8")
+                try:
+                    await storage.upload_file(
+                        file_content=cert_content,
+                        destination_path=CERTS_FOLDER,
+                        filename=f"{certificate_id}.json",
+                        mime_type="application/json",
+                    )
+                except Exception as e:
+                    logger.warning(f"Certificate upload failed for {document_id}: {e}")
+
+                # Create overlay
+                overlay_id = None
+                try:
+                    from app.services.unified_overlay_manager import UnifiedOverlayManager
+                    from app.models.unified_overlay_models import CreateOverlayRequest
+                    from app.core.overlay_types import OverlayType
+                    overlay_mgr = UnifiedOverlayManager(storage, user.user_id)
+                    overlay_resp = await overlay_mgr.create_overlay(CreateOverlayRequest(
+                        overlay_type=OverlayType.VAULT_UPLOAD_MANIFEST,
+                        document_id=document_id,
+                        vault_path=storage_path,
+                        payload={
+                            "original_filename": uploaded_file.filename,
+                            "mime_type": uploaded_file.content_type or "application/octet-stream",
+                            "file_size_bytes": len(file_content),
+                            "content_hash": sha256_hash,
+                            "storage_provider": user.provider,
+                        },
+                    ))
+                    if overlay_resp.success:
+                        overlay_id = overlay_resp.overlay_id
+                    certificate["overlay_id"] = overlay_id
+
+                    # Timeline extraction using resolved real_token (NOT access_token_val)
+                    try:
+                        from app.services.timeline_extraction import extract_timeline_from_upload
+                        provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
+                        timeline_events = await extract_timeline_from_upload(
+                            document_id=document_id,
+                            overlay_id=overlay_id,
+                            provider=provider_name,
+                            access_token=real_token,
+                        )
+                        certificate["timeline_events_extracted"] = len(timeline_events)
+                    except Exception as e:
+                        certificate["timeline_events_extracted"] = 0
+                except Exception as e:
+                    logger.warning(f"Overlay creation failed for {document_id}: {e}")
+
+                # Issue function token
+                function_token = issue_function_access_token(
+                    user.user_id,
+                    context={
+                        "provider": user.provider,
+                        "reason": "vault_upload",
+                        "scopes": ["overlay:read", "overlay:write"],
+                        "document_ids": [document_id],
+                    },
                 )
 
-                vault_id = certified_response.id
+                vault_id = document_id
 
                 # Log successful upload
                 from app.core.audit_logger import log_document_upload
