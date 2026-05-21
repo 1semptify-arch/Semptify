@@ -289,7 +289,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                     provider_name=user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
                     access_token=user.access_token,
                 ),
-                timeout=120.0  # Increased to 120 second timeout
+                timeout=180.0  # Increased to 180 second timeout (3 minutes)
             )
             
             if result.get("success", False):
