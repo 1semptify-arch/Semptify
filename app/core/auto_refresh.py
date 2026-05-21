@@ -17,7 +17,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.oauth_token_manager import token_manager, OAuthToken
-from app.core.user_id import parse_user_id, verify_user_id, COOKIE_USER_ID
+from app.core.user_id import parse_user_id, COOKIE_USER_ID
+from app.core.cookie_auth import verify_user_id
 from app.core.database import get_session_factory
 from app.models.models import User
 
