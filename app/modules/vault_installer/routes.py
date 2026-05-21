@@ -5,6 +5,7 @@ Simple endpoints to install and activate the Semptify vault.
 No complex onboarding - just install and go.
 """
 
+import logging
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.security import get_current_user
 from .installer import install_vault_for_user, install_vault_folders_only
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/vault-installer", tags=["vault-installer"])
 
@@ -81,11 +84,11 @@ async def install_vault(
     except Exception as e:
         import traceback
         error_detail = f"Installation error: {str(e)}"
-        print(f"VAULT INSTALLER ERROR: {error_detail}")
-        print(f"TRACEBACK: {traceback.format_exc()}")
+        logger.error(f"VAULT INSTALLER ERROR: {error_detail}")
+        logger.error(f"TRACEBACK: {traceback.format_exc()}")
         raise HTTPException(
             status_code=500,
-            detail={"error": error_detail, "type": type(e).__name__}
+            detail={"error": error_detail, "type": type(e).__name__, "traceback": traceback.format_exc()}
         )
 
 
@@ -99,23 +102,27 @@ async def get_vault_status(
     """
     try:
         from app.modules.onboarding.gates import check_gate
+        from app.modules.storage.router import get_valid_session
         
-        vault_initialized = await check_gate(db, current_user["user_id"], "vault_initialized")
+        user_id = current_user["user_id"]
+        vault_initialized = await check_gate(db, user_id, "vault_initialized")
         
-        user_context = await get_user_context(db, current_user["user_id"])
+        # Check storage connection via session
+        session = await get_valid_session(db, user_id, auto_refresh=False)
         
         return {
             "vault_installed": vault_initialized,
-            "storage_connected": bool(user_context and user_context.get("provider")),
-            "provider": user_context.get("provider") if user_context else None,
+            "storage_connected": bool(session and session.get("provider")),
+            "provider": session.get("provider") if session else None,
             "next_action": (
-                "install_vault" if not vault_initialized 
-                else "upload_documents" if vault_initialized
-                else "connect_storage"
+                "connect_storage" if not session
+                else "install_vault" if not vault_initialized
+                else "upload_documents"
             ),
         }
         
     except Exception as e:
+        logger.error(f"Status check error: {str(e)}")
         raise HTTPException(
             status_code=500,
             detail=f"Status check error: {str(e)}"
