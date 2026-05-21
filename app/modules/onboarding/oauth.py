@@ -48,7 +48,15 @@ async def create_oauth_state(
 
     Returns the state string to include in the OAuth redirect URL.
     """
-    state = secrets.token_urlsafe(32)
+    logger.info("create_oauth_state: provider=%s role=%s callback=%s force_fresh=%s", 
+                provider, role, callback_url, force_fresh)
+    
+    try:
+        state = secrets.token_urlsafe(32)
+        logger.info("create_oauth_state: state generated successfully")
+    except Exception as e:
+        logger.error("create_oauth_state: failed to generate state: %s", e)
+        raise
     now = utc_now()
     # Create OAuthState with force_fresh if field exists (migration might not have run yet)
     oauth_state_dict = {
