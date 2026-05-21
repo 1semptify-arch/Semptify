@@ -146,11 +146,17 @@ async def semptify_exception_handler(request: Request, exc: Exception) -> JSONRe
         return create_error_response(exc, include_details=False)
     
     elif isinstance(exc, HTTPException):
+        # Handle case where detail is a dict (detailed error info)
+        if isinstance(exc.detail, dict):
+            return JSONResponse(
+                status_code=exc.status_code,
+                content=exc.detail
+            )
         user_error = SemptifyError(
-            message=exc.detail,
+            message=str(exc.detail),
             error_code="HTTP_ERROR",
             status_code=exc.status_code,
-            user_message=exc.detail
+            user_message=str(exc.detail)
         )
         return create_error_response(user_error)
     
