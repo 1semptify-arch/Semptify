@@ -13,6 +13,13 @@ if sys.platform == 'win32':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
+# Fix Vertex AI session ID collisions that block OAuth
+try:
+    from app.services.vertex_session_fix import patch_vertex_session_creation
+    patch_vertex_session_creation()
+except ImportError:
+    pass  # Vertex AI not available
+
 # Python version check - Semptify requires Python 3.11+
 python_version = sys.version_info
 if python_version >= (3, 14):
