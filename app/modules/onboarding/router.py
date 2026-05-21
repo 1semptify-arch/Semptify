@@ -44,6 +44,14 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     router = APIRouter(prefix=config.route_prefix, tags=["onboarding"])
 
     # ------------------------------------------------------------------
+    # Test Route - Debug
+    # ------------------------------------------------------------------
+    @router.get("/test")
+    async def test_onboarding():
+        """Test route to verify onboarding module is accessible."""
+        return {"status": "ok", "message": "Onboarding module is working"}
+
+    # ------------------------------------------------------------------
     # Page: Role Selection (entry point)
     # ------------------------------------------------------------------
     @router.get("/role-select", response_class=HTMLResponse)
@@ -97,7 +105,10 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         request: Request = None,
     ):
         """Initiate OAuth for onboarding. Uses onboarding callback URL."""
+        logger.info("=== OAUTH REQUEST RECEIVED ===")
         logger.info("onboarding_oauth_start: provider=%s role=%s force_fresh=%s", provider, role, force_fresh)
+        logger.info("Request URL: %s", str(request.url) if request else "No request")
+        logger.info("Request headers: %s", dict(request.headers) if request else "No headers")
         
         if provider not in config.allowed_providers:
             logger.error("onboarding_oauth_start: provider '%s' not in allowed_providers: %s", provider, config.allowed_providers)
