@@ -11,7 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_user
-from app.core.user_context import get_user_context
 from .installer import install_vault_for_user, install_vault_folders_only
 
 router = APIRouter(prefix="/api/vault-installer", tags=["vault-installer"])
@@ -34,18 +33,20 @@ async def install_vault(
     No complex onboarding required - just install and go.
     """
     try:
-        # Get user's storage tokens from context
-        user_context = await get_user_context(db, current_user["user_id"])
+        # Get user's storage tokens from database
+        from app.modules.storage.router import get_valid_session
         
-        if not user_context or not user_context.get("provider"):
+        user_id = current_user["user_id"]
+        session = await get_valid_session(db, user_id, auto_refresh=True)
+        
+        if not session:
             raise HTTPException(
                 status_code=400,
                 detail="No storage provider connected. Please connect storage first."
             )
         
-        provider = user_context["provider"]
-        access_token = user_context["access_token"]
-        user_id = current_user["user_id"]
+        provider = session.get("provider")
+        access_token = session.get("access_token")
         
         # Install vault folders only (fast, avoids Cloudflare timeout)
         result = await install_vault_folders_only(
