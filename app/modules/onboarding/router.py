@@ -706,7 +706,9 @@ async function setup() {{
         if (!initResp.ok) {{
             const data = await initResp.json().catch(() => ({{}}));
             console.error('Vault installer failed:', data);
-            throw new Error(data.detail?.error || data.detail || data.message || 'Failed to create vault folders');
+            window.lastErrorDetails = data;
+            const errorMsg = data.detail?.error || data.detail || data.message || 'Failed to create vault folders';
+            throw new Error(errorMsg);
         }}
         const initData = await initResp.json();
         console.log('Vault created:', initData.folders_created?.length, 'folders');
@@ -729,7 +731,12 @@ async function setup() {{
 
     }} catch(e) {{
         console.error('Setup failed:', e);
-        showError(e.message || 'Unknown error');
+        // Display full error details if available
+        let errorMsg = e.message || 'Unknown error';
+        if (window.lastErrorDetails) {{
+            errorMsg += '<br><br><strong>Technical Details:</strong><br><pre style="font-size:10px;overflow-x:auto;background:#f5f5f5;padding:8px;border-radius:4px;">' + JSON.stringify(window.lastErrorDetails, null, 2) + '</pre>';
+        }}
+        showError(errorMsg);
         // Mark current running step as error
         ['auth','folders','verify','done'].forEach(id => {{
             const icon = document.getElementById('icon-' + id);
