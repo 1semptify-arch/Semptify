@@ -311,9 +311,17 @@ async function uploadToVault(fileCount) {
           if (typeof e === 'object') {
             return `${e.filename}: ${e.error_type} - ${e.error_message}`;
           }
-          return e;
+          e;
         }).join('\n');
         errorMsg += '\n\nFile errors:\n' + fileErrors;
+      }
+      
+      // Handle token_expired / storage_required with auto-redirect
+      if (result.error === 'token_expired' || result.error === 'storage_required') {
+        if (confirm('Your storage connection expired. Reconnect now?')) {
+          window.location.href = result.redirect_url || '/storage/reconnect';
+          return;
+        }
       }
       
       alert('Upload failed:\n' + errorMsg + (errorType ? ' (' + errorType + ')' : '') + tb + storageMsg);
