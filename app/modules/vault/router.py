@@ -1301,22 +1301,26 @@ async def sidebar_upload(
                     user_agent=request.headers.get("user-agent", "unknown")
                 )
 
+                # Build file entry from inline upload results
+                uploaded_at = certificate["certified_at"]
+                mime_type = uploaded_file.content_type or "application/octet-stream"
+                
                 uploaded_files.append({
                     "id": vault_id,
                     "name": uploaded_file.filename,
                     "size": len(file_content),
-                    "type": certified_response.mime_type,
+                    "type": mime_type,
                     "category": _get_file_category(uploaded_file.filename),
-                    "uploaded_at": certified_response.uploaded_at,
-                    "certificate_id": certified_response.certificate_id,
-                    "sha256": certified_response.sha256_hash,
+                    "uploaded_at": uploaded_at,
+                    "certificate_id": certificate_id,
+                    "sha256": sha256_hash,
                     "user_id": user.user_id,
-                    "path": certified_response.storage_path,
+                    "path": storage_path,
                     "tags": [],
                     "metadata": {
                         "source": source,
                         "original_filename": uploaded_file.filename,
-                        "upload_timestamp": certified_response.uploaded_at,
+                        "upload_timestamp": uploaded_at,
                     }
                 })
 
