@@ -1762,6 +1762,44 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             root_path = root_stage.path if root_stage else "/"
             return ssot_redirect(root_path, context="welcome_html fallback")
 
+        # Onboarding pages - bypass static HTML block middleware
+        @fastapi_app.get("/onboarding/select-role", response_class=HTMLResponse)
+        @fastapi_app.get("/onboarding/select-role.html", response_class=HTMLResponse)
+        async def role_select_page():
+            """Serve role selection page."""
+            page_path = BASE_PATH / "static" / "onboarding" / "role-select.html"
+            if page_path.exists():
+                return FileResponse(page_path)
+            # Fallback to providers if role-select doesn't exist
+            providers_stage = navigation.get_stage("providers")
+            providers_path = providers_stage.path if providers_stage else "/storage/providers"
+            return ssot_redirect(providers_path, context="role_select fallback")
+
+        @fastapi_app.get("/storage/providers", response_class=HTMLResponse)
+        @fastapi_app.get("/storage/providers.html", response_class=HTMLResponse)
+        async def storage_providers_page():
+            """Serve storage providers selection page."""
+            page_path = BASE_PATH / "static" / "onboarding" / "providers.html"
+            if page_path.exists():
+                return FileResponse(page_path)
+            # Fallback to OAuth if providers page doesn't exist
+            return ssot_redirect("/onboarding/auth/google_drive", context="providers fallback")
+
+        @fastapi_app.get("/storage/reconnect", response_class=HTMLResponse)
+        @fastapi_app.get("/storage/reconnect.html", response_class=HTMLResponse)
+        async def storage_reconnect_page(request: Request):
+            """Serve storage reconnection page with return URL."""
+            page_path = BASE_PATH / "static" / "onboarding" / "providers.html"
+            if page_path.exists():
+                return FileResponse(page_path)
+            # Get return_to from query params
+            return_to = request.query_params.get("return_to", "/vault")
+            provider = request.query_params.get("provider", "google_drive")
+            return ssot_redirect(
+                f"/onboarding/auth/{provider}?return_to={return_to}",
+                context="reconnect fallback"
+            )
+
 
     # =========================================================================
     # Root endpoint - Serve SPA
