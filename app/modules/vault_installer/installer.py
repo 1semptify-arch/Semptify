@@ -85,23 +85,31 @@ class VaultInstaller:
         }
 
         try:
+            logger.info("Step 1: Creating vault folders using SDK")
             # Step 1: Create all folders using Vault SDK
             vault_result = await self.vault_client.create_folders()
             if not vault_result.all_ok:
                 results["errors"].extend([f"{f.path}: {f.detail}" for f in vault_result.failed])
+                logger.error("Vault folder creation failed: %s", results["errors"])
                 return results
             
             results["folders_created"] = [f.path for f in vault_result.succeeded]
-            logger.info(f"Created {len(results['folders_created'])} vault folders via SDK")
+            logger.info(f"Step 1 completed: Created {len(results['folders_created'])} vault folders via SDK")
             
             # Step 2: Create system files
+            logger.info("Step 2: Creating system files")
             await self._create_system_files(results)
+            logger.info("Step 2 completed: System files created")
             
             # Step 3: Create data files
+            logger.info("Step 3: Creating data files")
             await self._create_data_files(results)
+            logger.info("Step 3 completed: Data files created")
             
             # Step 4: Create encrypted token backup and device keys
+            logger.info("Step 4: Creating token backup and device keys")
             await self._create_token_backup(results)
+            logger.info("Step 4 completed: Token backup and device keys created")
             
             # Step 5: Verify installation using Vault SDK
             verification = await self._verify_installation()
