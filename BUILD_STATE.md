@@ -3,6 +3,43 @@
 
 ---
 
+## Shipped — 2026-05-21 (6:54 AM UTC-05) — Commit `901385a`
+
+### What Was Shipped
+
+**Vault Init Endpoint & Error Handling Fixes** — Complete OAuth flow now working with proper error visibility
+
+1. **Vault Content Creation Fix** — Added file creation to folder-only installer
+   - Modified `install_vault_folders_only()` to call `_create_system_files()` and `_create_data_files()`
+   - Vault now creates README.txt, manifest.json, vault_status.json, timeline_events.json, registry.json
+   - Fixes empty folders issue
+
+2. **UserContext Attribute Access Fix** — Fixed dataclass access pattern
+   - Changed `current_user.get("user_id")` to `getattr(current_user, 'user_id', None)`
+   - UserContext is a dataclass, not a dict - requires attribute access
+
+3. **Duplicate Exception Handler Removal** — Eliminated error masking
+   - Removed `setup_exception_handlers()` call from `main.py` (lines 1641-1642)
+   - This duplicate registration was overwriting detailed error handlers with generic ones
+   - Errors now show full tracebacks instead of "An unexpected error occurred"
+
+### What Is Known Working
+
+- ✅ OAuth flow completes successfully
+- ✅ Vault folders created in Google Drive
+- ✅ Vault content files (README, manifest, status, timeline, registry) created
+- ✅ `vault_initialized` gate properly marked after installation
+- ✅ Detailed error messages with tracebacks visible
+- ✅ Application compilation clean
+
+### What Is Pending
+
+- Test file upload to vault after OAuth completion
+- Monitor for any edge cases in vault creation
+- Clean up any remaining debug logging if needed
+
+---
+
 ## Shipped — 2026-05-20 (4:50 PM UTC-05) — Commit `f7d97c3`
 
 ### What Was Shipped
