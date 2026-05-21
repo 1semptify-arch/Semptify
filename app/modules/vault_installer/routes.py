@@ -59,7 +59,8 @@ async def install_vault(
             logger.error("current_user is None - authentication required")
             raise HTTPException(status_code=401, detail="Authentication required - please complete OAuth first")
         
-        user_id = current_user.get("user_id")
+        # UserContext is a dataclass - access user_id as attribute
+        user_id = getattr(current_user, 'user_id', None)
         if not user_id:
             logger.error("No user_id in current_user!")
             raise HTTPException(status_code=401, detail="Authentication required")
