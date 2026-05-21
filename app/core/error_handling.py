@@ -184,11 +184,16 @@ async def semptify_exception_handler(request: Request, exc: Exception) -> JSONRe
         return create_error_response(user_error)
     
     # Default: unknown error
+    # Truncate traceback to prevent response truncation by proxies (4KB limit)
+    tb = traceback.format_exc()
+    if len(tb) > 3000:
+        tb = tb[:3000] + "\n... [truncated for response size]"
+    
     unknown_error = SemptifyError(
         message=str(exc),
         error_code="UNKNOWN_ERROR",
         status_code=500,
-        details={"traceback": traceback.format_exc()},
+        details={"traceback": tb},
         user_message="An unexpected error occurred. Please try again later."
     )
     
