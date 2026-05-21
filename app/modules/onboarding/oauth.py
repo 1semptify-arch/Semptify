@@ -324,9 +324,9 @@ async def find_or_create_user(
         select(User).where(
             User.primary_provider == provider,
             User.storage_user_id == provider_subject,
-        )
+        ).order_by(User.created_at.desc())  # Get most recent user first
     )
-    existing = result.scalar_one_or_none()
+    existing = result.first()  # Use first() to handle multiple results
 
     # Check for fresh session parameter to bypass existing user lookup
     # Handle missing force_fresh field gracefully until migration runs
