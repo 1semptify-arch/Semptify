@@ -55,6 +55,10 @@ async def install_vault(
         logger.info("Importing get_valid_session...")
         from app.modules.storage.router import get_valid_session
         
+        if current_user is None:
+            logger.error("current_user is None - authentication required")
+            raise HTTPException(status_code=401, detail="Authentication required - please complete OAuth first")
+        
         user_id = current_user.get("user_id")
         if not user_id:
             logger.error("No user_id in current_user!")
