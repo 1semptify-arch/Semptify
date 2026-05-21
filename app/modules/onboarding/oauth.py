@@ -113,8 +113,21 @@ def build_oauth_url(config: OnboardingConfig, provider: str, state: str, callbac
     """
     Build the provider-specific OAuth authorization URL.
     """
-    settings = get_settings()
-    oauth_config = config.get_oauth_config(provider)
+    logger.info("build_oauth_url: provider=%s state=%s callback=%s", provider, state[:12] + "***", callback_url)
+    
+    try:
+        settings = get_settings()
+        logger.info("build_oauth_url: settings loaded successfully")
+    except Exception as e:
+        logger.error("build_oauth_url: failed to load settings: %s", e)
+        raise
+    
+    try:
+        oauth_config = config.get_oauth_config(provider)
+        logger.info("build_oauth_url: oauth_config loaded for provider=%s", provider)
+    except Exception as e:
+        logger.error("build_oauth_url: failed to get oauth_config: %s", e)
+        raise
 
     if provider == "google_drive":
         if not settings.google_drive_client_id:
