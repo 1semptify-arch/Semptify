@@ -345,12 +345,26 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             }
         
         try:
-            # Test vault accessibility
+            # Test vault accessibility with all folders installer creates
+            from app.core.vault_paths import VAULT_TIMELINE, VAULT_OVERLAYS
+            from app.core.path_utils import normalize_cloud_path
+            
+            # Extended folder spec that includes all folders installer creates
+            extended_folders = [
+                VAULT_TIMELINE,
+                VAULT_OVERLAYS,
+                normalize_cloud_path(f"{VAULT_OVERLAYS}/evidence"),
+                normalize_cloud_path(f"{VAULT_OVERLAYS}/legal"),
+                normalize_cloud_path(f"{VAULT_OVERLAYS}/timeline"),
+            ]
+            
+            extended_tenant_vault = TENANT_VAULT.extend(extended_folders)
+            
             client = VaultClient(
                 provider=user.provider,
                 access_token=user.access_token,
                 user_id=user.user_id,
-                folder_spec=TENANT_VAULT
+                folder_spec=extended_tenant_vault
             )
             
             # Run health check
