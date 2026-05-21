@@ -443,3 +443,55 @@ async def install_vault_for_user(
         logger.info(f"Vault installed and activated for user {user_id[:6]}***")
     
     return result
+
+
+async def install_vault_folders_only(
+    db: AsyncSession,
+    user_id: str,
+    provider_name: str,
+    access_token: str,
+) -> Dict:
+    """
+    Install vault folders only (no files) to avoid Cloudflare timeout.
+    
+    This creates the folder structure quickly and marks vault as initialized.
+    Files are created later via background process.
+    """
+    installer = VaultInstaller(provider_name, access_token, user_id)
+    
+    # Only create folders, skip file creation
+    results = {
+        "success": False,
+        "folders_created": [],
+        "files_created": [],  # No files created in this mode
+        "errors": [],
+        "activation_code": None,
+    }
+    
+    try:
+        logger.info("Creating vault folders only for user %s", user_id[:6] + "***")
+        
+        # Step 1: Create all folders using Vault SDK
+        vault_result = await installer.vault_client.create_folders()
+        if not vault_result.all_ok:
+            results["errors"].extend([f"{f.path}: {f.detail}" for f in vault_result.failed])
+            logger.error("Vault folder creation failed: %s", results["errors"])
+            return results
+        
+        results["folders_created"] = [f.path for f in vault_result.succeeded]
+        logger.info(f"Created {len(results['folders_created'])} vault folders via SDK")
+        
+        # Generate activation code
+        results["activation_code"] = installer._generate_activation_code()
+        results["success"] = True
+        
+        # Mark vault as initialized even though files aren't created yet
+        from app.modules.onboarding.gates import mark_gate
+        await mark_gate(db, user_id, "vault_initialized")
+        logger.info(f"Vault folders installed and activated for user {user_id[:6]}***")
+        
+    except Exception as e:
+        results["errors"].append(f"Folder creation failed: {str(e)}")
+        logger.error("Vault folder creation error: %s", str(e))
+    
+    return results
