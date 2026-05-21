@@ -326,7 +326,8 @@ async def find_or_create_user(
             User.storage_user_id == provider_subject,
         ).order_by(User.created_at.desc())  # Get most recent user first
     )
-    existing = result.first()  # Use first() to handle multiple results
+    existing_row = result.first()  # Use first() to handle multiple results
+    existing = existing_row[0] if existing_row else None  # Extract User model from Row
 
     # Check for fresh session parameter to bypass existing user lookup
     # Handle missing force_fresh field gracefully until migration runs
