@@ -94,6 +94,7 @@ async def consume_oauth_state(db: AsyncSession, state: str) -> dict:
         "provider": row.provider,
         "role": getattr(row, "role", "tenant") or "tenant",
         "callback_url": getattr(row, "callback_url", None),
+        "force_fresh": getattr(row, "force_fresh", False),
     }
 
     logger.info("consume_oauth_state: valid state consumed for provider=%s role=%s", data["provider"], data["role"])
