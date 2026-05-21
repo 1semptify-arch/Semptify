@@ -12,6 +12,7 @@ Contract:
 """
 
 import logging
+from datetime import datetime, timezone
 from typing import Optional, Tuple
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,7 +21,7 @@ from app.core.oauth_token_manager import token_manager, OAuthToken
 from app.core.user_id import parse_user_id, COOKIE_USER_ID
 from app.core.cookie_auth import verify_user_id
 from app.core.database import get_session_factory
-from app.models.models import User
+from app.models.models import Session as SessionModel
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,47 @@ async def ensure_valid_token(
         return await _refresh_from_db(user_id, db)
 
 
+def _derive_key(user_id: str) -> bytes:
+    """Derive encryption key from user_id + server secret."""
+    from app.core.config import get_settings
+    import hashlib
+    settings = get_settings()
+    secret_key = getattr(settings, "secret_key", None) or getattr(settings, "SECRET_KEY", "")
+    combined = f"{secret_key}:{user_id}".encode()
+    return hashlib.sha256(combined).digest()
+
+
+def _encrypt_string(value: str, user_id: str) -> str:
+    """Encrypt a single string value. Returns base64 encoded string."""
+    import base64
+    import json
+    import secrets
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    
+    key = _derive_key(user_id)
+    nonce = secrets.token_bytes(12)
+    plaintext = json.dumps({"v": value}).encode()
+    aesgcm = AESGCM(key)
+    encrypted = aesgcm.encrypt(nonce, plaintext, None)
+    return base64.b64encode(nonce + encrypted).decode('utf-8')
+
+
+def _decrypt_string(encrypted: str, user_id: str) -> str:
+    """Decrypt a base64 encoded encrypted string."""
+    import base64
+    import json
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    
+    key = _derive_key(user_id)
+    encrypted_bytes = base64.b64decode(encrypted.encode('utf-8'))
+    nonce = encrypted_bytes[:12]
+    ciphertext = encrypted_bytes[12:]
+    aesgcm = AESGCM(key)
+    plaintext = aesgcm.decrypt(nonce, ciphertext, None)
+    data = json.loads(plaintext.decode())
+    return data["v"]
+
+
 async def _refresh_from_db(
     user_id: str,
     db: AsyncSession
@@ -70,15 +112,23 @@ async def _refresh_from_db(
     Load refresh token from DB and attempt refresh.
     """
     try:
-        # Get user from DB
-        result = await db.execute(select(User).where(User.id == user_id))
-        user = result.scalar_one_or_none()
+        # Get session from DB (not User - sessions store the tokens)
+        result = await db.execute(select(SessionModel).where(SessionModel.user_id == user_id))
+        session_row = result.scalar_one_or_none()
         
-        if not user:
-            logger.warning(f"User {user_id[:6]}*** not found in DB")
+        if not session_row:
+            logger.warning(f"Session {user_id[:6]}*** not found in DB")
             return False, None, RefreshResult.USER_NOT_FOUND
         
-        if not user.refresh_token:
+        # Decrypt refresh token
+        refresh_token = None
+        if session_row.refresh_token_encrypted:
+            try:
+                refresh_token = _decrypt_string(session_row.refresh_token_encrypted, user_id)
+            except Exception as e:
+                logger.warning(f"Failed to decrypt refresh token for {user_id[:6]}***: {e}")
+        
+        if not refresh_token:
             logger.warning(f"No refresh token for user {user_id[:6]}***")
             return False, None, RefreshResult.NO_REFRESH_TOKEN
         
@@ -88,23 +138,35 @@ async def _refresh_from_db(
             logger.error(f"Could not parse provider from user_id {user_id[:6]}***")
             return False, None, RefreshResult.PROVIDER_ERROR
         
+        # Decrypt access token
+        access_token = ""
+        if session_row.access_token_encrypted:
+            try:
+                access_token = _decrypt_string(session_row.access_token_encrypted, user_id)
+            except Exception as e:
+                logger.warning(f"Failed to decrypt access token for {user_id[:6]}***: {e}")
+        
         # Create token object from DB data
         token = OAuthToken(
-            access_token=user.access_token or "",  # May be expired
-            refresh_token=user.refresh_token,
-            expires_at=user.token_expires_at,
+            access_token=access_token,  # May be expired
+            refresh_token=refresh_token,
+            expires_at=session_row.expires_at,
             provider=provider,
         )
+        
+        # Store in token_manager cache so refresh_token_if_needed can use it
+        token_manager.store_token(user_id, token)
         
         # Attempt refresh
         new_token = token_manager.refresh_token_if_needed(user_id)
         
         if new_token and not new_token.is_expired():
-            # Update DB with new access token
-            user.access_token = new_token.access_token
-            user.token_expires_at = new_token.expires_at
-            if new_token.refresh_token != user.refresh_token:
-                user.refresh_token = new_token.refresh_token
+            # Update DB with new encrypted tokens
+            session_row.access_token_encrypted = _encrypt_string(new_token.access_token, user_id)
+            if new_token.refresh_token and new_token.refresh_token != refresh_token:
+                session_row.refresh_token_encrypted = _encrypt_string(new_token.refresh_token, user_id)
+            session_row.expires_at = new_token.expires_at
+            session_row.last_activity = datetime.now(timezone.utc)
             await db.commit()
             
             logger.info(f"Silent refresh succeeded for user {user_id[:6]}***")
