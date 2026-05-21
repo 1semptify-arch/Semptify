@@ -282,6 +282,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         
         try:
             # Add timeout to prevent 504 errors
+            logger.info("Starting vault initialization for user %s", user.user_id[:6] + "***")
             result = await asyncio.wait_for(
                 install_vault_for_user(
                     db=db,
@@ -289,8 +290,9 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                     provider_name=user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
                     access_token=user.access_token,
                 ),
-                timeout=180.0  # Increased to 180 second timeout (3 minutes)
+                timeout=300.0  # Increased to 300 second timeout (5 minutes)
             )
+            logger.info("Vault initialization completed for user %s", user.user_id[:6] + "***")
             
             if result.get("success", False):
                 # Mark vault_initialized gate only on success
