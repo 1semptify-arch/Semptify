@@ -117,6 +117,8 @@ def build_oauth_url(config: OnboardingConfig, provider: str, state: str, callbac
     oauth_config = config.get_oauth_config(provider)
 
     if provider == "google_drive":
+        if not settings.google_drive_client_id:
+            raise ValueError("Google Drive client ID not configured")
         params = {
             "client_id": settings.google_drive_client_id,
             "redirect_uri": callback_url,
@@ -127,6 +129,8 @@ def build_oauth_url(config: OnboardingConfig, provider: str, state: str, callbac
             "prompt": "consent",
         }
     elif provider == "dropbox":
+        if not settings.dropbox_app_key:
+            raise ValueError("Dropbox app key not configured")
         params = {
             "client_id": settings.dropbox_app_key,
             "redirect_uri": callback_url,
@@ -135,6 +139,8 @@ def build_oauth_url(config: OnboardingConfig, provider: str, state: str, callbac
             "token_access_type": "offline",
         }
     elif provider == "onedrive":
+        if not settings.onedrive_client_id:
+            raise ValueError("OneDrive client ID not configured")
         params = {
             "client_id": settings.onedrive_client_id,
             "redirect_uri": callback_url,
