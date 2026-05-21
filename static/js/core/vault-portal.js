@@ -286,8 +286,12 @@ async function uploadToVault(fileCount) {
     if (resp.ok) {
       alert(`${fileCount} document(s) uploaded to your vault.\n\nOverlay processing started.\nBlockchain timestamp applied.\nSaved to your cloud storage.`);
     } else {
-      const detail = result.detail || result.message || resp.statusText;
-      alert('Upload failed: ' + detail + '\n\nPlease sign in and connect your cloud storage to use the vault.');
+      // Show full error details - don't mask with generic message
+      const errorMsg = result.error || result.message || result.detail || resp.statusText;
+      const errorType = result.type || '';
+      const tb = result.traceback ? '\n\nTraceback:\n' + result.traceback.substring(0, 500) + '...' : '';
+      const storageMsg = result.redirect_url ? '\n\nRedirect: ' + result.redirect_url : '';
+      alert('Upload failed:\n' + errorMsg + (errorType ? ' (' + errorType + ')' : '') + tb + storageMsg);
     }
   } catch (e) {
     alert('Upload failed: ' + e.message + '\n\nPlease check your connection and try again.');
