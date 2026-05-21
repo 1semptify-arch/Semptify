@@ -1800,6 +1800,28 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 context="reconnect fallback"
             )
 
+        # Register page - explicit route for template
+        @fastapi_app.get("/register", response_class=HTMLResponse)
+        async def register_page(request: Request):
+            """Serve the registration page."""
+            from fastapi.templating import Jinja2Templates
+            templates = Jinja2Templates(directory=str(BASE_PATH / "app" / "templates"))
+            # Generate CSRF token
+            csrf_token = request.state.csrf_token if hasattr(request.state, 'csrf_token') else 'dummy-token'
+            return templates.TemplateResponse("pages/register.html", {
+                "request": request,
+                "csrf_token": csrf_token
+            })
+
+        # Register success page
+        @fastapi_app.get("/register/success", response_class=HTMLResponse)
+        async def register_success_page(request: Request):
+            """Serve the registration success page."""
+            from fastapi.templating import Jinja2Templates
+            templates = Jinja2Templates(directory=str(BASE_PATH / "app" / "templates"))
+            return templates.TemplateResponse("pages/register_success.html", {
+                "request": request
+            })
 
     # =========================================================================
     # Root endpoint - Serve SPA
