@@ -17,6 +17,10 @@ echo "📁 Creating directories..."
 mkdir -p data/documents data/intake data/laws data/registry
 mkdir -p logs uploads security
 
+# Run database migrations
+echo "🗄️ Running database migrations..."
+alembic upgrade head
+
 # Set permissions
 chmod -R 755 data logs uploads
 
