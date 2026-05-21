@@ -286,11 +286,36 @@ async function uploadToVault(fileCount) {
     if (resp.ok) {
       alert(`${fileCount} document(s) uploaded to your vault.\n\nOverlay processing started.\nBlockchain timestamp applied.\nSaved to your cloud storage.`);
     } else {
-      // Show full error details - don't mask with generic message
-      const errorMsg = result.error || result.message || result.detail || resp.statusText;
-      const errorType = result.type || '';
-      const tb = result.traceback ? '\n\nTraceback:\n' + result.traceback.substring(0, 500) + '...' : '';
-      const storageMsg = result.redirect_url ? '\n\nRedirect: ' + result.redirect_url : '';
+      // Handle detailed error format from backend
+      let errorMsg, errorType, tb, storageMsg;
+      
+      // Backend may send detail as object (new format) or string (old format)
+      const detail = result.detail;
+      if (detail && typeof detail === 'object') {
+        // New detailed error format
+        errorMsg = detail.error_message || result.message || 'Unknown error';
+        errorType = detail.error_type || result.type || '';
+        tb = detail.traceback ? '\n\nTraceback:\n' + detail.traceback.substring(0, 800) + '...' : '';
+        storageMsg = detail.redirect_url ? '\n\nRedirect: ' + detail.redirect_url : '';
+      } else {
+        // Legacy string format
+        errorMsg = result.error || result.message || detail || resp.statusText;
+        errorType = result.type || '';
+        tb = result.traceback ? '\n\nTraceback:\n' + result.traceback.substring(0, 500) + '...' : '';
+        storageMsg = result.redirect_url ? '\n\nRedirect: ' + result.redirect_url : '';
+      }
+      
+      // Also check for per-file errors array
+      if (result.errors && result.errors.length > 0) {
+        const fileErrors = result.errors.map(e => {
+          if (typeof e === 'object') {
+            return `${e.filename}: ${e.error_type} - ${e.error_message}`;
+          }
+          return e;
+        }).join('\n');
+        errorMsg += '\n\nFile errors:\n' + fileErrors;
+      }
+      
       alert('Upload failed:\n' + errorMsg + (errorType ? ' (' + errorType + ')' : '') + tb + storageMsg);
     }
   } catch (e) {
