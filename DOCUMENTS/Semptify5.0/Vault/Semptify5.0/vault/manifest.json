@@ -1,0 +1,23 @@
+{
+  "semptify_version": "5.0",
+  "vault_version": "1.0",
+  "user_id": "GUc00i7CEO",
+  "provider": "google_drive",
+  "created_at": "2026-05-21T06:17:44.769374+00:00",
+  "vault_status": "active",
+  "installer": "vault_installer_v1.0_sdk",
+  "folders": [
+    "Semptify5.0",
+    "Semptify5.0/Vault",
+    "Semptify5.0/auth",
+    "Semptify5.0/vault",
+    "Semptify5.0/Vault/documents",
+    "Semptify5.0/Vault/certificates",
+    "Semptify5.0/Vault/timeline",
+    "Semptify5.0/Vault/overlays",
+    "Semptify5.0/Vault/overlays/evidence",
+    "Semptify5.0/Vault/overlays/legal",
+    "Semptify5.0/Vault/overlays/timeline",
+    "Semptify5.0/auth"
+  ]
+}
