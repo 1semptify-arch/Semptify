@@ -19,6 +19,12 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/vault-installer", tags=["vault-installer"])
 
 
+@router.get("/debug")
+async def debug_vault_installer():
+    """Simple debug endpoint to verify router is accessible."""
+    return {"status": "vault_installer_router_ok", "timestamp": __import__('datetime').datetime.now().isoformat()}
+
+
 @router.post("/install")
 async def install_vault(
     db: AsyncSession = Depends(get_db),
@@ -35,12 +41,17 @@ async def install_vault(
     
     No complex onboarding required - just install and go.
     """
+    logger.info(f"=== VAULT INSTALL START for user {current_user.get('user_id', 'unknown')[:6]}*** ===")
+    
     try:
         # Get user's storage tokens from database
+        logger.info("Importing get_valid_session...")
         from app.modules.storage.router import get_valid_session
         
         user_id = current_user["user_id"]
+        logger.info(f"Getting session for user {user_id[:6]}***...")
         session = await get_valid_session(db, user_id, auto_refresh=True)
+        logger.info(f"Session result: {'found' if session else 'NOT FOUND'}")
         
         if not session:
             raise HTTPException(
@@ -50,14 +61,17 @@ async def install_vault(
         
         provider = session.get("provider")
         access_token = session.get("access_token")
+        logger.info(f"Provider: {provider}, Token exists: {'yes' if access_token else 'NO'}")
         
         # Install vault folders only (fast, avoids Cloudflare timeout)
+        logger.info("Calling install_vault_folders_only...")
         result = await install_vault_folders_only(
             db=db,
             user_id=user_id,
             provider_name=provider,
             access_token=access_token,
         )
+        logger.info(f"install_vault_folders_only result: success={result.get('success')}, folders={len(result.get('folders_created', []))}")
         
         if result["success"]:
             return JSONResponse(
