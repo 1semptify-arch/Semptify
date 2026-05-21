@@ -97,7 +97,10 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         request: Request = None,
     ):
         """Initiate OAuth for onboarding. Uses onboarding callback URL."""
+        logger.info("onboarding_oauth_start: provider=%s role=%s force_fresh=%s", provider, role, force_fresh)
+        
         if provider not in config.allowed_providers:
+            logger.error("onboarding_oauth_start: provider '%s' not in allowed_providers: %s", provider, config.allowed_providers)
             raise HTTPException(status_code=400, detail=f"Provider '{provider}' not supported")
         allowed_roles = getattr(gate_ops, 'ALLOWED_ROLES', {"tenant"})
         if role not in allowed_roles:
