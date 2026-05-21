@@ -78,9 +78,13 @@ async def install_vault(
     except HTTPException:
         raise
     except Exception as e:
+        import traceback
+        error_detail = f"Installation error: {str(e)}"
+        print(f"VAULT INSTALLER ERROR: {error_detail}")
+        print(f"TRACEBACK: {traceback.format_exc()}")
         raise HTTPException(
             status_code=500,
-            detail=f"Installation error: {str(e)}"
+            detail={"error": error_detail, "type": type(e).__name__}
         )
 
 

@@ -728,7 +728,8 @@ async function setup() {{
         setTimeout(() => {{ window.location.href = COMPLETE_URL; }}, 800);
 
     }} catch(e) {{
-        showError(e.message);
+        console.error('Setup failed:', e);
+        showError(e.message || 'Unknown error');
         // Mark current running step as error
         ['auth','folders','verify','done'].forEach(id => {{
             const icon = document.getElementById('icon-' + id);
