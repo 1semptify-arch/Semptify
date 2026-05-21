@@ -311,7 +311,7 @@ async function uploadToVault(fileCount) {
           if (typeof e === 'object') {
             return `${e.filename}: ${e.error_type} - ${e.error_message}`;
           }
-          e;
+          return e;
         }).join('\n');
         errorMsg += '\n\nFile errors:\n' + fileErrors;
       }
