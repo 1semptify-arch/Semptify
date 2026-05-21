@@ -313,6 +313,7 @@ async def find_or_create_user(
     provider: str,
     provider_subject: str,
     role: str,
+    state_data: dict,
 ) -> tuple:
     """
     Find existing user by provider subject, or create a new one.
@@ -439,7 +440,7 @@ async def handle_onboarding_callback(
     provider_subject = identity["provider_subject"]
 
     # 4. Find or create user
-    user_id, is_new = await find_or_create_user(db, provider, provider_subject, role)
+    user_id, is_new = await find_or_create_user(db, provider, provider_subject, role, state_data)
 
     # 5. Save session + cache token
     await save_session(db, user_id, provider, access_token, refresh_token, expires_in)
