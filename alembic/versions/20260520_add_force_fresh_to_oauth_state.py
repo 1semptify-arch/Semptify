@@ -1,7 +1,7 @@
 """Add force_fresh field to oauth_states table
 
 Revision ID: 20260520_add_force_fresh_to_oauth_state
-Revises: 20250424_add_invite_codes_table
+Revises: 20250508_force_widen_sessions_user_id
 Create Date: 2026-05-20 18:10:00.000000
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '20260520_add_force_fresh_to_oauth_state'
-down_revision: Union[str, None] = '20250424_add_invite_codes_table'
+down_revision: Union[str, None] = '20250508_force_widen_sessions_user_id'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
