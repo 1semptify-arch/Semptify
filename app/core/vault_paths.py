@@ -3,8 +3,8 @@
 from app.core.path_utils import normalize_cloud_path
 
 SEMPTIFY_ROOT = normalize_cloud_path("Semptify5.0")
-AUTH_FOLDER = normalize_cloud_path(f".{SEMPTIFY_ROOT}/auth")
-VAULT_FOLDER = normalize_cloud_path(f".{SEMPTIFY_ROOT}/vault")
+AUTH_FOLDER = normalize_cloud_path(f"{SEMPTIFY_ROOT}/auth")
+VAULT_FOLDER = normalize_cloud_path(f"{SEMPTIFY_ROOT}/vault")
 VAULT_ROOT = normalize_cloud_path(f"{SEMPTIFY_ROOT}/Vault")
 
 # Local auth files
