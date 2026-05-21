@@ -21,8 +21,14 @@ router = APIRouter(prefix="/api/vault-installer", tags=["vault-installer"])
 
 @router.get("/debug")
 async def debug_vault_installer():
-    """Simple debug endpoint to verify router is accessible."""
-    return {"status": "vault_installer_router_ok", "timestamp": __import__('datetime').datetime.now().isoformat()}
+    """Simple debug endpoint to verify router is accessible. PUBLIC - NO AUTH REQUIRED."""
+    import datetime
+    return {
+        "status": "vault_installer_router_ok",
+        "router_prefix": router.prefix,
+        "routes": [r.path for r in router.routes],
+        "timestamp": datetime.datetime.now().isoformat()
+    }
 
 
 @router.post("/install")
@@ -41,14 +47,19 @@ async def install_vault(
     
     No complex onboarding required - just install and go.
     """
-    logger.info(f"=== VAULT INSTALL START for user {current_user.get('user_id', 'unknown')[:6]}*** ===")
+    logger.info(f"=== VAULT INSTALL START ===")
+    logger.info(f"Current user: {current_user}")
     
     try:
         # Get user's storage tokens from database
         logger.info("Importing get_valid_session...")
         from app.modules.storage.router import get_valid_session
         
-        user_id = current_user["user_id"]
+        user_id = current_user.get("user_id")
+        if not user_id:
+            logger.error("No user_id in current_user!")
+            raise HTTPException(status_code=401, detail="Authentication required")
+            
         logger.info(f"Getting session for user {user_id[:6]}***...")
         session = await get_valid_session(db, user_id, auto_refresh=True)
         logger.info(f"Session result: {'found' if session else 'NOT FOUND'}")
