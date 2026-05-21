@@ -281,18 +281,18 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         import asyncio
         
         try:
-            # Add timeout to prevent 504 errors
-            logger.info("Starting vault initialization for user %s", user.user_id[:6] + "***")
+            # Quick vault creation - folders only to avoid Cloudflare timeout
+            logger.info("Starting vault folder creation for user %s", user.user_id[:6] + "***")
             result = await asyncio.wait_for(
-                install_vault_for_user(
+                install_vault_folders_only(
                     db=db,
                     user_id=user.user_id,
                     provider_name=user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
                     access_token=user.access_token,
                 ),
-                timeout=300.0  # Increased to 300 second timeout (5 minutes)
+                timeout=60.0  # Quick 60-second timeout for folder creation only
             )
-            logger.info("Vault initialization completed for user %s", user.user_id[:6] + "***")
+            logger.info("Vault folder creation completed for user %s", user.user_id[:6] + "***")
             
             if result.get("success", False):
                 # Mark vault_initialized gate only on success
