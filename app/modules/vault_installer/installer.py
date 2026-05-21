@@ -485,6 +485,11 @@ async def install_vault_folders_only(
         results["activation_code"] = installer._generate_activation_code()
         results["success"] = True
         
+        # Mark vault as initialized in database (CRITICAL: gate marking)
+        from app.modules.onboarding.gates import mark_gate
+        await mark_gate(db, user_id, "vault_initialized")
+        logger.info(f"Vault gate marked as initialized for user {user_id[:6]}***")
+        
         logger.info(f"Vault folders created successfully for user {user_id[:6]}***")
         
     except Exception as e:
