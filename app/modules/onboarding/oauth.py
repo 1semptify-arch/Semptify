@@ -50,14 +50,22 @@ async def create_oauth_state(
     """
     state = secrets.token_urlsafe(32)
     now = utc_now()
-    oauth_state = OAuthState(
-        id=state,
-        provider=provider,
-        role=role,
-        created_at=now,
-        expires_at=now + timedelta(minutes=15),
-        force_fresh=force_fresh,
-    )
+    # Create OAuthState with force_fresh if field exists (migration might not have run yet)
+    oauth_state_dict = {
+        "id": state,
+        "provider": provider,
+        "role": role,
+        "created_at": now,
+        "expires_at": now + timedelta(minutes=15),
+    }
+    
+    # Only add force_fresh if the field exists in the model
+    try:
+        oauth_state_dict["force_fresh"] = force_fresh
+        oauth_state = OAuthState(**oauth_state_dict)
+    except Exception:
+        # Migration hasn't run yet, create without force_fresh field
+        oauth_state = OAuthState(**{k: v for k, v in oauth_state_dict.items() if k != "force_fresh"})
     db.add(oauth_state)
     await db.commit()
     return state
@@ -292,6 +300,7 @@ async def find_or_create_user(
     existing = result.scalar_one_or_none()
 
     # Check for fresh session parameter to bypass existing user lookup
+    # Handle missing force_fresh field gracefully until migration runs
     force_fresh = state_data.get("force_fresh", False)
     
     if existing and not force_fresh:
