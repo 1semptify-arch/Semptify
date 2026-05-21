@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect Storage - Semptify</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 32px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        .providers {
+            display: grid;
+            gap: 16px;
+        }
+        .provider-btn {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+            background: white;
+        }
+        .provider-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+            transform: translateY(-2px);
+        }
+        .provider-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 16px;
+            background: #f5f5f5;
+        }
+        .provider-info { flex: 1; text-align: left; }
+        .provider-name {
+            font-weight: 600;
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .provider-desc {
+            font-size: 14px;
+            color: #666;
+        }
+        .secure-note {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 14px;
+        }
+        .secure-note span {
+            color: #4caf50;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Connect Your Storage</h1>
+        <p class="subtitle">
+            Semptify stores your documents in your own cloud storage.<br>
+            Choose your preferred provider:
+        </p>
+        
+        <div class="providers">
+            <a href="/onboarding/auth/google_drive" class="provider-btn" id="google-drive-btn">
+                <div class="provider-icon">📁</div>
+                <div class="provider-info">
+                    <div class="provider-name">Google Drive</div>
+                    <div class="provider-desc">Connect your Google Drive account</div>
+                </div>
+            </a>
+            
+            <a href="/onboarding/auth/dropbox" class="provider-btn" id="dropbox-btn">
+                <div class="provider-icon">📦</div>
+                <div class="provider-info">
+                    <div class="provider-name">Dropbox</div>
+                    <div class="provider-desc">Connect your Dropbox account</div>
+                </div>
+            </a>
+            
+            <a href="/onboarding/auth/onedrive" class="provider-btn" id="onedrive-btn">
+                <div class="provider-icon">☁️</div>
+                <div class="provider-info">
+                    <div class="provider-name">OneDrive</div>
+                    <div class="provider-desc">Connect your Microsoft OneDrive</div>
+                </div>
+            </a>
+        </div>
+        
+        <div class="secure-note">
+            <span>🔒 Secure & Private</span> — Your documents stay in your cloud. 
+            We never store or access your files.
+        </div>
+    </div>
+</body>
+</html>
