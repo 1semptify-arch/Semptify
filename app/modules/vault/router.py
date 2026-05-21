@@ -1188,9 +1188,15 @@ async def sidebar_upload(
                 logger.info(f"Vault sidebar upload (certified): {vault_id} for user {user.user_id}")
                 
             except Exception as e:
-                error_msg = f"Failed to process {uploaded_file.filename}: {str(e)}"
-                upload_errors.append(error_msg)
-                logger.error(error_msg)
+                import traceback
+                error_detail = {
+                    "filename": uploaded_file.filename,
+                    "error_type": type(e).__name__,
+                    "error_message": str(e),
+                    "traceback": traceback.format_exc()[:2000]  # Truncated for response size
+                }
+                upload_errors.append(error_detail)
+                logger.error(f"Vault sidebar upload error for {uploaded_file.filename}: {error_detail}")
         
         # Return response
         response_data = {
@@ -1212,8 +1218,15 @@ async def sidebar_upload(
             "files": []
         })
     except Exception as e:
-        logger.error(f"Error in vault sidebar upload: {e}")
-        raise HTTPException(status_code=500, detail="Failed to upload to vault")
+        import traceback
+        error_detail = {
+            "error_type": type(e).__name__,
+            "error_message": str(e),
+            "traceback": traceback.format_exc()[:3000],  # Truncated for proxy limits
+            "endpoint": "sidebar_upload"
+        }
+        logger.error(f"Error in vault sidebar upload: {error_detail}")
+        raise HTTPException(status_code=500, detail=error_detail)
 
 @router.get("/sidebar/stats")
 async def get_sidebar_stats(
