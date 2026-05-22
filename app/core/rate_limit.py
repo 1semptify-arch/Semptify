@@ -101,7 +101,7 @@ def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSO
             "message": "Too many requests. Please slow down.",
             "detail": limit_value,
             "retry_after": 60,  # seconds
-            "documentation": "https://semptify.com/docs/api/rate-limits"
+            "documentation": "https://semptify.org/docs/api/rate-limits"
         },
         headers={
             "Retry-After": "60",
