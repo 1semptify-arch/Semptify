@@ -71,6 +71,8 @@ class DocumentProof:
     previous_proof_hash: str = ""    # Chain to previous proof (Merkle chain)
     metadata: Dict[str, Any] = field(default_factory=dict)
     signature: str = ""              # HMAC signature of all fields
+    tsa_token: str = ""              # Base64 RFC 3161 .tsr token (or HMAC fallback)
+    tsa_backed: bool = False         # True = third-party TSA, False = HMAC self-signed
     
     def to_dict(self) -> dict:
         return asdict(self)
@@ -232,7 +234,7 @@ class LegalIntegrity:
         self._manifest: Optional[IntegrityManifest] = None
         self._audit_log: List[AuditEntry] = []
     
-    def create_document_proof(
+    async def create_document_proof(
         self,
         document_content: bytes,
         action: str = "upload",
@@ -241,14 +243,21 @@ class LegalIntegrity:
     ) -> DocumentProof:
         """
         Create cryptographic proof for a document.
-        This is the primary method for securing documents.
+        Timestamps are countersigned by a third-party RFC 3161 TSA so they
+        are independently verifiable in court without trusting Semptify.
         """
+        from app.services.storage.tsa import stamp_document_hash
+
         now = datetime.now(timezone.utc)
         timestamp = now.isoformat()
-        
+        document_hash = hash_document(document_content)
+
+        # Request RFC 3161 timestamp from third-party TSA
+        tsa_result = await stamp_document_hash(document_hash, timestamp)
+
         proof = DocumentProof(
             proof_id=f"proof_{secrets.token_urlsafe(16)}",
-            document_hash=hash_document(document_content),
+            document_hash=document_hash,
             hash_algorithm="SHA-256",
             timestamp=timestamp,
             timestamp_hash=create_timestamp_proof(timestamp),
@@ -256,11 +265,13 @@ class LegalIntegrity:
             action=action,
             previous_proof_hash=previous_proof_hash,
             metadata=metadata or {},
+            tsa_token=tsa_result.token_b64,
+            tsa_backed=tsa_result.tsa_backed,
         )
-        
+
         # Sign the proof
         proof.signature = sign_proof(proof)
-        
+
         return proof
     
     def verify_document(self, document_content: bytes, proof: DocumentProof) -> Dict[str, Any]:
@@ -544,18 +555,29 @@ def hash_for_court(content: bytes) -> str:
     return hash_document(content)
 
 
-def create_notarized_timestamp() -> Dict[str, str]:
+async def create_notarized_timestamp(document_hash: str = "") -> Dict[str, str]:
     """
     Create a timestamp suitable for legal purposes.
-    Returns both human-readable and cryptographic proof.
+    Returns both human-readable and RFC 3161 TSA-backed cryptographic proof.
     """
+    from app.services.storage.tsa import stamp_document_hash
+
     now = datetime.now(timezone.utc)
     timestamp = now.isoformat()
-    
+    hash_to_stamp = document_hash or hashlib.sha256(timestamp.encode()).hexdigest()
+
+    tsa_result = await stamp_document_hash(hash_to_stamp, timestamp)
+
     return {
         "timestamp": timestamp,
         "timestamp_utc": now.strftime("%Y-%m-%d %H:%M:%S UTC"),
         "proof": create_timestamp_proof(timestamp),
-        "algorithm": "HMAC-SHA256",
-        "note": "Timestamp verified by Semptify Legal Integrity Module",
+        "tsa_token": tsa_result.token_b64,
+        "tsa_backed": str(tsa_result.tsa_backed),
+        "algorithm": "RFC3161+HMAC-SHA256" if tsa_result.tsa_backed else "HMAC-SHA256",
+        "note": (
+            "Timestamp independently verifiable via RFC 3161 TSA — court admissible."
+            if tsa_result.tsa_backed else
+            "Timestamp self-signed (TSA unavailable) — HMAC-SHA256 only."
+        ),
     }
