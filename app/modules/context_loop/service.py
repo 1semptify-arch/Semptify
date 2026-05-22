@@ -829,7 +829,7 @@ class ContextDataLoop:
                     if isinstance(dl_date, str):
                         try:
                             dl_date = datetime.fromisoformat(dl_date.replace("Z", "+00:00"))
-                        except:
+                        except ValueError:
                             continue
                     # Make timezone-aware if naive
                     if dl_date.tzinfo is None:

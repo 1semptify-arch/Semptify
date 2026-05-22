@@ -318,7 +318,7 @@ async def save_case_info(
         try:
             summons = datetime.strptime(case_info.summons_date, "%Y-%m-%d")
             answer_deadline = (summons + timedelta(days=7)).strftime("%Y-%m-%d")
-        except:
+        except ValueError:
             pass
     
     # Update Form Data Hub
@@ -697,7 +697,7 @@ async def _process_document(
     # Try to extract text (for PDFs, we'd need OCR)
     try:
         text = content.decode("utf-8", errors="ignore")
-    except:
+    except UnicodeDecodeError:
         text = ""
     
     # Extract dates (various formats)

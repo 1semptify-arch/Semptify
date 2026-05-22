@@ -658,7 +658,7 @@ class LegalAnalysisEngine:
                     return ConsistencyStatus.MINOR_DISCREPANCY, f"Small difference: ${diff:.2f}", "low"
                 else:
                     return ConsistencyStatus.MAJOR_CONTRADICTION, f"Significant difference: ${diff:.2f}", "high"
-            except:
+            except Exception:
                 pass
         
         # Check for date fields
@@ -903,7 +903,7 @@ class LegalAnalysisEngine:
             return None
         try:
             return datetime.strptime(date_str[:10], "%Y-%m-%d").date()
-        except:
+        except ValueError:
             return None
     
     def _find_timeline_gaps(self, events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:

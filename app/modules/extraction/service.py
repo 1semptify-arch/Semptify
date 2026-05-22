@@ -798,7 +798,7 @@ class FormFieldExtractor:
                     needs_review=True,
                     review_reason="Calculated as 7 days from summons date",
                 )
-            except:
+            except ValueError:
                 pass
         
         # Notice type

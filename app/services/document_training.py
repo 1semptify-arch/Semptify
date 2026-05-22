@@ -69,7 +69,7 @@ class DocumentTrainingService:
                 with open(self.examples_file, "r") as f:
                     data = json.load(f)
                     return [TrainingExample(**ex) for ex in data]
-            except:
+            except IOError:
                 pass
         return []
     
@@ -79,7 +79,7 @@ class DocumentTrainingService:
             try:
                 with open(self.learned_patterns_file, "r") as f:
                     return json.load(f)
-            except:
+            except IOError:
                 pass
         return {
             "boosted_keywords": {},  # keyword -> doc_type -> weight_boost

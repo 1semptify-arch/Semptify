@@ -134,7 +134,7 @@ class AzureAIService:
         else:
             try:
                 full_text = content.decode('utf-8')
-            except:
+            except UnicodeDecodeError:
                 full_text = content.decode('latin-1', errors='replace')
             raw_result = {"content": full_text, "source": "text_decode"}
 
@@ -751,7 +751,7 @@ Respond in JSON format:
                             desc = "Payment due date"
                             
                         key_dates.append({"date": date_str, "description": desc})
-                except:
+                except Exception:
                     continue
         
         # =================================================================
@@ -808,7 +808,7 @@ Respond in JSON format:
                             desc = "Judgment amount"
                             
                         key_amounts.append({"amount": f"${amount:,.2f}", "description": desc})
-                except:
+                except Exception:
                     continue
         
         # =================================================================

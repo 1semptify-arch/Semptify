@@ -240,7 +240,7 @@ class PDFExtractor:
                 count = len(doc)
                 doc.close()
                 return count
-        except:
+        except IOError:
             pass
         
         try:
@@ -248,7 +248,7 @@ class PDFExtractor:
                 import PyPDF2
                 reader = PyPDF2.PdfReader(io.BytesIO(content))
                 return len(reader.pages)
-        except:
+        except Exception:
             pass
         
         return 0

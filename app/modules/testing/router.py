@@ -575,7 +575,7 @@ async def monitor_test_run(run_id: str, suite_id: str):
                         "total_tests": len(get_test_suite(suite_id).test_cases) if get_test_suite(suite_id) else 0
                     }
                 )
-            except:
+            except Exception:
                 pass  # WebSocket not available
             
             await asyncio.sleep(5)  # Check every 5 seconds
@@ -608,7 +608,7 @@ async def monitor_pipeline_run(run_id: str, pipeline_id: str):
                         "stages": run.get("stages", {})
                     }
                 )
-            except:
+            except Exception:
                 pass  # WebSocket not available
             
             await asyncio.sleep(10)  # Check every 10 seconds

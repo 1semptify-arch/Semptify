@@ -509,7 +509,7 @@ class PreviewService:
             # Draw label
             try:
                 font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 24)
-            except:
+            except OSError:
                 font = ImageFont.load_default()
             
             # Center text
