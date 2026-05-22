@@ -316,7 +316,7 @@ class PreviewGenerator:
             # Try to use a default font
             try:
                 font = ImageFont.truetype("arial.ttf", 12)
-            except:
+            except OSError:
                 font = ImageFont.load_default()
             
             # Draw text
@@ -350,7 +350,7 @@ class PreviewGenerator:
             # Try to use a default font
             try:
                 font = ImageFont.truetype("arial.ttf", 16)
-            except:
+            except OSError:
                 font = ImageFont.load_default()
             
             # Draw format icon/text

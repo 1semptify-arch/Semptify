@@ -459,13 +459,13 @@ class ForgeryDetector:
             if isinstance(created, str):
                 try:
                     created = datetime.fromisoformat(created.replace("Z", "+00:00"))
-                except:
+                except ValueError:
                     created = None
             
             if isinstance(modified, str):
                 try:
                     modified = datetime.fromisoformat(modified.replace("Z", "+00:00"))
-                except:
+                except ValueError:
                     modified = None
             
             if created and modified and modified < created:

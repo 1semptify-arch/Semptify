@@ -91,7 +91,7 @@ class CalendarService:
                 elif isinstance(value, str):
                     try:
                         return datetime.strptime(value, '%Y-%m-%d').date()
-                    except:
+                    except ValueError:
                         pass
 
         return None

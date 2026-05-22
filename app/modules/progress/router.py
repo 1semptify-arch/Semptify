@@ -195,7 +195,7 @@ async def setup_case(setup: CaseSetup, user_id: str = Depends(resolve_user_id)):
     if setup.court_date:
         try:
             progress.court_date = datetime.fromisoformat(setup.court_date)
-        except:
+        except ValueError:
             return {"success": False, "error": "Invalid date format"}
     
     progress_tracker.save_progress(user_id)

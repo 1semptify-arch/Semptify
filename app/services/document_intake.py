@@ -1129,7 +1129,7 @@ class DocumentIntakeEngine:
                     reader = PyPDF2.PdfReader(io.BytesIO(content))
                     texts = [page.extract_text() or "" for page in reader.pages]
                     return "\n\n".join(texts)
-                except:
+                except Exception:
                     pass
                 return f"[PDF document: {filename} - extraction failed: {e}]"
 
@@ -1154,7 +1154,7 @@ class DocumentIntakeEngine:
         # Try generic decode
         try:
             return content.decode("utf-8")
-        except:
+        except UnicodeDecodeError:
             return f"[Binary document: {filename}]"
 
     def _detect_language(self, text: str) -> LanguageCode:

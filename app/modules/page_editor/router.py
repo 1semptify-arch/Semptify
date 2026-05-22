@@ -275,7 +275,7 @@ async def search_files(
                         content = file_path.read_text(encoding='utf-8', errors='ignore')
                         if query in content.lower():
                             results.append(file)
-                except:
+                except UnicodeDecodeError:
                     pass
         
         return {"results": results[:100], "total": len(results)}

@@ -356,7 +356,7 @@ class PluginManager:
             for callback in self.on_plugin_error:
                 try:
                     callback(plugin, e)
-                except:
+                except Exception:
                     pass
             
             return False
@@ -479,7 +479,7 @@ class PluginManager:
             for callback in self.on_plugin_unloaded:
                 try:
                     callback(plugin)
-                except:
+                except Exception:
                     pass
             
             return True

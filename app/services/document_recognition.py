@@ -1928,7 +1928,7 @@ class DocumentRecognitionEngine:
                     else:
                         result.urgency_level = "low"
                     break
-                except:
+                except Exception:
                     continue
         
         # Court documents are generally high priority

@@ -524,7 +524,7 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
                         urgent_events.append(event)
                     if not next_deadline or (next_deadline.days_until is not None and days < next_deadline.days_until):
                         next_deadline = event
-            except:
+            except ValueError:
                 pass
     
     return TimelineSummary(

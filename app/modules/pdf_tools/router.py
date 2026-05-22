@@ -347,7 +347,7 @@ def parse_page_selection(selection: str, max_pages: int) -> List[int]:
                 end = int(end)
                 for p in range(max(1, start), min(max_pages, end) + 1):
                     pages.add(p)
-            except:
+            except Exception:
                 continue
         else:
             # Single page
@@ -355,7 +355,7 @@ def parse_page_selection(selection: str, max_pages: int) -> List[int]:
                 p = int(part)
                 if 1 <= p <= max_pages:
                     pages.add(p)
-            except:
+            except Exception:
                 continue
     
     return sorted(list(pages))

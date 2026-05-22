@@ -319,7 +319,7 @@ class PositronicBrain:
         for client in self.websocket_clients:
             try:
                 await client.send_text(message)
-            except:
+            except json.JSONDecodeError:
                 dead_clients.add(client)
         
         # Clean up disconnected clients

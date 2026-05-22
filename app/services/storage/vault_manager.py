@@ -687,7 +687,7 @@ class VaultManager:
                 )
                 
                 return token
-            except:
+            except Exception:
                 return None
     
     async def validate_token(self) -> bool:
@@ -847,7 +847,7 @@ class VaultManager:
             # Try to list the auth folder
             await self.storage.download_file(TOKEN_FILE)
             return True
-        except:
+        except Exception:
             return False
 
 
