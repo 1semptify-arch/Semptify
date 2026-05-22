@@ -156,7 +156,7 @@ class VaultInstaller:
         try:
             from app.core.config import get_settings
             settings = get_settings()
-            base_url = getattr(settings, "BASE_URL", "https://semptify.com")
+            base_url = (settings.public_base_url or "https://semptify.com").rstrip("/")
             rehome_html = generate_rehome_html(
                 user_id=self.user_id,
                 provider=self.provider_name,
@@ -178,7 +178,26 @@ class VaultInstaller:
         """Create initial data files using Vault SDK."""
         timeline_events = self._timeline_events_content()
         overlay_registry = self._overlay_registry_content()
-        
+
+        # Seed empty document index so read endpoints never 404 on first visit
+        doc_index = {
+            "version": "1.0",
+            "created_by": self.user_id,
+            "created_at": utc_now().isoformat(),
+            "documents": [],
+            "last_updated": utc_now().isoformat(),
+        }
+        try:
+            await self.vault_client.upload(
+                subfolder=normalize_cloud_path(VAULT_DOCUMENTS.replace(f"{VAULT_ROOT}/", "")),
+                filename="index.json",
+                content=json.dumps(doc_index, indent=2).encode(),
+                mime_type="application/json"
+            )
+            results["files_created"].append(normalize_cloud_path(f"{VAULT_DOCUMENTS}/index.json"))
+        except Exception as e:
+            results["errors"].append(f"Failed to create document index: {str(e)}")
+
         try:
             await self.vault_client.upload(
                 subfolder=normalize_cloud_path(VAULT_TIMELINE.replace(f"{VAULT_ROOT}/", "")),
