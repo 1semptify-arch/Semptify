@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 from app.models.models import Document, DocumentPipelineIndex
+from app.core.vault_paths import VAULT_TIMELINE_EVENTS_FILE
 
 TIMELINE_FUNCTION_GROUP = "timeline_chronology"
 
@@ -33,7 +34,7 @@ register_function_group(
             "chronology_items",
         ),
         dependencies=(
-            "Semptify5.0/Vault/timeline/events.json",
+            VAULT_TIMELINE_EVENTS_FILE,
             "documents",
             "document_pipeline_index",
         ),
