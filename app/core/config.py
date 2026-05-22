@@ -120,6 +120,12 @@ class Settings:
     # Database SSL mode
     db_ssl_mode: str = os.getenv("DB_SSL_MODE", "prefer")
 
+    # RFC 3161 Trusted Timestamping — third-party court-admissible timestamps
+    # FreeTSA (free, no account): https://freetsa.org/tsr
+    # DigiCert (paid, commercial): https://timestamp.digicert.com
+    # Leave blank to use HMAC fallback (self-signed, weaker legal standing)
+    tsa_url: str = os.getenv("TSA_URL", "https://freetsa.org/tsr")
+
     # Email (Resend)
     resend_api_key: str = os.getenv("RESEND_API_KEY", "")
     from_email: str = os.getenv("FROM_EMAIL", "noreply@semptify.org")

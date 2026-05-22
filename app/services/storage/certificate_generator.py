@@ -703,7 +703,7 @@ Digital Signature: {cert.certificate_signature}
 # Quick Certificate Generation
 # =============================================================================
 
-def quick_certificate(
+async def quick_certificate(
     document_content: bytes,
     document_name: str,
     user_id: str,
@@ -716,7 +716,7 @@ def quick_certificate(
     from app.services.storage.legal_integrity import get_legal_integrity
     
     integrity = get_legal_integrity(user_id)
-    proof = integrity.create_document_proof(document_content, action="certify")
+    proof = await integrity.create_document_proof(document_content, action="certify")
     
     cert = create_verification_certificate(
         document_content=document_content,
