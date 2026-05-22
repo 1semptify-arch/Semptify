@@ -22,11 +22,11 @@ Key Minnesota Statutes Covered:
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, date, timedelta
+from app.core.utc import utc_now
 from typing import List, Dict, Any, Optional, Tuple, Set
 from enum import Enum
 
 from .models import (
-from app.core.utc import utc_now
     LegalIssue, IssueSeverity, DocumentType, DocumentCategory,
     ExtractedEntity, EntityType, PartyRole,
     ReasoningChain, ReasoningStep, ReasoningType,

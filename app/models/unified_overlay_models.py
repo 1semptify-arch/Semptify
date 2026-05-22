@@ -7,6 +7,7 @@ All overlays are cloud-stored, stateless, and reference immutable vault document
 
 from datetime import datetime
 from typing import Optional, Any
+from app.core.utc import utc_now
 from pydantic import BaseModel, Field, validator
 from app.core.id_gen import make_id
 from app.core.overlay_types import OverlayType, get_overlay_category
@@ -34,8 +35,8 @@ class UnifiedOverlay(BaseModel):
     
     # Provenance
     created_by: str = Field(..., min_length=1, description="User ID who created overlay")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
     
     # Content (type-specific payload)
     payload: dict = Field(default_factory=dict, description="Type-specific overlay data")

@@ -12,6 +12,7 @@ All mappings are user-scoped and include audit trails.
 """
 
 from datetime import datetime
+from app.core.utc import utc_now
 from typing import Optional, Dict, Any
 from sqlalchemy import String, Integer, DateTime, Boolean, Text, JSON, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -309,8 +310,8 @@ def create_mapping(
         display_name=display_name,
         description=description,
         external_url=external_url,
-        created_at=datetime.utcnow(),
-        updated_at=datetime.utcnow(),
+        created_at=utc_now(),
+        updated_at=utc_now(),
         verified=bool(verification_source),
         verification_source=verification_source,
     )
@@ -382,7 +383,7 @@ def update_mapping_status(
         return False
     
     mapping.status = status
-    mapping.updated_at = datetime.utcnow()
+    mapping.updated_at = utc_now()
     if verification_source:
         mapping.verified = True
         mapping.verification_source = verification_source

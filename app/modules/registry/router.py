@@ -14,6 +14,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Q
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+from app.core.utc import utc_now
 
 from app.core.security import get_optional_user_id, require_user, UserContext
 from app.services.document_registry import (
@@ -421,7 +422,7 @@ async def verify_document(
         status=status.value,
         verified=verified,
         message=messages.get(status, "Unknown status"),
-        timestamp=datetime.utcnow().isoformat(),
+        timestamp=utc_now().isoformat(),
     )
 
 

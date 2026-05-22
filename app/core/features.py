@@ -25,6 +25,7 @@ Usage:
 import json
 import logging
 from datetime import datetime
+from app.core.utc import utc_now
 from enum import Enum
 from functools import wraps
 from pathlib import Path
@@ -263,7 +264,7 @@ class FeatureFlagManager:
             return False
         
         # Check date restrictions
-        now = datetime.utcnow()
+        now = utc_now()
         if config.start_date and now < config.start_date:
             return False
         if config.end_date and now > config.end_date:

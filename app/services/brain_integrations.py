@@ -7,6 +7,7 @@ Connects all Semptify modules to the brain.
 import logging
 from typing import Optional
 from datetime import datetime
+from app.core.utc import utc_now
 
 from app.services.positronic_brain import (
     get_brain,
@@ -111,7 +112,7 @@ def _setup_event_handlers(brain):
         docs = brain.get_state("documents") or []
         docs.append({
             "id": event.data.get("document_id"),
-            "uploaded_at": datetime.utcnow().isoformat(),
+            "uploaded_at": utc_now().isoformat(),
             **event.data
         })
         await brain.update_state("documents", docs, ModuleType.DOCUMENTS)
@@ -128,7 +129,7 @@ def _setup_event_handlers(brain):
                 "event_type": doc_type,
                 "title": f"Document: {doc_type.replace('_', ' ').title()}",
                 "document_id": event.data.get("document_id"),
-                "date": datetime.utcnow().isoformat()
+                "date": utc_now().isoformat()
             })
             await brain.update_state("timeline", timeline, ModuleType.TIMELINE)
     
@@ -255,7 +256,7 @@ async def brain_calendar_event(
     # Calculate days until
     from datetime import datetime
     event_date = datetime.fromisoformat(start_datetime.replace("Z", ""))
-    days_until = (event_date - datetime.utcnow()).days
+    days_until = (event_date - utc_now()).days
     
     if days_until <= 14:
         await brain.emit(BrainEvent(
@@ -350,7 +351,7 @@ async def brain_form_generated(
         data={
             "form_type": form_type,
             "filename": filename,
-            "generated_at": datetime.utcnow().isoformat()
+            "generated_at": utc_now().isoformat()
         },
         user_id=user_id
     ))

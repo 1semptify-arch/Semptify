@@ -16,11 +16,11 @@ Architecture:
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, date
+from app.core.utc import utc_now
 from typing import List, Dict, Any, Optional, Tuple, Set
 from collections import defaultdict
 
 from .models import (
-from app.core.utc import utc_now
     ReasoningChain, ReasoningStep, ReasoningType,
     ExtractedEntity, EntityType, PartyRole,
     DocumentType, DocumentCategory, DocumentContext,

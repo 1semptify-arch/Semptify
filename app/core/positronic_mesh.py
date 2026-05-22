@@ -14,6 +14,7 @@ This is the "mesh" that connects everything - the Positronic Brain's neural path
 import asyncio
 import logging
 from datetime import datetime
+from app.core.utc import utc_now
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 from dataclasses import dataclass, field
@@ -437,7 +438,7 @@ class PositronicMesh:
     async def _execute_workflow(self, workflow: Workflow):
         """Execute a workflow step by step"""
         workflow.stage = WorkflowStage.RUNNING
-        workflow.updated_at = datetime.utcnow()
+        workflow.updated_at = utc_now()
         
         while workflow.current_step_index < len(workflow.steps):
             step = workflow.steps[workflow.current_step_index]
@@ -456,14 +457,14 @@ class PositronicMesh:
             
             # Execute step
             step.status = "running"
-            step.started_at = datetime.utcnow()
+            step.started_at = utc_now()
             
             try:
                 result = await self._execute_step(workflow, step)
                 
                 step.status = "completed"
                 step.result = result
-                step.completed_at = datetime.utcnow()
+                step.completed_at = utc_now()
                 
                 # Merge result into workflow context
                 if result:
@@ -480,12 +481,12 @@ class PositronicMesh:
                 
                 # Move to next step
                 workflow.current_step_index += 1
-                workflow.updated_at = datetime.utcnow()
+                workflow.updated_at = utc_now()
                 
             except Exception as e:
                 step.status = "failed"
                 step.error = str(e)
-                step.completed_at = datetime.utcnow()
+                step.completed_at = utc_now()
                 
                 logger.error(f"Step {step.id} failed: {e}")
                 
@@ -508,7 +509,7 @@ class PositronicMesh:
         
         # All steps completed
         workflow.stage = WorkflowStage.COMPLETED
-        workflow.completed_at = datetime.utcnow()
+        workflow.completed_at = utc_now()
         
         logger.info(f"✅ Workflow {workflow.id} completed successfully")
         

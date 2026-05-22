@@ -9,6 +9,7 @@ Enable pattern persistence by setting ENABLE_PATTERN_PERSISTENCE=true in .env
 """
 
 from datetime import datetime
+from app.core.utc import utc_now
 from typing import Optional, Dict, Any
 from sqlalchemy import String, Integer, DateTime, Boolean, Text, JSON
 from sqlalchemy.orm import Mapped, mapped_column
@@ -107,7 +108,7 @@ def save_pattern_record(
             risk_level=pattern_data.get("summary", {}).get("risk_level", "unknown"),
             data_sources=data_sources or {},
             algorithm_version="1.0",
-            created_at=datetime.utcnow(),
+            created_at=utc_now(),
             notes=notes
         )
         
@@ -167,7 +168,7 @@ def get_pattern_trends(
         from sqlalchemy import select, func, and_
         from datetime import timedelta
         
-        cutoff_date = datetime.utcnow() - timedelta(days=days)
+        cutoff_date = utc_now() - timedelta(days=days)
         
         # Get average risk score over time
         result = db_session.execute(

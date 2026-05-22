@@ -5,6 +5,7 @@ Combines Complaints, Fraud Exposure, and Public Exposure into unified campaigns
 from fastapi import APIRouter, Depends, HTTPException, Body
 from typing import Dict, Any, Optional, List
 from datetime import datetime
+from app.core.utc import utc_now
 from pydantic import BaseModel
 import logging
 
@@ -78,7 +79,7 @@ async def file_complaint_internal(user_id: str, params: Dict[str, Any]) -> Dict[
         "property_address": params.get("property_address"),
         "landlord_name": params.get("landlord_name"),
         "status": "submitted",
-        "created_at": datetime.utcnow().isoformat()
+        "created_at": utc_now().isoformat()
     }
     return {"complaint_record": record}
 
@@ -122,7 +123,7 @@ async def analyze_fraud_internal(user_id: str, params: Dict[str, Any]) -> Dict[s
         "findings": findings,
         "risk_score": min(risk_score, 100),
         "risk_level": risk_level,
-        "created_at": datetime.utcnow().isoformat()
+        "created_at": utc_now().isoformat()
     }
     return {"fraud_report": report}
 
@@ -168,7 +169,7 @@ SUPPORTING DOCUMENTATION:
         "cta": f"Contact: {contact}",
         "bundle": bundle_link,
         "language": language,
-        "created_at": datetime.utcnow().isoformat()
+        "created_at": utc_now().isoformat()
     }
     return {"press_release": release}
 
@@ -178,7 +179,7 @@ async def export_zip_internal(complaint_id: str) -> Dict[str, Any]:
         "zip_bundle": {
             "complaint_id": complaint_id,
             "zip_path": f"/exports/{complaint_id}.zip",
-            "created_at": datetime.utcnow().isoformat()
+            "created_at": utc_now().isoformat()
         }
     }
 
@@ -205,7 +206,7 @@ async def launch_campaign(
         "campaign_id": campaign_id,
         "name": payload.name,
         "status": "launched",
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": utc_now().isoformat(),
         "components": {}
     }
     

@@ -26,6 +26,7 @@ import hashlib
 import json
 import logging
 from datetime import datetime, timedelta
+from app.core.utc import utc_now
 from functools import wraps
 from typing import Any, Callable, TypeVar
 
@@ -50,7 +51,7 @@ class InMemoryCache:
             value, expires_at = self._cache[key]
             
             # Check expiration
-            if expires_at and datetime.utcnow() > expires_at:
+            if expires_at and utc_now() > expires_at:
                 del self._cache[key]
                 return None
             
@@ -61,7 +62,7 @@ class InMemoryCache:
         async with self._lock:
             expires_at = None
             if ttl:
-                expires_at = datetime.utcnow() + timedelta(seconds=ttl)
+                expires_at = utc_now() + timedelta(seconds=ttl)
             
             self._cache[key] = (value, expires_at)
             return True
@@ -94,7 +95,7 @@ class InMemoryCache:
     async def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         async with self._lock:
-            now = datetime.utcnow()
+            now = utc_now()
             valid_count = 0
             expired_count = 0
             

@@ -11,9 +11,9 @@ import re
 from dataclasses import dataclass
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
+from app.core.utc import utc_now
 
 from .models import (
-from app.core.utc import utc_now
     DocumentContext, DocumentSection, ConfidenceMetrics,
     ReasoningChain, ReasoningStep, ReasoningType
 )

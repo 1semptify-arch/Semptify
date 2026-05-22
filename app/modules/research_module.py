@@ -26,6 +26,7 @@ import logging
 import asyncio
 import zipfile
 from datetime import datetime, timezone, timedelta
+from app.core.utc import utc_now
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlencode
 
@@ -338,7 +339,7 @@ def generate_signed_url(object_key: str, expires_in: Optional[int] = None) -> st
         return ""  # In-memory mode, no signed URL
     
     expires_in = expires_in or CFG["SIGNED_URL_EXPIRY"]
-    expiration = datetime.utcnow() + timedelta(seconds=expires_in)
+    expiration = utc_now() + timedelta(seconds=expires_in)
     expiration_ts = int(expiration.timestamp())
     
     # Build canonical request for signing

@@ -8,6 +8,7 @@ These are registered with the Positronic Mesh on startup.
 
 import logging
 from datetime import datetime, timedelta
+from app.core.utc import utc_now
 from typing import Any, Dict
 from app.core.positronic_mesh import positronic_mesh
 from app.core.module_hub import module_hub
@@ -32,7 +33,7 @@ async def documents_extract_eviction_data(
     
     # Simulate extraction (in production, this would use AI/OCR)
     return {
-        "eviction_date": document.get("eviction_date", datetime.utcnow().isoformat()),
+        "eviction_date": document.get("eviction_date", utc_now().isoformat()),
         "landlord": document.get("landlord_name", "Unknown Landlord"),
         "landlord_address": document.get("landlord_address", ""),
         "reason": document.get("eviction_reason", "Non-payment of rent"),
@@ -136,9 +137,9 @@ async def calendar_calculate_deadlines(
         if eviction_date_str:
             eviction_date = datetime.fromisoformat(eviction_date_str.replace("Z", "+00:00"))
         else:
-            eviction_date = datetime.utcnow()
+            eviction_date = utc_now()
     except (ValueError, TypeError):
-        eviction_date = datetime.utcnow()
+        eviction_date = utc_now()
 
     # Calculate critical deadlines (based on typical MN eviction timeline)
     answer_deadline = eviction_date + timedelta(days=14)  # Usually 14 days to answer
@@ -176,8 +177,8 @@ async def calendar_calculate_deadlines(
                 "description": "Eviction hearing date",
             },
         ],
-        "days_until_answer": (answer_deadline - datetime.utcnow()).days,
-        "days_until_hearing": (hearing_date - datetime.utcnow()).days,
+        "days_until_answer": (answer_deadline - utc_now()).days,
+        "days_until_hearing": (hearing_date - utc_now()).days,
     }
 
 
@@ -733,7 +734,7 @@ async def context_merge_states(
             "calendar": context.get("calendar_state", {}),
             "timeline": context.get("timeline_state", {}),
             "eviction": context.get("eviction_state", {}),
-            "synced_at": datetime.utcnow().isoformat(),
+            "synced_at": utc_now().isoformat(),
         }
     }
 
@@ -758,7 +759,7 @@ async def ui_update_dashboard(
                 "documents",
                 "next_steps",
             ],
-            "updated_at": datetime.utcnow().isoformat(),
+            "updated_at": utc_now().isoformat(),
         }
     }
 

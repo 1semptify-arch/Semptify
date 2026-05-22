@@ -19,6 +19,7 @@ import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from app.core.utc import utc_now
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
@@ -71,7 +72,7 @@ class CrawlResult:
     links: list[str] = field(default_factory=list)
     error: Optional[str] = None
     cached: bool = False
-    crawled_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    crawled_at: str = field(default_factory=lambda: utc_now().isoformat())
 
 
 @dataclass
@@ -283,7 +284,7 @@ class CrawlerService:
                 data = json.loads(cache_file.read_text())
                 crawled_at = datetime.fromisoformat(data.get("crawled_at", "2000-01-01"))
                 
-                if datetime.utcnow() - crawled_at < timedelta(hours=CrawlerConfig.CACHE_TTL_HOURS):
+                if utc_now() - crawled_at < timedelta(hours=CrawlerConfig.CACHE_TTL_HOURS):
                     result = CrawlResult(**data)
                     result.cached = True
                     return result

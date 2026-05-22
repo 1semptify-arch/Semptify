@@ -25,6 +25,7 @@ Each dimension influences:
 import json
 import logging
 from datetime import datetime, timedelta
+from app.core.utc import utc_now
 from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field, asdict
 from enum import Enum
@@ -347,7 +348,7 @@ class EmotionEngine:
             self.user_history[user_id] = []
         
         self.user_history[user_id].append({
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': utc_now().isoformat(),
             'trigger': trigger.value,
             'context': context,
             'state_after': state.to_dict()

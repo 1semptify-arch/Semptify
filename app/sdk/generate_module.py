@@ -138,7 +138,7 @@ async def process(
         "processed": True,
         "data": data,
         "summary": summary,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": utc_now().isoformat(),
     }
 
     return {{"result": result}}
@@ -159,7 +159,7 @@ async def get_state(
         "{module_name}_state": {{
             "active": True,
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": utc_now().isoformat(),
         }}
     }}
 
@@ -178,7 +178,7 @@ async def health_check(
     return {
         "status": "healthy",
         "module": module_definition.name,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": utc_now().isoformat(),
     }
 
 

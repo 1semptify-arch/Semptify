@@ -19,6 +19,7 @@ Integrates with:
 """
 
 from datetime import datetime
+from app.core.utc import utc_now
 from app.core.id_gen import make_id
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -374,7 +375,7 @@ async def update_contact(
     for field, value in update_data.items():
         setattr(contact, field, value)
     
-    contact.updated_at = datetime.utcnow()
+    contact.updated_at = utc_now()
     await db.commit()
     await db.refresh(contact)
     

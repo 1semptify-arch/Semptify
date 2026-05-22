@@ -143,7 +143,7 @@ class FormDataService:
         await self._load_from_documents()
         await self._load_from_timeline()
         await self._extract_case_info()
-        self.form_data.last_updated = datetime.utcnow().isoformat()
+        self.form_data.last_updated = utc_now().isoformat()
         return self.form_data
     
     async def save(self) -> bool:
@@ -319,7 +319,7 @@ class FormDataService:
             if key not in ["tenant", "landlord"] and hasattr(case, key):
                 setattr(case, key, value)
 
-        self.form_data.last_updated = datetime.utcnow().isoformat()
+        self.form_data.last_updated = utc_now().isoformat()
         
         # Publish event
         try:

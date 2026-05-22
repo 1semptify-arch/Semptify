@@ -9,12 +9,12 @@ and provides uncertainty quantification.
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from app.core.utc import utc_now
 from typing import List, Dict, Any, Optional, Tuple
 from collections import defaultdict
 import math
 
 from .models import (
-from app.core.utc import utc_now
     ConfidenceMetrics, ConfidenceLevel,
     ExtractedEntity, EntityType,
     ReasoningChain, ReasoningStep, ReasoningType,
