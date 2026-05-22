@@ -287,43 +287,54 @@ async function uploadToVault(fileCount) {
       alert(`${fileCount} document(s) uploaded to your vault.\n\nOverlay processing started.\nBlockchain timestamp applied.\nSaved to your cloud storage.`);
     } else {
       // Handle detailed error format from backend
-      let errorMsg, errorType, tb, storageMsg;
-      
-      // Backend may send detail as object (new format) or string (old format)
+      let errorMsg = 'Unknown error';
+      let errorType = '';
+      let tb = '';
+      let storageMsg = '';
+
       const detail = result.detail;
       if (detail && typeof detail === 'object') {
-        // New detailed error format
-        errorMsg = detail.error_message || result.message || 'Unknown error';
+        // New detailed error format (per-file errors bubbled up)
+        errorMsg = detail.error_message || result.message || errorMsg;
         errorType = detail.error_type || result.type || '';
         tb = detail.traceback ? '\n\nTraceback:\n' + detail.traceback.substring(0, 800) + '...' : '';
         storageMsg = detail.redirect_url ? '\n\nRedirect: ' + detail.redirect_url : '';
+      } else if (typeof detail === 'string') {
+        // HTTPException format {detail: "message"}
+        errorMsg = detail;
       } else {
-        // Legacy string format
-        errorMsg = result.error || result.message || detail || resp.statusText;
+        errorMsg = result.message || result.error || resp.statusText || errorMsg;
         errorType = result.type || '';
         tb = result.traceback ? '\n\nTraceback:\n' + result.traceback.substring(0, 500) + '...' : '';
         storageMsg = result.redirect_url ? '\n\nRedirect: ' + result.redirect_url : '';
       }
-      
-      // Also check for per-file errors array
+
       if (result.errors && result.errors.length > 0) {
         const fileErrors = result.errors.map(e => {
-          if (typeof e === 'object') {
-            return `${e.filename}: ${e.error_type} - ${e.error_message}`;
+          if (typeof e === 'object' && e !== null) {
+            return `${e.filename || 'unknown'}: ${e.error_type || 'Error'} - ${e.error_message || 'Unknown'}`;
           }
-          return e;
+          return String(e);
         }).join('\n');
         errorMsg += '\n\nFile errors:\n' + fileErrors;
       }
-      
-      // Handle token_expired / storage_required with auto-redirect
-      if (result.error === 'token_expired' || result.error === 'storage_required') {
+
+      const isAuthError = resp.status === 401 ||
+        result.error === 'token_expired' ||
+        result.error === 'storage_required' ||
+        (typeof errorMsg === 'string' && (
+          errorMsg.toLowerCase().includes('storage session expired') ||
+          errorMsg.toLowerCase().includes('storage authentication failed') ||
+          errorMsg.toLowerCase().includes('authentication required')
+        ));
+
+      if (isAuthError) {
         if (confirm('Your storage connection expired. Reconnect now?')) {
-          window.location.href = result.redirect_url || '/storage/reconnect';
+          window.location.href = result.redirect_url || '/storage/reconnect?return_to=/vault';
           return;
         }
       }
-      
+
       alert('Upload failed:\n' + errorMsg + (errorType ? ' (' + errorType + ')' : '') + tb + storageMsg);
     }
   } catch (e) {
