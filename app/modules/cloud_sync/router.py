@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.config import get_settings, Settings
 from app.core.security import require_user, StorageUser
+from app.core.vault_paths import SEMPTIFY_ROOT, VAULT_DOCUMENTS, VAULT_CERTIFICATES, VAULT_ROOT
 from .service import (
     UserCloudSync,
     UserProfile,
@@ -496,14 +497,14 @@ async def get_documents(
 ):
     """
     📄 Get document index from VAULT in cloud storage.
-    All documents are now stored in .semptify/vault/
+    All documents are now stored in Semptify5.0/Vault/documents/
     """
     import json
     
     sync = await get_sync_service(user, db, settings)
     
     # Try to load from vault index first (new architecture)
-    vault_folder = ".semptify/vault"
+    vault_folder = VAULT_DOCUMENTS
     try:
         index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
         vault_index = json.loads(index_content.decode("utf-8"))
@@ -530,12 +531,12 @@ async def get_vault_index(
 ):
     """
     📋 Get the complete vault document index.
-    Returns all documents stored in .semptify/vault/ with their metadata.
+    Returns all documents stored in Semptify5.0/Vault/documents/ with their metadata.
     """
     import json
     
     sync = await get_sync_service(user, db, settings)
-    vault_folder = ".semptify/vault"
+    vault_folder = VAULT_DOCUMENTS
     
     try:
         index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
@@ -570,7 +571,7 @@ async def get_vault_document(
     import json
     
     sync = await get_sync_service(user, db, settings)
-    vault_folder = ".semptify/vault"
+    vault_folder = VAULT_DOCUMENTS
     
     try:
         index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
@@ -607,7 +608,7 @@ async def get_vault_document_content(
     from fastapi.responses import Response
     
     sync = await get_sync_service(user, db, settings)
-    vault_folder = ".semptify/vault"
+    vault_folder = VAULT_DOCUMENTS
     
     # Find document in index
     try:
@@ -662,7 +663,7 @@ async def update_vault_document(
     from datetime import datetime, timezone
     
     sync = await get_sync_service(user, db, settings)
-    vault_folder = ".semptify/vault"
+    vault_folder = VAULT_DOCUMENTS
     
     try:
         index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
@@ -761,12 +762,13 @@ async def upload_document_to_cloud(
     tag_list = [t.strip() for t in tags.split(",") if t.strip()] if tags else []
     
     # Ensure vault folders exist
-    vault_folder = ".semptify/vault"
-    certs_folder = ".semptify/vault/certificates"
-    index_folder = ".semptify/vault"
+    vault_folder = VAULT_DOCUMENTS
+    certs_folder = VAULT_CERTIFICATES
+    index_folder = VAULT_DOCUMENTS
     
     try:
-        await sync.storage.create_folder(".semptify")
+        await sync.storage.create_folder(SEMPTIFY_ROOT)
+        await sync.storage.create_folder(VAULT_ROOT)
         await sync.storage.create_folder(vault_folder)
         await sync.storage.create_folder(certs_folder)
     except Exception:

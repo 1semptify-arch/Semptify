@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, BinaryIO
 from dataclasses import dataclass
 from datetime import datetime
+from app.core.vault_paths import SEMPTIFY_ROOT, AUTH_FOLDER, VAULT_DOCUMENTS
 
 
 @dataclass
@@ -38,7 +39,7 @@ class StorageProvider(ABC):
     All providers (Google Drive, Dropbox, OneDrive, R2) implement this.
     """
     
-    SEMPTIFY_FOLDER = ".semptify"
+    SEMPTIFY_FOLDER = SEMPTIFY_ROOT
     TOKEN_FILE = "auth_token.enc"
     
     @property
@@ -101,7 +102,7 @@ class StorageProvider(ABC):
     # =========================================================================
     
     async def ensure_semptify_folder(self) -> bool:
-        """Ensure .semptify folder exists in storage root."""
+        """Ensure Semptify5.0 folder exists in storage root."""
         try:
             if not await self.file_exists(self.SEMPTIFY_FOLDER):
                 await self.create_folder(self.SEMPTIFY_FOLDER)
@@ -159,9 +160,9 @@ class StorageProvider(ABC):
     ) -> StorageFile:
         """
         Upload a document to user's vault in their storage.
-        Documents go to .semptify/vault/
+        Documents go to Semptify5.0/Vault/documents/
         """
-        vault_folder = f"{self.SEMPTIFY_FOLDER}/vault"
+        vault_folder = VAULT_DOCUMENTS
         if document_type:
             vault_folder = f"{vault_folder}/{document_type}"
         
@@ -178,7 +179,7 @@ class StorageProvider(ABC):
         document_type: Optional[str] = None,
     ) -> list[StorageFile]:
         """List documents in user's vault."""
-        vault_folder = f"{self.SEMPTIFY_FOLDER}/vault"
+        vault_folder = VAULT_DOCUMENTS
         if document_type:
             vault_folder = f"{vault_folder}/{document_type}"
         

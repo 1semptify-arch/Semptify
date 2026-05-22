@@ -698,9 +698,10 @@ async def process_document_from_vault(
     import json
     
     from app.routers.cloud_sync import get_sync_service
+    from app.core.vault_paths import VAULT_DOCUMENTS
     
     sync = await get_sync_service(user, db, settings)
-    vault_folder = ".semptify/vault"
+    vault_folder = VAULT_DOCUMENTS
     
     # Get document info from vault index
     try:
@@ -723,7 +724,7 @@ async def process_document_from_vault(
     
     # Download document content
     try:
-        storage_path = doc_info.get("storage_path", f"{vault_folder}/{doc_id}")
+        storage_path = doc_info.get("storage_path", f"{VAULT_DOCUMENTS}/{doc_id}")
         content = await sync.storage.download_file(storage_path)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to download document: {str(e)}") from e
