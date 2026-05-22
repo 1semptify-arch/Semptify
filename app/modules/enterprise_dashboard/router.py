@@ -36,8 +36,8 @@ manager = ConnectionManager()
 
 # In-memory store (replace with DB in production)
 IN_MEMORY_NOTIFICATIONS: List[Dict[str, Any]] = [
-    {"id": "notif_1", "message": "Welcome to the dashboard", "read": False, "timestamp": datetime.utcnow()},
-    {"id": "notif_2", "message": "New case assigned", "read": False, "timestamp": datetime.utcnow()},
+    {"id": "notif_1", "message": "Welcome to the dashboard", "read": False, "timestamp": utc_now()},
+    {"id": "notif_2", "message": "New case assigned", "read": False, "timestamp": utc_now()},
 ]
 
 
@@ -443,7 +443,7 @@ async def mark_notification_read(notification_id: str):
     for notification in IN_MEMORY_NOTIFICATIONS:
         if notification.get("id") == notification_id:
             notification["read"] = True
-            notification["read_at"] = datetime.utcnow()
+            notification["read_at"] = utc_now()
             return {"status": "success", "notification_id": notification_id}
 
     raise HTTPException(status_code=404, detail="Notification not found")

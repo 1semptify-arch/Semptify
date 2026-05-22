@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException, Query, Request, Depends
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
+from app.core.utc import utc_now
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
@@ -525,7 +526,7 @@ async def start_wizard(request: WizardStartRequest) -> WizardSession:
         complaint_type=request.complaint_type,
         step=1,
         data={},
-        created_at=datetime.utcnow().isoformat()
+        created_at=utc_now().isoformat()
     )
     _wizard_sessions[session_id] = session.model_dump()
     return session
@@ -574,7 +575,7 @@ async def submit_complaint(
         "agency": agency.name,
         "agency_id": request.agency_id,
         "subject": request.subject,
-        "created_at": datetime.utcnow().isoformat(),
+        "created_at": utc_now().isoformat(),
         "next_steps": [
             f"Complaint submitted to {agency.name}",
             f"Expected response in ~{agency.typical_response_days} days",

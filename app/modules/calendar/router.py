@@ -153,7 +153,7 @@ async def create_event(
             event_type=event.event_type,
             is_critical=event.is_critical,
             reminder_days=event.reminder_days,
-            created_at=datetime.utcnow(),
+            created_at=utc_now(),
         )
         session.add(db_event)
         await session.commit()
@@ -597,14 +597,14 @@ async def send_deadline_notifications(
     
     async with get_db_session() as session:
         # Get upcoming critical events
-        cutoff_date = datetime.utcnow() + timedelta(days=days_ahead)
+        cutoff_date = utc_now() + timedelta(days=days_ahead)
         
         query = select(CalendarEventModel).where(
             and_(
                 CalendarEventModel.user_id == user.user_id,
                 CalendarEventModel.is_critical == True,
                 CalendarEventModel.start_datetime <= cutoff_date,
-                CalendarEventModel.start_datetime >= datetime.utcnow()
+                CalendarEventModel.start_datetime >= utc_now()
             )
         ).order_by(CalendarEventModel.start_datetime.asc())
         
@@ -614,7 +614,7 @@ async def send_deadline_notifications(
     notifications_sent = 0
     
     for event in upcoming_events:
-        days_until = (event.start_datetime - datetime.utcnow()).days
+        days_until = (event.start_datetime - utc_now()).days
         
         # Send in-app notification
         await send_notification(

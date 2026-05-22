@@ -2883,7 +2883,7 @@ async def auto_populate_timeline(
 
                 is_evidence=event.is_deadline,  # Mark deadlines as evidence
 
-                created_at=datetime.utcnow(),
+                created_at=utc_now(),
 
             )
 
@@ -3071,7 +3071,7 @@ async def auto_timeline_all_documents(
 
                     is_evidence=event.is_deadline,
 
-                    created_at=datetime.utcnow(),
+                    created_at=utc_now(),
 
                 )
 

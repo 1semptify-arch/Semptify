@@ -24,6 +24,7 @@ Usage:
 import json
 import logging
 from datetime import datetime
+from app.core.utc import utc_now
 from enum import Enum
 from functools import wraps
 from pathlib import Path
@@ -106,7 +107,7 @@ class AuditEntry:
         error_message: str | None = None,
     ):
         self.id = make_id("aud")
-        self.timestamp = datetime.utcnow()
+        self.timestamp = utc_now()
         self.action = action
         self.user_id = user_id
         self.resource_type = resource_type
@@ -158,7 +159,7 @@ class AuditLogger:
     
     def _get_log_file(self) -> Path:
         """Get current log file (rotated daily)."""
-        date_str = datetime.utcnow().strftime("%Y-%m-%d")
+        date_str = utc_now().strftime("%Y-%m-%d")
         return self._log_dir / f"audit_{date_str}.jsonl"
     
     async def log(self, entry: AuditEntry) -> None:

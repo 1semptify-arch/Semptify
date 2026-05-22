@@ -10,6 +10,7 @@ import hashlib
 import json
 import logging
 from datetime import datetime, timedelta
+from app.core.utc import utc_now
 from typing import Optional
 
 from app.core.overlay_types import OverlayType
@@ -104,7 +105,7 @@ class DocumentDeliveryService:
                 document_hash=document_hash,
                 delivery_type=request.delivery_type,
                 requires_read_receipt=request.requires_read_receipt,
-                deadline=request.deadline or datetime.utcnow() + timedelta(days=DEFAULT_DEADLINE_DAYS),
+                deadline=request.deadline or utc_now() + timedelta(days=DEFAULT_DEADLINE_DAYS),
                 message=request.message,
             )
             
@@ -227,7 +228,7 @@ class DocumentDeliveryService:
                 logger.warning(f"User {self.user_id} attempted to access delivery {delivery_id} without permission")
                 return None
             
-            is_expired = delivery.deadline and delivery.deadline < datetime.utcnow()
+            is_expired = delivery.deadline and delivery.deadline < utc_now()
             
             return DeliveryDetailResponse(
                 delivery=delivery,
@@ -284,7 +285,7 @@ class DocumentDeliveryService:
             
             # Update delivery
             delivery.status = DeliveryStatus.SIGNED
-            delivery.signed_at = datetime.utcnow()
+            delivery.signed_at = utc_now()
             delivery.signature_data = {
                 "type": request.signature_type,
                 "value_hash": hashlib.sha256(request.signature_value.encode()).hexdigest()[:16],
@@ -334,7 +335,7 @@ class DocumentDeliveryService:
             
             # Update delivery
             delivery.status = DeliveryStatus.REJECTED
-            delivery.rejected_at = datetime.utcnow()
+            delivery.rejected_at = utc_now()
             delivery.rejection_reason = request.reason
             delivery.security_hash = self._compute_delivery_hash(delivery)
             
@@ -369,7 +370,7 @@ class DocumentDeliveryService:
             
             if delivery.status == DeliveryStatus.PENDING and delivery.requires_read_receipt:
                 delivery.status = DeliveryStatus.VIEWED
-                delivery.viewed_at = datetime.utcnow()
+                delivery.viewed_at = utc_now()
                 delivery.security_hash = self._compute_delivery_hash(delivery)
                 await self._update_delivery_overlay(delivery)
                 logger.info(f"Document viewed: {delivery_id} by {self.user_id}")
@@ -476,7 +477,7 @@ class DocumentDeliveryService:
                     "sender_id": delivery.sender_id,
                     "recipient_id": delivery.recipient_id,
                     "status": delivery.status.value,
-                    "updated_at": datetime.utcnow().isoformat(),
+                    "updated_at": utc_now().isoformat(),
                 }
             )
             

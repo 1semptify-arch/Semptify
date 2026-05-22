@@ -15,6 +15,7 @@ Inspired by Isaac Asimov's positronic brain concept.
 import asyncio
 import logging
 from datetime import datetime
+from app.core.utc import utc_now
 from typing import Any, Callable, Dict, List, Optional, Set
 from dataclasses import dataclass, field
 from enum import Enum
@@ -378,7 +379,7 @@ class PositronicBrain:
         self.active_workflows[workflow_id] = {
             "name": workflow_name,
             "status": "running",
-            "started_at": datetime.utcnow().isoformat(),
+            "started_at": utc_now().isoformat(),
             "data": data,
             "steps_completed": []
         }
@@ -519,7 +520,7 @@ class PositronicBrain:
         calendar_events = self.shared_state.get("calendar", [])
         
         from datetime import timedelta
-        now = datetime.utcnow()
+        now = utc_now()
         
         for event in calendar_events:
             event_date = datetime.fromisoformat(event.get("start_datetime", "").replace("Z", ""))

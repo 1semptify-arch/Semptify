@@ -11,6 +11,7 @@ Full-featured communication system for Semptify supporting:
 
 import logging
 from datetime import datetime
+from app.core.utc import utc_now
 from typing import Optional, List, Dict, Any
 from app.core.id_gen import make_id
 
@@ -299,7 +300,7 @@ class CommunicationService:
                 referenced_document_id=request.referenced_document_id,
                 referenced_delivery_id=request.referenced_delivery_id,
                 reply_to_message_id=request.reply_to_message_id,
-                sent_at=datetime.utcnow(),
+                sent_at=utc_now(),
                 status=MessageStatus.SENT
             )
             
@@ -348,7 +349,7 @@ class CommunicationService:
                     conversation = Conversation(**conv_overlay.payload)
                     for participant in conversation.participants:
                         if participant.user_id == self.user_id:
-                            participant.last_read_at = datetime.utcnow()
+                            participant.last_read_at = utc_now()
                             break
                     
                     # Update conversation overlay
@@ -364,7 +365,7 @@ class CommunicationService:
                 if msg_overlay and msg_overlay.payload.get("recipient_id") == self.user_id:
                     message = Message(**msg_overlay.payload)
                     message.status = MessageStatus.READ
-                    message.read_at = datetime.utcnow()
+                    message.read_at = utc_now()
                     
                     await manager.update_overlay(
                         message_id,
@@ -411,7 +412,7 @@ class CommunicationService:
                         payload={
                             "delivery_id": delivery_id,
                             "field_values": field_values,
-                            "filled_at": datetime.utcnow().isoformat(),
+                            "filled_at": utc_now().isoformat(),
                             "filled_by": self.user_id
                         },
                         metadata={
@@ -481,7 +482,7 @@ class CommunicationService:
             return DocumentFillResponse(
                 success=True,
                 document_id=completed_doc_id,
-                filled_at=datetime.utcnow()
+                filled_at=utc_now()
             )
             
         except Exception as e:
@@ -513,7 +514,7 @@ class CommunicationService:
                     payload={
                         "delivery_id": delivery_id,
                         "reason": reason,
-                        "rejected_at": rejected_at.isoformat() if rejected_at else datetime.utcnow().isoformat(),
+                        "rejected_at": rejected_at.isoformat() if rejected_at else utc_now().isoformat(),
                         "rejected_by": self.user_id,
                         "status": "REJECTED",
                         "watermark": "DOCUMENT REJECTED - REFUSAL TO SIGN"
@@ -585,8 +586,8 @@ class CommunicationService:
             
             if conv_overlay:
                 conversation = Conversation(**conv_overlay.payload)
-                conversation.last_message_at = datetime.utcnow()
-                conversation.updated_at = datetime.utcnow()
+                conversation.last_message_at = utc_now()
+                conversation.updated_at = utc_now()
                 conversation.message_count += 1
                 
                 await manager.update_overlay(
@@ -607,7 +608,7 @@ class CommunicationService:
                 conversation = Conversation(**conv_overlay.payload)
                 for participant in conversation.participants:
                     if participant.user_id == self.user_id:
-                        participant.last_read_at = datetime.utcnow()
+                        participant.last_read_at = utc_now()
                         break
                 
                 await manager.update_overlay(

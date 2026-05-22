@@ -12,6 +12,7 @@ Provides comprehensive analytics endpoints for:
 
 import logging
 from datetime import datetime, timezone, timedelta
+from app.core.utc import utc_now
 from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response
@@ -19,7 +20,6 @@ from pydantic import BaseModel, Field
 
 from app.core.security import require_user, StorageUser, require_admin
 from app.core.analytics_engine import (
-from app.core.utc import utc_now
     get_analytics_engine,
     AnalyticsEventType,
     TimePeriod,

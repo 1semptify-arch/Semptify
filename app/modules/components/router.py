@@ -19,6 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, 
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from datetime import datetime
+from app.core.utc import utc_now
 from typing import List, Optional
 
 from app.core.security import get_optional_user_id
@@ -145,7 +146,7 @@ async def handle_capture_upload(
                 "message": "Storage not connected. Please connect your cloud storage first.",
                 "redirect_to": "/storage/providers",
                 "user_id": user_id,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": utc_now().isoformat()
             })
         
         # Process files through existing storage system
@@ -171,7 +172,7 @@ async def handle_capture_upload(
                     "user_id": user_id,
                     "component_id": component_id,
                     "role": role,
-                    "uploaded_at": datetime.utcnow().isoformat()
+                    "uploaded_at": utc_now().isoformat()
                 }
                 
                 # Create document in storage system
@@ -182,7 +183,7 @@ async def handle_capture_upload(
                 file_content = await uploaded_file.read()
                 
                 # Create document ID
-                document_id = f"doc_{datetime.utcnow().timestamp()}_{len(processed_files)}"
+                document_id = f"doc_{utc_now().timestamp()}_{len(processed_files)}"
                 
                 # Here you would integrate with actual storage system
                 # For example:
@@ -224,7 +225,7 @@ async def handle_capture_upload(
             "processed_files": processed_files,
             "user_id": user_id,
             "provider": provider,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utc_now().isoformat()
         }
         
         if upload_errors:
@@ -254,9 +255,9 @@ async def handle_capture_input(
         return JSONResponse({
             "success": True,
             "message": "Input saved successfully",
-            "input_id": f"input_{datetime.utcnow().timestamp()}",
+            "input_id": f"input_{utc_now().timestamp()}",
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -280,10 +281,10 @@ async def handle_capture_voice(
         return JSONResponse({
             "success": True,
             "message": "Voice recording saved successfully",
-            "recording_id": f"voice_{datetime.utcnow().timestamp()}",
+            "recording_id": f"voice_{utc_now().timestamp()}",
             "transcript": event.transcript,
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -313,7 +314,7 @@ async def handle_understand_timeline(
             "message": "Timeline event processed",
             "event_id": event.event_id,
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -339,7 +340,7 @@ async def handle_understand_rights(
             "message": "Rights analysis processed",
             "right_id": event.right_id,
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -365,7 +366,7 @@ async def handle_understand_risk(
             "message": "Risk assessment processed",
             "risk_id": event.risk_id,
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -395,7 +396,7 @@ async def handle_plan_action(
             "message": "Action processed",
             "action_id": event.action_id,
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -421,7 +422,7 @@ async def handle_plan_deadline(
             "message": "Deadline processed",
             "deadline_id": event.deadline_id,
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -454,7 +455,7 @@ async def handle_tenant_emergency(
             "emergency_id": emergency_id,
             "action": action,
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -482,9 +483,9 @@ async def handle_advocate_handoff(
             "message": "Client handoff processed",
             "client_id": client_id,
             "target_role": target_role,
-            "handoff_id": f"handoff_{datetime.utcnow().timestamp()}",
+            "handoff_id": f"handoff_{utc_now().timestamp()}",
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -512,9 +513,9 @@ async def handle_legal_review(
             "message": "Legal review started",
             "case_id": case_id,
             "review_type": review_type,
-            "review_id": f"review_{datetime.utcnow().timestamp()}",
+            "review_id": f"review_{utc_now().timestamp()}",
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -540,9 +541,9 @@ async def handle_admin_maintenance(
             "success": True,
             "message": "Maintenance task processed",
             "maintenance_type": maintenance_type,
-            "task_id": f"maintenance_{datetime.utcnow().timestamp()}",
+            "task_id": f"maintenance_{utc_now().timestamp()}",
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -573,7 +574,7 @@ async def get_workspace_stage(
             "has_timeline": True,
             "has_actions": True,
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -599,7 +600,7 @@ async def get_next_step(
             "priority": "high",
             "component": "upload-zone",
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -655,7 +656,7 @@ async def get_component_config(
             "role": role,
             "config": config,
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": utc_now().isoformat()
         })
         
     except Exception as e:
