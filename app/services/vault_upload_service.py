@@ -484,7 +484,7 @@ class VaultUploadService:
         """Ensure vault folders exist in storage."""
         from app.core.path_utils import normalize_cloud_path
         try:
-            await storage.create_folder(normalize_cloud_path("Semptify5.0"))
+            await storage.create_folder(normalize_cloud_path(SEMPTIFY_ROOT))
             await storage.create_folder(normalize_cloud_path(self.VAULT_ROOT_FOLDER))
             await storage.create_folder(normalize_cloud_path(self.VAULT_FOLDER))
             await storage.create_folder(normalize_cloud_path(self.CERTS_FOLDER))

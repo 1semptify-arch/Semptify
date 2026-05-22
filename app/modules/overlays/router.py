@@ -23,6 +23,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Header, Cookie, R
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 import json
+from app.core.vault_paths import VAULT_ROOT
 import logging
 from app.core.id_gen import make_id
 
@@ -224,7 +225,7 @@ async def get_storage_client(user: StorageUser, db: AsyncSession, settings: Sett
 async def ensure_document_access(storage, document_id: str) -> None:
     """Verify the document exists in the current user's vault scope."""
     try:
-        files = await storage.list_files(".semptify/vault", recursive=True)
+        files = await storage.list_files(VAULT_ROOT, recursive=True)
     except Exception as e:
         logger.warning("Unable to verify document access for %s: %s", document_id, e)
         raise HTTPException(

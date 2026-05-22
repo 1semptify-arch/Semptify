@@ -23,6 +23,7 @@ from .service import form_generator
 from app.core.event_bus import event_bus, EventType as BusEventType
 from app.core.document_hub import get_document_hub
 from app.core.utc import utc_now
+from app.core.vault_paths import VAULT_ROOT
 
 logger = logging.getLogger(__name__)
 
@@ -181,7 +182,7 @@ async def generate_form(
             overlay_request = CreateOverlayRequest(
                 overlay_type=OverlayType.FORM_FILL,
                 document_id=f"form_{request.form_type}",
-                vault_path=f"Semptify5.0/Vault/forms/{request.form_type}",
+                vault_path=f"{VAULT_ROOT}/forms/{request.form_type}",
                 payload={
                     "form_type": request.form_type,
                     "form_title": result["title"],

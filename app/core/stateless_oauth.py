@@ -26,6 +26,7 @@ from datetime import datetime, timezone
 
 from app.core.user_id import parse_user_id, generate_user_id
 from app.core.cookie_auth import sign_user_id, verify_user_id
+from app.core.vault_paths import AUTH_FOLDER, SEMPTIFY_ROOT
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +86,7 @@ class StatelessOAuthManager:
             }
             
             # Store in user's cloud storage
-            token_path = f".semptify/auth/{provider}_tokens.json"
+            token_path = f"{AUTH_FOLDER}/{provider}_tokens.json"
             token_json = json.dumps(token_data)
             
             await self.vault.write_file(
@@ -121,7 +122,7 @@ class StatelessOAuthManager:
             raw_user_id = user_id.split('.')[0] if '.' in user_id else user_id
             
             # Read from user's cloud storage
-            token_path = f".semptify/auth/{provider}_tokens.json"
+            token_path = f"{AUTH_FOLDER}/{provider}_tokens.json"
             token_content = await self.vault.read_file(token_path)
             
             if not token_content:
@@ -265,7 +266,7 @@ class StatelessOAuthManager:
             session_json = json.dumps(session_data)
             
             # Store in user's cloud storage
-            session_path = f".semptify/sessions/{raw_user_id}_session.json"
+            session_path = f"{SEMPTIFY_ROOT}/sessions/{raw_user_id}_session.json"
             
             await self.vault.write_file(
                 path=session_path,
@@ -298,7 +299,7 @@ class StatelessOAuthManager:
             raw_user_id = user_id.split('.')[0] if '.' in user_id else user_id
             
             # Read from user's cloud storage
-            session_path = f".semptify/sessions/{raw_user_id}_session.json"
+            session_path = f"{SEMPTIFY_ROOT}/sessions/{raw_user_id}_session.json"
             session_content = await self.vault.read_file(session_path)
             
             if not session_content:
@@ -331,7 +332,7 @@ class StatelessOAuthManager:
             raw_user_id = user_id.split('.')[0] if '.' in user_id else user_id
             
             # Delete from user's cloud storage
-            session_path = f".semptify/sessions/{raw_user_id}_session.json"
+            session_path = f"{SEMPTIFY_ROOT}/sessions/{raw_user_id}_session.json"
             
             await self.vault.delete_file(session_path)
             
