@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from typing import Optional, BinaryIO
 from dataclasses import dataclass
 from datetime import datetime
-from app.core.vault_paths import SEMPTIFY_ROOT, AUTH_FOLDER, VAULT_DOCUMENTS
+from app.core.vault_paths import SEMPTIFY_ROOT, AUTH_FOLDER, VAULT_DOCUMENTS, TOKEN_FILE as _VAULT_TOKEN_FILE
 
 
 @dataclass
@@ -40,7 +40,7 @@ class StorageProvider(ABC):
     """
     
     SEMPTIFY_FOLDER = SEMPTIFY_ROOT
-    TOKEN_FILE = "auth_token.enc"
+    TOKEN_FILE = "token.enc"  # Matches vault_paths.TOKEN_FILE filename (Semptify5.0/auth/token.enc)
     
     @property
     @abstractmethod
@@ -113,14 +113,14 @@ class StorageProvider(ABC):
     async def write_auth_token(self, encrypted_token_data: str) -> bool:
         """
         Write encrypted auth token to user's storage.
-        This is the core of storage-based authentication.
+        Writes to AUTH_FOLDER/token.enc — same path as VaultInstaller and vault_manager.
+        NOTE: Active write path is vault_manager.update_oauth_credentials(), not this method.
         """
         try:
             await self.ensure_semptify_folder()
-            token_path = f"{self.SEMPTIFY_FOLDER}/{self.TOKEN_FILE}"
             await self.upload_file(
                 file_content=encrypted_token_data.encode("utf-8"),
-                destination_path=self.SEMPTIFY_FOLDER,
+                destination_path=AUTH_FOLDER,
                 filename=self.TOKEN_FILE,
                 mime_type="application/octet-stream",
             )
@@ -131,10 +131,11 @@ class StorageProvider(ABC):
     async def read_auth_token(self) -> Optional[str]:
         """
         Read encrypted auth token from user's storage.
-        If readable → User IS authenticated (has access to their storage).
+        Reads from AUTH_FOLDER/token.enc — same path as vault_manager.get_token().
+        NOTE: Active read path is vault_manager.get_token(), not this method.
         """
         try:
-            token_path = f"{self.SEMPTIFY_FOLDER}/{self.TOKEN_FILE}"
+            token_path = _VAULT_TOKEN_FILE
             if not await self.file_exists(token_path):
                 return None
             content = await self.download_file(token_path)
@@ -144,8 +145,7 @@ class StorageProvider(ABC):
     
     async def token_exists(self) -> bool:
         """Check if auth token exists in storage."""
-        token_path = f"{self.SEMPTIFY_FOLDER}/{self.TOKEN_FILE}"
-        return await self.file_exists(token_path)
+        return await self.file_exists(_VAULT_TOKEN_FILE)
     
     # =========================================================================
     # Vault Operations (User Documents)

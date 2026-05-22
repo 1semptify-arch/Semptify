@@ -707,7 +707,13 @@ async def process_document_from_vault(
     try:
         index_content = await sync.storage.download_file(f"{vault_folder}/index.json")
         vault_index = json.loads(index_content.decode("utf-8"))
-        
+    except HTTPException:
+        raise
+    except Exception:
+        # index.json missing (pre-existing vault) — treat as empty, not a server error
+        vault_index = {"documents": []}
+
+    try:
         doc_info = None
         for doc in vault_index.get("documents", []):
             if doc.get("document_id") == doc_id:
