@@ -1440,7 +1440,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         contact={
             "name": "Semptify Support",
             "url": "https://github.com/Semptify/Semptify-FastAPI",
-            "email": "support@semptify.com",
+            "email": "support@semptify.org",
         },
         license_info={
             "name": "MIT License",
@@ -3370,7 +3370,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 </div>
                 
                 <div class="footer">
-                    Still stuck? <a href="mailto:support@semptify.com">Contact support</a> and we'll help you get started.
+                    Still stuck? <a href="mailto:support@semptify.org">Contact support</a> and we'll help you get started.
                 </div>
             </div>
         </body>

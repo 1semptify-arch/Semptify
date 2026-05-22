@@ -120,7 +120,7 @@ def create_verification_certificate(
     document_name: str,
     proof: DocumentProof,
     user_id: str,
-    base_url: str = "https://semptify.com",
+    base_url: str = "https://semptify.org",
     audit_entries: Optional[List[AuditEntry]] = None,
 ) -> VerificationCertificate:
     """
