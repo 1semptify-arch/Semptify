@@ -27,6 +27,7 @@ from app.core.vault_paths import (
     VAULT_OVERLAY_REGISTRY,
     VAULT_ROOT,
 )
+from app.core.rehome import generate_rehome_html
 from app.core.path_utils import normalize_cloud_path
 from app.core.utc import utc_now
 
@@ -149,6 +150,29 @@ class VaultInstaller:
                 logger.debug(f"Created system file: {subfolder}/{filename}")
             except Exception as e:
                 results["errors"].append(f"Failed to create {subfolder}/{filename}: {str(e)}")
+
+        # Rehome.html — written directly to SEMPTIFY_ROOT (not inside Vault/)
+        # VaultClient.upload() prepends VAULT_ROOT so we use the storage provider directly.
+        try:
+            from app.core.config import get_settings
+            settings = get_settings()
+            base_url = getattr(settings, "BASE_URL", "https://semptify.com")
+            rehome_html = generate_rehome_html(
+                user_id=self.user_id,
+                provider=self.provider_name,
+                base_url=base_url,
+            )
+            storage = self.vault_client._get_storage()
+            await storage.upload_file(
+                file_content=rehome_html.encode(),
+                destination_path=SEMPTIFY_ROOT,
+                filename="Rehome.html",
+                mime_type="text/html",
+            )
+            results["files_created"].append(f"{SEMPTIFY_ROOT}/Rehome.html")
+            logger.debug("Created Rehome.html at %s/Rehome.html", SEMPTIFY_ROOT)
+        except Exception as e:
+            results["errors"].append(f"Failed to create Rehome.html: {str(e)}")
 
     async def _create_data_files(self, results: Dict):
         """Create initial data files using Vault SDK."""
