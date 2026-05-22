@@ -798,7 +798,7 @@ class MinnesotaLegalDictionary:
                 if "validate" in config:
                     try:
                         valid = config["validate"](value)
-                    except:
+                    except Exception:
                         valid = False
                 
                 matches.append({

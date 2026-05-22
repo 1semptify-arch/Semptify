@@ -248,7 +248,7 @@ async def run_batch_analysis(
             else:
                 with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
                     return f.read()[:10000]  # First 10k chars
-        except:
+        except UnicodeDecodeError:
             return ""
     
     # Run analysis

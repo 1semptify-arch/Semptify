@@ -624,7 +624,7 @@ async def list_cases(user: StorageUser = Depends(require_user)):
                     try:
                         days_until = (datetime.fromisoformat(next_deadline).date() - date.today()).days
                         urgent = days_until <= 7
-                    except:
+                    except ValueError:
                         pass
                 
                 # Build case ID from filename
@@ -753,7 +753,7 @@ async def intake_complaint(intake: ComplaintIntake, user: StorageUser = Depends(
     if intake.filing_date:
         try:
             filing_date = datetime.fromisoformat(intake.filing_date.replace('Z', '+00:00'))
-        except:
+        except ValueError:
             filing_date = today
     else:
         filing_date = today
@@ -1142,7 +1142,7 @@ async def get_deadlines(case_id: str, user: StorageUser = Depends(require_user))
                     d["status"] = "soon"
                 else:
                     d["status"] = "upcoming"
-            except:
+            except Exception:
                 d["days_until"] = None
                 d["status"] = "unknown"
     
@@ -1439,7 +1439,7 @@ async def get_case_summary(case_id: str, user: StorageUser = Depends(require_use
         try:
             hearing_date = datetime.strptime(case["hearing_date"], "%Y-%m-%d").date()
             hearing_days = (hearing_date - today).days
-        except:
+        except ValueError:
             pass
     
     # Get urgent deadlines
@@ -1454,7 +1454,7 @@ async def get_case_summary(case_id: str, user: StorageUser = Depends(require_use
                         **d,
                         "days_until": days
                     })
-            except:
+            except ValueError:
                 pass
     
     # Build reminders

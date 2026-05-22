@@ -242,7 +242,7 @@ class FormDataService:
                 summons = datetime.fromisoformat(self.form_data.case.summons_date)
                 deadline = summons + timedelta(days=7)
                 self.form_data.case.answer_deadline = deadline.strftime("%Y-%m-%d")
-            except:
+            except ValueError:
                 pass
         
         # Determine case stage
@@ -433,7 +433,7 @@ class FormDataService:
             try:
                 hearing = datetime.fromisoformat(case.hearing_date)
                 days_to_hearing = (hearing - utc_now()).days
-            except:
+            except ValueError:
                 pass
         
         return {
