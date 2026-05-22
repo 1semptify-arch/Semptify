@@ -406,7 +406,7 @@ for any purpose other than organizing your case. You can revoke
 access at any time through your cloud storage provider settings.
 Your files remain in your storage regardless.
 
-For help: https://semptify.com/help
+For help: https://semptify.org/help
 
 '''
 
@@ -440,7 +440,7 @@ authentication data for Semptify.
    3. You'll be automatically reconnected
 
 📞 SUPPORT:
-   Visit: https://semptify.com/help
+   Visit: https://semptify.org/help
    
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 '''
