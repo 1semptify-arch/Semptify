@@ -455,7 +455,7 @@ async def copy_from_sync_to_vault(
     settings: Settings = Depends(get_settings),
 ):
     """
-    Copy a document from sync storage (.semptify/documents/) to vault (.semptify/vault/).
+    Copy a document from sync storage (Semptify5.0/Vault/documents/) to vault.
     
     This is used when the original File object is no longer available (e.g., after page refresh)
     but the document was already uploaded to cloud storage via the sync endpoint.
@@ -482,15 +482,15 @@ async def copy_from_sync_to_vault(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # Try to download from sync documents folder
-    sync_path = f".semptify/documents/{filename}"
+    # Try to download from vault documents folder
+    sync_path = f"{VAULT_DOCUMENTS}/{filename}"
     
     try:
         content = await storage.download_file(sync_path)
     except Exception as e:
-        # Try alternative paths
+        # Try alternative path by file_id
         try:
-            content = await storage.download_file(f".semptify/documents/{file_id}")
+            content = await storage.download_file(f"{VAULT_DOCUMENTS}/{file_id}")
         except Exception:
             raise HTTPException(
                 status_code=404, 
