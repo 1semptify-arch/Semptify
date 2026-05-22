@@ -14,6 +14,7 @@ Privacy Note: We store minimal verification data - just enough to audit.
 import re
 import logging
 from datetime import datetime
+from app.core.utc import utc_now
 from enum import Enum
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
@@ -64,7 +65,7 @@ class RoleVerification:
         """Check if verification is currently valid."""
         if self.status != VerificationStatus.VERIFIED:
             return False
-        if self.expires_at and datetime.utcnow() > self.expires_at:
+        if self.expires_at and utc_now() > self.expires_at:
             return False
         return True
 
@@ -128,7 +129,7 @@ class RoleValidator:
                 role=requested_role,
                 status=VerificationStatus.VERIFIED,
                 method=VerificationMethod.ADMIN_MANUAL,
-                verified_at=datetime.utcnow(),
+                verified_at=utc_now(),
                 notes="Default role, no verification required"
             )
         
@@ -208,7 +209,7 @@ class RoleValidator:
             )
         
         # Check expiration
-        if datetime.utcnow() > code_data["expires"]:
+        if utc_now() > code_data["expires"]:
             return RoleVerification(
                 user_id=user_id,
                 role=requested_role,
@@ -237,7 +238,7 @@ class RoleValidator:
             role=requested_role,
             status=VerificationStatus.VERIFIED,
             method=VerificationMethod.INVITE_CODE,
-            verified_at=datetime.utcnow(),
+            verified_at=utc_now(),
             verification_data={"code": code, "org": code_data["org"]},
             notes=f"Verified via invite code from {code_data['org']}"
         )
@@ -286,7 +287,7 @@ class RoleValidator:
             role=requested_role,
             status=VerificationStatus.VERIFIED,
             method=VerificationMethod.EMAIL_DOMAIN,
-            verified_at=datetime.utcnow(),
+            verified_at=utc_now(),
             verification_data={"email": email, "domain": domain},
             notes=f"Verified via trusted organization email ({domain})"
         )
@@ -327,7 +328,7 @@ class RoleValidator:
                 role=UserRole.LEGAL,
                 status=VerificationStatus.VERIFIED,
                 method=VerificationMethod.BAR_NUMBER,
-                verified_at=datetime.utcnow(),
+                verified_at=utc_now(),
                 verification_data={
                     "bar_number": bar_number,
                     "state": "MN",
@@ -371,7 +372,7 @@ class RoleValidator:
                 role=UserRole.ADVOCATE,
                 status=VerificationStatus.VERIFIED,
                 method=VerificationMethod.HUD_CERT,
-                verified_at=datetime.utcnow(),
+                verified_at=utc_now(),
                 verification_data={
                     "hud_cert": cert_number,
                     "organization": known_hud_certs[cert_number],
@@ -423,11 +424,11 @@ class RoleValidator:
             role=requested_role,
             status=VerificationStatus.VERIFIED,
             method=VerificationMethod.ATTESTATION,
-            verified_at=datetime.utcnow(),
+            verified_at=utc_now(),
             verification_data={
                 "attestation": attestation_text,
                 "email": email,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": utc_now().isoformat(),
                 "ip_logged": True  # Would capture IP in production
             },
             notes=f"Verified via self-attestation. User accepted responsibility."

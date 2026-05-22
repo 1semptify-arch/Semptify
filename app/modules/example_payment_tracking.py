@@ -10,6 +10,7 @@ Copy this file and modify it for your own module!
 
 import logging
 from datetime import datetime
+from app.core.utc import utc_now
 from typing import Any, Dict, List
 
 from app.sdk import (
@@ -103,18 +104,18 @@ async def record_payment(
     logger.info(f"💰 Recording payment for user {user_id[:8]}...")
     
     amount = params.get("amount", 0)
-    date = params.get("date", datetime.utcnow().isoformat())
+    date = params.get("date", utc_now().isoformat())
     method = params.get("method", "unknown")
     note = params.get("note", "")
     
     # In production, this would save to database
     payment = {
-        "id": f"pay_{datetime.utcnow().timestamp()}",
+        "id": f"pay_{utc_now().timestamp()}",
         "amount": amount,
         "date": date,
         "method": method,
         "note": note,
-        "recorded_at": datetime.utcnow().isoformat(),
+        "recorded_at": utc_now().isoformat(),
     }
     
     return {
@@ -228,7 +229,7 @@ async def generate_payment_summary(
     
     summary = {
         "title": "Payment History Summary",
-        "generated_at": datetime.utcnow().isoformat(),
+        "generated_at": utc_now().isoformat(),
         "payments": history_result.get("payment_history", []),
         "total_paid": history_result.get("total_paid", 0),
         "format": "pdf_ready",

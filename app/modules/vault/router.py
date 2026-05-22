@@ -28,6 +28,7 @@ import hashlib
 import json
 import logging
 from datetime import datetime, timezone
+from app.core.utc import utc_now
 from typing import Optional, List
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status, Query, Request
@@ -1083,7 +1084,7 @@ async def get_sidebar_files(
             "size": doc.size,
             "type": doc.mime_type,
             "category": _get_file_category(doc.filename),
-            "uploaded_at": doc.created_at.isoformat() if doc.created_at else datetime.utcnow().isoformat(),
+            "uploaded_at": doc.created_at.isoformat() if doc.created_at else utc_now().isoformat(),
             "provider": doc.provider,
             "user_id": doc.user_id,
             "path": doc.vault_path,
@@ -1091,7 +1092,7 @@ async def get_sidebar_files(
             "metadata": {
                 "source": "vault_upload",
                 "original_filename": doc.filename,
-                "upload_timestamp": doc.created_at.isoformat() if doc.created_at else datetime.utcnow().isoformat()
+                "upload_timestamp": doc.created_at.isoformat() if doc.created_at else utc_now().isoformat()
             }
         })
     
@@ -1455,7 +1456,7 @@ async def sidebar_search(
             "size": doc.size,
             "type": doc.mime_type,
             "category": _get_file_category(doc.filename),
-            "uploaded_at": doc.created_at.isoformat() if doc.created_at else datetime.utcnow().isoformat(),
+            "uploaded_at": doc.created_at.isoformat() if doc.created_at else utc_now().isoformat(),
             "provider": doc.provider,
             "user_id": doc.user_id,
             "path": doc.vault_path,
@@ -1463,7 +1464,7 @@ async def sidebar_search(
             "metadata": {
                 "source": "vault_upload",
                 "original_filename": doc.filename,
-                "upload_timestamp": doc.created_at.isoformat() if doc.created_at else datetime.utcnow().isoformat()
+                "upload_timestamp": doc.created_at.isoformat() if doc.created_at else utc_now().isoformat()
             }
         })
     

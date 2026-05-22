@@ -8,6 +8,7 @@ from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 from typing import Dict, Any, List, Optional
 from datetime import datetime
+from app.core.utc import utc_now
 import json
 import io
 import zipfile
@@ -394,7 +395,7 @@ Extracted: {ext.get('created_at', 'Unknown')}
         
         # In real implementation, would save to file system or cloud
         # For now, store in memory with ID
-        packet_id = f"packet_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        packet_id = f"packet_{utc_now().strftime('%Y%m%d_%H%M%S')}"
         
         return {
             "success": True,
@@ -422,7 +423,7 @@ def generate_evidence_index(docs: Dict, extractions: Dict, highlights: Dict) -> 
     lines = [
         "=" * 60,
         "EVIDENCE INDEX",
-        f"Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}",
+        f"Generated: {utc_now().strftime('%Y-%m-%d %H:%M UTC')}",
         "=" * 60,
         "",
         "DOCUMENTS",
@@ -471,7 +472,7 @@ def generate_highlights_summary(highlights: Dict) -> str:
     lines = [
         "=" * 60,
         "HIGHLIGHTS & ANNOTATIONS SUMMARY",
-        f"Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}",
+        f"Generated: {utc_now().strftime('%Y-%m-%d %H:%M UTC')}",
         "=" * 60,
         "",
     ]
@@ -515,7 +516,7 @@ def generate_cover_sheet(docs: Dict, extractions: Dict, highlights: Dict) -> str
 ╚══════════════════════════════════════════════════════════════╝
 
 Prepared by: Semptify Legal Defense Assistant
-Generated: {datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}
+Generated: {utc_now().strftime('%Y-%m-%d %H:%M UTC')}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

@@ -9,6 +9,7 @@ import json
 import logging
 from app.core.id_gen import make_id
 from datetime import datetime
+from app.core.utc import utc_now
 from typing import Optional
 from pydantic import BaseModel
 from enum import Enum
@@ -480,7 +481,7 @@ class ComplaintWizardService:
         from app.models.models import Complaint as ComplaintModel
 
         draft_id = make_id("cmp")
-        now = datetime.utcnow()
+        now = utc_now()
 
         # Create database record
         db_complaint = ComplaintModel(
@@ -575,7 +576,7 @@ class ComplaintWizardService:
             if hasattr(db_complaint, db_key):
                 setattr(db_complaint, db_key, value)
 
-        db_complaint.updated_at = datetime.utcnow()
+        db_complaint.updated_at = utc_now()
         await db.commit()
         await db.refresh(db_complaint)
 
@@ -608,7 +609,7 @@ class ComplaintWizardService:
         # Add new document IDs
         existing.extend(document_ids)
         db_complaint.attached_document_ids = json.dumps(existing)
-        db_complaint.updated_at = datetime.utcnow()
+        db_complaint.updated_at = utc_now()
         await db.commit()
         await db.refresh(db_complaint)
 
@@ -634,10 +635,10 @@ class ComplaintWizardService:
         agency = self.get_agency(db_complaint.agency_id)
 
         db_complaint.status = ComplaintStatus.FILED.value
-        db_complaint.filing_date = datetime.utcnow()
+        db_complaint.filing_date = utc_now()
         db_complaint.confirmation_number = confirmation_number
         db_complaint.filed_with = agency.name if agency else db_complaint.agency_id
-        db_complaint.updated_at = datetime.utcnow()
+        db_complaint.updated_at = utc_now()
         await db.commit()
         await db.refresh(db_complaint)
 
@@ -712,7 +713,7 @@ class ComplaintWizardService:
     ) -> ComplaintDraft:
         """Create a new complaint draft (in-memory, use create_draft_db for persistence)."""
         draft_id = make_id("cmp")
-        now = datetime.utcnow()
+        now = utc_now()
 
         draft = ComplaintDraft(
             id=draft_id,
@@ -747,7 +748,7 @@ class ComplaintWizardService:
             if hasattr(draft, key):
                 setattr(draft, key, value)
 
-        draft.updated_at = datetime.utcnow()
+        draft.updated_at = utc_now()
         return draft
 
     def attach_documents(
@@ -761,7 +762,7 @@ class ComplaintWizardService:
             return None
 
         draft.attached_document_ids.extend(document_ids)
-        draft.updated_at = datetime.utcnow()
+        draft.updated_at = utc_now()
         return draft
 
     def generate_complaint_text(self, draft: ComplaintDraft) -> str:
@@ -771,7 +772,7 @@ class ComplaintWizardService:
         
         lines = [
             f"FORMAL COMPLAINT TO {agency_name.upper()}",
-            f"Date: {datetime.utcnow().strftime('%B %d, %Y')}",
+            f"Date: {utc_now().strftime('%B %d, %Y')}",
             "",
             "=" * 60,
             "COMPLAINANT INFORMATION",
@@ -849,9 +850,9 @@ class ComplaintWizardService:
             return None
         
         draft.status = ComplaintStatus.FILED
-        draft.filed_date = datetime.utcnow()
+        draft.filed_date = utc_now()
         draft.confirmation_number = confirmation_number
-        draft.updated_at = datetime.utcnow()
+        draft.updated_at = utc_now()
         return draft
     
     def get_filing_checklist(self, agency_id: str) -> dict:

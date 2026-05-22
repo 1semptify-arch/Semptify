@@ -56,8 +56,8 @@ async def create_user(
             storage_user_id=storage_user_id,
             email=email,
             default_role=default_role,
-            created_at=datetime.utcnow(),
-            last_login=datetime.utcnow(),
+            created_at=utc_now(),
+            last_login=utc_now(),
         )
         session.add(user)
         await session.commit()
@@ -81,7 +81,7 @@ async def get_or_create_user(
     if user:
         # Update last login
         async with get_db_session() as session:
-            user.last_login = datetime.utcnow()
+            user.last_login = utc_now()
             if email and not user.email:
                 user.email = email
             session.add(user)
@@ -108,7 +108,7 @@ async def update_user_role(user_id: str, role: str) -> Optional[User]:
         user = result.scalar_one_or_none()
         if user:
             user.default_role = role
-            user.updated_at = datetime.utcnow()
+            user.updated_at = utc_now()
             await session.commit()
             await session.refresh(user)
         return user
@@ -129,7 +129,7 @@ async def update_user_profile(
         if user:
             if email is not None:
                 user.email = email
-            user.updated_at = datetime.utcnow()
+            user.updated_at = utc_now()
             await session.commit()
             await session.refresh(user)
         return user
@@ -155,7 +155,7 @@ async def link_provider(
             storage_user_id=storage_user_id,
             email=email,
             display_name=display_name,
-            linked_at=datetime.utcnow(),
+            linked_at=utc_now(),
         )
         session.add(linked)
         await session.commit()

@@ -19,12 +19,12 @@ Features:
 import logging
 import json
 from datetime import datetime, date, timedelta
+from app.core.utc import utc_now
 from typing import Any, Dict, List, Optional
 from enum import Enum
 from pydantic import BaseModel
 
 from app.sdk import (
-from app.core.utc import utc_now
     ModuleSDK,
     ModuleDefinition,
     ModuleCategory,

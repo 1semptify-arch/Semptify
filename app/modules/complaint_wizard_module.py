@@ -16,6 +16,7 @@ Features:
 import logging
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timedelta
+from app.core.utc import utc_now
 
 from app.sdk.module_sdk import (
     ModuleSDK,
@@ -359,7 +360,7 @@ async def file_complaint(
     
     agency = complaint_wizard.get_agency(draft.agency_id)
     response_days = agency.typical_response_days if agency else 30
-    follow_up_date = datetime.utcnow() + timedelta(days=response_days)
+    follow_up_date = utc_now() + timedelta(days=response_days)
     
     # Create calendar event via mesh if available
     calendar_event_id = None
@@ -389,7 +390,7 @@ async def file_complaint(
                 user_id=user_id,
                 params={
                     "title": f"Filed complaint with {agency.name if agency else 'agency'}",
-                    "date": datetime.utcnow().isoformat(),
+                    "date": utc_now().isoformat(),
                     "type": "complaint_filed",
                     "details": {
                         "agency_id": draft.agency_id,

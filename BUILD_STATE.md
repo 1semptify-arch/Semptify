@@ -3,6 +3,28 @@
 
 ---
 
+## Shipped — 2026-05-21 (9:16 PM UTC-05) — Commit `9b71cb1`
+
+### What Was Shipped
+
+**Vault Upload & Installer UX Fixes** — Eliminated confusing `[object Object]` alerts and improved vault activation clarity.
+
+1. **Sidebar Upload Auth Handling** — `static/js/core/vault-portal.js` now parses HTTPException plain strings, normalizes per-file errors, and detects 401s to auto-prompt storage reconnection.
+2. **Onboarding Activate Vault Logging** — `static/onboarding/activate-vault.html` logs installer steps, improves status refreshing, and surfaces API errors clearly for debugging stuck installs.
+
+### What Is Known Working
+
+- ✅ Python entrypoints compile (`python -m py_compile app/main.py app/core/navigation.py`).
+- ✅ Vault sidebar upload now shows human-readable errors and kicks off reconnect flow for expired storage sessions.
+- ✅ Vault installer page displays status, success data, and retry guidance with detailed console logging.
+
+### What Is Pending
+
+- Verify full OAuth → vault upload flow with a real storage provider session once credentials are available.
+- Monitor Render logs for any remaining auto-refresh/token errors post-deploy.
+
+---
+
 ## Shipped — 2026-05-21 (7:08 AM UTC-05) — Commit `1ad94fe`
 
 ### What Was Shipped

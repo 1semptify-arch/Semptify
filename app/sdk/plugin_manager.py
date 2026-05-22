@@ -34,6 +34,7 @@ import sys
 import json
 from dataclasses import dataclass, field
 from datetime import datetime
+from app.core.utc import utc_now
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set
@@ -332,7 +333,7 @@ class PluginManager:
                 init_func()
             
             plugin.status = PluginStatus.ACTIVE
-            plugin.loaded_at = datetime.utcnow()
+            plugin.loaded_at = utc_now()
             
             logger.info(f"✅ Loaded plugin: {name} v{plugin.metadata.version}")
             

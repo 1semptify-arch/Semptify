@@ -9,6 +9,7 @@ import json
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime, timedelta
+from app.core.utc import utc_now
 from typing import Any, Optional
 
 logger = logging.getLogger(__name__)
@@ -56,7 +57,7 @@ class MemorySessionBackend(SessionBackend):
     async def get(self, key: str) -> Optional[dict]:
         self._cleanup_expired()
         if key in self._store and key in self._expiry:
-            if datetime.utcnow() < self._expiry[key]:
+            if utc_now() < self._expiry[key]:
                 return self._store[key]
             else:
                 # Expired
@@ -66,7 +67,7 @@ class MemorySessionBackend(SessionBackend):
     
     async def set(self, key: str, value: dict, ttl_seconds: int = 3600) -> bool:
         self._store[key] = value
-        self._expiry[key] = datetime.utcnow() + timedelta(seconds=ttl_seconds)
+        self._expiry[key] = utc_now() + timedelta(seconds=ttl_seconds)
         return True
     
     async def delete(self, key: str) -> bool:
@@ -77,17 +78,17 @@ class MemorySessionBackend(SessionBackend):
     
     async def exists(self, key: str) -> bool:
         self._cleanup_expired()
-        return key in self._store and key in self._expiry and datetime.utcnow() < self._expiry[key]
+        return key in self._store and key in self._expiry and utc_now() < self._expiry[key]
     
     async def extend(self, key: str, ttl_seconds: int = 3600) -> bool:
         if key in self._store:
-            self._expiry[key] = datetime.utcnow() + timedelta(seconds=ttl_seconds)
+            self._expiry[key] = utc_now() + timedelta(seconds=ttl_seconds)
             return True
         return False
     
     def _cleanup_expired(self):
         """Remove expired sessions."""
-        now = datetime.utcnow()
+        now = utc_now()
         expired = [k for k, exp in self._expiry.items() if now >= exp]
         for key in expired:
             self._store.pop(key, None)

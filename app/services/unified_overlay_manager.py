@@ -36,6 +36,7 @@ import json
 import hashlib
 import logging
 from datetime import datetime
+from app.core.utc import utc_now
 from typing import Optional, Any
 from pathlib import Path
 
@@ -253,7 +254,7 @@ class UnifiedOverlayManager:
             if metadata is not None:
                 overlay.metadata = {**overlay.metadata, **metadata}
             
-            overlay.updated_at = datetime.utcnow()
+            overlay.updated_at = utc_now()
             overlay.overlay_hash = self._compute_hash(overlay)
             
             # Save back to cloud

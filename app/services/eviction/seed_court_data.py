@@ -10,6 +10,7 @@ This gives Semptify a head start on learning before users record their own outco
 """
 
 from datetime import datetime, timedelta
+from app.core.utc import utc_now
 from typing import Optional
 import random
 import logging
@@ -17,7 +18,6 @@ import csv
 import os
 
 from app.services.eviction.court_learning import (
-from app.core.utc import utc_now
     CourtLearningEngine,
     CaseOutcome,
     CaseOutcomeRecord,

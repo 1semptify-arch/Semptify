@@ -16,6 +16,7 @@ Example: Documents module needs info from Calendar + Eviction + Law Library
 import asyncio
 import logging
 from datetime import datetime
+from app.core.utc import utc_now
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
@@ -287,7 +288,7 @@ class MeshNetwork:
             "current_module_index": 0,
             "shared_context": initial_data or {},
             "module_contributions": {},
-            "started_at": datetime.utcnow(),
+            "started_at": utc_now(),
             "completed_at": None
         }
         
@@ -296,7 +297,7 @@ class MeshNetwork:
         try:
             result = await self._execute_collaboration(collaboration_id, timeout)
             self._collaborations[collaboration_id]["stage"] = "completed"
-            self._collaborations[collaboration_id]["completed_at"] = datetime.utcnow()
+            self._collaborations[collaboration_id]["completed_at"] = utc_now()
             return result
         except Exception as e:
             self._collaborations[collaboration_id]["stage"] = "failed"
@@ -320,7 +321,7 @@ class MeshNetwork:
         goal = collab["goal"]
         context = collab["shared_context"]
         
-        start_time = datetime.utcnow()
+        start_time = utc_now()
         
         # Process through each module in sequence
         # Each module can add to the shared context
@@ -360,7 +361,7 @@ class MeshNetwork:
             else:
                 logger.debug(f"   - {module_id} has no handler for '{goal}'")
         
-        execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+        execution_time = (utc_now() - start_time).total_seconds() * 1000
         
         return MeshResponse(
             request_id=collaboration_id,
@@ -422,7 +423,7 @@ class MeshNetwork:
         """Execute a mesh request."""
         self._stats["total_requests"] += 1
         self._pending_requests[request.id] = request
-        start_time = datetime.utcnow()
+        start_time = utc_now()
         
         try:
             targets = request.target_modules
@@ -472,7 +473,7 @@ class MeshNetwork:
                 
                 success = len(errors) == 0 or (not request.require_all and len(errors) < len(targets))
             
-            execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+            execution_time = (utc_now() - start_time).total_seconds() * 1000
             self._update_stats(execution_time, success)
             
             return MeshResponse(

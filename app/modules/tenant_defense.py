@@ -15,6 +15,7 @@ workflow orchestration and inter-module communication.
 
 import logging
 from datetime import datetime, timedelta
+from app.core.utc import utc_now
 from app.core.id_gen import make_id
 from typing import Any, Dict, List, Optional
 
@@ -329,8 +330,8 @@ async def collect_evidence(
             items=[],
             total_count=0,
             categories={},
-            created_at=datetime.utcnow(),
-            updated_at=datetime.utcnow(),
+            created_at=utc_now(),
+            updated_at=utc_now(),
         )
     
     # Add new evidence items
@@ -347,7 +348,7 @@ async def collect_evidence(
         category = item.type
         index.categories[category] = index.categories.get(category, 0) + 1
     
-    index.updated_at = datetime.utcnow()
+    index.updated_at = utc_now()
     _evidence_indices[index_key] = index
     
     # Create info pack for other modules
@@ -402,7 +403,7 @@ async def prepare_sealing_petition(
     logger.info(f"tenant_defense: Preparing {petition_type} petition for case {case_id}")
     
     petition_id = _make_id("pet")
-    now = datetime.utcnow()
+    now = utc_now()
     
     # Minnesota-specific petition text
     draft_text = f"""STATE OF MINNESOTA                    DISTRICT COURT
@@ -562,7 +563,7 @@ async def generate_demand_letter(
     logger.info(f"tenant_defense: Generating {demand_type} demand letter for case {case_id}")
     
     letter_id = _make_id("ltr")
-    now = datetime.utcnow()
+    now = utc_now()
     response_deadline = now + timedelta(days=14)
     
     # Generate letter text based on demand type
@@ -722,7 +723,7 @@ async def dispute_screening_report(
     logger.info(f"tenant_defense: Creating screening dispute for {screening_company}")
     
     dispute_id = _make_id("disp")
-    now = datetime.utcnow()
+    now = utc_now()
     response_deadline = now + timedelta(days=30)  # FCRA requires 30-day response
     
     # Format disputed items
@@ -859,7 +860,7 @@ async def get_case_progress(
     
     logger.info(f"tenant_defense: Calculating case progress for {case_id}")
     
-    now = datetime.utcnow()
+    now = utc_now()
     progress_key = f"{user_id}:{case_id}"
     
     # Get evidence stats
