@@ -3273,7 +3273,7 @@ async def hash_document_content(
         raise HTTPException(status_code=400, detail="No content provided")
     
     doc_hash = hash_document(content)
-    timestamp = create_notarized_timestamp()
+    timestamp = await create_notarized_timestamp()
     
     return {
         "hash": doc_hash,
@@ -3303,7 +3303,7 @@ async def create_document_proof(
         raise HTTPException(status_code=400, detail="No content provided")
     
     integrity = get_legal_integrity(semptify_uid)
-    proof = integrity.create_document_proof(content, action)
+    proof = await integrity.create_document_proof(content, action)
     
     return {
         "proof": proof.to_dict(),
@@ -3349,7 +3349,7 @@ async def get_legal_timestamp():
     """
     from app.services.storage.legal_integrity import create_notarized_timestamp
 
-    return create_notarized_timestamp()
+    return await create_notarized_timestamp()
 
 
 # ============================================================================
@@ -3385,7 +3385,7 @@ async def generate_certificate(
     
     base_url = str(request.base_url).rstrip("/")
     
-    result = quick_certificate(
+    result = await quick_certificate(
         document_content=content,
         document_name=document_name,
         user_id=semptify_uid,
@@ -3422,7 +3422,7 @@ async def generate_certificate_html_endpoint(
     
     base_url = str(request.base_url).rstrip("/")
     
-    result = quick_certificate(
+    result = await quick_certificate(
         document_content=content,
         document_name=document_name,
         user_id=semptify_uid,
