@@ -17,12 +17,16 @@ This file is kept for backward compatibility during migration.
 
 import json
 import secrets
-import hashlib
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 
 from app.core.config import get_settings
+from app.sdk.vault.encryption import (
+    MasterToken,
+    encrypt_token as _sdk_encrypt_token,
+    decrypt_token as _sdk_decrypt_token,
+)
 from app.core.vault_paths import (
     SEMPTIFY_ROOT,
     AUTH_FOLDER,
@@ -53,69 +57,9 @@ settings = get_settings()
 
 
 # =============================================================================
-# Token Structure
+# Token Structure — canonical definition is app.sdk.vault.encryption.MasterToken
+# MasterToken is re-exported here for backward compatibility.
 # =============================================================================
-
-@dataclass
-class MasterToken:
-    """
-    Master token stored encrypted in user's cloud storage.
-    This token NEVER leaves storage - server fetches and decrypts in-memory only.
-    
-    Contains:
-    - Module authorizations (what features user can access)
-    - OAuth credentials (access_token, refresh_token) as BACKUP
-    
-    The OAuth tokens in cloud are a BACKUP of the database tokens.
-    This allows recovery if database is lost, and enables Rehome flow.
-    """
-    token_id: str                    # Unique token identifier
-    user_id: str                     # User ID (GU2L3wyfBy format)
-    created_at: str                  # ISO timestamp
-    provider: str = ""               # Storage provider (google_drive, dropbox, onedrive)
-    version: str = "5.0"             # Semptify version
-
-    # OAuth credentials (backup - also stored in database for fast access)
-    access_token: str = ""           # Provider OAuth access token
-    refresh_token: str = ""          # Provider OAuth refresh token
-    token_expires_at: str = ""       # When access_token expires
-
-    # Module authorizations - which features this token unlocks
-    modules: Optional[Dict[str, bool]] = None
-
-    # Security
-    last_validated: Optional[str] = None       # Last time token was used
-    validation_count: int = 0        # How many times validated
-
-    def __post_init__(self):
-        if self.modules is None:
-            self.modules = {
-                "vault": True,
-                "forms": True,
-                "timeline": True,
-                "copilot": True,
-                "calendar": True,
-                "defense": True,
-                "zoom_court": True,
-            }
-    
-    def to_dict(self) -> dict:
-        return asdict(self)
-    
-    @classmethod
-    def from_dict(cls, data: dict) -> "MasterToken":
-        return cls(**data)
-    
-    def authorize_module(self, module: str) -> bool:
-        """Check if this token authorizes access to a module."""
-        if self.modules is None:
-            return False
-        return self.modules.get(module, False)
-    
-    def record_validation(self):
-        """Record that token was validated."""
-        self.last_validated = datetime.now(timezone.utc).isoformat()
-        self.validation_count += 1
 
 
 @dataclass
@@ -129,66 +73,22 @@ class DeviceKey:
 
 
 # =============================================================================
-# Encryption Helpers
+# Encryption Helpers — thin wrappers around SDK that inject secret_key from settings
 # =============================================================================
 
-def _derive_key(user_id: str) -> bytes:
-    """Derive encryption key from user_id + server secret."""
-    secret = getattr(settings, "SECRET_KEY", None) or getattr(settings, "secret_key", "")
-    combined = f"{secret}:token:{user_id}".encode()
-    return hashlib.sha256(combined).digest()
+def _get_secret_key() -> str:
+    """Fetch secret key from settings — single source for vault_manager callers."""
+    return getattr(settings, "secret_key", None) or getattr(settings, "SECRET_KEY", "")
 
 
 def encrypt_token(token: MasterToken, user_id: str) -> bytes:
-    """
-    Encrypt master token for storage with integrity verification.
-    Uses AES-GCM which provides both encryption AND authentication (tamper detection).
-    """
-    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-    from app.services.storage.legal_integrity import TokenIntegrity
-
-    key = _derive_key(user_id)
-    nonce = secrets.token_bytes(12)
-    
-    # Wrap token with integrity hash before encryption
-    wrapped = TokenIntegrity.wrap_token(token.to_dict(), user_id)
-    plaintext = json.dumps(wrapped).encode()
-
-    # AES-GCM provides authenticated encryption - any tampering will cause decryption to fail
-    aesgcm = AESGCM(key)
-    ciphertext = aesgcm.encrypt(nonce, plaintext, None)
-
-    return nonce + ciphertext
+    """Encrypt using SDK implementation. secret_key injected from settings."""
+    return _sdk_encrypt_token(token, user_id, _get_secret_key())
 
 
 def decrypt_token(encrypted: bytes, user_id: str) -> MasterToken:
-    """
-    Decrypt master token from storage with integrity verification.
-    AES-GCM will raise InvalidTag if data was tampered with.
-    """
-    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-    from app.services.storage.legal_integrity import TokenIntegrity
-
-    key = _derive_key(user_id)
-    nonce = encrypted[:12]
-    ciphertext = encrypted[12:]
-
-    # AES-GCM decryption - will fail if tampered
-    aesgcm = AESGCM(key)
-    plaintext = aesgcm.decrypt(nonce, ciphertext, None)
-
-    wrapped = json.loads(plaintext.decode())
-    
-    # Handle both wrapped (with integrity) and legacy (without) formats
-    if "integrity" in wrapped and "data" in wrapped:
-        # New format with integrity verification
-        data, is_valid = TokenIntegrity.verify_token(wrapped, user_id)
-        if not is_valid:
-            raise ValueError("Token integrity verification failed - possible tampering detected")
-        return MasterToken.from_dict(data)
-    else:
-        # Legacy format (pre-integrity) - just use data directly
-        return MasterToken.from_dict(wrapped)
+    """Decrypt using SDK implementation. secret_key injected from settings."""
+    return _sdk_decrypt_token(encrypted, user_id, _get_secret_key())
 # =============================================================================
 # File Generation
 # =============================================================================

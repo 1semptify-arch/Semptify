@@ -10,6 +10,7 @@ import json
 import secrets
 import hashlib
 from dataclasses import dataclass, asdict
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 
 
@@ -62,6 +63,17 @@ class MasterToken:
     @classmethod
     def from_dict(cls, data: dict) -> "MasterToken":
         return cls(**data)
+
+    def authorize_module(self, module: str) -> bool:
+        """Check if this token authorizes access to a module."""
+        if self.modules is None:
+            return False
+        return self.modules.get(module, False)
+
+    def record_validation(self):
+        """Record that token was validated."""
+        self.last_validated = datetime.now(timezone.utc).isoformat()
+        self.validation_count += 1
 
 
 def _derive_key(user_id: str, secret_key: str) -> bytes:
@@ -131,11 +143,12 @@ def decrypt_token(encrypted: bytes, user_id: str, secret_key: str) -> MasterToke
     
     # Handle both wrapped (with integrity) and legacy (without) formats
     if "integrity" in wrapped and "data" in wrapped:
-        # New format with integrity verification
-        TokenIntegrity.verify_token(wrapped, user_id)
-        token_data = wrapped["data"]
+        # New format with integrity verification — verify_token returns (data, is_valid)
+        token_data, is_valid = TokenIntegrity.verify_token(wrapped, user_id)
+        if not is_valid:
+            raise ValueError("Token integrity verification failed - possible tampering detected")
     else:
-        # Legacy format - no integrity verification
+        # Legacy format (pre-integrity) - use data directly
         token_data = wrapped
     
     return MasterToken.from_dict(token_data)
