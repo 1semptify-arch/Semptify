@@ -3473,6 +3473,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         
         return HTMLResponse("<h1>Vault activation page not found</h1>", status_code=404)
 
+    # =========================================================================
+    # Health check — must return JSON, never HTML
+    # =========================================================================
+    @fastapi_app.get("/health", tags=["system"])
+    async def health_check():
+        from app.core.utc import utc_now
+        return {"status": "ok", "ts": utc_now().isoformat()}
+
     return fastapi_app
 # Create the app instance
 app = create_app()
