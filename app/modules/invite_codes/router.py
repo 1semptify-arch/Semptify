@@ -20,8 +20,6 @@ from fastapi.responses import JSONResponse
 
 from app.core.database import get_db_session
 from app.core.invite_codes import (
-import logging
-logger = logging.getLogger(__name__)
     create_invite_code,
     validate_invite_code,
     redeem_invite_code,

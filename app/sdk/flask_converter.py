@@ -747,8 +747,7 @@ Routes Found:
             logger.info(f"  {', '.join(route.methods):<10} {route.path:<30} -> {route.function_name}")
         
         for bp in analysis.blueprints:
-            logger.info(f"
-Blueprint: {bp.name} (prefix: {bp.url_prefix})")
+            logger.info(f"Blueprint: {bp.name} (prefix: {bp.url_prefix})")
             for route in bp.routes:
                 logger.info(f"  {', '.join(route.methods):<10} {route.path:<30} -> {route.function_name}")
     

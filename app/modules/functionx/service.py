@@ -7,8 +7,6 @@ from app.core.id_gen import make_id
 
 from app.core.utc import utc_now
 from app.models.functionx_models import (
-import logging
-logger = logging.getLogger(__name__)
     FunctionXActionSetCreate,
     FunctionXActionSetDetail,
     FunctionXActionSetSummary,

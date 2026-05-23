@@ -29,8 +29,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.security import get_user_id
 from .service import (
-import logging
-logger = logging.getLogger(__name__)
     VaultIngestionService,
     IngestionRequest,
     VaultIngestionError,

@@ -600,16 +600,13 @@ async def example_usage():
     logger.info(f"Risk Level: {report.risk_assessment.risk_level.value}")
     logger.info(f"Risk Score: {report.risk_assessment.risk_score:.2f}")
     logger.info(f"Success Probability: {report.success_probability:.2f}")
-    logger.info(f"
-Patterns Detected:")
+    logger.info("Patterns Detected:")
     for pattern in report.patterns_detected:
         logger.info(f"  - {pattern.pattern_type.value}: {pattern.description}")
-    logger.info(f"
-Strategic Recommendations:")
+    logger.info("Strategic Recommendations:")
     for rec in report.strategic_recommendations:
         logger.info(f"  - {rec}")
-    logger.info(f"
-Timeline Predictions:")
+    logger.info("Timeline Predictions:")
     for prediction in report.timeline_predictions:
         logger.info(f"  - {prediction['event']}: {prediction['predicted_date']}")
 

@@ -8,8 +8,6 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from .service import (
-import logging
-logger = logging.getLogger(__name__)
     get_crawler,
     MN_SOURCES,
     SourceType,
