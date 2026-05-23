@@ -12,6 +12,8 @@ from typing import Optional
 import httpx
 
 from app.core.config import get_settings
+import logging
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -94,7 +96,7 @@ class OllamaAIService:
             result = await self._call_ollama(prompt)
             return self._parse_result(result)
         except Exception as e:
-            print(f"Ollama analysis failed: {e}")
+            logger.error(f"Ollama analysis failed: {e}")
             return self._fallback_analysis(text, filename)
 
     def _build_analysis_prompt(
@@ -271,7 +273,7 @@ Summary:"""
                     return response.json().get("response", "").strip()
                     
         except Exception as e:
-            print(f"Summary failed: {e}")
+            logger.error(f"Summary failed: {e}")
             
         return "Unable to generate summary."
 

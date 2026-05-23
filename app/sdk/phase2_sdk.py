@@ -535,19 +535,19 @@ async def example_usage():
     # Authenticate with 2FA
     auth_result = await sdk.authenticate("user@example.com", "password")
     if auth_result["success"]:
-        print("Authentication successful")
+        logger.info("Authentication successful")
         
         # Setup 2FA if needed
         if auth_result.get("requires_2fa"):
             totp_result = await sdk.setup_2fa("totp")
             if totp_result["success"]:
-                print("2FA setup successful")
-                print(f"QR Code: {totp_result['qr_code']}")
+                logger.info("2FA setup successful")
+                logger.info(f"QR Code: {totp_result['qr_code']}")
         
         # Generate document preview
         preview_result = await sdk.generate_document_preview("doc-123")
         if preview_result["success"]:
-            print(f"Preview URL: {preview_result['preview_url']}")
+            logger.info(f"Preview URL: {preview_result['preview_url']}")
         
         # Create batch operation
         batch_result = await sdk.create_batch_operation(
@@ -558,20 +558,20 @@ async def example_usage():
             ]
         )
         if batch_result["success"]:
-            print(f"Batch operation ID: {batch_result['operation_id']}")
+            logger.info(f"Batch operation ID: {batch_result['operation_id']}")
         
         # Connect to WebSocket
         if await sdk.connect_websocket(["job_updates", "batch_operations"]):
-            print("WebSocket connected")
+            logger.info("WebSocket connected")
             
             # Listen for updates
             async def handle_update(update_type, data):
-                print(f"Update: {update_type} - {data}")
+                logger.info(f"Update: {update_type} - {data}")
             
             await sdk.listen_for_updates(handle_update)
     
     else:
-        print(f"Authentication failed: {auth_result['error']}")
+        logger.error(f"Authentication failed: {auth_result['error']}")
 
 if __name__ == "__main__":
     asyncio.run(example_usage())

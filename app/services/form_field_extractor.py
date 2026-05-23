@@ -14,6 +14,8 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List, Tuple
 from enum import Enum
+import logging
+logger = logging.getLogger(__name__)
 
 
 class FieldConfidence(str, Enum):

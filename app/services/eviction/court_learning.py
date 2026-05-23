@@ -34,6 +34,8 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
+import logging
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================

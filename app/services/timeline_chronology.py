@@ -17,6 +17,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 from app.models.models import Document, DocumentPipelineIndex
 from app.core.vault_paths import VAULT_TIMELINE_EVENTS_FILE
+import logging
+logger = logging.getLogger(__name__)
 
 TIMELINE_FUNCTION_GROUP = "timeline_chronology"
 

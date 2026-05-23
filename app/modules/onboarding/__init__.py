@@ -3,6 +3,8 @@ Semptify Onboarding Module — Self-contained, reusable onboarding system.
 
 Usage:
     from app.modules.onboarding import register_onboarding, OnboardingConfig
+import logging
+logger = logging.getLogger(__name__)
 
     config = OnboardingConfig(
         product_name="Semptify Tenant Rights",

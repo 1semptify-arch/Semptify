@@ -2,6 +2,8 @@
 # Storage-based authentication: user's cloud storage = identity
 
 from app.routers import auth, vault, copilot, health, storage, intake
+import logging
+logger = logging.getLogger(__name__)
 
 try:
     from app.routers import timeline, calendar

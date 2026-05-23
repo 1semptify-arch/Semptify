@@ -11,6 +11,8 @@ import secrets
 import httpx
 
 from app.services.storage.base import StorageProvider, StorageFile
+import logging
+logger = logging.getLogger(__name__)
 
 
 class GoogleDriveProvider(StorageProvider):

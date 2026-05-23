@@ -5,6 +5,8 @@ import json
 from datetime import date
 
 from app.models.legal_filing_models import LegalCase
+import logging
+logger = logging.getLogger(__name__)
 
 DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "legal_filings"
 EVIDENCE_DIR = DATA_DIR / "evidence"

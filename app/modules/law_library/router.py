@@ -12,6 +12,8 @@ from pydantic import BaseModel
 from datetime import datetime
 
 from app.core.security import require_user, StorageUser
+import logging
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix="/api/law-library", tags=["Law Library"])

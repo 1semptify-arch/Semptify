@@ -18,6 +18,8 @@ from dataclasses import dataclass
 
 from sqlalchemy import text, func
 from sqlalchemy.ext.asyncio import AsyncSession
+import logging
+logger = logging.getLogger(__name__)
 
 
 @dataclass

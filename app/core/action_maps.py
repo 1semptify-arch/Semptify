@@ -11,6 +11,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Callable, Any
 from enum import Enum, auto
+import logging
+logger = logging.getLogger(__name__)
 
 
 class ActionType(Enum):
@@ -428,13 +430,13 @@ def render_action_button(action: QuickAction) -> Dict[str, Any]:
 # =============================================================================
 
 if __name__ == "__main__":
-    print("=== Action Maps System ===")
-    print(f"Total pages with actions: {len(ALL_ACTION_MAPS)}")
+    logger.info("=== Action Maps System ===")
+    logger.info(f"Total pages with actions: {len(ALL_ACTION_MAPS)}")
     
     for page_id, actions in ALL_ACTION_MAPS.items():
-        print(f"\n{page_id}:")
+        logger.info(f"\n{page_id}:")
         for action_id, action in actions.items():
             roles = action.required_roles or ["all"]
-            print(f"  - {action.label} ({action.action_type.name}, roles: {roles})")
+            logger.info(f"  - {action.label} ({action.action_type.name}, roles: {roles})")
     
-    print(f"\n✅ Action maps ready for integration.")
+    logger.info(f"\n✅ Action maps ready for integration.")

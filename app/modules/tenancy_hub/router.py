@@ -12,6 +12,8 @@ from datetime import datetime, timezone
 
 from app.core.security import get_user_id
 from ..services.tenancy_hub import (
+import logging
+logger = logging.getLogger(__name__)
     get_tenancy_hub_service,
     TenancyCase,
     Party, PartyRole,

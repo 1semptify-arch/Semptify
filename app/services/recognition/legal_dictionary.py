@@ -13,6 +13,8 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Set, Tuple, Optional
 from enum import Enum
 import re
+import logging
+logger = logging.getLogger(__name__)
 
 
 class LegalPhraseCategory(str, Enum):

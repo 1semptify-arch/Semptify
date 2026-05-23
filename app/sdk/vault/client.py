@@ -15,7 +15,7 @@ Usage:
     )
     result = await vault.create_folders()
     if result.all_ok:
-        print("Vault ready")
+        logger.info("Vault ready")
 """
 
 import asyncio

@@ -378,7 +378,7 @@ class DocumentPipeline:
                     source="document_pipeline",
                 )
             except Exception as ctx_err:
-                print(f"Context loop event failed: {ctx_err}")
+                logger.error(f"Context loop event failed: {ctx_err}")
 
         # Route document to appropriate module via Module Hub
         if HAS_MODULE_HUB and doc.status == ProcessingStatus.CLASSIFIED:
@@ -426,10 +426,10 @@ class DocumentPipeline:
                 )
                 
                 if info_pack:
-                    print(f"📦 Document routed to module: {info_pack.target_module}")
+                    logger.info(f"📦 Document routed to module: {info_pack.target_module}")
 
             except Exception as hub_err:
-                print(f"Module hub routing failed: {hub_err}")
+                logger.error(f"Module hub routing failed: {hub_err}")
 
         # Process document for case management (create or add to existing case)
         if HAS_CASE_AUTO_CREATION and doc.status == ProcessingStatus.CLASSIFIED:
@@ -456,7 +456,9 @@ class DocumentPipeline:
                     summary = result.get("summary", "")
                     
                     if summary:
-                        print(f"\n{summary}\n")
+                        logger.info(f"
+{summary}
+")
                     
                     # Emit appropriate event based on action
                     if HAS_CONTEXT_LOOP and case_data:
@@ -490,7 +492,7 @@ class DocumentPipeline:
                             )
             except Exception as case_err:
                 logger.error(f"Case processing failed: {case_err}")
-                print(f"⚠️ Case processing failed: {case_err}")
+                logger.error(f"⚠️ Case processing failed: {case_err}")
 
         return doc
 

@@ -3,6 +3,8 @@ Document Overlays Module -- Non-destructive document annotation.
 
 Public API:
     from app.modules.overlays import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

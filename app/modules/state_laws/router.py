@@ -10,6 +10,8 @@ import os
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/states", tags=["State Laws"])
 

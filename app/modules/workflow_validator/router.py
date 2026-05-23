@@ -13,6 +13,8 @@ from fastapi.responses import HTMLResponse
 from typing import Optional
 from dataclasses import dataclass
 import json
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/admin/workflow-validator", tags=["admin", "workflow"])
 

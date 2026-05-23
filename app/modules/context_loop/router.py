@@ -11,6 +11,8 @@ from datetime import datetime, timezone
 
 from app.core.security import get_optional_user_id, sanitize_user_input
 from .service import (
+import logging
+logger = logging.getLogger(__name__)
     context_loop,
     EventType,
 )

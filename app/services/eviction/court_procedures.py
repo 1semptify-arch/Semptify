@@ -10,6 +10,8 @@ from enum import Enum
 from typing import Optional
 from datetime import datetime, timedelta
 from app.core.utc import utc_now
+import logging
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================

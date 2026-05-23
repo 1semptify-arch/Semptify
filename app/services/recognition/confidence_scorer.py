@@ -15,6 +15,8 @@ from collections import defaultdict
 import math
 
 from .models import (
+import logging
+logger = logging.getLogger(__name__)
     ConfidenceMetrics, ConfidenceLevel,
     ExtractedEntity, EntityType,
     ReasoningChain, ReasoningStep, ReasoningType,

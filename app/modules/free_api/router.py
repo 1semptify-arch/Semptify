@@ -9,6 +9,8 @@ All endpoints mounted at /freeapi/*
 from fastapi import APIRouter
 
 from app.modules.free_api_pack import api
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/freeapi", tags=["Free API Pack"])
 

@@ -10,6 +10,8 @@ from pydantic import BaseModel
 
 from app.core.security import require_user, StorageUser
 from app.services.form_data import get_form_data_service, FormDataService
+import logging
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter()
