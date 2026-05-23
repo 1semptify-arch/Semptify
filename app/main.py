@@ -119,7 +119,7 @@ async def lifespan(_app: FastAPI):
     - If all retries fail, wipes and starts fresh
     """
     lifespan_settings = get_settings()
-    logger = logging.getLogger(__name__)
+    lifespan_logger = logging.getLogger(__name__)
     
     # Configuration
     TOTAL_TIMEOUT = 120  # Total seconds allowed for setup (increased for slow migrations)
@@ -137,7 +137,7 @@ async def lifespan(_app: FastAPI):
         elapsed = time.time() - start_time
         remaining = time_remaining()
         bar = "█" * stage_num + "░" * (total - stage_num)
-        logger.info("[%s] Stage %s/%s: %s - %s (%.1fs elapsed, %.1fs remaining)", bar, stage_num, total, name, status, elapsed, remaining)
+        lifespan_logger.info("[%s] Stage %s/%s: %s - %s (%.1fs elapsed, %.1fs remaining)", bar, stage_num, total, name, status, elapsed, remaining)
     
     async def run_stage(stage_num: int, total: int, name: str, action, verify=None):
         """Run a stage with retries and verification."""
@@ -163,7 +163,7 @@ async def lifespan(_app: FastAPI):
                 return True
                 
             except (ValueError, RuntimeError, ImportError, AssertionError, TimeoutError) as e:
-                logger.warning("Stage %s '%s' attempt %s failed: %s", stage_num, name, attempt, e)
+                lifespan_logger.warning("Stage %s '%s' attempt %s failed: %s", stage_num, name, attempt, e)
                 if attempt < MAX_RETRIES:
                     await asyncio.sleep(STAGE_DELAY)
                 else:
@@ -172,9 +172,9 @@ async def lifespan(_app: FastAPI):
     
     async def wipe_and_reset():
         """Wipe everything clean for fresh start."""
-        logger.warning("=" * 50)
-        logger.warning("⚠️  WIPING EVERYTHING FOR FRESH START...")
-        logger.warning("=" * 50)
+        lifespan_logger.warning("=" * 50)
+        lifespan_logger.warning("⚠️  WIPING EVERYTHING FOR FRESH START...")
+        lifespan_logger.warning("=" * 50)
         
         # Remove runtime directories
         dirs_to_wipe = ["uploads", "logs", "data/semptify.db"]
@@ -183,15 +183,15 @@ async def lifespan(_app: FastAPI):
             if path.exists():
                 if path.is_file():
                     path.unlink()
-                    logger.info("  Removed file: %s", dir_path)
+                    lifespan_logger.info("  Removed file: %s", dir_path)
                 else:
                     shutil.rmtree(path, ignore_errors=True)
-                    logger.info("  Removed directory: %s", dir_path)
+                    lifespan_logger.info("  Removed directory: %s", dir_path)
         
         # Sessions and OAuth states are now DB-backed (no in-memory dicts to clear)
-        logger.info("  Sessions/OAuth states are DB-backed - no cache to clear")
+        lifespan_logger.info("  Sessions/OAuth states are DB-backed - no cache to clear")
         
-        logger.warning("🧹 Wipe complete - ready for fresh start")
+        lifespan_logger.warning("🧹 Wipe complete - ready for fresh start")
     
     # =========================================================================
     # STAGED SETUP PROCESS
@@ -231,11 +231,11 @@ async def lifespan(_app: FastAPI):
         "asyncpg": "PostgreSQL Driver",
     }
     
-    logger.info("=" * 60)
-    logger.info("🚀 STARTING %s v%s", lifespan_settings.app_name, lifespan_settings.app_version)
-    logger.info("   Security mode: %s", lifespan_settings.security_mode)
-    logger.info("   Timeout: %ss | Retries per stage: %s", TOTAL_TIMEOUT, MAX_RETRIES)
-    logger.info("=" * 60)
+    lifespan_logger.info("=" * 60)
+    lifespan_logger.info("🚀 STARTING %s v%s", lifespan_settings.app_name, lifespan_settings.app_version)
+    lifespan_logger.info("   Security mode: %s", lifespan_settings.security_mode)
+    lifespan_logger.info("   Timeout: %ss | Retries per stage: %s", TOTAL_TIMEOUT, MAX_RETRIES)
+    lifespan_logger.info("=" * 60)
     
     try:
         # --- STAGE 1: Verify Requirements ---
@@ -270,7 +270,7 @@ async def lifespan(_app: FastAPI):
         def verify_requirements():
             if missing_optional:
                 for pkg in missing_optional:
-                    logger.warning("   ⚠️  Optional: %s not installed", pkg)
+                    lifespan_logger.warning("   ⚠️  Optional: %s not installed", pkg)
             return len(missing_required) == 0
         
         await run_stage(1, TOTAL_STAGES, "Verify Requirements", check_requirements, verify_requirements)
@@ -311,7 +311,7 @@ async def lifespan(_app: FastAPI):
             
             # Only run auto-migration in production (Render sets RENDER=true)
             if not os.environ.get("RENDER"):
-                logger.info("   ⏭️  Auto-migration skipped (local dev)")
+                lifespan_logger.info("   ⏭️  Auto-migration skipped (local dev)")
                 return
             
             def _sync_migrate():
@@ -324,12 +324,12 @@ async def lifespan(_app: FastAPI):
                 # Run in thread executor to avoid blocking the async event loop
                 loop = asyncio.get_event_loop()
                 await asyncio.wait_for(loop.run_in_executor(None, _sync_migrate), timeout=120)
-                logger.info("   ✅ Database migrations applied")
+                lifespan_logger.info("   ✅ Database migrations applied")
                 
             except asyncio.TimeoutError:
-                logger.warning("   ⚠️  Migration timed out after 30s - continuing startup")
+                lifespan_logger.warning("   ⚠️  Migration timed out after 30s - continuing startup")
             except Exception as e:
-                logger.warning("   ⚠️  Migration check failed (may be first run): %s", e)
+                lifespan_logger.warning("   ⚠️  Migration check failed (may be first run): %s", e)
                 # Don't fail startup - migrations can be run manually if needed
         
         def verify_migrations():
@@ -421,26 +421,26 @@ async def lifespan(_app: FastAPI):
         # --- SETUP COMPLETE ---
         total_time = time.time() - start_time
         
-        logger.info("")
-        logger.info("=" * 60)
-        logger.info("✅ ✅ ✅  ALL STAGES COMPLETE  ✅ ✅ ✅")
-        logger.info("   Setup completed in %.2f seconds", total_time)
-        logger.info("")
+        lifespan_logger.info("")
+        lifespan_logger.info("=" * 60)
+        lifespan_logger.info("✅ ✅ ✅  ALL STAGES COMPLETE  ✅ ✅ ✅")
+        lifespan_logger.info("   Setup completed in %.2f seconds", total_time)
+        lifespan_logger.info("")
         if lifespan_settings.security_mode == "enforced":
-            logger.info("   🔒 PRODUCTION MODE: ENFORCED SECURITY ACTIVE")
-        logger.info("   🌐 Server: http://localhost:8000")
-        logger.info("   📄 Welcome: http://localhost:8000/")
-        logger.info("   📚 API Docs: http://localhost:8000/api/docs")
-        logger.info("=" * 60)
-        logger.info("")
+            lifespan_logger.info("   🔒 PRODUCTION MODE: ENFORCED SECURITY ACTIVE")
+        lifespan_logger.info("   🌐 Server: http://localhost:8000")
+        lifespan_logger.info("   📄 Welcome: http://localhost:8000/")
+        lifespan_logger.info("   📚 API Docs: http://localhost:8000/api/docs")
+        lifespan_logger.info("=" * 60)
+        lifespan_logger.info("")
         
     except TimeoutError as e:
-        logger.error("❌ SETUP TIMEOUT: %s", e)
+        lifespan_logger.error("❌ SETUP TIMEOUT: %s", e)
         await wipe_and_reset()
         raise SystemExit("Setup failed - timeout exceeded") from e
         
     except (RuntimeError, ValueError, ImportError, AssertionError, OSError) as e:
-        logger.error("❌ SETUP FAILED: %s", e)
+        lifespan_logger.error("❌ SETUP FAILED: %s", e)
         await wipe_and_reset()
         raise SystemExit(f"Setup failed after retries: {e}") from e
     
@@ -451,33 +451,33 @@ async def lifespan(_app: FastAPI):
     # DISABLED: Distributed mesh network (memory hog)
     # try:
     #     await start_mesh_network()
-    #     logger.info("🌐 Distributed Mesh Network started")
+    #     lifespan_logger.info("🌐 Distributed Mesh Network started")
     # except (OSError, RuntimeError, ValueError) as e:
-    #     logger.warning("⚠️ Mesh network start warning: %s", e)
+    #     lifespan_logger.warning("⚠️ Mesh network start warning: %s", e)
 
     yield  # Application runs here
 
     # --- GRACEFUL SHUTDOWN ---
-    logger.info("")
-    logger.info("=" * 50)
-    logger.info("🛑 SHUTTING DOWN GRACEFULLY...")
-    logger.info("=" * 50)
+    lifespan_logger.info("")
+    lifespan_logger.info("=" * 50)
+    lifespan_logger.info("🛑 SHUTTING DOWN GRACEFULLY...")
+    lifespan_logger.info("=" * 50)
     
     # Wait for background tasks to complete
     await task_manager.wait_for_completion(timeout=10.0)
-    logger.info("   Background tasks completed")
+    lifespan_logger.info("   Background tasks completed")
 
     # DISABLED: Distributed mesh network
     # try:
     #     await stop_mesh_network()
-    #     logger.info("🌐 Distributed Mesh Network stopped")
+    #     lifespan_logger.info("🌐 Distributed Mesh Network stopped")
     # except (OSError, RuntimeError, ValueError) as e:
-    #     logger.warning("⚠️ Mesh network stop warning: %s", e)
+    #     lifespan_logger.warning("⚠️ Mesh network stop warning: %s", e)
 
     await close_db()
-    logger.info("   Database connections closed")
-    logger.info("   Goodbye! 👋")
-    logger.info("=" * 50)
+    lifespan_logger.info("   Database connections closed")
+    lifespan_logger.info("   Goodbye! 👋")
+    lifespan_logger.info("=" * 50)
 # =============================================================================
 # HTML Page Generators for Legal Tools
 # =============================================================================
@@ -1328,9 +1328,13 @@ def generate_zoom_court_html() -> str:
 # Create FastAPI App
 # =============================================================================
 
+# Module-level logger for middleware functions
+logger = logging.getLogger(__name__)
+
 def create_app() -> FastAPI:
     """Application factory. Creates and configures the FastAPI application."""
-    logger = logging.getLogger(__name__)
+    # Use module-level logger for create_app
+    app_logger = logger
     
     app_settings = get_settings()
     setup_logging()
@@ -1541,7 +1545,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
     
     is_production = app_settings.security_mode == "enforced"
-    logger = logging.getLogger(__name__)
     
     # =========================================================================
     # Offline Detection Middleware
