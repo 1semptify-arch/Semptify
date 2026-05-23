@@ -74,6 +74,7 @@ PUBLIC_PATHS: Set[str] = {
     "/setup_wizard.html",
     "/index.html",
     "/index-simple.html",
+    "/activate-vault",
     
     # API docs (development only)
     "/docs",
