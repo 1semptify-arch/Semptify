@@ -27,8 +27,6 @@ from typing import List, Dict, Any, Optional, Tuple, Set
 from enum import Enum
 
 from .models import (
-import logging
-logger = logging.getLogger(__name__)
     LegalIssue, IssueSeverity, DocumentType, DocumentCategory,
     ExtractedEntity, EntityType, PartyRole,
     ReasoningChain, ReasoningStep, ReasoningType,

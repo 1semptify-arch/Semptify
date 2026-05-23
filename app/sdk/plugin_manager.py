@@ -713,8 +713,7 @@ def main():
     
     if args.command == "list":
         plugin_manager.discover_plugins()
-        logger.info("
-Discovered Plugins:")
+        logger.info("Discovered Plugins:")
         logger.info("-" * 60)
         for plugin in plugin_manager.plugins.values():
             status_icon = "✅" if plugin.status == PluginStatus.ACTIVE else "⚪"
@@ -728,8 +727,7 @@ Discovered Plugins:")
             args.description,
             args.output,
         )
-        logger.info(f"
-✅ Created plugin: {args.name}")
+        logger.info(f"Created plugin: {args.name}")
         logger.info(f"   Location: {args.output}/{args.name}")
     
     elif args.command == "load":

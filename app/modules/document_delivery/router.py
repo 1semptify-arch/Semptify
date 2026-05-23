@@ -25,8 +25,6 @@ from app.core.workflow_engine import route_user
 from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
 from app.models.document_delivery_models import (
-import logging
-logger = logging.getLogger(__name__)
     SendDocumentRequest,
     SendDocumentResponse,
     DeliveryListResponse,

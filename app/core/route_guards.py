@@ -356,8 +356,7 @@ if __name__ == "__main__":
     from app.core.page_manifest import get_high_priority_pages
     
     high_priority = get_high_priority_pages()
-    logger.info(f"
-High priority pages: {len(high_priority)}")
+    logger.info(f"High priority pages: {len(high_priority)}")
     
     for page in high_priority:
         contract = PAGE_CONTRACTS.get(page.page_id)
@@ -367,5 +366,4 @@ High priority pages: {len(high_priority)}")
         else:
             logger.info(f"  ✗ {page.page_id}: NO CONTRACT")
     
-    logger.info(f"
-Guard ready for integration with FastAPI routers.")
+    logger.info("Guard ready for integration with FastAPI routers.")

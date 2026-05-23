@@ -18,8 +18,6 @@ from app.core.config import get_settings, Settings
 from app.core.security import require_user, StorageUser
 from app.core.user_id import get_role_from_user_id
 from app.models.communication_models import (
-import logging
-logger = logging.getLogger(__name__)
     ConversationListResponse, MessageThreadResponse,
     SendMessageRequest, SendMessageResponse,
     CreateConversationRequest, CreateConversationResponse,

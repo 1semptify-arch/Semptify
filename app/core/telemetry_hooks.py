@@ -450,17 +450,14 @@ if __name__ == "__main__":
     EMITTER.flush()
     stats = EMITTER.get_buffer_stats()
     
-    logger.info(f"
-=== Stats ===", file=sys.stderr)
-    logger.info(f"Buffered: {stats['buffered']}", file=sys.stderr)
+    logger.info("=== Stats ===")
+    logger.info(f"Buffered: {stats['buffered']}")
     
     # Show missing priority mappings
     missing = validate_event_types()
     if missing:
-        logger.info(f"
-=== Missing Priority Mappings ({len(missing)} pages) ===", file=sys.stderr)
+        logger.info(f"=== Missing Priority Mappings ({len(missing)} pages) ===")
         for page_id, events in missing.items():
-            logger.info(f"  {page_id}: {events}", file=sys.stderr)
+            logger.info(f"  {page_id}: {events}")
     else:
-        logger.info("
-✅ All contract events have priority mappings", file=sys.stderr)
+        logger.info("All contract events have priority mappings")
