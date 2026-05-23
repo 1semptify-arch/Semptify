@@ -5,6 +5,8 @@ Self-contained SDK module for GDPR-compliant data export/import.
 """
 
 from app.sdk import ModuleManifest, ModuleCapability, ProductTier
+import logging
+logger = logging.getLogger(__name__)
 
 
 MANIFEST = ModuleManifest(

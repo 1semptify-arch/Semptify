@@ -11,6 +11,8 @@ from pydantic import BaseModel
 from app.core.security import require_user, StorageUser
 from app.core.database import get_db_session
 from .service import AutoModeOrchestrator
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/auto-mode", tags=["auto-mode"])
 

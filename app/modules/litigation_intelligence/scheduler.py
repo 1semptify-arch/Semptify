@@ -404,10 +404,10 @@ async def example_usage():
     
     # Register event handlers
     def on_task_completed(data):
-        print(f"Task completed: {data['task_name']}")
+        logger.info(f"Task completed: {data['task_name']}")
     
     def on_watchdog_alert(data):
-        print(f"Watchdog alert: {data['message']}")
+        logger.info(f"Watchdog alert: {data['message']}")
     
     scheduler.register_event_handler("task_completed", on_task_completed)
     scheduler.register_event_handler("watchdog_alert", on_watchdog_alert)
@@ -441,15 +441,15 @@ async def example_usage():
     # Start scheduler
     await scheduler.start()
     
-    print("Scheduler started with 2 tasks")
-    print(f"Tasks: {scheduler.get_all_tasks()}")
+    logger.info("Scheduler started with 2 tasks")
+    logger.info(f"Tasks: {scheduler.get_all_tasks()}")
     
     # Run for a bit
     await asyncio.sleep(10)
     
     # Stop scheduler
     await scheduler.stop()
-    print("Scheduler stopped")
+    logger.info("Scheduler stopped")
 
 if __name__ == "__main__":
     import asyncio

@@ -23,6 +23,8 @@ from dataclasses import dataclass
 
 from app.core.config import get_settings
 from app.sdk.vault.encryption import (
+import logging
+logger = logging.getLogger(__name__)
     MasterToken,
     encrypt_token as _sdk_encrypt_token,
     decrypt_token as _sdk_decrypt_token,

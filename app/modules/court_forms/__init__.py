@@ -3,6 +3,8 @@ Court Forms Module -- Court form generation.
 
 Public API:
     from app.modules.court_forms import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

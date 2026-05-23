@@ -349,21 +349,23 @@ def setup_guarded_routes(app, page_manifest: dict):
 # =============================================================================
 
 if __name__ == "__main__":
-    print("=== Route Guard System ===")
-    print(f"Page contracts loaded: {len(PAGE_CONTRACTS)}")
+    logger.info("=== Route Guard System ===")
+    logger.info(f"Page contracts loaded: {len(PAGE_CONTRACTS)}")
     
     # Check high-priority pages
     from app.core.page_manifest import get_high_priority_pages
     
     high_priority = get_high_priority_pages()
-    print(f"\nHigh priority pages: {len(high_priority)}")
+    logger.info(f"
+High priority pages: {len(high_priority)}")
     
     for page in high_priority:
         contract = PAGE_CONTRACTS.get(page.page_id)
         if contract:
             roles = [r.value for r in contract.roles_supported]
-            print(f"  ✓ {page.page_id}: roles={roles}")
+            logger.info(f"  ✓ {page.page_id}: roles={roles}")
         else:
-            print(f"  ✗ {page.page_id}: NO CONTRACT")
+            logger.info(f"  ✗ {page.page_id}: NO CONTRACT")
     
-    print(f"\nGuard ready for integration with FastAPI routers.")
+    logger.info(f"
+Guard ready for integration with FastAPI routers.")

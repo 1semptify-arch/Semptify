@@ -3,6 +3,8 @@ Vault Engine Module - Vault engine processing.
 
 Public API:
     from app.modules.vault_engine import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

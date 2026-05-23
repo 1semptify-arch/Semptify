@@ -18,6 +18,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.models import User, LinkedProvider
 from app.core.database import get_db_session
 from app.core.utc import utc_now
+import logging
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================

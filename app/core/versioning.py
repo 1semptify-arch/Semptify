@@ -7,6 +7,8 @@ Current version: v1
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
+import logging
+logger = logging.getLogger(__name__)
 
 
 # Version prefix constants

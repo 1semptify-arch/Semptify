@@ -6,6 +6,8 @@ maintaining core mechanics integrity.
 
 from dataclasses import dataclass
 from typing import Set
+import logging
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)

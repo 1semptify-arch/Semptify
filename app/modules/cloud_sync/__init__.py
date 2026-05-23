@@ -3,6 +3,8 @@ Cloud Sync Module -- User-controlled data persistence.
 
 Public API:
     from app.modules.cloud_sync import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

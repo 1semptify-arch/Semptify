@@ -17,8 +17,10 @@ Coverage values (see process_registry.py):
 
 Usage:
     from app.core.page_contracts import get_contract, PAGE_CONTRACTS
+import logging
+logger = logging.getLogger(__name__)
     contract = get_contract("welcome")
-    print(contract.group_coverage["documentation"])  # "guarded"
+    logger.info(contract.group_coverage["documentation"])  # "guarded"
 """
 
 from dataclasses import dataclass

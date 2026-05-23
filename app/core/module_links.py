@@ -11,6 +11,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Set
 from enum import Enum, auto
+import logging
+logger = logging.getLogger(__name__)
 
 
 class ModuleType(Enum):
@@ -455,8 +457,8 @@ def check_page_dependencies(page_id: str, available_modules: Set[str]) -> Dict[s
 # =============================================================================
 
 if __name__ == "__main__":
-    print("=== Module Links System ===")
-    print(f"Pages with module links: {len(ALL_MODULE_LINKS)}")
+    logger.info("=== Module Links System ===")
+    logger.info(f"Pages with module links: {len(ALL_MODULE_LINKS)}")
     
     # Count by module type
     type_counts: Dict[ModuleType, int] = {}
@@ -464,14 +466,14 @@ if __name__ == "__main__":
         for link in links:
             type_counts[link.module_type] = type_counts.get(link.module_type, 0) + 1
     
-    print("\nLinks by module type:")
+    logger.info("\nLinks by module type:")
     for mt, count in sorted(type_counts.items(), key=lambda x: x[1], reverse=True):
-        print(f"  {mt.name}: {count} links")
+        logger.info(f"  {mt.name}: {count} links")
     
     # Show sample
-    print("\nSample: dashboard modules")
+    logger.info("\nSample: dashboard modules")
     for link in DASHBOARD_MODULE_LINKS:
         req = "required" if link.required else "optional"
-        print(f"  - {link.module_id} ({req}) → {link.connection_point}")
+        logger.info(f"  - {link.module_id} ({req}) → {link.connection_point}")
     
-    print(f"\n✅ Module links ready for health checks.")
+    logger.info(f"\n✅ Module links ready for health checks.")

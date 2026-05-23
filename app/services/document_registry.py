@@ -32,6 +32,8 @@ import secrets
 import base64
 
 from app.core.config import get_settings
+import logging
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================

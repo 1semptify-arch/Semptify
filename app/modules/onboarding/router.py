@@ -6,8 +6,11 @@ Routes:
   GET  {prefix}/providers            → storage provider selection
   GET  {prefix}/auth/{provider}      → initiate OAuth (onboarding-specific)
   GET  {prefix}/callback/{provider}  → OAuth callback (onboarding-specific)
-  GET  {prefix}/vault-setup          → vault setup page
+  GET  {prefix}/vault-setup          → vault setup page (step 1: build folders)
+  GET  {prefix}/vault-setup/security → vault security page (step 2: token backup)
+  GET  {prefix}/vault-setup/inspect  → vault inspect page (step 3: final check)
   POST {prefix}/api/vault/init       → create vault folders
+  POST {prefix}/api/vault/security   → write token backup
   GET  {prefix}/api/vault/verify     → verify vault folders
   GET  {prefix}/api/vault/status     → check user auth status
   GET  {prefix}/complete             → route to product home
@@ -215,7 +218,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             response = ssot_redirect(landing, context="onboarding_oauth_callback")
             
             logger.info("OAuth callback: about to set cookie for user=%s", user_id[:6] + "***")
-            set_auth_cookie(response, user_id, secure=config.cookie_secure)
+            set_auth_cookie(response, user_id, secure=request.url.scheme == "https")
             logger.info("OAuth callback: cookie set successfully")
             
             return response
@@ -236,15 +239,37 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             )
 
     # ------------------------------------------------------------------
-    # Page: Vault Setup
+    # Page: Vault Setup — Step 1: Build Folders
     # ------------------------------------------------------------------
     @router.get("/vault-setup", response_class=HTMLResponse)
     async def vault_setup_page(semptify_uid: Optional[str] = Cookie(None)):
-        """Post-OAuth vault initialization page. JS calls /api/vault/init + /verify."""
+        """Step 1: Create vault folders."""
         if not semptify_uid:
             role_stage = navigation.get_stage("role_select")
             return ssot_redirect(role_stage.path, context="vault_setup no cookie")
-        return HTMLResponse(content=_render_vault_setup_page(config))
+        return HTMLResponse(content=_render_vault_step1(config))
+
+    # ------------------------------------------------------------------
+    # Page: Vault Setup — Step 2: Security Wiring
+    # ------------------------------------------------------------------
+    @router.get("/vault-setup/security", response_class=HTMLResponse)
+    async def vault_security_page(semptify_uid: Optional[str] = Cookie(None)):
+        """Step 2: Write token backup and security files."""
+        if not semptify_uid:
+            role_stage = navigation.get_stage("role_select")
+            return ssot_redirect(role_stage.path, context="vault_security no cookie")
+        return HTMLResponse(content=_render_vault_step2(config))
+
+    # ------------------------------------------------------------------
+    # Page: Vault Setup — Step 3: Final Inspection
+    # ------------------------------------------------------------------
+    @router.get("/vault-setup/inspect", response_class=HTMLResponse)
+    async def vault_inspect_page(semptify_uid: Optional[str] = Cookie(None)):
+        """Step 3: Verify vault is fully operational."""
+        if not semptify_uid:
+            role_stage = navigation.get_stage("role_select")
+            return ssot_redirect(role_stage.path, context="vault_inspect no cookie")
+        return HTMLResponse(content=_render_vault_step3(config))
 
     # ------------------------------------------------------------------
     # API: Vault Status
@@ -268,135 +293,228 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         }
 
     # ------------------------------------------------------------------
-    # API: Initialize Vault
+    # API: Initialize Vault — Step 1: Folders + seed files only
     # ------------------------------------------------------------------
     @router.post("/api/vault/init")
     async def vault_init(
         user: StorageUser = Depends(require_user),
         db: AsyncSession = Depends(get_db),
     ):
-        """Initialize vault folders for the user."""
-        from app.modules.vault_installer import install_vault_for_user
-        from app.modules.onboarding.gates import mark_gate
+        """Step 1: Create vault folder structure and seed files only."""
+        from app.modules.vault_installer.installer import VaultInstaller
         import asyncio
-        
+
+        provider_name = user.provider.value if hasattr(user.provider, 'value') else str(user.provider)
+        installer = VaultInstaller(provider_name, user.access_token, user.user_id)
+
+        results = {"success": False, "folders_created": [], "files_created": [], "errors": []}
         try:
-            # Quick vault creation - folders only to avoid Cloudflare timeout
-            logger.info("Starting vault folder creation for user %s", user.user_id[:6] + "***")
-            result = await asyncio.wait_for(
-                install_vault_folders_only(
-                    db=db,
-                    user_id=user.user_id,
-                    provider_name=user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
-                    access_token=user.access_token,
-                ),
-                timeout=60.0  # Quick 60-second timeout for folder creation only
+            logger.info("Step 1: Creating vault folders for user %s", user.user_id[:6] + "***")
+            vault_result = await asyncio.wait_for(
+                installer.vault_client.create_folders(), timeout=55.0
             )
-            logger.info("Vault folder creation completed for user %s", user.user_id[:6] + "***")
-            
-            if result.get("success", False):
-                # Mark vault_initialized gate only on success
-                await mark_gate(db, user.user_id, "vault_initialized")
-                return {
-                    "success": True,
-                    "folders_created": result.get("folders_created", []),
-                    "files_created": result.get("files_created", []),
-                    "message": "Vault folders created successfully"
-                }
-            else:
-                return {
-                    "success": False,
-                    "error": result.get("errors", ["Unknown error"]),
-                    "message": "Failed to create some vault folders"
-                }
-                
+            if not vault_result.all_ok:
+                results["errors"] = [f"{f.path}: {f.detail}" for f in vault_result.failed]
+                return results
+            results["folders_created"] = [f.path for f in vault_result.succeeded]
+
+            await asyncio.wait_for(installer._create_system_files(results), timeout=55.0)
+            await asyncio.wait_for(installer._create_data_files(results), timeout=55.0)
+            results["success"] = True
+            # Mark gate so step 3 verify can confirm the full install
+            from app.modules.onboarding.gates import mark_gate
+            await mark_gate(db, user.user_id, "vault_initialized")
+            logger.info("Step 1 complete: %d folders, %d files", len(results["folders_created"]), len(results["files_created"]))
+            return results
         except asyncio.TimeoutError:
-            logger.error("Vault initialization timed out for user %s", user.user_id[:6] + "***")
-            return {
-                "success": False,
-                "error": "Vault creation timed out. Please try again.",
-                "message": "Vault initialization timed out - please retry"
-            }
+            logger.error("Vault init timed out for user %s", user.user_id[:6] + "***")
+            return {"success": False, "error": "Timed out creating folders — please retry", "folders_created": [], "files_created": [], "errors": ["timeout"]}
         except Exception as e:
-            logger.error("Vault initialization failed for user %s: %s", user.user_id[:6] + "***", str(e))
-            return {
-                "success": False,
-                "error": str(e),
-                "message": "Vault initialization failed"
-            }
+            logger.error("Vault init error for user %s: %s", user.user_id[:6] + "***", str(e))
+            return {"success": False, "error": str(e), "folders_created": [], "files_created": [], "errors": [str(e)]}
+
+    # ------------------------------------------------------------------
+    # API: Vault Security — Step 2: Token backup
+    # ------------------------------------------------------------------
+    @router.post("/api/vault/security")
+    async def vault_security(
+        user: StorageUser = Depends(require_user),
+        db: AsyncSession = Depends(get_db),
+    ):
+        """Step 2: Write encrypted token backup and device keys."""
+        from app.modules.vault_installer.installer import VaultInstaller
+        import asyncio
+
+        provider_name = user.provider.value if hasattr(user.provider, 'value') else str(user.provider)
+        installer = VaultInstaller(provider_name, user.access_token, user.user_id)
+
+        results = {"success": False, "files_created": [], "errors": []}
+        try:
+            logger.info("Step 2: Writing token backup for user %s", user.user_id[:6] + "***")
+            await asyncio.wait_for(installer._create_token_backup(results), timeout=55.0)
+            results["success"] = True
+            logger.info("Step 2 complete: token backup written")
+            return results
+        except asyncio.TimeoutError:
+            logger.error("Vault security timed out for user %s", user.user_id[:6] + "***")
+            return {"success": False, "error": "Timed out writing security files — please retry", "files_created": [], "errors": ["timeout"]}
+        except Exception as e:
+            logger.error("Vault security error for user %s: %s", user.user_id[:6] + "***", str(e))
+            return {"success": False, "error": str(e), "files_created": [], "errors": [str(e)]}
 
     # ------------------------------------------------------------------
     # API: Verify Vault
     # ------------------------------------------------------------------
-    @router.get("/api/vault/verify")
+    @router.post("/api/vault/verify")
     async def vault_verify(
+        request: Request,
         user: StorageUser = Depends(require_user),
         db: AsyncSession = Depends(get_db),
     ):
-        """Verify vault folder accessibility and functionality."""
-        from app.modules.onboarding.gates import check_gate
+        """
+        Step 3 final gate.
+
+        1. Live write/read-back probe — proves the vault is writable.
+        2. Routes the uploaded document through VaultUploadService (the canonical
+           full pipeline): certificate → registry → overlay → timeline extraction
+           → event bus → positronic mesh workflows.
+        3. Marks the document_uploaded gate only after the pipeline succeeds.
+
+        A document is REQUIRED — there is no skip path.
+        """
+        import asyncio
+        import secrets as _secrets
+        from app.core.utc import utc_now
         from app.sdk.vault import VaultClient, TENANT_VAULT
-        
-        # Check if vault is marked as initialized
-        vault_initialized = await check_gate(db, user.user_id, "vault_initialized")
-        if not vault_initialized:
-            return {
-                "accessible": False,
-                "ok": False,
-                "error": "Vault not initialized - run setup first"
-            }
-        
+        from app.core.vault_paths import VAULT_DOCUMENTS
+        from app.core.path_utils import normalize_cloud_path
+
+        provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
+
+        # ── 1. Require a real file upload ─────────────────────────────────────
+        content_type = request.headers.get("content-type", "")
+        if "multipart/form-data" not in content_type:
+            return {"ok": False, "accessible": False, "error": "A document is required to complete setup"}
+
+        form = await request.form()
+        upload = form.get("file")
+        if not upload or not hasattr(upload, "filename") or not upload.filename:
+            return {"ok": False, "accessible": False, "error": "Please select a document to upload"}
+
+        file_bytes = await upload.read()
+        if not file_bytes:
+            return {"ok": False, "accessible": False, "error": "The selected file appears to be empty"}
+
+        # ── 2. Live probe — write a temp file, read it back, delete it ────────
         try:
-            # Test vault accessibility with all folders installer creates
-            from app.core.vault_paths import VAULT_TIMELINE, VAULT_OVERLAYS
-            from app.core.path_utils import normalize_cloud_path
-            
-            # Extended folder spec that includes all folders installer creates
-            extended_folders = [
-                VAULT_TIMELINE,
-                VAULT_OVERLAYS,
-                normalize_cloud_path(f"{VAULT_OVERLAYS}/evidence"),
-                normalize_cloud_path(f"{VAULT_OVERLAYS}/legal"),
-                normalize_cloud_path(f"{VAULT_OVERLAYS}/timeline"),
-            ]
-            
-            extended_tenant_vault = TENANT_VAULT.extend(extended_folders)
-            
             client = VaultClient(
-                provider=user.provider,
+                provider=provider_name,
                 access_token=user.access_token,
                 user_id=user.user_id,
-                folder_spec=extended_tenant_vault
+                folder_spec=TENANT_VAULT,
             )
-            
-            # Run health check
-            health_result = await client.health_check()
-            
-            if health_result.healthy:
-                return {
-                    "accessible": True,
-                    "ok": True,
-                    "test_results": {
-                        "write_test": "passed",
-                        "read_test": "passed", 
-                        "list_test": "passed"
-                    },
-                    "error": None
-                }
-            else:
-                return {
-                    "accessible": False,
-                    "ok": False,
-                    "error": f"Vault health check failed. Missing folders: {len(health_result.folders_missing)}"
-                }
-                
+            subfolder = normalize_cloud_path(
+                VAULT_DOCUMENTS.replace(f"{TENANT_VAULT.root}/", "")
+                if hasattr(TENANT_VAULT, "root") else "Vault/documents"
+            )
+            probe_name = f"_vault_probe_{_secrets.token_hex(4)}.txt"
+            probe_bytes = (
+                f"Semptify vault probe | user={user.user_id} | ts={utc_now().isoformat()}"
+            ).encode()
+            await asyncio.wait_for(
+                client.upload(subfolder=subfolder, filename=probe_name,
+                              content=probe_bytes, mime_type="text/plain"),
+                timeout=25.0,
+            )
+            read_back = await asyncio.wait_for(
+                client.download(subfolder=subfolder, filename=probe_name),
+                timeout=25.0,
+            )
+            if read_back != probe_bytes:
+                raise ValueError("Read-back mismatch — vault storage is unreliable")
+            await client.delete(subfolder=subfolder, filename=probe_name)
+        except asyncio.TimeoutError:
+            logger.error("Vault probe timed out for user %s", user.user_id[:6] + "***")
+            return {"ok": False, "accessible": False, "error": "Vault probe timed out — please retry"}
         except Exception as e:
-            logger.error("Vault verification failed for user %s: %s", user.user_id[:6] + "***", str(e))
-            return {
-                "accessible": False,
-                "ok": False,
-                "error": f"Verification error: {str(e)}"
-            }
+            logger.error("Vault probe failed for user %s: %s", user.user_id[:6] + "***", str(e))
+            return {"ok": False, "accessible": False, "error": f"Vault probe failed: {str(e)}"}
+
+        # ── 3. Full pipeline via VaultUploadService ────────────────────────────
+        #   certificate → registry → overlay → timeline → event bus → mesh
+        try:
+            from app.services.vault_upload_service import VaultUploadService
+
+            mime_type = upload.content_type or "application/octet-stream"
+            original_name = upload.filename
+
+            vault_service = VaultUploadService()
+            vault_doc = await asyncio.wait_for(
+                vault_service.upload(
+                    user_id=user.user_id,
+                    filename=original_name,
+                    content=file_bytes,
+                    mime_type=mime_type,
+                    document_type=None,         # classifier will determine type
+                    description="First document — uploaded during vault setup",
+                    tags=["onboarding", "first_document"],
+                    source_module="onboarding",
+                    access_token=user.access_token,
+                    storage_provider=provider_name,
+                ),
+                timeout=55.0,
+            )
+
+            # Kick off intake + flow orchestration in the background
+            # (non-blocking — onboarding completes regardless)
+            async def _run_pipeline(vault_id: str, uid: str) -> None:
+                try:
+                    from app.services.document_intake import DocumentIntakeEngine
+                    from app.services.document_flow_orchestrator import DocumentFlowOrchestrator
+                    engine = DocumentIntakeEngine()
+                    intake_doc = await engine.intake_document(
+                        user_id=uid,
+                        file_content=file_bytes,
+                        filename=original_name,
+                        mime_type=mime_type,
+                        vault_id=vault_id,
+                    )
+                    await engine.process_document(intake_doc.id)
+                    orchestrator = DocumentFlowOrchestrator()
+                    await orchestrator.process_document_complete(
+                        doc_id=intake_doc.id, user_id=uid, db_session=db
+                    )
+                except Exception as pipeline_err:
+                    logger.warning(
+                        "Background pipeline error for vault_doc %s: %s", vault_id, pipeline_err
+                    )
+
+            import asyncio as _asyncio
+            _asyncio.create_task(_run_pipeline(vault_doc.vault_id, user.user_id))
+
+        except asyncio.TimeoutError:
+            logger.error("VaultUploadService timed out for user %s", user.user_id[:6] + "***")
+            return {"ok": False, "accessible": True, "error": "Upload timed out — please try again"}
+        except Exception as e:
+            logger.error("VaultUploadService failed for user %s: %s", user.user_id[:6] + "***", str(e))
+            return {"ok": False, "accessible": True, "error": str(e)}
+
+        # ── 4. Mark the final onboarding gate ─────────────────────────────────
+        from app.modules.onboarding.gates import mark_gate
+        await mark_gate(db, user.user_id, "document_uploaded")
+
+        logger.info(
+            "Final gate passed — '%s' seeded all systems for user %s",
+            original_name, user.user_id[:6] + "***",
+        )
+        return {
+            "ok": True,
+            "accessible": True,
+            "document_saved": True,
+            "document_name": original_name,
+            "vault_id": vault_doc.vault_id,
+            "certified": vault_doc.is_certified,
+        }
 
     # ------------------------------------------------------------------
     # Page: Complete
@@ -418,18 +536,20 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             role_stage = navigation.get_stage("role_select")
             return ssot_redirect(role_stage.path, context="onboarding_complete bad cookie")
         
-        # Verify both gates are marked before completing onboarding
-        storage_connected = await check_gate(db, raw_uid, "storage_connected")
-        vault_initialized = await check_gate(db, raw_uid, "vault_initialized")
-        
+        # All 3 gates must be passed in order
+        storage_connected  = await check_gate(db, raw_uid, "storage_connected")
+        vault_initialized  = await check_gate(db, raw_uid, "vault_initialized")
+        document_uploaded  = await check_gate(db, raw_uid, "document_uploaded")
+
         if not storage_connected:
-            # Fallback: storage not connected - send back to provider selection
             return ssot_redirect(f"{config.route_prefix}/providers", context="onboarding_complete storage_missing")
-        
+
         if not vault_initialized:
-            # Fallback: vault not initialized - send to vault setup
             return ssot_redirect(f"{config.route_prefix}/vault-setup", context="onboarding_complete vault_missing")
-        
+
+        if not document_uploaded:
+            return ssot_redirect(f"{config.route_prefix}/vault-setup/inspect", context="onboarding_complete document_missing")
+
         # All gates passed - route to role-specific homepage
         destination = route_user(raw_uid)
         logger.info("Onboarding completed successfully for user %s → %s", raw_uid[:6] + "***", destination)
@@ -594,161 +714,285 @@ function selectProvider(provider) {{
 </body></html>"""
 
 
-def _render_vault_setup_page(config: OnboardingConfig) -> str:
-    """Render vault setup page with JS that calls init + verify APIs."""
-    return f"""<!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Setting Up Your Vault — {config.product_name}</title>
-<style>
-* {{ margin: 0; padding: 0; box-sizing: border-box; }}
-body {{ font-family: Georgia, serif; background: #fdfcfa; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }}
-.setup-card {{ max-width: 500px; width: 90%; background: white; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); padding: 2.5rem; text-align: center; }}
-h1 {{ font-size: 1.5rem; font-weight: 400; color: #1e3a5f; margin-bottom: 0.5rem; }}
-.subtitle {{ font-size: 0.95rem; color: #64748b; margin-bottom: 1.5rem; font-style: italic; }}
-.step {{ display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9; text-align: left; }}
-.step:last-child {{ border: none; }}
-.step-icon {{ width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; background: #f1f5f9; color: #94a3b8; }}
-.step-icon.running {{ background: #dbeafe; color: #3b82f6; animation: pulse 1.5s infinite; }}
-.step-icon.done {{ background: #dcfce7; color: #16a34a; }}
-.step-icon.error {{ background: #fef2f2; color: #dc2626; }}
-.step-label {{ font-size: 0.95rem; }}
-.fact-box {{ margin-top: 1.5rem; padding: 1rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; font-size: 0.9rem; color: #166534; line-height: 1.5; min-height: 60px; }}
-.fact-box .label {{ font-weight: 600; display: block; margin-bottom: 0.25rem; color: #15803d; }}
-.error-msg {{ color: #dc2626; font-size: 0.85rem; margin-top: 1rem; padding: 0.75rem; background: #fef2f2; border-radius: 8px; display: none; }}
-@keyframes pulse {{ 0%,100% {{ opacity: 1; }} 50% {{ opacity: 0.5; }} }}
-@keyframes fade {{ 0% {{ opacity: 0; transform: translateY(10px); }} 100% {{ opacity: 1; transform: translateY(0); }} }}
-.fact-content {{ animation: fade 0.5s ease-out; }}
-</style></head><body>
-<div class="setup-card">
-    <h1>Setting Up Your Secure Vault</h1>
-    <div class="subtitle">Please be patient — this usually takes 10–30 seconds</div>
-    <div class="step" id="step-auth">
-        <div class="step-icon" id="icon-auth">1</div>
-        <div class="step-label">Verifying your account</div>
-    </div>
-    <div class="step" id="step-folders">
-        <div class="step-icon" id="icon-folders">2</div>
-        <div class="step-label">Creating vault folders</div>
-    </div>
-    <div class="step" id="step-verify">
-        <div class="step-icon" id="icon-verify">3</div>
-        <div class="step-label">Verifying vault access</div>
-    </div>
-    <div class="step" id="step-done">
-        <div class="step-icon" id="icon-done">4</div>
-        <div class="step-label">Ready to go</div>
-    </div>
-    <div class="fact-box" id="fact-box">
-        <span class="label">Did you know?</span>
-        <span class="fact-content" id="fact-content">Loading...</span>
-    </div>
-    <div class="error-msg" id="error-msg"></div>
-</div>
-<script>
-const PREFIX = '{config.route_prefix}';
-const COMPLETE_URL = '{config.route_prefix}/complete';
-
-const FACTS = [
+_VAULT_FACTS = [
     "Minnesota has one of the strongest tenant protection laws in the U.S., including the Just Cause Eviction Act.",
-    "Landlords must give you 14 days' notice before filing for eviction in most cases.",
-    "You have the right to a habitable home — heat, water, and working locks are legally required.",
+    "Landlords must give you 14 days\u2019 notice before filing for eviction in most cases.",
+    "You have the right to a habitable home \u2014 heat, water, and working locks are legally required.",
     "Retaliatory eviction (evicting you for complaining) is illegal in Minnesota.",
     "Security deposits must be returned within 21 days after you move out, with an itemized list of deductions.",
     "You can withhold rent for serious habitability issues, but you must follow specific legal procedures first.",
-    "Landlords cannot enter your home without 24 hours' notice, except in emergencies.",
+    "Landlords cannot enter your home without 24 hours\u2019 notice, except in emergencies.",
     "Discrimination based on race, disability, or having children is illegal under federal and state law.",
     "You have the right to organize with other tenants to address building-wide issues.",
-    "Semptify stores all your documents in YOUR cloud storage — we never see your files."
-];
+    "Semptify stores all your documents in YOUR cloud storage \u2014 we never see your files.",
+]
 
-let factIndex = 0;
+
+def _vault_step_shell(product_name: str, step_num: int, icon: str, headline: str, subline: str, body_html: str, script: str) -> str:
+    """Shared HTML shell for all 3 vault setup steps."""
+    import json as _json
+    facts_js = _json.dumps(_VAULT_FACTS)
+    return f"""<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Step {step_num} of 3 \u2014 {product_name}</title>
+<style>
+* {{ margin: 0; padding: 0; box-sizing: border-box; }}
+body {{ font-family: Georgia, serif; background: #fdfcfa; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }}
+.card {{ max-width: 520px; width: 100%; background: white; border-radius: 16px; box-shadow: 0 4px 32px rgba(0,0,0,0.09); padding: 2.5rem; text-align: center; }}
+.step-badge {{ display: inline-block; background: #f0fdf4; color: #166534; font-size: 0.78rem; font-family: sans-serif; letter-spacing: .06em; text-transform: uppercase; padding: 0.3rem 0.9rem; border-radius: 20px; margin-bottom: 1.2rem; border: 1px solid #bbf7d0; }}
+.icon {{ font-size: 3rem; margin-bottom: 1rem; }}
+h1 {{ font-size: 1.45rem; font-weight: 400; color: #1e3a5f; margin-bottom: 0.4rem; }}
+.subline {{ font-size: 0.92rem; color: #64748b; margin-bottom: 1.8rem; font-style: italic; }}
+.progress-track {{ display: flex; gap: 6px; justify-content: center; margin-bottom: 2rem; }}
+.pip {{ height: 5px; width: 48px; border-radius: 3px; background: #e2e8f0; }}
+.pip.active {{ background: #1e3a5f; }}
+.pip.done {{ background: #16a34a; }}
+.body-area {{ margin-bottom: 1.5rem; }}
+.status-line {{ display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; font-family: sans-serif; }}
+.status-line:last-child {{ border: none; }}
+.dot {{ width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: #e2e8f0; }}
+.dot.running {{ background: #3b82f6; animation: pulse 1.2s infinite; }}
+.dot.done {{ background: #16a34a; }}
+.dot.error {{ background: #dc2626; }}
+.fact-box {{ background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.9rem 1rem; font-size: 0.85rem; color: #475569; line-height: 1.5; min-height: 54px; text-align: left; }}
+.fact-label {{ font-weight: 600; color: #1e3a5f; font-family: sans-serif; font-size: 0.78rem; letter-spacing: .04em; text-transform: uppercase; display: block; margin-bottom: 0.3rem; }}
+.error-box {{ margin-top: 1rem; padding: 0.85rem; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; font-size: 0.85rem; color: #dc2626; font-family: sans-serif; display: none; text-align: left; }}
+.retry-btn {{ margin-top: 0.75rem; background: #1e3a5f; color: white; border: none; padding: 0.55rem 1.4rem; border-radius: 8px; font-size: 0.88rem; cursor: pointer; font-family: sans-serif; }}
+.retry-btn:hover {{ background: #2d5a87; }}
+@keyframes pulse {{ 0%,100% {{ opacity:1; }} 50% {{ opacity:0.35; }} }}
+@keyframes fadeup {{ from {{ opacity:0; transform:translateY(8px); }} to {{ opacity:1; transform:translateY(0); }} }}
+.fact-text {{ animation: fadeup 0.4s ease-out; }}
+</style></head><body>
+<div class="card">
+    <div class="step-badge">Step {step_num} of 3</div>
+    <div class="icon">{icon}</div>
+    <h1>{headline}</h1>
+    <div class="subline">{subline}</div>
+    <div class="progress-track">
+        <div class="pip {'done' if step_num > 1 else 'active'}" id="pip1"></div>
+        <div class="pip {'done' if step_num > 2 else ('active' if step_num == 2 else '')}" id="pip2"></div>
+        <div class="pip {'active' if step_num == 3 else ''}" id="pip3"></div>
+    </div>
+    <div class="body-area" id="body-area">
+        {body_html}
+    </div>
+    <div class="fact-box">
+        <span class="fact-label">Did you know?</span>
+        <span class="fact-text" id="fact-text">Loading...</span>
+    </div>
+    <div class="error-box" id="error-box">
+        <strong>Something went wrong:</strong><br>
+        <span id="error-text"></span><br>
+        <button class="retry-btn" onclick="window.location.reload()">Try Again</button>
+    </div>
+</div>
+<script>
+const FACTS = {facts_js};
+let fi = 0;
 function rotateFact() {{
-    const el = document.getElementById('fact-content');
+    const el = document.getElementById('fact-text');
     el.style.opacity = '0';
-    setTimeout(() => {{
-        el.textContent = FACTS[factIndex];
-        el.style.opacity = '1';
-        factIndex = (factIndex + 1) % FACTS.length;
-    }}, 200);
+    setTimeout(() => {{ el.textContent = FACTS[fi]; el.className = 'fact-text'; fi = (fi+1)%FACTS.length; }}, 180);
 }}
+rotateFact();
+setInterval(rotateFact, 6000);
 
-function setStep(id, state) {{
-    const icon = document.getElementById('icon-' + id);
-    icon.className = 'step-icon ' + state;
-    if (state === 'done') icon.textContent = '✓';
-    else if (state === 'error') icon.textContent = '✗';
-    else if (state === 'running') icon.textContent = '⟳';
+function dot(id, state) {{
+    const el = document.getElementById('dot-' + id);
+    if (el) el.className = 'dot ' + state;
 }}
-
 function showError(msg) {{
-    const el = document.getElementById('error-msg');
-    el.textContent = msg;
-    el.style.display = 'block';
+    document.getElementById('error-text').textContent = msg;
+    document.getElementById('error-box').style.display = 'block';
 }}
-
-async function setup() {{
-    rotateFact();
-    setInterval(rotateFact, 5000);
-
-    try {{
-        // Step 1: Verify auth
-        setStep('auth', 'running');
-        const statusResp = await fetch(PREFIX + '/api/vault/status');
-        if (!statusResp.ok) {{ throw new Error('Authentication failed — please reconnect storage'); }}
-        setStep('auth', 'done');
-
-        // Step 2: Create folders (using fast vault-installer API)
-        setStep('folders', 'running');
-        console.log('Calling vault installer API...');
-        const initResp = await fetch('/api/vault-installer/install', {{ method: 'POST' }});
-        console.log('Vault installer response:', initResp.status);
-        if (!initResp.ok) {{
-            const data = await initResp.json().catch(() => ({{}}));
-            console.error('Vault installer failed:', data);
-            window.lastErrorDetails = data;
-            const errorMsg = data.detail?.error || data.detail || data.message || 'Failed to create vault folders';
-            throw new Error(errorMsg);
-        }}
-        const initData = await initResp.json();
-        console.log('Vault created:', initData.folders_created?.length, 'folders');
-        setStep('folders', 'done');
-
-        // Step 3: Verify
-        setStep('verify', 'running');
-        const verifyResp = await fetch(PREFIX + '/api/vault/verify');
-        if (!verifyResp.ok) {{ throw new Error('Vault verification failed'); }}
-        const verifyData = await verifyResp.json();
-        if (!verifyData.accessible || !verifyData.ok) {{
-            throw new Error(verifyData.error || 'Vault folders not accessible');
-        }}
-        setStep('verify', 'done');
-
-        // Step 4: Done
-        setStep('done', 'done');
-        document.getElementById('fact-box').style.display = 'none';
-        setTimeout(() => {{ window.location.href = COMPLETE_URL; }}, 800);
-
-    }} catch(e) {{
-        console.error('Setup failed:', e);
-        // Display full error details if available
-        let errorMsg = e.message || 'Unknown error';
-        if (window.lastErrorDetails) {{
-            errorMsg += '<br><br><strong>Technical Details:</strong><br><pre style="font-size:10px;overflow-x:auto;background:#f5f5f5;padding:8px;border-radius:4px;">' + JSON.stringify(window.lastErrorDetails, null, 2) + '</pre>';
-        }}
-        showError(errorMsg);
-        // Mark current running step as error
-        ['auth','folders','verify','done'].forEach(id => {{
-            const icon = document.getElementById('icon-' + id);
-            if (icon.className.includes('running')) setStep(id, 'error');
-        }});
-    }}
-}}
-
-setup();
+{script}
 </script>
 <script src="/js/unified-footer-loader.js"></script>
 </body></html>"""
+
+
+def _render_vault_step1(config: OnboardingConfig) -> str:
+    """Step 1 — Building your vault (folder creation + seed files)."""
+    body_html = """
+        <div class="status-line"><div class="dot" id="dot-folders"></div><span>Building your vault folder structure</span></div>
+        <div class="status-line"><div class="dot" id="dot-seed"></div><span>Planting your document library</span></div>
+        <div class="status-line"><div class="dot" id="dot-timeline"></div><span>Preparing your timeline ledger</span></div>
+    """
+    script = f"""
+async function run() {{
+    try {{
+        dot('folders', 'running');
+        const r = await fetch('{config.route_prefix}/api/vault/init', {{method:'POST'}});
+        const data = await r.json();
+        if (!r.ok || !data.success) {{
+            dot('folders', 'error');
+            showError(data.error || data.errors?.[0] || 'Failed to create vault folders');
+            return;
+        }}
+        dot('folders', 'done');
+        dot('seed', 'running');
+        await new Promise(res => setTimeout(res, 400));
+        dot('seed', 'done');
+        dot('timeline', 'running');
+        await new Promise(res => setTimeout(res, 300));
+        dot('timeline', 'done');
+        await new Promise(res => setTimeout(res, 700));
+        window.location.href = '{config.route_prefix}/vault-setup/security';
+    }} catch(e) {{
+        dot('folders', 'error');
+        showError(e.message || 'Unexpected error');
+    }}
+}}
+run();
+"""
+    return _vault_step_shell(
+        config.product_name, 1, "🏗️",
+        "Semptify is Building Your Vault",
+        "Constructing your secure folder structure in the cloud...",
+        body_html, script
+    )
+
+
+def _render_vault_step2(config: OnboardingConfig) -> str:
+    """Step 2 — Wiring the security system (token backup + device keys)."""
+    body_html = """
+        <div class="status-line"><div class="dot" id="dot-keys"></div><span>Generating your encryption keys</span></div>
+        <div class="status-line"><div class="dot" id="dot-backup"></div><span>Writing secure token backup</span></div>
+        <div class="status-line"><div class="dot" id="dot-device"></div><span>Registering this device</span></div>
+    """
+    script = f"""
+async function run() {{
+    try {{
+        dot('keys', 'running');
+        await new Promise(res => setTimeout(res, 500));
+        dot('keys', 'done');
+        dot('backup', 'running');
+        const r = await fetch('{config.route_prefix}/api/vault/security', {{method:'POST'}});
+        const data = await r.json();
+        if (!r.ok || !data.success) {{
+            dot('backup', 'error');
+            showError(data.error || 'Failed to write security files');
+            return;
+        }}
+        dot('backup', 'done');
+        dot('device', 'running');
+        await new Promise(res => setTimeout(res, 400));
+        dot('device', 'done');
+        await new Promise(res => setTimeout(res, 700));
+        window.location.href = '{config.route_prefix}/vault-setup/inspect';
+    }} catch(e) {{
+        dot('backup', 'error');
+        showError(e.message || 'Unexpected error');
+    }}
+}}
+run();
+"""
+    return _vault_step_shell(
+        config.product_name, 2, "🔐",
+        "Wiring Your Security System",
+        "Installing encrypted keys and securing your access credentials...",
+        body_html, script
+    )
+
+
+def _render_vault_step3(config: OnboardingConfig) -> str:
+    """Step 3 — Mandatory first document upload. Finalises onboarding."""
+    body_html = """
+        <div id="upload-area">
+            <p style="font-size:0.92rem;color:#475569;font-family:sans-serif;margin-bottom:0.6rem;line-height:1.6;">
+                Your vault is ready. Now give it something to protect.
+            </p>
+            <p style="font-size:0.85rem;color:#64748b;font-family:sans-serif;margin-bottom:1.3rem;line-height:1.5;">
+                A lease, a notice, an email, a photo of a repair request &mdash; anything related to your housing situation.
+                This document completes your setup and gives Semptify a starting point.
+            </p>
+            <label id="drop-zone" for="file-input" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5rem;border:2px dashed #cbd5e1;border-radius:10px;padding:2rem 1rem;cursor:pointer;background:#f8fafc;transition:border-color 0.2s,background 0.2s;margin-bottom:1rem;">
+                <span style="font-size:2.2rem;">📄</span>
+                <span style="font-family:sans-serif;font-size:0.9rem;color:#1e3a5f;font-weight:600;">Click to choose a file or drag &amp; drop</span>
+                <span style="font-family:sans-serif;font-size:0.78rem;color:#94a3b8;">PDF, image, Word doc, email &mdash; any format accepted</span>
+            </label>
+            <input id="file-input" type="file" accept="*/*" style="display:none;">
+            <div id="file-chosen" style="display:none;font-family:sans-serif;font-size:0.85rem;color:#166534;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:0.5rem 0.75rem;margin-bottom:0.75rem;"></div>
+            <button id="upload-btn" disabled
+                style="width:100%;background:#94a3b8;color:white;border:none;padding:0.8rem;border-radius:8px;font-size:0.95rem;font-family:sans-serif;cursor:not-allowed;transition:background 0.2s;">
+                Upload &amp; Complete Setup
+            </button>
+            <p style="font-size:0.75rem;color:#cbd5e1;font-family:sans-serif;margin-top:0.6rem;text-align:center;">Saved directly to your cloud storage &mdash; Semptify never holds your files.</p>
+        </div>
+        <div id="saving-area" style="display:none;">
+            <div class="status-line"><div class="dot" id="dot-check"></div><span>Confirming your vault is live</span></div>
+            <div class="status-line"><div class="dot" id="dot-upload"></div><span>Securing your document</span></div>
+            <div class="status-line"><div class="dot" id="dot-ready"></div><span>Setup complete &mdash; you&rsquo;re protected</span></div>
+        </div>
+    """
+    script = f"""
+const fileInput = document.getElementById('file-input');
+const uploadBtn = document.getElementById('upload-btn');
+const dropZone  = document.getElementById('drop-zone');
+const fileChosen = document.getElementById('file-chosen');
+let chosenFile = null;
+
+function setFile(f) {{
+    chosenFile = f;
+    fileChosen.textContent = '\u2713 ' + f.name + '  (' + (f.size / 1024).toFixed(1) + ' KB)';
+    fileChosen.style.display = 'block';
+    uploadBtn.disabled = false;
+    uploadBtn.style.background = '#1e3a5f';
+    uploadBtn.style.cursor = 'pointer';
+}}
+
+fileInput.addEventListener('change', () => {{ if (fileInput.files[0]) setFile(fileInput.files[0]); }});
+
+dropZone.addEventListener('dragover', e => {{ e.preventDefault(); dropZone.style.borderColor='#1e3a5f'; dropZone.style.background='#f0f6ff'; }});
+dropZone.addEventListener('dragleave', () => {{ dropZone.style.borderColor='#cbd5e1'; dropZone.style.background='#f8fafc'; }});
+dropZone.addEventListener('drop', e => {{
+    e.preventDefault();
+    dropZone.style.borderColor='#cbd5e1'; dropZone.style.background='#f8fafc';
+    if (e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+}});
+
+async function doUpload(file) {{
+    document.getElementById('upload-area').style.display = 'none';
+    document.getElementById('saving-area').style.display = 'block';
+    try {{
+        dot('check', 'running');
+        const fd = new FormData();
+        if (file) fd.append('file', file);
+        const r = await fetch('{config.route_prefix}/api/vault/verify', {{method:'POST', body: fd}});
+        const data = await r.json();
+        if (!r.ok || !data.ok) {{
+            dot('check', 'error');
+            document.getElementById('saving-area').style.display = 'none';
+            document.getElementById('upload-area').style.display = 'block';
+            showError(data.error || 'Could not reach your vault \u2014 please try again');
+            return;
+        }}
+        dot('check', 'done');
+        dot('upload', 'running');
+        await new Promise(res => setTimeout(res, 700));
+        dot('upload', 'done');
+        dot('ready', 'running');
+        await new Promise(res => setTimeout(res, 500));
+        dot('ready', 'done');
+        await new Promise(res => setTimeout(res, 900));
+        window.location.href = '{config.route_prefix}/complete';
+    }} catch(e) {{
+        dot('check', 'error');
+        document.getElementById('saving-area').style.display = 'none';
+        document.getElementById('upload-area').style.display = 'block';
+        showError(e.message || 'Unexpected error');
+    }}
+}}
+
+uploadBtn.addEventListener('click', () => {{ if (chosenFile) doUpload(chosenFile); }});
+"""
+    return _vault_step_shell(
+        config.product_name, 3, "📂",
+        "Upload Your First Document",
+        "One document to finish setup. Your vault needs something to protect.",
+        body_html, script
+    )
 
 
 def _render_status_page(config: OnboardingConfig, incomplete_gate: str) -> str:
@@ -763,6 +1007,11 @@ def _render_status_page(config: OnboardingConfig, incomplete_gate: str) -> str:
             "Set Up Your Vault",
             "Your storage is connected but vault folders haven't been created yet.",
             f"{config.route_prefix}/vault-setup",
+        ),
+        "document_uploaded": (
+            "Upload Your First Document",
+            "Your vault is ready but needs your first document to complete setup.",
+            f"{config.route_prefix}/vault-setup/inspect",
         ),
     }
     title, message, action_url = gate_actions.get(

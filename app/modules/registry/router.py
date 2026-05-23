@@ -18,6 +18,8 @@ from app.core.utc import utc_now
 
 from app.core.security import get_optional_user_id, require_user, UserContext
 from app.services.document_registry import (
+import logging
+logger = logging.getLogger(__name__)
     get_document_registry,
     DocumentStatus,
     IntegrityStatus,

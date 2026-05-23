@@ -10,6 +10,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 from app.core.id_gen import make_id
+import logging
+logger = logging.getLogger(__name__)
 
 
 @dataclass

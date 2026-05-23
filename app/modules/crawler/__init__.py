@@ -3,6 +3,8 @@ Crawler Module -- Web crawler for legal data.
 
 Public API:
     from app.modules.crawler import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

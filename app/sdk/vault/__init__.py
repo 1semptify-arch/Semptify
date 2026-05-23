@@ -6,6 +6,8 @@ Takes a provider name, access token, and user ID. Does storage operations.
 
 Usage:
     from app.sdk.vault import VaultClient, TENANT_VAULT
+import logging
+logger = logging.getLogger(__name__)
 
     vault = VaultClient(
         provider="google_drive",

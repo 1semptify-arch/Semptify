@@ -12,6 +12,8 @@ import re
 from dataclasses import dataclass, field
 from typing import List, Dict, Tuple, Optional
 from enum import Enum
+import logging
+logger = logging.getLogger(__name__)
 
 
 class DocumentTone(str, Enum):

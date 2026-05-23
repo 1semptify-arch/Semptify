@@ -12,6 +12,8 @@ import hashlib
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any
+import logging
+logger = logging.getLogger(__name__)
 
 
 @dataclass

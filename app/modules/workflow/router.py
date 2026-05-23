@@ -34,6 +34,8 @@ from app.models.models import CalendarEvent as CalendarEventModel, TimelineEvent
 from app.services.storage import get_provider
 from app.services.timeline_extraction import TimelineStore
 from app.services.positronic_brain import get_brain
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/workflow", tags=["Workflow Engine"])
 

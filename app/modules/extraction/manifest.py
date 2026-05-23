@@ -5,6 +5,8 @@ Self-contained SDK module for Form field extraction AI.
 """
 
 from app.sdk import ModuleManifest, ModuleCapability, ProductTier
+import logging
+logger = logging.getLogger(__name__)
 
 
 MANIFEST = ModuleManifest(

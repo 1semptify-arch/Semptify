@@ -3,6 +3,8 @@ Free API Module — Public data lookups for tenant rights research.
 
 Public API:
     from app.modules.free_api import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 
 Endpoints (all under /freeapi):

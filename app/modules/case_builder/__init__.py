@@ -3,6 +3,8 @@ Case Builder Module — Eviction defense case building.
 
 Public API:
     from app.modules.case_builder import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 
 Endpoints (under /api/case-builder):

@@ -1,4 +1,6 @@
 """
+import logging
+logger = logging.getLogger(__name__)
 Vault SDK error hierarchy.
 
 All vault-specific errors inherit from VaultError so callers can

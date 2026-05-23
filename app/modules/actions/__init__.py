@@ -3,6 +3,8 @@ Smart Actions Module -- Smart action automation.
 
 Public API:
     from app.modules.actions import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

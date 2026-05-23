@@ -3,6 +3,8 @@ HUD Funding Guide Module -- HUD funding guide.
 
 Public API:
     from app.modules.hud_funding import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

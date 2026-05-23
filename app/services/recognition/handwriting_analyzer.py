@@ -21,6 +21,8 @@ from enum import Enum
 
 from app.core.id_gen import make_id
 import math
+import logging
+logger = logging.getLogger(__name__)
 
 
 class SignatureStatus(str, Enum):

@@ -3,6 +3,8 @@ Timeline Module — Unified chronological event tracking.
 
 Public API:
     from app.modules.timeline import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 
 Endpoints (under /api/timeline):

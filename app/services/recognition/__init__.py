@@ -16,13 +16,15 @@ Architecture:
 
 Usage:
     from app.services.recognition import DocumentRecognitionEngine
+import logging
+logger = logging.getLogger(__name__)
     
     engine = DocumentRecognitionEngine()
     result = await engine.analyze(document_text, filename="eviction_notice.pdf")
     
-    print(f"Document Type: {result.document_type}")
-    print(f"Confidence: {result.confidence.overall_score}")
-    print(f"Critical Issues: {result.legal_analysis.critical_issues}")
+    logger.info(f"Document Type: {result.document_type}")
+    logger.info(f"Confidence: {result.confidence.overall_score}")
+    logger.info(f"Critical Issues: {result.legal_analysis.critical_issues}")
 """
 
 from .engine import DocumentRecognitionEngine

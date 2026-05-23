@@ -6,6 +6,8 @@ Import everything you need from here to integrate a new module.
 
 Quick Start:
     from app.sdk import ModuleSDK, ModuleDefinition
+import logging
+logger = logging.getLogger(__name__)
     
     module = ModuleDefinition(name="my_module", ...)
     sdk = ModuleSDK(module)

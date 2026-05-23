@@ -3,6 +3,8 @@ Setup Wizard Module -- Application setup wizard.
 
 Public API:
     from app.modules.setup import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

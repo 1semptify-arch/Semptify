@@ -8,7 +8,7 @@ Generates professional PDF/HTML certificates that can be:
 4. Presented to landlords/attorneys as proof
 
 Certificate includes:
-- Document fingerprint (SHA-256 hash)
+- Document fingerlogger.info(SHA-256 hash)
 - Timestamp with cryptographic proof
 - Chain of custody summary
 - QR code for online verification
@@ -29,6 +29,8 @@ from dataclasses import dataclass, asdict
 
 from app.core.config import get_settings
 from app.services.storage.legal_integrity import (
+import logging
+logger = logging.getLogger(__name__)
     hash_document,
     create_timestamp_proof,
     DocumentProof,

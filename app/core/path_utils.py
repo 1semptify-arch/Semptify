@@ -6,6 +6,8 @@ Normalize paths for different storage systems to prevent folder creation conflic
 import re
 from typing import Union
 from pathlib import Path, PurePosixPath, PureWindowsPath
+import logging
+logger = logging.getLogger(__name__)
 
 
 def normalize_cloud_path(path: Union[str, Path]) -> str:

@@ -331,16 +331,16 @@ async def example_usage():
         attorney_name="Smith"
     )
     
-    print(f"Found {len(cases)} cases")
+    logger.info(f"Found {len(cases)} cases")
     for case in cases:
-        print(f"Case: {case['case_number']} - {case['case_title']}")
+        logger.info(f"Case: {case['case_number']} - {case['case_title']}")
     
     # Scrape eFileMN filings
     filings = await scraper.scrape_efilemn_filings("27-CV-21-12345")
     
-    print(f"Found {len(filings)} filings")
+    logger.info(f"Found {len(filings)} filings")
     for filing in filings:
-        print(f"Filing: {filing['filing_date']} - {filing['filing_type']}")
+        logger.info(f"Filing: {filing['filing_date']} - {filing['filing_type']}")
 
 if __name__ == "__main__":
     asyncio.run(example_usage())

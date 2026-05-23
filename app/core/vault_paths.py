@@ -1,6 +1,8 @@
 """Canonical cloud vault paths (single source of truth)."""
 
 from app.core.path_utils import normalize_cloud_path
+import logging
+logger = logging.getLogger(__name__)
 
 SEMPTIFY_ROOT = normalize_cloud_path("Semptify5.0")
 AUTH_FOLDER = normalize_cloud_path(f"{SEMPTIFY_ROOT}/auth")
