@@ -198,6 +198,7 @@ class VaultDocumentIndex:
                 # Add to vault_index
                 db_doc = self._doc_to_db_model(doc)
                 await session.merge(db_doc)
+                await session.flush()  # Ensure vault_index row exists before FK check
                 
                 # Add to user index
                 user_idx = VaultUserIndexDB(
