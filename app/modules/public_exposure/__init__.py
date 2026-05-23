@@ -3,6 +3,8 @@ Public Exposure Module -- Public exposure tracking.
 
 Public API:
     from app.modules.public_exposure import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

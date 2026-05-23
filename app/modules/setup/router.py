@@ -15,6 +15,8 @@ from app.core.database import get_db_session
 from app.models.models import User, Document
 from sqlalchemy import select, update
 from app.core.utc import utc_now
+import logging
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter()

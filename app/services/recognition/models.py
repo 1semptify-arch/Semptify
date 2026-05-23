@@ -14,6 +14,8 @@ from datetime import datetime, date
 from enum import Enum
 from typing import Optional, List, Dict, Any, Set, Tuple
 from app.core.id_gen import make_id
+import logging
+logger = logging.getLogger(__name__)
 
 
 # ============================================================================

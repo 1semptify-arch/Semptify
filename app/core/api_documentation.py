@@ -772,7 +772,7 @@ if login_response.status_code == 200:
     
     if docs_response.status_code == 200:
         documents = docs_response.json()['documents']
-        print(f"Found {len(documents)} documents")
+        logger.info(f"Found {len(documents)} documents")
         """,
         description="Python - Basic API Usage",
         filename="basic_usage.py"

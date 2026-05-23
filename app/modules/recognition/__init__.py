@@ -3,6 +3,8 @@ Document Recognition Module -- AI document recognition.
 
 Public API:
     from app.modules.recognition import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

@@ -16,6 +16,8 @@ from typing import Optional
 
 from app.core.utc import utc_now
 from app.models.models import InviteCode
+import logging
+logger = logging.getLogger(__name__)
 
 # Alphabet for readable codes (no ambiguous characters)
 CODE_ALPHABET = string.ascii_uppercase + string.digits

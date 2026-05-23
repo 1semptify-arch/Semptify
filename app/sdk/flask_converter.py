@@ -744,12 +744,13 @@ Has File Handling: {analysis.has_file_handling}
 Routes Found:
 """)
         for route in analysis.routes:
-            print(f"  {', '.join(route.methods):<10} {route.path:<30} -> {route.function_name}")
+            logger.info(f"  {', '.join(route.methods):<10} {route.path:<30} -> {route.function_name}")
         
         for bp in analysis.blueprints:
-            print(f"\nBlueprint: {bp.name} (prefix: {bp.url_prefix})")
+            logger.info(f"
+Blueprint: {bp.name} (prefix: {bp.url_prefix})")
             for route in bp.routes:
-                print(f"  {', '.join(route.methods):<10} {route.path:<30} -> {route.function_name}")
+                logger.info(f"  {', '.join(route.methods):<10} {route.path:<30} -> {route.function_name}")
     
     elif args.print_only:
         result = converter.convert_file(
@@ -757,7 +758,7 @@ Routes Found:
             module_name,
             args.display_name,
         )
-        print(result)
+        logger.info(result)
     
     else:
         converter.convert_file(

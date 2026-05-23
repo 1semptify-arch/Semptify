@@ -27,6 +27,8 @@ document — it belongs in an overlay in their cloud, not here.
 import enum
 from datetime import datetime
 from typing import Optional
+import logging
+logger = logging.getLogger(__name__)
 
 try:
     from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, Boolean, Float, Enum

@@ -12,6 +12,8 @@ from typing import Optional
 import httpx
 
 from app.core.config import get_settings
+import logging
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -80,7 +82,7 @@ class GroqAIService:
             result = await self._call_groq(prompt)
             return self._parse_result(result)
         except Exception as e:
-            print(f"Groq analysis failed: {e}")
+            logger.error(f"Groq analysis failed: {e}")
             return self._fallback_analysis(text, filename)
 
     def _build_analysis_prompt(
@@ -299,7 +301,7 @@ Be direct and helpful. Don't use legal jargon."""
                     return result["choices"][0]["message"]["content"].strip()
                     
         except Exception as e:
-            print(f"Summary generation failed: {e}")
+            logger.error(f"Summary generation failed: {e}")
             
         return "Unable to generate summary. Please review the document."
 

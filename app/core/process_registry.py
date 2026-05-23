@@ -15,6 +15,8 @@ Coverage states used by PageContract:
 from dataclasses import dataclass
 from typing import FrozenSet
 from app.core.user_context import UserRole
+import logging
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================

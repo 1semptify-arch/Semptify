@@ -14,6 +14,8 @@ from enum import Enum
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, Field
 from app.core.id_gen import make_id
+import logging
+logger = logging.getLogger(__name__)
 
 
 class MessageType(str, Enum):

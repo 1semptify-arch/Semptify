@@ -296,7 +296,7 @@ class ModuleSDK:
         Usage:
             @sdk.on_event("workflow_started")
             async def handle_workflow(event_type, data):
-                print(f"Workflow started: {data}")
+                logger.info(f"Workflow started: {data}")
         """
         def decorator(func: Callable):
             if event_type not in self.event_handlers:

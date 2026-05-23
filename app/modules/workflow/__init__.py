@@ -3,6 +3,8 @@ Workflow Module - Workflow management and execution.
 
 Public API:
     from app.modules.workflow import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

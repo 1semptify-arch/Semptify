@@ -1310,8 +1310,8 @@ if __name__ == '__main__':
     import sys
     
     if len(sys.argv) < 2:
-        print("Usage: python document_converter.py <markdown_file> [output_format]")
-        print("  output_format: docx, html, or both (default: both)")
+        logger.info("Usage: python document_converter.py <markdown_file> [output_format]")
+        logger.info("  output_format: docx, html, or both (default: both)")
         sys.exit(1)
     
     input_file = sys.argv[1]
@@ -1321,11 +1321,11 @@ if __name__ == '__main__':
     
     if output_format == 'docx':
         result = converter.convert_to_docx(input_file)
-        print(f"Created: {result}")
+        logger.info(f"Created: {result}")
     elif output_format == 'html':
         result = converter.convert_to_html(input_file)
-        print(f"Created: {result}")
+        logger.info(f"Created: {result}")
     else:
         results = converter.convert_to_both(input_file)
-        print(f"Created DOCX: {results['docx']}")
-        print(f"Created HTML: {results['html']}")
+        logger.info(f"Created DOCX: {results['docx']}")
+        logger.info(f"Created HTML: {results['html']}")

@@ -11,6 +11,8 @@ This module provides:
 
 from .i18n import get_string, get_all_strings, get_supported_languages, is_rtl
 from .pdf import (
+import logging
+logger = logging.getLogger(__name__)
     generate_answer_pdf,
     generate_counterclaim_pdf,
     generate_motion_pdf,

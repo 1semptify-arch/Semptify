@@ -14,6 +14,8 @@ from pydantic import BaseModel, Field
 
 from app.core.security import require_user, StorageUser
 from .service import (
+import logging
+logger = logging.getLogger(__name__)
     VaultAccessEngine,
     get_vault_engine,
     ResourceType,

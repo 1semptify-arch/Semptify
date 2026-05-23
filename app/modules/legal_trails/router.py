@@ -9,6 +9,8 @@ from typing import Optional, List
 from datetime import datetime, date
 from enum import Enum
 from app.core.utc import utc_now
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/legal-trails", tags=["Legal Trails"])
 

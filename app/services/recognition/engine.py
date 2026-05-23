@@ -10,10 +10,10 @@ Usage:
     result = await engine.analyze(document_text, filename="notice.pdf")
     
     # Access results
-    print(result.document_type)          # DocumentType.EVICTION_NOTICE
-    print(result.confidence.overall_score)  # 87.5
-    print(result.legal_analysis.issues)  # List of detected issues
-    print(result.relationships.get_tenant())  # Extracted tenant info
+    logger.info(result.document_type)          # DocumentType.EVICTION_NOTICE
+    logger.info(result.confidence.overall_score)  # 87.5
+    logger.info(result.legal_analysis.issues)  # List of detected issues
+    logger.info(result.relationships.get_tenant())  # Extracted tenant info
 """
 
 import asyncio

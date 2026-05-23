@@ -3,6 +3,8 @@ Tools Module -- Utility tools API.
 
 Public API:
     from app.modules.tools_api import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

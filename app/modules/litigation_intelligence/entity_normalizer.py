@@ -398,27 +398,29 @@ if __name__ == "__main__":
         "Harbor View Development LLC"
     ]
     
-    print("Entity Normalization Test Results:")
-    print("=" * 50)
+    logger.info("Entity Normalization Test Results:")
+    logger.info("=" * 50)
     
     for name in test_names:
         result = normalizer.normalize_entity(name, "general")
-        print(f"Original: {result.original_name}")
-        print(f"Normalized: {result.normalized_name}")
-        print(f"Type: {result.entity_type}")
-        print(f"Confidence: {result.confidence:.2f}")
-        print(f"Aliases: {', '.join(result.aliases)}")
-        print("-" * 30)
+        logger.info(f"Original: {result.original_name}")
+        logger.info(f"Normalized: {result.normalized_name}")
+        logger.info(f"Type: {result.entity_type}")
+        logger.info(f"Confidence: {result.confidence:.2f}")
+        logger.info(f"Aliases: {', '.join(result.aliases)}")
+        logger.info("-" * 30)
     
     # Test entity relationships
     entities = normalizer.resolve_entities(test_names)
     relationships = normalizer.get_entity_relationships(entities)
     
-    print("\nEntity Relationships:")
-    print("=" * 50)
+    logger.info("
+Entity Relationships:")
+    logger.info("=" * 50)
     for entity_type, related_entities in relationships.items():
-        print(f"{entity_type.title()}: {', '.join(related_entities)}")
+        logger.info(f"{entity_type.title()}: {', '.join(related_entities)}")
     
     # Statistics
     stats = normalizer.get_statistics()
-    print(f"\nStatistics: {stats}")
+    logger.info(f"
+Statistics: {stats}")

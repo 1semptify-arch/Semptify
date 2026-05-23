@@ -8,6 +8,8 @@ to fulfill that purpose, then implement.
 
 Usage:
     from app.core.page_recipe import PageRecipe, PageComponent
+import logging
+logger = logging.getLogger(__name__)
     
     recipe = PageRecipe(
         page_id="document_intake",
