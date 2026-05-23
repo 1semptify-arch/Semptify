@@ -22,6 +22,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional, Any
 from app.core.id_gen import make_id
+import logging
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================

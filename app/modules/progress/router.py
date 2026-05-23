@@ -14,6 +14,8 @@ from app.core.security import get_optional_user_id
 from ..services.progress_tracker import progress_tracker, MilestoneCategory
 from ..services.emotion_engine import emotion_engine
 from app.core.utc import utc_now
+import logging
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix="/progress", tags=["Progress Tracker"])

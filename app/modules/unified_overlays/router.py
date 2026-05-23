@@ -16,6 +16,8 @@ from app.core.config import get_settings, Settings
 from app.core.security import require_user, StorageUser, verify_function_token_for_operation
 from app.core.overlay_types import OverlayType
 from app.models.unified_overlay_models import (
+import logging
+logger = logging.getLogger(__name__)
     CreateOverlayRequest,
     CreateOverlayResponse,
     GetOverlaysResponse,

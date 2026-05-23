@@ -7,6 +7,8 @@ Simple registration - just add the routes to the app.
 from fastapi import FastAPI
 
 from .routes import create_router
+import logging
+logger = logging.getLogger(__name__)
 
 
 def register_vault_installer(app: FastAPI):
@@ -18,4 +20,4 @@ def register_vault_installer(app: FastAPI):
     router = create_router()
     app.include_router(router)
     
-    print("📦 Vault installer module registered")
+    logger.info("📦 Vault installer module registered")

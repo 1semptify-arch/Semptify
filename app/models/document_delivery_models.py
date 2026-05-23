@@ -16,6 +16,8 @@ from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, Field
 from app.core.id_gen import make_id
+import logging
+logger = logging.getLogger(__name__)
 
 
 class DeliveryType(str, Enum):

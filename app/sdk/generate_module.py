@@ -298,7 +298,7 @@ def generate_module(
         filepath = os.path.join(output_dir, f"{module_name}.py")
         with open(filepath, "w") as f:
             f.write(content)
-        print(f"✅ Generated module: {filepath}")
+        logger.info(f"✅ Generated module: {filepath}")
         
         # Print next steps
         print(f"""
@@ -384,7 +384,7 @@ def main():
     )
     
     if args.print_only:
-        print(content)
+        logger.info(content)
 
 
 if __name__ == "__main__":

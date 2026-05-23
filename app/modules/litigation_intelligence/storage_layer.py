@@ -514,7 +514,7 @@ async def example_usage():
     }
     
     case_id = await storage.store_case(case_data)
-    print(f"Stored case: {case_id}")
+    logger.info(f"Stored case: {case_id}")
     
     # Store an entity
     entity_data = {
@@ -528,11 +528,11 @@ async def example_usage():
     }
     
     entity_id = await storage.store_entity(entity_data)
-    print(f"Stored entity: {entity_id}")
+    logger.info(f"Stored entity: {entity_id}")
     
     # Get statistics
     stats = await storage.get_statistics()
-    print(f"Storage statistics: {stats}")
+    logger.info(f"Storage statistics: {stats}")
     
     await storage.close()
 

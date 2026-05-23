@@ -3,6 +3,8 @@ Admin Module - Workflow validation and admin tools.
 
 Public API:
     from app.modules.workflow_validator import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

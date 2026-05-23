@@ -12,6 +12,8 @@ from typing import Optional
 import httpx
 
 from app.core.config import get_settings
+import logging
+logger = logging.getLogger(__name__)
 
 
 @dataclass

@@ -14,6 +14,8 @@ from typing import Optional
 import httpx
 
 from app.core.config import get_settings
+import logging
+logger = logging.getLogger(__name__)
 
 
 class DocumentType(str, Enum):
@@ -105,7 +107,7 @@ class AzureAIService:
                 
                 # If extraction failed or got very little text, try Azure OCR
                 if len(full_text.strip()) < 50 and self.api_key:
-                    print(f"Local extraction got {len(full_text)} chars, trying Azure OCR...")
+                    logger.info(f"Local extraction got {len(full_text)} chars, trying Azure OCR...")
                     ocr_result = extractor.extract_with_ocr(
                         content,
                         azure_endpoint=self.endpoint,
@@ -120,7 +122,7 @@ class AzureAIService:
                             "confidence": ocr_result.confidence
                         }
             except Exception as e:
-                print(f"PDF extraction error: {e}, falling back to Azure")
+                logger.error(f"PDF extraction error: {e}, falling back to Azure")
                 # Fallback to Azure Document Intelligence
                 raw_result = await self._extract_with_doc_intelligence(content, mime_type)
                 full_text = self._get_text_from_result(raw_result)
@@ -286,7 +288,7 @@ Respond in JSON format:
         try:
             result = await self._call_ollama(prompt, settings)
             if result:
-                print("✓ Using Ollama (free, local)")
+                logger.info("✓ Using Ollama (free, local)")
                 return result
         except Exception as e:
             pass  # Silent fail, try next
@@ -295,23 +297,23 @@ Respond in JSON format:
         if settings.groq_api_key:
             try:
                 result = await self._call_groq(prompt, settings)
-                print("✓ Using Groq (free tier)")
+                logger.info("✓ Using Groq (free tier)")
                 return result
             except Exception as e:
-                print(f"Groq failed: {e}")
+                logger.error(f"Groq failed: {e}")
 
         # 3. Try Azure OpenAI (paid, but you may have free credits)
         if settings.azure_openai_endpoint and settings.azure_openai_api_key:
             try:
                 result = await self._call_azure_openai(prompt, settings)
                 if result:
-                    print("✓ Using Azure OpenAI")
+                    logger.info("✓ Using Azure OpenAI")
                     return result
             except Exception as e:
-                print(f"Azure OpenAI failed: {e}")
+                logger.error(f"Azure OpenAI failed: {e}")
 
         # 4. Fall back to rule-based (always free, always works)
-        print("✓ Using rule-based classification (free)")
+        logger.info("✓ Using rule-based classification (free)")
         return self._rule_based_classify(prompt)
 
     async def _call_azure_openai(self, prompt: str, settings) -> Optional[dict]:

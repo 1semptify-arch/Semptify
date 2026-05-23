@@ -19,6 +19,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional, Tuple
+import logging
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================

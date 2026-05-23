@@ -594,21 +594,24 @@ async def example_usage():
     # Analyze case
     report = await engine.analyze_case(case_data)
     
-    print(f"Intelligence Report for Case {report.case_id}")
-    print("=" * 50)
-    print(f"Analysis Date: {report.analysis_date}")
-    print(f"Risk Level: {report.risk_assessment.risk_level.value}")
-    print(f"Risk Score: {report.risk_assessment.risk_score:.2f}")
-    print(f"Success Probability: {report.success_probability:.2f}")
-    print(f"\nPatterns Detected:")
+    logger.info(f"Intelligence Report for Case {report.case_id}")
+    logger.info("=" * 50)
+    logger.info(f"Analysis Date: {report.analysis_date}")
+    logger.info(f"Risk Level: {report.risk_assessment.risk_level.value}")
+    logger.info(f"Risk Score: {report.risk_assessment.risk_score:.2f}")
+    logger.info(f"Success Probability: {report.success_probability:.2f}")
+    logger.info(f"
+Patterns Detected:")
     for pattern in report.patterns_detected:
-        print(f"  - {pattern.pattern_type.value}: {pattern.description}")
-    print(f"\nStrategic Recommendations:")
+        logger.info(f"  - {pattern.pattern_type.value}: {pattern.description}")
+    logger.info(f"
+Strategic Recommendations:")
     for rec in report.strategic_recommendations:
-        print(f"  - {rec}")
-    print(f"\nTimeline Predictions:")
+        logger.info(f"  - {rec}")
+    logger.info(f"
+Timeline Predictions:")
     for prediction in report.timeline_predictions:
-        print(f"  - {prediction['event']}: {prediction['predicted_date']}")
+        logger.info(f"  - {prediction['event']}: {prediction['predicted_date']}")
 
 if __name__ == "__main__":
     import asyncio

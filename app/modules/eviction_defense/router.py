@@ -21,6 +21,8 @@ from app.services.law_engine import get_law_engine
 from app.services.form_data import get_form_data_service
 from app.core.document_hub import get_document_hub
 from app.core.utc import utc_now
+import logging
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix="/api/eviction-defense", tags=["Eviction Defense"])

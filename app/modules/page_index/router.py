@@ -9,6 +9,8 @@ from datetime import datetime
 from typing import List, Optional
 from pydantic import BaseModel
 from fastapi import APIRouter, Query
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/pages", tags=["Page Index"])
 

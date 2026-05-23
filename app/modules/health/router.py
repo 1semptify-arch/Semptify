@@ -25,6 +25,8 @@ from fastapi.responses import PlainTextResponse, JSONResponse, HTMLResponse
 
 from app.core.config import Settings, get_settings
 from app.core.security import get_metrics, incr_metric, record_request_latency
+import logging
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter()

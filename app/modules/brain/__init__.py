@@ -3,6 +3,8 @@ Brain Module — Positronic Brain central intelligence hub.
 
 Public API:
     from app.modules.brain import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 
 Endpoints (under /brain):

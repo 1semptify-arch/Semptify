@@ -8,6 +8,8 @@ from typing import Optional, BinaryIO
 from dataclasses import dataclass
 from datetime import datetime
 from app.core.vault_paths import SEMPTIFY_ROOT, AUTH_FOLDER, VAULT_DOCUMENTS, TOKEN_FILE as _VAULT_TOKEN_FILE
+import logging
+logger = logging.getLogger(__name__)
 
 
 @dataclass

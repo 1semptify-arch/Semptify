@@ -17,6 +17,8 @@ Legal Standards Compliance:
 
 Usage:
     from app.services.storage.legal_integrity import LegalIntegrity
+import logging
+logger = logging.getLogger(__name__)
     
     integrity = LegalIntegrity(user_id)
     

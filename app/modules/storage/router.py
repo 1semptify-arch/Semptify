@@ -195,7 +195,7 @@ async def _cleanup_expired_states(db: AsyncSession) -> None:
         sa_delete(OAuthState).where(OAuthState.expires_at < utc_now())
     )
     if result.rowcount:
-        print(f"🧹 Cleaned up {result.rowcount} expired OAuth states")
+        logger.info(f"🧹 Cleaned up {result.rowcount} expired OAuth states")
 
     # Transitional cleanup for legacy in-memory state map.
     now = utc_now()
@@ -319,7 +319,7 @@ async def refresh_access_token(
                 return None
             
             if response.status_code != 200:
-                print(f"Token refresh failed for {provider}: {response.status_code} - {response.text}")
+                logger.error(f"Token refresh failed for {provider}: {response.status_code} - {response.text}")
                 return None
             
             token_data = response.json()
@@ -339,7 +339,7 @@ async def refresh_access_token(
                 expires_at=expires_at,
             )
             
-            print(f"Token refreshed successfully for user {user_id[:4]}*** ({provider})")
+            logger.info(f"Token refreshed successfully for user {user_id[:4]}*** ({provider})")
             
             return {
                 "access_token": new_access_token,
@@ -348,7 +348,7 @@ async def refresh_access_token(
             }
     
     except Exception as e:
-        print(f"Token refresh error for {provider}: {e}")
+        logger.error(f"Token refresh error for {provider}: {e}")
         return None
 
 
@@ -427,14 +427,14 @@ async def get_valid_session(
             expires_at = expires_at.replace(tzinfo=timezone.utc)
         if utc_now() >= (expires_at - TOKEN_EXPIRY_BUFFER):
             needs_refresh = True
-            print(f"Token expired for user {user_id[:4]}*** - attempting refresh")
+            logger.info(f"Token expired for user {user_id[:4]}*** - attempting refresh")
     
     # If no expiry info, validate with provider
     if not needs_refresh and not expires_at:
         is_valid = await validate_token_with_provider(provider, access_token)
         if not is_valid:
             needs_refresh = True
-            print(f"Token invalid for user {user_id[:4]}*** - attempting refresh")
+            logger.info(f"Token invalid for user {user_id[:4]}*** - attempting refresh")
     
     # Attempt refresh if needed
     if needs_refresh and auto_refresh and refresh_token:
@@ -444,7 +444,7 @@ async def get_valid_session(
             return await get_session_from_db(db, user_id)
         else:
             # Refresh failed - session is invalid
-            print(f"Token refresh failed for user {user_id[:4]}*** - session invalidated")
+            logger.error(f"Token refresh failed for user {user_id[:4]}*** - session invalidated")
             return None
 
     if needs_refresh and not auto_refresh:
@@ -452,7 +452,7 @@ async def get_valid_session(
         return None
     
     if needs_refresh and not refresh_token:
-        print(f"Token expired and no refresh token for user {user_id[:4]}***")
+        logger.info(f"Token expired and no refresh token for user {user_id[:4]}***")
         return None
     
     return session
@@ -1757,9 +1757,9 @@ async def initiate_oauth(
     - return_to: URL to redirect to after OAuth (for setup wizards)
     """
     try:
-        print(f"DEBUG: OAuth init for provider: {provider}")
+        logger.debug(f"DEBUG: OAuth init for provider: {provider}")
         if provider not in OAUTH_CONFIGS:
-            print(f"DEBUG: Unknown provider: {provider}")
+            logger.debug(f"DEBUG: Unknown provider: {provider}")
             raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
 
         # For returning users, extract role from their existing user ID
@@ -1771,7 +1771,7 @@ async def initiate_oauth(
             # Returning user: role is encoded in their user ID, ignore param
             _, extracted_role, _ = parse_user_id(effective_uid)
             role = extracted_role or "tenant"
-            print(f"DEBUG: Returning user - extracted role '{role}' from user ID")
+            logger.debug(f"DEBUG: Returning user - extracted role '{role}' from user ID")
         else:
             # New user: validate the requested role
             role = (role or "tenant").strip().lower()
@@ -1842,7 +1842,7 @@ async def initiate_oauth(
         else:
             base_url = str(request.base_url).rstrip("/")
         callback_uri = f"{base_url}/storage/callback/{provider}"
-        print(f"DEBUG: Callback URI: {callback_uri}")
+        logger.debug(f"DEBUG: Callback URI: {callback_uri}")
 
         # Build OAuth URL based on provider
         if provider == "google_drive":
@@ -1878,7 +1878,7 @@ async def initiate_oauth(
         # External OAuth URLs are exempt from SSOT (they're not app navigation)
         return RedirectResponse(url=auth_url, status_code=302)
     except Exception as e:
-        print(f"DEBUG: Exception in initiate_oauth: {e}")
+        logger.error(f"DEBUG: Exception in initiate_oauth: {e}")
         import traceback
         traceback.print_exc()
         raise
@@ -2029,7 +2029,7 @@ async def oauth_callback(
             # Only reuse existing_uid if the user exists AND OAuth subject matches
             if bound_user and bound_user.storage_user_id == provider_subject:
                 user_id = existing_uid
-                print(f"🔄 OAuth callback: Returning user with existing ID: {user_id}")
+                logger.info(f"🔄 OAuth callback: Returning user with existing ID: {user_id}")
             else:
                 # existing_uid doesn't match current OAuth account - treat as new user
                 matched_user = await get_user_by_provider_subject(db, provider, provider_subject)
@@ -2038,14 +2038,14 @@ async def oauth_callback(
                     user_id = matched_user.id
                     _, role, _ = parse_user_id(user_id)
                     role = role or "tenant"
-                    print(f"🔄 OAuth callback: Matched existing user by provider subject (different from existing_uid): {user_id}")
+                    logger.info(f"🔄 OAuth callback: Matched existing user by provider subject (different from existing_uid): {user_id}")
                 else:
                     # Completely new user - generate new ID
                     role = (state_data.get("role") or "tenant").strip().lower()
                     if role not in ALLOWED_ROLES:
                         role = "tenant"
                     user_id = generate_user_id(provider, role)
-                    print(f"🆕 OAuth callback: New user (existing_uid didn't match OAuth subject): {user_id}")
+                    logger.info(f"🆕 OAuth callback: New user (existing_uid didn't match OAuth subject): {user_id}")
         else:
             # First check if this OAuth subject already has a Semptify account.
             matched_user = await get_user_by_provider_subject(db, provider, provider_subject)
@@ -2054,17 +2054,17 @@ async def oauth_callback(
                 # Extract role from user_id for returning users
                 _, role, _ = parse_user_id(user_id)
                 role = role or "tenant"
-                print(f"🔄 OAuth callback: Matched existing user by provider subject: {user_id} (role={role})")
+                logger.info(f"🔄 OAuth callback: Matched existing user by provider subject: {user_id} (role={role})")
             else:
                 # New user - generate ID encoding provider + role
                 role = (state_data.get("role") or "tenant").strip().lower()
                 if role not in ALLOWED_ROLES:
                     role = "tenant"
                 user_id = generate_user_id(provider, role)
-                print(f"🆕 OAuth callback: New user - generated ID: {user_id} (provider={provider}, role={role})")
-                print(f"   Provider subject: {provider_subject}")
-                print(f"   No existing_uid in state: {not state_data.get('existing_uid')}")
-                print(f"   No matched user by subject: {matched_user is None}")
+                logger.info(f"🆕 OAuth callback: New user - generated ID: {user_id} (provider={provider}, role={role})")
+                logger.info(f"   Provider subject: {provider_subject}")
+                logger.info(f"   No existing_uid in state: {not state_data.get('existing_uid')}")
+                logger.info(f"   No matched user by subject: {matched_user is None}")
 
         refresh_token = token_data.get("refresh_token", "")
         expires_in = token_data.get("expires_in", 3600)
@@ -2243,7 +2243,7 @@ async def oauth_callback(
 </head><body><p>Redirecting to your dashboard...</p></body></html>"""
 
         response = HTMLResponse(content=html_content)
-        set_auth_cookie(response, user_id, secure=True)
+        set_auth_cookie(response, user_id, secure=request.url.scheme == "https")
         
         # NOTE: semdrive_provider cookie removed - provider is encoded in user_id
         # This simplifies to single cookie architecture (stateless)
@@ -2679,14 +2679,14 @@ async def get_status(
     Returns provider, role, and access token for API calls.
     Automatically refreshes expired tokens if possible.
     """
-    print(f"📊 /storage/status called - cookie semptify_uid: {semptify_uid[:10] if semptify_uid else 'None'}...")
+    logger.info(f"📊 /storage/status called - cookie semptify_uid: {semptify_uid[:10] if semptify_uid else 'None'}...")
     if not semptify_uid:
-        print(f"❌ No semptify_uid cookie found")
+        logger.info(f"❌ No semptify_uid cookie found")
         return {"authenticated": False}
 
     # Use get_valid_session which handles token refresh automatically
     session = await get_valid_session(db, semptify_uid, auto_refresh=True)
-    print(f"📊 Session lookup result: {bool(session)}")
+    logger.info(f"📊 Session lookup result: {bool(session)}")
     
     if not session:
         # Have cookie but no active/valid session - need to re-auth
@@ -2794,7 +2794,7 @@ async def lookup_user(
         return {"found": False}
         
     except Exception as e:
-        print(f"❌ Error in lookup_user: {e}")
+        logger.error(f"❌ Error in lookup_user: {e}")
         return {"found": False, "error": "Lookup failed"}
 
 
@@ -2850,7 +2850,7 @@ async def restore_session(
         }
         
     except Exception as e:
-        print(f"❌ Error in restore_session: {e}")
+        logger.error(f"❌ Error in restore_session: {e}")
         return {"success": False, "error": "Session restoration failed"}
 
 
@@ -3155,8 +3155,8 @@ async def switch_role(
     # Role transition invalidates prior function tokens bound to the old role context.
     invalidate_function_access_tokens(semptify_uid)
 
-    # Update cookie - use secure=False for localhost
-    set_auth_cookie(response, new_uid)
+    # Update cookie
+    set_auth_cookie(response, new_uid, secure=request.url.scheme == "https")
 
     return {
         "success": True,

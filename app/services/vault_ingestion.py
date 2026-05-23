@@ -35,6 +35,8 @@ from app.core.module_contracts import FunctionGroupContract, register_function_g
 from app.core.utc import utc_now
 from app.core.vault_paths import VAULT_DOCUMENTS
 from app.models.models import VaultItem, Incident, VaultAuditLog
+import logging
+logger = logging.getLogger(__name__)
 
 VAULT_INGESTION_FUNCTION_GROUP = "vault_ingestion"
 
