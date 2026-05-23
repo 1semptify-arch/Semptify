@@ -3,6 +3,30 @@
 
 ---
 
+## Shipped — 2026-05-23 (12:00 AM UTC-05) — Commit `53d0d00`
+
+### What Was Shipped
+
+**Onboarding Step 3: Full Document Pipeline (Seed All Systems)**
+
+1. **`vault_verify` endpoint rewritten** (`app/modules/onboarding/router.py`)
+   - File upload is now **required** — no skip path, no skip button
+   - Step order: live vault probe → `VaultUploadService` full pipeline → gate marked
+   - Document now goes through the canonical pipeline: certificate → registry → overlay → event bus
+   - Background task fires `DocumentIntakeEngine` + `DocumentFlowOrchestrator` (non-blocking)
+   - `document_uploaded` gate only marked after `VaultUploadService.upload()` succeeds
+
+2. **Background intake pipeline** (`_run_pipeline` inner async task)
+   - `DocumentIntakeEngine.intake_document()` → classify, extract text, pull dates/parties/amounts
+   - `DocumentIntakeEngine.process_document()` → full analysis
+   - `DocumentFlowOrchestrator.process_document_complete()` → timeline, FormData hub, contacts, positronic mesh, WebSocket push
+
+3. **Three-gate enforcement** remains intact:
+   - `storage_connected` → `vault_initialized` → `document_uploaded`
+   - `/complete` rejects and reroutes if any gate is missing
+
+---
+
 ## Shipped — 2026-05-22 (9:25 PM UTC-05) — Commit `5142909`
 
 ### What Was Shipped
