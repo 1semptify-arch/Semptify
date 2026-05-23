@@ -3,6 +3,8 @@ Document Intake Module -- Document intake processing.
 
 Public API:
     from app.modules.intake import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

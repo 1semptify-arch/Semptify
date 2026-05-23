@@ -24,6 +24,8 @@ from enum import Enum
 from typing import Optional
 from app.core.user_context import UserRole, get_role_definition
 from app.core.navigation import navigation
+import logging
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================

@@ -3,6 +3,8 @@ MNDES Module - Court Exhibit System (MN Supreme Court Order ADM09-8010 complianc
 
 Public API:
     from app.modules.mndes import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

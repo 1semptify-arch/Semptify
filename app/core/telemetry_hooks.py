@@ -296,7 +296,7 @@ def console_handler(event: TelemetryEvent) -> None:
 
 def json_handler(event: TelemetryEvent) -> None:
     """Output full JSON for external systems."""
-    print(event.to_json(), flush=True)
+    logger.info(event.to_json(), flush=True)
 
 
 def mesh_handler(event: TelemetryEvent) -> None:
@@ -427,7 +427,7 @@ if __name__ == "__main__":
     EMITTER.add_handler(json_handler)
     
     # Test emission
-    print("=== Telemetry System Test ===", file=sys.stderr)
+    logger.info("=== Telemetry System Test ===", file=sys.stderr)
     
     telemetry = PageTelemetry("dashboard", "test-session-12345")
     
@@ -450,14 +450,17 @@ if __name__ == "__main__":
     EMITTER.flush()
     stats = EMITTER.get_buffer_stats()
     
-    print(f"\n=== Stats ===", file=sys.stderr)
-    print(f"Buffered: {stats['buffered']}", file=sys.stderr)
+    logger.info(f"
+=== Stats ===", file=sys.stderr)
+    logger.info(f"Buffered: {stats['buffered']}", file=sys.stderr)
     
     # Show missing priority mappings
     missing = validate_event_types()
     if missing:
-        print(f"\n=== Missing Priority Mappings ({len(missing)} pages) ===", file=sys.stderr)
+        logger.info(f"
+=== Missing Priority Mappings ({len(missing)} pages) ===", file=sys.stderr)
         for page_id, events in missing.items():
-            print(f"  {page_id}: {events}", file=sys.stderr)
+            logger.info(f"  {page_id}: {events}", file=sys.stderr)
     else:
-        print("\n✅ All contract events have priority mappings", file=sys.stderr)
+        logger.info("
+✅ All contract events have priority mappings", file=sys.stderr)

@@ -3,6 +3,8 @@ Housing Accountability Module -- Housing accountability tracking.
 
 Public API:
     from app.modules.housing_accountability import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

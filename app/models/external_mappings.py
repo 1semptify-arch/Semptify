@@ -17,6 +17,8 @@ from typing import Optional, Dict, Any
 from sqlalchemy import String, Integer, DateTime, Boolean, Text, JSON, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
+import logging
+logger = logging.getLogger(__name__)
 
 
 class ExternalMapping(Base):

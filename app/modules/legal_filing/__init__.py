@@ -3,6 +3,8 @@ Legal Filing Module -- Legal filing management.
 
 Public API:
     from app.modules.legal_filing import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

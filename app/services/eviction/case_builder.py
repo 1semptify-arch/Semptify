@@ -29,6 +29,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
 from app.models.models import (
+import logging
+logger = logging.getLogger(__name__)
     User, Document, TimelineEvent, CalendarEvent, RentPayment
 )
 

@@ -14,6 +14,8 @@ from .storage_layer import LitigationStorageLayer
 from .reporting_layer import ReportingLayer
 from .gui_butler import GUIButlerIntegration
 from .scheduler import LitigationScheduler
+import logging
+logger = logging.getLogger(__name__)
 
 __all__ = [
     'CourtScraperPack',

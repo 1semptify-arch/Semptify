@@ -20,6 +20,8 @@ from pydantic import BaseModel
 
 from app.core.security import require_user, StorageUser
 from .service import get_research_service
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/research", tags=["Research Module"])
 

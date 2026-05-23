@@ -713,12 +713,13 @@ def main():
     
     if args.command == "list":
         plugin_manager.discover_plugins()
-        print("\nDiscovered Plugins:")
-        print("-" * 60)
+        logger.info("
+Discovered Plugins:")
+        logger.info("-" * 60)
         for plugin in plugin_manager.plugins.values():
             status_icon = "✅" if plugin.status == PluginStatus.ACTIVE else "⚪"
-            print(f"{status_icon} {plugin.metadata.name:<20} v{plugin.metadata.version:<10} [{plugin.status.value}]")
-            print(f"   {plugin.metadata.description[:50]}")
+            logger.info(f"{status_icon} {plugin.metadata.name:<20} v{plugin.metadata.version:<10} [{plugin.status.value}]")
+            logger.info(f"   {plugin.metadata.description[:50]}")
     
     elif args.command == "create":
         plugin_manager.create_plugin_template(
@@ -727,34 +728,35 @@ def main():
             args.description,
             args.output,
         )
-        print(f"\n✅ Created plugin: {args.name}")
-        print(f"   Location: {args.output}/{args.name}")
+        logger.info(f"
+✅ Created plugin: {args.name}")
+        logger.info(f"   Location: {args.output}/{args.name}")
     
     elif args.command == "load":
         plugin_manager.discover_plugins()
         success = plugin_manager.load_plugin(args.name)
         if success:
-            print(f"✅ Loaded: {args.name}")
+            logger.info(f"✅ Loaded: {args.name}")
         else:
-            print(f"❌ Failed to load: {args.name}")
+            logger.error(f"❌ Failed to load: {args.name}")
     
     elif args.command == "unload":
         success = plugin_manager.unload_plugin(args.name)
         if success:
-            print(f"✅ Unloaded: {args.name}")
+            logger.info(f"✅ Unloaded: {args.name}")
         else:
-            print(f"❌ Failed to unload: {args.name}")
+            logger.error(f"❌ Failed to unload: {args.name}")
     
     elif args.command == "status":
         if args.name:
             status = plugin_manager.get_plugin_status(args.name)
             if status:
-                print(json.dumps(status, indent=2))
+                logger.info(json.dumps(status, indent=2))
             else:
-                print(f"Plugin not found: {args.name}")
+                logger.info(f"Plugin not found: {args.name}")
         else:
             summary = plugin_manager.get_status_summary()
-            print(json.dumps(summary, indent=2))
+            logger.info(json.dumps(summary, indent=2))
     
     else:
         parser.print_help()

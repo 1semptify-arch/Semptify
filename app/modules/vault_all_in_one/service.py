@@ -30,6 +30,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 from app.models.models import VaultItem, Incident, VaultAuditLog
+import logging
+logger = logging.getLogger(__name__)
 
 VAULT_SEARCH_FUNCTION_GROUP = "vault_search"
 

@@ -6,6 +6,8 @@ All datetimes should be stored and handled in UTC with timezone awareness.
 """
 
 from datetime import datetime, timezone
+import logging
+logger = logging.getLogger(__name__)
 
 
 def utc_now() -> datetime:

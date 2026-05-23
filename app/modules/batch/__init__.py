@@ -3,6 +3,8 @@ Batch Operations Module -- Bulk document management.
 
 Public API:
     from app.modules.batch import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

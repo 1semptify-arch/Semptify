@@ -18,6 +18,8 @@ from pydantic import BaseModel, Field
 from app.core.security import require_user
 from .service import get_tactics_engine, TacticType, UrgencyLevel
 from app.core.utc import utc_now
+import logging
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter()

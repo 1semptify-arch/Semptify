@@ -3,6 +3,8 @@ Invite Codes Module -- Invite code management.
 
 Public API:
     from app.modules.invite_codes import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

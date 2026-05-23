@@ -3,6 +3,8 @@ Positronic Mesh Module -- Positronic mesh integration.
 
 Public API:
     from app.modules.positronic_mesh import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

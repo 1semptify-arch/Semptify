@@ -12,6 +12,8 @@ from pydantic import BaseModel
 
 from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/editor", tags=["page-editor"])
 

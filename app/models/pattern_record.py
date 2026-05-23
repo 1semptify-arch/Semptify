@@ -14,6 +14,8 @@ from typing import Optional, Dict, Any
 from sqlalchemy import String, Integer, DateTime, Boolean, Text, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
+import logging
+logger = logging.getLogger(__name__)
 
 
 class PatternRecord(Base):

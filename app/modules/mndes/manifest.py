@@ -5,6 +5,8 @@ Self-contained SDK module for Court Exhibit System (MN Supreme Court Order ADM09
 """
 
 from app.sdk import ModuleManifest, ModuleCapability, ProductTier
+import logging
+logger = logging.getLogger(__name__)
 
 
 MANIFEST = ModuleManifest(

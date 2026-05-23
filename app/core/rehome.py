@@ -7,6 +7,8 @@ and the new Vault SDK + Installer architecture.
 """
 
 from app.core.user_id import parse_user_id
+import logging
+logger = logging.getLogger(__name__)
 
 
 def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:

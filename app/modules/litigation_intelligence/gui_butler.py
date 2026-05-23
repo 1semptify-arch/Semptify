@@ -551,7 +551,7 @@ async def example_usage():
     
     # Get available commands
     commands = butler.get_available_commands()
-    print(f"Available commands: {len(commands)}")
+    logger.info(f"Available commands: {len(commands)}")
     
     # Execute a command
     response = await butler.execute_command(
@@ -560,12 +560,12 @@ async def example_usage():
         session_id
     )
     
-    print(f"Command executed: {response.success}")
-    print(f"Response: {response.message}")
+    logger.info(f"Command executed: {response.success}")
+    logger.info(f"Response: {response.message}")
     
     # Get court scraping commands
     court_commands = butler.get_commands_by_category("court_scraping")
-    print(f"Court scraping commands: {len(court_commands)}")
+    logger.info(f"Court scraping commands: {len(court_commands)}")
     
     # Cleanup
     butler.cleanup_sessions()

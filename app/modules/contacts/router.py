@@ -31,6 +31,8 @@ from app.core.database import get_db
 from app.core.security import require_user, StorageUser
 from app.models.models import Contact, ContactInteraction
 from app.core.event_bus import event_bus, EventType as BusEventType
+import logging
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix="/api/contacts", tags=["Contact Manager"])

@@ -7,6 +7,8 @@ import io
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 from app.core.utc import utc_now
+import logging
+logger = logging.getLogger(__name__)
 
 # Try to import xhtml2pdf for advanced PDF generation
 try:
@@ -14,7 +16,7 @@ try:
     XHTML2PDF_AVAILABLE = True
 except ImportError:
     XHTML2PDF_AVAILABLE = False
-    print("[WARN] xhtml2pdf not installed - PDF generation will use fallback")
+    logger.warning("[WARN] xhtml2pdf not installed - PDF generation will use fallback")
 
 # Backwards compatibility alias
 WEASYPRINT_AVAILABLE = XHTML2PDF_AVAILABLE
@@ -55,7 +57,7 @@ def _generate_pdf_from_html(html_content: str, css: str = "") -> bytes:
         pisa_status = pisa.CreatePDF(io.StringIO(styled_html), dest=result)
         
         if pisa_status.err:
-            print(f"[WARN] PDF generation had errors: {pisa_status.err}")
+            logger.error(f"[WARN] PDF generation had errors: {pisa_status.err}")
             # Still return what we have
         
         return result.getvalue()

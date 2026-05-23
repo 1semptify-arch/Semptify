@@ -2341,7 +2341,7 @@ async def export_documents(
 
                         # Log error but continue with other files
 
-                        print(f"Error adding {doc.filename} to ZIP: {e}")
+                        logger.error(f"Error adding {doc.filename} to ZIP: {e}")
 
         
 

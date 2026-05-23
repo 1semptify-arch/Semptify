@@ -7,6 +7,8 @@ import os
 from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field
+import logging
+logger = logging.getLogger(__name__)
 
 class SecuritySettings(BaseSettings):
     """Production security configuration"""

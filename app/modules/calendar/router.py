@@ -19,6 +19,8 @@ from app.core.security import require_user, StorageUser
 from app.core.utc import utc_now
 from app.core.document_hub import get_document_hub
 from app.models.models import CalendarEvent as CalendarEventModel
+import logging
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter()

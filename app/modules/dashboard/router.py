@@ -20,6 +20,8 @@ from app.services.emotion_engine import emotion_engine
 from .service import progress_tracker
 from .service import action_router
 from app.core.utc import utc_now
+import logging
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix="/api/dashboard", tags=["Unified Dashboard"])

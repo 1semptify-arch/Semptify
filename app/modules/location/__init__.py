@@ -3,6 +3,8 @@ Location Module -- Location-based services.
 
 Public API:
     from app.modules.location import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

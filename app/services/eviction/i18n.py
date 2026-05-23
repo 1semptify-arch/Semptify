@@ -4,6 +4,8 @@ Quad-lingual support: English, Spanish, Somali, Arabic
 """
 
 from typing import Dict, Optional, List
+import logging
+logger = logging.getLogger(__name__)
 
 # ============================================================================
 # Translation Strings

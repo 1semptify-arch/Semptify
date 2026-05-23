@@ -9,6 +9,8 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 from app.core.vault_paths import (
+import logging
+logger = logging.getLogger(__name__)
     SEMPTIFY_ROOT,
     AUTH_FOLDER,
     VAULT_ROOT,

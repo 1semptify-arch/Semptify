@@ -4,6 +4,8 @@ from app.services.storage.google_drive import GoogleDriveProvider
 from app.services.storage.dropbox import DropboxProvider
 from app.services.storage.onedrive import OneDriveProvider
 from app.services.storage.r2 import R2Provider
+import logging
+logger = logging.getLogger(__name__)
 
 
 def get_provider(provider_name: str, **kwargs) -> StorageProvider:

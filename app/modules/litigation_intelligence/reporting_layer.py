@@ -475,20 +475,20 @@ async def example_usage():
     
     # Generate case summary report
     case_report = await reporting.generate_case_summary_report("30_days")
-    print(f"Case Summary Report: {case_report.report_id}")
-    print(f"Generated: {case_report.generated_at}")
-    print(f"Metrics: {len(case_report.metrics)} metrics calculated")
-    print(f"Insights: {len(case_report.insights)} insights generated")
+    logger.info(f"Case Summary Report: {case_report.report_id}")
+    logger.info(f"Generated: {case_report.generated_at}")
+    logger.info(f"Metrics: {len(case_report.metrics)} metrics calculated")
+    logger.info(f"Insights: {len(case_report.insights)} insights generated")
     
     # Generate entity analysis report
     entity_report = await reporting.generate_entity_analysis_report("30_days", "attorney")
-    print(f"Entity Analysis Report: {entity_report.report_id}")
-    print(f"Entity Type: attorney")
-    print(f"Metrics: {len(entity_report.metrics)} metrics calculated")
+    logger.info(f"Entity Analysis Report: {entity_report.report_id}")
+    logger.info(f"Entity Type: attorney")
+    logger.info(f"Metrics: {len(entity_report.metrics)} metrics calculated")
     
     # Export report data
     json_data = reporting.export_report_data(case_report.report_id, "json")
-    print(f"Exported {len(json_data)} characters of JSON data")
+    logger.info(f"Exported {len(json_data)} characters of JSON data")
 
 if __name__ == "__main__":
     import asyncio

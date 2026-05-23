@@ -18,6 +18,8 @@ from app.core.database import get_db_session
 from app.core.event_bus import event_bus, EventType
 from app.models.models import Document, TimelineEvent, CalendarEvent
 from app.core.utc import utc_now
+import logging
+logger = logging.getLogger(__name__)
 
 
 class CaseStage(str, Enum):

@@ -14,6 +14,8 @@ from pydantic import BaseModel
 from ..core.security import require_user, StorageUser
 from ..services.action_router import action_router, ActionCategory, ActionPriority
 from ..services.emotion_engine import emotion_engine
+import logging
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter(prefix="/api/actions", tags=["Smart Actions"])

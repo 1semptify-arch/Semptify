@@ -2,6 +2,8 @@
 from pydantic import BaseModel
 from datetime import date
 from typing import List, Optional
+import logging
+logger = logging.getLogger(__name__)
 
 class LegalCase(BaseModel):
     case_id: str

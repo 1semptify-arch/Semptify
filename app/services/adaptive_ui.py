@@ -16,6 +16,8 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 import json
+import logging
+logger = logging.getLogger(__name__)
 
 
 class WidgetType(str, Enum):
@@ -596,7 +598,7 @@ def sync_from_context_loop(user_id: str):
     except ImportError:
         return False
     except Exception as e:
-        print(f"Context sync error: {e}")
+        logger.error(f"Context sync error: {e}")
         return False
 
 
