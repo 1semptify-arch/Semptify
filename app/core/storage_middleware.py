@@ -8,6 +8,7 @@ System users and demo users are NEVER allowed to access the application.
 This middleware enforces storage connection for all protected pages.
 """
 
+import logging
 from fastapi import Request
 from fastapi.responses import RedirectResponse, JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -16,6 +17,8 @@ from typing import Set
 from app.core.user_id import parse_user_id, COOKIE_USER_ID
 from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
+
+logger = logging.getLogger("semptify.security")
 
 # Redirect loop tracking cookie name
 REDIRECT_LOOP_COOKIE = "semptify_redirect_loop_count"
@@ -230,9 +233,6 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
         # Check if valid storage user format
         if not is_valid_storage_user(user_id):
             # Log the issue
-            import logging
-            logger = logging.getLogger("semptify.security")
-            
             if user_id:
                 logger.warning(
                     "🚫 Invalid/system user blocked: user_id=%s path=%s",
@@ -332,7 +332,7 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                         _row = _exists.scalar_one_or_none()
 
                     if _row is None:
-                        _logging.getLogger("semptify.security").warning(
+                        logger.warning(
                             "User ID %s valid format but no DB record — clearing stale cookie",
                             raw_user_id[:4] + "***",
                         )
