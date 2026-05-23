@@ -456,9 +456,7 @@ class DocumentPipeline:
                     summary = result.get("summary", "")
                     
                     if summary:
-                        logger.info(f"
-{summary}
-")
+                        logger.info(summary)
                     
                     # Emit appropriate event based on action
                     if HAS_CONTEXT_LOOP and case_data:

@@ -3,8 +3,6 @@ from fastapi import APIRouter, HTTPException, Request
 from app.core.user_id import get_role_from_user_id
 from app.models.legal_filing_models import LegalCase, EvidenceItem
 from .service import (
-import logging
-logger = logging.getLogger(__name__)
     save_case,
     load_case,
     list_cases,

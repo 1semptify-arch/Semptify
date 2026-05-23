@@ -29,8 +29,6 @@ from dataclasses import dataclass, asdict
 
 from app.core.config import get_settings
 from app.services.storage.legal_integrity import (
-import logging
-logger = logging.getLogger(__name__)
     hash_document,
     create_timestamp_proof,
     DocumentProof,

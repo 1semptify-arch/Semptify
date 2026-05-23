@@ -14,8 +14,6 @@ from datetime import datetime
 from app.core.utc import utc_now
 
 from .models import (
-import logging
-logger = logging.getLogger(__name__)
     DocumentContext, DocumentSection, ConfidenceMetrics,
     ReasoningChain, ReasoningStep, ReasoningType
 )

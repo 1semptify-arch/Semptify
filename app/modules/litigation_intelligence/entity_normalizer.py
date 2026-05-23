@@ -414,13 +414,11 @@ if __name__ == "__main__":
     entities = normalizer.resolve_entities(test_names)
     relationships = normalizer.get_entity_relationships(entities)
     
-    logger.info("
-Entity Relationships:")
+    logger.info("Entity Relationships:")
     logger.info("=" * 50)
     for entity_type, related_entities in relationships.items():
         logger.info(f"{entity_type.title()}: {', '.join(related_entities)}")
     
     # Statistics
     stats = normalizer.get_statistics()
-    logger.info(f"
-Statistics: {stats}")
+    logger.info(f"Statistics: {stats}")

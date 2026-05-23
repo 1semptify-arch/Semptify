@@ -40,8 +40,6 @@ from app.core.security import require_user, StorageUser
 from app.core.utc import utc_now
 from app.core.vault_paths import VAULT_TIMELINE_EVENTS_FILE
 from app.models.models import (
-import logging
-logger = logging.getLogger(__name__)
     TimelineEvent as TimelineEventModel,
     Document as DocumentModel,
     CalendarEvent as CalendarEventModel,

@@ -1,8 +1,6 @@
 # Business logic services - engines and processors
 
 from app.services.document_intake import (
-import logging
-logger = logging.getLogger(__name__)
     DocumentIntakeEngine,
     get_intake_engine,
     DocumentType,
