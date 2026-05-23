@@ -16,6 +16,8 @@ from app.core.database import get_db
 from app.core.security import get_optional_user_id, sanitize_user_input
 
 from app.services.complaint_wizard import (
+import logging
+logger = logging.getLogger(__name__)
     complaint_wizard,
     AgencyType,
     ComplaintDraft,

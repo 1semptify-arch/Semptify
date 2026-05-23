@@ -13,6 +13,8 @@ from pydantic import BaseModel
 
 from app.core.security import require_user, StorageUser
 from .service import (
+import logging
+logger = logging.getLogger(__name__)
     FormFieldExtractor, 
     get_form_field_extractor,
     FormFieldsExtraction,

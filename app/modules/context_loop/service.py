@@ -664,14 +664,14 @@ class ContextDataLoop:
             try:
                 listener(event, context)
             except Exception as e:
-                print(f"Listener error: {e}")
+                logger.error(f"Listener error: {e}")
         
         # Run custom processors
         for processor in self.processors:
             try:
                 processor(event, context)
             except Exception as e:
-                print(f"Processor error: {e}")
+                logger.error(f"Processor error: {e}")
     
     def _handle_document_uploaded(self, event: ContextEvent, context: UserContext):
         """Handle document upload event."""

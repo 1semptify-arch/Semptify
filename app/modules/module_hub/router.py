@@ -20,6 +20,8 @@ from pydantic import BaseModel
 
 from app.core.user_id import COOKIE_USER_ID
 from app.core.module_hub import (
+import logging
+logger = logging.getLogger(__name__)
     module_hub,
     ModuleType,
     RequestType,

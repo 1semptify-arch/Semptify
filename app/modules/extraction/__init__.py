@@ -3,6 +3,8 @@ Form Field Extraction Module -- Form field extraction AI.
 
 Public API:
     from app.modules.extraction import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

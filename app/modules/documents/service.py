@@ -10,6 +10,8 @@ from typing import Optional, List
 from enum import Enum
 
 from app.core.event_bus import event_bus, EventType
+import logging
+logger = logging.getLogger(__name__)
 
 
 class EventCategory(str, Enum):

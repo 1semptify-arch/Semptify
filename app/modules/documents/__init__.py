@@ -3,6 +3,8 @@ Documents Module — Document management, processing, and law cross-referencing.
 
 Public API:
     from app.modules.documents import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 
 Endpoints:

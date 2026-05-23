@@ -3,6 +3,8 @@ Fraud Exposure Module -- Fraud exposure detection.
 
 Public API:
     from app.modules.fraud_exposure import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

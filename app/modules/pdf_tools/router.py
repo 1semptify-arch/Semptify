@@ -13,6 +13,8 @@ import os
 import tempfile
 from datetime import datetime
 from app.core.utc import utc_now
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/pdf", tags=["PDF Tools"])
 

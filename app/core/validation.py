@@ -9,6 +9,8 @@ import re
 import html
 from typing import Optional, Annotated
 from pydantic import AfterValidator, BeforeValidator, Field
+import logging
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================

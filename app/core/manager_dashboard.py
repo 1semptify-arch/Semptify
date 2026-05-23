@@ -16,6 +16,8 @@ from typing import Optional, List, Dict, Any
 
 from app.core.utc import utc_now
 from app.models.models import User, InviteCode, Document
+import logging
+logger = logging.getLogger(__name__)
 
 
 def get_dashboard_stats(

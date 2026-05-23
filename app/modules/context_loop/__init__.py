@@ -3,6 +3,8 @@ Context Loop Module -- Context loop debugging.
 
 Public API:
     from app.modules.context_loop import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 """
 

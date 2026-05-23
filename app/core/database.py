@@ -5,6 +5,8 @@ Includes connection pooling configuration for production.
 """
 
 from typing import AsyncGenerator
+import logging
+logger = logging.getLogger(__name__)
 
 try:
     from sqlalchemy.ext.asyncio import (

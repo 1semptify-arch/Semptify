@@ -47,6 +47,8 @@ from enum import Enum
 from typing import Optional
 import secrets
 import string
+import logging
+logger = logging.getLogger(__name__)
 
 _ALPHABET = string.ascii_letters + string.digits
 _DEFAULT_LENGTH = 16

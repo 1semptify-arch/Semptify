@@ -9,6 +9,8 @@ Following SSOT Architecture:
 """
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, ClassVar
+import logging
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)

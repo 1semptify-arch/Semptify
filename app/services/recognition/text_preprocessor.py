@@ -17,6 +17,8 @@ from typing import Tuple, List, Dict, Optional
 from dataclasses import dataclass, field
 
 from .legal_dictionary import get_legal_dictionary, MinnesotaLegalDictionary
+import logging
+logger = logging.getLogger(__name__)
 
 
 @dataclass

@@ -10,6 +10,8 @@ from pydantic import BaseModel
 import asyncio
 import json
 from app.core.utc import utc_now
+import logging
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -481,7 +483,7 @@ async def websocket_dashboard(websocket: WebSocket):
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except Exception as e:
-        print(f"WebSocket error: {e}")
+        logger.error(f"WebSocket error: {e}")
         manager.disconnect(websocket)
 
 

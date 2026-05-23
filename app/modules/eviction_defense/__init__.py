@@ -3,6 +3,8 @@ Eviction Defense Module — Complete eviction defense toolkit.
 
 Public API:
     from app.modules.eviction_defense import MANIFEST, router
+import logging
+logger = logging.getLogger(__name__)
     register_module(app, MANIFEST)
 
 Endpoints (under /api/eviction-defense):

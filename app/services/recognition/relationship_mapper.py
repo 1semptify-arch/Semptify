@@ -17,6 +17,8 @@ from typing import List, Dict, Any, Optional, Tuple, Set
 from collections import defaultdict
 
 from .models import (
+import logging
+logger = logging.getLogger(__name__)
     ExtractedEntity, EntityType, PartyRole,
     RelationshipMap, PartyRelationship, AmountRelationship,
     TimelineEntry, ReasoningChain, ReasoningStep, ReasoningType,
