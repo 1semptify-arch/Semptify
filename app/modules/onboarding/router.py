@@ -311,20 +311,17 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         try:
             logger.info("Step 1: Creating vault folders for user %s", user.user_id[:6] + "***")
             vault_result = await asyncio.wait_for(
-                installer.vault_client.create_folders(), timeout=55.0
+                installer.vault_client.create_folders(), timeout=25.0
             )
             if not vault_result.all_ok:
                 results["errors"] = [f"{f.path}: {f.detail}" for f in vault_result.failed]
                 return results
             results["folders_created"] = [f.path for f in vault_result.succeeded]
-
-            await asyncio.wait_for(installer._create_system_files(results), timeout=55.0)
-            await asyncio.wait_for(installer._create_data_files(results), timeout=55.0)
             results["success"] = True
-            # Mark gate so step 3 verify can confirm the full install
+            # Mark gate so step 2 security can proceed
             from app.modules.onboarding.gates import mark_gate
             await mark_gate(db, user.user_id, "vault_initialized")
-            logger.info("Step 1 complete: %d folders, %d files", len(results["folders_created"]), len(results["files_created"]))
+            logger.info("Step 1 complete: %d folders", len(results["folders_created"]))
             return results
         except asyncio.TimeoutError:
             logger.error("Vault init timed out for user %s", user.user_id[:6] + "***")
@@ -350,10 +347,12 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         results = {"success": False, "files_created": [], "errors": []}
         try:
-            logger.info("Step 2: Writing token backup for user %s", user.user_id[:6] + "***")
-            await asyncio.wait_for(installer._create_token_backup(results), timeout=55.0)
+            logger.info("Step 2: Writing token backup + system files for user %s", user.user_id[:6] + "***")
+            await asyncio.wait_for(installer._create_token_backup(results), timeout=25.0)
+            await asyncio.wait_for(installer._create_system_files(results), timeout=25.0)
+            await asyncio.wait_for(installer._create_data_files(results), timeout=25.0)
             results["success"] = True
-            logger.info("Step 2 complete: token backup written")
+            logger.info("Step 2 complete: %d files written", len(results["files_created"]))
             return results
         except asyncio.TimeoutError:
             logger.error("Vault security timed out for user %s", user.user_id[:6] + "***")
