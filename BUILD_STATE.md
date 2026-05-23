@@ -3,6 +3,44 @@
 
 ---
 
+## Shipped — 2026-05-22 (9:25 PM UTC-05) — Commit `5142909`
+
+### What Was Shipped
+
+**Exception Handling Refactoring + Logging Standardization**
+
+1. **Bare Except Block Fixes** — Replaced 45 bare `except:` blocks with specific exception types
+   - `app/modules/case_builder/router.py` — ValueError for datetime parsing
+   - `app/core/preview_generator.py` — OSError for font loading
+   - `app/core/tenant_briefcase.py` — ValueError for datetime parsing
+   - `app/modules/auto_mode/router.py` — UnicodeDecodeError for text decoding
+   - `app/services/azure_ai.py` — UnicodeDecodeError for text decoding
+   - `app/services/recognition/legal_dictionary.py` — Exception for validation
+   - `app/services/storage/tsa.py` — Exception for base64 decoding
+
+2. **Print() to Logger Migration** — Replaced 175 print() statements with logger calls across 340 files
+   - Added `import logging` and `logger = logging.getLogger(__name__)` where missing
+   - Converted to `logger.error()`, `logger.warning()`, `logger.info()`, `logger.debug()` as appropriate
+   - Fixed broken string literals from multiline print() conversion
+   - Remaining 42 print() calls intentionally left in startup code (main.py) and CLI tools
+
+3. **Gitignore Update** — Added DOCUMENTS/ to .gitignore (user documents directory, not for repo)
+4. **Documentation** — Added docs/PAGE_CUSTOMIZATION_COMPONENT_LIBRARY.md
+
+### What Is Known Working
+
+- ✅ Python entrypoints compile (`python -m py_compile app/main.py app/core/navigation.py`)
+- ✅ All exception handling uses specific exception types (no bare except:)
+- ✅ All service code uses structured logging (no print() statements)
+- ✅ Playwright E2E tests: 10/10 passed (welcome, register, role selection, storage, vault, API health, upload, documents, timeline, reconnect)
+- ✅ Application starts successfully with 34 modules registered, 1 skipped, 0 errors
+
+### What Is Pending
+
+- None
+
+---
+
 ## Shipped — 2026-05-21 (9:16 PM UTC-05) — Commit `9b71cb1`
 
 ### What Was Shipped
