@@ -1537,6 +1537,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     logger.info("Performance monitoring middleware DISABLED (memory optimization)")
     
     # =========================================================================
+    # Middleware (order matters - first added = last to run)
+    # =========================================================================
+    
+    is_production = app_settings.security_mode == "enforced"
+    logger = logging.getLogger(__name__)
+    
+    # =========================================================================
     # Offline Detection Middleware
     # =========================================================================
     
@@ -1568,13 +1575,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         return response
     
     logger.info("Offline detection middleware registered")
-    
-    # =========================================================================
-    # Middleware (order matters - first added = last to run)
-    # =========================================================================
-    
-    is_production = app_settings.security_mode == "enforced"
-    logger = logging.getLogger(__name__)
     
     # PRODUCTION SECURITY MIDDLEWARE (if enforced mode)
     if is_production:
