@@ -3,6 +3,56 @@
 
 ---
 
+## Shipped — 2026-05-23 (1:24 AM UTC-05) — Commit `01e45b5`
+
+### What Was Shipped
+
+**Deployment Error Resolution + Comprehensive Test Suite**
+
+1. **Fixed 37 syntax errors from logging migration**
+   - 30 files: removed `import logging` and `logger = logging.getLogger(__name__)` incorrectly injected inside import blocks
+   - 7 files: fixed split f-strings/strings (multiline strings broken by print→logger conversion)
+   - Files affected: route_guards.py, telemetry_hooks.py, flask_converter.py, plugin_manager.py, document_pipeline.py, entity_normalizer.py, intelligence_engine.py, config.py
+
+2. **Added GET /health endpoint** (`app/main.py`)
+   - Returns JSON: `{"status": "ok", "ts": "2026-05-23T05:53:00.000Z"}`
+   - Required for uptime checks and Playwright test suite
+   - Was 404 HTML causing JSON parse errors in tests
+
+3. **Fixed 504 timeout on vault setup** (`app/modules/onboarding/router.py`)
+   - Moved file creation from step 1 to step 2
+   - Step 1: Only creates folders (25s timeout) — fast, won't 504
+   - Step 2: Creates token backup + system files + data files (3x 25s)
+   - Keeps each API call under Cloudflare's 30-second gateway limit
+
+4. **Added Playwright test suite** (`tests/`)
+   - `playwright-semptify-test.js`: 10 system tests (welcome, register, role selection, storage, vault, health, upload, documents, timeline, reconnect)
+   - `playwright-onboarding-test.js`: 10 onboarding tests (role selection, vault setup steps 1-3, API endpoints, complete page, status)
+   - All 20 tests passing
+   - Added `package.json` for Playwright infrastructure
+
+5. **Fixed foreign key violation** (`app/services/vault_upload_service.py`)
+   - Added `session.flush()` after `vault_index` merge
+   - Ensures vault_index row exists before vault_hash_index FK check
+   - Error: `insert or update on table "vault_hash_index" violates foreign key constraint`
+
+### What Is Known Working
+
+- ✅ All 20 Playwright tests passing (10 system + 10 onboarding)
+- ✅ Python entrypoints compile (`python -m py_compile app/main.py app/core/navigation.py`)
+- ✅ All 37 syntax errors resolved (import injections + split strings)
+- ✅ GET /health returns JSON status
+- ✅ Vault setup no longer 504s (file creation moved to step 2)
+- ✅ FK violation fixed (session.flush() added)
+- ✅ No secrets in committed code (GitHub token removed from package.json)
+
+### What Is Pending
+
+- Monitor Render deployment for successful completion
+- Verify vault setup flow works end-to-end with real OAuth credentials
+
+---
+
 ## Shipped — 2026-05-23 (12:00 AM UTC-05) — Commit `53d0d00`
 
 ### What Was Shipped
