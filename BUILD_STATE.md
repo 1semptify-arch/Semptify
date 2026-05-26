@@ -3,6 +3,65 @@
 
 ---
 
+## Shipped — 2026-05-24 (2:44 AM UTC-05) — Commit `53b56c3`
+
+### What Was Shipped
+
+**Vault Folder Creation Fixes + Production Configuration for Cloudflared Tunnel**
+
+1. **Fixed missing .Semptify5.0 parent folder** (`app/modules/onboarding/config.py`)
+   - Added `f".{SEMPTIFY_ROOT}"` to `CANONICAL_VAULT_FOLDERS`
+   - Dropbox requires explicit parent folder creation before nested folders
+   - Root cause of silent folder creation failures on Dropbox
+
+2. **Fixed Dropbox create_folder error masking** (`app/services/storage/dropbox.py`)
+   - Now inspects HTTP 409 response body to distinguish error types
+   - `folder_name_exists` → success (idempotent)
+   - Any other 409 (path_not_found, etc.) → raises exception with specific error tag
+   - Previously treated all 409s as success, masking parent path errors
+
+3. **Fixed vault folder verification logic** (`app/modules/onboarding/vault.py`)
+   - Changed `if items is None` to `if not items`
+   - All providers return `[]` (empty list) for missing folders, not `None`
+   - Verification now correctly detects missing vault folders
+
+4. **Fixed VaultResult export** (`app/sdk/vault/__init__.py`)
+   - Added `VaultResult` to vault SDK public API exports
+   - Unblocks vault_installer module and vault tests
+
+5. **Configured .env for production deployment**
+   - Neon PostgreSQL database configured with SSL
+   - Cloudflare R2 storage enabled (`STORAGE_MODE=cloud`)
+   - Enforced security mode (`SECURITY_MODE=enforced`)
+   - CORS origins set to semptify.org domains
+   - PUBLIC_BASE_URL set to `https://dev.semtify.org` for Cloudflared tunnel
+
+6. **Updated OAuth callback documentation** (`DEPLOYMENT_APIS.md`, `.env.example`)
+   - Added Cloudflared tunnel callback URLs for all providers
+   - Documented PUBLIC_BASE_URL environment variable for proxy/tunnel setups
+
+### What Is Known Working
+
+- ✅ All modified files compile clean (`python -m py_compile`)
+- ✅ SSOT architecture tests pass
+- ✅ Vault folder creation logic now handles Dropbox parent folder requirement
+- ✅ Dropbox error handling distinguishes real failures from idempotent success
+- ✅ Vault verification correctly detects missing folders across all providers
+- ✅ Vault SDK exports complete (VaultResult now available)
+- ✅ Production environment configured (Neon DB, R2 storage, enforced security)
+
+### What Is Pending
+
+- Add OAuth callback URLs to provider dashboards:
+  - Google: `https://dev.semtify.org/storage/callback/google_drive` and `https://dev.semtify.org/onboarding/callback/google_drive`
+  - Dropbox: `https://dev.semtify.org/storage/callback/dropbox` and `https://dev.semtify.org/onboarding/callback/dropbox`
+  - OneDrive: `https://dev.semtify.org/storage/callback/onedrive` and `https://dev.semtify.org/onboarding/callback/onedrive`
+- Update CORS_ORIGINS in .env if production domain differs from semptify.org
+- Generate and set a secure ADMIN_PIN in .env
+- Consider activating the new onboarding module (`app/modules/onboarding/`) per BUILD_GUIDE_SSOT.md activation steps
+
+---
+
 ## Shipped — 2026-05-23 (1:24 AM UTC-05) — Commit `01e45b5`
 
 ### What Was Shipped
