@@ -3,6 +3,155 @@
 
 ---
 
+## Session — 2026-05-28 (11:00 PM UTC-05) — Architecture + Repo Cleanup
+
+### What Was Done This Session
+
+1. **GitHub cleanup** — All repos consolidated under `1semptify-arch/`
+   - Archived: `Bradleycrowe/Semptify`, `Semptify5.0`, `Semptify0.1`, `semptify-sdk`, `Sempt`
+   - All 8 repos now under `1semptify-arch/` — single org, single owner
+   - `SemptifyResearch` set to Private (intentional)
+
+2. **Orchestrator port conflict fixed** — `C:\Semptify\Orchestrator\start.bat`
+   - Was: port 8000 (same as Semptify core — hard conflict)
+   - Fixed: port 8001
+   - Architecture: Orchestrator is a sidecar — calls Semptify API at `localhost:8000`
+   - Ollama stays on 11434 — no conflicts anywhere
+
+3. **Orchestrator given its own repo** — `1semptify-arch/semptify-orchestrator`
+   - Added `.gitignore`, `README.md`, initial commit, pushed to GitHub
+   - Was floating with no version control
+
+4. **Module audit completed** — 88 modules scanned
+   - 35 ACTIVE (wired via product_manifest.py)
+   - 45 SUBSTANTIAL (real code, declared in manifest, tier not enabled)
+   - 1 MINIMAL (zoom_court_prep — stub)
+   - All 45 substantial modules already have routers and are declared in the manifest
+   - They are NOT unwired — they are gated by tier (EXTENDED, ADVOCATE, ADMIN, RESEARCH)
+
+5. **Architecture decision documented** — Role + Jurisdiction + Device module activation
+   - Onramp plan written into `app/core/product_manifest.py` as a comment block
+   - NOT built yet — documented for when core is stable
+   - Plan: `requires_role`, `requires_jurisdiction`, `requires_gate` fields on `ModuleEntry`
+   - Enforcement via `ModuleGateMiddleware` (per-request, not per-startup)
+
+6. **Two future improvements documented** (not built):
+   - **Feature flags** — DB table: `module_name | enabled | roles | jurisdictions`
+     - Runtime on/off without redeploy
+     - Layered on top of existing manifest system
+   - **Event bus wire-up** — `context_loop` and other modules react to events
+     - `event_bus.py` already exists — modules just need to subscribe
+     - `document uploaded → context_loop enriches → fills missing fields`
+
+### Current Active Tiers
+```python
+register_tiers(fastapi_app, ProductTier.CORE, ProductTier.DEV)
+```
+EXTENDED, ADVOCATE, ADMIN, RESEARCH are declared but not enabled.
+Enable any tier by adding it to this one line — no other code changes needed.
+
+### Port Map (Clean)
+| Service | Port |
+|---|---|
+| Semptify core (FastAPI) | 8000 |
+| Semptify Orchestrator (local AI) | 8001 |
+| Ollama (AI models) | 11434 |
+
+### What Is Pending
+
+- **NEXT: Enable EXTENDED tier** — court forms, case builder, complaints, eviction defense
+  - One line change: `register_tiers(fastapi_app, ProductTier.CORE, ProductTier.DEV, ProductTier.EXTENDED)`
+  - Test each module compiles clean before enabling
+- **ContextDataLoop cross-source enrichment** (carried from previous session)
+- Fix `/api/analytics/pageview` 404 — add stub endpoint
+- Test Dropbox onboarding flow
+- Feature flags DB table (future)
+- Module resolver + ModuleGateMiddleware (future — onramp documented in product_manifest.py)
+
+---
+
+## Shipped — 2026-05-28 (5:00 PM UTC-05) — Session (local, no commit yet)
+
+### What Was Fixed This Session
+
+1. **Cloudflare tunnel config** — fixed port mismatch (8001→8000), IPv6 localhost issue (localhost→127.0.0.1), removed dev.semptify.org from ingress
+2. **OAuth redirect URI** — root cause was stale `lru_cache` + old process still running from May 27. Fixed `public_base_url` as a `@property` so it always reads live from env. Killed ghost processes.
+3. **Vault gate timing** — `vault_initialized` was marked after step 1 (folders only). Moved to step 3 (after full live probe + document pipeline pass). Gate now only marks when everything is green.
+4. **Vault step 2 timeout** — three sequential 25s operations exceeded Cloudflare 30s limit. Fixed with `asyncio.gather()` to run in parallel.
+5. **`BusEventType` import error** — `document_flow_orchestrator.py` imported a name that doesn't exist. Fixed to `EventType as BusEventType`.
+6. **`libmagic` crash on vault upload** — `file_validator.py` hard-imported `magic` at module level. Made optional with graceful fallback to `mimetypes`.
+7. **`scripts/reset_test_user.py`** — created utility to clear oauth_states and user gates for clean onboarding test runs.
+
+### What Is Known Working
+
+- ✅ Full onboarding flow end-to-end (Google Drive confirmed)
+- ✅ Vault folders created in user's Google Drive
+- ✅ Vault gate only marks after live write/read/delete probe passes
+- ✅ Document uploaded through full pipeline during onboarding
+- ✅ User lands on /home after onboarding completes
+- ✅ semptify.org resolves via Cloudflare tunnel to local app
+
+### What Is Pending
+
+- **NEXT PRIORITY: ContextDataLoop cross-source enrichment**
+  - When a document is missing data (date, amount, party name), pull assumed values from other documents already in the user's vault
+  - Add an **intensity controller** — tunable setting (low/medium/high) for how aggressively the system infers and fills gaps
+  - Low: only use exact matches from other docs
+  - Medium: use fuzzy matches + case profile
+  - High: use AI inference from full case context
+  - Flag document as "pending enrichment" in UI until gaps are filled or user confirms
+  - Module: `app/services/context_loop.py` (ContextDataLoop) — wired but not actively enriching yet
+- **SECURITY: Restrict /api/docs public access** before go-live
+- Fix `/api/analytics/pageview` 404 — add stub endpoint
+- Fix vault sidebar upload (libmagic fallback shipped, needs live test)
+- Test Dropbox onboarding flow (only Google Drive tested today)
+
+---
+
+## Shipped — 2026-05-26 (2:50 PM UTC-05) — Commit `4b8524f`
+
+### What Was Shipped
+
+**Local Development Setup + Cloudflare Tunnel Configuration**
+
+1. **Deleted test vault data files** (`DOCUMENTS/Semptify5.0/`)
+   - Removed vault test artifacts (README.txt, Rehome.html, auth tokens, manifest, events, registry)
+   - Cleaned up local development test data
+
+2. **Local development environment established**
+   - FastAPI app running locally on localhost:8000
+   - Connected to Neon PostgreSQL database
+   - Connected to Cloudflare R2 storage
+   - OAuth callback URLs configured for dev.semtify.org
+
+3. **Cloudflare Tunnel setup**
+   - Installed cloudflared
+   - Created tunnel `semptify-dev` (ID: 8872fa01-f3bc-44ef-857e-16850a0751cb)
+   - Configured DNS CNAME for dev.semtify.org
+   - Tunnel running and connected to localhost:8000
+
+### What Is Known Working
+
+- ✅ FastAPI app starts successfully locally
+- ✅ Neon PostgreSQL connection working
+- ✅ Cloudflare R2 storage configured
+- ✅ Cloudflare tunnel running and healthy
+- ✅ OAuth callback URLs added to provider apps (Google, Dropbox, OneDrive)
+- ✅ Local development environment fully operational
+
+### What Is Pending
+
+- DNS propagation for dev.semtify.org (may take up to 24 hours)
+- Test user flows locally (onboarding, document upload, timeline)
+- Fix timeline event addition API connection
+- Fix vault portal upload API connection
+- Implement bar verification API for legal onboarding
+- Implement file upload API for legal verification
+- Add delete endpoint for timeline events
+- **SECURITY: Restrict /api/docs public access** — API docs at `/api/docs` are currently publicly visible. Must be locked down to admin-only or disabled in production before go-live.
+
+---
+
 ## Shipped — 2026-05-24 (2:44 AM UTC-05) — Commit `53b56c3`
 
 ### What Was Shipped

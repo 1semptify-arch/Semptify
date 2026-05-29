@@ -128,9 +128,25 @@ async def init_db():
     Initialize the database - create all tables.
     Call this on startup.
     """
+    import os
+
+    # Tables that require explicit opt-in or a separate Alembic migration.
+    # They are excluded from auto create_all to avoid permission errors on
+    # restricted DB users (e.g. Neon free tier).
+    _OPTIONAL_TABLES = {"pattern_records"}
+
     engine = get_engine()
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        # Only create tables that are not in the optional/migration-only set
+        target_tables = [
+            t for t in Base.metadata.sorted_tables
+            if t.name not in _OPTIONAL_TABLES
+        ]
+        await conn.run_sync(
+            lambda sync_conn: Base.metadata.create_all(
+                sync_conn, tables=target_tables
+            )
+        )
 
 
 async def close_db():

@@ -26,10 +26,11 @@ from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 
 from app.core.utc import utc_now
-from app.modules.document_converter import (
+from app.modules.document_converter.converter import (
     DocumentConverter,
     DocumentMetadata,
     DocumentStyle,
+    DOCUMENT_STYLES,
     markdown_to_docx,
     markdown_to_html,
 )
@@ -86,14 +87,8 @@ class ConvertResponse(BaseModel):
 # =============================================================================
 
 def get_style(style_name: str) -> DocumentStyle:
-    """Convert style string to enum"""
-    style_map = {
-        "legal_brief": DocumentStyle.LEGAL_BRIEF,
-        "court_filing": DocumentStyle.COURT_FILING,
-        "standard": DocumentStyle.STANDARD,
-        "memo": DocumentStyle.MEMO,
-    }
-    return style_map.get(style_name, DocumentStyle.LEGAL_BRIEF)
+    """Convert style string to DocumentStyle instance"""
+    return DOCUMENT_STYLES.get(style_name, DOCUMENT_STYLES["legal_brief"])
 
 
 def build_metadata(request: ConvertRequest) -> Optional[DocumentMetadata]:
