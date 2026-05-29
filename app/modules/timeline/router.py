@@ -36,7 +36,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.id_gen import make_id
 from app.core.database import get_db_session
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, green_access
 from app.core.utc import utc_now
 from app.core.vault_paths import VAULT_TIMELINE_EVENTS_FILE
 from app.models.models import (
@@ -592,7 +592,7 @@ async def _load_db_vault_items(
 @router.post("/unified", response_model=TimelineViewResponse)
 async def get_unified_timeline(
     request: TimelineViewRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ) -> TimelineViewResponse:
     """
     Get unified interactive timeline view.
@@ -713,7 +713,7 @@ async def get_unified_timeline(
 
 @router.get("/date-range", response_model=DateRangeInfo)
 async def get_date_range_info(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ) -> DateRangeInfo:
     """
     Get the available date range across all timeline sources.

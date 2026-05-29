@@ -10,7 +10,7 @@ from pydantic import BaseModel
 import logging
 
 from app.core.id_gen import make_id
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, yellow_access
 
 logger = logging.getLogger(__name__)
 
@@ -190,7 +190,7 @@ async def export_zip_internal(complaint_id: str) -> Dict[str, Any]:
 @router.post("/launch", response_model=Dict[str, Any])
 async def launch_campaign(
     payload: CampaignLaunchRequest,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """
     Launch a full accountability campaign combining:
@@ -244,7 +244,7 @@ async def launch_campaign(
 @router.get("/status/{campaign_id}")
 async def get_campaign_status(
     campaign_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """Get status of a launched campaign"""
     if campaign_id not in _campaigns:
@@ -253,7 +253,7 @@ async def get_campaign_status(
 
 @router.get("/list")
 async def list_campaigns(
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """List all campaigns for the current user"""
     return {
@@ -264,7 +264,7 @@ async def list_campaigns(
 @router.post("/quick-file")
 async def quick_file_complaint(
     payload: ComplaintInput,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """Quick complaint filing without full campaign"""
     user_id = user.user_id if hasattr(user, 'user_id') else "anonymous"
@@ -273,7 +273,7 @@ async def quick_file_complaint(
 @router.post("/quick-analyze")
 async def quick_analyze_fraud(
     payload: FraudInput,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """Quick fraud analysis without full campaign"""
     user_id = user.user_id if hasattr(user, 'user_id') else "anonymous"
@@ -282,7 +282,7 @@ async def quick_analyze_fraud(
 @router.post("/quick-press")
 async def quick_generate_press(
     payload: PressInput,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """Quick press release generation without full campaign"""
     user_id = user.user_id if hasattr(user, 'user_id') else "anonymous"

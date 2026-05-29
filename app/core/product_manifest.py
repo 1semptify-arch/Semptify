@@ -212,6 +212,8 @@ _register("app.modules.workflow_validator.router", tags=("Admin",), tier=Product
 # Rights & education
 _register("app.modules.state_laws.router", tags=("State Laws",), tier=ProductTier.CORE)
 _register("app.modules.law_library.router", tags=("Law Library",), tier=ProductTier.CORE)
+_register("app.modules.law_library.router", router_attr="page_router", tags=("Law Library",), tier=ProductTier.CORE,
+          log_message="Law Library page route active at /law-library")
 
 # Core tools
 _register("app.modules.contacts.router", tags=("Contact Manager",), tier=ProductTier.CORE)

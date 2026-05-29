@@ -23,7 +23,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, green_access
 from .service import (
     AccountabilityPlan,
     EntityRecord,
@@ -106,7 +106,7 @@ class AddStepBody(PlanStateRequest):
 @router.post("/plans", summary="Create a new accountability plan")
 async def create_accountability_plan(
     body: CreatePlanRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ) -> dict:
     """
     Create a new structured accountability plan.
@@ -134,7 +134,7 @@ async def create_accountability_plan(
 async def view_plan(
     plan_id: str,
     body: PlanStateRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ) -> dict:
     """
     Deserialise and return a plan the client submits from their vault.
@@ -158,7 +158,7 @@ async def export_plan(
     plan_id: str,
     body: PlanStateRequest,
     format: str = Query("markdown", description="'markdown' or 'json'"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ) -> Response:
     """
     Export the plan as a downloadable Markdown or JSON file.
@@ -194,7 +194,7 @@ async def export_plan(
 async def add_entity_to_plan(
     plan_id: str,
     body: AddEntityBody,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ) -> dict:
     """
     Add a landlord entity, property manager, or registered agent to the plan.
@@ -218,7 +218,7 @@ async def add_entity_to_plan(
 async def add_evidence_to_plan(
     plan_id: str,
     body: AddEvidenceBody,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ) -> dict:
     """
     Attach an evidence item (with optional vault_id reference) to the plan.
@@ -241,7 +241,7 @@ async def add_evidence_to_plan(
 async def add_step_to_plan(
     plan_id: str,
     body: AddStepBody,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ) -> dict:
     """
     Add a next-step action item to the plan's checklist.
@@ -263,7 +263,7 @@ async def complete_step(
     plan_id: str,
     step_index: int,
     body: PlanStateRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ) -> dict:
     """
     Mark a checklist step as completed.

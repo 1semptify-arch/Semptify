@@ -22,7 +22,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, rate_limit_dependency, StorageUser
+from app.core.security import require_user, rate_limit_dependency, StorageUser, yellow_access
 from app.sdk.plugin_manager import plugin_manager, PluginStatus
 
 logger = logging.getLogger(__name__)
@@ -79,7 +79,7 @@ router = APIRouter(
 async def list_plugins(
     status_filter: Optional[str] = Query(None, description="Filter by status"),
     category_filter: Optional[str] = Query(None, description="Filter by category"),
-    current_user: StorageUser = Depends(require_user),
+    current_user: StorageUser = Depends(yellow_access),
 ):
     """
     List all available plugins with optional filtering.
@@ -132,7 +132,7 @@ async def list_plugins(
 @router.get("/{plugin_name}", response_model=PluginInfo)
 async def get_plugin(
     plugin_name: str,
-    current_user: StorageUser = Depends(require_user),
+    current_user: StorageUser = Depends(yellow_access),
 ):
     """
     Get detailed information about a specific plugin.
@@ -169,7 +169,7 @@ async def get_plugin(
 @router.post("/{plugin_name}/load")
 async def load_plugin(
     plugin_name: str,
-    current_user: StorageUser = Depends(require_user),
+    current_user: StorageUser = Depends(yellow_access),
 ):
     """
     Load a specific plugin.
@@ -192,7 +192,7 @@ async def load_plugin(
 @router.post("/{plugin_name}/unload")
 async def unload_plugin(
     plugin_name: str,
-    current_user: StorageUser = Depends(require_user),
+    current_user: StorageUser = Depends(yellow_access),
 ):
     """
     Unload a specific plugin.
@@ -217,7 +217,7 @@ async def execute_plugin_action(
     plugin_name: str,
     action_name: str,
     request: PluginActionRequest,
-    current_user: StorageUser = Depends(require_user),
+    current_user: StorageUser = Depends(yellow_access),
 ):
     """
     Execute a specific action on a plugin.
@@ -261,7 +261,7 @@ async def execute_plugin_action(
 async def browse_marketplace(
     category: Optional[str] = Query(None, description="Filter by category"),
     tags: Optional[List[str]] = Query(None, description="Filter by tags"),
-    current_user: StorageUser = Depends(require_user),
+    current_user: StorageUser = Depends(yellow_access),
 ):
     """
     Browse available plugins in the marketplace (placeholder for future implementation).

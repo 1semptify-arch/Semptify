@@ -12,7 +12,7 @@ Models for the Semptify communication system supporting:
 from datetime import datetime
 from enum import Enum
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict, field_serializer
 from app.core.id_gen import make_id
 import logging
 logger = logging.getLogger(__name__)
@@ -116,11 +116,11 @@ class Message(BaseModel):
     # Threading (for replies)
     reply_to_message_id: Optional[str] = None
     thread_count: int = 0            # Number of replies to this message
-    
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
+
+    @field_serializer('created_at', 'sent_at', 'read_at', when_used='json')
+    def serialize_dt(self, v: Optional[datetime]) -> Optional[str]:
+        return v.isoformat() if v else None
+
 
 
 class Conversation(BaseModel):
@@ -145,11 +145,6 @@ class Conversation(BaseModel):
     # Message counts
     message_count: int = 0
     unread_count: int = 0
-    
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
 
 
 class ConversationSummary(BaseModel):

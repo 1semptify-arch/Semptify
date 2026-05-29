@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser, require_admin
+from app.core.security import require_user, StorageUser, require_admin, green_access
 from app.core.analytics_engine import (
     get_analytics_engine,
     AnalyticsEventType,
@@ -93,7 +93,7 @@ class ExportResponse(BaseModel):
 @router.post("/track", response_model=EventTrackResponse)
 async def track_event(
     request: EventTrackRequest,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """
     Track a custom analytics event.
@@ -128,7 +128,7 @@ async def track_event(
 @router.post("/pageview", response_model=EventTrackResponse)
 async def track_pageview(
     request: Request,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """
     Track a page view event (frontend navigation tracking).
@@ -161,7 +161,7 @@ async def track_pageview(
 async def track_document_upload(
     document_id: str,
     doc_type: Optional[str] = None,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Track a document upload event."""
     try:

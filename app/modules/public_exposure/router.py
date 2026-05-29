@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, green_access
 from .service import (
     get_public_exposure_service,
     MediaOutlet,
@@ -80,7 +80,7 @@ async def exposure_health_check():
 @router.post("/press-release", response_model=PressReleaseResponse)
 async def generate_press_release(
     request: GeneratePressReleaseRequest,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """
     Generate a professional press release for tenant rights violations.
@@ -113,7 +113,7 @@ async def generate_press_release(
 @router.get("/press-release/{release_id}")
 async def get_press_release(
     release_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get a press release by ID"""
     service = get_public_exposure_service()
@@ -128,7 +128,7 @@ async def get_press_release(
 @router.get("/press-release/{release_id}/text")
 async def get_press_release_text(
     release_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get a press release as formatted text (ready to send)"""
     service = get_public_exposure_service()
@@ -143,7 +143,7 @@ async def get_press_release_text(
 @router.post("/media-kit", response_model=MediaKitResponse)
 async def generate_media_kit(
     request: GenerateMediaKitRequest,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """
     Generate a complete media kit for a campaign.
@@ -179,7 +179,7 @@ async def generate_media_kit(
 @router.get("/media-kit/{kit_id}")
 async def get_media_kit(
     kit_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get a media kit by ID"""
     service = get_public_exposure_service()
@@ -194,7 +194,7 @@ async def get_media_kit(
 @router.get("/media-outlets")
 async def list_media_outlets(
     outlet_type: Optional[str] = Query(None, description="Filter by outlet type"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """
     List Minnesota media outlets for outreach.
@@ -226,7 +226,7 @@ async def list_media_outlets(
 
 @router.get("/languages")
 async def list_supported_languages(
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """List supported languages for press releases"""
     return {
@@ -241,7 +241,7 @@ async def list_supported_languages(
 
 @router.get("/release-types")
 async def list_release_types(
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """List available press release types"""
     return {
@@ -257,7 +257,7 @@ async def generate_social_posts(
     headline: str = Query(..., description="The headline or main topic"),
     link: Optional[str] = Query(None, description="Link to include"),
     hashtags: Optional[List[str]] = Query(default=["TenantRights", "HousingJustice"]),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Generate social media posts for different platforms"""
     hashtag_str = " ".join(f"#{h}" for h in hashtags) if hashtags else ""

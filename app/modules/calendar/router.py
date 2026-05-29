@@ -15,7 +15,7 @@ from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, yellow_access
 from app.core.utc import utc_now
 from app.core.document_hub import get_document_hub
 from app.models.models import CalendarEvent as CalendarEventModel
@@ -122,7 +122,7 @@ def _model_to_response(event: CalendarEventModel) -> CalendarEventResponse:
 )
 async def create_event(
     event: CalendarEventCreate,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Create a calendar event or deadline.
@@ -188,7 +188,7 @@ async def list_events(
     end: Optional[str] = Query(None, description="End of date range (ISO)"),
     event_type: Optional[str] = Query(None, description="Filter by event type"),
     critical_only: bool = Query(False, description="Only show critical events"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     List calendar events, optionally filtered by date range and type.
@@ -225,7 +225,7 @@ async def list_events(
 @router.get("/upcoming", response_model=UpcomingDeadlinesResponse)
 async def upcoming_deadlines(
     days: int = Query(30, ge=1, le=90, description="Look ahead days"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get upcoming deadlines and critical events.
@@ -272,7 +272,7 @@ async def upcoming_deadlines(
 @router.get("/{event_id}", response_model=CalendarEventResponse)
 async def get_event(
     event_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """Get a specific calendar event."""
     async with get_db_session() as session:
@@ -295,7 +295,7 @@ async def get_event(
 async def update_event(
     event_id: str,
     updates: CalendarEventUpdate,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """Update a calendar event."""
     async with get_db_session() as session:
@@ -330,7 +330,7 @@ async def update_event(
 @router.delete("/{event_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_event(
     event_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """Delete a calendar event."""
     async with get_db_session() as session:
@@ -364,7 +364,7 @@ class DocumentEventsResponse(BaseModel):
 
 @router.get("/from-documents", response_model=DocumentEventsResponse)
 async def get_events_from_documents(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get calendar events derived from uploaded documents.
@@ -417,7 +417,7 @@ class SyncResult(BaseModel):
 @router.post("/sync-documents", response_model=SyncResult)
 async def sync_document_events(
     overwrite: bool = Query(False, description="Overwrite existing events with same title"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Sync calendar events from uploaded documents to your calendar.
@@ -516,7 +516,7 @@ async def sync_document_events(
 
 @router.get("/deadline-summary")
 async def get_deadline_summary(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get a summary of deadlines from both calendar and documents.
@@ -586,7 +586,7 @@ async def get_deadline_summary(
 @router.post("/notify-deadlines")
 async def send_deadline_notifications(
     days_ahead: int = Query(7, description="Send notifications for deadlines within this many days"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Send email notifications for upcoming deadlines.

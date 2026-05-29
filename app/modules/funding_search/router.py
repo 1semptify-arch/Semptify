@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from enum import Enum
 import logging
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, green_access
 
 logger = logging.getLogger(__name__)
 
@@ -605,7 +605,7 @@ async def get_program_details(program_type: FundingProgramType):
 @router.post("/search")
 async def search_funding_records(
     request: PropertySearchRequest,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """
     Search for funding records by address, company, broker, or program.
@@ -639,7 +639,7 @@ async def search_funding_records(
 async def search_by_address(
     address: str = Query(..., description="Address or partial address to search"),
     state: str = Query("MN", description="State filter"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Search funding records by property address"""
     results = search_records(address, SearchType.ADDRESS, state=state)
@@ -649,7 +649,7 @@ async def search_by_address(
 async def search_by_company(
     company: str = Query(..., description="Company or owner name to search"),
     state: str = Query("MN", description="State filter"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Search funding records by company/owner name"""
     results = search_records(company, SearchType.COMPANY, state=state)
@@ -659,7 +659,7 @@ async def search_by_company(
 async def search_by_broker(
     broker: str = Query(..., description="Broker name or company to search"),
     state: str = Query("MN", description="State filter"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Search funding records by broker/agent"""
     results = search_records(broker, SearchType.BROKER, state=state)
@@ -668,7 +668,7 @@ async def search_by_broker(
 @router.get("/record/{record_id}")
 async def get_funding_record(
     record_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get detailed funding record by ID"""
     for record in SAMPLE_FUNDING_RECORDS:
@@ -685,7 +685,7 @@ async def get_funding_record(
 @router.get("/statistics")
 async def get_funding_statistics(
     state: str = Query("MN", description="State filter"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get funding statistics by program type"""
     stats = {}
@@ -731,7 +731,7 @@ async def check_eligibility(
     property_type: str = Query("multifamily", description="Property type"),
     total_units: int = Query(..., description="Total units"),
     target_ami: int = Query(60, description="Target AMI percentage"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """
     Check potential eligibility for various funding programs based on property characteristics.

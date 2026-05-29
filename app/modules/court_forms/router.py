@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response, Query
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, red_access
 from .service import form_generator
 from app.core.event_bus import event_bus, EventType as BusEventType
 from app.core.document_hub import get_document_hub
@@ -108,7 +108,7 @@ async def list_defense_types():
 @router.post("/generate", response_model=FormResponse)
 async def generate_form(
     request: FormGenerateRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(red_access),
 ):
     """
     Generate a court form with auto-filled data.
@@ -232,7 +232,7 @@ async def generate_form(
 async def generate_form_html(
     form_type: str,
     defenses: Optional[str] = None,  # Comma-separated defense types
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(red_access),
 ):
     """
     Generate a court form and return HTML directly.
@@ -279,7 +279,7 @@ async def generate_form_html(
 async def download_form_pdf(
     form_type: str,
     defenses: Optional[str] = None,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(red_access),
 ):
     """
     Generate and download a court form as PDF.
@@ -338,7 +338,7 @@ async def download_form_pdf(
 @router.post("/preview")
 async def preview_form(
     request: FormGenerateRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(red_access),
 ):
     """
     Preview form data mapping without generating full form.
@@ -404,7 +404,7 @@ async def quick_generate_answer(
     case_number: Optional[str] = None,
     defendant_name: Optional[str] = None,
     defenses: str = "improper_notice",
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(red_access),
 ):
     """
     Quick endpoint to generate Answer to Eviction Complaint.
@@ -453,7 +453,7 @@ async def quick_generate_answer(
 @router.get("/autofill/{form_type}")
 async def get_autofill_data(
     form_type: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(red_access),
 ):
     """
     Get auto-fill data for a form type from uploaded documents.
@@ -486,7 +486,7 @@ async def generate_form_from_documents(
     form_type: str = Query(..., description="Form type: answer_to_complaint, motion_to_dismiss, etc."),
     defenses: Optional[str] = Query(None, description="Comma-separated defense types"),
     output_format: str = Query("html", description="Output format: html, pdf, text"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(red_access),
 ):
     """
     Generate a court form using data extracted from uploaded documents.
@@ -576,7 +576,7 @@ async def generate_form_from_documents(
 
 @router.get("/document-data-preview")
 async def preview_document_data(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(red_access),
 ):
     """
     Preview all data extracted from documents that can be used for forms.

@@ -23,12 +23,12 @@ from app.core.utc import utc_now
 from app.core.id_gen import make_id
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 from sqlalchemy import select, or_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, yellow_access
 from app.models.models import Contact, ContactInteraction
 from app.core.event_bus import event_bus, EventType as BusEventType
 import logging
@@ -116,10 +116,7 @@ class ContactResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
-
-
+    model_config = ConfigDict(from_attributes=True)
 class InteractionCreate(BaseModel):
     """Log an interaction with a contact."""
     interaction_type: str  # phone_call, email, letter, in_person, court_appearance, voicemail
@@ -149,10 +146,7 @@ class InteractionResponse(BaseModel):
     follow_up_notes: Optional[str]
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
-
+    model_config = ConfigDict(from_attributes=True)
 class ContactsListResponse(BaseModel):
     """List of contacts."""
     contacts: List[ContactResponse]
@@ -249,7 +243,7 @@ async def list_contacts(
     search: Optional[str] = Query(None, description="Search name/organization"),
     starred_only: bool = Query(False, description="Show only starred contacts"),
     active_only: bool = Query(True, description="Show only active contacts"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -297,7 +291,7 @@ async def list_contacts(
 @router.post("/", response_model=ContactResponse, status_code=status.HTTP_201_CREATED)
 async def create_contact(
     data: ContactCreate,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
     """Create a new contact."""
@@ -335,7 +329,7 @@ async def create_contact(
 @router.get("/{contact_id}", response_model=ContactResponse)
 async def get_contact(
     contact_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
     """Get a specific contact by ID."""
@@ -357,7 +351,7 @@ async def get_contact(
 async def update_contact(
     contact_id: str,
     data: ContactUpdate,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
     """Update an existing contact."""
@@ -387,7 +381,7 @@ async def update_contact(
 @router.delete("/{contact_id}")
 async def delete_contact(
     contact_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
     """Delete a contact."""
@@ -411,7 +405,7 @@ async def delete_contact(
 @router.post("/{contact_id}/star")
 async def toggle_star(
     contact_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
     """Toggle starred status for a contact."""
@@ -439,7 +433,7 @@ async def toggle_star(
 @router.get("/{contact_id}/interactions", response_model=List[InteractionResponse])
 async def list_interactions(
     contact_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
     """List all interactions with a contact."""
@@ -483,7 +477,7 @@ async def list_interactions(
 async def log_interaction(
     contact_id: str,
     data: InteractionCreate,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
     """Log an interaction with a contact."""
@@ -548,7 +542,7 @@ async def log_interaction(
 @router.post("/import-from-extraction")
 async def import_from_extraction(
     data: ExtractedContactsRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -622,7 +616,7 @@ async def quick_add_landlord(
     phone: Optional[str] = None,
     email: Optional[str] = None,
     address: Optional[str] = None,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
     """Quick add a landlord contact."""
@@ -657,7 +651,7 @@ async def quick_add_witness(
     phone: Optional[str] = None,
     email: Optional[str] = None,
     notes: Optional[str] = None,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
     """Quick add a witness contact."""
@@ -687,7 +681,7 @@ async def quick_add_witness(
 
 @router.get("/for-forms")
 async def get_contacts_for_forms(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
 ):
     """

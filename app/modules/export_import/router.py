@@ -13,7 +13,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, 
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, red_access
 from app.core.data_export_import import (
     get_export_import_manager, ExportType, ExportFormat, ImportFormat,
     create_export_request, process_export_request, get_export_request,
@@ -58,7 +58,7 @@ class ImportRequestSchema(BaseModel):
 @router.post("/export/request", response_model=ExportResponse)
 async def create_export_request_endpoint(
     request: ExportRequestSchema,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Create a new data export request.
@@ -123,7 +123,7 @@ async def create_export_request_endpoint(
 @router.post("/export/{export_id}/process")
 async def process_export_endpoint(
     export_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Process an export request.
@@ -165,7 +165,7 @@ async def process_export_endpoint(
 @router.get("/export/{export_id}")
 async def get_export_status_endpoint(
     export_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Get export request status and details.
@@ -191,7 +191,7 @@ async def get_export_status_endpoint(
 @router.get("/export/{export_id}/download")
 async def download_export_endpoint(
     export_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Download an exported file.
@@ -251,7 +251,7 @@ async def get_user_exports_endpoint(
     status: Optional[str] = Query(None, description="Filter by status"),
     limit: int = Query(20, ge=1, le=100, description="Max exports to return"),
     offset: int = Query(0, ge=0, description="Exports offset"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Get all export requests for the current user.
@@ -293,7 +293,7 @@ async def get_user_exports_endpoint(
 @router.delete("/export/{export_id}")
 async def delete_export_endpoint(
     export_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Delete an export request and associated file.
@@ -338,7 +338,7 @@ async def prepare_import_endpoint(
     format: str = Form("json", description="Import format"),
     validation_required: bool = Form(True, description="Require validation"),
     merge_strategy: str = Form("skip", description="Merge strategy"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Prepare a data import operation.
@@ -402,7 +402,7 @@ async def prepare_import_endpoint(
 async def upload_import_file_endpoint(
     import_id: str,
     file: UploadFile = File(..., description="Import file"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Upload file for import operation.
@@ -453,7 +453,7 @@ async def upload_import_file_endpoint(
 async def process_import_endpoint(
     import_id: str,
     merge_strategy: str = Form("skip", description="Merge strategy"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Process an import operation.
@@ -494,7 +494,7 @@ async def process_import_endpoint(
 
 @router.get("/export/statistics")
 async def get_export_statistics_endpoint(
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Get export/import statistics.
@@ -609,7 +609,7 @@ async def get_supported_formats_endpoint():
 
 @router.post("/cleanup")
 async def cleanup_exports_endpoint(
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Clean up expired exports (admin only or user-specific).

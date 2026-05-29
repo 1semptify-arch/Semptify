@@ -18,7 +18,7 @@ from fastapi.responses import StreamingResponse
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, green_access
 from .service import get_research_service
 import logging
 logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ async def research_health_check():
 @router.post("/property/{property_id}")
 async def research_property(
     property_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     Run full research pipeline on a property.
@@ -99,7 +99,7 @@ async def research_property(
 @router.get("/property/{property_id}")
 async def get_property_profile(
     property_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get cached profile for a property (must run research first)"""
     service = get_research_service()
@@ -117,7 +117,7 @@ async def get_property_profile(
 @router.get("/property/{property_id}/summary")
 async def get_property_summary(
     property_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get a summary of research findings for a property"""
     service = get_research_service()
@@ -148,7 +148,7 @@ async def get_property_summary(
 @router.get("/property/{property_id}/fraud-flags")
 async def get_property_fraud_flags(
     property_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get fraud flags for a property"""
     service = get_research_service()
@@ -171,7 +171,7 @@ async def get_property_fraud_flags(
 @router.get("/property/{property_id}/download")
 async def download_evidence_zip(
     property_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """
     Download the evidence ZIP for a property.
@@ -201,7 +201,7 @@ async def download_evidence_zip(
 @router.get("/checkpoint/{checkpoint_id}")
 async def get_checkpoint(
     checkpoint_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get a research checkpoint by ID"""
     service = get_research_service()
@@ -217,7 +217,7 @@ async def get_checkpoint(
 @router.get("/assessor")
 async def get_assessor_data_query(
     property_id: Optional[str] = Query(None, description="Property ID to lookup"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get assessor data for a property (taxes, ownership)"""
     if not property_id:
@@ -240,7 +240,7 @@ class AssessorRequest(BaseModel):
 @router.post("/assessor")
 async def post_assessor_data(
     request: AssessorRequest,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get assessor data for a property via POST"""
     service = get_research_service()
@@ -254,7 +254,7 @@ async def post_assessor_data(
 @router.get("/assessor/{property_id}")
 async def get_assessor_data(
     property_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get assessor data for a property (taxes, ownership)"""
     service = get_research_service()
@@ -268,7 +268,7 @@ async def get_assessor_data(
 @router.get("/recorder/{property_id}")
 async def get_recorder_data(
     property_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get recorder data for a property (deeds, liens)"""
     service = get_research_service()
@@ -282,7 +282,7 @@ async def get_recorder_data(
 @router.get("/ucc")
 async def get_ucc_filings(
     entity_name: str = Query(..., description="Entity name to search"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Search UCC filings for an entity"""
     service = get_research_service()
@@ -297,7 +297,7 @@ async def get_ucc_filings(
 async def get_dispatch_calls(
     property_id: Optional[str] = Query(None),
     address: Optional[str] = Query(None),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """Get emergency dispatch calls near a property"""
     if not property_id and not address:
@@ -316,7 +316,7 @@ async def get_news_mentions(
     entity_name: Optional[str] = Query(None),
     address: Optional[str] = Query(None),
     query: Optional[str] = Query(None, description="Search query (alias for entity_name)"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """Search news for mentions of entity or address"""
     search_term = entity_name or query
@@ -332,7 +332,7 @@ async def get_news_mentions(
 @router.get("/sos")
 async def get_sos_entity(
     entity_name: str = Query(..., description="Entity name to search"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Search Secretary of State business registry"""
     service = get_research_service()
@@ -346,7 +346,7 @@ async def get_sos_entity(
 @router.get("/bankruptcy")
 async def get_bankruptcy_cases(
     entity_name: str = Query(..., description="Entity name to search"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Search bankruptcy records for an entity"""
     service = get_research_service()
@@ -360,7 +360,7 @@ async def get_bankruptcy_cases(
 @router.get("/insurance")
 async def get_insurance_info(
     entity_name: str = Query(..., description="Entity name to search"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get insurance broker/policy info for an entity"""
     service = get_research_service()
@@ -373,7 +373,7 @@ async def get_insurance_info(
 
 @router.get("/sources")
 async def list_data_sources(
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """List configured data sources and their endpoints"""
     from .service import CFG

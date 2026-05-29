@@ -23,7 +23,7 @@ from sqlalchemy import select, or_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, green_access
 from app.core.search_engine import get_search_engine, SearchType, SearchOperator
 from app.models.models import (
     Document as DocumentModel,
@@ -227,7 +227,7 @@ def _search_law_library(query: str) -> List[SearchResult]:
 async def global_search(
     q: str = Query(..., min_length=1, description="Search query"),
     limit: int = Query(10, ge=1, le=50, description="Max results per category"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     Search across all Semptify data sources.
@@ -417,7 +417,7 @@ async def advanced_search(
     date_to: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
     limit: int = Query(20, ge=1, le=100, description="Max results"),
     offset: int = Query(0, ge=0, description="Results offset"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     Advanced search with BM25 relevance scoring and filters.
@@ -480,7 +480,7 @@ async def advanced_search(
 async def search_suggestions(
     q: str = Query(..., min_length=1, description="Partial query for suggestions"),
     limit: int = Query(10, ge=1, le=20, description="Max suggestions"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     Get search suggestions based on partial query.
@@ -506,7 +506,7 @@ async def search_suggestions(
 
 @router.get("/statistics")
 async def search_statistics(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     Get search statistics and index information.
@@ -528,7 +528,7 @@ async def search_statistics(
 @router.post("/index")
 async def index_document(
     document_id: str = Query(..., description="Document ID to index"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     Manually index a document for search.
@@ -577,7 +577,7 @@ async def index_document(
 @router.delete("/index/{document_id}")
 async def remove_from_index(
     document_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     Remove a document from search index.
@@ -602,7 +602,7 @@ async def remove_from_index(
 @router.get("/quick")
 async def quick_search(
     q: str = Query(..., min_length=1),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     Quick search for autocomplete/suggestions.

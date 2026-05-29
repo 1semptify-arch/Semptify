@@ -26,7 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.cookie_auth import verify_user_id, set_auth_cookie
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, green_access
 from app.core.workflow_engine import route_user
 from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
@@ -276,7 +276,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     # ------------------------------------------------------------------
     @router.get("/api/vault/status")
     async def vault_status(
-        user: StorageUser = Depends(require_user),
+        user: StorageUser = Depends(green_access),
         db: AsyncSession = Depends(get_db),
     ):
         """Check vault installation status."""
@@ -297,7 +297,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     # ------------------------------------------------------------------
     @router.post("/api/vault/init")
     async def vault_init(
-        user: StorageUser = Depends(require_user),
+        user: StorageUser = Depends(green_access),
         db: AsyncSession = Depends(get_db),
     ):
         """Step 1: Create vault folder structure and seed files only."""
@@ -332,7 +332,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     # ------------------------------------------------------------------
     @router.post("/api/vault/security")
     async def vault_security(
-        user: StorageUser = Depends(require_user),
+        user: StorageUser = Depends(green_access),
         db: AsyncSession = Depends(get_db),
     ):
         """Step 2: Write encrypted token backup and device keys."""
@@ -369,7 +369,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     @router.post("/api/vault/verify")
     async def vault_verify(
         request: Request,
-        user: StorageUser = Depends(require_user),
+        user: StorageUser = Depends(green_access),
         db: AsyncSession = Depends(get_db),
     ):
         """

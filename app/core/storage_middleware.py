@@ -35,6 +35,7 @@ PUBLIC_PATHS: Set[str] = {
     "/health",
     "/metrics",
     "/api/version",
+    "/api/core/status",
     "/risc/google/webhook",  # Google Cross-Account Protection — no cookie
     
     # Preamble — single entry point, must always be reachable (no storage required)
@@ -270,12 +271,25 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
         if not raw_user_id:
             raw_user_id = user_id  # fallback
         
-        # ── Silent Token Refresh ─────────────────────────────────────────────
-        # Try to silently refresh expired tokens before proceeding.
-        # If refresh fails, user will be redirected to reconnect flow.
+        # ── TEMPORARY: DB-based token pre-check ──────────────────────────────
+        # TODO: Replace this entire block with the "ice cube" model:
+        #
+        #   1. Have token in memory (ice cube)? Use it — no check needed.
+        #   2. No token / melted? Knock on provider door directly (their freezer).
+        #   3. Provider says 401? THEN and ONLY THEN redirect to reconnect.
+        #
+        # Current problem: this block checks Semptify's DB, not the provider.
+        # DB goes stale → user gets kicked to reconnect unnecessarily.
+        # The provider (Google/Dropbox) is the real bouncer — we should let them
+        # decide, not pre-empt them with our own stale DB copy.
+        #
+        # This block must stay in place until the ice-cube token model is fully
+        # tested end-to-end across Google Drive, Dropbox, and OneDrive.
+        # Tracking: TEMP-TOKEN-CHECK-001
+        # ─────────────────────────────────────────────────────────────────────
         from app.core.auto_refresh import get_valid_token_or_redirect
         from app.core.database import get_session_factory
-        
+
         factory = get_session_factory()
         async with factory() as refresh_db:
             token, reconnect_url = await get_valid_token_or_redirect(
@@ -283,9 +297,8 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                 return_to=path,
                 db=refresh_db
             )
-            
+
             if reconnect_url:
-                # Silent refresh failed - need full reauth
                 if path.startswith("/api/"):
                     return JSONResponse(
                         status_code=401,
@@ -296,11 +309,10 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                             "redirect_url": reconnect_url
                         }
                     )
-                
                 return RedirectResponse(url=reconnect_url, status_code=302)
-            
-            # Token refreshed successfully or already valid - continue
-            logger.debug(f"Silent refresh succeeded or token valid for user {raw_user_id[:6]}***")
+
+            logger.debug("TEMP-TOKEN-CHECK-001: DB token valid for user %s***", raw_user_id[:6])
+        # ── END TEMPORARY ────────────────────────────────────────────────────
         
         # Valid user — check onboarding gate state via the canonical single reader.
         # All gate decisions flow through get_onboarding_state(); nothing else reads

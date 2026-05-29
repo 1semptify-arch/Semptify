@@ -11,7 +11,7 @@ from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, yellow_access
 from .service import (
     FormFieldExtractor, 
     get_form_field_extractor,
@@ -64,7 +64,7 @@ class ApplyToFormsRequest(BaseModel):
 @router.post("/extract")
 async def extract_form_fields(
     request: ExtractionRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Extract form fields from uploaded documents.
@@ -112,7 +112,7 @@ async def extract_form_fields(
 
 @router.post("/extract-from-vault")
 async def extract_from_vault_documents(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Extract form fields from all documents in user's vault.
@@ -172,7 +172,7 @@ async def extract_from_vault_documents(
 
 @router.get("/review-items")
 async def get_review_items(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get list of extracted fields that need user review.
@@ -253,7 +253,7 @@ async def get_review_items(
 @router.post("/confirm")
 async def confirm_extracted_fields(
     request: FieldUpdatesRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Confirm and update extracted field values.
@@ -334,7 +334,7 @@ async def confirm_extracted_fields(
 @router.post("/apply-to-forms")
 async def apply_extraction_to_forms(
     request: ApplyToFormsRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Apply extracted and confirmed data to form data service.

@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.config import get_settings, Settings
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, yellow_access
 from app.core.vault_paths import SEMPTIFY_ROOT, VAULT_DOCUMENTS, VAULT_CERTIFICATES, VAULT_ROOT
 from .service import (
     UserCloudSync,
@@ -195,7 +195,7 @@ async def get_sync_service(
 
 @router.get("/status", response_model=SyncResponse)
 async def get_sync_status(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -232,7 +232,7 @@ async def get_sync_status(
 @router.post("/full", response_model=SyncResponse)
 async def full_sync(
     background_tasks: BackgroundTasks,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -272,7 +272,7 @@ async def full_sync(
 
 @router.get("/profile")
 async def get_profile(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -287,7 +287,7 @@ async def get_profile(
 @router.put("/profile")
 async def update_profile(
     update: ProfileUpdate,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -312,7 +312,7 @@ async def update_profile(
 
 @router.get("/case")
 async def get_case(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -327,7 +327,7 @@ async def get_case(
 @router.put("/case")
 async def update_case(
     update: CaseUpdate,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -352,7 +352,7 @@ async def update_case(
 
 @router.get("/timeline")
 async def get_timeline(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -367,7 +367,7 @@ async def get_timeline(
 @router.post("/timeline")
 async def add_timeline_event(
     event: TimelineEventCreate,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -398,7 +398,7 @@ async def add_timeline_event(
 
 @router.get("/calendar")
 async def get_calendar(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -413,7 +413,7 @@ async def get_calendar(
 @router.post("/calendar")
 async def add_calendar_event(
     event: CalendarEventCreate,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -447,7 +447,7 @@ async def add_calendar_event(
 
 @router.get("/export")
 async def export_all_data(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -464,7 +464,7 @@ async def export_all_data(
 @router.post("/import")
 async def import_all_data(
     request: ImportRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -491,7 +491,7 @@ async def import_all_data(
 
 @router.get("/documents")
 async def get_documents(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -525,7 +525,7 @@ async def get_documents(
 
 @router.get("/vault/index")
 async def get_vault_index(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -560,7 +560,7 @@ async def get_vault_index(
 @router.get("/vault/document/{document_id}")
 async def get_vault_document(
     document_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -596,7 +596,7 @@ async def get_vault_document(
 @router.get("/vault/document/{document_id}/content")
 async def get_vault_document_content(
     document_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -651,7 +651,7 @@ async def update_vault_document(
     registered: Optional[bool] = None,
     document_type: Optional[str] = None,
     tags: Optional[str] = None,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -709,7 +709,7 @@ async def upload_document_to_cloud(
     tags: str = Form(default=""),
     notes: str = Form(default=""),
     document_type: str = Form(default=""),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -874,7 +874,7 @@ async def upload_document_to_cloud(
 
 @router.get("/check")
 async def check_storage_connection(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):

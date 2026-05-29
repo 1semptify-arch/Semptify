@@ -16,7 +16,7 @@ from pydantic import BaseModel
 from datetime import datetime, date, timedelta
 from enum import Enum
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, yellow_access
 from app.services.law_engine import get_law_engine
 from app.services.form_data import get_form_data_service
 from app.core.document_hub import get_document_hub
@@ -679,7 +679,7 @@ CASE_STATISTICS = {
 async def list_forms(
     category: Optional[str] = Query(None, description="Filter by category"),
     stage: Optional[CaseStage] = Query(None, description="Filter by case stage"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """List all available court forms."""
     forms = list(COURT_FORMS.values())
@@ -696,7 +696,7 @@ async def list_forms(
 @router.get("/forms/{form_id}", response_model=FormTemplate)
 async def get_form(
     form_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """Get a specific form by ID."""
     if form_id not in COURT_FORMS:
@@ -708,7 +708,7 @@ async def get_form(
 @router.get("/motions", response_model=List[Motion])
 async def list_motions(
     motion_type: Optional[MotionType] = Query(None, description="Filter by motion type"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """List all available motions."""
     motions = list(MOTIONS.values())
@@ -722,7 +722,7 @@ async def list_motions(
 @router.get("/motions/{motion_id}", response_model=Motion)
 async def get_motion(
     motion_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """Get a specific motion by ID."""
     if motion_id not in MOTIONS:
@@ -734,7 +734,7 @@ async def get_motion(
 @router.get("/procedures", response_model=List[Procedure])
 async def list_procedures(
     category: Optional[str] = Query(None, description="Filter by category"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """List all procedure guides."""
     procedures = list(PROCEDURES.values())
@@ -748,7 +748,7 @@ async def list_procedures(
 @router.get("/procedures/{procedure_id}", response_model=Procedure)
 async def get_procedure(
     procedure_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """Get a specific procedure guide."""
     if procedure_id not in PROCEDURES:
@@ -758,7 +758,7 @@ async def get_procedure(
 
 
 @router.get("/counterclaims", response_model=List[CounterclaimTemplate])
-async def list_counterclaims(user: StorageUser = Depends(require_user)):
+async def list_counterclaims(user: StorageUser = Depends(yellow_access)):
     """List all counterclaim templates."""
     return [CounterclaimTemplate(**cc) for cc in COUNTERCLAIMS.values()]
 
@@ -766,7 +766,7 @@ async def list_counterclaims(user: StorageUser = Depends(require_user)):
 @router.get("/counterclaims/{claim_id}", response_model=CounterclaimTemplate)
 async def get_counterclaim(
     claim_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """Get a specific counterclaim template."""
     if claim_id not in COUNTERCLAIMS:
@@ -776,13 +776,13 @@ async def get_counterclaim(
 
 
 @router.get("/statistics")
-async def get_statistics(user: StorageUser = Depends(require_user)):
+async def get_statistics(user: StorageUser = Depends(yellow_access)):
     """Get eviction case statistics for Dakota County."""
     return CASE_STATISTICS
 
 
 @router.get("/defenses")
-async def list_defenses(user: StorageUser = Depends(require_user)):
+async def list_defenses(user: StorageUser = Depends(yellow_access)):
     """List all available eviction defenses with explanations."""
     return {
         "disclaimer": LEGAL_DISCLAIMER,
@@ -843,7 +843,7 @@ class DeadlineCalculation(BaseModel):
 @router.post("/calculate-deadlines")
 async def calculate_deadlines(
     request: DeadlineCalculation,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """Calculate all important deadlines based on service date."""
     service = request.service_date
@@ -872,7 +872,7 @@ async def calculate_deadlines(
 @router.get("/case-checklist/{stage}")
 async def get_case_checklist(
     stage: CaseStage,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """Get a checklist of tasks for the current case stage."""
     checklists = {
@@ -983,7 +983,7 @@ class AnalysisResponse(BaseModel):
 @router.post("/analyze", response_model=AnalysisResponse)
 async def analyze_case(
     request: AnalysisRequest = AnalysisRequest(),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """
     Analyze the user's case for violations and defense strategies.
@@ -1040,7 +1040,7 @@ async def analyze_case(
             elif days_until <= 14:
                 urgency = "medium"
         except Exception:
-            pass
+            logger.warning("eviction_defense: skipped item due to exception", exc_info=True)
     
     # Generate next steps
     next_steps = []
@@ -1068,7 +1068,7 @@ async def analyze_case(
 
 
 @router.get("/quick-status")
-async def get_quick_status(user: StorageUser = Depends(require_user)):
+async def get_quick_status(user: StorageUser = Depends(yellow_access)):
     """
     Get quick status for dashboard display.
     """
@@ -1092,7 +1092,7 @@ async def get_quick_status(user: StorageUser = Depends(require_user)):
 # =============================================================================
 
 @router.get("/from-documents/defenses")
-async def get_document_based_defenses(user: StorageUser = Depends(require_user)):
+async def get_document_based_defenses(user: StorageUser = Depends(yellow_access)):
     """
     Get defense recommendations based on uploaded documents.
     
@@ -1166,7 +1166,7 @@ async def get_document_based_defenses(user: StorageUser = Depends(require_user))
 
 
 @router.get("/from-documents/counterclaims")
-async def get_document_based_counterclaims(user: StorageUser = Depends(require_user)):
+async def get_document_based_counterclaims(user: StorageUser = Depends(yellow_access)):
     """
     Get counterclaim recommendations based on uploaded documents.
     
@@ -1224,7 +1224,7 @@ async def get_document_based_counterclaims(user: StorageUser = Depends(require_u
 
 
 @router.get("/from-documents/deadlines")
-async def get_document_based_deadlines(user: StorageUser = Depends(require_user)):
+async def get_document_based_deadlines(user: StorageUser = Depends(yellow_access)):
     """
     Get deadlines calculated from your documents.
     
@@ -1252,7 +1252,7 @@ async def get_document_based_deadlines(user: StorageUser = Depends(require_user)
                 "consequence": "Default judgment may be entered against you",
             })
         except (ValueError, TypeError):
-            pass
+            logger.debug("eviction_defense: skipped deadline due to invalid date format", exc_info=True)
     
     # Hearing date
     if case_data.hearing_date:
@@ -1270,7 +1270,7 @@ async def get_document_based_deadlines(user: StorageUser = Depends(require_user)
                 "consequence": "Missing the hearing results in default judgment",
             })
         except (ValueError, TypeError):
-            pass
+            logger.debug("eviction_defense: skipped deadline due to invalid date format", exc_info=True)
     
     # Add action items from documents
     for action in case_data.action_items:
@@ -1288,7 +1288,7 @@ async def get_document_based_deadlines(user: StorageUser = Depends(require_user)
                     "source": "document_extraction",
                 })
             except (ValueError, TypeError):
-                pass
+                logger.debug("eviction_defense: skipped deadline due to invalid date format", exc_info=True)
     
     # Sort by date
     deadlines.sort(key=lambda x: x.get("days_until", 999))
@@ -1303,7 +1303,7 @@ async def get_document_based_deadlines(user: StorageUser = Depends(require_user)
 
 
 @router.get("/from-documents/analysis")
-async def get_full_document_analysis(user: StorageUser = Depends(require_user)):
+async def get_full_document_analysis(user: StorageUser = Depends(yellow_access)):
     """
     Get comprehensive eviction defense analysis based on uploaded documents.
     

@@ -34,7 +34,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, Q
 from pydantic import BaseModel
 from typing import Optional
 
-from app.core.security import get_user_id, require_user, StorageUser
+from app.core.security import get_user_id, require_user, StorageUser, yellow_access
 from app.core.config import get_settings, Settings
 from app.core.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -681,7 +681,7 @@ async def upload_documents_batch(
 @router.post("/process/vault/{doc_id}", response_model=AutoProcessResponse)
 async def process_document_from_vault(
     doc_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):

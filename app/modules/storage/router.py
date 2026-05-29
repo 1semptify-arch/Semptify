@@ -3354,6 +3354,63 @@ async def get_legal_timestamp():
 
 
 # ============================================================================
+# Function Access Token Endpoints
+# ============================================================================
+
+@router.post("/function-token/issue")
+async def issue_function_token_endpoint(
+    semptify_uid: Optional[str] = Cookie(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Issue a function access token for vault operations.
+    This token grants scoped access to specific vault functions.
+    """
+    if not semptify_uid:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    # Verify user has valid session
+    session = await get_valid_session(db, semptify_uid, auto_refresh=True)
+    if not session:
+        raise HTTPException(status_code=401, detail="Session expired")
+    
+    # Issue function access token
+    token = issue_function_access_token(semptify_uid)
+    
+    return {
+        "token": token,
+        "user_id": semptify_uid,
+        "expires_in": 3600,  # 1 hour
+    }
+
+
+@router.post("/function-token/verify")
+async def verify_function_token_endpoint(
+    request: Request,
+    semptify_uid: Optional[str] = Cookie(None),
+):
+    """
+    Verify a function access token.
+    """
+    if not semptify_uid:
+        raise HTTPException(status_code=401, detail="Authentication required")
+    
+    # Get token from request body
+    body = await request.json()
+    token = body.get("token")
+    
+    if not token:
+        raise HTTPException(status_code=400, detail="Token required")
+    
+    is_valid = verify_function_access_token(token, semptify_uid)
+    
+    return {
+        "valid": is_valid,
+        "user_id": semptify_uid,
+    }
+
+
+# ============================================================================
 # Certificate Generation Endpoints
 # ============================================================================
 

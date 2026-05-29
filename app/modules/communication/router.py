@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.config import get_settings, Settings
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, yellow_access
 from app.core.user_id import get_role_from_user_id
 from app.models.communication_models import (
     ConversationListResponse, MessageThreadResponse,
@@ -75,7 +75,7 @@ async def health_check() -> dict:
 @router.get("/conversations", response_model=ConversationListResponse)
 async def get_conversations(
     access_token: str = Form(..., description="Storage provider access token"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> ConversationListResponse:
@@ -93,7 +93,7 @@ async def get_conversations(
 async def create_conversation(
     request: CreateConversationRequest,
     access_token: str = Form(..., description="Storage provider access token"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> CreateConversationResponse:
@@ -120,7 +120,7 @@ async def get_conversation(
     before_message_id: Optional[str] = None,
     limit: int = 50,
     access_token: str = Form(..., description="Storage provider access token"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> MessageThreadResponse:
@@ -156,7 +156,7 @@ async def send_message(
     referenced_delivery_id: Optional[str] = Form(None, description="Referenced delivery ID"),
     reply_to_message_id: Optional[str] = Form(None, description="Reply to message ID"),
     access_token: str = Form(..., description="Storage provider access token"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> SendMessageResponse:
@@ -187,7 +187,7 @@ async def mark_message_read(
     conversation_id: str,
     message_id: str,
     access_token: str = Form(..., description="Storage provider access token"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
@@ -206,7 +206,7 @@ async def mark_message_read(
 async def mark_conversation_read(
     conversation_id: str,
     access_token: str = Form(..., description="Storage provider access token"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
@@ -230,7 +230,7 @@ async def reject_document(
     delivery_id: str,
     reason: str = Form(..., description="Reason for rejecting the document"),
     access_token: str = Form(..., description="Storage provider access token"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
@@ -293,7 +293,7 @@ async def fill_and_sign_document(
     field_2: Optional[str] = Form(None, description="Form field 2"),
     field_3: Optional[str] = Form(None, description="Form field 3"),
     access_token: str = Form(..., description="Storage provider access token"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> DocumentFillResponse:
@@ -343,7 +343,7 @@ async def upload_attachment(
     conversation_id: str,
     file: UploadFile = File(..., description="File to attach"),
     access_token: str = Form(..., description="Storage provider access token"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
@@ -412,7 +412,7 @@ async def upload_attachment(
 async def get_delivery_conversation(
     delivery_id: str,
     access_token: str = Form(..., description="Storage provider access token"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
@@ -491,7 +491,7 @@ async def send_typing_indicator(
     conversation_id: str,
     is_typing: bool = True,
     access_token: str = Form(..., description="Storage provider access token"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:

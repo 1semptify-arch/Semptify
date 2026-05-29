@@ -24,7 +24,7 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
 from pydantic import BaseModel, Field
 
 from app.core.config import get_settings
-from app.core.security import require_user, rate_limit_dependency, StorageUser
+from app.core.security import require_user, rate_limit_dependency, StorageUser, green_access
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -160,7 +160,7 @@ def get_system_info() -> Dict[str, Any]:
 async def run_crawl(
     request: CrawlRequest,
     background_tasks: BackgroundTasks,
-    current_user: StorageUser = Depends(require_user),
+    current_user: StorageUser = Depends(green_access),
 ):
     """
     Run the application crawler to find issues and analyze the codebase.
@@ -199,7 +199,7 @@ async def run_crawl(
 async def get_crawl_report(
     report_id: Optional[str] = Query(None, description="Specific report ID"),
     latest: bool = Query(True, description="Get latest report"),
-    current_user: StorageUser = Depends(require_user),
+    current_user: StorageUser = Depends(green_access),
 ):
     """
     Get crawl report results.
@@ -234,7 +234,7 @@ async def get_crawl_report(
 @router.post("/analyze", response_model=AnalysisResponse)
 async def run_analysis(
     request: AnalysisRequest,
-    current_user: StorageUser = Depends(require_user),
+    current_user: StorageUser = Depends(green_access),
 ):
     """
     Run various analysis tools on the application.
@@ -302,7 +302,7 @@ async def dev_health():
 
 @router.get("/metrics")
 async def get_dev_metrics(
-    current_user: StorageUser = Depends(require_user),
+    current_user: StorageUser = Depends(green_access),
 ):
     """
     Get development metrics and statistics.
