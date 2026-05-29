@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 
 from app.core.security import get_user_id
-from ..services.tenancy_hub import (
+from app.services.tenancy_hub import (
     get_tenancy_hub_service,
     TenancyCase,
     Party, PartyRole,

@@ -15,7 +15,7 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user
+from app.core.security import require_user, green_access
 from .service import get_tactics_engine, TacticType, UrgencyLevel
 from app.core.utc import utc_now
 import logging
@@ -96,7 +96,7 @@ class RetaliationAnalysisRequest(BaseModel):
 
 @router.get("/recommendations", response_model=DecisionTreeResponse)
 async def get_recommendations(
-    user: dict = Depends(require_user),
+    user: dict = Depends(green_access),
 ):
     """
     Get AI-powered defense recommendations based on case data.
@@ -155,7 +155,7 @@ async def get_recommendations(
 @router.post("/analyze", response_model=DecisionTreeResponse)
 async def analyze_case(
     request: DecisionTreeRequest,
-    user: dict = Depends(require_user),
+    user: dict = Depends(green_access),
 ):
     """
     Analyze case data and return tactical recommendations.
@@ -234,7 +234,7 @@ async def analyze_case(
 
 @router.get("/evidence-checklist", response_model=EvidenceChecklistResponse)
 async def get_evidence_checklist(
-    user: dict = Depends(require_user),
+    user: dict = Depends(green_access),
 ):
     """
     Get the evidence preparation checklist with storage status.
@@ -268,7 +268,7 @@ async def get_evidence_checklist(
 @router.get("/pre-hearing-timeline", response_model=PreHearingTimelineResponse)
 async def get_pre_hearing_timeline(
     hearing_date: str,
-    user: dict = Depends(require_user),
+    user: dict = Depends(green_access),
 ):
     """
     Get the pre-hearing tactical action timeline.
@@ -297,7 +297,7 @@ async def get_pre_hearing_timeline(
 @router.post("/check-retaliation")
 async def check_retaliation(
     request: RetaliationAnalysisRequest,
-    user: dict = Depends(require_user),
+    user: dict = Depends(green_access),
 ):
     """
     Check for potential retaliation based on protected activities.
@@ -331,7 +331,7 @@ async def check_retaliation(
 
 @router.post("/check-habitability")
 async def check_habitability(
-    user: dict = Depends(require_user),
+    user: dict = Depends(green_access),
 ):
     """
     Check habitability issues from timeline for rent escrow eligibility.
@@ -368,7 +368,7 @@ async def check_habitability(
 async def check_service_timeline(
     service_date: str,
     hearing_date: str,
-    user: dict = Depends(require_user),
+    user: dict = Depends(green_access),
 ):
     """
     Check if service timeline supports a Motion to Dismiss.

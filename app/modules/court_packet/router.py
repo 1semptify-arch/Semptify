@@ -31,7 +31,7 @@ except ImportError:
 
 # Import security for authentication
 try:
-    from app.core.security import require_user, StorageUser
+    from app.core.security import require_user, StorageUser, yellow_access
     from fastapi import Depends
     HAS_AUTH = True
 except ImportError:

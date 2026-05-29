@@ -8,7 +8,7 @@ from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, yellow_access
 from app.services.form_data import get_form_data_service, FormDataService
 import logging
 logger = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ class CounterclaimAction(BaseModel):
 
 @router.get("/")
 async def get_form_data(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get all form data for the current user.
@@ -109,7 +109,7 @@ async def get_form_data(
 
 @router.get("/extracted")
 async def get_extracted_data(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get all extracted data from processed documents.
@@ -142,7 +142,7 @@ async def get_extracted_data(
 
 @router.get("/summary")
 async def get_case_summary(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get a summary of the current case status.
@@ -182,7 +182,7 @@ async def get_case_summary(
 @router.put("/case")
 async def update_case_info(
     updates: CaseInfoUpdate,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Update case information.
@@ -207,7 +207,7 @@ async def update_case_info(
 
 @router.get("/forms/answer")
 async def get_answer_form_data(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get pre-filled data for the Answer to Eviction Complaint form.
@@ -258,7 +258,7 @@ async def get_answer_form_data(
 @router.get("/forms/motion/{motion_type}")
 async def get_motion_form_data(
     motion_type: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get pre-filled data for motion forms.
@@ -286,7 +286,7 @@ async def get_motion_form_data(
 
 @router.get("/forms/counterclaim")
 async def get_counterclaim_form_data(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get pre-filled data for counterclaim form.
@@ -304,7 +304,7 @@ async def get_counterclaim_form_data(
 @router.post("/defenses/add")
 async def add_defense(
     action: DefenseAction,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Add a defense to the case.
@@ -321,7 +321,7 @@ async def add_defense(
 @router.post("/defenses/remove")
 async def remove_defense(
     action: DefenseAction,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """Remove a defense from the case."""
     service = get_form_data_service(user.user_id)
@@ -332,7 +332,7 @@ async def remove_defense(
 
 @router.get("/defenses")
 async def get_selected_defenses(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """Get all selected defenses for this case."""
     service = get_form_data_service(user.user_id)
@@ -346,7 +346,7 @@ async def get_selected_defenses(
 @router.post("/counterclaims/add")
 async def add_counterclaim(
     action: CounterclaimAction,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Add a counterclaim to the case.
@@ -361,7 +361,7 @@ async def add_counterclaim(
 
 @router.get("/counterclaims")
 async def get_counterclaims(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """Get all counterclaims for this case."""
     service = get_form_data_service(user.user_id)
@@ -374,7 +374,7 @@ async def get_counterclaims(
 
 @router.get("/documents")
 async def get_case_documents(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get all documents associated with this case.
@@ -393,7 +393,7 @@ async def get_case_documents(
 
 @router.get("/timeline")
 async def get_case_timeline(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get timeline events for this case.
@@ -410,7 +410,7 @@ async def get_case_timeline(
 
 @router.post("/refresh")
 async def refresh_form_data(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Refresh form data by re-processing all documents.

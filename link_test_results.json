@@ -1,0 +1,4019 @@
+[
+  {
+    "link": "https://fonts.googleapis.com",
+    "url": "https://fonts.googleapis.com",
+    "success": true,
+    "status_code": 0,
+    "error": "external",
+    "sources": [
+      {
+        "file": "base.html",
+        "link": "https://fonts.googleapis.com",
+        "type": "href",
+        "line": 15
+      }
+    ]
+  },
+  {
+    "link": "https://fonts.gstatic.com",
+    "url": "https://fonts.gstatic.com",
+    "success": true,
+    "status_code": 0,
+    "error": "external",
+    "sources": [
+      {
+        "file": "base.html",
+        "link": "https://fonts.gstatic.com",
+        "type": "href",
+        "line": 16
+      }
+    ]
+  },
+  {
+    "link": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "url": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "success": true,
+    "status_code": 0,
+    "error": "external",
+    "sources": [
+      {
+        "file": "base.html",
+        "link": "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+        "type": "href",
+        "line": 19
+      }
+    ]
+  },
+  {
+    "link": "/home",
+    "url": "http://localhost:8000/home",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "base.html",
+        "link": "/home",
+        "type": "href",
+        "line": 487
+      },
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/home",
+        "type": "href",
+        "line": 7
+      }
+    ]
+  },
+  {
+    "link": "/library",
+    "url": "http://localhost:8000/library",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "base.html",
+        "link": "/library",
+        "type": "href",
+        "line": 488
+      },
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/library",
+        "type": "href",
+        "line": 8
+      }
+    ]
+  },
+  {
+    "link": "/office",
+    "url": "http://localhost:8000/office",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "base.html",
+        "link": "/office",
+        "type": "href",
+        "line": 489
+      },
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/office",
+        "type": "href",
+        "line": 9
+      }
+    ]
+  },
+  {
+    "link": "/tools",
+    "url": "http://localhost:8000/tools",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "base.html",
+        "link": "/tools",
+        "type": "href",
+        "line": 490
+      },
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/tools",
+        "type": "href",
+        "line": 10
+      }
+    ]
+  },
+  {
+    "link": "/help",
+    "url": "http://localhost:8000/help",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "base.html",
+        "link": "/help",
+        "type": "href",
+        "line": 491
+      },
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/help",
+        "type": "href",
+        "line": 11
+      },
+      {
+        "file": "pages\\tenant_dashboard.html",
+        "link": "/help",
+        "type": "window.location.href",
+        "line": 485
+      }
+    ]
+  },
+  {
+    "link": "/js/unified-footer-loader.js",
+    "url": "http://localhost:8000/js/unified-footer-loader.js",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "base.html",
+        "link": "/js/unified-footer-loader.js",
+        "type": "src",
+        "line": 523
+      }
+    ]
+  },
+  {
+    "link": "/api/documents/upload",
+    "url": "http://localhost:8000/api/documents/upload",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "base.html",
+        "link": "/api/documents/upload",
+        "type": "fetch",
+        "line": 583
+      },
+      {
+        "file": "components\\functions_bar.html",
+        "link": "/api/documents/upload",
+        "type": "fetch",
+        "line": 335
+      }
+    ]
+  },
+  {
+    "link": "downloadDocument(",
+    "url": "http://localhost:8000/downloadDocument(",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "components\\document_card.html",
+        "link": "downloadDocument(",
+        "type": "onclick",
+        "line": 36
+      }
+    ]
+  },
+  {
+    "link": "deleteDocument(",
+    "url": "http://localhost:8000/deleteDocument(",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "components\\document_card.html",
+        "link": "deleteDocument(",
+        "type": "onclick",
+        "line": 41
+      },
+      {
+        "file": "pages\\documents.html",
+        "link": "deleteDocument(",
+        "type": "onclick",
+        "line": 144
+      }
+    ]
+  },
+  {
+    "link": "/tenant/journal",
+    "url": "http://localhost:8000/tenant/journal",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "components\\functions_bar.html",
+        "link": "/tenant/journal",
+        "type": "href",
+        "line": 9
+      },
+      {
+        "file": "components\\functions_bar.html",
+        "link": "/tenant/journal",
+        "type": "href",
+        "line": 40
+      },
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/tenant/journal",
+        "type": "href",
+        "line": 203
+      },
+      {
+        "file": "pages\\tenant_help.html",
+        "link": "/tenant/journal",
+        "type": "href",
+        "line": 7
+      },
+      {
+        "file": "pages\\tenant_home.html",
+        "link": "/tenant/journal",
+        "type": "href",
+        "line": 390
+      },
+      {
+        "file": "pages\\tenant_inbox.html",
+        "link": "/tenant/journal",
+        "type": "href",
+        "line": 8
+      },
+      {
+        "file": "pages\\tenant_journal.html",
+        "link": "/tenant/journal",
+        "type": "href",
+        "line": 8
+      }
+    ]
+  },
+  {
+    "link": "/tenant/capture",
+    "url": "http://localhost:8000/tenant/capture",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "components\\functions_bar.html",
+        "link": "/tenant/capture",
+        "type": "href",
+        "line": 34
+      },
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/tenant/capture",
+        "type": "href",
+        "line": 198
+      },
+      {
+        "file": "pages\\tenant_capture.html",
+        "link": "/tenant/capture",
+        "type": "href",
+        "line": 222
+      },
+      {
+        "file": "pages\\tenant_help.html",
+        "link": "/tenant/capture",
+        "type": "href",
+        "line": 287
+      },
+      {
+        "file": "pages\\tenant_home.html",
+        "link": "/tenant/capture",
+        "type": "href",
+        "line": 372
+      },
+      {
+        "file": "pages\\tenant_inbox.html",
+        "link": "/tenant/capture",
+        "type": "href",
+        "line": 7
+      },
+      {
+        "file": "pages\\tenant_journal.html",
+        "link": "/tenant/capture",
+        "type": "href",
+        "line": 7
+      },
+      {
+        "file": "pages\\tenant_journal.html",
+        "link": "/tenant/capture",
+        "type": "href",
+        "line": 203
+      },
+      {
+        "file": "pages\\tenant_journal.html",
+        "link": "/tenant/capture",
+        "type": "href",
+        "line": 274
+      }
+    ]
+  },
+  {
+    "link": "/tenant/inbox",
+    "url": "http://localhost:8000/tenant/inbox",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "components\\functions_bar.html",
+        "link": "/tenant/inbox",
+        "type": "href",
+        "line": 46
+      },
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/tenant/inbox",
+        "type": "href",
+        "line": 208
+      },
+      {
+        "file": "pages\\tenant_inbox.html",
+        "link": "/tenant/inbox",
+        "type": "href",
+        "line": 9
+      },
+      {
+        "file": "pages\\tenant_journal.html",
+        "link": "/tenant/inbox",
+        "type": "href",
+        "line": 9
+      }
+    ]
+  },
+  {
+    "link": "/tenant/help",
+    "url": "http://localhost:8000/tenant/help",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "components\\functions_bar.html",
+        "link": "/tenant/help",
+        "type": "href",
+        "line": 57
+      },
+      {
+        "file": "components\\ui_macros.html",
+        "link": "/tenant/help",
+        "type": "href",
+        "line": 179
+      },
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/tenant/help",
+        "type": "href",
+        "line": 325
+      },
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/tenant/help",
+        "type": "href",
+        "line": 347
+      },
+      {
+        "file": "pages\\tenant.html",
+        "link": "/tenant/help",
+        "type": "href",
+        "line": 60
+      },
+      {
+        "file": "pages\\tenant.html",
+        "link": "/tenant/help",
+        "type": "href",
+        "line": 71
+      },
+      {
+        "file": "pages\\tenant_help.html",
+        "link": "/tenant/help",
+        "type": "href",
+        "line": 9
+      },
+      {
+        "file": "pages\\tenant_home.html",
+        "link": "/tenant/help",
+        "type": "href",
+        "line": 440
+      }
+    ]
+  },
+  {
+    "link": "openVaultUpload()",
+    "url": "http://localhost:8000/openVaultUpload()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "components\\ui_macros.html",
+        "link": "openVaultUpload()",
+        "type": "onclick",
+        "line": 164
+      },
+      {
+        "file": "pages\\vault.html",
+        "link": "openVaultUpload()",
+        "type": "onclick",
+        "line": 312
+      }
+    ]
+  },
+  {
+    "link": "/static/css/workspace-stage-model.css",
+    "url": "http://localhost:8000/static/css/workspace-stage-model.css",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\admin.html",
+        "link": "/static/css/workspace-stage-model.css",
+        "type": "href",
+        "line": 6
+      },
+      {
+        "file": "pages\\advocate.html",
+        "link": "/static/css/workspace-stage-model.css",
+        "type": "href",
+        "line": 6
+      },
+      {
+        "file": "pages\\documents.html",
+        "link": "/static/css/workspace-stage-model.css",
+        "type": "href",
+        "line": 6
+      },
+      {
+        "file": "pages\\legal.html",
+        "link": "/static/css/workspace-stage-model.css",
+        "type": "href",
+        "line": 6
+      },
+      {
+        "file": "pages\\tenant.html",
+        "link": "/static/css/workspace-stage-model.css",
+        "type": "href",
+        "line": 6
+      },
+      {
+        "file": "pages\\timeline.html",
+        "link": "/static/css/workspace-stage-model.css",
+        "type": "href",
+        "line": 6
+      }
+    ]
+  },
+  {
+    "link": "/admin",
+    "url": "http://localhost:8000/admin",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\admin.html",
+        "link": "/admin",
+        "type": "href",
+        "line": 57
+      }
+    ]
+  },
+  {
+    "link": "/admin/mission-control",
+    "url": "http://localhost:8000/admin/mission-control",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\admin.html",
+        "link": "/admin/mission-control",
+        "type": "href",
+        "line": 58
+      }
+    ]
+  },
+  {
+    "link": "/admin/gui",
+    "url": "http://localhost:8000/admin/gui",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\admin.html",
+        "link": "/admin/gui",
+        "type": "href",
+        "line": 59
+      },
+      {
+        "file": "pages\\admin.html",
+        "link": "/admin/gui",
+        "type": "href",
+        "line": 74
+      }
+    ]
+  },
+  {
+    "link": "/admin/mode-selector",
+    "url": "http://localhost:8000/admin/mode-selector",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\admin.html",
+        "link": "/admin/mode-selector",
+        "type": "href",
+        "line": 60
+      },
+      {
+        "file": "pages\\admin.html",
+        "link": "/admin/mode-selector",
+        "type": "href",
+        "line": 75
+      }
+    ]
+  },
+  {
+    "link": "/admin/easy-mode",
+    "url": "http://localhost:8000/admin/easy-mode",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\admin.html",
+        "link": "/admin/easy-mode",
+        "type": "href",
+        "line": 61
+      }
+    ]
+  },
+  {
+    "link": "/admin/docs",
+    "url": "http://localhost:8000/admin/docs",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\admin.html",
+        "link": "/admin/docs",
+        "type": "href",
+        "line": 62
+      }
+    ]
+  },
+  {
+    "link": "/dashboard",
+    "url": "http://localhost:8000/dashboard",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\admin.html",
+        "link": "/dashboard",
+        "type": "href",
+        "line": 63
+      }
+    ]
+  },
+  {
+    "link": "/api/docs",
+    "url": "http://localhost:8000/api/docs",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\admin.html",
+        "link": "/api/docs",
+        "type": "href",
+        "line": 64
+      }
+    ]
+  },
+  {
+    "link": "Audit user journey and GUI links.",
+    "url": "http://localhost:8000/Audit user journey and GUI links.",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\admin.html",
+        "link": "Audit user journey and GUI links.",
+        "type": "data-*",
+        "line": 72
+      }
+    ]
+  },
+  {
+    "link": "Tune mode selector defaults for new users.",
+    "url": "http://localhost:8000/Tune mode selector defaults for new users.",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\admin.html",
+        "link": "Tune mode selector defaults for new users.",
+        "type": "data-*",
+        "line": 73
+      }
+    ]
+  },
+  {
+    "link": "/static/js/workspace-stage-model.js",
+    "url": "http://localhost:8000/static/js/workspace-stage-model.js",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\admin.html",
+        "link": "/static/js/workspace-stage-model.js",
+        "type": "src",
+        "line": 88
+      },
+      {
+        "file": "pages\\advocate.html",
+        "link": "/static/js/workspace-stage-model.js",
+        "type": "src",
+        "line": 87
+      },
+      {
+        "file": "pages\\documents.html",
+        "link": "/static/js/workspace-stage-model.js",
+        "type": "src",
+        "line": 160
+      },
+      {
+        "file": "pages\\legal.html",
+        "link": "/static/js/workspace-stage-model.js",
+        "type": "src",
+        "line": 87
+      },
+      {
+        "file": "pages\\tenant.html",
+        "link": "/static/js/workspace-stage-model.js",
+        "type": "src",
+        "line": 84
+      },
+      {
+        "file": "pages\\tenant_dashboard.html",
+        "link": "/static/js/workspace-stage-model.js",
+        "type": "src",
+        "line": 16
+      },
+      {
+        "file": "pages\\timeline.html",
+        "link": "/static/js/workspace-stage-model.js",
+        "type": "src",
+        "line": 240
+      }
+    ]
+  },
+  {
+    "link": "/advocate",
+    "url": "http://localhost:8000/advocate",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\advocate.html",
+        "link": "/advocate",
+        "type": "href",
+        "line": 57
+      }
+    ]
+  },
+  {
+    "link": "/advocate/clients",
+    "url": "http://localhost:8000/advocate/clients",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\advocate.html",
+        "link": "/advocate/clients",
+        "type": "href",
+        "line": 58
+      }
+    ]
+  },
+  {
+    "link": "/advocate/queue",
+    "url": "http://localhost:8000/advocate/queue",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\advocate.html",
+        "link": "/advocate/queue",
+        "type": "href",
+        "line": 59
+      },
+      {
+        "file": "pages\\advocate.html",
+        "link": "/advocate/queue",
+        "type": "href",
+        "line": 74
+      }
+    ]
+  },
+  {
+    "link": "/advocate/intake",
+    "url": "http://localhost:8000/advocate/intake",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\advocate.html",
+        "link": "/advocate/intake",
+        "type": "href",
+        "line": 60
+      },
+      {
+        "file": "pages\\advocate.html",
+        "link": "/advocate/intake",
+        "type": "href",
+        "line": 73
+      }
+    ]
+  },
+  {
+    "link": "/documents",
+    "url": "http://localhost:8000/documents",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\advocate.html",
+        "link": "/documents",
+        "type": "href",
+        "line": 61
+      },
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/documents",
+        "type": "href",
+        "line": 231
+      },
+      {
+        "file": "pages\\tenant.html",
+        "link": "/documents",
+        "type": "href",
+        "line": 58
+      },
+      {
+        "file": "pages\\tenant_home.html",
+        "link": "/documents",
+        "type": "href",
+        "line": 378
+      },
+      {
+        "file": "pages\\timeline.html",
+        "link": "/documents",
+        "type": "href",
+        "line": 210
+      },
+      {
+        "file": "pages\\timeline.html",
+        "link": "/documents",
+        "type": "href",
+        "line": 216
+      }
+    ]
+  },
+  {
+    "link": "/timeline",
+    "url": "http://localhost:8000/timeline",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\advocate.html",
+        "link": "/timeline",
+        "type": "href",
+        "line": 62
+      },
+      {
+        "file": "pages\\legal.html",
+        "link": "/timeline",
+        "type": "href",
+        "line": 63
+      },
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/timeline",
+        "type": "href",
+        "line": 236
+      },
+      {
+        "file": "pages\\tenant.html",
+        "link": "/timeline",
+        "type": "href",
+        "line": 59
+      },
+      {
+        "file": "pages\\tenant_home.html",
+        "link": "/timeline",
+        "type": "href",
+        "line": 384
+      }
+    ]
+  },
+  {
+    "link": "/law-library",
+    "url": "http://localhost:8000/law-library",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\advocate.html",
+        "link": "/law-library",
+        "type": "href",
+        "line": 63
+      },
+      {
+        "file": "pages\\legal.html",
+        "link": "/law-library",
+        "type": "href",
+        "line": 62
+      },
+      {
+        "file": "pages\\legal.html",
+        "link": "/law-library",
+        "type": "href",
+        "line": 74
+      },
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/law-library",
+        "type": "href",
+        "line": 259
+      },
+      {
+        "file": "pages\\tenant_help.html",
+        "link": "/law-library",
+        "type": "href",
+        "line": 299
+      }
+    ]
+  },
+  {
+    "link": "Urgent filing deadline in 48 hours.",
+    "url": "http://localhost:8000/Urgent filing deadline in 48 hours.",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\advocate.html",
+        "link": "Urgent filing deadline in 48 hours.",
+        "type": "data-*",
+        "line": 71
+      }
+    ]
+  },
+  {
+    "link": "New tenant needs full intake.",
+    "url": "http://localhost:8000/New tenant needs full intake.",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\advocate.html",
+        "link": "New tenant needs full intake.",
+        "type": "data-*",
+        "line": 72
+      }
+    ]
+  },
+  {
+    "link": "runAnalysis()",
+    "url": "http://localhost:8000/runAnalysis()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\auto_analysis_summary.html",
+        "link": "runAnalysis()",
+        "type": "onclick",
+        "line": 239
+      },
+      {
+        "file": "pages\\auto_analysis_summary.html",
+        "link": "runAnalysis()",
+        "type": "onclick",
+        "line": 282
+      }
+    ]
+  },
+  {
+    "link": "/auto-mode",
+    "url": "http://localhost:8000/auto-mode",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\auto_analysis_summary.html",
+        "link": "/auto-mode",
+        "type": "href",
+        "line": 240
+      }
+    ]
+  },
+  {
+    "link": "filterResults(",
+    "url": "http://localhost:8000/filterResults(",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\auto_analysis_summary.html",
+        "link": "filterResults(",
+        "type": "onclick",
+        "line": 270
+      },
+      {
+        "file": "pages\\auto_analysis_summary.html",
+        "link": "filterResults(",
+        "type": "onclick",
+        "line": 271
+      },
+      {
+        "file": "pages\\auto_analysis_summary.html",
+        "link": "filterResults(",
+        "type": "onclick",
+        "line": 272
+      },
+      {
+        "file": "pages\\auto_analysis_summary.html",
+        "link": "filterResults(",
+        "type": "onclick",
+        "line": 273
+      }
+    ]
+  },
+  {
+    "link": "/api/auto-mode/status",
+    "url": "http://localhost:8000/api/auto-mode/status",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\auto_analysis_summary.html",
+        "link": "/api/auto-mode/status",
+        "type": "fetch",
+        "line": 294
+      },
+      {
+        "file": "pages\\auto_mode_panel.html",
+        "link": "/api/auto-mode/status",
+        "type": "fetch",
+        "line": 347
+      }
+    ]
+  },
+  {
+    "link": "auto_generate_timeline",
+    "url": "http://localhost:8000/auto_generate_timeline",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\auto_mode_panel.html",
+        "link": "auto_generate_timeline",
+        "type": "data-*",
+        "line": 283
+      }
+    ]
+  },
+  {
+    "link": "auto_generate_calendar",
+    "url": "http://localhost:8000/auto_generate_calendar",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\auto_mode_panel.html",
+        "link": "auto_generate_calendar",
+        "type": "data-*",
+        "line": 289
+      }
+    ]
+  },
+  {
+    "link": "auto_identify_complaints",
+    "url": "http://localhost:8000/auto_identify_complaints",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\auto_mode_panel.html",
+        "link": "auto_identify_complaints",
+        "type": "data-*",
+        "line": 302
+      }
+    ]
+  },
+  {
+    "link": "auto_assess_rights",
+    "url": "http://localhost:8000/auto_assess_rights",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\auto_mode_panel.html",
+        "link": "auto_assess_rights",
+        "type": "data-*",
+        "line": 308
+      }
+    ]
+  },
+  {
+    "link": "auto_detect_missteps",
+    "url": "http://localhost:8000/auto_detect_missteps",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\auto_mode_panel.html",
+        "link": "auto_detect_missteps",
+        "type": "data-*",
+        "line": 321
+      }
+    ]
+  },
+  {
+    "link": "auto_suggest_tactics",
+    "url": "http://localhost:8000/auto_suggest_tactics",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\auto_mode_panel.html",
+        "link": "auto_suggest_tactics",
+        "type": "data-*",
+        "line": 327
+      }
+    ]
+  },
+  {
+    "link": "saveConfiguration()",
+    "url": "http://localhost:8000/saveConfiguration()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\auto_mode_panel.html",
+        "link": "saveConfiguration()",
+        "type": "onclick",
+        "line": 337
+      }
+    ]
+  },
+  {
+    "link": "resetToDefaults()",
+    "url": "http://localhost:8000/resetToDefaults()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\auto_mode_panel.html",
+        "link": "resetToDefaults()",
+        "type": "onclick",
+        "line": 338
+      }
+    ]
+  },
+  {
+    "link": "${feature}",
+    "url": "http://localhost:8000/${feature}",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\auto_mode_panel.html",
+        "link": "${feature}",
+        "type": "data-*",
+        "line": 360
+      }
+    ]
+  },
+  {
+    "link": "/api/auto-mode/toggle?enabled=",
+    "url": "http://localhost:8000/api/auto-mode/toggle?enabled=",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\auto_mode_panel.html",
+        "link": "/api/auto-mode/toggle?enabled=",
+        "type": "fetch",
+        "line": 377
+      }
+    ]
+  },
+  {
+    "link": "/api/auto-mode/config",
+    "url": "http://localhost:8000/api/auto-mode/config",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\auto_mode_panel.html",
+        "link": "/api/auto-mode/config",
+        "type": "fetch",
+        "line": 392
+      }
+    ]
+  },
+  {
+    "link": "/",
+    "url": "http://localhost:8000/",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\error.html",
+        "link": "/",
+        "type": "href",
+        "line": 36
+      }
+    ]
+  },
+  {
+    "link": "history.back()",
+    "url": "http://localhost:8000/history.back()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\error.html",
+        "link": "history.back()",
+        "type": "onclick",
+        "line": 37
+      }
+    ]
+  },
+  {
+    "link": "showSection(",
+    "url": "http://localhost:8000/showSection(",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 190
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 191
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 192
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 193
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 194
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 195
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 196
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 198
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 199
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 200
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 201
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 202
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 203
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 204
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 205
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 207
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 208
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 209
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 211
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 212
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 213
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 259
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 260
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 261
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 262
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 263
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 264
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 265
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 266
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 267
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 268
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 269
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 270
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 271
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 272
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 273
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 274
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 275
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 276
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 277
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 278
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 279
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 286
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 287
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 288
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 289
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 290
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 291
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 300
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(",
+        "type": "onclick",
+        "line": 302
+      }
+    ]
+  },
+  {
+    "link": "startVoice()",
+    "url": "http://localhost:8000/startVoice()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "startVoice()",
+        "type": "onclick",
+        "line": 229
+      }
+    ]
+  },
+  {
+    "link": "askLibrarian()",
+    "url": "http://localhost:8000/askLibrarian()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "askLibrarian()",
+        "type": "onclick",
+        "line": 230
+      }
+    ]
+  },
+  {
+    "link": "quickSearch(",
+    "url": "http://localhost:8000/quickSearch(",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "quickSearch(",
+        "type": "onclick",
+        "line": 233
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "quickSearch(",
+        "type": "onclick",
+        "line": 234
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "quickSearch(",
+        "type": "onclick",
+        "line": 235
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "quickSearch(",
+        "type": "onclick",
+        "line": 236
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "quickSearch(",
+        "type": "onclick",
+        "line": 237
+      }
+    ]
+  },
+  {
+    "link": "toggleAI()",
+    "url": "http://localhost:8000/toggleAI()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "toggleAI()",
+        "type": "onclick",
+        "line": 243
+      }
+    ]
+  },
+  {
+    "link": "https://www.revisor.mn.gov",
+    "url": "https://www.revisor.mn.gov",
+    "success": true,
+    "status_code": 0,
+    "error": "external",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "https://www.revisor.mn.gov",
+        "type": "href",
+        "line": 304
+      }
+    ]
+  },
+  {
+    "link": "https://www.lawhelpmn.org",
+    "url": "https://www.lawhelpmn.org",
+    "success": true,
+    "status_code": 0,
+    "error": "external",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "https://www.lawhelpmn.org",
+        "type": "href",
+        "line": 304
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "https://www.lawhelpmn.org",
+        "type": "href",
+        "line": 725
+      },
+      {
+        "file": "pages\\tenant_help.html",
+        "link": "https://www.lawhelpmn.org",
+        "type": "href",
+        "line": 327
+      }
+    ]
+  },
+  {
+    "link": "1",
+    "url": "http://localhost:8000/1",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "1",
+        "type": "data-*",
+        "line": 313
+      }
+    ]
+  },
+  {
+    "link": "4",
+    "url": "http://localhost:8000/4",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "4",
+        "type": "data-*",
+        "line": 314
+      }
+    ]
+  },
+  {
+    "link": "5",
+    "url": "http://localhost:8000/5",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "5",
+        "type": "data-*",
+        "line": 315
+      }
+    ]
+  },
+  {
+    "link": "13",
+    "url": "http://localhost:8000/13",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "13",
+        "type": "data-*",
+        "line": 316
+      }
+    ]
+  },
+  {
+    "link": "14",
+    "url": "http://localhost:8000/14",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "14",
+        "type": "data-*",
+        "line": 317
+      }
+    ]
+  },
+  {
+    "link": "this.classList.toggle(",
+    "url": "http://localhost:8000/this.classList.toggle(",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 320
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 321
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 322
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 345
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 346
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 347
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 348
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 349
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 350
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 351
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 352
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 358
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 359
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 360
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 361
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 362
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 363
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 364
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 365
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 390
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 391
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 393
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 394
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 596
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 597
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 598
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 599
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 600
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 601
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 602
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "this.classList.toggle(",
+        "type": "onclick",
+        "line": 603
+      }
+    ]
+  },
+  {
+    "link": "closeModal(event)",
+    "url": "http://localhost:8000/closeModal(event)",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "closeModal(event)",
+        "type": "onclick",
+        "line": 707
+      }
+    ]
+  },
+  {
+    "link": "closeModal()",
+    "url": "http://localhost:8000/closeModal()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "closeModal()",
+        "type": "onclick",
+        "line": 711
+      }
+    ]
+  },
+  {
+    "link": "/public/privacy.html",
+    "url": "http://localhost:8000/public/privacy.html",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "/public/privacy.html",
+        "type": "href",
+        "line": 724
+      }
+    ]
+  },
+  {
+    "link": "/public/terms.html",
+    "url": "http://localhost:8000/public/terms.html",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "/public/terms.html",
+        "type": "href",
+        "line": 724
+      }
+    ]
+  },
+  {
+    "link": "/public/disclaimer.html",
+    "url": "http://localhost:8000/public/disclaimer.html",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "/public/disclaimer.html",
+        "type": "href",
+        "line": 724
+      },
+      {
+        "file": "pages\\tenant_help.html",
+        "link": "/public/disclaimer.html",
+        "type": "href",
+        "line": 269
+      },
+      {
+        "file": "pages\\tenant_help.html",
+        "link": "/public/disclaimer.html",
+        "type": "href",
+        "line": 444
+      }
+    ]
+  },
+  {
+    "link": "/public/contact.html",
+    "url": "http://localhost:8000/public/contact.html",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "/public/contact.html",
+        "type": "href",
+        "line": 725
+      }
+    ]
+  },
+  {
+    "link": "showSection(\\",
+    "url": "http://localhost:8000/showSection(\\",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "showSection(\\",
+        "type": "onclick",
+        "line": 742
+      }
+    ]
+  },
+  {
+    "link": "/api/law-library/librarian/ask",
+    "url": "http://localhost:8000/api/law-library/librarian/ask",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "/api/law-library/librarian/ask",
+        "type": "fetch",
+        "line": 775
+      }
+    ]
+  },
+  {
+    "link": "showLaw(\\",
+    "url": "http://localhost:8000/showLaw(\\",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "showLaw(\\",
+        "type": "onclick",
+        "line": 786
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showLaw(\\",
+        "type": "onclick",
+        "line": 829
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "showLaw(\\",
+        "type": "onclick",
+        "line": 851
+      }
+    ]
+  },
+  {
+    "link": "/api/law-library/statutes",
+    "url": "http://localhost:8000/api/law-library/statutes",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "/api/law-library/statutes",
+        "type": "fetch",
+        "line": 826
+      }
+    ]
+  },
+  {
+    "link": "event.stopPropagation();showLaw(\\",
+    "url": "http://localhost:8000/event.stopPropagation();showLaw(\\",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "event.stopPropagation();showLaw(\\",
+        "type": "onclick",
+        "line": 835
+      }
+    ]
+  },
+  {
+    "link": "event.stopPropagation();askAbout(\\",
+    "url": "http://localhost:8000/event.stopPropagation();askAbout(\\",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "event.stopPropagation();askAbout(\\",
+        "type": "onclick",
+        "line": 836
+      }
+    ]
+  },
+  {
+    "link": "/api/law-library/case-law",
+    "url": "http://localhost:8000/api/law-library/case-law",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "/api/law-library/case-law",
+        "type": "fetch",
+        "line": 848
+      }
+    ]
+  },
+  {
+    "link": "/api/law-library/statutes/",
+    "url": "http://localhost:8000/api/law-library/statutes/",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "/api/law-library/statutes/",
+        "type": "fetch",
+        "line": 872
+      }
+    ]
+  },
+  {
+    "link": "https://www.revisor.mn.gov/statutes/cite/",
+    "url": "https://www.revisor.mn.gov/statutes/cite/",
+    "success": true,
+    "status_code": 0,
+    "error": "external",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "https://www.revisor.mn.gov/statutes/cite/",
+        "type": "href",
+        "line": 881
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "https://www.revisor.mn.gov/statutes/cite/",
+        "type": "href",
+        "line": 884
+      },
+      {
+        "file": "pages\\law_library.html",
+        "link": "https://www.revisor.mn.gov/statutes/cite/",
+        "type": "href",
+        "line": 888
+      }
+    ]
+  },
+  {
+    "link": "/static/js/semptify-auth.js",
+    "url": "http://localhost:8000/static/js/semptify-auth.js",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "/static/js/semptify-auth.js",
+        "type": "src",
+        "line": 923
+      },
+      {
+        "file": "pages\\welcome.html",
+        "link": "/static/js/semptify-auth.js",
+        "type": "src",
+        "line": 373
+      }
+    ]
+  },
+  {
+    "link": "${d.stub_url||",
+    "url": "http://localhost:8000/${d.stub_url||",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "${d.stub_url||",
+        "type": "href",
+        "line": 940
+      }
+    ]
+  },
+  {
+    "link": "${h.statute_url||",
+    "url": "http://localhost:8000/${h.statute_url||",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "${h.statute_url||",
+        "type": "href",
+        "line": 951
+      }
+    ]
+  },
+  {
+    "link": "${dis.complaint_url||",
+    "url": "http://localhost:8000/${dis.complaint_url||",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "${dis.complaint_url||",
+        "type": "href",
+        "line": 978
+      }
+    ]
+  },
+  {
+    "link": "${org.url}",
+    "url": "http://localhost:8000/${org.url}",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "${org.url}",
+        "type": "href",
+        "line": 985
+      }
+    ]
+  },
+  {
+    "link": "https://www.lawhelp.org",
+    "url": "https://www.lawhelp.org",
+    "success": true,
+    "status_code": 0,
+    "error": "external",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "https://www.lawhelp.org",
+        "type": "href",
+        "line": 994
+      }
+    ]
+  },
+  {
+    "link": "eaBlob",
+    "url": "http://localhost:8000/eaBlob",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "eaBlob",
+        "type": "css url",
+        "line": 1085
+      }
+    ]
+  },
+  {
+    "link": "https://www.lawhelpmn.org/",
+    "url": "https://www.lawhelpmn.org/",
+    "success": true,
+    "status_code": 0,
+    "error": "external",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "https://www.lawhelpmn.org/",
+        "type": "href",
+        "line": 1153
+      }
+    ]
+  },
+  {
+    "link": "eaNext(1)",
+    "url": "http://localhost:8000/eaNext(1)",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "eaNext(1)",
+        "type": "onclick",
+        "line": 1280
+      }
+    ]
+  },
+  {
+    "link": "eaPrev(2)",
+    "url": "http://localhost:8000/eaPrev(2)",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "eaPrev(2)",
+        "type": "onclick",
+        "line": 1298
+      }
+    ]
+  },
+  {
+    "link": "eaNext(2)",
+    "url": "http://localhost:8000/eaNext(2)",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "eaNext(2)",
+        "type": "onclick",
+        "line": 1299
+      }
+    ]
+  },
+  {
+    "link": "eaPrev(3)",
+    "url": "http://localhost:8000/eaPrev(3)",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "eaPrev(3)",
+        "type": "onclick",
+        "line": 1314
+      }
+    ]
+  },
+  {
+    "link": "eaNext(3)",
+    "url": "http://localhost:8000/eaNext(3)",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "eaNext(3)",
+        "type": "onclick",
+        "line": 1315
+      }
+    ]
+  },
+  {
+    "link": "eaPrev(4)",
+    "url": "http://localhost:8000/eaPrev(4)",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "eaPrev(4)",
+        "type": "onclick",
+        "line": 1327
+      }
+    ]
+  },
+  {
+    "link": "eaGenerate()",
+    "url": "http://localhost:8000/eaGenerate()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "eaGenerate()",
+        "type": "onclick",
+        "line": 1328
+      }
+    ]
+  },
+  {
+    "link": "eaDownload()",
+    "url": "http://localhost:8000/eaDownload()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "eaDownload()",
+        "type": "onclick",
+        "line": 1352
+      }
+    ]
+  },
+  {
+    "link": "eaPrint()",
+    "url": "http://localhost:8000/eaPrint()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\law_library.html",
+        "link": "eaPrint()",
+        "type": "onclick",
+        "line": 1353
+      }
+    ]
+  },
+  {
+    "link": "/legal",
+    "url": "http://localhost:8000/legal",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\legal.html",
+        "link": "/legal",
+        "type": "href",
+        "line": 57
+      }
+    ]
+  },
+  {
+    "link": "/legal/cases",
+    "url": "http://localhost:8000/legal/cases",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\legal.html",
+        "link": "/legal/cases",
+        "type": "href",
+        "line": 58
+      }
+    ]
+  },
+  {
+    "link": "/legal/filings",
+    "url": "http://localhost:8000/legal/filings",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\legal.html",
+        "link": "/legal/filings",
+        "type": "href",
+        "line": 59
+      },
+      {
+        "file": "pages\\legal.html",
+        "link": "/legal/filings",
+        "type": "href",
+        "line": 73
+      }
+    ]
+  },
+  {
+    "link": "/legal/privileged",
+    "url": "http://localhost:8000/legal/privileged",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\legal.html",
+        "link": "/legal/privileged",
+        "type": "href",
+        "line": 60
+      }
+    ]
+  },
+  {
+    "link": "/legal/conflicts",
+    "url": "http://localhost:8000/legal/conflicts",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\legal.html",
+        "link": "/legal/conflicts",
+        "type": "href",
+        "line": 61
+      }
+    ]
+  },
+  {
+    "link": "Draft filing strategy for hearing next week.",
+    "url": "http://localhost:8000/Draft filing strategy for hearing next week.",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\legal.html",
+        "link": "Draft filing strategy for hearing next week.",
+        "type": "data-*",
+        "line": 71
+      }
+    ]
+  },
+  {
+    "link": "Run conflict check for new intake.",
+    "url": "http://localhost:8000/Run conflict check for new intake.",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\legal.html",
+        "link": "Run conflict check for new intake.",
+        "type": "data-*",
+        "line": 72
+      }
+    ]
+  },
+  {
+    "link": "/static/css/manager-dashboard.css",
+    "url": "http://localhost:8000/static/css/manager-dashboard.css",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\manager_dashboard.html",
+        "link": "/static/css/manager-dashboard.css",
+        "type": "href",
+        "line": 11
+      }
+    ]
+  },
+  {
+    "link": "/office/delivery",
+    "url": "http://localhost:8000/office/delivery",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\manager_dashboard.html",
+        "link": "/office/delivery",
+        "type": "href",
+        "line": 24
+      },
+      {
+        "file": "pages\\manager_dashboard.html",
+        "link": "/office/delivery",
+        "type": "href",
+        "line": 124
+      }
+    ]
+  },
+  {
+    "link": "/manager/reports",
+    "url": "http://localhost:8000/manager/reports",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\manager_dashboard.html",
+        "link": "/manager/reports",
+        "type": "href",
+        "line": 25
+      },
+      {
+        "file": "pages\\manager_dashboard.html",
+        "link": "/manager/reports",
+        "type": "href",
+        "line": 136
+      }
+    ]
+  },
+  {
+    "link": "/manager/staff",
+    "url": "http://localhost:8000/manager/staff",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\manager_dashboard.html",
+        "link": "/manager/staff",
+        "type": "href",
+        "line": 26
+      },
+      {
+        "file": "pages\\manager_dashboard.html",
+        "link": "/manager/staff",
+        "type": "href",
+        "line": 132
+      },
+      {
+        "file": "pages\\manager_dashboard.html",
+        "link": "/manager/staff",
+        "type": "href",
+        "line": 147
+      }
+    ]
+  },
+  {
+    "link": "/manager/cases",
+    "url": "http://localhost:8000/manager/cases",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\manager_dashboard.html",
+        "link": "/manager/cases",
+        "type": "href",
+        "line": 69
+      }
+    ]
+  },
+  {
+    "link": "/manager/activity",
+    "url": "http://localhost:8000/manager/activity",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\manager_dashboard.html",
+        "link": "/manager/activity",
+        "type": "href",
+        "line": 96
+      }
+    ]
+  },
+  {
+    "link": "/manager/bulk-upload",
+    "url": "http://localhost:8000/manager/bulk-upload",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\manager_dashboard.html",
+        "link": "/manager/bulk-upload",
+        "type": "href",
+        "line": 128
+      }
+    ]
+  },
+  {
+    "link": "/manager/signatures",
+    "url": "http://localhost:8000/manager/signatures",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\manager_dashboard.html",
+        "link": "/manager/signatures",
+        "type": "href",
+        "line": 169
+      }
+    ]
+  },
+  {
+    "link": "/tenant",
+    "url": "http://localhost:8000/tenant",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\module_page.html",
+        "link": "/tenant",
+        "type": "href",
+        "line": 203
+      },
+      {
+        "file": "pages\\tenant.html",
+        "link": "/tenant",
+        "type": "href",
+        "line": 57
+      }
+    ]
+  },
+  {
+    "link": "runAction(this)",
+    "url": "http://localhost:8000/runAction(this)",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\module_page.html",
+        "link": "runAction(this)",
+        "type": "onclick",
+        "line": 228
+      }
+    ]
+  },
+  {
+    "link": "/js/core/vault-portal.js",
+    "url": "http://localhost:8000/js/core/vault-portal.js",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\office.html",
+        "link": "/js/core/vault-portal.js",
+        "type": "src",
+        "line": 44
+      }
+    ]
+  },
+  {
+    "link": "/register",
+    "url": "http://localhost:8000/register",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\register.html",
+        "link": "/register",
+        "type": "action",
+        "line": 26
+      }
+    ]
+  },
+  {
+    "link": "LocationDetect.refresh()",
+    "url": "http://localhost:8000/LocationDetect.refresh()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\register.html",
+        "link": "LocationDetect.refresh()",
+        "type": "onclick",
+        "line": 70
+      }
+    ]
+  },
+  {
+    "link": "/static/js/location-detect.js",
+    "url": "http://localhost:8000/static/js/location-detect.js",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\register.html",
+        "link": "/static/js/location-detect.js",
+        "type": "src",
+        "line": 102
+      }
+    ]
+  },
+  {
+    "link": "/terms",
+    "url": "http://localhost:8000/terms",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\register.html",
+        "link": "/terms",
+        "type": "href",
+        "line": 123
+      }
+    ]
+  },
+  {
+    "link": "/privacy",
+    "url": "http://localhost:8000/privacy",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\register.html",
+        "link": "/privacy",
+        "type": "href",
+        "line": 124
+      }
+    ]
+  },
+  {
+    "link": "copyToken()",
+    "url": "http://localhost:8000/copyToken()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\register_success.html",
+        "link": "copyToken()",
+        "type": "onclick",
+        "line": 25
+      }
+    ]
+  },
+  {
+    "link": "/tenant/home",
+    "url": "http://localhost:8000/tenant/home",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/tenant/home",
+        "type": "href",
+        "line": 193
+      },
+      {
+        "file": "pages\\tenant_capture.html",
+        "link": "/tenant/home",
+        "type": "href",
+        "line": 6
+      },
+      {
+        "file": "pages\\tenant_capture.html",
+        "link": "/tenant/home",
+        "type": "href",
+        "line": 223
+      },
+      {
+        "file": "pages\\tenant_help.html",
+        "link": "/tenant/home",
+        "type": "href",
+        "line": 6
+      },
+      {
+        "file": "pages\\tenant_inbox.html",
+        "link": "/tenant/home",
+        "type": "href",
+        "line": 6
+      },
+      {
+        "file": "pages\\tenant_journal.html",
+        "link": "/tenant/home",
+        "type": "href",
+        "line": 6
+      }
+    ]
+  },
+  {
+    "link": "/vault",
+    "url": "http://localhost:8000/vault",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/vault",
+        "type": "href",
+        "line": 226
+      }
+    ]
+  },
+  {
+    "link": "/delivery/send",
+    "url": "http://localhost:8000/delivery/send",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/delivery/send",
+        "type": "href",
+        "line": 241
+      }
+    ]
+  },
+  {
+    "link": "/my-tenancy",
+    "url": "http://localhost:8000/my-tenancy",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/my-tenancy",
+        "type": "href",
+        "line": 264
+      }
+    ]
+  },
+  {
+    "link": "/eviction-defense",
+    "url": "http://localhost:8000/eviction-defense",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/eviction-defense",
+        "type": "href",
+        "line": 269
+      }
+    ]
+  },
+  {
+    "link": "/legal-analysis",
+    "url": "http://localhost:8000/legal-analysis",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/legal-analysis",
+        "type": "href",
+        "line": 274
+      }
+    ]
+  },
+  {
+    "link": "/calendar",
+    "url": "http://localhost:8000/calendar",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/calendar",
+        "type": "href",
+        "line": 292
+      }
+    ]
+  },
+  {
+    "link": "/functionx",
+    "url": "http://localhost:8000/functionx",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/functionx",
+        "type": "href",
+        "line": 297
+      }
+    ]
+  },
+  {
+    "link": "/invite-advocate",
+    "url": "http://localhost:8000/invite-advocate",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/invite-advocate",
+        "type": "href",
+        "line": 302
+      }
+    ]
+  },
+  {
+    "link": "/tenant/copilot",
+    "url": "http://localhost:8000/tenant/copilot",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/tenant/copilot",
+        "type": "href",
+        "line": 307
+      },
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/tenant/copilot",
+        "type": "href",
+        "line": 335
+      }
+    ]
+  },
+  {
+    "link": "/tenant/help#contacts",
+    "url": "http://localhost:8000/tenant/help#contacts",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\semptify_hub.html",
+        "link": "/tenant/help#contacts",
+        "type": "href",
+        "line": 330
+      }
+    ]
+  },
+  {
+    "link": "I got a court date notice.",
+    "url": "http://localhost:8000/I got a court date notice.",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant.html",
+        "link": "I got a court date notice.",
+        "type": "data-*",
+        "line": 68
+      }
+    ]
+  },
+  {
+    "link": "My landlord posted a new notice.",
+    "url": "http://localhost:8000/My landlord posted a new notice.",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant.html",
+        "link": "My landlord posted a new notice.",
+        "type": "data-*",
+        "line": 69
+      }
+    ]
+  },
+  {
+    "link": "I need help organizing my evidence.",
+    "url": "http://localhost:8000/I need help organizing my evidence.",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant.html",
+        "link": "I need help organizing my evidence.",
+        "type": "data-*",
+        "line": 70
+      }
+    ]
+  },
+  {
+    "link": "/api/tenant/capture",
+    "url": "http://localhost:8000/api/tenant/capture",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\tenant_capture.html",
+        "link": "/api/tenant/capture",
+        "type": "action",
+        "line": 227
+      }
+    ]
+  },
+  {
+    "link": "notice",
+    "url": "http://localhost:8000/notice",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_capture.html",
+        "link": "notice",
+        "type": "data-*",
+        "line": 232
+      },
+      {
+        "file": "pages\\tenant_home.html",
+        "link": "notice",
+        "type": "data-*",
+        "line": 297
+      },
+      {
+        "file": "pages\\tenant_journal.html",
+        "link": "notice",
+        "type": "data-*",
+        "line": 230
+      }
+    ]
+  },
+  {
+    "link": "conversation",
+    "url": "http://localhost:8000/conversation",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_capture.html",
+        "link": "conversation",
+        "type": "data-*",
+        "line": 236
+      },
+      {
+        "file": "pages\\tenant_home.html",
+        "link": "conversation",
+        "type": "data-*",
+        "line": 298
+      },
+      {
+        "file": "pages\\tenant_journal.html",
+        "link": "conversation",
+        "type": "data-*",
+        "line": 231
+      }
+    ]
+  },
+  {
+    "link": "repair",
+    "url": "http://localhost:8000/repair",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_capture.html",
+        "link": "repair",
+        "type": "data-*",
+        "line": 240
+      },
+      {
+        "file": "pages\\tenant_home.html",
+        "link": "repair",
+        "type": "data-*",
+        "line": 299
+      },
+      {
+        "file": "pages\\tenant_journal.html",
+        "link": "repair",
+        "type": "data-*",
+        "line": 232
+      }
+    ]
+  },
+  {
+    "link": "harassment",
+    "url": "http://localhost:8000/harassment",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_capture.html",
+        "link": "harassment",
+        "type": "data-*",
+        "line": 244
+      },
+      {
+        "file": "pages\\tenant_home.html",
+        "link": "harassment",
+        "type": "data-*",
+        "line": 300
+      }
+    ]
+  },
+  {
+    "link": "payment",
+    "url": "http://localhost:8000/payment",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_capture.html",
+        "link": "payment",
+        "type": "data-*",
+        "line": 248
+      }
+    ]
+  },
+  {
+    "link": "other",
+    "url": "http://localhost:8000/other",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_capture.html",
+        "link": "other",
+        "type": "data-*",
+        "line": 252
+      },
+      {
+        "file": "pages\\tenant_home.html",
+        "link": "other",
+        "type": "data-*",
+        "line": 301
+      }
+    ]
+  },
+  {
+    "link": "/static/design-system.css",
+    "url": "http://localhost:8000/static/design-system.css",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_dashboard.html",
+        "link": "/static/design-system.css",
+        "type": "href",
+        "line": 13
+      }
+    ]
+  },
+  {
+    "link": "viewHelp()",
+    "url": "http://localhost:8000/viewHelp()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_dashboard.html",
+        "link": "viewHelp()",
+        "type": "onclick",
+        "line": 126
+      }
+    ]
+  },
+  {
+    "link": "viewSettings()",
+    "url": "http://localhost:8000/viewSettings()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_dashboard.html",
+        "link": "viewSettings()",
+        "type": "onclick",
+        "line": 127
+      }
+    ]
+  },
+  {
+    "link": "/api/components/config/tenant",
+    "url": "http://localhost:8000/api/components/config/tenant",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\tenant_dashboard.html",
+        "link": "/api/components/config/tenant",
+        "type": "fetch",
+        "line": 196
+      }
+    ]
+  },
+  {
+    "link": "/api/components/workspace-stage",
+    "url": "http://localhost:8000/api/components/workspace-stage",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\tenant_dashboard.html",
+        "link": "/api/components/workspace-stage",
+        "type": "fetch",
+        "line": 212
+      }
+    ]
+  },
+  {
+    "link": "/api/components/capture/upload",
+    "url": "http://localhost:8000/api/components/capture/upload",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\tenant_dashboard.html",
+        "link": "/api/components/capture/upload",
+        "type": "fetch",
+        "line": 291
+      }
+    ]
+  },
+  {
+    "link": "/settings",
+    "url": "http://localhost:8000/settings",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_dashboard.html",
+        "link": "/settings",
+        "type": "window.location.href",
+        "line": 489
+      }
+    ]
+  },
+  {
+    "link": "/tenant/documents",
+    "url": "http://localhost:8000/tenant/documents",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_help.html",
+        "link": "/tenant/documents",
+        "type": "href",
+        "line": 8
+      },
+      {
+        "file": "pages\\tenant_help.html",
+        "link": "/tenant/documents",
+        "type": "href",
+        "line": 293
+      }
+    ]
+  },
+  {
+    "link": "/tenant/tools/letters",
+    "url": "http://localhost:8000/tenant/tools/letters",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_help.html",
+        "link": "/tenant/tools/letters",
+        "type": "href",
+        "line": 305
+      }
+    ]
+  },
+  {
+    "link": "https://homelinemn.org",
+    "url": "https://homelinemn.org",
+    "success": true,
+    "status_code": 0,
+    "error": "external",
+    "sources": [
+      {
+        "file": "pages\\tenant_help.html",
+        "link": "https://homelinemn.org",
+        "type": "href",
+        "line": 319
+      }
+    ]
+  },
+  {
+    "link": "https://www.mncourts.gov/Help-Topics/Eviction-Landlord-and-Tenant-Cases.aspx",
+    "url": "https://www.mncourts.gov/Help-Topics/Eviction-Landlord-and-Tenant-Cases.aspx",
+    "success": true,
+    "status_code": 0,
+    "error": "external",
+    "sources": [
+      {
+        "file": "pages\\tenant_help.html",
+        "link": "https://www.mncourts.gov/Help-Topics/Eviction-Landlord-and-Tenant-Cases.aspx",
+        "type": "href",
+        "line": 335
+      }
+    ]
+  },
+  {
+    "link": "https://www.ag.state.mn.us/Consumer/Handbooks/LT/default.asp",
+    "url": "https://www.ag.state.mn.us/Consumer/Handbooks/LT/default.asp",
+    "success": true,
+    "status_code": 0,
+    "error": "external",
+    "sources": [
+      {
+        "file": "pages\\tenant_help.html",
+        "link": "https://www.ag.state.mn.us/Consumer/Handbooks/LT/default.asp",
+        "type": "href",
+        "line": 343
+      }
+    ]
+  },
+  {
+    "link": "https://www.revisor.mn.gov/statutes/cite/504B",
+    "url": "https://www.revisor.mn.gov/statutes/cite/504B",
+    "success": true,
+    "status_code": 0,
+    "error": "external",
+    "sources": [
+      {
+        "file": "pages\\tenant_help.html",
+        "link": "https://www.revisor.mn.gov/statutes/cite/504B",
+        "type": "href",
+        "line": 351
+      }
+    ]
+  },
+  {
+    "link": "/ui/tool/eviction-defense",
+    "url": "http://localhost:8000/ui/tool/eviction-defense",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_home.html",
+        "link": "/ui/tool/eviction-defense",
+        "type": "href",
+        "line": 414
+      }
+    ]
+  },
+  {
+    "link": "/ui/tool/complaints",
+    "url": "http://localhost:8000/ui/tool/complaints",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_home.html",
+        "link": "/ui/tool/complaints",
+        "type": "href",
+        "line": 419
+      }
+    ]
+  },
+  {
+    "link": "/ui/tool/case-builder",
+    "url": "http://localhost:8000/ui/tool/case-builder",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_home.html",
+        "link": "/ui/tool/case-builder",
+        "type": "href",
+        "line": 424
+      }
+    ]
+  },
+  {
+    "link": "/ui/tool/plan-maker",
+    "url": "http://localhost:8000/ui/tool/plan-maker",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_home.html",
+        "link": "/ui/tool/plan-maker",
+        "type": "href",
+        "line": 429
+      }
+    ]
+  },
+  {
+    "link": "markAllRead()",
+    "url": "http://localhost:8000/markAllRead()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_inbox.html",
+        "link": "markAllRead()",
+        "type": "onclick",
+        "line": 209
+      }
+    ]
+  },
+  {
+    "link": "all",
+    "url": "http://localhost:8000/all",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_inbox.html",
+        "link": "all",
+        "type": "data-*",
+        "line": 215
+      },
+      {
+        "file": "pages\\tenant_journal.html",
+        "link": "all",
+        "type": "data-*",
+        "line": 229
+      }
+    ]
+  },
+  {
+    "link": "unread",
+    "url": "http://localhost:8000/unread",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_inbox.html",
+        "link": "unread",
+        "type": "data-*",
+        "line": 216
+      }
+    ]
+  },
+  {
+    "link": "urgent",
+    "url": "http://localhost:8000/urgent",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_inbox.html",
+        "link": "urgent",
+        "type": "data-*",
+        "line": 217
+      },
+      {
+        "file": "pages\\tenant_journal.html",
+        "link": "urgent",
+        "type": "data-*",
+        "line": 233
+      }
+    ]
+  },
+  {
+    "link": "system",
+    "url": "http://localhost:8000/system",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_inbox.html",
+        "link": "system",
+        "type": "data-*",
+        "line": 218
+      }
+    ]
+  },
+  {
+    "link": "dismissNotification(",
+    "url": "http://localhost:8000/dismissNotification(",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_inbox.html",
+        "link": "dismissNotification(",
+        "type": "onclick",
+        "line": 246
+      }
+    ]
+  },
+  {
+    "link": "${id}",
+    "url": "http://localhost:8000/${id}",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\tenant_inbox.html",
+        "link": "${id}",
+        "type": "data-*",
+        "line": 295
+      }
+    ]
+  },
+  {
+    "link": "addManualEvent()",
+    "url": "http://localhost:8000/addManualEvent()",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\timeline.html",
+        "link": "addManualEvent()",
+        "type": "onclick",
+        "line": 217
+      }
+    ]
+  },
+  {
+    "link": "/storage/function-token/issue",
+    "url": "http://localhost:8000/storage/function-token/issue",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\vault.html",
+        "link": "/storage/function-token/issue",
+        "type": "fetch",
+        "line": 187
+      }
+    ]
+  },
+  {
+    "link": "/storage/function-token/verify?",
+    "url": "http://localhost:8000/storage/function-token/verify",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\vault.html",
+        "link": "/storage/function-token/verify?",
+        "type": "fetch",
+        "line": 209
+      }
+    ]
+  },
+  {
+    "link": "/storage/status",
+    "url": "http://localhost:8000/storage/status",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\vault.html",
+        "link": "/storage/status",
+        "type": "fetch",
+        "line": 260
+      },
+      {
+        "file": "pages\\vault.html",
+        "link": "/storage/status",
+        "type": "fetch",
+        "line": 369
+      }
+    ]
+  },
+  {
+    "link": "/api/vault/?access_token=",
+    "url": "http://localhost:8000/api/vault/?access_token=",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\vault.html",
+        "link": "/api/vault/?access_token=",
+        "type": "fetch",
+        "line": 284
+      }
+    ]
+  },
+  {
+    "link": "downloadDoc(",
+    "url": "http://localhost:8000/downloadDoc(",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\vault.html",
+        "link": "downloadDoc(",
+        "type": "onclick",
+        "line": 301
+      }
+    ]
+  },
+  {
+    "link": "/api/vault/upload",
+    "url": "http://localhost:8000/api/vault/upload",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\vault.html",
+        "link": "/api/vault/upload",
+        "type": "fetch",
+        "line": 383
+      }
+    ]
+  },
+  {
+    "link": "/api/workflow/contracts/welcome",
+    "url": "http://localhost:8000/api/workflow/contracts/welcome",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "/api/workflow/contracts/welcome",
+        "type": "href",
+        "line": 322
+      }
+    ]
+  },
+  {
+    "link": "welcome_call_211",
+    "url": "http://localhost:8000/welcome_call_211",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "welcome_call_211",
+        "type": "data-*",
+        "line": 331
+      }
+    ]
+  },
+  {
+    "link": "welcome_call_home_line",
+    "url": "http://localhost:8000/welcome_call_home_line",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "welcome_call_home_line",
+        "type": "data-*",
+        "line": 332
+      }
+    ]
+  },
+  {
+    "link": "welcome_call_988",
+    "url": "http://localhost:8000/welcome_call_988",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "welcome_call_988",
+        "type": "data-*",
+        "line": 333
+      }
+    ]
+  },
+  {
+    "link": "https://www.211.org",
+    "url": "https://www.211.org",
+    "success": true,
+    "status_code": 0,
+    "error": "external",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "https://www.211.org",
+        "type": "href",
+        "line": 334
+      }
+    ]
+  },
+  {
+    "link": "welcome_open_211",
+    "url": "http://localhost:8000/welcome_open_211",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "welcome_open_211",
+        "type": "data-*",
+        "line": 334
+      }
+    ]
+  },
+  {
+    "link": "https://www.housinglink.org",
+    "url": "https://www.housinglink.org",
+    "success": true,
+    "status_code": 0,
+    "error": "external",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "https://www.housinglink.org",
+        "type": "href",
+        "line": 335
+      }
+    ]
+  },
+  {
+    "link": "welcome_open_housinglink",
+    "url": "http://localhost:8000/welcome_open_housinglink",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "welcome_open_housinglink",
+        "type": "data-*",
+        "line": 335
+      }
+    ]
+  },
+  {
+    "link": "welcome_county_hennepin",
+    "url": "http://localhost:8000/welcome_county_hennepin",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "welcome_county_hennepin",
+        "type": "data-*",
+        "line": 343
+      }
+    ]
+  },
+  {
+    "link": "welcome_county_ramsey",
+    "url": "http://localhost:8000/welcome_county_ramsey",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "welcome_county_ramsey",
+        "type": "data-*",
+        "line": 344
+      }
+    ]
+  },
+  {
+    "link": "welcome_county_dakota",
+    "url": "http://localhost:8000/welcome_county_dakota",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "welcome_county_dakota",
+        "type": "data-*",
+        "line": 345
+      }
+    ]
+  },
+  {
+    "link": "welcome_county_anoka",
+    "url": "http://localhost:8000/welcome_county_anoka",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "welcome_county_anoka",
+        "type": "data-*",
+        "line": 346
+      }
+    ]
+  },
+  {
+    "link": "welcome_county_washington",
+    "url": "http://localhost:8000/welcome_county_washington",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "welcome_county_washington",
+        "type": "data-*",
+        "line": 347
+      }
+    ]
+  },
+  {
+    "link": "welcome_county_st_louis",
+    "url": "http://localhost:8000/welcome_county_st_louis",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "welcome_county_st_louis",
+        "type": "data-*",
+        "line": 348
+      }
+    ]
+  },
+  {
+    "link": "this.parentElement.style.display=",
+    "url": "http://localhost:8000/this.parentElement.style.display=",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "this.parentElement.style.display=",
+        "type": "onclick",
+        "line": 359
+      }
+    ]
+  },
+  {
+    "link": "/static/js/entry-flow.js",
+    "url": "http://localhost:8000/static/js/entry-flow.js",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "/static/js/entry-flow.js",
+        "type": "src",
+        "line": 374
+      }
+    ]
+  },
+  {
+    "link": "/onboarding/ssot-navigation",
+    "url": "http://localhost:8000/onboarding/ssot-navigation",
+    "success": true,
+    "status_code": 200,
+    "error": "",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "/onboarding/ssot-navigation",
+        "type": "fetch",
+        "line": 415
+      }
+    ]
+  },
+  {
+    "link": "/api/workflow/route",
+    "url": "http://localhost:8000/api/workflow/route",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "/api/workflow/route",
+        "type": "fetch",
+        "line": 432
+      }
+    ]
+  },
+  {
+    "link": "/api/workflow/advance",
+    "url": "http://localhost:8000/api/workflow/advance",
+    "success": true,
+    "status_code": 401,
+    "error": "authenticated",
+    "sources": [
+      {
+        "file": "pages\\welcome.html",
+        "link": "/api/workflow/advance",
+        "type": "fetch",
+        "line": 492
+      }
+    ]
+  }
+]

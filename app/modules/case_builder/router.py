@@ -22,7 +22,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Body
 from pydantic import BaseModel
 from enum import Enum
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, yellow_access
 from app.core.database import get_db
 from app.core.document_hub import get_document_hub, CaseData
 from app.core.utc import utc_now
@@ -544,7 +544,7 @@ async def case_builder_info():
 # -----------------------------------------------------------------------------
 
 @router.get("/cases")
-async def list_cases(user: StorageUser = Depends(require_user)):
+async def list_cases(user: StorageUser = Depends(yellow_access)):
     """List all cases for the authenticated user with computed status and progress."""
     user_id = user.user_id
     data_dir = get_user_case_data_dir(user_id)
@@ -663,7 +663,7 @@ async def list_cases(user: StorageUser = Depends(require_user)):
 
 
 @router.get("/cases/{case_id}")
-async def get_case(case_id: str, user: StorageUser = Depends(require_user)):
+async def get_case(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get a specific case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -673,7 +673,7 @@ async def get_case(case_id: str, user: StorageUser = Depends(require_user)):
 
 
 @router.post("/cases")
-async def create_case(case: CaseCreate, user: StorageUser = Depends(require_user)):
+async def create_case(case: CaseCreate, user: StorageUser = Depends(yellow_access)):
     """Create a new case for the authenticated user."""
     user_id = user.user_id
     
@@ -735,7 +735,7 @@ class ComplaintIntake(BaseModel):
 
 
 @router.post("/intake/complaint")
-async def intake_complaint(intake: ComplaintIntake, user: StorageUser = Depends(require_user)):
+async def intake_complaint(intake: ComplaintIntake, user: StorageUser = Depends(yellow_access)):
     """
     SIMPLE INTAKE: Create a case from a complaint document.
     
@@ -863,7 +863,7 @@ async def intake_complaint(intake: ComplaintIntake, user: StorageUser = Depends(
 
 
 @router.put("/cases/{case_id}")
-async def update_case(case_id: str, updates: Dict[str, Any] = Body(...), user: StorageUser = Depends(require_user)):
+async def update_case(case_id: str, updates: Dict[str, Any] = Body(...), user: StorageUser = Depends(yellow_access)):
     """Update a case belonging to the authenticated user."""
     user_id = user.user_id
     
@@ -885,7 +885,7 @@ async def update_case(case_id: str, updates: Dict[str, Any] = Body(...), user: S
 
 
 @router.delete("/cases/{case_id}")
-async def delete_case(case_id: str, user: StorageUser = Depends(require_user)):
+async def delete_case(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Delete a case belonging to the authenticated user."""
     user_id = user.user_id
     
@@ -906,7 +906,7 @@ async def delete_case(case_id: str, user: StorageUser = Depends(require_user)):
 # -----------------------------------------------------------------------------
 
 @router.get("/cases/{case_id}/timeline")
-async def get_timeline(case_id: str, user: StorageUser = Depends(require_user)):
+async def get_timeline(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get all timeline events for a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -921,7 +921,7 @@ async def get_timeline(case_id: str, user: StorageUser = Depends(require_user)):
 
 
 @router.post("/cases/{case_id}/timeline")
-async def add_timeline_event(case_id: str, event: TimelineEventCreate, user: StorageUser = Depends(require_user)):
+async def add_timeline_event(case_id: str, event: TimelineEventCreate, user: StorageUser = Depends(yellow_access)):
     """Add a timeline event to a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -950,7 +950,7 @@ async def add_timeline_event(case_id: str, event: TimelineEventCreate, user: Sto
 
 
 @router.delete("/cases/{case_id}/timeline/{event_id}")
-async def delete_timeline_event(case_id: str, event_id: str, user: StorageUser = Depends(require_user)):
+async def delete_timeline_event(case_id: str, event_id: str, user: StorageUser = Depends(yellow_access)):
     """Delete a timeline event from a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -968,7 +968,7 @@ async def delete_timeline_event(case_id: str, event_id: str, user: StorageUser =
 # -----------------------------------------------------------------------------
 
 @router.get("/cases/{case_id}/evidence")
-async def get_evidence(case_id: str, user: StorageUser = Depends(require_user)):
+async def get_evidence(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get all evidence for a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -979,7 +979,7 @@ async def get_evidence(case_id: str, user: StorageUser = Depends(require_user)):
 
 
 @router.post("/cases/{case_id}/evidence")
-async def add_evidence(case_id: str, evidence: EvidenceCreate, user: StorageUser = Depends(require_user)):
+async def add_evidence(case_id: str, evidence: EvidenceCreate, user: StorageUser = Depends(yellow_access)):
     """Add evidence to a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -1014,7 +1014,7 @@ async def add_evidence(case_id: str, evidence: EvidenceCreate, user: StorageUser
 # -----------------------------------------------------------------------------
 
 @router.get("/cases/{case_id}/counterclaims")
-async def get_counterclaims(case_id: str, user: StorageUser = Depends(require_user)):
+async def get_counterclaims(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get all counterclaims for a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -1025,7 +1025,7 @@ async def get_counterclaims(case_id: str, user: StorageUser = Depends(require_us
 
 
 @router.post("/cases/{case_id}/counterclaims")
-async def add_counterclaim(case_id: str, claim: CounterclaimCreate, user: StorageUser = Depends(require_user)):
+async def add_counterclaim(case_id: str, claim: CounterclaimCreate, user: StorageUser = Depends(yellow_access)):
     """Add a counterclaim to a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -1064,7 +1064,7 @@ async def add_counterclaim(case_id: str, claim: CounterclaimCreate, user: Storag
 # -----------------------------------------------------------------------------
 
 @router.get("/cases/{case_id}/motions")
-async def get_motions(case_id: str, user: StorageUser = Depends(require_user)):
+async def get_motions(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get all motions for a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -1075,7 +1075,7 @@ async def get_motions(case_id: str, user: StorageUser = Depends(require_user)):
 
 
 @router.post("/cases/{case_id}/motions")
-async def add_motion(case_id: str, motion: MotionCreate, user: StorageUser = Depends(require_user)):
+async def add_motion(case_id: str, motion: MotionCreate, user: StorageUser = Depends(yellow_access)):
     """Add a motion to a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -1116,7 +1116,7 @@ async def add_motion(case_id: str, motion: MotionCreate, user: StorageUser = Dep
 # -----------------------------------------------------------------------------
 
 @router.get("/cases/{case_id}/deadlines")
-async def get_deadlines(case_id: str, user: StorageUser = Depends(require_user)):
+async def get_deadlines(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get all deadlines for a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -1150,7 +1150,7 @@ async def get_deadlines(case_id: str, user: StorageUser = Depends(require_user))
 
 
 @router.post("/cases/{case_id}/deadlines")
-async def add_deadline(case_id: str, deadline: DeadlineCreate, user: StorageUser = Depends(require_user)):
+async def add_deadline(case_id: str, deadline: DeadlineCreate, user: StorageUser = Depends(yellow_access)):
     """Add a deadline to a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -1179,7 +1179,7 @@ async def add_deadline(case_id: str, deadline: DeadlineCreate, user: StorageUser
 
 
 @router.put("/cases/{case_id}/deadlines/{deadline_id}/complete")
-async def complete_deadline(case_id: str, deadline_id: str, user: StorageUser = Depends(require_user)):
+async def complete_deadline(case_id: str, deadline_id: str, user: StorageUser = Depends(yellow_access)):
     """Mark a deadline as complete for a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -1200,7 +1200,7 @@ async def complete_deadline(case_id: str, deadline_id: str, user: StorageUser = 
 # -----------------------------------------------------------------------------
 
 @router.get("/cases/{case_id}/defenses")
-async def get_defenses(case_id: str, user: StorageUser = Depends(require_user)):
+async def get_defenses(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get all defenses for a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -1211,7 +1211,7 @@ async def get_defenses(case_id: str, user: StorageUser = Depends(require_user)):
 
 
 @router.post("/cases/{case_id}/defenses")
-async def add_defense(case_id: str, defense: DefenseCreate, user: StorageUser = Depends(require_user)):
+async def add_defense(case_id: str, defense: DefenseCreate, user: StorageUser = Depends(yellow_access)):
     """Add a defense strategy to a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -1270,7 +1270,7 @@ async def get_motion_templates():
 # -----------------------------------------------------------------------------
 
 @router.post("/cases/{case_id}/generate/counterclaim")
-async def generate_counterclaim_doc(case_id: str, user: StorageUser = Depends(require_user)):
+async def generate_counterclaim_doc(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Generate the counterclaim document for a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -1368,7 +1368,7 @@ async def generate_counterclaim_doc(case_id: str, user: StorageUser = Depends(re
 
 
 @router.post("/cases/{case_id}/generate/motion/{motion_type}")
-async def generate_motion_doc(case_id: str, motion_type: str, params: Dict[str, Any] = Body(default={}), user: StorageUser = Depends(require_user)):
+async def generate_motion_doc(case_id: str, motion_type: str, params: Dict[str, Any] = Body(default={}), user: StorageUser = Depends(yellow_access)):
     """Generate a motion document for a case belonging to the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -1424,7 +1424,7 @@ async def generate_motion_doc(case_id: str, motion_type: str, params: Dict[str, 
 # -----------------------------------------------------------------------------
 
 @router.get("/cases/{case_id}/summary")
-async def get_case_summary(case_id: str, user: StorageUser = Depends(require_user)):
+async def get_case_summary(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get a complete case summary with reminders for the authenticated user."""
     user_id = user.user_id
     case = load_case(case_id, user_id)
@@ -1527,7 +1527,7 @@ async def get_case_summary(case_id: str, user: StorageUser = Depends(require_use
 # =============================================================================
 
 @router.get("/from-documents")
-async def get_case_from_documents(user: StorageUser = Depends(require_user)):
+async def get_case_from_documents(user: StorageUser = Depends(yellow_access)):
     """
     Get case data extracted from uploaded documents.
     
@@ -1557,7 +1557,7 @@ async def get_case_from_documents(user: StorageUser = Depends(require_user)):
 @router.post("/auto-create")
 async def auto_create_case_from_documents(
     court: str = Query(default="Dakota County District Court", description="Court name"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Auto-create a case using data extracted from uploaded documents.
@@ -1695,7 +1695,7 @@ async def auto_create_case_from_documents(
 async def populate_case_from_documents(
     case_id: str,
     overwrite: bool = Query(default=False, description="Overwrite existing values"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Populate an existing case with data extracted from documents.
@@ -1846,7 +1846,7 @@ async def populate_case_from_documents(
 
 
 @router.get("/suggested-defenses")
-async def get_suggested_defenses(user: StorageUser = Depends(require_user)):
+async def get_suggested_defenses(user: StorageUser = Depends(yellow_access)):
     """
     Get defense suggestions based on uploaded documents.
     
@@ -1902,7 +1902,7 @@ async def get_suggested_defenses(user: StorageUser = Depends(require_user)):
 
 
 @router.get("/suggested-counterclaims")
-async def get_suggested_counterclaims(user: StorageUser = Depends(require_user)):
+async def get_suggested_counterclaims(user: StorageUser = Depends(yellow_access)):
     """
     Get counterclaim suggestions based on uploaded documents.
     

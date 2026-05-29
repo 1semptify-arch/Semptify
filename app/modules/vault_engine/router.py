@@ -12,7 +12,7 @@ from typing import Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, yellow_access
 from .service import (
     VaultAccessEngine,
     get_vault_engine,
@@ -73,7 +73,7 @@ class AccessCheckRequest(BaseModel):
 @router.post("/check-access")
 async def check_access(
     request: AccessCheckRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     engine: VaultAccessEngine = Depends(get_vault_engine),
 ):
     """
@@ -115,7 +115,7 @@ async def check_access(
 @router.post("/read")
 async def read_resource(
     request: ResourceReadRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     engine: VaultAccessEngine = Depends(get_vault_engine),
 ):
     """
@@ -153,7 +153,7 @@ async def read_resource(
 @router.post("/write")
 async def write_resource(
     request: ResourceWriteRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     engine: VaultAccessEngine = Depends(get_vault_engine),
 ):
     """
@@ -191,7 +191,7 @@ async def write_resource(
 @router.post("/delete")
 async def delete_resource(
     request: ResourceDeleteRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     engine: VaultAccessEngine = Depends(get_vault_engine),
 ):
     """
@@ -231,7 +231,7 @@ async def delete_resource(
 @router.post("/share")
 async def share_resource(
     request: ShareRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     engine: VaultAccessEngine = Depends(get_vault_engine),
 ):
     """
@@ -256,7 +256,7 @@ async def share_resource(
 async def unshare_resource(
     resource_id: str = Body(...),
     unshare_from: str = Body(...),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     engine: VaultAccessEngine = Depends(get_vault_engine),
 ):
     """
@@ -285,7 +285,7 @@ async def list_resources(
     resource_type: Optional[str] = Query(None, description="Filter by type"),
     include_shared: bool = Query(True, description="Include shared resources"),
     include_deleted: bool = Query(False, description="Include deleted resources"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     engine: VaultAccessEngine = Depends(get_vault_engine),
 ):
     """
@@ -315,7 +315,7 @@ async def list_resources(
 async def get_audit_log(
     resource_id: Optional[str] = Query(None, description="Filter by resource"),
     limit: int = Query(100, ge=1, le=1000),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     engine: VaultAccessEngine = Depends(get_vault_engine),
 ):
     """
@@ -338,7 +338,7 @@ async def get_audit_log(
 
 @router.get("/stats")
 async def get_stats(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     engine: VaultAccessEngine = Depends(get_vault_engine),
 ):
     """Get vault statistics (admin only in production)."""

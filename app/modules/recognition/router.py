@@ -39,7 +39,7 @@ from app.services.positronic_brain import (
     EventType,
     ModuleType,
 )
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, green_access
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -433,7 +433,7 @@ def result_to_response(
 async def analyze_text(
     request: AnalyzeTextRequest,
     background_tasks: BackgroundTasks,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     🔍 Analyze document text with the recognition engine.
@@ -498,7 +498,7 @@ async def analyze_text(
 async def analyze_file(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(..., description="Document file to analyze"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     📁 Analyze an uploaded document file.
@@ -652,7 +652,7 @@ async def analyze_file(
 @router.post("/quick-classify", response_model=QuickClassifyResponse)
 async def quick_classify(
     request: QuickClassifyRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     ⚡ Quick document classification without full analysis.
@@ -684,7 +684,7 @@ async def quick_classify(
 async def analyze_handwriting_endpoint(
     request: HandwritingAnalyzeRequest,
     background_tasks: BackgroundTasks,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     ✍️ Analyze document for handwriting and detect forgery.
@@ -763,7 +763,7 @@ async def analyze_handwriting_endpoint(
 @router.post("/signature/verify")
 async def verify_signature(
     request: SignatureCompareRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     ✅ Verify signature against known reference.
@@ -869,7 +869,7 @@ def _get_forgery_description(ft: ForgeryType) -> str:
 async def batch_analyze(
     request: BatchAnalyzeRequest,
     background_tasks: BackgroundTasks,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     📚 Batch analyze multiple documents.

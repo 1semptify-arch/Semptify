@@ -20,7 +20,12 @@ import hashlib
 import asyncio
 from PIL import Image, ImageDraw, ImageFont
 import fitz  # PyMuPDF for PDF processing
-import magic  # python-magic for file type detection
+try:
+    import magic as _magic
+    _MAGIC_AVAILABLE = True
+except ImportError:
+    _magic = None
+    _MAGIC_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +122,11 @@ class PreviewGenerator:
     def detect_format(self, file_path: str) -> Optional[SupportedFormat]:
         """Detect document format from file."""
         try:
-            mime_type = magic.from_file(file_path, mime=True)
+            if _MAGIC_AVAILABLE:
+                mime_type = _magic.from_file(file_path, mime=True)
+            else:
+                import mimetypes
+                mime_type, _ = mimetypes.guess_type(file_path)
             return self.mime_types.get(mime_type)
         except Exception as e:
             logger.error(f"Format detection failed: {e}")

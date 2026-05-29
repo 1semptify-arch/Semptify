@@ -79,7 +79,7 @@ from pydantic import BaseModel
 
 from app.core.config import get_settings, Settings
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, yellow_access
 
 from app.core.event_bus import event_bus, EventType
 
@@ -586,7 +586,7 @@ async def upload_document(
 
     storage_provider: str = Form("local", description="Storage provider (google_drive, dropbox, onedrive, local)"),
 
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 
     db: AsyncSession = Depends(get_db),
 
@@ -1299,7 +1299,7 @@ async def upload_document_simple(
 
     process_now: bool = Query(True, description="Process immediately or queue"),
 
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 
 ):
 
@@ -1405,7 +1405,7 @@ async def list_documents(
 
     status: Optional[str] = Query(None, description="Filter by status"),
 
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 
 ):
 
@@ -1449,7 +1449,7 @@ async def list_documents(
 
 @router.get("/{doc_id}", response_model=DocumentDetailResponse)
 
-async def get_document(doc_id: str, user: StorageUser = Depends(require_user)):
+async def get_document(doc_id: str, user: StorageUser = Depends(yellow_access)):
 
     """Get detailed information about a document."""
 
@@ -1527,7 +1527,7 @@ async def get_document(doc_id: str, user: StorageUser = Depends(require_user)):
 
 @router.post("/{doc_id}/reprocess")
 
-async def reprocess_document(doc_id: str, user: StorageUser = Depends(require_user)):
+async def reprocess_document(doc_id: str, user: StorageUser = Depends(yellow_access)):
 
     """Reprocess an existing document."""
 
@@ -1573,7 +1573,7 @@ async def get_document_intelligence_analysis(
 
     doc_id: str,
 
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 
 ):
 
@@ -1663,7 +1663,7 @@ async def get_document_intelligence_analysis(
 
 async def get_urgent_documents(
 
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 
 ):
 
@@ -1697,7 +1697,7 @@ async def analyze_document_intelligence(
 
     doc_id: str,
 
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 
 ):
 
@@ -1807,7 +1807,7 @@ async def get_document_text(
 
     doc_id: str,
 
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 
 ):
 
@@ -1867,7 +1867,7 @@ async def update_document_category(
 
     request: CategoryUpdateRequest,
 
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 
 ):
 
@@ -1943,7 +1943,7 @@ async def view_document(
 
     doc_id: str,
 
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 
 ):
 
@@ -2001,7 +2001,7 @@ async def thumbnail_document(
 
     doc_id: str,
 
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 
 ):
 
@@ -2063,7 +2063,7 @@ async def download_document(
 
     doc_id: str,
 
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 
 ):
 
@@ -2123,7 +2123,7 @@ async def export_documents(
 
     format: str = Query("zip", description="Export format: zip, json, or csv"),
 
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 
 ):
 
@@ -2365,7 +2365,7 @@ async def export_documents(
 
 @router.get("/timeline/", response_model=list[TimelineEvent])
 
-async def get_timeline(user: StorageUser = Depends(require_user)):
+async def get_timeline(user: StorageUser = Depends(yellow_access)):
 
     """Get chronological timeline of all documents and events."""
 
@@ -2385,7 +2385,7 @@ async def get_timeline(user: StorageUser = Depends(require_user)):
 
 @router.get("/summary/", response_model=SummaryResponse)
 
-async def get_summary(user: StorageUser = Depends(require_user)):
+async def get_summary(user: StorageUser = Depends(yellow_access)):
 
     """Get summary statistics for the authenticated user's documents."""
 
@@ -2405,7 +2405,7 @@ async def get_summary(user: StorageUser = Depends(require_user)):
 
 @router.get("/rights/", response_model=RightsResponse)
 
-async def get_rights_summary(user: StorageUser = Depends(require_user)):
+async def get_rights_summary(user: StorageUser = Depends(yellow_access)):
 
     """
 
@@ -2603,7 +2603,7 @@ async def extract_document_events(
 
     min_confidence: float = Query(0.5, ge=0.0, le=1.0, description="Minimum confidence threshold"),
 
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 
 ):
 
@@ -2733,7 +2733,7 @@ async def auto_populate_timeline(
 
     request: AutoTimelineRequest = AutoTimelineRequest(),
 
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 
 ):
 
@@ -2939,7 +2939,7 @@ async def auto_timeline_all_documents(
 
     min_confidence: float = Query(0.7, ge=0.0, le=1.0),
 
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 
 ):
 
@@ -3143,7 +3143,7 @@ async def correct_classification(
 
     correction: CorrectionRequest,
 
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 
 ):
 
@@ -3217,7 +3217,7 @@ async def confirm_classification(
 
     confirmation: ConfirmationRequest,
 
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 
 ):
 

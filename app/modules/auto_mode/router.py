@@ -8,7 +8,7 @@ from typing import Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, yellow_access
 from app.core.database import get_db_session
 from .service import AutoModeOrchestrator
 import logging
@@ -52,7 +52,7 @@ def get_user_preferences(user_id: str) -> Dict[str, Any]:
 
 
 @router.get("/status")
-async def get_auto_mode_status(user: StorageUser = Depends(require_user)):
+async def get_auto_mode_status(user: StorageUser = Depends(yellow_access)):
     """Get current auto mode status for user"""
     prefs = get_user_preferences(user.sub)
     return AutoModeStatus(
@@ -64,7 +64,7 @@ async def get_auto_mode_status(user: StorageUser = Depends(require_user)):
 
 
 @router.post("/toggle")
-async def toggle_auto_mode(enabled: bool, user: StorageUser = Depends(require_user)):
+async def toggle_auto_mode(enabled: bool, user: StorageUser = Depends(yellow_access)):
     """Toggle auto mode on/off for user"""
     prefs = get_user_preferences(user.sub)
     prefs["enabled"] = enabled
@@ -79,7 +79,7 @@ async def toggle_auto_mode(enabled: bool, user: StorageUser = Depends(require_us
 @router.post("/config")
 async def update_auto_mode_config(
     config: AutoModeConfig,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """Update auto mode configuration"""
     prefs = get_user_preferences(user.sub)
@@ -93,7 +93,7 @@ async def update_auto_mode_config(
 
 
 @router.get("/features")
-async def get_available_features(user: StorageUser = Depends(require_user)):
+async def get_available_features(user: StorageUser = Depends(yellow_access)):
     """Get list of available auto mode features"""
     return {
         "features": [
@@ -132,7 +132,7 @@ async def get_available_features(user: StorageUser = Depends(require_user)):
 
 
 @router.get("/analysis/{doc_id}")
-async def get_analysis_summary(doc_id: str, user: StorageUser = Depends(require_user)):
+async def get_analysis_summary(doc_id: str, user: StorageUser = Depends(yellow_access)):
     """Get comprehensive analysis summary for a document"""
     # TODO: Retrieve from database
     return {
@@ -146,7 +146,7 @@ async def run_analysis_on_document(
     doc_id: str,
     document_content: str,
     filename: str = "document",
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """Trigger auto mode analysis on a document"""
     from .service import AutoModeOrchestrator
@@ -181,7 +181,7 @@ async def run_analysis_on_document(
 @router.post("/batch-analysis")
 async def run_batch_analysis(
     limit: int = 5,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """
     Run auto mode analysis on all existing uploaded documents.

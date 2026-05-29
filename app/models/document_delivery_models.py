@@ -85,12 +85,6 @@ class DocumentDelivery(BaseModel):
     # Security chain
     security_hash: Optional[str] = None  # Chain hash for audit
     
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
-
-
 class DeliveryInboxItem(BaseModel):
     """Simplified view of a delivery for inbox display."""
     delivery_id: str

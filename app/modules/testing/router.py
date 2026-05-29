@@ -10,7 +10,7 @@ from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, red_access
 from app.core.testing_framework import (
     get_test_framework, get_cicd_pipeline, TestType, TestStatus,
     create_test_suite, run_test_suite, get_test_suite, get_test_run,
@@ -52,7 +52,7 @@ class PipelineConfigRequest(BaseModel):
 @router.post("/suites")
 async def create_test_suite_endpoint(
     request: TestSuiteCreateRequest,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Create a new test suite.
@@ -214,7 +214,7 @@ async def create_test_suite_endpoint(
 @router.get("/suites/{suite_id}")
 async def get_test_suite_endpoint(
     suite_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Get test suite details.
@@ -235,7 +235,7 @@ async def get_test_suite_endpoint(
 
 @router.get("/suites")
 async def list_test_suites(
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     List all available test suites.
@@ -265,7 +265,7 @@ async def list_test_suites(
 async def run_test_suite_endpoint(
     request: TestRunRequest,
     background_tasks: BackgroundTasks,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Run a test suite.
@@ -301,7 +301,7 @@ async def run_test_suite_endpoint(
 @router.get("/run/{run_id}")
 async def get_test_run_endpoint(
     run_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Get test run details and results.
@@ -324,7 +324,7 @@ async def get_test_run_endpoint(
 async def get_test_results_endpoint(
     run_id: str,
     format: str = Query("json", description="Response format: json, csv, html"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Get detailed test results for a run.
@@ -401,7 +401,7 @@ async def get_test_results_endpoint(
 
 @router.get("/statistics")
 async def get_test_statistics_endpoint(
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Get testing framework statistics.
@@ -431,7 +431,7 @@ async def get_test_statistics_endpoint(
 @router.post("/pipeline/create")
 async def create_pipeline_endpoint(
     request: PipelineConfigRequest,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Create a new CI/CD pipeline configuration.
@@ -468,7 +468,7 @@ async def run_pipeline_endpoint(
     pipeline_id: str,
     background_tasks: BackgroundTasks,
     trigger: str = Query("manual", description="Trigger type"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Run a CI/CD pipeline.
@@ -501,7 +501,7 @@ async def run_pipeline_endpoint(
 @router.get("/pipeline/run/{run_id}")
 async def get_pipeline_run_endpoint(
     run_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Get pipeline run details and status.
@@ -522,7 +522,7 @@ async def get_pipeline_run_endpoint(
 
 @router.get("/pipeline/statistics")
 async def get_pipeline_statistics_endpoint(
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Get CI/CD pipeline statistics.

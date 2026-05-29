@@ -12,9 +12,11 @@ Role → UI Mapping:
 # Migrated from app/routers/role_ui.py into the role_ui SDK module.
 # All imports remain absolute since role_ui is a CORE module.
 
-from fastapi import APIRouter, Request, Depends
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from typing import Optional
+from pathlib import Path
 import logging
 
 from app.core.user_context import (
@@ -334,11 +336,11 @@ async def get_navigation_menu(
             {"label": "Documents", "path": "/documents", "icon": "📄"},
             {"label": "Timeline", "path": "/timeline", "icon": "📅"},
             {"divider": True},
-            {"label": "Build My Case", "path": "/api/case-builder", "icon": "🏗️"},
-            {"label": "Eviction Defense", "path": "/api/eviction-defense", "icon": "🛡️"},
-            {"label": "File Complaint", "path": "/api/complaints", "icon": "📢"},
-            {"label": "My Action Plan", "path": "/api/plan-maker", "icon": "📋"},
-            {"label": "My Progress", "path": "/progress", "icon": "📈"},
+            {"label": "Build My Case", "path": "/ui/tool/case-builder", "icon": "🏗️"},
+            {"label": "Eviction Defense", "path": "/ui/tool/eviction-defense", "icon": "🛡️"},
+            {"label": "File Complaint", "path": "/ui/tool/complaints", "icon": "📢"},
+            {"label": "My Action Plan", "path": "/ui/tool/plan-maker", "icon": "📋"},
+            {"label": "My Progress", "path": "/ui/tool/progress", "icon": "📈"},
             {"divider": True},
             {"label": "Get Help", "path": "/tenant/help", "icon": "🆘"},
             {"label": "AI Assistant", "path": "/tenant/copilot", "icon": "🤖"},
@@ -391,3 +393,125 @@ async def get_navigation_menu(
         "role": user.role.value,
         "role_display": get_role_metadata(user.role)["display_name"],
     }
+
+
+# =============================================================================
+# Analytics Stub — always available so frontend never gets 404
+# Full analytics lives in app.modules.analytics (ADMIN tier)
+# =============================================================================
+
+@router.post("/api/analytics/pageview")
+async def track_pageview_stub(request: Request):
+    """Accepts pageview pings silently. Full analytics enabled in ADMIN tier."""
+    return {"status": "ok"}
+
+
+# =============================================================================
+# Generic Module Page — self-propagating tool pages from contracts
+# =============================================================================
+
+_templates = Jinja2Templates(directory=str(Path("app/templates")))
+
+LEGAL_DISCLAIMER = (
+    "This information is for educational purposes only and does not constitute legal advice. "
+    "Semptify is a tenant documentation tool, not a law firm. "
+    "For legal advice, consult a licensed attorney or local legal aid organization."
+)
+
+_MODULE_CONTRACTS = {
+    "eviction-defense": {
+        "title": "Eviction Defense",
+        "icon": "🛡️",
+        "description": "Understand your rights, build your defense, and prepare for court. Every step guided.",
+        "api_base": "/api/eviction-defense",
+        "disclaimer": LEGAL_DISCLAIMER,
+        "tags": ["Legal Defense", "Court Prep", "Rights"],
+        "actions": [
+            {"label": "My Defense Options", "icon": "⚖️", "endpoint": "/defenses", "method": "GET", "description": "See defenses available for your situation"},
+            {"label": "Timeline Checker", "icon": "📅", "endpoint": "/timeline", "method": "GET", "description": "Check critical deadlines in your case"},
+            {"label": "Motions Library", "icon": "📋", "endpoint": "/motions", "method": "GET", "description": "Pre-built motions you can file"},
+            {"label": "Court Checklist", "icon": "✅", "endpoint": "/court-checklist", "method": "GET", "description": "What to bring and do on court day"},
+        ],
+        "sections": [
+            {"title": "How This Works", "body": "Select an action above. The system will analyze your situation and give you plain-language guidance based on the law in your jurisdiction."},
+        ],
+    },
+    "complaints": {
+        "title": "File a Complaint",
+        "icon": "📢",
+        "description": "File complaints with housing agencies, building inspectors, and regulatory bodies.",
+        "api_base": "/api/complaints",
+        "disclaimer": None,
+        "tags": ["Complaints", "Housing Authority", "Code Enforcement"],
+        "actions": [
+            {"label": "Find Agencies", "icon": "🏛️", "endpoint": "/agencies", "method": "GET", "description": "Find the right agency for your complaint"},
+            {"label": "Quick Start Guide", "icon": "🚀", "endpoint": "/quick-start", "method": "GET", "description": "Step-by-step guide to filing"},
+            {"label": "My Drafts", "icon": "📝", "endpoint": "/drafts", "method": "GET", "description": "View and continue complaint drafts"},
+        ],
+        "sections": [],
+    },
+    "plan-maker": {
+        "title": "My Action Plan",
+        "icon": "📋",
+        "description": "A personalized step-by-step plan for your housing situation.",
+        "api_base": "/api/plan-maker",
+        "disclaimer": None,
+        "tags": ["Action Plan", "Next Steps", "Strategy"],
+        "actions": [
+            {"label": "Generate My Plan", "icon": "✨", "endpoint": "/generate", "method": "GET", "description": "Build a plan based on your case"},
+            {"label": "View Current Plan", "icon": "👁️", "endpoint": "/current", "method": "GET", "description": "See your active plan"},
+        ],
+        "sections": [],
+    },
+    "case-builder": {
+        "title": "Build My Case",
+        "icon": "🏗️",
+        "description": "Organize your evidence, documents, and timeline into a coherent legal case.",
+        "api_base": "/api/case-builder",
+        "disclaimer": None,
+        "tags": ["Evidence", "Case File", "Organization"],
+        "actions": [
+            {"label": "Case Summary", "icon": "📁", "endpoint": "/summary", "method": "GET", "description": "Overview of your current case"},
+            {"label": "Evidence Checklist", "icon": "✅", "endpoint": "/evidence-checklist", "method": "GET", "description": "What evidence you should have"},
+            {"label": "Strength Assessment", "icon": "💪", "endpoint": "/strength", "method": "GET", "description": "How strong is your case?"},
+        ],
+        "sections": [],
+    },
+    "progress": {
+        "title": "My Progress",
+        "icon": "📈",
+        "description": "Track where you are in your legal journey and what comes next.",
+        "api_base": "/progress",
+        "disclaimer": None,
+        "tags": ["Progress", "Milestones", "Journey"],
+        "actions": [
+            {"label": "My Milestones", "icon": "🏁", "endpoint": "/milestones", "method": "GET", "description": "Key stages you have completed"},
+            {"label": "Next Steps", "icon": "➡️", "endpoint": "/next-steps", "method": "GET", "description": "What to focus on now"},
+        ],
+        "sections": [],
+    },
+}
+
+
+@router.get("/tool/{module_name}", response_class=HTMLResponse)
+async def module_tool_page(
+    module_name: str,
+    request: Request,
+    user: Optional[UserContext] = Depends(get_current_user),
+):
+    """Generic module page — renders any tool from its contract."""
+    if not user:
+        return ssot_redirect(
+            navigation.get_stage("providers").path if navigation.get_stage("providers") else "/storage/providers",
+            context="module_tool_page unauthenticated"
+        )
+
+    contract = _MODULE_CONTRACTS.get(module_name)
+    if not contract:
+        raise HTTPException(status_code=404, detail=f"Module '{module_name}' not found")
+
+    return _templates.TemplateResponse("pages/module_page.html", {
+        "request": request,
+        "contract": contract,
+        "user": user,
+    })

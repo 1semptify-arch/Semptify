@@ -153,6 +153,41 @@ class NavigationRegistry:
             next_stage=None,
             requires_checkpoint=False
         ),
+        "advocate_portal": FlowStage(
+            id="advocate_portal",
+            name="Advocate Portal",
+            path="/advocate",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "legal_portal": FlowStage(
+            id="legal_portal",
+            name="Legal Portal",
+            path="/legal",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "admin_portal": FlowStage(
+            id="admin_portal",
+            name="Admin Portal",
+            path="/admin",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "manager_portal": FlowStage(
+            id="manager_portal",
+            name="Manager Portal",
+            path="/manager",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
+        "law_library": FlowStage(
+            id="law_library",
+            name="Law Library",
+            path="/law-library",
+            next_stage=None,
+            requires_checkpoint=False
+        ),
     }
     
     # --- Court Integration Paths (SSOT) ---

@@ -29,7 +29,7 @@ from app.core.id_gen import make_id
 
 from app.core.database import get_db
 from app.core.config import get_settings, Settings
-from app.core.security import require_user, StorageUser, verify_function_token_for_operation
+from app.core.security import require_user, StorageUser, verify_function_token_for_operation, yellow_access
 from app.core.vault_paths import VAULT_OVERLAYS, VAULT_OVERLAY_DOCUMENTS
 
 logger = logging.getLogger(__name__)
@@ -308,7 +308,7 @@ async def save_overlay(storage, overlay: DocumentOverlay) -> bool:
 @router.get("/{document_id}")
 async def get_overlay(
     document_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -336,7 +336,7 @@ async def get_overlay(
 @router.delete("/{document_id}")
 async def delete_overlay(
     document_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -363,7 +363,7 @@ async def delete_overlay(
 @router.get("/{document_id}/highlights")
 async def get_highlights(
     document_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -383,7 +383,7 @@ async def get_highlights(
 async def add_highlight(
     document_id: str,
     request: AddHighlightRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -412,7 +412,7 @@ async def add_highlight(
 async def delete_highlight(
     document_id: str,
     highlight_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -438,7 +438,7 @@ async def delete_highlight(
 @router.get("/{document_id}/notes")
 async def get_notes(
     document_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -458,7 +458,7 @@ async def get_notes(
 async def add_note(
     document_id: str,
     request: AddNoteRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -492,7 +492,7 @@ async def update_note(
     content: Optional[str] = None,
     resolved: Optional[bool] = None,
     priority: Optional[str] = None,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -519,7 +519,7 @@ async def update_note(
 async def delete_note(
     document_id: str,
     note_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -545,7 +545,7 @@ async def delete_note(
 @router.get("/{document_id}/footnotes")
 async def get_footnotes(
     document_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -565,7 +565,7 @@ async def get_footnotes(
 async def add_footnote(
     document_id: str,
     request: AddFootnoteRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -598,7 +598,7 @@ async def add_footnote(
 async def delete_footnote(
     document_id: str,
     footnote_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -629,7 +629,7 @@ async def delete_footnote(
 async def get_edits(
     document_id: str,
     status_filter: Optional[str] = None,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -656,7 +656,7 @@ async def get_edits(
 async def add_edit(
     document_id: str,
     request: AddEditRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -688,7 +688,7 @@ async def update_edit_status(
     document_id: str,
     edit_id: str,
     status: str,  # pending, accepted, rejected
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -712,7 +712,7 @@ async def update_edit_status(
 async def delete_edit(
     document_id: str,
     edit_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -739,7 +739,7 @@ async def delete_edit(
 async def get_processing_results(
     document_id: str,
     module_name: Optional[str] = None,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -764,7 +764,7 @@ async def get_processing_results(
 async def add_processing_result(
     document_id: str,
     request: AddProcessingResultRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -804,7 +804,7 @@ async def bulk_add_annotations(
     highlights: List[AddHighlightRequest] = [],
     notes: List[AddNoteRequest] = [],
     footnotes: List[AddFootnoteRequest] = [],
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -862,7 +862,7 @@ async def bulk_add_annotations(
 @router.get("/{document_id}/export")
 async def export_overlay(
     document_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):
@@ -883,7 +883,7 @@ async def import_overlay(
     document_id: str,
     overlay_data: dict,
     merge: bool = True,  # If True, merge with existing; if False, replace
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ):

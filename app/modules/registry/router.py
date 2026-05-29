@@ -16,7 +16,7 @@ from typing import Optional
 from datetime import datetime
 from app.core.utc import utc_now
 
-from app.core.security import get_optional_user_id, require_user, UserContext
+from app.core.security import get_optional_user_id, require_user, UserContext, green_access
 from app.services.document_registry import (
     get_document_registry,
     DocumentStatus,
@@ -220,7 +220,7 @@ async def register_document(
 # =============================================================================
 
 @router.get("/documents/{doc_id}", response_model=RegisteredDocumentResponse)
-async def get_document(doc_id: str, request: Request, user: UserContext = Depends(require_user)):
+async def get_document(doc_id: str, request: Request, user: UserContext = Depends(green_access)):
     """Get a registered document by its ID. User must own the document."""
     registry = get_document_registry()
     
@@ -247,7 +247,7 @@ async def get_document(doc_id: str, request: Request, user: UserContext = Depend
 
 @router.get("/documents", response_model=list[RegisteredDocumentResponse])
 async def list_documents(
-    user: UserContext = Depends(require_user),
+    user: UserContext = Depends(green_access),
     case_number: Optional[str] = Query(None, description="Filter by case number"),
     status: Optional[str] = Query(None, description="Filter by status"),
 ):
@@ -274,7 +274,7 @@ async def list_documents(
 
 
 @router.delete("/documents/{doc_id}")
-async def delete_document(doc_id: str, user: UserContext = Depends(require_user)):
+async def delete_document(doc_id: str, user: UserContext = Depends(green_access)):
     """Delete a single registered document. User must own the document."""
     registry = get_document_registry()
     
@@ -301,7 +301,7 @@ async def delete_document(doc_id: str, user: UserContext = Depends(require_user)
 
 @router.delete("/documents")
 async def clear_all_documents(
-    user: UserContext = Depends(require_user),
+    user: UserContext = Depends(green_access),
     confirm: bool = Query(False, description="Set to true to confirm deletion")
 ):
     """Clear all registered documents FOR THE CURRENT USER. Requires confirm=true."""
@@ -334,7 +334,7 @@ async def clear_all_documents(
 
 
 @router.get("/documents/{doc_id}/duplicates", response_model=list[RegisteredDocumentResponse])
-async def get_duplicates(doc_id: str, user: UserContext = Depends(require_user)):
+async def get_duplicates(doc_id: str, user: UserContext = Depends(green_access)):
     """Get all duplicates of a document. User must own the document."""
     registry = get_document_registry()
     
@@ -353,7 +353,7 @@ async def get_duplicates(doc_id: str, user: UserContext = Depends(require_user))
 
 
 @router.get("/documents/{doc_id}/custody", response_model=list[CustodyRecordResponse])
-async def get_custody_chain(doc_id: str, user: UserContext = Depends(require_user)):
+async def get_custody_chain(doc_id: str, user: UserContext = Depends(green_access)):
     """Get the full chain of custody for a document. User must own the document."""
     registry = get_document_registry()
     

@@ -17,7 +17,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, green_access
 from app.core.oauth_token_manager import get_valid_token_for_user
 
 logger = logging.getLogger(__name__)
@@ -134,7 +134,7 @@ async def _save_text_to_vault(
 @router.post("/save-letter", response_model=ToolsSaveResponse)
 async def save_letter(
     request: SaveLetterRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     Save a generated letter (repair request, notice response, deposit demand)
@@ -167,7 +167,7 @@ async def save_letter(
 @router.post("/save-checklist", response_model=ToolsSaveResponse)
 async def save_checklist(
     request: SaveChecklistRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     Save checklist state (move-in, move-out, evidence preservation)
@@ -202,7 +202,7 @@ async def save_checklist(
 @router.post("/save-calculation", response_model=ToolsSaveResponse)
 async def save_calculation(
     request: SaveCalculationRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(green_access),
 ):
     """
     Save a calculator result (proration, deadline, late fee, deposit interest)

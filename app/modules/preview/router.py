@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, green_access
 from app.core.preview_generator import (
     get_preview_generator, PreviewType, PreviewResult,
     generate_document_thumbnail, generate_document_preview,
@@ -55,7 +55,7 @@ class PreviewResponse(BaseModel):
 @router.post("/generate")
 async def generate_preview_endpoint(
     request: PreviewRequest,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """
     Generate preview or thumbnail for a document.
@@ -185,7 +185,7 @@ async def serve_preview(cache_key: str):
 @router.get("/{document_id}/text")
 async def get_text_preview(
     document_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """
     Get text preview for a document.
@@ -234,7 +234,7 @@ async def get_text_preview(
 @router.get("/info/{document_id}")
 async def get_preview_info(
     document_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """
     Get information about available previews for a document.
@@ -291,7 +291,7 @@ async def get_preview_info(
 @router.delete("/cache/{document_id}")
 async def clear_document_cache(
     document_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """
     Clear cached previews for a document.
@@ -326,7 +326,7 @@ async def clear_document_cache(
 
 @router.get("/statistics")
 async def get_preview_stats(
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """
     Get preview generation statistics.
@@ -343,7 +343,7 @@ async def get_preview_stats(
 async def batch_generate_previews(
     document_ids: list[str],
     preview_type: str = Query("thumbnail", description="Preview type: thumbnail, preview"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """
     Generate previews for multiple documents.
@@ -451,7 +451,7 @@ async def get_supported_formats():
         raise HTTPException(status_code=500, detail="Failed to get supported formats")
 
 @router.delete("/cache")
-async def clear_all_cache(user: StorageUser = Depends(require_user)):
+async def clear_all_cache(user: StorageUser = Depends(green_access)):
     """
     Clear all preview cache (admin only or user-specific).
     """

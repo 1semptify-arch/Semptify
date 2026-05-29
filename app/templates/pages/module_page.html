@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block title %}{{ contract.title }} - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+.module-page {
+    max-width: 960px;
+    margin: 2rem auto;
+    padding: 1rem 1.5rem;
+}
+
+.module-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.module-header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.module-header p {
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+    max-width: 680px;
+}
+
+.module-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 1rem;
+    text-decoration: none;
+}
+
+.module-back:hover {
+    color: var(--color-text-primary);
+}
+
+.disclaimer {
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    font-size: 0.82rem;
+    color: #ffc107;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.module-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+}
+
+.action-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+}
+
+.action-card:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-border-hover);
+    transform: translateY(-1px);
+}
+
+.action-card .action-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.action-card .action-label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.action-card .action-desc {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    margin-top: 0.2rem;
+}
+
+.module-result {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    min-height: 120px;
+    margin-top: 1rem;
+    display: none;
+}
+
+.module-result.visible {
+    display: block;
+}
+
+.result-loading {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.result-content {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.result-error {
+    color: #f87171;
+    font-size: 0.9rem;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--color-border);
+    border-top-color: var(--color-accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.result-json {
+    background: rgba(0,0,0,0.3);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem;
+    font-family: monospace;
+    font-size: 0.8rem;
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.module-sections {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.section-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.25rem;
+}
+
+.section-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.section-card p {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+}
+
+.tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.75rem;
+}
+
+.tag {
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 99px;
+    padding: 0.2rem 0.65rem;
+    font-size: 0.75rem;
+    color: #a5b4fc;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="module-page">
+    <a class="module-back" href="/tenant">← Back to My Case</a>
+
+    <div class="module-header">
+        <h1>{{ contract.icon }} {{ contract.title }}</h1>
+        <p>{{ contract.description }}</p>
+        {% if contract.tags %}
+        <div class="tag-row">
+            {% for tag in contract.tags %}
+            <span class="tag">{{ tag }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    {% if contract.disclaimer %}
+    <div class="disclaimer">⚠️ {{ contract.disclaimer }}</div>
+    {% endif %}
+
+    {% if contract.actions %}
+    <h2 style="font-size:1rem; font-weight:600; margin-bottom:0.75rem;">Available Actions</h2>
+    <div class="module-actions">
+        {% for action in contract.actions %}
+        <button class="action-card"
+                data-api="{{ contract.api_base }}{{ action.endpoint }}"
+                data-method="{{ action.method | default('GET') }}"
+                onclick="runAction(this)">
+            <span class="action-icon">{{ action.icon }}</span>
+            <div class="action-label">{{ action.label }}</div>
+            <div class="action-desc">{{ action.description }}</div>
+        </button>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if contract.sections %}
+    <div class="module-sections">
+        {% for section in contract.sections %}
+        <div class="section-card">
+            <h3>{{ section.title }}</h3>
+            <p>{{ section.body }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="module-result" id="module-result">
+        <div class="result-loading" id="result-loading">
+            <span class="spinner"></span> Loading...
+        </div>
+        <div class="result-content" id="result-content" style="display:none;"></div>
+        <div class="result-error" id="result-error" style="display:none;"></div>
+    </div>
+</div>
+
+<script>
+async function runAction(btn) {
+    const api = btn.getAttribute('data-api');
+    const method = btn.getAttribute('data-method') || 'GET';
+    const resultBox = document.getElementById('module-result');
+    const loading = document.getElementById('result-loading');
+    const content = document.getElementById('result-content');
+    const error = document.getElementById('result-error');
+
+    resultBox.classList.add('visible');
+    loading.style.display = 'flex';
+    content.style.display = 'none';
+    error.style.display = 'none';
+
+    try {
+        const resp = await fetch(api, {
+            method: method,
+            headers: {'Content-Type': 'application/json'},
+        });
+        const data = await resp.json();
+        loading.style.display = 'none';
+        content.style.display = 'block';
+        content.innerHTML = '<pre class="result-json">' + JSON.stringify(data, null, 2) + '</pre>';
+    } catch (e) {
+        loading.style.display = 'none';
+        error.style.display = 'block';
+        error.textContent = 'Request failed: ' + e.message;
+    }
+}
+</script>
+{% endblock %}
