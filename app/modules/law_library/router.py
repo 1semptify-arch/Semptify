@@ -6,12 +6,14 @@ Minnesota Tenant Rights, Statutes, Case Law, and Court Rules.
 # Migrated from app/routers/law_library.py into the law_library SDK module.
 # All imports remain absolute since law_library is a CORE module.
 
+import pathlib
 from typing import Optional, List
 from fastapi import APIRouter, Query, HTTPException, Depends
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from datetime import datetime
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, green_access
 import logging
 logger = logging.getLogger(__name__)
 
@@ -1501,7 +1503,7 @@ CASE_LAW_DATABASE = [
 async def list_statutes(
     category: Optional[str] = Query(None, description="Filter by category"),
     search: Optional[str] = Query(None, description="Search in title and summary"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """List all available statutes and laws including Federal and ADA."""
     laws = list(ALL_LAWS.values())
@@ -1525,7 +1527,7 @@ async def list_statutes(
 @router.get("/statutes/{statute_id}")
 async def get_statute(
     statute_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get a specific statute by ID."""
     if statute_id not in ALL_LAWS:
@@ -1540,7 +1542,7 @@ async def get_statute(
 @router.get("/court-rules")
 async def list_court_rules(
     category: Optional[str] = Query(None, description="Filter by category"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """List all court rules for Dakota County."""
     rules = list(DAKOTA_COUNTY_RULES.values())
@@ -1558,7 +1560,7 @@ async def list_court_rules(
 @router.get("/court-rules/{rule_id}", response_model=CourtRule)
 async def get_court_rule(
     rule_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get a specific court rule."""
     if rule_id not in DAKOTA_COUNTY_RULES:
@@ -1574,7 +1576,7 @@ async def get_court_rule(
 @router.get("/case-law")
 async def list_case_law(
     search: Optional[str] = Query(None, description="Search in case name and summary"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """List relevant case law."""
     cases = CASE_LAW_DATABASE
@@ -1594,7 +1596,7 @@ async def list_case_law(
 @router.get("/case-law/{case_id}")
 async def get_case(
     case_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get a specific case by ID."""
     for case in CASE_LAW_DATABASE:
@@ -1608,7 +1610,7 @@ async def get_case(
 
 
 @router.get("/categories")
-async def list_categories(user: StorageUser = Depends(require_user)):
+async def list_categories(user: StorageUser = Depends(green_access)):
     """List all available categories in the law library."""
     return {
         "statute_categories": [
@@ -1671,7 +1673,7 @@ class LibrarianQuery(BaseModel):
 @router.post("/librarian/ask", response_model=LibrarianResponse)
 async def ask_librarian(
     query: LibrarianQuery,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """
     Ask the AI Librarian a legal question.
@@ -2174,7 +2176,7 @@ Please ask a specific question about any of these topics!"""
 @router.get("/quick-reference/{topic}")
 async def get_quick_reference(
     topic: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(green_access)
 ):
     """Get a quick reference guide for a specific topic."""
     quick_refs = {
@@ -2226,3 +2228,144 @@ async def get_quick_reference(
         raise HTTPException(status_code=404, detail="Quick reference not found")
     
     return quick_refs[topic]
+
+
+# =============================================================================
+# Law Library Page Route — serves the /law-library HTML page
+# Separate router with no prefix so the page lives at /law-library
+# =============================================================================
+
+page_router = APIRouter(tags=["Law Library"])
+
+_TEMPLATE_PATH = pathlib.Path(__file__).parent.parent.parent / "templates" / "pages" / "law_library.html"
+
+def _load_law_library_html() -> str:
+    """Load the consolidated law library HTML from the template file."""
+    if _TEMPLATE_PATH.exists():
+        return _TEMPLATE_PATH.read_text(encoding="utf-8")
+    return """<!DOCTYPE html><html><head><title>Law Library</title></head><body><p>Law Library template not found.</p></body></html>"""
+
+_LAW_LIBRARY_HTML_LEGACY = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Law Library - Semptify</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: linear-gradient(135deg, #064e3b 0%, #065f46 100%); color: #fff; min-height: 100vh; }
+        .header { background: rgba(0,0,0,0.2); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 700; }
+        .nav-links { display: flex; gap: 1rem; }
+        .nav-links a { color: #a7f3d0; text-decoration: none; padding: 0.5rem 1rem; border-radius: 8px; transition: all 0.2s; }
+        .nav-links a:hover { background: rgba(255,255,255,0.1); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .page-title { font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .page-subtitle { color: #a7f3d0; margin-bottom: 2rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .card { background: rgba(255,255,255,0.1); border-radius: 16px; padding: 1.5rem; transition: all 0.3s; cursor: pointer; }
+        .card:hover { transform: translateY(-4px); background: rgba(255,255,255,0.15); }
+        .card-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+        .card-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .card-desc { color: #a7f3d0; font-size: 0.9rem; }
+        .search-box { background: rgba(255,255,255,0.1); border-radius: 12px; padding: 1rem; margin-bottom: 2rem; display: flex; gap: 1rem; }
+        .search-box input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 0.75rem 1rem; color: white; font-size: 1rem; }
+        .search-box input::placeholder { color: #a7f3d0; }
+        .search-box button { background: #10b981; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .search-box button:hover { background: #059669; }
+        .librarian-chat { background: rgba(255,255,255,0.1); border-radius: 16px; padding: 1.5rem; margin-top: 2rem; }
+        .chat-title { font-size: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .chat-messages { background: rgba(0,0,0,0.2); border-radius: 12px; padding: 1rem; height: 300px; overflow-y: auto; margin-bottom: 1rem; }
+        .message { margin-bottom: 1rem; padding: 0.75rem; border-radius: 8px; }
+        .message.user { background: #10b981; margin-left: 20%; }
+        .message.bot { background: rgba(255,255,255,0.1); margin-right: 20%; }
+        .chat-input { display: flex; gap: 0.5rem; }
+        .chat-input input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 0.75rem 1rem; color: white; }
+        .chat-input button { background: #10b981; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; }
+        #results { margin-top: 2rem; }
+        .result-item { background: rgba(255,255,255,0.1); border-radius: 12px; padding: 1rem; margin-bottom: 1rem; }
+        .result-title { font-weight: 600; margin-bottom: 0.5rem; }
+        .result-citation { color: #a7f3d0; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo">&#128218; Semptify Law Library</div>
+        <nav class="nav-links">
+            <a href="/documents">&#128196; Documents</a>
+            <a href="/timeline">&#128197; Timeline</a>
+            <a href="/home">&#127968; Home</a>
+        </nav>
+    </header>
+    <div class="container">
+        <h1 class="page-title">Law Library</h1>
+        <p class="page-subtitle">Minnesota Tenant Rights &amp; Housing Law Reference</p>
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="Search statutes, case law, rights...">
+            <button onclick="searchLaw()">&#128269; Search</button>
+        </div>
+        <div class="grid">
+            <div class="card" onclick="browseCategory('tenant_rights')"><div class="card-icon">&#127968;</div><div class="card-title">Tenant Rights</div><div class="card-desc">Your fundamental rights as a tenant in Minnesota</div></div>
+            <div class="card" onclick="browseCategory('eviction')"><div class="card-icon">&#9878;&#65039;</div><div class="card-title">Eviction Procedures</div><div class="card-desc">Legal requirements for eviction in MN</div></div>
+            <div class="card" onclick="browseCategory('security_deposits')"><div class="card-icon">&#128176;</div><div class="card-title">Security Deposits</div><div class="card-desc">Deposit limits, return requirements, deductions</div></div>
+            <div class="card" onclick="browseCategory('habitability')"><div class="card-icon">&#128295;</div><div class="card-title">Habitability</div><div class="card-desc">Landlord's duty to maintain livable conditions</div></div>
+            <div class="card" onclick="browseCategory('retaliation')"><div class="card-icon">&#128737;&#65039;</div><div class="card-title">Retaliation Protection</div><div class="card-desc">Protection against landlord retaliation</div></div>
+            <div class="card" onclick="browseCategory('discrimination')"><div class="card-icon">&#128101;</div><div class="card-title">Fair Housing</div><div class="card-desc">Anti-discrimination protections</div></div>
+        </div>
+        <div id="results"></div>
+        <div class="librarian-chat">
+            <div class="chat-title">&#129302; AI Legal Librarian</div>
+            <div class="chat-messages" id="chat-messages">
+                <div class="message bot">Hello! I'm your AI legal librarian. I can help you find relevant statutes, case law, and understand your tenant rights. What would you like to know?</div>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="chat-input" placeholder="Ask about tenant rights, eviction, security deposits...">
+                <button onclick="askLibrarian()">Send</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        async function searchLaw() {
+            const query = document.getElementById('search-input').value;
+            if (!query) return;
+            const res = await fetch('/api/law-library/statutes?search=' + encodeURIComponent(query));
+            const data = await res.json();
+            displayResults(data);
+        }
+        async function browseCategory(cat) {
+            const res = await fetch('/api/law-library/statutes?category=' + cat);
+            const data = await res.json();
+            displayResults(data);
+        }
+        function displayResults(data) {
+            const container = document.getElementById('results');
+            if (!data.length) { container.innerHTML = '<p style="text-align:center;color:#a7f3d0;">No results found</p>'; return; }
+            container.innerHTML = data.map(s => '<div class="result-item"><div class="result-title">' + s.title + '</div><div class="result-citation">' + s.citation + '</div><p style="margin-top:0.5rem">' + s.summary + '</p></div>').join('');
+        }
+        async function askLibrarian() {
+            const input = document.getElementById('chat-input');
+            const messages = document.getElementById('chat-messages');
+            const question = input.value.trim();
+            if (!question) return;
+            messages.innerHTML += '<div class="message user">' + question + '</div>';
+            input.value = '';
+            try {
+                const res = await fetch('/api/law-library/librarian/ask', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ question }) });
+                const data = await res.json();
+                messages.innerHTML += '<div class="message bot">' + data.answer + '</div>';
+            } catch (e) {
+                messages.innerHTML += '<div class="message bot">I apologize, I encountered an error. Please try again.</div>';
+            }
+            messages.scrollTop = messages.scrollHeight;
+        }
+        document.getElementById('chat-input').addEventListener('keypress', e => { if (e.key === 'Enter') askLibrarian(); });
+        document.getElementById('search-input').addEventListener('keypress', e => { if (e.key === 'Enter') searchLaw(); });
+    </script>
+</body>
+</html>"""
+
+
+@page_router.get("/law-library", response_class=HTMLResponse)
+async def law_library_page():
+    """Serve the consolidated Law Library page. Owned by the law_library module."""
+    return HTMLResponse(content=_load_law_library_html())

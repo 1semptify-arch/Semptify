@@ -11,7 +11,7 @@ from fastapi import APIRouter, Query, Depends
 from typing import Optional
 from pydantic import BaseModel
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, yellow_access
 from app.services.action_router import action_router, ActionCategory, ActionPriority
 from app.services.emotion_engine import emotion_engine
 import logging
@@ -43,7 +43,7 @@ async def get_action_plan(
     has_payment_records: bool = Query(False),
     maintenance_issues: bool = Query(False),
     has_notice: bool = Query(False),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get a personalized action plan based on current emotional state and case context.
@@ -75,7 +75,7 @@ async def get_action_plan(
 @router.post("/plan")
 async def get_action_plan_with_context(
     context: CaseContext,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get a personalized action plan with full case context.
@@ -143,7 +143,7 @@ async def get_all_actions():
 
 
 @router.get("/capacity")
-async def get_current_capacity(user: StorageUser = Depends(require_user)):
+async def get_current_capacity(user: StorageUser = Depends(yellow_access)):
     """
     Get the current emotional capacity assessment.
     """
@@ -187,7 +187,7 @@ async def get_self_care_suggestions():
 
 
 @router.get("/encouragement")
-async def get_encouragement(user: StorageUser = Depends(require_user)):
+async def get_encouragement(user: StorageUser = Depends(yellow_access)):
     """
     Get an encouragement message based on current emotional state.
     """

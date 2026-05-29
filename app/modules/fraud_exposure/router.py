@@ -9,7 +9,7 @@ from fastapi import APIRouter, HTTPException, Query, Body, Depends
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, yellow_access
 from .service import (
     get_fraud_service,
     FraudReport,
@@ -65,7 +65,7 @@ async def fraud_health_check():
 @router.post("/analyze", response_model=FraudReportResponse)
 async def analyze_fraud(
     request: AnalyzeFraudRequest,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """
     Analyze potential fraud in a tenant rights case.
@@ -120,7 +120,7 @@ async def analyze_fraud(
 @router.get("/report/{report_id}")
 async def get_fraud_report(
     report_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """Get a fraud analysis report by ID"""
     service = get_fraud_service()
@@ -135,7 +135,7 @@ async def get_fraud_report(
 @router.post("/check-pattern")
 async def check_fraud_pattern(
     request: PatternCheckRequest,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """
     Check for a specific fraud pattern.
@@ -181,7 +181,7 @@ async def check_fraud_pattern(
 async def get_statute_of_limitations(
     fraud_type: str = Query(..., description="Type of fraud (e.g., habitability, hud, mortgage)"),
     discovery_date: Optional[str] = Query(None, description="Date fraud was discovered (YYYY-MM-DD)"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """
     Get statute of limitations information for a fraud type.
@@ -204,7 +204,7 @@ async def get_statute_of_limitations(
 @router.get("/whistleblower-info")
 async def get_whistleblower_info(
     fraud_type: Optional[str] = Query(None, description="Type of fraud for specific protections"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """
     Get whistleblower protection information.
@@ -217,7 +217,7 @@ async def get_whistleblower_info(
 
 @router.get("/patterns")
 async def list_fraud_patterns(
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """List all known fraud patterns the system can detect"""
     service = get_fraud_service()
@@ -230,7 +230,7 @@ async def list_fraud_patterns(
 
 @router.get("/agencies")
 async def list_reporting_agencies(
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(yellow_access)
 ):
     """List agencies where fraud can be reported"""
     service = get_fraud_service()

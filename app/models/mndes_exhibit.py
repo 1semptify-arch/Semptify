@@ -21,7 +21,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from app.core.id_gen import make_id
 import logging
@@ -165,9 +165,7 @@ class MNDESExhibit(BaseModel):
     order_reference: str = Field(default="ADM09-8010")
     file_types_version: str = Field(default="2025-01")
 
-    class Config:
-        use_enum_values = True
-
+    model_config = ConfigDict(use_enum_values=True)
     @property
     def is_case_record(self) -> bool:
         """

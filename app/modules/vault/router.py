@@ -40,6 +40,7 @@ from app.core.id_gen import make_id
 from app.core.config import Settings, get_settings
 from app.core.database import get_db
 from app.core.security import (
+    yellow_access,
     require_user,
     rate_limit_dependency,
     StorageUser,
@@ -163,7 +164,7 @@ async def upload_document(
     description: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),
     access_token: str = Form(..., description="Storage provider access token"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     settings: Settings = Depends(get_settings),
 ):
     """
@@ -452,7 +453,7 @@ async def copy_from_sync_to_vault(
     description: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),
     access_token: str = Form(..., description="Storage provider access token"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     settings: Settings = Depends(get_settings),
 ):
     """
@@ -712,7 +713,7 @@ async def copy_from_sync_to_vault(
 async def list_documents(
     document_type: Optional[str] = None,
     access_token: str = None,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     settings: Settings = Depends(get_settings),
 ):
     """
@@ -779,7 +780,7 @@ async def list_documents(
 async def download_document(
     document_id: str,
     access_token: str = None,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     settings: Settings = Depends(get_settings),
 ):
     """
@@ -831,7 +832,7 @@ async def download_document(
 async def get_certificate(
     document_id: str,
     access_token: str = None,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     settings: Settings = Depends(get_settings),
 ):
     """
@@ -870,7 +871,7 @@ async def get_certificate(
 async def delete_document(
     document_id: str,
     access_token: str = None,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     settings: Settings = Depends(get_settings),
 ):
     """
@@ -927,7 +928,7 @@ class VaultListResponse(BaseModel):
 @router.get("/all", response_model=VaultListResponse)
 async def list_all_vault_documents(
     document_type: Optional[str] = Query(None, description="Filter by document type"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     List ALL documents in user's vault.
@@ -962,7 +963,7 @@ async def list_all_vault_documents(
 @router.get("/document/{vault_id}")
 async def get_vault_document_metadata(
     vault_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get metadata for a vault document by vault_id.
@@ -985,7 +986,7 @@ async def get_vault_document_metadata(
 async def get_vault_document_content(
     vault_id: str,
     access_token: Optional[str] = Query(None, description="Storage provider access token"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get document content from vault.
@@ -1024,7 +1025,7 @@ async def mark_vault_document_processed(
     extracted_data: Optional[dict] = None,
     document_type: Optional[str] = None,
     access_token: str = Form(..., description="Storage provider access token"),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Mark a vault document as processed by a module.
@@ -1066,7 +1067,7 @@ async def mark_vault_document_processed(
 
 @router.get("/sidebar/files")
 async def get_sidebar_files(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """Get files for vault sidebar component"""
     if not HAS_VAULT_SERVICE:
@@ -1107,7 +1108,7 @@ async def sidebar_upload(
     request: Request,
     files: List[UploadFile] = File(...),
     metadata: str = Form(...),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """Handle upload from vault sidebar"""
     if not HAS_VAULT_SERVICE:
@@ -1384,7 +1385,7 @@ async def sidebar_upload(
 
 @router.get("/sidebar/stats")
 async def get_sidebar_stats(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """Get vault statistics for sidebar"""
     if not HAS_VAULT_SERVICE:
@@ -1424,7 +1425,7 @@ async def get_sidebar_stats(
 @router.get("/sidebar/search")
 async def sidebar_search(
     query: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """Search vault files for sidebar"""
     if not HAS_VAULT_SERVICE:
@@ -1501,13 +1502,13 @@ def _get_file_category(filename: str) -> str:
 # =============================================================================
 
 @router.get("/status")
-async def vault_status(user: StorageUser = Depends(require_user)):
+async def vault_status(user: StorageUser = Depends(yellow_access)):
     """Check that the user is authenticated and has a storage provider configured."""
     return {"ok": True, "user_id": user.user_id[:6] + "***", "provider": str(getattr(user, "provider", "unknown"))}
 
 
 @router.post("/init")
-async def vault_init(user: StorageUser = Depends(require_user), db: AsyncSession = Depends(get_db)):
+async def vault_init(user: StorageUser = Depends(yellow_access), db: AsyncSession = Depends(get_db)):
     """
     Create the Semptify vault folder structure in the user's cloud storage.
     Called once during onboarding vault-setup. Idempotent — safe to call again.
@@ -1560,7 +1561,7 @@ async def vault_init(user: StorageUser = Depends(require_user), db: AsyncSession
 
 
 @router.get("/verify")
-async def vault_verify(user: StorageUser = Depends(require_user)):
+async def vault_verify(user: StorageUser = Depends(yellow_access)):
     """
     Verify that the vault folder structure is accessible in the user's cloud storage.
     Called after /init to confirm everything is ready.

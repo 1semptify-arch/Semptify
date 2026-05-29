@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, EmailStr
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, yellow_access
 from app.core.database import get_db_session
 from app.models.models import User, Document
 from sqlalchemy import select, update
@@ -217,7 +217,7 @@ async def reset_setup():
     }
 @router.get("/status")
 async def get_setup_status(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ) -> SetupStatus:
     """
     Get current setup wizard status.
@@ -247,7 +247,7 @@ async def get_setup_status(
 @router.post("/profile")
 async def save_profile(
     profile: UserProfile,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Step 2: Save user profile information.
@@ -286,7 +286,7 @@ async def save_profile(
 
 @router.get("/profile")
 async def get_profile(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """Get saved profile information."""
     setup = get_user_setup(user.user_id)
@@ -299,7 +299,7 @@ async def get_profile(
 @router.post("/case")
 async def save_case_info(
     case_info: CaseInfo,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Step 3: Save case information.
@@ -369,7 +369,7 @@ async def save_case_info(
 
 @router.get("/case")
 async def get_case_info(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """Get saved case information."""
     setup = get_user_setup(user.user_id)
@@ -382,7 +382,7 @@ async def get_case_info(
 @router.post("/storage")
 async def configure_storage(
     config: StorageConfig,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Step 4: Configure document storage.
@@ -415,7 +415,7 @@ async def configure_storage(
 
 @router.get("/storage")
 async def get_storage_config(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """Get storage configuration."""
     setup = get_user_setup(user.user_id)
@@ -430,7 +430,7 @@ async def upload_document(
     file: UploadFile = File(...),
     document_type: str = Form(default="other"),
     description: str = Form(default=""),
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Step 5: Upload a case document.
@@ -510,7 +510,7 @@ async def upload_document(
 
 @router.get("/documents")
 async def get_uploaded_documents(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """Get list of uploaded documents."""
     async with get_db_session() as session:
@@ -536,7 +536,7 @@ async def get_uploaded_documents(
 
 @router.post("/documents/process")
 async def process_all_documents(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Step 6: Process all uploaded documents.
@@ -589,7 +589,7 @@ async def process_all_documents(
 
 @router.post("/complete")
 async def complete_setup(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Step 7: Complete setup wizard.
@@ -633,7 +633,7 @@ async def complete_setup(
     }
 @router.get("/summary")
 async def get_setup_summary(
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
 ):
     """
     Get complete summary of all setup data.

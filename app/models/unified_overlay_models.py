@@ -8,7 +8,7 @@ All overlays are cloud-stored, stateless, and reference immutable vault document
 from datetime import datetime
 from typing import Optional, Any
 from app.core.utc import utc_now
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator 
 from app.core.id_gen import make_id
 from app.core.overlay_types import OverlayType, get_overlay_category
 import logging
@@ -56,7 +56,7 @@ class UnifiedOverlay(BaseModel):
     # Versioning
     version: str = Field(default="1.0", description="Overlay schema version")
     
-    @validator('overlay_type')
+    @field_validator('overlay_type')
     def validate_overlay_type(cls, v):
         """Ensure overlay_type is valid."""
         if not isinstance(v, OverlayType):
@@ -67,12 +67,6 @@ class UnifiedOverlay(BaseModel):
         """Return the category for this overlay type."""
         return get_overlay_category(self.overlay_type)
     
-    class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat()
-        }
-
-
 # =============================================================================
 # Type-Specific Payload Models
 # =============================================================================

@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.config import get_settings, Settings
-from app.core.security import require_user, StorageUser, verify_function_token_for_operation
+from app.core.security import require_user, StorageUser, verify_function_token_for_operation, yellow_access
 from app.core.overlay_types import OverlayType
 from app.models.unified_overlay_models import (
     CreateOverlayRequest,
@@ -108,7 +108,7 @@ async def health_check() -> dict:
 @router.post("/create", response_model=CreateOverlayResponse)
 async def create_overlay(
     request: CreateOverlayRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> CreateOverlayResponse:
@@ -137,7 +137,7 @@ async def list_overlays(
     overlay_type: Optional[OverlayType] = None,
     category: Optional[str] = None,
     include_ephemeral: bool = False,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> GetOverlaysResponse:
@@ -165,7 +165,7 @@ async def list_overlays(
 @router.get("/{overlay_id}")
 async def get_overlay(
     overlay_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
@@ -191,7 +191,7 @@ async def get_overlay(
 async def update_overlay(
     overlay_id: str,
     request: UpdateOverlayRequest,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> dict:
@@ -218,7 +218,7 @@ async def update_overlay(
 @router.delete("/{overlay_id}", response_model=DeleteOverlayResponse)
 async def delete_overlay(
     overlay_id: str,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> DeleteOverlayResponse:
@@ -243,7 +243,7 @@ async def compose_document_view(
     document_id: str,
     overlay_ids: list[str],
     apply_redactions: bool = True,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> DocumentViewResponse:
@@ -274,7 +274,7 @@ async def add_highlight(
     range_data: dict,  # TextRange as dict
     color: str = "yellow",
     note: Optional[str] = None,
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> CreateOverlayResponse:
@@ -308,7 +308,7 @@ async def add_note(
     range_data: Optional[dict] = None,
     note_type: str = "user",
     priority: str = "normal",
-    user: StorageUser = Depends(require_user),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db),
     settings: Settings = Depends(get_settings),
 ) -> CreateOverlayResponse:

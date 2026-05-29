@@ -1226,6 +1226,123 @@ async def require_user(
         },
         headers={"WWW-Authenticate": "Bearer"},
     )
+# =============================================================================
+# TRAFFIC LIGHT ACCESS LEVELS
+# =============================================================================
+#
+# GREEN  — cookie valid, ice cube present (any age). Read-only, low-risk.
+#          Library pages, reading documents, viewing timeline.
+#          Token checked: memory cache only. No provider call.
+#
+# YELLOW — cookie valid, ice cube not melted (< 4hrs old). Normal use.
+#          Uploading docs, writing to vault, contacts, timeline writes.
+#          Token checked: memory cache, refresh if expired via provider.
+#
+# RED    — cookie valid, fresh ice cube (< 30min). High-risk writes.
+#          Deleting files, court filings, export, privileged docs.
+#          Token checked: always ask provider to confirm, no cache accepted.
+#
+# Usage:
+#   user = Depends(green_access)   ← library, read pages
+#   user = Depends(yellow_access)  ← normal app use (default)
+#   user = Depends(red_access)     ← destructive / sensitive actions
+#
+# =============================================================================
+
+def green_access(
+    user: Optional[UserContext] = Depends(get_current_user),
+) -> UserContext:
+    """
+    GREEN — cookie present and valid. Ice cube any age.
+    Use for: read-only pages, library, viewing documents.
+    """
+    if not user or not is_valid_user_storage(user.user_id):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"error": "auth_required", "level": "green"},
+        )
+    return user
+
+
+async def yellow_access(
+    user: Optional[UserContext] = Depends(get_current_user),
+) -> UserContext:
+    """
+    YELLOW — cookie valid + token not expired (auto-refresh if melted).
+    Use for: standard app actions — uploads, vault writes, contacts.
+    This is the default level for most modules.
+    """
+    if not user or not is_valid_user_storage(user.user_id):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"error": "auth_required", "level": "yellow"},
+        )
+    if not user.access_token or user.access_token == "no-token":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "error": "token_required",
+                "level": "yellow",
+                "message": "Storage token unavailable. Please reconnect.",
+                "action": "redirect",
+                "redirect_url": "/storage/reconnect",
+            },
+        )
+    return user
+
+
+async def red_access(
+    request: Request,
+    user: Optional[UserContext] = Depends(get_current_user),
+) -> UserContext:
+    """
+    RED — cookie valid + provider confirms token is live right now.
+    Use for: deleting files, court filings, exports, privileged docs.
+    Always knocks on provider's door — no stale cache accepted.
+    """
+    if not user or not is_valid_user_storage(user.user_id):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={"error": "auth_required", "level": "red"},
+        )
+    if not user.access_token or user.access_token == "no-token":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail={
+                "error": "token_required",
+                "level": "red",
+                "message": "Fresh storage token required for this action.",
+                "action": "redirect",
+                "redirect_url": "/storage/reconnect",
+            },
+        )
+    try:
+        from app.core.stateless_oauth import StatelessOAuthManager
+        from app.services.storage import get_provider as _get_provider
+        storage = _get_provider(user.provider.value, access_token=user.access_token)
+        if storage:
+            mgr = StatelessOAuthManager(storage)
+            valid = await mgr.validate_token_with_provider(
+                user.provider.value, user.access_token
+            )
+            if not valid:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail={
+                        "error": "token_expired",
+                        "level": "red",
+                        "message": "Your storage token has expired. Please reconnect.",
+                        "action": "redirect",
+                        "redirect_url": "/storage/reconnect",
+                    },
+                )
+    except HTTPException:
+        raise
+    except Exception as _e:
+        logger.warning("RED access provider check failed for user %s***: %s", user.user_id[:6], _e)
+    return user
+
+
 def require_role(*roles: UserRole):
     """
     Dependency factory: require specific role(s).

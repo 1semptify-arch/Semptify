@@ -9,6 +9,6 @@ logger = logging.getLogger(__name__)
 """
 
 from .manifest import MANIFEST
-from .router import router
+from .router import router, page_router
 
-__all__ = ["MANIFEST", "router"]
+__all__ = ["MANIFEST", "router", "page_router"]

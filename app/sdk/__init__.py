@@ -29,6 +29,28 @@ Plugins:
     plugin_manager.load_all()
 """
 
+from app.sdk.auth import (
+    CookieAuth,
+    set_auth_cookie,
+    verify_auth_cookie,
+    hash_token,
+    generate_token,
+    make_user_id,
+    parse_user_id,
+    UserIdComponents,
+    UserRole,
+    get_permissions,
+)
+
+from app.sdk.navigation import (
+    get_stage,
+    get_path,
+    get_onboarding_start,
+    get_reconnect_path,
+    get_next_path,
+    is_canonical_path,
+)
+
 from app.sdk.module_sdk import (
     # Main SDK class
     ModuleSDK,

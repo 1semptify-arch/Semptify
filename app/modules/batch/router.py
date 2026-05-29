@@ -10,7 +10,7 @@ from typing import Optional, Dict, Any, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, red_access
 from app.core.batch_operations import (
     get_batch_processor, BatchOperationType, BatchOperationStatus,
     create_batch_operation, start_batch_operation, cancel_batch_operation,
@@ -51,7 +51,7 @@ class BatchItemRequest(BaseModel):
 @router.post("/create", response_model=BatchResponse)
 async def create_batch_operation_endpoint(
     request: BatchRequest,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Create a new batch operation.
@@ -113,7 +113,7 @@ async def create_batch_operation_endpoint(
 @router.post("/{operation_id}/start")
 async def start_batch_operation_endpoint(
     operation_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Start processing a batch operation.
@@ -148,7 +148,7 @@ async def start_batch_operation_endpoint(
 @router.post("/{operation_id}/cancel")
 async def cancel_batch_operation_endpoint(
     operation_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Cancel a batch operation.
@@ -183,7 +183,7 @@ async def cancel_batch_operation_endpoint(
 @router.get("/{operation_id}")
 async def get_batch_operation_endpoint(
     operation_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Get details of a batch operation.
@@ -211,7 +211,7 @@ async def get_user_batch_operations_endpoint(
     status: Optional[str] = Query(None, description="Filter by status"),
     limit: int = Query(50, ge=1, le=200, description="Max operations to return"),
     offset: int = Query(0, ge=0, description="Operations offset"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Get all batch operations for the current user.
@@ -259,7 +259,7 @@ async def get_user_batch_operations_endpoint(
 
 @router.get("/statistics")
 async def get_batch_statistics_endpoint(
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Get batch operations statistics.
@@ -307,7 +307,7 @@ async def get_batch_statistics_endpoint(
 @router.post("/upload/prepare")
 async def prepare_batch_upload(
     files_info: List[BatchItemRequest],
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Prepare a batch upload operation.
@@ -370,7 +370,7 @@ async def prepare_batch_upload(
 @router.post("/upload/execute/{operation_id}")
 async def execute_batch_upload(
     operation_id: str,
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Execute a prepared batch upload operation.
@@ -413,7 +413,7 @@ async def execute_batch_upload(
 @router.post("/delete/prepare")
 async def prepare_batch_delete(
     document_ids: List[str],
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Prepare a batch delete operation.
@@ -471,7 +471,7 @@ async def prepare_batch_delete(
 async def prepare_batch_export(
     document_ids: List[str],
     export_format: str = Query("zip", description="Export format: zip, pdf, csv"),
-    user: StorageUser = Depends(require_user)
+    user: StorageUser = Depends(red_access)
 ):
     """
     Prepare a batch export operation.

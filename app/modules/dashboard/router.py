@@ -15,10 +15,11 @@ from typing import Dict, Any, Optional
 from pydantic import BaseModel
 from datetime import datetime
 
-from app.core.security import get_optional_user_id
+from app.core.security import get_optional_user_id, green_access
+from app.core.user_context import UserContext
 from app.services.emotion_engine import emotion_engine
 from .service import progress_tracker
-from .service import action_router
+from app.services.action_router import action_router
 from app.core.utc import utc_now
 import logging
 logger = logging.getLogger(__name__)
@@ -28,10 +29,10 @@ router = APIRouter(prefix="/api/dashboard", tags=["Unified Dashboard"])
 
 
 def resolve_user_id(
-    session_user_id: Optional[str] = Depends(get_optional_user_id),
+    user: UserContext = Depends(green_access),
 ) -> str:
-    """Resolve user_id from session, fallback to default."""
-    return session_user_id or "default"
+    """Resolve user_id from green_access session."""
+    return user.user_id
 
 
 class DashboardContext(BaseModel):

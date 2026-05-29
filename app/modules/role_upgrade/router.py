@@ -4,7 +4,7 @@ Allows users to request elevated roles with verification.
 """
 
 from fastapi import APIRouter, Request, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 import logging
 
@@ -35,16 +35,13 @@ class RoleUpgradeRequest(BaseModel):
     invite_code: Optional[str] = None
     attestation: bool = False
     
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(json_schema_extra={
             "example": {
                 "requested_role": "advocate",
                 "email": "counselor@homeline.org",
                 "invite_code": "HOMELINE2025"
             }
-        }
-
-
+        })
 class RoleRequirementsResponse(BaseModel):
     """Requirements for a specific role."""
     role: str
