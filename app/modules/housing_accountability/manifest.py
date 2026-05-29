@@ -17,6 +17,5 @@ MANIFEST = ModuleManifest(
     tier=ProductTier.EXTENDED,
     capabilities=(ModuleCapability.ROUTER,),
     router_module="app.modules.housing_accountability.router",
-    additional_routers=["app.modules.housing_accountability.pattern_history"],
     tags=("Housing Accountability", "Pattern Analysis", "Trends"),
 )

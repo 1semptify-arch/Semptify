@@ -41,41 +41,14 @@ class DocumentStyle:
     margin_bottom: float = 1.0
     margin_left: float = 1.0
     margin_right: float = 1.0
-    
-    # Predefined styles
-    STYLES = {
-        "standard": DocumentStyle(),
-        "legal_brief": DocumentStyle(
-            name="legal_brief",
-            font_family="Times New Roman",
-            font_size=12,
-            line_spacing=2.0,
-            margin_top=1.0,
-            margin_bottom=1.0,
-            margin_left=1.5,
-            margin_right=1.0
-        ),
-        "court_filing": DocumentStyle(
-            name="court_filing",
-            font_family="Courier New",
-            font_size=12,
-            line_spacing=2.0,
-            margin_top=1.0,
-            margin_bottom=1.0,
-            margin_left=1.25,
-            margin_right=1.25
-        ),
-        "memo": DocumentStyle(
-            name="memo",
-            font_family="Arial",
-            font_size=11,
-            line_spacing=1.15,
-            margin_top=1.0,
-            margin_bottom=1.0,
-            margin_left=1.0,
-            margin_right=1.0
-        )
-    }
+
+
+DOCUMENT_STYLES = {
+    "standard": DocumentStyle(),
+    "legal_brief": DocumentStyle(name="legal_brief", font_family="Times New Roman", font_size=12, line_spacing=2.0, margin_top=1.0, margin_bottom=1.0, margin_left=1.5, margin_right=1.0),
+    "court_filing": DocumentStyle(name="court_filing", font_family="Courier New", font_size=12, line_spacing=2.0, margin_top=1.0, margin_bottom=1.0, margin_left=1.25, margin_right=1.25),
+    "memo": DocumentStyle(name="memo", font_family="Arial", font_size=11, line_spacing=1.15, margin_top=1.0, margin_bottom=1.0, margin_left=1.0, margin_right=1.0),
+}
 
 
 class DocumentConverter:

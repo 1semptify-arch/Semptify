@@ -9,8 +9,14 @@ import logging
 import mimetypes
 import os
 import hashlib
-import magic
 from typing import Optional, List, Dict, Any, Tuple
+
+try:
+    import magic as _magic
+    _MAGIC_AVAILABLE = True
+except ImportError:
+    _magic = None
+    _MAGIC_AVAILABLE = False
 from pathlib import Path
 from dataclasses import dataclass
 
@@ -357,7 +363,9 @@ class FileValidator:
         """Detect MIME type using python-magic or fallback to mimetypes."""
         try:
             # Try python-magic first (more accurate)
-            mime = magic.Magic(mime=True)
+            if not _MAGIC_AVAILABLE:
+                raise ImportError("libmagic not available")
+            mime = _magic.Magic(mime=True)
             detected_mime = mime.from_buffer(file_content)
             
             # Validate the detected MIME type

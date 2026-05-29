@@ -318,9 +318,6 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                 return results
             results["folders_created"] = [f.path for f in vault_result.succeeded]
             results["success"] = True
-            # Mark gate so step 2 security can proceed
-            from app.modules.onboarding.gates import mark_gate
-            await mark_gate(db, user.user_id, "vault_initialized")
             logger.info("Step 1 complete: %d folders", len(results["folders_created"]))
             return results
         except asyncio.TimeoutError:
@@ -348,9 +345,14 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         results = {"success": False, "files_created": [], "errors": []}
         try:
             logger.info("Step 2: Writing token backup + system files for user %s", user.user_id[:6] + "***")
-            await asyncio.wait_for(installer._create_token_backup(results), timeout=25.0)
-            await asyncio.wait_for(installer._create_system_files(results), timeout=25.0)
-            await asyncio.wait_for(installer._create_data_files(results), timeout=25.0)
+            await asyncio.wait_for(
+                asyncio.gather(
+                    installer._create_token_backup(results),
+                    installer._create_system_files(results),
+                    installer._create_data_files(results),
+                ),
+                timeout=25.0,
+            )
             results["success"] = True
             logger.info("Step 2 complete: %d files written", len(results["files_created"]))
             return results
@@ -498,8 +500,12 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             logger.error("VaultUploadService failed for user %s: %s", user.user_id[:6] + "***", str(e))
             return {"ok": False, "accessible": True, "error": str(e)}
 
-        # ── 4. Mark the final onboarding gate ─────────────────────────────────
+        # ── 4. Mark the final onboarding gates ────────────────────────────────
+        # vault_initialized is only marked HERE — after folders, files, token
+        # backup, live write/read probe, and document pipeline all pass.
+        # Marking it earlier (e.g. after step 1) would give a false green.
         from app.modules.onboarding.gates import mark_gate
+        await mark_gate(db, user.user_id, "vault_initialized")
         await mark_gate(db, user.user_id, "document_uploaded")
 
         logger.info(

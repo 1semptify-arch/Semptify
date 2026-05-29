@@ -1,3 +1,4 @@
+from app.modules.admin_console.module_admin_console import register_admin_console_module
 """
 Semptify - FastAPI Application
 Tenant rights protection platform.
@@ -24,7 +25,7 @@ except ImportError:
 python_version = sys.version_info
 if python_version >= (3, 14):
     print("=" * 70)
-    print("⚠️  CRITICAL WARNING: Python 3.14+ detected!")
+    print("âš ï¸  CRITICAL WARNING: Python 3.14+ detected!")
     print("=" * 70)
     print("Semptify is NOT compatible with Python 3.14.")
     print("Python 3.14 has known compatibility issues with required packages.")
@@ -37,7 +38,7 @@ if python_version >= (3, 14):
     sys.exit(1)
 elif python_version < (3, 11):
     print("=" * 70)
-    print("⚠️  ERROR: Python version too old!")
+    print("âš ï¸  ERROR: Python version too old!")
     print("=" * 70)
     print(f"Detected Python {python_version.major}.{python_version.minor}")
     print("Semptify requires Python 3.11 or higher.")
@@ -45,7 +46,7 @@ elif python_version < (3, 11):
     sys.exit(1)
 else:
     # Log Python version for debugging
-    print(f"✅ Python {python_version.major}.{python_version.minor}.{python_version.micro} - Compatible")
+    print(f"âœ… Python {python_version.major}.{python_version.minor}.{python_version.micro} - Compatible")
 
 import asyncio
 import json
@@ -85,7 +86,7 @@ BASE_PATH = get_base_path()
 # Jinja2 templates for frontend UI pages
 templates = Jinja2Templates(directory=str(BASE_PATH / "app" / "templates"))
 
-# Product Manifest — replaces the 200+ line router-import block
+# Product Manifest â€” replaces the 200+ line router-import block
 from app.core.product_manifest import ProductTier, register_tiers
 from app.core.utc import utc_now
 
@@ -136,7 +137,7 @@ async def lifespan(_app: FastAPI):
     def log_stage(stage_num: int, total: int, name: str, status: str):
         elapsed = time.time() - start_time
         remaining = time_remaining()
-        bar = "█" * stage_num + "░" * (total - stage_num)
+        bar = "â–ˆ" * stage_num + "â–‘" * (total - stage_num)
         lifespan_logger.info("[%s] Stage %s/%s: %s - %s (%.1fs elapsed, %.1fs remaining)", bar, stage_num, total, name, status, elapsed, remaining)
     
     async def run_stage(stage_num: int, total: int, name: str, action, verify=None):
@@ -159,7 +160,7 @@ async def lifespan(_app: FastAPI):
                     if not is_valid:
                         raise RuntimeError(f"Verification failed for {name}")
                 
-                log_stage(stage_num, total, name, "✅ COMPLETE")
+                log_stage(stage_num, total, name, "âœ… COMPLETE")
                 return True
                 
             except (ValueError, RuntimeError, ImportError, AssertionError, TimeoutError) as e:
@@ -173,7 +174,7 @@ async def lifespan(_app: FastAPI):
     async def wipe_and_reset():
         """Wipe everything clean for fresh start."""
         lifespan_logger.warning("=" * 50)
-        lifespan_logger.warning("⚠️  WIPING EVERYTHING FOR FRESH START...")
+        lifespan_logger.warning("âš ï¸  WIPING EVERYTHING FOR FRESH START...")
         lifespan_logger.warning("=" * 50)
         
         # Remove runtime directories
@@ -191,7 +192,7 @@ async def lifespan(_app: FastAPI):
         # Sessions and OAuth states are now DB-backed (no in-memory dicts to clear)
         lifespan_logger.info("  Sessions/OAuth states are DB-backed - no cache to clear")
         
-        lifespan_logger.warning("🧹 Wipe complete - ready for fresh start")
+        lifespan_logger.warning("ðŸ§¹ Wipe complete - ready for fresh start")
     
     # =========================================================================
     # STAGED SETUP PROCESS
@@ -232,7 +233,7 @@ async def lifespan(_app: FastAPI):
     }
     
     lifespan_logger.info("=" * 60)
-    lifespan_logger.info("🚀 STARTING %s v%s", lifespan_settings.app_name, lifespan_settings.app_version)
+    lifespan_logger.info("ðŸš€ STARTING %s v%s", lifespan_settings.app_name, lifespan_settings.app_version)
     lifespan_logger.info("   Security mode: %s", lifespan_settings.security_mode)
     lifespan_logger.info("   Timeout: %ss | Retries per stage: %s", TOTAL_TIMEOUT, MAX_RETRIES)
     lifespan_logger.info("=" * 60)
@@ -270,7 +271,7 @@ async def lifespan(_app: FastAPI):
         def verify_requirements():
             if missing_optional:
                 for pkg in missing_optional:
-                    lifespan_logger.warning("   ⚠️  Optional: %s not installed", pkg)
+                    lifespan_logger.warning("   âš ï¸  Optional: %s not installed", pkg)
             return len(missing_required) == 0
         
         await run_stage(1, TOTAL_STAGES, "Verify Requirements", check_requirements, verify_requirements)
@@ -311,7 +312,7 @@ async def lifespan(_app: FastAPI):
             
             # Only run auto-migration in production (Render sets RENDER=true)
             if not os.environ.get("RENDER"):
-                lifespan_logger.info("   ⏭️  Auto-migration skipped (local dev)")
+                lifespan_logger.info("   â­ï¸  Auto-migration skipped (local dev)")
                 return
             
             def _sync_migrate():
@@ -324,12 +325,12 @@ async def lifespan(_app: FastAPI):
                 # Run in thread executor to avoid blocking the async event loop
                 loop = asyncio.get_event_loop()
                 await asyncio.wait_for(loop.run_in_executor(None, _sync_migrate), timeout=120)
-                lifespan_logger.info("   ✅ Database migrations applied")
+                lifespan_logger.info("   âœ… Database migrations applied")
                 
             except asyncio.TimeoutError:
-                lifespan_logger.warning("   ⚠️  Migration timed out after 30s - continuing startup")
+                lifespan_logger.warning("   âš ï¸  Migration timed out after 30s - continuing startup")
             except Exception as e:
-                lifespan_logger.warning("   ⚠️  Migration check failed (may be first run): %s", e)
+                lifespan_logger.warning("   âš ï¸  Migration check failed (may be first run): %s", e)
                 # Don't fail startup - migrations can be run manually if needed
         
         def verify_migrations():
@@ -358,36 +359,36 @@ async def lifespan(_app: FastAPI):
             # Positronic Brain - DISABLED (memory hog)
             # from app.services.brain_integrations import initialize_brain_connections
             # await initialize_brain_connections()
-            # logger.info("   🧠 Positronic Brain initialized with all modules")
+            # logger.info("   ðŸ§  Positronic Brain initialized with all modules")
             
             # Module Hub & Mesh - DISABLED (memory hog)
             # from app.services.module_registration import register_all_modules
             # from app.services.module_actions import register_all_actions
             # register_all_modules()
             # register_all_actions()
-            # logger.info("   🔗 Module Hub initialized")
+            # logger.info("   ðŸ”— Module Hub initialized")
             
             # Location Service - DISABLED
             # from app.services.location_service import register_with_mesh
             # register_with_mesh()
-            # logger.info("   📍 Location Service initialized")
+            # logger.info("   ðŸ“ Location Service initialized")
             
             # Complaint Wizard - DISABLED
             # from app.modules.complaint_wizard_module import register_with_mesh as register_complaint_wizard
             # register_complaint_wizard()
-            # logger.info("   📝 Complaint Wizard initialized")
+            # logger.info("   ðŸ“ Complaint Wizard initialized")
             
             # Mesh Network - DISABLED (major memory consumer)
             # from app.services.mesh_handlers import register_all_mesh_handlers
             # mesh_stats = register_all_mesh_handlers()
-            # logger.info("   🕸️ Mesh Network initialized")
+            # logger.info("   ðŸ•¸ï¸ Mesh Network initialized")
 
             # Plugin System - DISABLED
             # from app.sdk.plugin_manager import plugin_manager
             # discovered_plugins = plugin_manager.discover_plugins()
             # plugin_stats = plugin_manager.load_all()
             
-            logger.info("   ⚡ Core services only - mesh/brain/plugins DISABLED for memory optimization")
+            logger.info("   âš¡ Core services only - mesh/brain/plugins DISABLED for memory optimization")
         
         await run_stage(5, TOTAL_STAGES, "Initialize Services", init_services)
         
@@ -423,24 +424,24 @@ async def lifespan(_app: FastAPI):
         
         lifespan_logger.info("")
         lifespan_logger.info("=" * 60)
-        lifespan_logger.info("✅ ✅ ✅  ALL STAGES COMPLETE  ✅ ✅ ✅")
+        lifespan_logger.info("âœ… âœ… âœ…  ALL STAGES COMPLETE  âœ… âœ… âœ…")
         lifespan_logger.info("   Setup completed in %.2f seconds", total_time)
         lifespan_logger.info("")
         if lifespan_settings.security_mode == "enforced":
-            lifespan_logger.info("   🔒 PRODUCTION MODE: ENFORCED SECURITY ACTIVE")
-        lifespan_logger.info("   🌐 Server: http://localhost:8000")
-        lifespan_logger.info("   📄 Welcome: http://localhost:8000/")
-        lifespan_logger.info("   📚 API Docs: http://localhost:8000/api/docs")
+            lifespan_logger.info("   ðŸ”’ PRODUCTION MODE: ENFORCED SECURITY ACTIVE")
+        lifespan_logger.info("   ðŸŒ Server: http://localhost:8000")
+        lifespan_logger.info("   ðŸ“„ Welcome: http://localhost:8000/")
+        lifespan_logger.info("   ðŸ“š API Docs: http://localhost:8000/api/docs")
         lifespan_logger.info("=" * 60)
         lifespan_logger.info("")
         
     except TimeoutError as e:
-        lifespan_logger.error("❌ SETUP TIMEOUT: %s", e)
+        lifespan_logger.error("âŒ SETUP TIMEOUT: %s", e)
         await wipe_and_reset()
         raise SystemExit("Setup failed - timeout exceeded") from e
         
     except (RuntimeError, ValueError, ImportError, AssertionError, OSError) as e:
-        lifespan_logger.error("❌ SETUP FAILED: %s", e)
+        lifespan_logger.error("âŒ SETUP FAILED: %s", e)
         await wipe_and_reset()
         raise SystemExit(f"Setup failed after retries: {e}") from e
     
@@ -451,16 +452,16 @@ async def lifespan(_app: FastAPI):
     # DISABLED: Distributed mesh network (memory hog)
     # try:
     #     await start_mesh_network()
-    #     lifespan_logger.info("🌐 Distributed Mesh Network started")
+    #     lifespan_logger.info("ðŸŒ Distributed Mesh Network started")
     # except (OSError, RuntimeError, ValueError) as e:
-    #     lifespan_logger.warning("⚠️ Mesh network start warning: %s", e)
+    #     lifespan_logger.warning("âš ï¸ Mesh network start warning: %s", e)
 
     yield  # Application runs here
 
     # --- GRACEFUL SHUTDOWN ---
     lifespan_logger.info("")
     lifespan_logger.info("=" * 50)
-    lifespan_logger.info("🛑 SHUTTING DOWN GRACEFULLY...")
+    lifespan_logger.info("ðŸ›‘ SHUTTING DOWN GRACEFULLY...")
     lifespan_logger.info("=" * 50)
     
     # Wait for background tasks to complete
@@ -470,13 +471,13 @@ async def lifespan(_app: FastAPI):
     # DISABLED: Distributed mesh network
     # try:
     #     await stop_mesh_network()
-    #     lifespan_logger.info("🌐 Distributed Mesh Network stopped")
+    #     lifespan_logger.info("ðŸŒ Distributed Mesh Network stopped")
     # except (OSError, RuntimeError, ValueError) as e:
-    #     lifespan_logger.warning("⚠️ Mesh network stop warning: %s", e)
+    #     lifespan_logger.warning("âš ï¸ Mesh network stop warning: %s", e)
 
     await close_db()
     lifespan_logger.info("   Database connections closed")
-    lifespan_logger.info("   Goodbye! 👋")
+    lifespan_logger.info("   Goodbye! ðŸ‘‹")
     lifespan_logger.info("=" * 50)
 # =============================================================================
 # HTML Page Generators for Legal Tools
@@ -609,12 +610,12 @@ def generate_law_library_html() -> str:
 </head>
 <body>
     <header class="header">
-        <div class="logo">📚 Semptify Law Library</div>
+        <div class="logo">ðŸ“š Semptify Law Library</div>
         <nav class="nav-links">
-            <a href="/documents">📄 Documents</a>
-            <a href="/timeline">📅 Timeline</a>
-            <a href="/eviction-defense">⚖️ Eviction Defense</a>
-            <a href="/zoom-court">💻 Zoom Court</a>
+            <a href="/documents">ðŸ“„ Documents</a>
+            <a href="/timeline">ðŸ“… Timeline</a>
+            <a href="/eviction-defense">âš–ï¸ Eviction Defense</a>
+            <a href="/zoom-court">ðŸ’» Zoom Court</a>
         </nav>
     </header>
     <div class="container">
@@ -623,37 +624,37 @@ def generate_law_library_html() -> str:
         
         <div class="search-box">
             <input type="text" id="search-input" placeholder="Search statutes, case law, rights...">
-            <button onclick="searchLaw()">🔍 Search</button>
+            <button onclick="searchLaw()">ðŸ” Search</button>
         </div>
         
         <div class="grid">
             <div class="card" onclick="browseCategory('tenant_rights')">
-                <div class="card-icon">🏠</div>
+                <div class="card-icon">ðŸ </div>
                 <div class="card-title">Tenant Rights</div>
                 <div class="card-desc">Your fundamental rights as a tenant in Minnesota</div>
             </div>
             <div class="card" onclick="browseCategory('eviction')">
-                <div class="card-icon">⚖️</div>
+                <div class="card-icon">âš–ï¸</div>
                 <div class="card-title">Eviction Procedures</div>
                 <div class="card-desc">Legal requirements for eviction in MN</div>
             </div>
             <div class="card" onclick="browseCategory('security_deposits')">
-                <div class="card-icon">💰</div>
+                <div class="card-icon">ðŸ’°</div>
                 <div class="card-title">Security Deposits</div>
                 <div class="card-desc">Deposit limits, return requirements, deductions</div>
             </div>
             <div class="card" onclick="browseCategory('habitability')">
-                <div class="card-icon">🔧</div>
+                <div class="card-icon">ðŸ”§</div>
                 <div class="card-title">Habitability</div>
                 <div class="card-desc">Landlord's duty to maintain livable conditions</div>
             </div>
             <div class="card" onclick="browseCategory('retaliation')">
-                <div class="card-icon">🛡️</div>
+                <div class="card-icon">ðŸ›¡ï¸</div>
                 <div class="card-title">Retaliation Protection</div>
                 <div class="card-desc">Protection against landlord retaliation</div>
             </div>
             <div class="card" onclick="browseCategory('discrimination')">
-                <div class="card-icon">👥</div>
+                <div class="card-icon">ðŸ‘¥</div>
                 <div class="card-title">Fair Housing</div>
                 <div class="card-desc">Anti-discrimination protections</div>
             </div>
@@ -662,7 +663,7 @@ def generate_law_library_html() -> str:
         <div id="results"></div>
         
         <div class="librarian-chat">
-            <div class="chat-title">🤖 AI Legal Librarian</div>
+            <div class="chat-title">ðŸ¤– AI Legal Librarian</div>
             <div class="chat-messages" id="chat-messages">
                 <div class="message bot">Hello! I'm your AI legal librarian. I can help you find relevant statutes, case law, and understand your tenant rights. What would you like to know?</div>
             </div>
@@ -908,12 +909,12 @@ def generate_eviction_defense_html() -> str:
 </head>
 <body>
     <header class="header">
-        <div class="logo">⚖️ Eviction Defense Toolkit</div>
+        <div class="logo">âš–ï¸ Eviction Defense Toolkit</div>
         <nav class="nav-links">
-            <a href="/documents">📄 Documents</a>
-            <a href="/timeline">📅 Timeline</a>
-            <a href="/law-library">📚 Law Library</a>
-            <a href="/zoom-court">💻 Zoom Court</a>
+            <a href="/documents">ðŸ“„ Documents</a>
+            <a href="/timeline">ðŸ“… Timeline</a>
+            <a href="/law-library">ðŸ“š Law Library</a>
+            <a href="/zoom-court">ðŸ’» Zoom Court</a>
         </nav>
     </header>
     <div class="container">
@@ -940,12 +941,12 @@ def generate_eviction_defense_html() -> str:
         </div>
         
         <div class="tabs">
-            <button class="tab active" onclick="showPanel('motions')">📋 Motions</button>
-            <button class="tab" onclick="showPanel('forms')">📝 Forms</button>
-            <button class="tab" onclick="showPanel('procedures')">📚 Procedures</button>
-            <button class="tab" onclick="showPanel('defenses')">🛡️ Defenses</button>
-            <button class="tab" onclick="showPanel('counterclaims')">⚔️ Counterclaims</button>
-            <button class="tab" onclick="showPanel('timeline')">📅 Case Timeline</button>
+            <button class="tab active" onclick="showPanel('motions')">ðŸ“‹ Motions</button>
+            <button class="tab" onclick="showPanel('forms')">ðŸ“ Forms</button>
+            <button class="tab" onclick="showPanel('procedures')">ðŸ“š Procedures</button>
+            <button class="tab" onclick="showPanel('defenses')">ðŸ›¡ï¸ Defenses</button>
+            <button class="tab" onclick="showPanel('counterclaims')">âš”ï¸ Counterclaims</button>
+            <button class="tab" onclick="showPanel('timeline')">ðŸ“… Case Timeline</button>
         </div>
         
         <div id="motions" class="content-panel active">
@@ -975,7 +976,7 @@ def generate_eviction_defense_html() -> str:
     
     <div id="motion-modal">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeModal()">×</button>
+            <button class="modal-close" onclick="closeModal()">Ã—</button>
             <div id="modal-body"></div>
         </div>
     </div>
@@ -1239,12 +1240,12 @@ def generate_zoom_court_html() -> str:
 </head>
 <body>
     <header class="header">
-        <div class="logo">💻 Zoom Court Helper</div>
+        <div class="logo">ðŸ’» Zoom Court Helper</div>
         <nav class="nav-links">
-            <a href="/documents">📄 Documents</a>
-            <a href="/timeline">📅 Timeline</a>
-            <a href="/law-library">📚 Law Library</a>
-            <a href="/eviction-defense">⚖️ Eviction Defense</a>
+            <a href="/documents">ðŸ“„ Documents</a>
+            <a href="/timeline">ðŸ“… Timeline</a>
+            <a href="/law-library">ðŸ“š Law Library</a>
+            <a href="/eviction-defense">âš–ï¸ Eviction Defense</a>
         </nav>
     </header>
     <div class="container">
@@ -1253,44 +1254,44 @@ def generate_zoom_court_html() -> str:
         
         <div class="grid">
             <div class="card" onclick="scrollTo('checklist')">
-                <div class="card-icon">✅</div>
+                <div class="card-icon">âœ…</div>
                 <div class="card-title">Tech Checklist</div>
                 <div class="card-desc">Ensure your technology is ready for court</div>
             </div>
             <div class="card" onclick="scrollTo('etiquette')">
-                <div class="card-icon">🎩</div>
+                <div class="card-icon">ðŸŽ©</div>
                 <div class="card-title">Court Etiquette</div>
                 <div class="card-desc">Proper behavior for virtual hearings</div>
             </div>
             <div class="card" onclick="scrollTo('phrases')">
-                <div class="card-icon">🗣️</div>
+                <div class="card-icon">ðŸ—£ï¸</div>
                 <div class="card-title">What to Say</div>
                 <div class="card-desc">Phrases to use when addressing the court</div>
             </div>
             <div class="card" onclick="scrollTo('tips')">
-                <div class="card-icon">💡</div>
+                <div class="card-icon">ðŸ’¡</div>
                 <div class="card-title">Quick Tips</div>
                 <div class="card-desc">Essential tips for before, during, and after</div>
             </div>
         </div>
         
         <div class="checklist" id="checklist">
-            <h2 class="checklist-title">📋 Technology Checklist</h2>
+            <h2 class="checklist-title">ðŸ“‹ Technology Checklist</h2>
             <div id="tech-checklist">Loading checklist...</div>
         </div>
         
         <div class="etiquette" id="etiquette">
-            <h2 class="checklist-title">🎩 Court Etiquette Rules</h2>
+            <h2 class="checklist-title">ðŸŽ© Court Etiquette Rules</h2>
             <div id="etiquette-rules">Loading etiquette rules...</div>
         </div>
         
         <div class="phrases-section" id="phrases">
-            <h2 class="checklist-title">🗣️ Helpful Phrases</h2>
+            <h2 class="checklist-title">ðŸ—£ï¸ Helpful Phrases</h2>
             <div id="phrases-list">Loading phrases...</div>
         </div>
         
         <div class="tips-section" id="tips">
-            <h2 class="checklist-title">💡 Quick Tips</h2>
+            <h2 class="checklist-title">ðŸ’¡ Quick Tips</h2>
             <div class="tips-grid" id="quick-tips">Loading tips...</div>
         </div>
     </div>
@@ -1304,7 +1305,7 @@ def generate_zoom_court_html() -> str:
                     <input type="checkbox" id="check-${item.item.replace(/\\s/g, '-')}">
                     <label for="check-${item.item.replace(/\\s/g, '-')}">
                         <strong>${item.item}</strong>
-                        <div class="fix">${item.description} — Fix: ${item.how_to_fix}</div>
+                        <div class="fix">${item.description} â€” Fix: ${item.how_to_fix}</div>
                     </label>
                 </div>
             `).join('');
@@ -1313,7 +1314,7 @@ def generate_zoom_court_html() -> str:
             const etiquette = await fetch('/api/zoom-court/etiquette').then(r => r.json());
             document.getElementById('etiquette-rules').innerHTML = etiquette.map(rule => `
                 <div class="rule-item">
-                    <div class="rule-icon">📌</div>
+                    <div class="rule-icon">ðŸ“Œ</div>
                     <div class="rule-text">${rule.rule}</div>
                 </div>
             `).join('');
@@ -1465,7 +1466,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         allowed_roles=["tenant"],
         allowed_providers=["google_drive", "dropbox", "onedrive"],
         on_complete_redirect="/home",
-        # Disable duplicate gate middleware — StorageRequirementMiddleware already
+        # Disable duplicate gate middleware â€” StorageRequirementMiddleware already
         # enforces all gates via app/core/onboarding_state.py (single source of truth).
         # Running both causes redirect loops.
         enable_gate_middleware=False,
@@ -1586,15 +1587,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             
             # Request logging (security audit trail)
             fastapi_app.add_middleware(ProdRequestLogging)
-            logger.info("🚀 Request logging middleware enabled (production mode)")
+            logger.info("ðŸš€ Request logging middleware enabled (production mode)")
         except ImportError as e:
-            logger.error("⚠️  Failed to load request logging middleware: %s", e)
+            logger.error("âš ï¸  Failed to load request logging middleware: %s", e)
             logger.warning("Request logging not available - continuing without it")
     
     # Smart Gate Checkpoint (enforces welcome page for new users)
     from app.core.checkpoint_middleware import SmartCheckpointMiddleware
     fastapi_app.add_middleware(SmartCheckpointMiddleware)
-    logger.info("🚪 Smart checkpoint gate enabled (welcome page checkpoint)")
+    logger.info("ðŸšª Smart checkpoint gate enabled (welcome page checkpoint)")
     
     # Storage requirement (CRITICAL: Enforces everyone has storage connected)
     from app.core.storage_middleware import StorageRequirementMiddleware
@@ -1602,7 +1603,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         StorageRequirementMiddleware,
         enforce=is_production  # Only enforce in production
     )
-    logger.info("🔒 Storage requirement middleware enabled (enforce=%s)", is_production)
+    logger.info("ðŸ”’ Storage requirement middleware enabled (enforce=%s)", is_production)
     
     # Security headers (standard mode, adds headers to all responses)
     from app.core.security_headers import SecurityHeadersMiddleware
@@ -1615,7 +1616,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     from app.core.timeout import TimeoutMiddleware
     fastapi_app.add_middleware(TimeoutMiddleware)
     
-    # Request logging (all modes — audit trail is required for evidence integrity)
+    # Request logging (all modes â€” audit trail is required for evidence integrity)
     from app.core.logging_middleware import RequestLoggingMiddleware
     fastapi_app.add_middleware(RequestLoggingMiddleware)
     
@@ -1627,7 +1628,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         "allow_headers": ["Content-Type", "Authorization", "X-Request-Id", "X-API-Key"] if is_production else ["*"],
     }
     fastapi_app.add_middleware(CORSMiddleware, **cors_config)
-    logger.info("🔒 CORS middleware configured (production=%s)", is_production)
+    logger.info("ðŸ”’ CORS middleware configured (production=%s)", is_production)
     
     # Request ID middleware
     @fastapi_app.middleware("http")
@@ -1652,9 +1653,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     # CORE + DEV = current tenant-rights platform
     # To enable extended features: add ProductTier.EXTENDED, ProductTier.ADVOCATE, etc.
-    register_tiers(fastapi_app, ProductTier.CORE, ProductTier.DEV)
+    register_tiers(fastapi_app, ProductTier.CORE, ProductTier.DEV, ProductTier.EXTENDED)
 
-    # Root route — serve the welcome page. User clicks "Get Started" → /preamble (routing logic).
+    # Root route â€” serve the welcome page. User clicks "Get Started" â†’ /preamble (routing logic).
     @fastapi_app.get("/", response_class=HTMLResponse)
     async def root_welcome():
         """Serve the welcome page at /. Preamble is the routing decision, not the entry."""
@@ -1691,11 +1692,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         fastapi_app.include_router(dakota_procedures, tags=["Dakota Procedures"])
         fastapi_app.include_router(dakota_flows, prefix="/eviction", tags=["Eviction Defense"])
         fastapi_app.include_router(dakota_forms, prefix="/eviction/forms", tags=["Court Forms"])
-        logging.getLogger(__name__).info("✅ Dakota County Eviction Defense module loaded")
+        logging.getLogger(__name__).info("âœ… Dakota County Eviction Defense module loaded")
     else:
-        logging.getLogger(__name__).info("ℹ️  Dakota County module not available (optional)")
+        logging.getLogger(__name__).info("â„¹ï¸  Dakota County module not available (optional)")
 
-    logging.getLogger(__name__).info("🚀 Product Manifest router registration complete")
+    logging.getLogger(__name__).info("ðŸš€ Product Manifest router registration complete")
     
     # =========================================================================
     # Static Files (for any frontend assets)
@@ -1757,7 +1758,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         @fastapi_app.get("/welcome.html", response_class=HTMLResponse)
         async def welcome_html():
-            """Serve welcome page — canonical entry point for new users."""
+            """Serve welcome page â€” canonical entry point for new users."""
             welcome_path = BASE_PATH / "static" / "public" / "welcome.html"
             if welcome_path.exists():
                 return FileResponse(welcome_path)
@@ -2109,7 +2110,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/home", response_class=HTMLResponse)
     async def semptify_home(request: Request):
-        """Serve the Semptify Home — tenant front door."""
+        """Serve the Semptify Home â€” tenant front door."""
         user_id = extract_user_id(request) or ""
         user_name = None
         briefcase = None
@@ -2143,21 +2144,21 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             if briefcase.vault and briefcase.vault.documents:
                 for doc in briefcase.vault.documents[:3]:
                     activity.append({
-                        "icon": "📄",
+                        "icon": "ðŸ“„",
                         "description": f"Document: {doc.get('title', 'Uploaded')}",
                         "time_ago": doc.get("uploaded_at", "Recently"),
                     })
             if briefcase.journal and briefcase.journal.recent_entries:
                 for entry in briefcase.journal.recent_entries[:3]:
                     activity.append({
-                        "icon": entry.icon or "📝",
+                        "icon": entry.icon or "ðŸ“",
                         "description": entry.description,
                         "time_ago": entry.created_at,
                     })
             if briefcase.timeline and briefcase.timeline.recent_events:
                 for event in briefcase.timeline.recent_events[:3]:
                     activity.append({
-                        "icon": event.icon or "📅",
+                        "icon": event.icon or "ðŸ“…",
                         "description": event.title,
                         "time_ago": event.date or "Recently",
                     })
@@ -2166,28 +2167,28 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         return templates.TemplateResponse(request, "pages/tenant_home.html", ctx)
 
     # ------------------------------------------------------------------
-    # Main Navigation Routes (SSOT) — /office, /library, /tools, /help
+    # Main Navigation Routes (SSOT) â€” /office, /library, /tools, /help
     # These are the 5 core nav links (Home is above). All rendered.
     # ------------------------------------------------------------------
 
     @fastapi_app.get("/office", response_class=HTMLResponse)
     async def office_page(request: Request):
-        """Serve the Office — case management center."""
+        """Serve the Office â€” case management center."""
         return templates.TemplateResponse(request, "pages/office.html")
 
     @fastapi_app.get("/library", response_class=HTMLResponse)
     async def library_page(request: Request):
-        """Serve the Library — legal resources and guides."""
+        """Serve the Library â€” legal resources and guides."""
         return templates.TemplateResponse(request, "pages/library.html")
 
     @fastapi_app.get("/tools", response_class=HTMLResponse)
     async def tools_page(request: Request):
-        """Serve Tools — document generators and case utilities."""
+        """Serve Tools â€” document generators and case utilities."""
         return templates.TemplateResponse(request, "pages/tools.html")
 
     @fastapi_app.get("/help", response_class=HTMLResponse)
     async def help_page(request: Request):
-        """Serve Help — support, resources, and emergency contacts."""
+        """Serve Help â€” support, resources, and emergency contacts."""
         return templates.TemplateResponse(request, "pages/help.html")
 
     @fastapi_app.get("/auto-mode", response_class=HTMLResponse)
@@ -2307,9 +2308,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 </head>
 <body>
     <div class="container">
-        <h1>📁 Document Vault</h1>
+        <h1>ðŸ“ Document Vault</h1>
         <div class="status">
-            ✅ Storage Connected - Your documents are secure in your cloud storage
+            âœ… Storage Connected - Your documents are secure in your cloud storage
         </div>
         <p>Vault interface is loading...</p>
         <p>Please ensure your storage is connected.</p>
@@ -2346,7 +2347,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         )
 
     # =========================================================================
-    # Temporary Debug Endpoint — remove after vault issue is resolved
+    # Temporary Debug Endpoint â€” remove after vault issue is resolved
     # =========================================================================
 
     @fastapi_app.get("/debug/status")
@@ -2432,11 +2433,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     provider = user.primary_provider if user else None
                 info["token_source"] = "none"
                 info["provider"] = provider
-                return JSONResponse(content={**info, "error": "no cached token — need fresh OAuth sign-in"})
+                return JSONResponse(content={**info, "error": "no cached token â€” need fresh OAuth sign-in"})
 
             info["provider"] = provider
 
-            # Use Vault SDK — isolated, no gate/DB dependencies
+            # Use Vault SDK â€” isolated, no gate/DB dependencies
             from app.sdk.vault import VaultClient, TENANT_VAULT
             vault = VaultClient(
                 provider=provider,
@@ -2460,7 +2461,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 info["gate_marked"] = True
             else:
                 info["gate_marked"] = False
-                info["gate_reason"] = "folders failed — gate not marked"
+                info["gate_reason"] = "folders failed â€” gate not marked"
 
             info["step"] = "done"
         except Exception as exc:
@@ -2934,7 +2935,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant/tools/letters", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/tools/letters/", response_class=HTMLResponse)
     async def tenant_letters(request: Request):
-        """Template letters page — maintenance request, deposit demand, etc."""
+        """Template letters page â€” maintenance request, deposit demand, etc."""
         guard_redirect = _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
@@ -2949,7 +2950,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant/tools/deadlines", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/tools/deadlines/", response_class=HTMLResponse)
     async def tenant_deadlines(request: Request):
-        """Deadline tracker — rent due, lease end, response deadlines."""
+        """Deadline tracker â€” rent due, lease end, response deadlines."""
         guard_redirect = _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
@@ -3292,7 +3293,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     position: relative;
                 }
                 .content li::before {
-                    content: '✓';
+                    content: 'âœ“';
                     position: absolute;
                     left: 0;
                     color: #10b981;
@@ -3339,7 +3340,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         </head>
         <body>
             <div class="container">
-                <div class="icon">⚠️</div>
+                <div class="icon">âš ï¸</div>
                 <h1>Onboarding Needs Reset</h1>
                 <p class="subtitle">We've noticed the setup is stuck. Let's get you back on track.</p>
                 
@@ -3381,7 +3382,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """)
 
     # =========================================================================
-    # Gate Debug Endpoint (dev only — blocked in production)
+    # Gate Debug Endpoint (dev only â€” blocked in production)
     # =========================================================================
 
     @fastapi_app.get("/api/debug/gates")
@@ -3428,7 +3429,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # SSOT RULE: Only unauthenticated public pages are served as static HTML.
     # All authenticated pages MUST go through rendered routes with auth + gates.
     # Allowed: welcome, terms, privacy, disclaimer, about, contact, credits
-    # Everything else → 404 (must have a proper rendered route)
+    # Everything else â†’ 404 (must have a proper rendered route)
     # =========================================================================
 
     ALLOWED_STATIC_PAGES = frozenset({
@@ -3477,7 +3478,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         return HTMLResponse("<h1>Vault activation page not found</h1>", status_code=404)
 
     # =========================================================================
-    # Health check — must return JSON, never HTML
+    # Health check â€” must return JSON, never HTML
     # =========================================================================
     @fastapi_app.get("/health", tags=["system"])
     async def health_check():
@@ -3505,3 +3506,5 @@ if __name__ == "__main__":
     )
 
 
+
+register_admin_console_module(app)

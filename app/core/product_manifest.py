@@ -197,8 +197,8 @@ _register("app.modules.preamble.router", tags=("Preamble",), tier=ProductTier.CO
 _register("app.modules.risc.router", tags=("RISC",), tier=ProductTier.CORE)
 _register("app.modules.role_ui.router", tags=("Role UI",), tier=ProductTier.CORE)
 
-# Storage & identity (temporarily disabled to test onboarding callback)
-# _register("app.modules.storage.router", tags=("Storage Auth",), tier=ProductTier.CORE)
+# Storage & identity
+_register("app.modules.storage.router", tags=("Storage Auth",), tier=ProductTier.CORE)
 
 # Document & vault system
 _register("app.modules.documents.router", tags=("Documents",), tier=ProductTier.CORE)
@@ -255,7 +255,7 @@ _register("app.modules.court_forms.router", tags=("Court Forms",), tier=ProductT
 _register("app.modules.court_packet.router", tags=("Court Packet",), tier=ProductTier.EXTENDED)
 _register("app.modules.legal_filing.router", tags=("Legal Filing",), tier=ProductTier.EXTENDED)
 _register("app.modules.legal_trails.router", tags=("Legal Trails",), tier=ProductTier.EXTENDED)
-_register("app.modules.tenant_defense.router", tags=("Tenant Defense",), tier=ProductTier.EXTENDED,
+_register("app.modules.tenant_defense", tags=("Tenant Defense",), tier=ProductTier.EXTENDED,
           log_message="Tenant Defense module loaded - Evidence, petitions, and screening disputes")
 
 # Case management
@@ -272,6 +272,8 @@ _register("app.modules.complaints.router", tags=("Complaint Wizard",), tier=Prod
           log_message="Complaint Filing Wizard loaded - Regulatory accountability tools active")
 _register("app.modules.housing_accountability.router", router_attr="accountability_router",
           tags=("Housing Accountability",), tier=ProductTier.EXTENDED)
+_register("app.modules.housing_accountability.pattern_history", router_attr="pattern_history_router",
+          tags=("Pattern History",), tier=ProductTier.EXTENDED)
 
 # Role management
 _register("app.modules.role_upgrade.router", tags=("Role Management",), tier=ProductTier.EXTENDED)
@@ -361,6 +363,33 @@ _register("app.modules.testing.router", prefix="/api/testing", tags=("Automated 
 _register("app.modules.documentation.router", prefix="/api/docs", tags=("API Documentation",), tier=ProductTier.DEV,
           log_message="API Documentation router connected - Developer portal active")
 
+
+# =============================================================================
+# FUTURE: Role + Jurisdiction + Device Module Activation (NOT BUILT YET)
+# =============================================================================
+#
+# ONRAMP PLAN — when ready to build:
+#
+# 1. Add optional fields to ModuleEntry:
+#       requires_role: tuple[str, ...] = ()        # e.g. ("tenant", "advocate")
+#       requires_jurisdiction: tuple[str, ...] = () # e.g. ("MN", "CA")
+#       requires_gate: str = ""                     # e.g. "vault_initialized"
+#
+# 2. Build resolve_modules(role, jurisdiction, gates, device) → set[str]
+#       Returns the set of module_paths the current user is allowed to use.
+#       Lives in app/core/module_resolver.py
+#
+# 3. Add ModuleGateMiddleware — on each request check if the module is
+#       in the user's resolved set. Return 403 if not.
+#       No changes to startup — all routers stay mounted.
+#       Enforcement is per-request, not per-startup.
+#
+# 4. True lazy loading (later, for mobile/low-resource devices):
+#       Mount routers dynamically per session instead of at startup.
+#
+# DO NOT BUILD until basic system (CORE + EXTENDED) is stable and tested.
+#
+# =============================================================================
 
 # =============================================================================
 # Special / Dynamic Registrations (handled inline in main.py, not in manifest)

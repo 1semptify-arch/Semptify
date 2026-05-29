@@ -48,35 +48,52 @@ async def create_oauth_state(
 
     Returns the state string to include in the OAuth redirect URL.
     """
-    logger.info("create_oauth_state: provider=%s role=%s callback=%s force_fresh=%s", 
+    logger.info("create_oauth_state: provider=%s role=%s callback=%s force_fresh=%s",
                 provider, role, callback_url, force_fresh)
-    
-    try:
-        state = secrets.token_urlsafe(32)
-        logger.info("create_oauth_state: state generated successfully")
-    except Exception as e:
-        logger.error("create_oauth_state: failed to generate state: %s", e)
-        raise
+
     now = utc_now()
-    # Create OAuthState with force_fresh if field exists (migration might not have run yet)
-    oauth_state_dict = {
-        "id": state,
-        "provider": provider,
-        "role": role,
-        "created_at": now,
-        "expires_at": now + timedelta(minutes=15),
-    }
-    
-    # Only add force_fresh if the field exists in the model
-    try:
-        oauth_state_dict["force_fresh"] = force_fresh
-        oauth_state = OAuthState(**oauth_state_dict)
-    except Exception:
-        # Migration hasn't run yet, create without force_fresh field
-        oauth_state = OAuthState(**{k: v for k, v in oauth_state_dict.items() if k != "force_fresh"})
-    db.add(oauth_state)
-    await db.commit()
-    return state
+    max_retries = 5
+
+    for attempt in range(max_retries):
+        try:
+            state = secrets.token_urlsafe(32)
+            logger.info("create_oauth_state: state generated successfully (attempt %d)", attempt + 1)
+        except Exception as e:
+            logger.error("create_oauth_state: failed to generate state: %s", e)
+            raise
+
+        # Create OAuthState with force_fresh if field exists (migration might not have run yet)
+        oauth_state_dict = {
+            "id": state,
+            "provider": provider,
+            "role": role,
+            "created_at": now,
+            "expires_at": now + timedelta(minutes=15),
+        }
+
+        # Only add force_fresh if the field exists in the model
+        try:
+            oauth_state_dict["force_fresh"] = force_fresh
+            oauth_state = OAuthState(**oauth_state_dict)
+        except Exception:
+            # Migration hasn't run yet, create without force_fresh field
+            oauth_state = OAuthState(**{k: v for k, v in oauth_state_dict.items() if k != "force_fresh"})
+
+        try:
+            db.add(oauth_state)
+            await db.commit()
+            return state
+        except Exception as exc:
+            await db.rollback()
+            if "duplicate key" in str(exc).lower() or "unique constraint" in str(exc).lower():
+                logger.warning("create_oauth_state: duplicate key error, retrying (attempt %d/%d)", attempt + 1, max_retries)
+                continue
+            else:
+                logger.error("create_oauth_state: database error: %s", exc)
+                raise
+
+    logger.error("create_oauth_state: failed after %d attempts", max_retries)
+    raise Exception("Failed to generate unique OAuth state after multiple attempts")
 
 
 async def consume_oauth_state(db: AsyncSession, state: str) -> dict:

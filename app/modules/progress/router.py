@@ -11,8 +11,8 @@ from typing import Dict, Any, Optional, List
 from pydantic import BaseModel
 
 from app.core.security import get_optional_user_id
-from ..services.progress_tracker import progress_tracker, MilestoneCategory
-from ..services.emotion_engine import emotion_engine
+from app.services.progress_tracker import progress_tracker, MilestoneCategory
+from app.services.emotion_engine import emotion_engine
 from app.core.utc import utc_now
 import logging
 logger = logging.getLogger(__name__)

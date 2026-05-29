@@ -333,6 +333,13 @@ async def get_navigation_menu(
             {"label": "My Case", "path": "/tenant", "icon": "📁"},
             {"label": "Documents", "path": "/documents", "icon": "📄"},
             {"label": "Timeline", "path": "/timeline", "icon": "📅"},
+            {"divider": True},
+            {"label": "Build My Case", "path": "/api/case-builder", "icon": "🏗️"},
+            {"label": "Eviction Defense", "path": "/api/eviction-defense", "icon": "🛡️"},
+            {"label": "File Complaint", "path": "/api/complaints", "icon": "📢"},
+            {"label": "My Action Plan", "path": "/api/plan-maker", "icon": "📋"},
+            {"label": "My Progress", "path": "/progress", "icon": "📈"},
+            {"divider": True},
             {"label": "Get Help", "path": "/tenant/help", "icon": "🆘"},
             {"label": "AI Assistant", "path": "/tenant/copilot", "icon": "🤖"},
         ]

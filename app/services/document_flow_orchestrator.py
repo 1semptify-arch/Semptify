@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 
-from app.core.event_bus import event_bus, BusEventType
+from app.core.event_bus import event_bus, EventType as BusEventType
 from app.services.auto_mode_orchestrator import AutoModeOrchestrator
 
 logger = logging.getLogger(__name__)
