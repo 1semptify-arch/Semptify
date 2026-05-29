@@ -87,8 +87,11 @@ class Settings:
     cors_origins: str = os.getenv("CORS_ORIGINS", "*")
     # Explicit public URL for OAuth callbacks (bypasses request.base_url detection)
     # Local: http://localhost:8000
-    # Production: https://semotify.org
-    public_base_url: str = os.getenv("PUBLIC_BASE_URL", "")
+    # Production: https://semptify.org
+    # NOTE: Read directly from env at instantiation — do not rely on module-level cache
+    @property
+    def public_base_url(self) -> str:
+        return os.getenv("PUBLIC_BASE_URL", "")
 
     @property
     def cors_origins_list(self):
@@ -139,3 +142,9 @@ class Settings:
 @lru_cache()
 def get_settings() -> Settings:
     return Settings.get_settings()
+
+
+def reload_settings() -> Settings:
+    """Clear the settings cache and return a fresh instance. Call after .env changes."""
+    get_settings.cache_clear()
+    return get_settings()

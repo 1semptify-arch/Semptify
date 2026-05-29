@@ -11,9 +11,9 @@ from fastapi import APIRouter, Query, Depends
 from typing import Optional
 from pydantic import BaseModel
 
-from ..core.security import require_user, StorageUser
-from ..services.action_router import action_router, ActionCategory, ActionPriority
-from ..services.emotion_engine import emotion_engine
+from app.core.security import require_user, StorageUser
+from app.services.action_router import action_router, ActionCategory, ActionPriority
+from app.services.emotion_engine import emotion_engine
 import logging
 logger = logging.getLogger(__name__)
 

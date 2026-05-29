@@ -1,0 +1,31 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Semptify Admin Console</title>
+    <style>
+        body { font-family: Arial; background: #111; color: #eee; padding: 20px; }
+        h1 { color: #4cc9f0; }
+        .card { background: #222; padding: 15px; margin-top: 20px; border-radius: 8px; }
+        button { padding: 10px 20px; background: #4cc9f0; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #3aa8d0; }
+    </style>
+</head>
+<body>
+    <h1>Semptify Admin Console</h1>
+    <p>System maintenance, AI tools, and diagnostics.</p>
+
+    <div class="card">
+        <h2>Health Check</h2>
+        <button onclick="checkHealth()">Run Health Check</button>
+        <pre id="healthOutput"></pre>
+    </div>
+
+    <script>
+        async function checkHealth() {
+            const res = await fetch('/admin-console/health');
+            const data = await res.json();
+            document.getElementById('healthOutput').innerText = JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+</html>

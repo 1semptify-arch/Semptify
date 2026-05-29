@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-04-21
+**Last Updated**: 2026-05-29
 
 ---
 
@@ -74,15 +74,42 @@
 
 **Storage**: Cloud overlays (COMMUNICATION type) in `Semptify5.0/Vault/communications/`
 
-### 🔍 READY TO START (Pick One)
+### ✅ COMPLETED: EXTENDED Tier Enabled (2026-05-29)
 
-| Option | What | Why Now |
-|--------|------|---------|
-| **1** | Identity Recovery (rehome.html replacement) | Encrypted identity anchor file format research |
-| **2** | Form-Fill Overlays | Wire up jurisdiction-specific form overlays in unified system |
-| **3** | Redaction System | PII redaction overlay implementation |
-| **4** | Timeline Enhancement | Advanced timeline visualization and chronology |
-| **5** | Court Forms Integration | Connect form-fill overlays to court filing system |
+- 50 modules registered (was 35)
+- All 5 import errors fixed (progress, actions, document_converter, tenant_defense, pattern_history)
+- `pattern_records` table excluded from `create_all` (needs Alembic migration when ready)
+- Tenant navigation menu updated with new tools
+- `preview` module skipped — `libmagic` already installed, likely a Windows DLL path issue
+
+---
+
+## 🎯 NEXT MOVE
+
+### Step 1 — Ship tonight's changes
+```
+/ship
+```
+
+### Step 2 — Build the generic module page template
+
+One Jinja2 template + one route that renders ANY module page from its contract.
+- `app/templates/module_page.html` — generic tool page
+- Route: `GET /tool/{module_name}` in `role_ui/router.py`
+- Wire 3 modules as proof: `eviction_defense`, `complaints`, `plan_maker`
+- Every future module gets a page for free
+
+### Step 3 — Live test with a real tenant scenario
+- New user → onboarding → vault → upload a lease → check eviction defense page
+- Confirm the full path works end to end
+
+---
+
+## 🚫 NOT YET (documented, not building)
+- Role + jurisdiction module activation (`ModuleGateMiddleware`) — onramp in `product_manifest.py`
+- Feature flags DB table
+- Event bus wire-up for `context_loop`
+- `pattern_records` Alembic migration
 
 ---
 
