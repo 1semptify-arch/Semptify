@@ -76,10 +76,8 @@ async def preamble(request: Request):
         async with factory() as db:
             state = await get_onboarding_state(raw_uid, db)
     except Exception as exc:
-        logger.warning("Preamble: DB error for user %s: %s — sending to onboarding", raw_uid[:6] + "***", exc)
-        role_stage = navigation.get_stage("role_select")
-        role_path = role_stage.path if role_stage else "/onboarding/select-role.html"
-        return ssot_redirect(role_path, context="preamble db error")
+        logger.error("Preamble: DB error for user %s: %s", raw_uid[:6] + "***", exc)
+        return _db_error_response()
 
     # ── Route based on gate state ─────────────────────────────────────────────
     if state.is_fully_onboarded:
@@ -102,3 +100,48 @@ async def preamble(request: Request):
         next_path,
     )
     return ssot_redirect(next_path, context="preamble incomplete onboarding")
+
+
+def _db_error_response() -> HTMLResponse:
+    """
+    Honest error page shown when the DB is unreachable during preamble routing.
+    Returns 503 with retry + start-fresh options. Never silently redirects.
+    """
+    return HTMLResponse(
+        content="""<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connection Issue — Semptify</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+         background: #fdfcfa; color: #1e293b; min-height: 100vh;
+         display: flex; align-items: center; justify-content: center; margin: 0; }
+  .card { max-width: 420px; width: 90%; background: white; padding: 2.5rem 2rem;
+          border-radius: 16px; box-shadow: 0 4px 32px rgba(0,0,0,0.09); text-align: center; }
+  h1 { font-size: 1.4rem; color: #1e3a5f; margin: 0 0 0.75rem; }
+  p { color: #64748b; line-height: 1.6; margin: 0 0 1.75rem; }
+  .actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+  .retry-btn { background: #1e3a5f; color: white; border: none; padding: 0.7rem 1.4rem;
+               border-radius: 8px; font-size: 0.95rem; cursor: pointer; }
+  .retry-btn:hover { background: #162d4a; }
+  .fresh-btn { background: transparent; color: #64748b; border: 1px solid #e2e8f0;
+               padding: 0.7rem 1.4rem; border-radius: 8px; font-size: 0.95rem; cursor: pointer; }
+  .fresh-btn:hover { border-color: #cbd5e1; color: #475569; }
+</style>
+</head><body>
+<div class="card">
+  <h1>Having trouble connecting</h1>
+  <p>We're experiencing a temporary issue reaching our servers.<br>
+     Your data is safe — this is not a problem with your account.</p>
+  <div class="actions">
+    <button class="retry-btn" onclick="window.location.reload()">Try Again</button>
+    <button class="fresh-btn"
+      onclick="document.cookie='semptify_uid=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';window.location.href='/onboarding/select-role.html'">
+      Start Fresh
+    </button>
+  </div>
+</div>
+</body></html>""",
+        status_code=503,
+    )
