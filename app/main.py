@@ -2351,7 +2351,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Tenant Pages (My Case)
     # =========================================================================
 
-    def _guard_role_page(request: Request, allowed_roles: set[str]) -> Optional[RedirectResponse]:
+    async def _guard_role_page(request: Request, allowed_roles: set[str]) -> Optional[RedirectResponse]:
         """Lightweight guard: storage connected + expected role for portal page."""
         from app.core.cookie_auth import extract_user_id
         from app.core.storage_middleware import is_valid_storage_user
@@ -2373,7 +2373,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         current_role = get_role_from_user_id(user_id) or ""
         if current_role not in allowed_roles:
-            return RedirectResponse(url=_route_user(user_id), status_code=302)
+            return RedirectResponse(url=await _route_user(user_id), status_code=302)
         return None
 
     # =========================================================================
@@ -2478,7 +2478,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant/", response_class=HTMLResponse)
     async def tenant_page(request: Request):
         """Serve the tenant My Case page."""
-        guard_redirect = _guard_role_page(request, {"tenant"})
+        guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
 
@@ -2558,7 +2558,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant/home/", response_class=HTMLResponse)
     async def tenant_home(request: Request):
         """Serve the tenant home hub page (lightweight entry point after onboarding)."""
-        guard_redirect = _guard_role_page(request, {"tenant"})
+        guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
         
@@ -2595,7 +2595,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant/capture/", response_class=HTMLResponse)
     async def tenant_capture(request: Request, type: str = None):
         """Quick capture page for recording events."""
-        guard_redirect = _guard_role_page(request, {"tenant"})
+        guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
         
@@ -2614,7 +2614,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant/journal/", response_class=HTMLResponse)
     async def tenant_journal(request: Request):
         """Journal page for viewing recorded entries."""
-        guard_redirect = _guard_role_page(request, {"tenant"})
+        guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
 
@@ -2647,7 +2647,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant/inbox/", response_class=HTMLResponse)
     async def tenant_inbox(request: Request):
         """Inbox for notifications and updates."""
-        guard_redirect = _guard_role_page(request, {"tenant"})
+        guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
         
@@ -2661,7 +2661,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant/help/", response_class=HTMLResponse)
     async def tenant_help(request: Request):
         """Help and resources page for tenants."""
-        guard_redirect = _guard_role_page(request, {"tenant", "user"})
+        guard_redirect = await _guard_role_page(request, {"tenant", "user"})
         if guard_redirect:
             return guard_redirect
 
@@ -2675,7 +2675,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant/tools/letters/", response_class=HTMLResponse)
     async def tenant_letters(request: Request):
         """Template letters page â€” maintenance request, deposit demand, etc."""
-        guard_redirect = _guard_role_page(request, {"tenant"})
+        guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
         letters_path = BASE_PATH / "static" / "tenant" / "tools" / "letters.html"
@@ -2690,7 +2690,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant/tools/deadlines/", response_class=HTMLResponse)
     async def tenant_deadlines(request: Request):
         """Deadline tracker â€” rent due, lease end, response deadlines."""
-        guard_redirect = _guard_role_page(request, {"tenant"})
+        guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
         deadlines_path = BASE_PATH / "static" / "tenant" / "tools" / "deadlines.html"
@@ -2704,7 +2704,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/tenant/{subpage}", response_class=HTMLResponse)
     async def tenant_subpage(subpage: str, request: Request):
         """Catch-all for tenant sub-pages not matched by explicit routes above."""
-        guard_redirect = _guard_role_page(request, {"tenant"})
+        guard_redirect = await _guard_role_page(request, {"tenant"})
         if guard_redirect:
             return guard_redirect
 
@@ -2736,7 +2736,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/advocate/", response_class=HTMLResponse)
     async def advocate_page(request: Request):
         """Serve the advocate dashboard page."""
-        guard_redirect = _guard_role_page(request, {"advocate"})
+        guard_redirect = await _guard_role_page(request, {"advocate"})
         if guard_redirect:
             return guard_redirect
 
@@ -2757,7 +2757,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/advocate/{subpage}", response_class=HTMLResponse)
     async def advocate_subpage(subpage: str, request: Request):
         """Serve advocate sub-pages."""
-        guard_redirect = _guard_role_page(request, {"advocate"})
+        guard_redirect = await _guard_role_page(request, {"advocate"})
         if guard_redirect:
             return guard_redirect
 
@@ -2782,7 +2782,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/advocate/home/", response_class=HTMLResponse)
     async def advocate_home(request: Request):
         """Serve the advocate home hub page (lightweight entry point after onboarding)."""
-        guard_redirect = _guard_role_page(request, {"advocate"})
+        guard_redirect = await _guard_role_page(request, {"advocate"})
         if guard_redirect:
             return guard_redirect
         
@@ -2805,7 +2805,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/legal/", response_class=HTMLResponse)
     async def legal_page(request: Request):
         """Serve the legal dashboard page."""
-        guard_redirect = _guard_role_page(request, {"legal"})
+        guard_redirect = await _guard_role_page(request, {"legal"})
         if guard_redirect:
             return guard_redirect
 
@@ -2826,7 +2826,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/legal/{subpage}", response_class=HTMLResponse)
     async def legal_subpage(subpage: str, request: Request):
         """Serve legal sub-pages with compatibility aliases."""
-        guard_redirect = _guard_role_page(request, {"legal"})
+        guard_redirect = await _guard_role_page(request, {"legal"})
         if guard_redirect:
             return guard_redirect
 
@@ -2866,7 +2866,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/legal/home/", response_class=HTMLResponse)
     async def legal_home(request: Request):
         """Serve the legal home hub page (lightweight entry point after onboarding)."""
-        guard_redirect = _guard_role_page(request, {"legal"})
+        guard_redirect = await _guard_role_page(request, {"legal"})
         if guard_redirect:
             return guard_redirect
         
@@ -2889,7 +2889,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/admin/", response_class=HTMLResponse)
     async def admin_page(request: Request):
         """Serve the admin dashboard page."""
-        guard_redirect = _guard_role_page(request, {"admin", "manager"})
+        guard_redirect = await _guard_role_page(request, {"admin", "manager"})
         if guard_redirect:
             return guard_redirect
 
@@ -2910,7 +2910,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/admin/{subpage}", response_class=HTMLResponse)
     async def admin_subpage(subpage: str, request: Request):
         """Serve admin sub-pages with aliases for compatibility."""
-        guard_redirect = _guard_role_page(request, {"admin", "manager"})
+        guard_redirect = await _guard_role_page(request, {"admin", "manager"})
         if guard_redirect:
             return guard_redirect
 
@@ -2945,7 +2945,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/admin/home/", response_class=HTMLResponse)
     async def admin_home(request: Request):
         """Serve the admin home hub page (lightweight entry point after onboarding)."""
-        guard_redirect = _guard_role_page(request, {"admin"})
+        guard_redirect = await _guard_role_page(request, {"admin"})
         if guard_redirect:
             return guard_redirect
         
@@ -2964,7 +2964,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/manager/home/", response_class=HTMLResponse)
     async def manager_home(request: Request):
         """Serve the manager (case manager) home hub page (lightweight entry point after onboarding)."""
-        guard_redirect = _guard_role_page(request, {"manager"})
+        guard_redirect = await _guard_role_page(request, {"manager"})
         if guard_redirect:
             return guard_redirect
         

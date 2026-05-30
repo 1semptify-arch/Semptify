@@ -274,7 +274,7 @@ def evaluate(state: WorkflowState) -> WorkflowDecision:
     return _professional_decision(state)
 
 
-def route_user(
+async def route_user(
     user_id: Optional[str],
     documents_present: Optional[bool] = None,
     has_active_case: bool = False,
@@ -285,8 +285,8 @@ def route_user(
     Given a user_id (from cookie) returns the correct URL to send them to.
     Every redirect in the app should call this instead of hardcoding paths.
 
-    If documents_present is not supplied, the vault index is checked directly
-    so new tenants who completed onboarding are not sent back to the upload wizard.
+    If documents_present is not supplied, the vault index is queried directly
+    so returning tenants with documents are not incorrectly sent to the upload wizard.
 
     Returns:
         URL string — always safe to redirect to.
@@ -311,10 +311,14 @@ def route_user(
     db_user_id = user_id.split('.')[0] if '.' in user_id else user_id
 
     if documents_present is None:
-        # get_user_documents is async — cannot be awaited from this sync function.
-        # Callers that need accurate document presence should pass documents_present
-        # explicitly. Default to False so returning users without docs go to upload.
-        documents_present = False
+        try:
+            from app.services.vault_upload_service import VaultUploadService
+            vault_service = VaultUploadService()
+            docs = await vault_service.get_user_documents(db_user_id)
+            documents_present = len(docs) > 0
+        except Exception as exc:
+            logger.warning("route_user: vault query failed for user %s: %s — defaulting to False", db_user_id[:6] + "***", exc)
+            documents_present = False
 
     try:
         decision = evaluate_from_params(

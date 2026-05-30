@@ -95,6 +95,7 @@ PUBLIC_PATHS: Set[str] = {
     # Core navigation pages (public landing pages)
     "/home",
     "/library",
+    "/law-library",
     "/office",
     "/tools",
     "/help",

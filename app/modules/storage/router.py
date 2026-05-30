@@ -829,7 +829,7 @@ async def storage_home(
 
     if session:
         # Valid session - route to their home page
-        return ssot_redirect(_route_user(semptify_uid), context="storage_home session valid")
+        return ssot_redirect(await _route_user(semptify_uid), context="storage_home session valid")
 
     # Session expired/invalid and refresh failed - need to reauthorize
     # Extract provider from their existing user ID (no need to ask user)
@@ -878,7 +878,7 @@ async def reconnect_storage(
         session = await get_valid_session(db, raw_uid, auto_refresh=True)
         if session:
             # Session valid - return to task or home
-            landing = safe_return_to if safe_return_to else _route_user(raw_uid)
+            landing = safe_return_to if safe_return_to else await _route_user(raw_uid)
             logger.info("Reconnect: session valid, routing to %s for user=%s", landing, raw_uid[:4] + "***")
             return ssot_redirect(landing, context="reconnect_storage session valid")
         
@@ -2225,7 +2225,7 @@ async def oauth_callback(
         elif return_to:
             landing = return_to
         else:
-            landing = _route_user(user_id)
+            landing = await _route_user(user_id)
 
         logger.info("OAuth callback complete: user=%s new=%s vault_initialized=%s landing=%s",
                     user_id[:6] + "***" if user_id else "EMPTY", is_new_user, vault_initialized, landing)
@@ -2834,7 +2834,7 @@ async def restore_session(
             
             # Route to role-appropriate dashboard
             from app.core.workflow_engine import route_user
-            redirect_url = route_user(user_id, documents_present=True, has_active_case=True)
+            redirect_url = await route_user(user_id, documents_present=True, has_active_case=True)
             
             return {
                 "success": True,

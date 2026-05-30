@@ -204,7 +204,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
             # Determine landing — always route to selected role's home page
             if vault_initialized:
-                landing = route_user(user_id)
+                landing = await route_user(user_id)
             else:
                 landing = f"{config.route_prefix}/vault-setup"
 
@@ -556,7 +556,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             return ssot_redirect(f"{config.route_prefix}/vault-setup/inspect", context="onboarding_complete document_missing")
 
         # All gates passed - route to role-specific homepage
-        destination = route_user(raw_uid)
+        destination = await route_user(raw_uid)
         logger.info("Onboarding completed successfully for user %s → %s", raw_uid[:6] + "***", destination)
         return ssot_redirect(destination, context="onboarding_complete success")
 
