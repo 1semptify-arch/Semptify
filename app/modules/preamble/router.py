@@ -85,7 +85,7 @@ async def preamble(request: Request):
     if state.is_fully_onboarded:
         # Returning user — send to their role-specific home
         from app.core.workflow_engine import route_user
-        destination = route_user(raw_uid)
+        destination = await route_user(raw_uid)
         logger.info("Preamble: returning user %s → %s", raw_uid[:6] + "***", destination)
         return ssot_redirect(destination, context="preamble returning user")
 

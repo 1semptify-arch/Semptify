@@ -53,7 +53,7 @@ async def validator_dashboard(
     
     for name, uid, docs, case in test_cases:
         try:
-            result = route_user(uid, documents_present=docs, has_active_case=case)
+            result = await route_user(uid, documents_present=docs, has_active_case=case)
             routing_tests.append({"name": name, "uid": uid[:20], "route": result, "ok": True})
         except Exception as e:
             routing_tests.append({"name": name, "uid": uid[:20], "error": str(e), "ok": False})
@@ -332,7 +332,7 @@ async def test_routing(
     """API endpoint to test specific routing scenarios."""
     from app.core.workflow_engine import route_user
     
-    result = route_user(user_id, documents_present, has_active_case)
+    result = await route_user(user_id, documents_present, has_active_case)
     return {
         "user_id": user_id,
         "documents_present": documents_present,

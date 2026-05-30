@@ -838,7 +838,7 @@ async function loadStatutes() {
   } catch(e) {
     container.innerHTML = '<div class="law-card"><div class="law-card-header"><div><div class="law-title">Eviction Procedure</div><div class="law-citation">Minn. Stat. § 504B.321</div></div><span class="law-badge mn">MN</span></div><div class="law-summary">Complaint and summons requirements. 7-day answer deadline.</div></div>'
       + '<div class="law-card"><div class="law-card-header"><div><div class="law-title">Security Deposits</div><div class="law-citation">Minn. Stat. § 504B.178</div></div><span class="law-badge mn">MN</span></div><div class="law-summary">21-day return requirement, interest rules, $500 penalty for wrongful withholding.</div></div>'
-      + '<div class="law-card"><div class="law-card-header"><div><div class="law-title">Habitability Warranty</div><div class="law-citation">Minn. Stat. § 504B.161</div></div><span class="law-badge mn">MN</span></div><div class="law-summary">Landlord's duty to maintain fit and habitable premises. Cannot be waived.</div></div>';
+      + '<div class="law-card"><div class="law-card-header"><div><div class="law-title">Habitability Warranty</div><div class="law-citation">Minn. Stat. § 504B.161</div></div><span class="law-badge mn">MN</span></div><div class="law-summary">Landlord\'s duty to maintain fit and habitable premises. Cannot be waived.</div></div>';
   }
 }
 
@@ -920,7 +920,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof SemptifyHelp !== 'undefined') SemptifyHelp.init('law_library');
 });
 </script>
-<script src="/static/js/semptify-auth.js">
+<script src="/static/js/semptify-auth.js"></script>
+<script>
 // ── State Law Lookup ──
 async function loadStateLaw() {
   const code = document.getElementById('state-law-select').value;

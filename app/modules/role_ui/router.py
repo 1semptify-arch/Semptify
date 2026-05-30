@@ -161,7 +161,7 @@ async def ui_route(request: Request):
     user_id = extract_user_id(request)
     if not user_id:
         return ssot_redirect(navigation.get_stage("welcome").path, context="ui_route unauthenticated")
-    landing = _route_user(user_id)
+    landing = await _route_user(user_id)
     logger.info("ui/route: user=%s → %s", user_id, landing)
     return ssot_redirect(landing, context="ui_route workflow")
 
