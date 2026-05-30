@@ -10,6 +10,7 @@ from typing import List, Optional
 
 from app.core.vault_paths import (
     SEMPTIFY_ROOT,
+    SYSTEM_FOLDER,
     AUTH_FOLDER,
     VAULT_ROOT,
     VAULT_DOCUMENTS,
@@ -38,8 +39,9 @@ CANONICAL_VAULT_FOLDERS = [
     VAULT_OVERLAY_QUERIES,      # "Semptify5.0/Vault/overlays/queries"
     VAULT_OVERLAYS_FORMS,       # "Semptify5.0/Vault/overlays/forms"
     VAULT_OVERLAY_REDACTIONS,   # "Semptify5.0/Vault/overlays/redactions"
-    AUTH_FOLDER,                # ".Semptify5.0/auth"
-    VAULT_METADATA_FOLDER,      # ".Semptify5.0/vault"
+    SYSTEM_FOLDER,              # "Semptify5.0/.semptify" (parent must exist before children)
+    AUTH_FOLDER,                # "Semptify5.0/.semptify/auth"
+    VAULT_METADATA_FOLDER,      # "Semptify5.0/.semptify/vault"
 ]
 
 
@@ -76,6 +78,7 @@ class OnboardingConfig:
     gates: List[str] = field(default_factory=lambda: [
         "storage_connected",
         "vault_initialized",
+        "document_uploaded",  # Full pipeline tested: certificate → registry → overlay → event bus
     ])
 
     # --- OAuth ---
