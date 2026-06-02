@@ -271,23 +271,59 @@
           const data = await response.json();
           console.log("Response data:", data);
 
-          if (response.ok) {
-            // Success
+            if (response.ok) {
+            // Success: show finalizing UI and poll backend status until ready
             loading.style.display = "none";
             success.style.display = "block";
             success.innerHTML = `
                         <strong>✅ Vault Installed Successfully!</strong><br>
                         Activation Code: ${data.activation_code}<br>
-                        Created ${data.folders_created.length} folders and ${data.files_created.length} files.<br><br>
-                        <button class="btn btn-primary" onclick="window.location.href='/tenant/home'">
-                            Go to Your Vault
-                        </button>
+                        Created ${data.folders_created.length} folders and ${data.files_created.length} files.<br>
+                        <div id="finalizing-msg" style="margin-top:10px;color:#666">Finalizing setup — this may take a few seconds...</div>
                     `;
 
-            // Update status
-            document.getElementById("vault-status").className =
-              "status-icon connected";
+            // Update status indicator
+            document.getElementById("vault-status").className = "status-icon connected";
             document.getElementById("vault-status").textContent = "✓";
+
+            // Start polling the vault status endpoint (poll helper at /static/onboarding/vault_status_poll.js)
+            try {
+              if (window.pollVaultStatus) {
+                const result = await window.pollVaultStatus({
+                  interval: 2500,
+                  timeout: 60000,
+                  onPending: (s) => {
+                    const el = document.getElementById('finalizing-msg');
+                    if (el) el.textContent = `Finalizing setup — ${s.document_count} documents present, waiting for certification...`;
+                  },
+                  onComplete: (s) => {
+                    // Redirect to tenant home when ready
+                    window.location.href = '/tenant/home';
+                  },
+                  onError: (e) => {
+                    const el = document.getElementById('finalizing-msg');
+                    if (el) el.textContent = 'Finalizing failed to complete; please refresh to check status.';
+                  }
+                });
+              } else {
+                // Fallback: poll endpoint manually
+                const poll = async () => {
+                  const start = Date.now();
+                  while (true) {
+                    const res = await fetch('/onboarding/api/vault/status', { credentials: 'include' });
+                    const s = await res.json();
+                    if (s.vault_initialized && s.document_uploaded) { window.location.href = '/tenant/home'; return; }
+                    if (Date.now() - start > 60000) { document.getElementById('finalizing-msg').textContent = 'Finalizing timed out; refresh to check.'; return; }
+                    await new Promise(r => setTimeout(r, 2500));
+                  }
+                };
+                poll();
+              }
+            } catch (pollErr) {
+              console.error('Polling error', pollErr);
+              const el = document.getElementById('finalizing-msg');
+              if (el) el.textContent = 'Finalizing scheduled; you can close this window.';
+            }
           } else {
             // Error
             loading.style.display = "none";
