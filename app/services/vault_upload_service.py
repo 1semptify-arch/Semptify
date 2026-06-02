@@ -30,7 +30,7 @@ from app.core.id_gen import make_id
 from app.core.config import get_settings
 from app.core.utc import utc_now
 from app.core.database import get_db_session
-from app.core.vault_paths import SEMPTIFY_ROOT, VAULT_ROOT, VAULT_DOCUMENTS, VAULT_CERTIFICATES
+from app.core.vault_paths import CANONICAL_VAULT_FOLDERS, SEMPTIFY_ROOT, VAULT_ROOT, VAULT_DOCUMENTS, VAULT_CERTIFICATES
 from app.core.overlay_types import OverlayType
 from app.models.unified_overlay_models import CreateOverlayRequest
 from app.models.models import VaultIndexDB, VaultUserIndexDB, VaultHashIndexDB
@@ -418,6 +418,33 @@ class VaultUploadService:
         ext = original_filename.rsplit(".", 1)[-1].lower() if "." in original_filename else "bin"
         return f"{vault_id}.{ext}"
 
+    def _local_file_path(self, destination_path: str, filename: str) -> Path:
+        """Resolve a local storage file path for testing or local provider support."""
+        if not hasattr(self, "_local_dir") or self._local_dir is None:
+            raise RuntimeError("local storage directory not configured")
+        local_dir = Path(self._local_dir)
+        relative_path = destination_path.strip("/").replace("\\", "/")
+        file_path = local_dir / relative_path / filename
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        return file_path
+
+    async def _local_upload_file(
+        self,
+        file_content: bytes,
+        destination_path: str,
+        filename: str,
+    ) -> None:
+        path = self._local_file_path(destination_path, filename)
+        path.write_bytes(file_content)
+
+    def _local_read_file(self, storage_path: str) -> Optional[bytes]:
+        if not hasattr(self, "_local_dir") or self._local_dir is None:
+            return None
+        file_path = Path(self._local_dir) / storage_path.strip("/")
+        if not file_path.exists():
+            return None
+        return file_path.read_bytes()
+
     def _validate_upload_input(self, filename: str, content: bytes, mime_type: str) -> None:
         """Validate upload size and extension before storing immutable artifacts."""
         if not filename or not filename.strip():
@@ -485,10 +512,8 @@ class VaultUploadService:
         """Ensure vault folders exist in storage."""
         from app.core.path_utils import normalize_cloud_path
         try:
-            await storage.create_folder(normalize_cloud_path(SEMPTIFY_ROOT))
-            await storage.create_folder(normalize_cloud_path(self.VAULT_ROOT_FOLDER))
-            await storage.create_folder(normalize_cloud_path(self.VAULT_FOLDER))
-            await storage.create_folder(normalize_cloud_path(self.CERTS_FOLDER))
+            for folder_path in CANONICAL_VAULT_FOLDERS:
+                await storage.create_folder(normalize_cloud_path(folder_path))
         except Exception as e:
             logger.warning("Could not create folders: %s", e)
     
@@ -533,8 +558,13 @@ class VaultUploadService:
         # Check for duplicate
         existing = await self.index.get_by_hash(sha256_hash)
         if existing and existing.user_id == user_id:
-            logger.info("Document already in vault: %s", existing.vault_id)
-            return existing
+            if await self._verify_existing_document(existing, access_token):
+                logger.info("Document already in vault: %s", existing.vault_id)
+                return existing
+            logger.warning(
+                "Stale vault index entry detected for %s: storage file missing, uploading new copy",
+                existing.vault_id,
+            )
         
         # Generate IDs
         vault_id = make_id("doc")
@@ -649,6 +679,41 @@ class VaultUploadService:
         
         return doc
     
+    async def _verify_existing_document(
+        self,
+        existing: VaultDocument,
+        access_token: Optional[str],
+    ) -> bool:
+        """Verify that an existing indexed document still exists in storage."""
+        if existing.storage_provider == "local":
+            try:
+                return self._local_read_file(existing.storage_path) is not None
+            except Exception as exc:
+                logger.warning(
+                    "Existing local document verification failed for %s: %s",
+                    existing.vault_id,
+                    exc,
+                )
+                return False
+
+        if not HAS_STORAGE or not access_token:
+            logger.warning(
+                "Cannot verify existing cloud document %s: missing storage access",
+                existing.vault_id,
+            )
+            return False
+
+        try:
+            storage = get_provider(existing.storage_provider, access_token=access_token)
+            return await storage.file_exists(existing.storage_path)
+        except Exception as exc:
+            logger.warning(
+                "Existing cloud document verification failed for %s: %s",
+                existing.vault_id,
+                exc,
+            )
+            return False
+
     async def _store_document(
         self,
         user_id: str,
@@ -658,12 +723,18 @@ class VaultUploadService:
         access_token: Optional[str],
         storage_provider: str,
     ) -> str:
-        """Store document in user's connected cloud storage only."""
+        """Store document in user's connected cloud storage or local test storage."""
+
+        if storage_provider == "local":
+            await self._local_upload_file(
+                file_content=content,
+                destination_path=self.VAULT_FOLDER,
+                filename=safe_filename,
+            )
+            return f"{self.VAULT_FOLDER}/{safe_filename}"
 
         if not HAS_STORAGE:
             raise RuntimeError("storage provider unavailable")
-        if storage_provider == "local":
-            raise RuntimeError("local storage is disabled for vault uploads")
         if not access_token:
             raise RuntimeError("missing storage access token")
 
@@ -711,10 +782,16 @@ class VaultUploadService:
         
         cert_content = json.dumps(certificate, indent=2).encode("utf-8")
         
+        if storage_provider == "local":
+            await self._local_upload_file(
+                file_content=cert_content,
+                destination_path=self.CERTS_FOLDER,
+                filename=f"{certificate_id}.json",
+            )
+            return certificate_id
+
         if not HAS_STORAGE:
             raise RuntimeError("storage provider unavailable")
-        if storage_provider == "local":
-            raise RuntimeError("local storage is disabled for certificates")
         if not access_token:
             raise RuntimeError("missing storage access token")
 
@@ -774,10 +851,11 @@ class VaultUploadService:
         doc = await self.index.get(vault_id)
         if not doc:
             return None
+
+        if doc.storage_provider == "local":
+            return self._local_read_file(doc.storage_path)
         
-        if not HAS_STORAGE:
-            return None
-        if doc.storage_provider == "local" or not access_token:
+        if not HAS_STORAGE or not access_token:
             return None
 
         try:

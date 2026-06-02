@@ -10,6 +10,7 @@ import secrets
 
 import httpx
 
+from app.core.path_utils import normalize_cloud_path
 from app.services.storage.base import StorageProvider, StorageFile
 import logging
 logger = logging.getLogger(__name__)
@@ -38,7 +39,17 @@ class GoogleDriveProvider(StorageProvider):
             "Authorization": f"Bearer {self.access_token}",
             "Accept": "application/json",
         }
-    
+
+    def _escape_drive_query_value(self, value: str) -> str:
+        """Escape a value for Google Drive search queries."""
+        return value.replace("'", "\\'")
+
+    def _normalize_folder_path(self, folder_path: str) -> str:
+        return normalize_cloud_path(folder_path)
+
+    def _normalize_file_path(self, file_path: str) -> str:
+        return normalize_cloud_path(file_path)
+
     async def is_connected(self) -> bool:
         """Check if Google Drive is accessible."""
         try:
@@ -55,6 +66,7 @@ class GoogleDriveProvider(StorageProvider):
     
     async def _get_folder_id(self, folder_path: str) -> Optional[str]:
         """Get folder ID by path, creating folders if needed."""
+        folder_path = self._normalize_folder_path(folder_path)
         if folder_path in self._folder_cache:
             return self._folder_cache[folder_path]
         
@@ -77,7 +89,11 @@ class GoogleDriveProvider(StorageProvider):
                     continue
                 
                 # Search for folder
-                query = f"name='{part}' and '{parent_id}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false"
+                escaped_name = self._escape_drive_query_value(part)
+                query = (
+                    f"name='{escaped_name}' and '{parent_id}' in parents "
+                    f"and mimeType='application/vnd.google-apps.folder' and trashed=false"
+                )
                 response = await client.get(
                     f"{self.BASE_URL}/files",
                     headers=self._headers(),
@@ -138,6 +154,7 @@ class GoogleDriveProvider(StorageProvider):
         mime_type: Optional[str] = None,
     ) -> StorageFile:
         """Upload file to Google Drive. Updates existing file if it already exists."""
+        destination_path = self._normalize_folder_path(destination_path)
         folder_id = await self._get_folder_id(destination_path)
         if not folder_id:
             raise Exception(f"Could not access folder: {destination_path}")
@@ -146,7 +163,8 @@ class GoogleDriveProvider(StorageProvider):
         
         async with httpx.AsyncClient() as client:
             # First, check if file already exists in this folder
-            query = f"name='{filename}' and '{folder_id}' in parents and trashed=false"
+            escaped_filename = self._escape_drive_query_value(filename)
+            query = f"name='{escaped_filename}' and '{folder_id}' in parents and trashed=false"
             search_response = await client.get(
                 f"{self.BASE_URL}/files",
                 headers=self._headers(),
@@ -219,8 +237,9 @@ class GoogleDriveProvider(StorageProvider):
                         # returning success.  This makes upload_file() atomic from
                         # the vault manager's perspective: success means the file
                         # can immediately be resolved via download_file().
+                        escaped_filename = self._escape_drive_query_value(filename)
                         confirm_query = (
-                            f"name='{filename}' and '{folder_id}' in parents"
+                            f"name='{escaped_filename}' and '{folder_id}' in parents"
                             f" and trashed=false"
                         )
                         confirm_resp = await client.get(
@@ -252,15 +271,18 @@ class GoogleDriveProvider(StorageProvider):
 
     async def download_file(self, file_path: str) -> bytes:
         """Download file from Google Drive."""
-        # Get file ID by searching
+        file_path = self._normalize_file_path(file_path)
         folder_path = "/".join(file_path.split("/")[:-1])
         filename = file_path.split("/")[-1]
         
         folder_id = await self._get_folder_id(folder_path) if folder_path else "root"
+        if not folder_id:
+            raise Exception(f"Folder not found for download: {folder_path}")
         
         async with httpx.AsyncClient() as client:
             # Search for file
-            query = f"name='{filename}' and '{folder_id}' in parents and trashed=false"
+            escaped_filename = self._escape_drive_query_value(filename)
+            query = f"name='{escaped_filename}' and '{folder_id}' in parents and trashed=false"
             response = await client.get(
                 f"{self.BASE_URL}/files",
                 headers=self._headers(),
@@ -286,13 +308,17 @@ class GoogleDriveProvider(StorageProvider):
     
     async def delete_file(self, file_path: str) -> bool:
         """Delete file from Google Drive."""
+        file_path = self._normalize_file_path(file_path)
         folder_path = "/".join(file_path.split("/")[:-1])
         filename = file_path.split("/")[-1]
         
         folder_id = await self._get_folder_id(folder_path) if folder_path else "root"
+        if not folder_id:
+            return False
         
         async with httpx.AsyncClient() as client:
-            query = f"name='{filename}' and '{folder_id}' in parents and trashed=false"
+            escaped_filename = self._escape_drive_query_value(filename)
+            query = f"name='{escaped_filename}' and '{folder_id}' in parents and trashed=false"
             response = await client.get(
                 f"{self.BASE_URL}/files",
                 headers=self._headers(),
@@ -319,6 +345,7 @@ class GoogleDriveProvider(StorageProvider):
         recursive: bool = False,
     ) -> list[StorageFile]:
         """List files in a Google Drive folder."""
+        folder_path = self._normalize_folder_path(folder_path)
         folder_id = await self._get_folder_id(folder_path)
         if not folder_id:
             return []
@@ -365,6 +392,7 @@ class GoogleDriveProvider(StorageProvider):
     async def file_exists(self, file_path: str) -> bool:
         """Check if file exists in Google Drive."""
         try:
+            file_path = self._normalize_file_path(file_path)
             folder_path = "/".join(file_path.split("/")[:-1])
             filename = file_path.split("/")[-1]
             
@@ -373,7 +401,8 @@ class GoogleDriveProvider(StorageProvider):
                 return False
             
             async with httpx.AsyncClient() as client:
-                query = f"name='{filename}' and '{folder_id}' in parents and trashed=false"
+                escaped_filename = self._escape_drive_query_value(filename)
+                query = f"name='{escaped_filename}' and '{folder_id}' in parents and trashed=false"
                 response = await client.get(
                     f"{self.BASE_URL}/files",
                     headers=self._headers(),
