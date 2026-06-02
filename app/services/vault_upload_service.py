@@ -597,6 +597,7 @@ class VaultUploadService:
             storage_path=storage_path,
             storage_provider=storage_provider,
             access_token=access_token,
+            provider_file_id=provider_file_id,
         )
         
         # Create vault document record
@@ -765,6 +766,7 @@ class VaultUploadService:
         storage_path: str,
         storage_provider: str,
         access_token: Optional[str],
+        provider_file_id: Optional[str] = None,
     ) -> Optional[str]:
         """Create certification record for document."""
         certificate_id = make_id("cert")
@@ -780,6 +782,7 @@ class VaultUploadService:
             "certified_at": datetime.now(timezone.utc).isoformat(),
             "storage_path": storage_path,
             "storage_provider": storage_provider,
+            "provider_file_id": provider_file_id,
             "user_id": user_id,
             "version": "5.0",
             "platform": "Semptify Vault Service",
