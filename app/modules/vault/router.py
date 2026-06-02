@@ -503,7 +503,11 @@ async def copy_from_sync_to_vault(
     except Exception as e:
         # Try alternative path by file_id
         try:
-            content = await storage.download_file(f"{VAULT_DOCUMENTS}/{file_id}")
+            # Try provider file id (id:<file_id>) first, then path fallback
+            try:
+                content = await storage.download_file(f"id:{file_id}")
+            except Exception:
+                content = await storage.download_file(f"{VAULT_DOCUMENTS}/{file_id}")
         except Exception:
             raise HTTPException(
                 status_code=404, 
@@ -827,7 +831,17 @@ async def download_document(
     if not storage_path:
         raise HTTPException(status_code=404, detail="Document path not found")
 
-    file_content = await storage.download_file(storage_path)
+    # Prefer provider-specific file id if present in certificate
+    provider_file_id = target_cert.get("provider_file_id")
+    file_content = None
+    if provider_file_id:
+        try:
+            file_content = await storage.download_file(f"id:{provider_file_id}")
+        except Exception:
+            file_content = None
+
+    if not file_content:
+        file_content = await storage.download_file(storage_path)
 
     from fastapi.responses import Response
     return Response(
