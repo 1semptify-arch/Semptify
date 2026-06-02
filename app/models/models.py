@@ -127,6 +127,10 @@ class User(Base):
     SSOT PRIVACY RULE: No PII is stored in Semptify's database.
     Email, name, and all personal data live only in the user's cloud
     storage vault, accessed via overlay. Semptify is stateless.
+
+    SSOT PRIVACY RULE (TENANT): Tenant user information must not be stored
+    on Semptify servers beyond the provider metadata needed to reconnect.
+    Tenant identity and personal data remain in the user's cloud storage vault.
     """
     __tablename__ = "users"
 
@@ -1321,6 +1325,8 @@ class VaultIndexDB(Base):
     
     # Cloud storage location
     storage_path: Mapped[str] = mapped_column(String(500))
+    # Provider-specific file id (e.g. Google Drive file ID) to avoid fragile name-based lookups
+    provider_file_id: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
     storage_provider: Mapped[str] = mapped_column(String(50))  # google_drive, dropbox, onedrive, local
     
     # Classification

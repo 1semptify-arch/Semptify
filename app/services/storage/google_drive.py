@@ -271,14 +271,28 @@ class GoogleDriveProvider(StorageProvider):
 
     async def download_file(self, file_path: str) -> bytes:
         """Download file from Google Drive."""
+        # Support direct file-id downloads using the "id:<file_id>" convention.
+        if file_path.startswith("id:"):
+            file_id = file_path.split(":", 1)[1]
+            async with httpx.AsyncClient() as client:
+                download_response = await client.get(
+                    f"{self.BASE_URL}/files/{file_id}",
+                    headers=self._headers(),
+                    params={"alt": "media"},
+                    timeout=60.0,
+                )
+                if download_response.status_code == 200:
+                    return download_response.content
+                raise Exception(f"File not found by id: {file_id} (HTTP {download_response.status_code})")
+
         file_path = self._normalize_file_path(file_path)
         folder_path = "/".join(file_path.split("/")[:-1])
         filename = file_path.split("/")[-1]
-        
+
         folder_id = await self._get_folder_id(folder_path) if folder_path else "root"
         if not folder_id:
             raise Exception(f"Folder not found for download: {folder_path}")
-        
+
         async with httpx.AsyncClient() as client:
             # Search for file
             escaped_filename = self._escape_drive_query_value(filename)
