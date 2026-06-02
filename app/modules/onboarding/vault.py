@@ -13,6 +13,7 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.vault_paths import CANONICAL_VAULT_FOLDERS
 from app.modules.onboarding.config import OnboardingConfig
 from app.modules.onboarding.gates import mark_gate, check_gate
 from app.modules.vault_installer import install_vault_for_user
@@ -105,17 +106,13 @@ async def verify_vault(
             folder_spec=TENANT_VAULT,
         )
         
-        # Register additional folders for full verification
-        from app.core.vault_paths import (
-            VAULT_TIMELINE,
-            VAULT_OVERLAYS,
-            AUTH_FOLDER,
-        )
-        vault_client.register_folders([
-            VAULT_TIMELINE,
-            VAULT_OVERLAYS,
-            AUTH_FOLDER,
-        ])
+        # Register canonical vault folders beyond the base tenant vault spec
+        expected_folders = [
+            folder
+            for folder in CANONICAL_VAULT_FOLDERS
+            if folder not in TENANT_VAULT.all_folders
+        ]
+        vault_client.register_folders(expected_folders)
         
         health = await vault_client.health_check()
         
