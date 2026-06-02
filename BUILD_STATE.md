@@ -3,6 +3,146 @@
 
 ---
 
+## Shipped — 2026-05-29 (9:40 PM UTC-05) — Commit `a503d8f`
+
+### What Was Shipped
+
+**Vault path restructure + reconnect ownership + gate config fix + honest DB error page**
+
+1. **`app/core/vault_paths.py`** — New hidden system folder structure:
+   - `Semptify5.0/.semptify/auth/` (was `Semptify5.0/auth/`) — hidden from casual browsing
+   - `Semptify5.0/.semptify/vault/` (was `Semptify5.0/vault/`) — manifest + README
+   - `Semptify5.0/Vault/` — unchanged, user-visible document store
+   - Added `SYSTEM_FOLDER` constant as parent of auth/ and vault/
+
+2. **`app/modules/onboarding/config.py`** — Two fixes:
+   - Added `SYSTEM_FOLDER` to `CANONICAL_VAULT_FOLDERS` (must be created before its children)
+   - Added `document_uploaded` as 3rd gate — config now matches runtime behavior (Issue #2 fix)
+
+3. **`app/modules/onboarding/reconnect.py`** — NEW FILE:
+   - Owns `/storage/reconnect` — reconnect is a gate enforcement concern, not storage infrastructure
+   - Full logic: session valid → route home; expired + known provider → silent OAuth; unknown → picker
+   - Fixed missing `_get_all_provider_buttons` function bug from old storage/router.py
+
+4. **`app/modules/storage/router.py`** — Removed `reconnect_storage` handler and `_generate_reconnect_html`; added ownership comment pointing to new location
+
+5. **`app/core/product_manifest.py`** — Registered `app.modules.onboarding.reconnect` in CORE tier
+
+6. **`app/main.py`** — Removed static-file stub for `/storage/reconnect` (now owned by reconnect.py)
+
+7. **`app/modules/preamble/router.py`** — DB errors now return honest 503 page with retry + start-fresh buttons instead of silently redirecting to role selection (Issue #3 fix)
+
+### What Is Known Working
+-
+### What Is Known Working
+
+- Local integration: upload, dedupe, id-first download, and cert generation smoke-tested (local provider).
+
+---
+
+## Session — 2026-06-02 (UTC) — Commit `98dc14f`
+
+### Summary — what I implemented
+
+- Persist `provider_file_id` from storage uploads and include it in document certificates.
+- Harden `VaultUploadService` to verify indexed documents for liveness before reusing (prevents dedupe returning missing cloud files).
+- Update Google Drive provider to support id-based downloads and safer name queries.
+- Make onboarding Step 2 non-blocking: token backup remains synchronous (short timeout); system/data file creation runs as a background task to avoid 30s gateway timeouts.
+- Add a lightweight status endpoint `GET /onboarding/api/vault/status` returning `vault_initialized`, `document_uploaded`, and `document_count` for UI polling.
+- Add `static/onboarding/vault_status_poll.js` — a tiny polling helper (ES module + global fallback) for the onboarding page.
+
+### Files touched (high-level)
+
+- `app/services/vault_upload_service.py`
+- `app/services/storage/google_drive.py`
+- `app/modules/onboarding/router.py` (Step 2 backgrounding + `/api/vault/status`)
+- `app/modules/vault/router.py` (id-first downloads, copy-from-sync robustness)
+- `static/onboarding/vault_status_poll.js`
+- `alembic/versions/20260601_add_provider_file_id_vault_index.py` (migration added)
+
+### What is known working
+
+- Syntax checks passed for modified Python files.
+- Local integration test (local provider) exercised upload, dedupe, and download flows.
+- The onboarding security endpoint now returns quickly; long-running file writes are scheduled in background.
+
+### Pending / Handoff items (must be done by next shift)
+
+1. Apply Alembic migration to staging/production DBs (migration file present). Note: resolve any local `alembic` multiple-heads before running an automated upgrade in CI.
+2. Sweep and update other call sites that call `storage.download_file(path)` directly to prefer `provider_file_id` when available (cloud_sync, overlay manager, user_cloud_sync, timeline extraction).
+3. Wire the onboarding static page to include `vault_status_poll.js` and poll `/onboarding/api/vault/status` after POST `/onboarding/api/vault/security` succeeds — show a “Finalizing…” message until ready.
+4. Run live provider tests (Google Drive with `drive.file`, Dropbox, OneDrive) to validate id-based downloads and OAuth scopes.
+
+### Quick runbook for the team
+
+1. In staging, ensure DB backup and run:
+
+```bash
+python -m alembic upgrade head
+```
+
+2. Deploy server changes, then run a test onboarding flow using a test account for each provider.
+
+3. If UI still appears stuck: check `/onboarding/api/vault/status` for gates and `document_count`.
+
+4. After verification, remove or reduce transient debug logging and mark this session verified in `ACTIVE_CONTEXT.md`.
+
+If you want, I can now either wire the onboarding HTML to call the poll helper (`wire-ui`), sweep the most-critical backend callers (`sweep-backend`), implement both (`both`), or stop here (`none`). Reply with the desired option and I will proceed.
+- ✅ All modified files compile clean
+- ✅ Server starts with ALL STAGES COMPLETE — no route conflicts
+- ✅ Gates startup log confirms: `['storage_connected', 'vault_initialized', 'document_uploaded']`
+- ✅ Vault folder structure correct: user files in `Vault/`, system files in `.semptify/`
+- ✅ `/storage/reconnect` owned by onboarding module, same URL, no other code changes needed
+- ✅ DB error in preamble now shows honest 503 page instead of silent loop
+
+### What Is Pending
+
+- Live test: full onboarding flow with new vault path structure (new `.semptify/` layout)
+- Live test: returning user routing (documents_present fix from cb3a3c6)
+- ContextDataLoop cross-source enrichment
+- Fix `/api/analytics/pageview` 404
+- Build generic module page template (`/tool/{module_name}`)
+
+---
+
+## Shipped — 2026-05-29 (8:40 PM UTC-05) — Commit `cb3a3c6`
+
+### What Was Shipped
+
+**Fix: route_user() returning-user routing bug (Issue #1)**
+
+Root cause: `route_user()` defaulted `documents_present=False` when not supplied
+because it was a sync function that couldn't await the vault DB query.
+Returning tenants with documents were incorrectly routed to the upload wizard.
+
+1. **`app/core/workflow_engine.py`** — Converted `route_user()` to `async def`.
+   When `documents_present is None`, now awaits `VaultUploadService.get_user_documents()`
+   to get the real count from the vault index DB. Falls back to `False` on query failure.
+
+2. **All call sites updated with `await`:**
+   - `app/modules/preamble/router.py` — returning user routing
+   - `app/modules/onboarding/router.py` — OAuth callback + /complete endpoint
+   - `app/modules/storage/router.py` — storage_home, reconnect, OAuth callback, restore_session
+   - `app/modules/role_ui/router.py` — /ui/route post-auth redirect
+   - `app/modules/workflow_validator/router.py` — test dashboard + /api/test endpoint
+   - `app/main.py` — `_guard_role_page()` made async; all 18 call sites awaited
+
+### What Is Known Working
+
+- ✅ All 7 modified files compile clean (`python -m py_compile`)
+- ✅ Returning tenants with vault documents now correctly route to tenant home (not upload wizard)
+- ✅ `documents_present=True` callers (restore_session) skip the vault query — no regression
+- ✅ Vault query failure is safe — logs warning and defaults to False (conservative fallback)
+
+### What Is Pending
+
+- Live test: onboard a user, upload a document, close browser, return — confirm landing on tenant home not upload wizard
+- ContextDataLoop cross-source enrichment (carried from previous session)
+- Fix `/api/analytics/pageview` 404
+- Build generic module page template (`/tool/{module_name}`)
+
+---
+
 ## Session — 2026-05-28 (11:00 PM UTC-05) — Architecture + Repo Cleanup
 
 ### What Was Done This Session
@@ -103,12 +243,13 @@ Enable any tier by adding it to this one line — no other code changes needed.
   - Module: `app/services/context_loop.py` (ContextDataLoop) — wired but not actively enriching yet
 - **SECURITY: Restrict /api/docs public access** before go-live
 - Fix `/api/analytics/pageview` 404 — add stub endpoint
-- Fix vault sidebar upload (libmagic fallback shipped, needs live test)
-- Test Dropbox onboarding flow (only Google Drive tested today)
 
 ---
 
 ## Shipped — 2026-05-26 (2:50 PM UTC-05) — Commit `4b8524f`
+ Fix vault sidebar upload (libmagic fallback shipped, needs live test)
+ Test Dropbox onboarding flow (only Google Drive tested today)
+ Live test: full onboarding flow with new vault path structure (new `.semptify/` layout)
 
 ### What Was Shipped
 
