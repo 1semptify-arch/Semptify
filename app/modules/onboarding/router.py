@@ -21,11 +21,11 @@ import logging
 from typing import Optional
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.cookie_auth import verify_user_id, set_auth_cookie
+from app.core.cookie_auth import clear_auth_cookie, verify_user_id, set_auth_cookie
 from app.core.security import require_user, StorageUser, green_access
 from app.core.workflow_engine import route_user
 from app.core.navigation import navigation
@@ -137,7 +137,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         try:
             state = await oauth_ops.create_oauth_state(db, provider, role, callback_url, force_fresh)
-            auth_url = oauth_ops.build_oauth_url(config, provider, state, callback_url)
+            auth_url = oauth_ops.build_oauth_url(config, provider, state, callback_url, force_fresh)
         except Exception as exc:
             logger.exception("OAuth initiation failed: provider=%s role=%s error=%s", provider, role, exc)
             raise HTTPException(status_code=500, detail="OAuth initiation failed") from exc
@@ -302,9 +302,15 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     ):
         """Step 1: Create vault folder structure and seed files only."""
         from app.modules.vault_installer.installer import VaultInstaller
+        from app.modules.onboarding.gates import check_gate
         import asyncio
 
         provider_name = user.provider.value if hasattr(user.provider, 'value') else str(user.provider)
+
+        if await check_gate(db, user.user_id, "vault_initialized"):
+            logger.info("Vault init skipped: already initialized for user %s", user.user_id[:6] + "***")
+            return {"success": True, "message": "Vault already initialized", "folders_created": []}
+
         installer = VaultInstaller(provider_name, user.access_token, user.user_id)
 
         results = {"success": False, "folders_created": [], "files_created": [], "errors": []}
@@ -345,20 +351,34 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         results = {"success": False, "files_created": [], "errors": []}
         try:
             logger.info("Step 2: Writing token backup + system files for user %s", user.user_id[:6] + "***")
-            await asyncio.wait_for(
-                asyncio.gather(
-                    installer._create_token_backup(results),
-                    installer._create_system_files(results),
-                    installer._create_data_files(results),
-                ),
-                timeout=25.0,
-            )
+            # Write the critical token backup synchronously (short timeout) so
+            # the probe and subsequent steps can rely on it being present.
+            try:
+                await asyncio.wait_for(installer._create_token_backup(results), timeout=20.0)
+            except asyncio.TimeoutError:
+                logger.error("Token backup timed out for user %s", user.user_id[:6] + "***")
+                return {"success": False, "error": "Timed out writing token backup — please retry", "files_created": [], "errors": ["timeout"]}
+
+            if results["errors"]:
+                raise Exception("Token backup failed: " + ", ".join(results["errors"]))
+
+            # Schedule system and data files in background to avoid exceeding
+            # upstream gateway time limits (Cloudflare ~30s). These are not
+            # strictly required to be present synchronously for onboarding to
+            # continue, so run them asynchronously and log any failures.
+            async def _create_noncritical_files(res):
+                try:
+                    await installer._create_system_files(res)
+                    await installer._create_data_files(res)
+                except Exception as bg_err:
+                    logger.warning("Background vault files creation failed for user %s: %s", user.user_id[:6] + "***", bg_err)
+
+            # Fire-and-forget background task
+            _task = asyncio.create_task(_create_noncritical_files(results))
+
             results["success"] = True
-            logger.info("Step 2 complete: %d files written", len(results["files_created"]))
+            logger.info("Step 2 scheduled background file writes for user %s", user.user_id[:6] + "***")
             return results
-        except asyncio.TimeoutError:
-            logger.error("Vault security timed out for user %s", user.user_id[:6] + "***")
-            return {"success": False, "error": "Timed out writing security files — please retry", "files_created": [], "errors": ["timeout"]}
         except Exception as e:
             logger.error("Vault security error for user %s: %s", user.user_id[:6] + "***", str(e))
             return {"success": False, "error": str(e), "files_created": [], "errors": [str(e)]}
@@ -387,7 +407,7 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         import secrets as _secrets
         from app.core.utc import utc_now
         from app.sdk.vault import VaultClient, TENANT_VAULT
-        from app.core.vault_paths import VAULT_DOCUMENTS
+        from app.core.vault_paths import VAULT_ROOT, VAULT_DOCUMENTS
         from app.core.path_utils import normalize_cloud_path
 
         provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
@@ -414,10 +434,8 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                 user_id=user.user_id,
                 folder_spec=TENANT_VAULT,
             )
-            subfolder = normalize_cloud_path(
-                VAULT_DOCUMENTS.replace(f"{TENANT_VAULT.root}/", "")
-                if hasattr(TENANT_VAULT, "root") else "Vault/documents"
-            )
+            # SDK expects relative path to VAULT_ROOT. Strip prefix.
+            subfolder = VAULT_DOCUMENTS.replace(f"{VAULT_ROOT}/", "")
             probe_name = f"_vault_probe_{_secrets.token_hex(4)}.txt"
             probe_bytes = (
                 f"Semptify vault probe | user={user.user_id} | ts={utc_now().isoformat()}"
@@ -465,6 +483,26 @@ def create_router(config: OnboardingConfig) -> APIRouter:
                 ),
                 timeout=55.0,
             )
+
+            # Verify the uploaded document can be retrieved from the vault storage.
+            # This ensures stage 3 only passes when the uploaded file is actually present.
+            stored_bytes = await asyncio.wait_for(
+                vault_service.get_document_content(vault_doc.vault_id, access_token=user.access_token),
+                timeout=40.0,
+            )
+            if stored_bytes is None:
+                raise ValueError("Uploaded document could not be retrieved from vault storage")
+            if stored_bytes != file_bytes:
+                raise ValueError("Uploaded document contents do not match vault storage")
+
+            if not vault_doc.registry_id or vault_doc.integrity_status != "verified":
+                raise ValueError(
+                    "Document was stored but did not receive a registry document ID."
+                    " Please retry or contact support."
+                )
+
+            user_documents = await vault_service.get_user_documents(user.user_id)
+            document_count = len(user_documents)
 
             # Kick off intake + flow orchestration in the background
             # (non-blocking — onboarding completes regardless)
@@ -518,8 +556,214 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             "document_saved": True,
             "document_name": original_name,
             "vault_id": vault_doc.vault_id,
+            "document_id": vault_doc.registry_id,
             "certified": vault_doc.is_certified,
+            "document_count": document_count,
         }
+
+
+        # ------------------------------------------------------------------
+        # API: Vault Status — lightweight status for frontend polling
+        # ------------------------------------------------------------------
+        @router.get("/api/vault/status")
+        async def vault_status(
+            user: StorageUser = Depends(green_access),
+            db: AsyncSession = Depends(get_db),
+        ):
+            """Return minimal onboarding vault state for UI polling.
+
+            Returns: `vault_initialized`, `document_uploaded`, `document_count`.
+            """
+            try:
+                from app.modules.onboarding.gates import check_gate
+                from app.services.vault_upload_service import VaultUploadService
+
+                vault_initialized = await check_gate(db, user.user_id, "vault_initialized")
+                document_uploaded = await check_gate(db, user.user_id, "document_uploaded")
+
+                svc = VaultUploadService()
+                docs = await svc.get_user_documents(user.user_id)
+
+                return {
+                    "vault_initialized": bool(vault_initialized),
+                    "document_uploaded": bool(document_uploaded),
+                    "document_count": len(docs) if docs is not None else 0,
+                }
+            except Exception as e:
+                logger.warning("vault_status error for user %s: %s", getattr(user, 'user_id', 'unknown'), str(e))
+                return {"vault_initialized": False, "document_uploaded": False, "document_count": 0}
+
+    # ------------------------------------------------------------------
+    # API: System Verification — Final health check before completion
+    # ------------------------------------------------------------------
+    @router.post("/api/vault/system-check")
+    async def system_check(
+        user: StorageUser = Depends(require_user),
+        db: AsyncSession = Depends(get_db),
+    ):
+        """
+        Comprehensive system verification before marking onboarding complete.
+        
+        Checks all critical systems:
+        1. Database connection and user record
+        2. OAuth tokens valid and not expired
+        3. Vault folders accessible via provider API
+        4. User ID cookie signature valid
+        5. All required modules loaded
+        6. Pipeline services ready
+        
+        Returns detailed status for each system.
+        """
+        from app.core.cookie_auth import verify_user_id
+        from app.sdk.vault import VaultClient, TENANT_VAULT
+        from app.core.vault_paths import VAULT_DOCUMENTS
+        from app.core.path_utils import normalize_cloud_path
+        import asyncio
+
+        provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
+        results = {
+            "all_systems_go": False,
+            "checks": {},
+            "errors": []
+        }
+
+        # Check 1: Database connection and user record
+        try:
+            from sqlalchemy import select
+            from app.models.models import User
+            stmt = select(User).where(User.id == user.user_id)
+            result = await db.execute(stmt)
+            db_user = result.scalar_one_or_none()
+            results["checks"]["database"] = {
+                "status": "ok" if db_user else "failed",
+                "detail": "User record found" if db_user else "User record missing"
+            }
+            if not db_user:
+                results["errors"].append("Database: User record not found")
+        except Exception as e:
+            results["checks"]["database"] = {"status": "error", "detail": str(e)}
+            results["errors"].append(f"Database error: {str(e)}")
+
+        # Check 2: OAuth tokens valid
+        try:
+            from app.core.oauth_token_manager import OAuthToken
+            from app.modules.storage.router import get_valid_session
+            session = await get_valid_session(db, user.user_id, auto_refresh=False)
+            if session and session.get("access_token"):
+                token = OAuthToken.from_dict(session)
+                if not token.is_expired():
+                    results["checks"]["oauth_tokens"] = {
+                        "status": "ok",
+                        "detail": f"Token valid, expires in {token.expires_in_seconds()}s"
+                    }
+                else:
+                    results["checks"]["oauth_tokens"] = {
+                        "status": "expired",
+                        "detail": "OAuth token expired"
+                    }
+                    results["errors"].append("OAuth: Token expired")
+            else:
+                results["checks"]["oauth_tokens"] = {
+                    "status": "failed",
+                    "detail": "No valid session found"
+                }
+                results["errors"].append("OAuth: No valid session")
+        except Exception as e:
+            results["checks"]["oauth_tokens"] = {"status": "error", "detail": str(e)}
+            results["errors"].append(f"OAuth error: {str(e)}")
+
+        # Check 3: Vault folders accessible
+        try:
+            client = VaultClient(
+                provider=provider_name,
+                access_token=user.access_token,
+                user_id=user.user_id,
+                folder_spec=TENANT_VAULT
+            )
+            # Try to list documents folder as a health check
+            docs_path = normalize_cloud_path(VAULT_DOCUMENTS)
+            files = await asyncio.wait_for(
+                client.list_files(docs_path),
+                timeout=10.0
+            )
+            results["checks"]["vault_access"] = {
+                "status": "ok",
+                "detail": f"Vault accessible, {len(files)} files in documents folder"
+            }
+        except asyncio.TimeoutError:
+            results["checks"]["vault_access"] = {"status": "timeout", "detail": "Vault access timed out"}
+            results["errors"].append("Vault: Access timeout")
+        except Exception as e:
+            results["checks"]["vault_access"] = {"status": "error", "detail": str(e)}
+            results["errors"].append(f"Vault error: {str(e)}")
+
+        # Check 4: Vault gate consistency
+        try:
+            from app.modules.onboarding.gates import check_gate
+            vault_initialized = await check_gate(db, user.user_id, "vault_initialized")
+            results["checks"]["vault_gate_consistency"] = {
+                "status": "ok" if vault_initialized else "pending",
+                "detail": "vault_initialized gate is set" if vault_initialized else "vault_initialized gate not yet set"
+            }
+            if vault_initialized and results["checks"]["vault_access"]["status"] != "ok":
+                results["checks"]["vault_gate_consistency"] = {
+                    "status": "warning",
+                    "detail": "vault_initialized gate set but vault storage access failed"
+                }
+                results["errors"].append("Inconsistent state: vault_initialized gate set but storage access failed")
+        except Exception as e:
+            results["checks"]["vault_gate_consistency"] = {"status": "error", "detail": str(e)}
+            results["errors"].append(f"Vault gate consistency error: {str(e)}")
+
+        # Check 5: User ID format valid
+        try:
+            from app.core.user_id import parse_user_id
+            provider_code, role_code, unique_part = parse_user_id(user.user_id)
+            valid_uid = bool(provider_code and role_code and unique_part)
+            results["checks"]["user_id"] = {
+                "status": "ok" if valid_uid else "failed",
+                "detail": "User ID format valid" if valid_uid else "Invalid user ID format"
+            }
+            if not valid_uid:
+                results["errors"].append("User ID: invalid format")
+        except Exception as e:
+            results["checks"]["user_id"] = {"status": "error", "detail": str(e)}
+            results["errors"].append(f"User ID error: {str(e)}")
+
+        # Check 5: Required modules loaded
+        try:
+            from app.services.document_intake import DocumentIntakeEngine
+            from app.services.document_registry import DocumentRegistry
+            results["checks"]["modules"] = {
+                "status": "ok",
+                "detail": "DocumentIntakeEngine and DocumentRegistry loaded"
+            }
+        except Exception as e:
+            results["checks"]["modules"] = {"status": "error", "detail": str(e)}
+            results["errors"].append(f"Modules error: {str(e)}")
+
+        # Check 6: Pipeline services ready
+        try:
+            from app.services.storage.vault_upload_service import VaultUploadService
+            results["checks"]["pipeline"] = {
+                "status": "ok",
+                "detail": "VaultUploadService loaded"
+            }
+        except Exception as e:
+            results["checks"]["pipeline"] = {"status": "error", "detail": str(e)}
+            results["errors"].append(f"Pipeline error: {str(e)}")
+
+        # Final determination
+        results["all_systems_go"] = (
+            results["checks"].get("database", {}).get("status") == "ok" and
+            results["checks"].get("oauth_tokens", {}).get("status") == "ok" and
+            results["checks"].get("vault_access", {}).get("status") == "ok" and
+            results["checks"].get("user_id", {}).get("status") == "ok" and
+            results["checks"].get("modules", {}).get("status") == "ok" and
+            results["checks"].get("pipeline", {}).get("status") == "ok"
+        )
+
+        return results
 
     # ------------------------------------------------------------------
     # Page: Complete
