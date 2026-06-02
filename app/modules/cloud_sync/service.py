@@ -423,7 +423,14 @@ class UserCloudSync:
                     # Assume it's a filename
                     path = f"{self.SEMPTIFY_FOLDER}/documents/{file_id_or_path}"
             
-            content = await self.storage.download_file(path)
+            # Prefer provider file id if present in index entry
+            provider_id = None
+            try:
+                provider_id = doc.get("cloud_id") if doc else None
+            except Exception:
+                provider_id = None
+            from app.services.storage.utils import download_prefer_id
+            content = await download_prefer_id(self.storage, path, provider_file_id=provider_id)
             logger.info(f"📥 Document downloaded: {path}")
             return content
             

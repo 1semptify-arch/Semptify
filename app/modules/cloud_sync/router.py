@@ -624,9 +624,11 @@ async def get_vault_document_content(
         if not doc_info:
             raise HTTPException(status_code=404, detail="Document not found in vault")
         
-        # Download content
+        # Download content — prefer provider file id when recorded
         storage_path = doc_info.get("storage_path", f"{vault_folder}/{document_id}")
-        content = await sync.storage.download_file(storage_path)
+        provider_id = doc_info.get("provider_file_id") or doc_info.get("cloud_id")
+        from app.services.storage.utils import download_prefer_id
+        content = await download_prefer_id(sync.storage, storage_path, provider_file_id=provider_id)
         
         return Response(
             content=content,
