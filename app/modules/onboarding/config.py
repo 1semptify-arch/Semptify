@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 from app.core.vault_paths import (
+    CANONICAL_VAULT_FOLDERS,
     SEMPTIFY_ROOT,
     SYSTEM_FOLDER,
     AUTH_FOLDER,
@@ -23,26 +24,6 @@ from app.core.vault_paths import (
     VAULT_OVERLAY_REDACTIONS,
     VAULT_FOLDER as VAULT_METADATA_FOLDER,
 )
-
-# Canonical vault folders — matches what vault.py router expects.
-# These MUST stay in sync with app/core/vault_paths.py.
-# .Semptify5.0 is REQUIRED before .Semptify5.0/vault and .Semptify5.0/auth
-# because Dropbox create_folder_v2 does NOT auto-create parent folders.
-CANONICAL_VAULT_FOLDERS = [
-    SEMPTIFY_ROOT,              # "Semptify5.0"
-    VAULT_ROOT,                 # "Semptify5.0/Vault"
-    VAULT_DOCUMENTS,            # "Semptify5.0/Vault/documents"
-    VAULT_CERTIFICATES,         # "Semptify5.0/Vault/certificates"
-    VAULT_TIMELINE,             # "Semptify5.0/Vault/timeline"
-    VAULT_OVERLAYS,             # "Semptify5.0/Vault/overlays"
-    VAULT_OVERLAY_DOCUMENTS,    # "Semptify5.0/Vault/overlays/documents"
-    VAULT_OVERLAY_QUERIES,      # "Semptify5.0/Vault/overlays/queries"
-    VAULT_OVERLAYS_FORMS,       # "Semptify5.0/Vault/overlays/forms"
-    VAULT_OVERLAY_REDACTIONS,   # "Semptify5.0/Vault/overlays/redactions"
-    SYSTEM_FOLDER,              # "Semptify5.0/.semptify" (parent must exist before children)
-    AUTH_FOLDER,                # "Semptify5.0/.semptify/auth"
-    VAULT_METADATA_FOLDER,      # "Semptify5.0/.semptify/vault"
-]
 
 
 @dataclass
