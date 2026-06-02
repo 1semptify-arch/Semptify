@@ -46,7 +46,22 @@ from app.core.security import (
     StorageUser,
     issue_function_access_token,
 )
-from app.core.vault_paths import SEMPTIFY_ROOT, VAULT_ROOT, VAULT_DOCUMENTS, VAULT_CERTIFICATES
+from app.core.vault_paths import (
+    CANONICAL_VAULT_FOLDERS,
+    SEMPTIFY_ROOT,
+    VAULT_ROOT,
+    VAULT_DOCUMENTS,
+    VAULT_CERTIFICATES,
+    VAULT_TIMELINE,
+    VAULT_OVERLAYS,
+    VAULT_OVERLAY_DOCUMENTS,
+    VAULT_OVERLAY_QUERIES,
+    VAULT_OVERLAYS_FORMS,
+    VAULT_OVERLAY_REDACTIONS,
+    SYSTEM_FOLDER,
+    AUTH_FOLDER,
+    VAULT_FOLDER,
+)
 from app.services.storage import get_provider, StorageFile
 
 # Import vault upload service - central document storage
@@ -121,8 +136,6 @@ class CertificateResponse(BaseModel):
 # Constants
 # =============================================================================
 
-VAULT_FOLDER = VAULT_DOCUMENTS
-CERTS_FOLDER = VAULT_CERTIFICATES
 
 
 # =============================================================================
@@ -141,11 +154,9 @@ def is_allowed_extension(filename: str, settings: Settings) -> bool:
 
 
 async def ensure_vault_folders(storage, provider_name: str) -> None:
-    """Ensure vault folders exist in user's storage."""
-    await storage.create_folder(SEMPTIFY_ROOT)
-    await storage.create_folder(VAULT_ROOT)
-    await storage.create_folder(VAULT_FOLDER)
-    await storage.create_folder(CERTS_FOLDER)
+    """Ensure the full canonical vault folder structure exists in user's storage."""
+    for folder_path in CANONICAL_VAULT_FOLDERS:
+        await storage.create_folder(folder_path)
 
 
 # =============================================================================
@@ -235,10 +246,10 @@ async def upload_document(
         await ensure_vault_folders(storage, user.provider)
 
         # Upload file to user's storage
-        storage_path = f"{VAULT_FOLDER}/{safe_filename}"
+        storage_path = f"{VAULT_DOCUMENTS}/{safe_filename}"
         await storage.upload_file(
             file_content=content,
-            destination_path=VAULT_FOLDER,
+            destination_path=VAULT_DOCUMENTS,
             filename=safe_filename,
             mime_type=file.content_type or "application/octet-stream",
         )
@@ -278,7 +289,7 @@ async def upload_document(
     try:
         await storage.upload_file(
             file_content=cert_content,
-            destination_path=CERTS_FOLDER,
+            destination_path=VAULT_CERTIFICATES,
             filename=f"{certificate_id}.json",
             mime_type="application/json",
         )
@@ -538,10 +549,10 @@ async def copy_from_sync_to_vault(
         await ensure_vault_folders(storage, user.provider)
 
         # Upload file to user's vault
-        storage_path = f"{VAULT_FOLDER}/{safe_filename}"
+        storage_path = f"{VAULT_DOCUMENTS}/{safe_filename}"
         await storage.upload_file(
             file_content=content,
-            destination_path=VAULT_FOLDER,
+            destination_path=VAULT_DOCUMENTS,
             filename=safe_filename,
             mime_type=mime_type,
         )
@@ -582,7 +593,7 @@ async def copy_from_sync_to_vault(
     try:
         await storage.upload_file(
             file_content=cert_content,
-            destination_path=CERTS_FOLDER,
+            destination_path=VAULT_CERTIFICATES,
             filename=f"{certificate_id}.json",
             mime_type="application/json",
         )
@@ -733,7 +744,7 @@ async def list_documents(
 
     # List certificate files from user's storage
     try:
-        cert_files = await storage.list_files(CERTS_FOLDER)
+        cert_files = await storage.list_files(VAULT_CERTIFICATES)
     except Exception:
         # Folder might not exist yet
         cert_files = []
@@ -743,7 +754,7 @@ async def list_documents(
             continue
 
         try:
-            cert_content = await storage.download_file(f"{CERTS_FOLDER}/{cert_file.name}")
+            cert_content = await storage.download_file(f"{VAULT_CERTIFICATES}/{cert_file.name}")
             cert = json.loads(cert_content.decode("utf-8"))
 
             # Filter by type if specified
@@ -797,12 +808,12 @@ async def download_document(
         raise HTTPException(status_code=400, detail=str(e))
 
     # Find certificate to get file info
-    cert_files = await storage.list_files(CERTS_FOLDER)
+    cert_files = await storage.list_files(VAULT_CERTIFICATES)
     target_cert = None
 
     for cert_file in cert_files:
         if document_id[:8] in cert_file.name:
-            cert_content = await storage.download_file(f"{CERTS_FOLDER}/{cert_file.name}")
+            cert_content = await storage.download_file(f"{VAULT_CERTIFICATES}/{cert_file.name}")
             cert = json.loads(cert_content.decode("utf-8"))
             if cert.get("document_id") == document_id:
                 target_cert = cert
@@ -847,11 +858,11 @@ async def get_certificate(
         raise HTTPException(status_code=400, detail=str(e))
 
     # Find certificate
-    cert_files = await storage.list_files(CERTS_FOLDER)
+    cert_files = await storage.list_files(VAULT_CERTIFICATES)
 
     for cert_file in cert_files:
         if document_id[:8] in cert_file.name:
-            cert_content = await storage.download_file(f"{CERTS_FOLDER}/{cert_file.name}")
+            cert_content = await storage.download_file(f"{VAULT_CERTIFICATES}/{cert_file.name}")
             cert = json.loads(cert_content.decode("utf-8"))
             if cert.get("document_id") == document_id:
                 return CertificateResponse(
@@ -887,11 +898,11 @@ async def delete_document(
         raise HTTPException(status_code=400, detail=str(e))
 
     # Find certificate to get file path
-    cert_files = await storage.list_files(CERTS_FOLDER)
+    cert_files = await storage.list_files(VAULT_CERTIFICATES)
 
     for cert_file in cert_files:
         if document_id[:8] in cert_file.name:
-            cert_content = await storage.download_file(f"{CERTS_FOLDER}/{cert_file.name}")
+            cert_content = await storage.download_file(f"{VAULT_CERTIFICATES}/{cert_file.name}")
             cert = json.loads(cert_content.decode("utf-8"))
             if cert.get("document_id") == document_id:
                 storage_path = cert.get("storage_path", "")
@@ -940,7 +951,7 @@ async def list_all_vault_documents(
         return VaultListResponse(documents=[], total=0)
     
     vault_service = get_vault_service()
-    docs = vault_service.get_user_documents(user.user_id, document_type)
+    docs = await vault_service.get_user_documents(user.user_id, document_type)
     
     summaries = [
         VaultDocumentSummary(
@@ -974,7 +985,7 @@ async def get_vault_document_metadata(
         raise HTTPException(status_code=404, detail="Vault service not available")
     
     vault_service = get_vault_service()
-    doc = vault_service.get_document(vault_id)
+    doc = await vault_service.get_document(vault_id)
     
     if not doc or doc.user_id != user.user_id:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -998,7 +1009,7 @@ async def get_vault_document_content(
         raise HTTPException(status_code=404, detail="Vault service not available")
     
     vault_service = get_vault_service()
-    doc = vault_service.get_document(vault_id)
+    doc = await vault_service.get_document(vault_id)
     
     if not doc or doc.user_id != user.user_id:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -1037,7 +1048,7 @@ async def mark_vault_document_processed(
         raise HTTPException(status_code=404, detail="Vault service not available")
     
     vault_service = get_vault_service()
-    doc = vault_service.get_document(vault_id)
+    doc = await vault_service.get_document(vault_id)
     
     if not doc or doc.user_id != user.user_id:
         raise HTTPException(status_code=404, detail="Document not found")
@@ -1074,26 +1085,27 @@ async def get_sidebar_files(
         raise HTTPException(status_code=404, detail="Vault service not available")
     
     vault_service = get_vault_service()
-    documents = vault_service.get_user_documents(user.user_id)
+    documents = await vault_service.get_user_documents(user.user_id)
     
     # Convert to sidebar format
     files = []
     for doc in documents:
+        uploaded_at = doc.uploaded_at if isinstance(doc.uploaded_at, str) else doc.uploaded_at.isoformat()
         files.append({
             "id": doc.vault_id,
             "name": doc.filename,
-            "size": doc.size,
+            "size": doc.file_size,
             "type": doc.mime_type,
             "category": _get_file_category(doc.filename),
-            "uploaded_at": doc.created_at.isoformat() if doc.created_at else utc_now().isoformat(),
-            "provider": doc.provider,
+            "uploaded_at": uploaded_at,
+            "provider": doc.storage_provider,
             "user_id": doc.user_id,
-            "path": doc.vault_path,
+            "path": doc.storage_path,
             "tags": doc.tags or [],
             "metadata": {
                 "source": "vault_upload",
                 "original_filename": doc.filename,
-                "upload_timestamp": doc.created_at.isoformat() if doc.created_at else utc_now().isoformat()
+                "upload_timestamp": uploaded_at
             }
         })
     
@@ -1191,10 +1203,10 @@ async def sidebar_upload(
                 # Ensure vault folders and upload file
                 try:
                     await ensure_vault_folders(storage, user.provider)
-                    storage_path = f"{VAULT_FOLDER}/{safe_filename}"
+                    storage_path = f"{VAULT_DOCUMENTS}/{safe_filename}"
                     await storage.upload_file(
                         file_content=file_content,
-                        destination_path=VAULT_FOLDER,
+                        destination_path=VAULT_DOCUMENTS,
                         filename=safe_filename,
                         mime_type=uploaded_file.content_type or "application/octet-stream",
                     )
@@ -1232,7 +1244,7 @@ async def sidebar_upload(
                 try:
                     await storage.upload_file(
                         file_content=cert_content,
-                        destination_path=CERTS_FOLDER,
+                        destination_path=VAULT_CERTIFICATES,
                         filename=f"{certificate_id}.json",
                         mime_type="application/json",
                     )
@@ -1392,10 +1404,10 @@ async def get_sidebar_stats(
         raise HTTPException(status_code=404, detail="Vault service not available")
     
     vault_service = get_vault_service()
-    documents = vault_service.get_user_documents(user.user_id)
+    documents = await vault_service.get_user_documents(user.user_id)
     
     total_files = len(documents)
-    total_size = sum(doc.size for doc in documents)
+    total_size = sum(doc.file_size for doc in documents)
     
     # Count by category
     categories = {
@@ -1439,7 +1451,7 @@ async def sidebar_search(
         })
     
     vault_service = get_vault_service()
-    documents = vault_service.get_user_documents(user.user_id)
+    documents = await vault_service.get_user_documents(user.user_id)
     query_lower = query.lower()
     
     filtered_docs = [
@@ -1451,21 +1463,22 @@ async def sidebar_search(
     # Convert to sidebar format
     filtered_files = []
     for doc in filtered_docs:
+        uploaded_at = doc.uploaded_at if isinstance(doc.uploaded_at, str) else doc.uploaded_at.isoformat()
         filtered_files.append({
             "id": doc.vault_id,
             "name": doc.filename,
-            "size": doc.size,
+            "size": doc.file_size,
             "type": doc.mime_type,
             "category": _get_file_category(doc.filename),
-            "uploaded_at": doc.created_at.isoformat() if doc.created_at else utc_now().isoformat(),
-            "provider": doc.provider,
+            "uploaded_at": uploaded_at,
+            "provider": doc.storage_provider,
             "user_id": doc.user_id,
-            "path": doc.vault_path,
+            "path": doc.storage_path,
             "tags": doc.tags or [],
             "metadata": {
                 "source": "vault_upload",
                 "original_filename": doc.filename,
-                "upload_timestamp": doc.created_at.isoformat() if doc.created_at else utc_now().isoformat()
+                "upload_timestamp": uploaded_at
             }
         })
     
