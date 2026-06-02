@@ -79,6 +79,7 @@ class VaultDocument:
     description: Optional[str]
     tags: list[str]
     storage_path: str  # Path in cloud storage
+    provider_file_id: Optional[str] = None
     storage_provider: str  # google_drive, dropbox, onedrive, local
     certificate_id: Optional[str]
     uploaded_at: str
@@ -152,6 +153,7 @@ class VaultDocumentIndex:
             file_size=doc.file_size,
             mime_type=doc.mime_type,
             storage_path=doc.storage_path,
+            provider_file_id=doc.provider_file_id,
             storage_provider=doc.storage_provider,
             document_type=doc.document_type,
             description=doc.description,
@@ -180,6 +182,7 @@ class VaultDocumentIndex:
             description=db_doc.description,
             tags=db_doc.tags.split(",") if db_doc.tags else [],
             storage_path=db_doc.storage_path,
+            provider_file_id=db_doc.provider_file_id,
             storage_provider=db_doc.storage_provider,
             certificate_id=db_doc.certificate_id,
             uploaded_at=db_doc.uploaded_at.isoformat() if db_doc.uploaded_at else None,
@@ -572,8 +575,8 @@ class VaultUploadService:
         file_size = len(content)
         now = datetime.now(timezone.utc).isoformat()
         
-        # Store document
-        storage_path = await self._store_document(
+        # Store document (returns storage path and provider file id)
+        storage_path, provider_file_id = await self._store_document(
             user_id=user_id,
             safe_filename=safe_filename,
             content=content,
@@ -609,6 +612,7 @@ class VaultUploadService:
             description=description,
             tags=tags or [],
             storage_path=storage_path,
+            provider_file_id=provider_file_id,
             storage_provider=storage_provider,
             certificate_id=certificate_id,
             uploaded_at=now,
@@ -740,13 +744,14 @@ class VaultUploadService:
 
         storage = get_provider(storage_provider, access_token=access_token)
         await self._ensure_folders(storage)
-        await storage.upload_file(
+        storage_file = await storage.upload_file(
             file_content=content,
             destination_path=self.VAULT_FOLDER,
             filename=safe_filename,
             mime_type=mime_type,
         )
-        return f"{self.VAULT_FOLDER}/{safe_filename}"
+        # storage_file.path is the cloud path; storage_file.id is provider-specific file id
+        return (f"{self.VAULT_FOLDER}/{safe_filename}", getattr(storage_file, "id", None))
     
     async def _create_certificate(
         self,
@@ -854,18 +859,32 @@ class VaultUploadService:
 
         if doc.storage_provider == "local":
             return self._local_read_file(doc.storage_path)
-        
+
         if not HAS_STORAGE or not access_token:
+            logger.debug("Storage provider unavailable or missing access token for vault_id=%s", vault_id)
             return None
 
-        try:
-            storage = get_provider(doc.storage_provider, access_token=access_token)
-            result = await storage.download_file(doc.storage_path)
-            if result:
-                return result
-        except Exception as e:
-            logger.warning("Cloud download failed: %s", e)
+        storage = get_provider(doc.storage_provider, access_token=access_token)
 
+        # Prefer provider file id if available — avoids fragile name-based lookups
+        attempts = []
+        if getattr(doc, "provider_file_id", None):
+            fid = doc.provider_file_id
+            attempts.append((f"id:{fid}", "by_id"))
+
+        # Always try the recorded storage_path as fallback
+        attempts.append((doc.storage_path, "by_path"))
+
+        for path, why in attempts:
+            try:
+                result = await storage.download_file(path)
+                if result:
+                    logger.debug("Downloaded document %s via %s", vault_id, why)
+                    return result
+            except Exception as e:
+                logger.warning("Download attempt failed for vault_id=%s path=%s (%s): %s", vault_id, path, why, e)
+
+        logger.error("All download attempts failed for vault_id=%s storage_path=%s provider_file_id=%s", vault_id, doc.storage_path, getattr(doc, "provider_file_id", None))
         return None
     
     async def mark_processed(
