@@ -512,22 +512,15 @@ class VaultManager:
         """
         created = []
 
-        # Create folder structure
-        folders = [
-            normalize_cloud_path(SEMPTIFY_ROOT),
-            normalize_cloud_path(AUTH_FOLDER),
-            normalize_cloud_path(VAULT_FOLDER),
-            normalize_cloud_path(VAULT_ROOT),
-            normalize_cloud_path(VAULT_DOCUMENTS),
-            normalize_cloud_path(VAULT_CERTIFICATES),
-        ]
+        # Create canonical folder structure
+        folders = [normalize_cloud_path(folder) for folder in CANONICAL_VAULT_FOLDERS]
 
         for folder in folders:
             try:
                 await self.storage.create_folder(folder)
                 created.append({"type": "folder", "path": folder})
-            except Exception as e:
-                # Folder might already exist
+            except Exception:
+                # Folder might already exist or provider may not support the operation.
                 pass
 
         try:
