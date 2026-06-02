@@ -79,10 +79,10 @@ class VaultDocument:
     description: Optional[str]
     tags: list[str]
     storage_path: str  # Path in cloud storage
-    provider_file_id: Optional[str] = None
     storage_provider: str  # google_drive, dropbox, onedrive, local
-    certificate_id: Optional[str]
-    uploaded_at: str
+    provider_file_id: Optional[str] = None
+    certificate_id: Optional[str] = None
+    uploaded_at: Optional[str] = None
     # Registration - every vault doc auto-registers for chain of custody
     registry_id: Optional[str] = None  # SEM-YYYY-NNNNNN-XXXX format
     integrity_status: str = "unverified"  # verified, tampered, unverified
@@ -735,7 +735,7 @@ class VaultUploadService:
                 destination_path=self.VAULT_FOLDER,
                 filename=safe_filename,
             )
-            return f"{self.VAULT_FOLDER}/{safe_filename}"
+            return (f"{self.VAULT_FOLDER}/{safe_filename}", None)
 
         if not HAS_STORAGE:
             raise RuntimeError("storage provider unavailable")
