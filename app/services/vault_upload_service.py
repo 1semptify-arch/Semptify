@@ -644,10 +644,6 @@ class VaultUploadService:
                     content=content,
                     filename=filename,
                     mime_type=mime_type,
-                    vault_id=vault_id,
-                    storage_provider=storage_provider,
-                    storage_path=storage_path,
-                    certificate_id=certificate_id,
                     ip_address=None,  # Will be enriched by caller if available
                 )
                 doc.registry_id = reg_doc.document_id
