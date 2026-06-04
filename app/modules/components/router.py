@@ -22,7 +22,7 @@ from datetime import datetime
 from app.core.utc import utc_now
 from typing import List, Optional
 
-from app.core.security import get_optional_user_id
+from app.core.security import get_optional_user_id, require_user, StorageUser, yellow_access
 from app.core.user_context import UserRole, get_user_context
 from app.core.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -623,10 +623,10 @@ async def handle_legal_review(
 async def handle_admin_maintenance(
     component_id: str,
     maintenance_type: str,
-    user_id: Optional[str] = Depends(get_optional_user_id),
+    user: StorageUser = Depends(yellow_access),
     db: AsyncSession = Depends(get_db)
 ):
-    """Handle system maintenance from admin component"""
+    """Handle system maintenance from admin component. Requires authentication."""
     try:
         logger.info(f"Admin maintenance: {maintenance_type}")
         
@@ -647,7 +647,7 @@ async def handle_admin_maintenance(
             "maintenance_type": maintenance_type,
             "task_id": task_id,
             "system_health": health,
-            "user_id": user_id,
+            "user_id": user.user_id,
             "timestamp": utc_now().isoformat()
         })
         
