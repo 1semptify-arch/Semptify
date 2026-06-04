@@ -8,6 +8,8 @@ from fastapi import APIRouter, Request, Query
 from typing import Dict, Any, Optional, List
 import logging
 
+from app.core.request_utils import get_request_user_id
+
 from app.services.emotion_engine import (
     emotion_engine,
     EmotionalTrigger,
@@ -28,8 +30,7 @@ async def get_emotional_state(request: Request) -> Dict[str, Any]:
     
     Returns 7-dimensional emotional state plus composite scores.
     """
-    _raw = request.cookies.get("semptify_uid", "anonymous")
-    user_id = str(_raw) if _raw is not None else "anonymous"
+    user_id = get_request_user_id(request)
     state = get_user_emotional_state(user_id)
     return {
         "success": True,
@@ -57,8 +58,7 @@ async def record_trigger(
     - win_milestone, support_connected, deadline_met, document_organized
     - help_accessed
     """
-    _raw = request.cookies.get("semptify_uid", "anonymous")
-    user_id = str(_raw) if _raw is not None else "anonymous"
+    user_id = get_request_user_id(request)
     
     context = {}
     if days_until_deadline is not None:
@@ -92,8 +92,7 @@ async def get_dashboard_configuration(request: Request) -> Dict[str, Any]:
     - color_scheme: Emotionally-appropriate colors
     - animation_config: Animation settings
     """
-    _raw = request.cookies.get("semptify_uid", "anonymous")
-    user_id = str(_raw) if _raw is not None else "anonymous"
+    user_id = get_request_user_id(request)
     config = get_adaptive_dashboard(user_id)
     return {
         "success": True,
@@ -110,8 +109,7 @@ async def get_ui_settings(request: Request) -> Dict[str, Any]:
     Returns settings for content density, visual presentation,
     interaction style, tone, navigation, and actions.
     """
-    _raw = request.cookies.get("semptify_uid", "anonymous")
-    user_id = str(_raw) if _raw is not None else "anonymous"
+    user_id = get_request_user_id(request)
     adaptation = get_ui_adaptation(user_id)
     return {
         "success": True,
@@ -124,8 +122,7 @@ async def get_suggested_action(request: Request) -> Dict[str, Any]:
     """
     Get the emotionally-appropriate next action for user.
     """
-    _raw = request.cookies.get("semptify_uid", "anonymous")
-    user_id = str(_raw) if _raw is not None else "anonymous"
+    user_id = get_request_user_id(request)
     
     # Get available actions (would come from case context in real app)
     # For now, return mock suggestion based on state
@@ -191,8 +188,7 @@ async def simulate_emotional_scenario(
     Simulate an emotional scenario for testing/demo.
     Sets user's emotional state to match scenario.
     """
-    _raw = request.cookies.get("semptify_uid", "anonymous")
-    user_id = str(_raw) if _raw is not None else "anonymous"
+    user_id = get_request_user_id(request)
     state = emotion_engine.get_state(user_id)
     
     scenarios = {
@@ -280,8 +276,7 @@ async def get_emotional_history(
     """
     Get recent emotional trigger history for user.
     """
-    _raw = request.cookies.get("semptify_uid", "anonymous")
-    user_id = str(_raw) if _raw is not None else "anonymous"
+    user_id = get_request_user_id(request)
     history = emotion_engine.user_history.get(user_id, [])
     
     return {

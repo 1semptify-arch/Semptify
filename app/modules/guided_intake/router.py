@@ -12,6 +12,7 @@ import logging
 
 from app.core.user_context import UserContext
 from app.core.security import get_current_user
+from app.core.request_utils import get_request_user_id
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -73,8 +74,7 @@ async def save_intake(
         )
         
         # Get user ID (from cookie if not authenticated)
-        _raw = request.cookies.get('semptify_uid', 'anonymous')
-        user_id = user.user_id if user else (str(_raw) if _raw is not None else 'anonymous')
+        user_id = user.user_id if user else get_request_user_id(request)
         
         # Store for user
         _intake_storage[user_id] = summary
@@ -105,7 +105,7 @@ async def get_intake_summary(
     user: Optional[UserContext] = Depends(get_current_user)
 ):
     """Get the user's intake summary if they've completed the guided intake."""
-    user_id = user.user_id if user else request.cookies.get('semptify_uid', 'anonymous')
+    user_id = user.user_id if user else get_request_user_id(request)
     summary = _intake_storage.get(user_id)
     
     if not summary:
@@ -127,7 +127,7 @@ async def get_intake_status(
     user: Optional[UserContext] = Depends(get_current_user)
 ):
     """Check if user has completed intake."""
-    user_id = user.user_id if user else request.cookies.get('semptify_uid', 'anonymous')
+    user_id = user.user_id if user else get_request_user_id(request)
     has_intake = user_id in _intake_storage
     
     return {
