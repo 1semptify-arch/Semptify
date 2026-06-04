@@ -1543,7 +1543,12 @@ async def initiate_oauth(
                 )
 
         # Keep returning-user reauth bound to the current browser cookie.
-        cookie_uid = request.cookies.get(COOKIE_USER_ID)
+        # cookie_uid is the raw signed value (user_id.hmac); existing_uid from the URL
+        # is the verified plain user_id (signature already stripped by verify_user_id).
+        # Compare the verified form of the cookie against existing_uid.
+        raw_cookie = request.cookies.get(COOKIE_USER_ID)
+        from app.core.cookie_auth import verify_user_id as _verify_uid
+        cookie_uid = _verify_uid(raw_cookie) if raw_cookie else None
         if existing_uid and cookie_uid and existing_uid != cookie_uid:
             # Ignore mismatched query input to prevent UID swapping attempts.
             existing_uid = None
@@ -2274,9 +2279,13 @@ async def rehome_device(
     2. User opens Rehome.html from their cloud storage
     3. Rehome.html redirects here with their user_id
     4. We verify their token exists in storage (proof of ownership)
-    5. Set cookie and redirect to app
+    5. Verify session is valid with provider
+    6. Mark storage_connected gate
+    7. Set cookie and redirect to app
     """
     from app.services.storage.vault_manager import get_vault_manager
+    from app.core.cookie_auth import set_auth_cookie
+    from app.modules.onboarding.gates import mark_gate
     
     # Validate user ID format
     provider, role, unique = parse_user_id(user_id)
@@ -2293,27 +2302,88 @@ async def rehome_device(
     # Try to load existing session from database to get access token
     session = await get_session_from_db(db, user_id)
     
-    if session:
-        # Have session - can verify token in storage
-        try:
-            from app.services.storage import get_provider
-            storage = get_provider(provider, access_token=session["access_token"])
-            vault = get_vault_manager(storage, user_id, str(request.base_url).rstrip("/"))
-            
-            # Verify token exists
-            if await vault.validate_token():
-                # Token valid! Register this device and set cookie
-                device_id = secrets.token_urlsafe(16)
-                user_agent = request.headers.get("User-Agent", "Unknown")
-                await vault.register_device(device_id, "Rehomed Device", user_agent)
-        except Exception as e:
-            # Token verification failed - but we have session, so allow anyway
-            pass
+    if not session:
+        # No session in DB - need full OAuth re-authentication
+        logger.warning("Rehome failed: no DB session for user=%s***", user_id[:4])
+        return HTMLResponse(content=_error_html(
+            "Session Not Found",
+            f"No active session found. Please reconnect your {provider_display} account to restore access."
+        ), status_code=401)
     
-    # Set the cookie and show success
+    # Verify session token is still valid with provider
+    access_token = session.get("access_token")
+    refresh_token = session.get("refresh_token")
+    
+    if not access_token:
+        logger.error("Rehome failed: no access token in session for user=%s***", user_id[:4])
+        return HTMLResponse(content=_error_html(
+            "Invalid Session",
+            "Session exists but has no access token. Please reconnect your storage."
+        ), status_code=401)
+    
+    # Validate token with provider
+    is_valid = await validate_token_with_provider(provider, access_token)
+    if not is_valid:
+        # Token expired or invalid - try refresh
+        if refresh_token:
+            logger.info("Rehome: token invalid, attempting refresh for user=%s***", user_id[:4])
+            new_token_data = await refresh_access_token(db, user_id, provider, refresh_token)
+            if new_token_data:
+                access_token = new_token_data.get("access_token")
+                is_valid = True
+            else:
+                logger.error("Rehome failed: token refresh failed for user=%s***", user_id[:4])
+                return HTMLResponse(content=_error_html(
+                    "Token Expired",
+                    f"Your {provider_display} session has expired and could not be refreshed. Please reconnect."
+                ), status_code=401)
+        else:
+            logger.error("Rehome failed: token invalid and no refresh token for user=%s***", user_id[:4])
+            return HTMLResponse(content=_error_html(
+                "Token Expired",
+                f"Your {provider_display} session has expired. Please reconnect."
+            ), status_code=401)
+    
+    # Verify token exists in cloud storage (proof of ownership)
+    try:
+        from app.services.storage import get_provider
+        storage = get_provider(provider, access_token=access_token)
+        vault = get_vault_manager(storage, user_id, str(request.base_url).rstrip("/"))
+        
+        if not await vault.validate_token():
+            logger.error("Rehome failed: token not found in cloud storage for user=%s***", user_id[:4])
+            return HTMLResponse(content=_error_html(
+                "Vault Not Found",
+                "Your vault could not be found in cloud storage. Please complete initial setup."
+            ), status_code=404)
+        
+        # Token valid! Register this device
+        device_id = secrets.token_urlsafe(16)
+        user_agent = request.headers.get("User-Agent", "Unknown")
+        await vault.register_device(device_id, "Rehomed Device", user_agent)
+        logger.info("Rehome: device registered for user=%s*** device_id=%s", user_id[:4], device_id[:8])
+        
+    except Exception as e:
+        logger.exception("Rehome failed: vault verification error for user=%s***: %s", user_id[:4], e)
+        return HTMLResponse(content=_error_html(
+            "Verification Failed",
+            f"Could not verify your vault in {provider_display}. Please try again or reconnect."
+        ), status_code=500)
+    
+    # Mark storage_connected gate as complete
+    try:
+        await mark_gate(db, user_id, "storage_connected")
+        logger.info("Rehome: storage_connected gate marked for user=%s***", user_id[:4])
+    except Exception as e:
+        logger.warning("Rehome: failed to mark storage_connected gate for user=%s***: %s", user_id[:4], e)
+    
+    # Set the auth cookie
     import os
     is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
     is_secure = False if is_localhost else True
+    set_auth_cookie(response, user_id, secure=is_secure)
+    
+    # Show success page
     response = HTMLResponse(content=f'''<!DOCTYPE html>
 <html>
 <head>
