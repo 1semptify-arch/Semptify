@@ -14,6 +14,9 @@ from typing import Optional
 from dataclasses import dataclass
 import json
 import logging
+
+from app.core.security import require_user, StorageUser, yellow_access
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/admin/workflow-validator", tags=["admin", "workflow"])
@@ -22,6 +25,7 @@ router = APIRouter(prefix="/admin/workflow-validator", tags=["admin", "workflow"
 @router.get("/", response_class=HTMLResponse)
 async def validator_dashboard(
     request: Request,
+    user: StorageUser = Depends(yellow_access),
     semptify_uid: Optional[str] = Cookie(None),
 ):
     """Visual dashboard showing workflow system state."""

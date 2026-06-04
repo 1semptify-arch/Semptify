@@ -12,6 +12,8 @@ from pydantic import BaseModel
 
 from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
+from app.core.security import require_user, StorageUser, yellow_access
+from fastapi import Depends
 import logging
 logger = logging.getLogger(__name__)
 
@@ -102,7 +104,9 @@ def scan_directory(base_path: Path, rel_prefix: str = "") -> List[FileInfo]:
 
 
 @router.get("/files", response_model=FileListResponse)
-async def list_files():
+async def list_files(
+    user: StorageUser = Depends(yellow_access),
+):
     """List all editable files in static and templates directories"""
     try:
         static_files = scan_directory(STATIC_PATH)
@@ -117,7 +121,10 @@ async def list_files():
 
 
 @router.get("/file")
-async def get_file(path: str = Query(..., description="File path relative to project root")):
+async def get_file(
+    path: str = Query(..., description="File path relative to project root"),
+    user: StorageUser = Depends(yellow_access),
+):
     """Get content of a specific file"""
     try:
         # Security: Ensure path is within project directory
@@ -156,7 +163,10 @@ async def get_file(path: str = Query(..., description="File path relative to pro
 
 
 @router.post("/save")
-async def save_file(request: SaveRequest):
+async def save_file(
+    request: SaveRequest,
+    user: StorageUser = Depends(yellow_access),
+):
     """Save content to a file"""
     try:
         # Security: Ensure path is within project directory
@@ -192,7 +202,10 @@ async def save_file(request: SaveRequest):
 
 
 @router.post("/preview")
-async def preview_file(request: SaveRequest):
+async def preview_file(
+    request: SaveRequest,
+    user: StorageUser = Depends(yellow_access),
+):
     """Generate preview of HTML content"""
     try:
         content = request.content
@@ -254,7 +267,8 @@ async def preview_file(request: SaveRequest):
 @router.get("/search")
 async def search_files(
     q: str = Query(..., min_length=2, description="Search query"),
-    type: Optional[str] = Query(None, description="File type filter")
+    type: Optional[str] = Query(None, description="File type filter"),
+    user: StorageUser = Depends(yellow_access),
 ):
     """Search files by name or content"""
     try:
