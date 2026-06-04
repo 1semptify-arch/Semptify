@@ -1,10 +1,11 @@
+import json
+import logging
 from dataclasses import dataclass
 from datetime import datetime
-import json
 from pathlib import Path
 from threading import Lock
-from app.core.id_gen import make_id
 
+from app.core.id_gen import make_id
 from app.core.utc import utc_now
 from app.models.functionx_models import (
     FunctionXActionSetCreate,
@@ -12,6 +13,8 @@ from app.models.functionx_models import (
     FunctionXActionSetSummary,
     FunctionXExecuteResponse,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -53,16 +56,15 @@ class FunctionXService:
                         status=item.get("status", "planned"),
                         created_at=datetime.fromisoformat(item["created_at"]),
                         last_executed_at=(
-                            datetime.fromisoformat(item["last_executed_at"])
-                            if item.get("last_executed_at")
-                            else None
+                            datetime.fromisoformat(item["last_executed_at"]) if item.get("last_executed_at") else None
                         ),
                     )
                     self._records[record.set_id] = record
-                except Exception:
+                except (KeyError, TypeError, ValueError) as exc:
+                    logger.warning("Skipping corrupt action set record: %s", exc)
                     continue
-        except Exception:
-            # Corrupt store should not break app startup.
+        except (json.JSONDecodeError, OSError) as exc:
+            logger.error("Failed to load action set store (starting fresh): %s", exc)
             self._records = {}
 
     def _save_records(self) -> None:
@@ -75,9 +77,7 @@ class FunctionXService:
                 "status": record.status,
                 "created_at": record.created_at.isoformat(),
                 "last_executed_at": (
-                    record.last_executed_at.isoformat()
-                    if record.last_executed_at is not None
-                    else None
+                    record.last_executed_at.isoformat() if record.last_executed_at is not None else None
                 ),
             }
             for record in self._records.values()

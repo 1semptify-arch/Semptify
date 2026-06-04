@@ -3,14 +3,14 @@ Semptify 5.0 - OneDrive Storage Provider
 Async OneDrive client using Microsoft Graph API.
 """
 
-from typing import Optional
-from app.core.utc import utc_now
-from datetime import datetime, timezone
-import json
+import logging
+from datetime import UTC, datetime
 
 import httpx
 
-from app.services.storage.base import StorageProvider, StorageFile
+from app.services.storage.base import StorageFile, StorageProvider
+
+logger = logging.getLogger(__name__)
 
 
 class OneDriveProvider(StorageProvider):
@@ -18,23 +18,23 @@ class OneDriveProvider(StorageProvider):
     OneDrive storage provider using Microsoft Graph API.
     Uses OAuth2 access token for API calls.
     """
-    
+
     GRAPH_URL = "https://graph.microsoft.com/v1.0"
-    
-    def __init__(self, access_token: str, refresh_token: Optional[str] = None):
+
+    def __init__(self, access_token: str, refresh_token: str | None = None):
         self.access_token = access_token
         self.refresh_token = refresh_token
-    
+
     @property
     def provider_name(self) -> str:
         return "onedrive"
-    
+
     def _headers(self) -> dict:
         return {
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json",
         }
-    
+
     async def is_connected(self) -> bool:
         """Check if OneDrive is accessible."""
         try:
@@ -45,27 +45,25 @@ class OneDriveProvider(StorageProvider):
                     timeout=10.0,
                 )
                 return response.status_code == 200
-        except Exception:
+        except Exception as exc:
+            logger.debug("OneDrive connectivity check failed: %s", exc)
             return False
-    
+
     def _encode_path(self, path: str) -> str:
         """Encode path for Graph API."""
         if not path or path == "/":
             return "root"
         path = path.strip("/")
         return f"root:/{path}:"
-    
+
     async def upload_file(
         self,
         file_content: bytes,
         destination_path: str,
         filename: str,
-        mime_type: Optional[str] = None,
+        mime_type: str | None = None,
     ) -> StorageFile:
         """Upload file to OneDrive AppFolder (Semptify app-specific folder)."""
-        import logging
-        logger = logging.getLogger(__name__)
-        
         # For small files (< 4MB), use simple upload
         if len(file_content) < 4 * 1024 * 1024:
             # Using AppFolder scope - files go to /Apps/Semptify/ folder
@@ -73,9 +71,9 @@ class OneDriveProvider(StorageProvider):
             path = f"{destination_path}/{filename}".strip("/")
             # AppFolder endpoint: /me/drive/special/approot:/path:/content
             url = f"{self.GRAPH_URL}/me/drive/special/approot:/{path}:/content"
-            
+
             logger.info(f"Uploading to OneDrive AppFolder: {path}")
-            
+
             async with httpx.AsyncClient() as client:
                 response = await client.put(
                     url,
@@ -86,9 +84,9 @@ class OneDriveProvider(StorageProvider):
                     content=file_content,
                     timeout=60.0,
                 )
-                
+
                 logger.info(f"OneDrive upload response: {response.status_code}")
-                
+
                 if response.status_code in (200, 201):
                     data = response.json()
                     return StorageFile(
@@ -97,9 +95,9 @@ class OneDriveProvider(StorageProvider):
                         path=f"/{path}",
                         size=data.get("size", len(file_content)),
                         mime_type=data.get("file", {}).get("mimeType", mime_type or "application/octet-stream"),
-                        modified_at=datetime.fromisoformat(
-                            data.get("lastModifiedDateTime", "").replace("Z", "+00:00")
-                        ) if data.get("lastModifiedDateTime") else utc_now(),
+                        modified_at=datetime.fromisoformat(data.get("lastModifiedDateTime", "").replace("Z", "+00:00"))
+                        if data.get("lastModifiedDateTime")
+                        else datetime.now(UTC),
                     )
                 else:
                     logger.error(f"OneDrive upload failed: {response.status_code} - {response.text}")
@@ -112,7 +110,7 @@ class OneDriveProvider(StorageProvider):
         path = file_path.strip("/")
         # Use AppFolder endpoint
         url = f"{self.GRAPH_URL}/me/drive/special/approot:/{path}:/content"
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 url,
@@ -120,27 +118,27 @@ class OneDriveProvider(StorageProvider):
                 follow_redirects=True,
                 timeout=60.0,
             )
-            
+
             if response.status_code == 200:
                 return response.content
-        
+
         raise Exception(f"Download failed: {file_path}")
-    
+
     async def delete_file(self, file_path: str) -> bool:
         """Delete file from OneDrive AppFolder."""
         path = file_path.strip("/")
         # Use AppFolder endpoint
         url = f"{self.GRAPH_URL}/me/drive/special/approot:/{path}"
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.delete(
                 url,
                 headers=self._headers(),
                 timeout=10.0,
             )
-            
+
             return response.status_code == 204
-    
+
     async def list_files(
         self,
         folder_path: str = "/",
@@ -148,21 +146,21 @@ class OneDriveProvider(StorageProvider):
     ) -> list[StorageFile]:
         """List files in OneDrive AppFolder."""
         files = []
-        
+
         # Use AppFolder endpoint (special/approot)
         if folder_path in ("/", ""):
             url = f"{self.GRAPH_URL}/me/drive/special/approot/children"
         else:
             path = folder_path.strip("/")
             url = f"{self.GRAPH_URL}/me/drive/special/approot:/{path}:/children"
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 url,
                 headers=self._headers(),
                 timeout=30.0,
             )
-            
+
             if response.status_code == 200:
                 data = response.json()
                 for item in data.get("value", []):
@@ -172,10 +170,12 @@ class OneDriveProvider(StorageProvider):
                         name=item["name"],
                         path=item.get("parentReference", {}).get("path", "") + "/" + item["name"],
                         size=item.get("size", 0),
-                        mime_type=item.get("file", {}).get("mimeType", "folder" if is_folder else "application/octet-stream"),
-                        modified_at=datetime.fromisoformat(
-                            item.get("lastModifiedDateTime", "").replace("Z", "+00:00")
-                        ) if item.get("lastModifiedDateTime") else utc_now(),
+                        mime_type=item.get("file", {}).get(
+                            "mimeType", "folder" if is_folder else "application/octet-stream"
+                        ),
+                        modified_at=datetime.fromisoformat(item.get("lastModifiedDateTime", "").replace("Z", "+00:00"))
+                        if item.get("lastModifiedDateTime")
+                        else datetime.now(UTC),
                         is_folder=is_folder,
                     )
                     files.append(storage_file)
@@ -197,17 +197,23 @@ class OneDriveProvider(StorageProvider):
                         data = response.json()
                         for item in data.get("value", []):
                             is_folder = "folder" in item
-                            files.append(StorageFile(
-                                id=item.get("id", ""),
-                                name=item["name"],
-                                path=item.get("parentReference", {}).get("path", "") + "/" + item["name"],
-                                size=item.get("size", 0),
-                                mime_type=item.get("file", {}).get("mimeType", "folder" if is_folder else "application/octet-stream"),
-                                modified_at=datetime.fromisoformat(
-                                    item.get("lastModifiedDateTime", "").replace("Z", "+00:00")
-                                ) if item.get("lastModifiedDateTime") else utc_now(),
-                                is_folder=is_folder,
-                            ))
+                            files.append(
+                                StorageFile(
+                                    id=item.get("id", ""),
+                                    name=item["name"],
+                                    path=item.get("parentReference", {}).get("path", "") + "/" + item["name"],
+                                    size=item.get("size", 0),
+                                    mime_type=item.get("file", {}).get(
+                                        "mimeType", "folder" if is_folder else "application/octet-stream"
+                                    ),
+                                    modified_at=datetime.fromisoformat(
+                                        item.get("lastModifiedDateTime", "").replace("Z", "+00:00")
+                                    )
+                                    if item.get("lastModifiedDateTime")
+                                    else datetime.now(UTC),
+                                    is_folder=is_folder,
+                                )
+                            )
                     else:
                         break
 
@@ -218,7 +224,7 @@ class OneDriveProvider(StorageProvider):
         path = file_path.strip("/")
         # Use AppFolder endpoint
         url = f"{self.GRAPH_URL}/me/drive/special/approot:/{path}"
-        
+
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
@@ -227,20 +233,21 @@ class OneDriveProvider(StorageProvider):
                     timeout=10.0,
                 )
                 return response.status_code == 200
-        except Exception:
+        except Exception as exc:
+            logger.debug("OneDrive file_exists check failed for %s: %s", file_path, exc)
             return False
-    
+
     async def create_folder(self, folder_path: str) -> bool:
         """Create folder in OneDrive AppFolder."""
         # Check if already exists
         if await self.file_exists(folder_path):
             return True
-        
+
         # Split path to get parent and folder name
         parts = folder_path.strip("/").split("/")
         folder_name = parts[-1]
         parent_path = "/".join(parts[:-1])
-        
+
         # Use AppFolder endpoint
         if parent_path:
             # Ensure parent exists
@@ -248,7 +255,7 @@ class OneDriveProvider(StorageProvider):
             url = f"{self.GRAPH_URL}/me/drive/special/approot:/{parent_path}:/children"
         else:
             url = f"{self.GRAPH_URL}/me/drive/special/approot/children"
-        
+
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 url,
@@ -260,6 +267,6 @@ class OneDriveProvider(StorageProvider):
                 },
                 timeout=10.0,
             )
-            
+
             # 409 = already exists (race condition), which is fine
             return response.status_code in (200, 201, 409)
