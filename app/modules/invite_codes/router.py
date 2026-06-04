@@ -19,6 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from app.core.database import get_db_session
+from app.core.request_utils import require_request_user_id
 from app.core.invite_codes import (
     create_invite_code,
     validate_invite_code,
@@ -124,10 +125,7 @@ async def redeem_code(
     This permanently associates the code with the user's account
     and grants them the specified role.
     """
-    _raw = request.cookies.get(COOKIE_USER_ID)
-    user_id = str(_raw) if _raw is not None else None
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_id = require_request_user_id(request)
     
     with get_db_session() as db:
         success, message, invite = redeem_invite_code(body.code, user_id, db)
@@ -161,10 +159,7 @@ async def create_code(
     from app.core.user_context import get_role_from_user_id, UserRole
     from app.models.models import User
     
-    _raw = request.cookies.get(COOKIE_USER_ID)
-    user_id = str(_raw) if _raw is not None else None
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_id = require_request_user_id(request)
     
     # Check permissions
     role = get_role_from_user_id(user_id)
@@ -210,10 +205,7 @@ async def list_codes(request: Request):
     from app.core.user_context import get_role_from_user_id, UserRole
     from app.models.models import User
     
-    _raw = request.cookies.get(COOKIE_USER_ID)
-    user_id = str(_raw) if _raw is not None else None
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_id = require_request_user_id(request)
     
     # Check permissions
     role = get_role_from_user_id(user_id)
@@ -256,10 +248,7 @@ async def delete_code(code: str, request: Request):
     """
     from app.core.user_context import get_role_from_user_id, UserRole
     
-    _raw = request.cookies.get(COOKIE_USER_ID)
-    user_id = str(_raw) if _raw is not None else None
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_id = require_request_user_id(request)
     
     # Check permissions
     role = get_role_from_user_id(user_id)
@@ -282,10 +271,7 @@ async def code_stats(code: str, request: Request):
     """
     from app.core.user_context import get_role_from_user_id, UserRole
     
-    _raw = request.cookies.get(COOKIE_USER_ID)
-    user_id = str(_raw) if _raw is not None else None
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    user_id = require_request_user_id(request)
     
     # Check permissions
     role = get_role_from_user_id(user_id)
