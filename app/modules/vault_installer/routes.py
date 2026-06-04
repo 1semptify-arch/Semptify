@@ -79,17 +79,34 @@ async def install_vault(
         access_token = session.get("access_token")
         logger.info(f"Provider: {provider}, Token exists: {'yes' if access_token else 'NO'}")
         
-        # Install vault folders only (fast, avoids Cloudflare timeout)
-        logger.info("Calling install_vault_folders_only...")
-        result = await install_vault_folders_only(
+        # Install the full vault structure and mark it active.
+        logger.info("Calling install_vault_for_user...")
+        result = await install_vault_for_user(
             db=db,
             user_id=user_id,
             provider_name=provider,
             access_token=access_token,
         )
-        logger.info(f"install_vault_folders_only result: success={result.get('success')}, folders={len(result.get('folders_created', []))}")
+        logger.info(f"install_vault_for_user result: success={result.get('success')}, folders={len(result.get('folders_created', []))}")
         
         if result["success"]:
+            # Mark vault_initialized — folders are confirmed created.
+            from app.modules.onboarding.gates import mark_gate, check_gate
+            await mark_gate(db, user_id, "vault_initialized")
+
+            # Mark document_uploaded if the user already has documents in vault
+            # (reconnect/reinstall scenario — they completed onboarding before).
+            already_has_docs = False
+            try:
+                from app.services.vault_upload_service import VaultUploadService
+                svc = VaultUploadService()
+                docs = await svc.get_user_documents(user_id)
+                if docs:
+                    await mark_gate(db, user_id, "document_uploaded")
+                    already_has_docs = True
+            except Exception as gate_exc:
+                logger.warning("document_uploaded gate check failed for %s: %s", user_id[:6] + "***", gate_exc)
+
             return JSONResponse(
                 status_code=200,
                 content={
@@ -97,7 +114,7 @@ async def install_vault(
                     "activation_code": result["activation_code"],
                     "folders_created": result["folders_created"],
                     "files_created": result["files_created"],
-                    "next_step": "Your vault is ready. Start uploading documents.",
+                    "next_step": "Your vault is ready. Start uploading documents." if not already_has_docs else "Vault reinstalled. Your documents are accessible.",
                 }
             )
         else:

@@ -181,15 +181,17 @@ async def upload_document(
     """
     Upload a document to the user's cloud storage vault.
 
-    The document is stored in the user's connected cloud storage (not on server):
-    - File: .semptify/vault/{document_id}.{ext}
-    - Certificate: .semptify/vault/certificates/cert_{document_id}.json
-    
+    SSOT: All uploads go through VaultUploadService — one pipeline, one index,
+    one certificate, one registry entry, one event bus. Never call storage
+    directly for document uploads.
+
     Requires:
     - User authenticated via storage OAuth
     - access_token: Current access token for user's storage provider
     """
-    # Validate file
+    if not HAS_VAULT_SERVICE:
+        raise HTTPException(status_code=503, detail="Vault service unavailable")
+
     if not file.filename:
         raise HTTPException(status_code=400, detail="Filename required")
 
@@ -199,11 +201,9 @@ async def upload_document(
             detail=f"File type not allowed. Allowed: {settings.allowed_extensions}",
         )
 
-    # Read file content
     content = await file.read()
     file_size = len(content)
 
-    # Check size limit
     max_size = settings.max_upload_size_mb * 1024 * 1024
     if file_size > max_size:
         raise HTTPException(
@@ -211,15 +211,7 @@ async def upload_document(
             detail=f"File too large. Maximum: {settings.max_upload_size_mb}MB",
         )
 
-    # Generate IDs and hash
-    document_id = make_id("doc")
-    sha256_hash = compute_sha256(content)
-
-    # Determine safe filename
-    ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "bin"
-    safe_filename = f"{document_id}.{ext}"
-
-    # Resolve real access token (form field may be "auto" placeholder from JS)
+    # Resolve real access token
     real_token = access_token
     if not real_token or real_token == "auto":
         real_token = getattr(user, "access_token", None)
@@ -235,113 +227,30 @@ async def upload_document(
             detail="Storage session expired. Please reconnect your storage.",
         )
 
-    # Get storage provider for user
-    try:
-        storage = get_provider(user.provider, access_token=real_token)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
 
-    # Ensure vault folders exist and upload file
     try:
-        await ensure_vault_folders(storage, user.provider)
-
-        # Upload file to user's storage
-        storage_path = f"{VAULT_DOCUMENTS}/{safe_filename}"
-        await storage.upload_file(
-            file_content=content,
-            destination_path=VAULT_DOCUMENTS,
-            filename=safe_filename,
+        vault_service = get_vault_service()
+        vault_doc = await vault_service.upload(
+            user_id=user.user_id,
+            filename=file.filename,
+            content=content,
             mime_type=file.content_type or "application/octet-stream",
+            document_type=document_type,
+            description=description,
+            tags=tags.split(",") if tags else [],
+            source_module="vault_router",
+            access_token=real_token,
+            storage_provider=provider_name,
         )
     except Exception as e:
-        # Storage authentication or access errors
         error_msg = str(e)
         if "401" in error_msg or "Unauthorized" in error_msg or "access" in error_msg.lower():
             raise HTTPException(status_code=401, detail=f"Storage authentication failed: {error_msg}")
         elif "403" in error_msg or "Forbidden" in error_msg:
             raise HTTPException(status_code=403, detail=f"Storage access denied: {error_msg}")
         else:
-            raise HTTPException(status_code=500, detail=f"Storage error: {error_msg}")
-
-    # Create certificate
-    certificate_id = make_id("cert")
-    certificate = {
-        "certificate_id": certificate_id,
-        "document_id": document_id,
-        "sha256": sha256_hash,
-        "original_filename": file.filename,
-        "file_size": file_size,
-        "mime_type": file.content_type or "application/octet-stream",
-        "document_type": document_type,
-        "description": description,
-        "tags": tags.split(",") if tags else [],
-        "certified_at": datetime.now(timezone.utc).isoformat(),
-        "request_id": make_id("req"),
-        "storage_path": storage_path,
-        "storage_provider": user.provider,
-        "user_id": user.user_id,
-        "version": "5.0",
-        "platform": "Semptify FastAPI Cloud Storage",
-    }
-
-    # Upload certificate to user's storage
-    cert_content = json.dumps(certificate, indent=2).encode("utf-8")
-    try:
-        await storage.upload_file(
-            file_content=cert_content,
-            destination_path=VAULT_CERTIFICATES,
-            filename=f"{certificate_id}.json",
-            mime_type="application/json",
-        )
-    except Exception as e:
-        # Certificate upload failed, but file was already uploaded
-        # Log this but don't fail the request
-        logger.warning(f"Certificate upload failed for {document_id}: {e}")
-
-    # Create overlay for safe processing (original never touched)
-    overlay_id = None
-    try:
-        from app.services.unified_overlay_manager import UnifiedOverlayManager
-        from app.models.unified_overlay_models import CreateOverlayRequest
-        from app.core.overlay_types import OverlayType
-        overlay_mgr = UnifiedOverlayManager(storage, user.user_id)
-        overlay_resp = await overlay_mgr.create_overlay(CreateOverlayRequest(
-            overlay_type=OverlayType.VAULT_UPLOAD_MANIFEST,
-            document_id=document_id,
-            vault_path=storage_path,
-            payload={
-                "original_filename": file.filename,
-                "mime_type": file.content_type or "application/octet-stream",
-                "file_size_bytes": file_size,
-                "content_hash": sha256_hash,
-                "storage_provider": user.provider,
-            },
-        ))
-        if overlay_resp.success:
-            overlay_id = overlay_resp.overlay_id
-        # Store overlay ID in certificate for reference
-        certificate["overlay_id"] = overlay_id
-        
-        # Auto-extract timeline events from document and persist to user's timeline storage
-        try:
-            from app.services.timeline_extraction import extract_timeline_from_upload
-            provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
-            timeline_events = await extract_timeline_from_upload(
-                document_id=document_id,
-                overlay_id=overlay_id,
-                provider=provider_name,
-                access_token=real_token,  # Use resolved token, not raw parameter
-            )
-            certificate["timeline_events_extracted"] = len(timeline_events)
-        except Exception as e:
-            # Timeline extraction failed, but upload succeeded
-            # Log and continue - can re-extract later
-            certificate["timeline_events_extracted"] = 0
-            
-    except Exception as e:
-        # Overlay creation failed, but document is safely stored
-        # Log and continue - overlay can be created later
-        logger.warning(f"Overlay creation failed for {document_id}: {e}")
+            raise HTTPException(status_code=500, detail=f"Upload failed: {error_msg}")
 
     function_token = issue_function_access_token(
         user.user_id,
@@ -349,102 +258,22 @@ async def upload_document(
             "provider": user.provider,
             "reason": "vault_upload",
             "scopes": ["overlay:read", "overlay:write"],
-            "document_ids": [document_id],
+            "document_ids": [vault_doc.vault_id],
         },
     )
 
-    # Generate preview and thumbnail (async, non-blocking)
-    if HAS_PREVIEW_GENERATOR:
-        try:
-            # Submit thumbnail generation job
-            job_id = submit_thumbnail_generation_job(
-                document_id=document_id,
-                page_numbers=[1],  # Generate first page thumbnail
-                user_id=user.user_id
-            )
-            logger.info(f"Submitted thumbnail generation job {job_id} for document {document_id}")
-            
-            # Also submit document analysis job
-            analysis_job_id = submit_document_analysis_job(
-                document_id=document_id,
-                analysis_type="basic",
-                user_id=user.user_id
-            )
-            logger.info(f"Submitted document analysis job {analysis_job_id} for document {document_id}")
-            
-        except Exception as e:
-            logger.warning(f"Preview generation failed for {document_id}: {e}")
-
-    # =============================================================================
-    # TRIGGER MESH WORKFLOW BASED ON DOCUMENT TYPE
-    # =============================================================================
-    try:
-        from app.core.positronic_mesh import positronic_mesh, WorkflowType
-        import asyncio
-        
-        # Determine workflow type from document_type or content hints
-        workflow_type = None
-        trigger_context = {
-            "document_id": document_id,
-            "certificate_id": certificate_id,
-            "filename": file.filename,
-            "mime_type": file.content_type,
-            "document_type": document_type,
-            "overlay_id": overlay.overlay_id if overlay else None,
-            "timeline_events_count": certificate.get("timeline_events_extracted", 0),
-        }
-        
-        # Map document types to workflows
-        if document_type in ("eviction_notice", "summons", "court_order"):
-            workflow_type = WorkflowType.EVICTION_DEFENSE
-        elif document_type in ("lease", "rental_agreement"):
-            workflow_type = WorkflowType.LEASE_ANALYSIS
-        elif document_type in ("hearing_notice", "motion", "evidence_list"):
-            workflow_type = WorkflowType.COURT_PREP
-        
-        # Also check filename for hints if no explicit type
-        if not workflow_type and file.filename:
-            fname_lower = file.filename.lower()
-            if any(word in fname_lower for word in ("evict", "notice", "summons", "quit")):
-                workflow_type = WorkflowType.EVICTION_DEFENSE
-            elif any(word in fname_lower for word in ("lease", "rental", "agreement")):
-                workflow_type = WorkflowType.LEASE_ANALYSIS
-            elif any(word in fname_lower for word in ("hearing", "court", "motion")):
-                workflow_type = WorkflowType.COURT_PREP
-        
-        if workflow_type:
-            # Start workflow async (non-blocking to response)
-            asyncio.create_task(
-                positronic_mesh.start_workflow(
-                    workflow_type=workflow_type,
-                    user_id=user.user_id,
-                    trigger="document_upload",
-                    initial_context=trigger_context,
-                )
-            )
-            logger.info(f"🚀 Triggered {workflow_type.value} workflow for document {document_id}")
-            certificate["mesh_workflow_triggered"] = workflow_type.value
-        else:
-            certificate["mesh_workflow_triggered"] = None
-            
-    except Exception as e:
-        # Workflow trigger failed but upload succeeded - log and continue
-        logger.warning(f"Mesh workflow trigger failed for {document_id}: {e}")
-        certificate["mesh_workflow_triggered"] = "error"
-
-    # Build response
     return DocumentResponse(
-        id=document_id,
-        filename=safe_filename,
-        original_filename=file.filename,
-        file_size=file_size,
-        mime_type=file.content_type or "application/octet-stream",
-        sha256_hash=sha256_hash,
-        certificate_id=certificate_id,
-        uploaded_at=datetime.now(timezone.utc).isoformat(),
-        document_type=document_type,
-        storage_provider=user.provider,
-        storage_path=storage_path,
+        id=vault_doc.vault_id,
+        filename=vault_doc.safe_filename or vault_doc.vault_id,
+        original_filename=vault_doc.filename,
+        file_size=vault_doc.file_size,
+        mime_type=vault_doc.mime_type,
+        sha256_hash=vault_doc.sha256_hash,
+        certificate_id=vault_doc.certificate_id or "",
+        uploaded_at=vault_doc.uploaded_at.isoformat() if vault_doc.uploaded_at else utc_now().isoformat(),
+        document_type=vault_doc.document_type,
+        storage_provider=provider_name,
+        storage_path=vault_doc.storage_path or "",
         function_token=function_token["token"],
         function_token_expires_at=function_token["expires_at"],
         function_token_reverify_in_seconds=function_token["reverify_in_seconds"],
@@ -1538,8 +1367,14 @@ async def vault_status(user: StorageUser = Depends(yellow_access)):
 async def vault_init(user: StorageUser = Depends(yellow_access), db: AsyncSession = Depends(get_db)):
     """
     Create the Semptify vault folder structure in the user's cloud storage.
-    Called once during onboarding vault-setup. Idempotent — safe to call again.
-    Marks vault_initialized gate after successful folder creation.
+    Called once during onboarding vault-setup Step 1. Idempotent — safe to call again.
+
+    SSOT RULE: This endpoint creates folders ONLY.
+    vault_initialized gate is NOT marked here.
+    It is marked by POST /onboarding/api/vault/verify (Step 3) only after:
+      1. Folders created (this step)
+      2. Token backup written (Step 2)
+      3. Live write/read probe passed + document uploaded through pipeline
     """
     try:
         from app.core.oauth_token_manager import get_valid_token_for_user as _get_token
@@ -1557,31 +1392,11 @@ async def vault_init(user: StorageUser = Depends(yellow_access), db: AsyncSessio
     try:
         storage = get_provider(user.provider, access_token=access_token)
         await ensure_vault_folders(storage, user.provider)
+        logger.info("Vault folders created for user=%s — awaiting Steps 2+3 to mark gate", user.user_id[:6] + "***")
     except Exception as exc:
         raise HTTPException(
             status_code=502,
             detail={"error": "folder_init_failed", "message": str(exc)},
-        )
-
-    # Mark vault_initialized gate in database via canonical gate writer.
-    # CRITICAL: if this fails, raise — the user will loop forever in onboarding
-    # if the gate is not written. Folders were created; the DB write must succeed.
-    try:
-        from app.modules.onboarding.gates import mark_gate
-        await mark_gate(db, user.user_id, "vault_initialized")
-        logger.info("vault_initialized gate set for user=%s", user.user_id[:6] + "***")
-    except Exception as exc:
-        logger.error(
-            "CRITICAL: vault folders created but vault_initialized gate write failed "
-            "for user=%s: %s — raising 500 to prevent silent loop",
-            user.user_id[:6] + "***", exc,
-        )
-        raise HTTPException(
-            status_code=500,
-            detail={
-                "error": "gate_write_failed",
-                "message": "Vault folders were created but the completion record could not be saved. Please try again.",
-            },
         )
 
     return {"ok": True, "message": "Vault folders created", "provider": user.provider.value if hasattr(user.provider, 'value') else str(user.provider)}
