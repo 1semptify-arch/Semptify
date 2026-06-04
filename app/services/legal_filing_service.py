@@ -1,11 +1,9 @@
-
-from typing import List
-from pathlib import Path
 import json
-from datetime import date
+import logging
+from pathlib import Path
 
 from app.models.legal_filing_models import LegalCase
-import logging
+
 logger = logging.getLogger(__name__)
 
 DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "legal_filings"
@@ -23,7 +21,7 @@ def _evidence_file(case_id: str) -> Path:
 
 def save_case(case: LegalCase) -> LegalCase:
     p = _case_file(case.case_id)
-    p.write_text(case.model_dump_json(), encoding='utf-8')
+    p.write_text(case.model_dump_json(), encoding="utf-8")
     return case
 
 
@@ -32,11 +30,12 @@ def save_evidence(case_id: str, evidence) -> dict:
     entries = []
     if p.exists():
         try:
-            entries = json.loads(p.read_text(encoding='utf-8'))
-        except Exception:
+            entries = json.loads(p.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError) as exc:
+            logger.warning("Failed to read existing evidence for case %s, starting fresh: %s", case_id, exc)
             entries = []
     entries.append(evidence.model_dump())
-    p.write_text(json.dumps(entries, default=str), encoding='utf-8')
+    p.write_text(json.dumps(entries, default=str), encoding="utf-8")
     return evidence.model_dump()
 
 
@@ -44,15 +43,16 @@ def load_case(case_id: str) -> LegalCase:
     p = _case_file(case_id)
     if not p.exists():
         raise FileNotFoundError(f"Case {case_id} not found")
-    return LegalCase.model_validate_json(p.read_text(encoding='utf-8'))
+    return LegalCase.model_validate_json(p.read_text(encoding="utf-8"))
 
 
-def list_cases() -> List[LegalCase]:
+def list_cases() -> list[LegalCase]:
     cases = []
-    for f in DATA_DIR.glob('case_*.json'):
+    for f in DATA_DIR.glob("case_*.json"):
         try:
-            cases.append(LegalCase.model_validate_json(f.read_text(encoding='utf-8')))
-        except Exception:
+            cases.append(LegalCase.model_validate_json(f.read_text(encoding="utf-8")))
+        except (json.JSONDecodeError, OSError, ValueError) as exc:
+            logger.warning("Skipping corrupt case file %s: %s", f.name, exc)
             continue
     return cases
 
@@ -63,10 +63,10 @@ def list_evidence(case_id: str) -> list:
         return []
 
     try:
-        entries = json.loads(p.read_text(encoding='utf-8'))
+        entries = json.loads(p.read_text(encoding="utf-8"))
         if not isinstance(entries, list):
             return []
         return entries
-    except Exception:
+    except (json.JSONDecodeError, OSError) as exc:
+        logger.warning("Failed to read evidence for case %s: %s", case_id, exc)
         return []
-
