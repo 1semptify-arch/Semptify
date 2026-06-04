@@ -270,7 +270,7 @@ async def upload_document(
         mime_type=vault_doc.mime_type,
         sha256_hash=vault_doc.sha256_hash,
         certificate_id=vault_doc.certificate_id or "",
-        uploaded_at=vault_doc.uploaded_at.isoformat() if vault_doc.uploaded_at else utc_now().isoformat(),
+        uploaded_at=(vault_doc.uploaded_at.isoformat() if hasattr(vault_doc.uploaded_at, "isoformat") else vault_doc.uploaded_at) if vault_doc.uploaded_at else utc_now().isoformat(),
         document_type=vault_doc.document_type,
         storage_provider=provider_name,
         storage_path=vault_doc.storage_path or "",
