@@ -12,6 +12,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 from dataclasses import dataclass, asdict
 
+from app.core.config import get_settings
+
 logger = logging.getLogger(__name__)
 
 @dataclass

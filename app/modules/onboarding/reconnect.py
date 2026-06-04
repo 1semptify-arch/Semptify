@@ -56,7 +56,7 @@ async def reconnect_storage(
     Owned by the onboarding module — reconnect is a gate enforcement concern,
     not a storage infrastructure concern.
     """
-    from app.services.storage import get_valid_session
+    from app.modules.storage.router import get_valid_session
 
     raw_uid = verify_user_id(semptify_uid) if semptify_uid else None
 
