@@ -1,3 +1,15 @@
+# =============================================================================
+# SSOT: app/services/vault_upload_service.py — CANONICAL UPLOAD SERVICE
+# AI RULES — READ BEFORE EDITING:
+#   1. This is the ONE upload handler. Never create vault_upload_service_v2.py
+#      or any parallel upload service.
+#   2. Put ALL implementation edits in _vault_upload_service_impl.py if using
+#      the shim pattern; otherwise edit this file directly.
+#   3. NEVER implement document upload logic in any router, module, or service
+#      other than this file.
+#   4. All folder paths come from app/core/vault_paths.py — never hardcode.
+#   5. Gate marking is done by app/modules/onboarding/gates.py — never here.
+# =============================================================================
 """
 Vault Upload Service - Centralized Document Upload Handler
 
@@ -653,30 +665,10 @@ class VaultUploadService:
         # Add to index (now with registry info if available)
         await self.index.add(doc)
 
-        # SSOT ENFORCEMENT: Only certified documents may receive overlays.
-        # A document is certified when it has a registry_id and integrity_status == "verified".
-        # Uncertified documents are stored but invisible to all downstream Semptify processes.
-        if doc.is_certified:
-            await self._create_unified_overlay(
-                doc,
-                overlay_type=OverlayType.VAULT_UPLOAD_MANIFEST,
-                payload={
-                    "sha256_hash": doc.sha256_hash,
-                    "file_size": doc.file_size,
-                    "mime_type": doc.mime_type,
-                    "storage_path": doc.storage_path,
-                    "certificate_id": doc.certificate_id,
-                    "source_module": doc.source_module,
-                },
-                metadata={"stage": "upload"},
-                access_token=access_token,
-                storage_provider=storage_provider,
-            )
-        else:
-            logger.warning(
-                "Document %s is uncertified — overlays blocked until registration completes.", vault_id
-            )
-        
+        # Overlays are created on-demand by the requesting process — NOT here.
+        # Upload stores the document, certifies it, and indexes it. That is all.
+        # Any module that needs an overlay calls UnifiedOverlayManager directly.
+
         logger.info("📁 Document uploaded to vault: %s (%s) via %s", vault_id, filename, source_module)
         
         # Emit event for other modules
@@ -952,3 +944,68 @@ def get_vault_service() -> VaultUploadService:
         # Use global assignment instead of global statement
         globals()['_vault_service'] = VaultUploadService()
     return _vault_service
+
+
+# =============================================================================
+# Module Contracts — registered at import time, visible in contract browser
+# =============================================================================
+try:
+    from app.core.module_contracts import FunctionGroupContract, register_function_group
+
+    register_function_group(FunctionGroupContract(
+        module="vault",
+        group_name="vault_upload",
+        title="Document Vault Upload (SSOT)",
+        description=(
+            "CANONICAL upload handler. All document ingestion goes through VaultUploadService.upload(). "
+            "Pipeline: validate → deduplicate (SHA256) → store to cloud → certificate → registry (get registry_id) → emit event. "
+            "VAULT DOES NOT: create overlays, trigger intake, run analysis, or start workflows. "
+            "Overlays are created on-demand by the requesting process. "
+            "Intake/analysis is triggered by the caller after upload returns. "
+            "No other service may implement upload logic."
+        ),
+        inputs=("user_id", "filename", "content", "mime_type", "access_token", "storage_provider"),
+        outputs=("vault_id", "registry_id", "certificate_id", "provider_file_id", "storage_path"),
+        dependencies=(
+            "app.services.vault_upload_service",
+            "app.core.vault_paths.VAULT_DOCUMENTS",
+            "app.core.vault_paths.VAULT_CERTIFICATES",
+        ),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="vault",
+        group_name="vault_folders",
+        title="Vault Folder Structure (SSOT)",
+        description=(
+            "All vault folder paths come from app/core/vault_paths.py. "
+            "NEVER hardcode Semptify5.0/ paths. NEVER duplicate these constants."
+        ),
+        inputs=("user_id", "access_token", "provider"),
+        outputs=("CANONICAL_VAULT_FOLDERS",),
+        dependencies=("app.core.vault_paths",),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="vault",
+        group_name="vault_init",
+        title="Vault Initialization (Folder Creation)",
+        description=(
+            "Creates canonical vault folder structure in user cloud storage. "
+            "Used by onboarding (Step 1). vault_initialized gate MUST only be "
+            "marked by vault_verify() after ALL three onboarding steps pass — "
+            "never by install_vault_for_user() or any intermediate step."
+        ),
+        inputs=("user_id", "access_token", "provider"),
+        outputs=("folders_created", "activation_code"),
+        dependencies=(
+            "app.sdk.vault.client.VaultClient",
+            "app.core.vault_paths.CANONICAL_VAULT_FOLDERS",
+            "app.modules.onboarding.gates.mark_gate",
+        ),
+        deterministic=True,
+    ))
+except Exception:
+    pass

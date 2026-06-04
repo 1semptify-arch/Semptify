@@ -11,7 +11,7 @@ Routes:
   GET  {prefix}/vault-setup/inspect  → vault inspect page (step 3: final check)
   POST {prefix}/api/vault/init       → create vault folders
   POST {prefix}/api/vault/security   → write token backup
-  GET  {prefix}/api/vault/verify     → verify vault folders
+  POST {prefix}/api/vault/verify     → live probe + document upload → marks both final gates
   GET  {prefix}/api/vault/status     → check user auth status
   GET  {prefix}/complete             → route to product home
   GET  {prefix}/status               → gate status check page
@@ -272,25 +272,39 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         return HTMLResponse(content=_render_vault_step3(config))
 
     # ------------------------------------------------------------------
-    # API: Vault Status
+    # API: Vault Status — single source, used by vault_status_poll.js
     # ------------------------------------------------------------------
     @router.get("/api/vault/status")
     async def vault_status(
         user: StorageUser = Depends(green_access),
         db: AsyncSession = Depends(get_db),
     ):
-        """Check vault installation status."""
-        from app.modules.onboarding.gates import check_gate
-        
-        vault_initialized = await check_gate(db, user.user_id, "vault_initialized")
-        
-        return {
-            "vault_installed": vault_initialized,
-            "storage_connected": True,
-            "provider": user.provider.value if hasattr(user.provider, 'value') else str(user.provider),
-            "message": "Vault ready for use" if vault_initialized else "Vault setup required",
-            "next_action": "use_vault" if vault_initialized else "run_vault_setup",
-        }
+        """Return vault gate state for UI polling.
+
+        Returns vault_initialized, document_uploaded, and document_count.
+        vault_status_poll.js watches both gates before redirecting to /complete.
+        """
+        try:
+            from app.modules.onboarding.gates import check_gate
+            from app.services.vault_upload_service import VaultUploadService
+
+            vault_initialized = await check_gate(db, user.user_id, "vault_initialized")
+            document_uploaded = await check_gate(db, user.user_id, "document_uploaded")
+
+            svc = VaultUploadService()
+            docs = await svc.get_user_documents(user.user_id)
+            document_count = len(docs) if docs is not None else 0
+
+            return {
+                "vault_initialized": bool(vault_initialized),
+                "document_uploaded": bool(document_uploaded),
+                "document_count": document_count,
+                "storage_connected": True,
+                "provider": user.provider.value if hasattr(user.provider, "value") else str(user.provider),
+            }
+        except Exception as e:
+            logger.warning("vault_status error for user %s: %s", user.user_id[:6] + "***", str(e))
+            return {"vault_initialized": False, "document_uploaded": False, "document_count": 0}
 
     # ------------------------------------------------------------------
     # API: Initialize Vault — Step 1: Folders + seed files only
@@ -562,36 +576,6 @@ def create_router(config: OnboardingConfig) -> APIRouter:
         }
 
 
-        # ------------------------------------------------------------------
-        # API: Vault Status — lightweight status for frontend polling
-        # ------------------------------------------------------------------
-        @router.get("/api/vault/status")
-        async def vault_status(
-            user: StorageUser = Depends(green_access),
-            db: AsyncSession = Depends(get_db),
-        ):
-            """Return minimal onboarding vault state for UI polling.
-
-            Returns: `vault_initialized`, `document_uploaded`, `document_count`.
-            """
-            try:
-                from app.modules.onboarding.gates import check_gate
-                from app.services.vault_upload_service import VaultUploadService
-
-                vault_initialized = await check_gate(db, user.user_id, "vault_initialized")
-                document_uploaded = await check_gate(db, user.user_id, "document_uploaded")
-
-                svc = VaultUploadService()
-                docs = await svc.get_user_documents(user.user_id)
-
-                return {
-                    "vault_initialized": bool(vault_initialized),
-                    "document_uploaded": bool(document_uploaded),
-                    "document_count": len(docs) if docs is not None else 0,
-                }
-            except Exception as e:
-                logger.warning("vault_status error for user %s: %s", getattr(user, 'user_id', 'unknown'), str(e))
-                return {"vault_initialized": False, "document_uploaded": False, "document_count": 0}
 
     # ------------------------------------------------------------------
     # API: System Verification — Final health check before completion
