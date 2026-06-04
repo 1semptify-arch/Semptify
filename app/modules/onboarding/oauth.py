@@ -134,11 +134,11 @@ async def consume_oauth_state(db: AsyncSession, state: str) -> dict:
 # OAuth Initiation
 # ============================================================================
 
-def build_oauth_url(config: OnboardingConfig, provider: str, state: str, callback_url: str) -> str:
+def build_oauth_url(config: OnboardingConfig, provider: str, state: str, callback_url: str, force_fresh: bool = False) -> str:
     """
     Build the provider-specific OAuth authorization URL.
     """
-    logger.info("build_oauth_url: provider=%s state=%s callback=%s", provider, state[:12] + "***", callback_url)
+    logger.info("build_oauth_url: provider=%s state=%s callback=%s force_fresh=%s", provider, state[:12] + "***", callback_url, force_fresh)
     
     try:
         settings = get_settings()
@@ -157,6 +157,7 @@ def build_oauth_url(config: OnboardingConfig, provider: str, state: str, callbac
     if provider == "google_drive":
         if not settings.google_drive_client_id:
             raise ValueError("Google Drive client ID not configured")
+        prompt_value = "consent select_account" if force_fresh else "consent"
         params = {
             "client_id": settings.google_drive_client_id,
             "redirect_uri": callback_url,
@@ -164,7 +165,7 @@ def build_oauth_url(config: OnboardingConfig, provider: str, state: str, callbac
             "scope": " ".join(oauth_config["scopes"]),
             "state": state,
             "access_type": "offline",
-            "prompt": "consent",
+            "prompt": prompt_value,
         }
     elif provider == "dropbox":
         if not settings.dropbox_app_key:
@@ -459,6 +460,8 @@ async def handle_onboarding_callback(
     provider_subject = identity["provider_subject"]
 
     # 4. Find or create user
+    # find_or_create_user matches by provider subject — returning users reuse their account.
+    # force_fresh is only True when explicitly requested (e.g. "Switch Account" button).
     user_id, is_new = await find_or_create_user(db, provider, provider_subject, role, state_data)
 
     # 5. Save session + cache token
@@ -470,15 +473,18 @@ async def handle_onboarding_callback(
     # Vault installation now happens on vault-setup page (async, with loading screen)
     # Do NOT install here — it blocks the HTTP response and creates poor UX
 
-    # 7. Determine routing — always route to vault-setup page for first-time setup
-    # This shows loading screen with "Did you know" facts during folder creation
+    # 7. Determine routing — check actual gate state
+    # New users go to vault-setup; returning users who already completed vault go to /home.
+    from app.modules.onboarding.gates import check_gate as _check_gate
+    vault_initialized = await _check_gate(db, user_id, "vault_initialized")
+
     logger.info(
-        "Onboarding callback complete: user=%s new=%s → vault-setup page",
-        user_id[:6] + "***", is_new,
+        "Onboarding callback complete: user=%s new=%s vault_initialized=%s",
+        user_id[:6] + "***", is_new, vault_initialized,
     )
 
     return {
         "user_id": user_id,
         "is_new": is_new,
-        "vault_initialized": False,  # Force vault-setup page for first-time users
+        "vault_initialized": vault_initialized,
     }
