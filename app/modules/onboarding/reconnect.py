@@ -17,7 +17,6 @@ Flow:
 
 import json as _json
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, Cookie, Depends, Query, Request
 from fastapi.responses import HTMLResponse
@@ -26,9 +25,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import get_settings
 from app.core.cookie_auth import verify_user_id
 from app.core.database import get_db
-from app.core.navigation import navigation
 from app.core.ssot_guard import ssot_redirect
-from app.core.user_id import parse_user_id, get_provider_from_user_id
+from app.core.user_id import get_provider_from_user_id, parse_user_id
 from app.core.workflow_engine import route_user as _route_user
 
 logger = logging.getLogger(__name__)
@@ -45,9 +43,9 @@ OAUTH_CONFIGS = {
 @router.get("/storage/reconnect", response_class=HTMLResponse)
 async def reconnect_storage(
     request: Request,
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
-    return_to: Optional[str] = Query(None),
+    return_to: str | None = Query(None),
 ):
     """
     Reconnect page for returning users whose storage token has expired.
@@ -65,7 +63,7 @@ async def reconnect_storage(
         safe_return_to = return_to
 
     if raw_uid:
-        provider, _, _ = parse_user_id(raw_uid)
+        provider, role, _ = parse_user_id(raw_uid)
 
         session = await get_valid_session(db, raw_uid, auto_refresh=True)
         if session:
@@ -74,9 +72,15 @@ async def reconnect_storage(
             return ssot_redirect(landing, context="reconnect session valid")
 
         if provider and provider in OAUTH_CONFIGS:
-            logger.info("Reconnect: silent re-auth for user=%s provider=%s return_to=%s",
-                        raw_uid[:4] + "***", provider, safe_return_to)
+            logger.info(
+                "Reconnect: silent re-auth for user=%s provider=%s return_to=%s",
+                raw_uid[:4] + "***",
+                provider,
+                safe_return_to,
+            )
             auth_url = f"/storage/auth/{provider}?existing_uid={raw_uid}"
+            if role:
+                auth_url += f"&role={role}"
             if safe_return_to:
                 auth_url += f"&return_to={safe_return_to}"
             return ssot_redirect(auth_url, context="reconnect silent reauth")
@@ -88,7 +92,8 @@ async def reconnect_storage(
 # HTML generation
 # ---------------------------------------------------------------------------
 
-def _reconnect_html(existing_uid: Optional[str] = None, return_to: Optional[str] = None) -> str:
+
+def _reconnect_html(existing_uid: str | None = None, return_to: str | None = None) -> str:
     """Generate the reconnect page HTML."""
     settings = get_settings()
 
@@ -96,14 +101,14 @@ def _reconnect_html(existing_uid: Optional[str] = None, return_to: Optional[str]
 
     PROVIDER_CONFIG = {
         "google_drive": ("📁", "Google Drive", settings.google_drive_client_id),
-        "dropbox":      ("☁️", "Dropbox",       settings.dropbox_app_key),
-        "onedrive":     ("🔵", "OneDrive",      settings.onedrive_client_id),
+        "dropbox": ("☁️", "Dropbox", settings.dropbox_app_key),
+        "onedrive": ("🔵", "OneDrive", settings.onedrive_client_id),
     }
 
     if known_provider and known_provider in PROVIDER_CONFIG:
         icon, name, enabled = PROVIDER_CONFIG[known_provider]
         if enabled:
-            auto_redirect = f'''
+            auto_redirect = f"""
             <div id="reconnecting-msg" style="text-align:center;padding:2rem;">
                 <div style="font-size:3rem;margin-bottom:1rem;">🔄</div>
                 <h3>Reconnecting to {name}...</h3>
@@ -112,14 +117,14 @@ def _reconnect_html(existing_uid: Optional[str] = None, return_to: Optional[str]
             <script>
                 setTimeout(function() {{ reconnect('{known_provider}'); }}, 1500);
             </script>
-            '''
+            """
             other_buttons = "".join(
                 f'<button class="btn btn-secondary" onclick="reconnect(\'{pid}\')">'
                 f'<span class="btn-icon">{picon}</span><div><small>Use {pname} instead</small></div></button>'
                 for pid, (picon, pname, penabled) in PROVIDER_CONFIG.items()
                 if pid != known_provider and penabled
             )
-            providers_html = auto_redirect + '<div style="margin-top:1rem;opacity:0.8;">' + other_buttons + '</div>'
+            providers_html = auto_redirect + '<div style="margin-top:1rem;opacity:0.8;">' + other_buttons + "</div>"
         else:
             providers_html = _all_provider_buttons(PROVIDER_CONFIG)
     else:
@@ -128,7 +133,7 @@ def _reconnect_html(existing_uid: Optional[str] = None, return_to: Optional[str]
     existing_uid_js = _json.dumps(existing_uid)
     return_to_js = _json.dumps(return_to)
 
-    return f'''<!DOCTYPE html>
+    return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -205,7 +210,7 @@ def _reconnect_html(existing_uid: Optional[str] = None, return_to: Optional[str]
         }}
     </script>
 </body>
-</html>'''
+</html>"""
 
 
 def _all_provider_buttons(provider_config: dict) -> str:
