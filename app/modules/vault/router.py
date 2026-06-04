@@ -150,7 +150,7 @@ def compute_sha256(file_content: bytes) -> str:
 def is_allowed_extension(filename: str, settings: Settings) -> bool:
     """Check if file extension is allowed."""
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
-    return ext in settings.allowed_extensions_set
+    return ext in {e.strip().lower() for e in settings.allowed_extensions.split(",")}
 
 
 async def ensure_vault_folders(storage, provider_name: str) -> None:
