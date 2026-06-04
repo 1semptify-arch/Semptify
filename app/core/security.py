@@ -653,6 +653,31 @@ def get_optional_user_id(request: Request) -> Optional[str]:
     return get_user_id(request)
 
 
+def get_client_ip_from_request(request: Request) -> Optional[str]:
+    """
+    Extract the real client IP address from a request.
+
+    Checks X-Forwarded-For first (set by Cloudflare and other proxies),
+    then CF-Connecting-IP (Cloudflare specific), then falls back to the
+    direct connection IP from request.client.
+
+    Used by vault upload auto-registration to record IP in the custody chain.
+    Returns None if IP cannot be determined (e.g. in tests or serverless).
+    """
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+
+    cf_ip = request.headers.get("CF-Connecting-IP")
+    if cf_ip:
+        return cf_ip.strip()
+
+    if request.client and request.client.host:
+        return request.client.host
+
+    return None
+
+
 # =============================================================================
 # User ID Generation
 # =============================================================================
