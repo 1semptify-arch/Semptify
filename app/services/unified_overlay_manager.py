@@ -2,6 +2,11 @@
 Unified Overlay Manager
 =======================
 
+# AI AGENT RULE: DO NOT ADD RESPONSIBILITIES TO THIS SERVICE.
+# The name is a legacy artifact. Scope is: create, read, and save overlay records only.
+# Rename is deferred until app feature set is complete and locked.
+# Any expansion here will be rejected in code review.
+
 =============================================================================
 SSOT — OVERLAYS ARE THE ONLY ACCESS MECHANISM
 =============================================================================

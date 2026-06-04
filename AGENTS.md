@@ -77,6 +77,16 @@ These failures have each cost multiple sessions to fix. Read them. Do not cause 
 - **What happened:** `cloudflared` was run manually. Every machine restart killed the tunnel, breaking `semptify.org`.
 - **Fix:** Run `sc config cloudflared start= auto` and `sc start cloudflared` as Administrator once. The service then survives reboots.
 
+### 13. File Rewrite Creating New Filename (Cascading Reference Break)
+- **What happened:** When a file needed rewriting, the AI kept the broken original and created a new file with a different name (e.g. `vault_upload_service_v2.py`). Every import across the codebase still pointed at the old broken file. The AI then had to update all references, missed some, ran out of context, and left the system broken.
+- **Fix:** Use the swap protocol:
+  1. **Ask the user** to rename the original to `<filename>_old.py` (one filesystem rename — takes 2 seconds)
+  2. AI rewrites the clean version into the **original filename** (`<filename>.py`)
+  3. Every import everywhere still works — nothing else changes
+  4. The `_old` file is the rollback. Delete it once the rewrite is verified.
+- **Rule:** NEVER create `_v2`, `_new`, `_fixed`, `_impl` as the "replacement" file. NEVER update references in other files because of a rewrite. If you need to rewrite a file, **ask the user to rename the original first**, then write into the original name.
+- **If in doubt:** Ask. One question prevents hours of cascading breakage.
+
 ---
 
 ## 📋 Agent Session Checklist
