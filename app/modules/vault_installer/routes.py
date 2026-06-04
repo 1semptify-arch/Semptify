@@ -20,8 +20,10 @@ router = APIRouter(prefix="/api/vault-installer", tags=["vault-installer"])
 
 
 @router.get("/debug")
-async def debug_vault_installer():
-    """Simple debug endpoint to verify router is accessible. PUBLIC - NO AUTH REQUIRED."""
+async def debug_vault_installer(
+    current_user: dict = Depends(get_current_user),
+):
+    """Debug endpoint to verify router is accessible. Requires authentication."""
     from app.core.utc import utc_now
     return {
         "status": "vault_installer_router_ok",
@@ -135,7 +137,7 @@ async def install_vault(
         logger.error(f"TRACEBACK: {traceback.format_exc()}")
         raise HTTPException(
             status_code=500,
-            detail={"error": error_detail, "type": type(e).__name__, "traceback": traceback.format_exc()}
+            detail={"error": "Vault installation failed. Check server logs for details.", "type": type(e).__name__}
         )
 
 
@@ -182,12 +184,10 @@ async def quick_install(
     access_token: str,
     user_id: str,
     db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
 ):
     """
-    Quick install for testing/debug - bypass auth checks.
-    
-    This endpoint allows direct vault installation with provided tokens.
-    Useful for testing or admin operations.
+    Quick install for admin operations. Requires authentication.
     """
     try:
         result = await install_vault_for_user(

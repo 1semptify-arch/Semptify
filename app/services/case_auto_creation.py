@@ -70,7 +70,8 @@ def is_case_relevant_document(doc_type: str) -> bool:
 
 def get_user_cases_dir(user_id: str) -> str:
     """Get the directory where user's cases are stored."""
-    return os.path.join(os.getcwd(), "data", "cases", user_id)
+    safe_user_id = "".join(c for c in user_id if c.isalnum() or c in '_-')
+    return os.path.join(os.getcwd(), "data", "cases", safe_user_id)
 
 
 def find_case_by_case_number(user_id: str, case_number: str) -> Optional[Tuple[str, Dict[str, Any]]]:
@@ -450,7 +451,7 @@ async def create_case_from_document(
     
     # Save case to file system (same pattern as case_builder router)
     try:
-        data_dir = os.path.join(os.getcwd(), "data", "cases", user_id)
+        data_dir = get_user_cases_dir(user_id)
         os.makedirs(data_dir, exist_ok=True)
         
         safe_case_id = case_number.replace('-', '_').replace(' ', '_').replace('/', '_').replace('\\', '_')
