@@ -638,9 +638,6 @@ class VaultUploadService:
         if HAS_REGISTRY:
             try:
                 registry = get_document_registry()
-                # Import here to avoid circular dependencies
-                from app.core.security import get_client_ip_from_request
-                
                 reg_doc = registry.register_document(
                     user_id=user_id,
                     content=content,
