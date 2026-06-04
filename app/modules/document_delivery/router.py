@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.config import get_settings, Settings
+from app.core.request_utils import get_request_user_id
 from app.core.security import require_user, StorageUser
 from app.core.workflow_engine import route_user
 from app.core.navigation import navigation
@@ -81,7 +82,7 @@ async def delivery_inbox_page(request: Request):
     signing, rejection, and read receipt capabilities.
     """
     # Check authentication via cookie
-    user_id = request.cookies.get("se_user")
+    user_id = get_request_user_id(request, fallback="")
     if not user_id:
         # Redirect to storage providers for OAuth
         providers_stage = navigation.get_stage("providers")
