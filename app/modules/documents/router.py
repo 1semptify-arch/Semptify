@@ -518,21 +518,15 @@ class UrgentDocumentResponse(BaseModel):
 
 
 
-@router.post("/upload", response_model=UnifiedUploadResponse)
+@router.post("/process", response_model=UnifiedUploadResponse)
 
-async def upload_document(
+async def process_document(
 
     request: Request,
 
-    file: UploadFile = File(...),
+    vault_id: str = Form(..., description="Vault document ID (already uploaded to vault)"),
 
-    case_number: Optional[str] = Query(None, description="Associate with case number"),
-
-    document_type: Optional[str] = Form(None, description="Document type (lease, notice, etc.)"),
-
-    access_token: Optional[str] = Form(None, description="Storage provider access token"),
-
-    storage_provider: str = Form("local", description="Storage provider (google_drive, dropbox, onedrive, local)"),
+    case_number: Optional[str] = Form(None, description="Associate with case number"),
 
     user: StorageUser = Depends(yellow_access),
 
@@ -541,192 +535,92 @@ async def upload_document(
 ):
 
     """
+    🚀 DOCUMENT PROCESSING - Process a vaulted document
 
-    🚀 UNIFIED DOCUMENT UPLOAD - Complete Processing in One Action
+    This endpoint processes a document that has already been uploaded to the vault.
+    It performs the full downstream processing pipeline:
 
-    
+    1. ✅ ENRICH REGISTRY - Add case number, IP address to auto-registered document
+    2. ✅ PIPELINE PROCESSING - Store, analyze, classify
+    3. ✅ INTAKE PROCESSING - Deep extraction
+    4. ✅ LAW CROSS-REFERENCE - Match with applicable tenant laws
+    5. ✅ INTELLIGENCE ANALYSIS - Urgency, action items
+    6. ✅ DISTRIBUTE - Send to Briefcase, Form Data, Court Packet
+    7. ✅ EMIT EVENTS - Brain, event bus
+    8. ✅ INDEX FOR SEARCH - Add to inverted index
 
-    ALL DOCUMENTS GO TO USER'S VAULT FIRST, then modules access from vault.
-
-    
-
-    This endpoint performs the ENTIRE document lifecycle in a single request:
-
-    
-
-    1. ✅ VAULT UPLOAD - Document stored in user's vault (cloud/local)
-
-    2. ✅ REGISTER - Unique Semptify ID (SEM-YYYY-NNNNNN-XXXX), tamper-proof hashing
-
-    3. ✅ EXTRACT - OCR, text extraction, key data parsing
-
-    4. ✅ CLASSIFY - Document type detection (lease, notice, court filing, etc.)
-
-    5. ✅ ANALYZE - AI-powered intelligence analysis
-
-    6. ✅ CROSS-REFERENCE - Match with applicable tenant laws
-
-    7. ✅ VERIFY - Duplicate detection, forgery analysis, integrity check
-
-    8. ✅ ENRICH - Action items, timeline events, urgency assessment
-
-    
-
-    Returns complete processing results including vault ID, classification,
-
-    extracted data counts, legal references, and intelligence insights.
-
+    Upload first: POST /api/vault/upload → returns vault_id
+    Then process: POST /api/documents/process with vault_id
     """
 
     from datetime import datetime, timezone
 
-    
-
-    if not file.filename:
-
-        raise HTTPException(status_code=400, detail="Filename required")
-
-
-
-    content = await file.read()
-
-    if len(content) > 50 * 1024 * 1024:  # 50MB limit
-
-        raise HTTPException(status_code=400, detail="File too large (max 50MB)")
-
-
-
     user_id = user.user_id
-
-    mime_type = file.content_type or "application/octet-stream"
-
-    
-
-    # Get client IP for audit trail
 
     client_ip = request.client.host if request.client else None
 
-    
-
     # =========================================================================
-
-    # STEP 0: UPLOAD TO VAULT FIRST (All documents go to user's vault)
-
+    # STEP 0: RETRIEVE FROM VAULT (Document already uploaded)
     # =========================================================================
 
     if not HAS_VAULT_SERVICE:
-
         raise HTTPException(
-
             status_code=503,
-
             detail={
-
                 "error": "vault_unavailable",
-
-                "message": "Vault service is not available. All documents must go to vault first.",
-
+                "message": "Vault service is not available.",
             },
-
         )
-
-
-
-    vault_id = None
 
     vault_doc = None
+    content = None
+    mime_type = None
+    filename = None
 
     try:
-
         vault_service = get_vault_service()
+        vault_doc = await vault_service.get_document(vault_id, user_id=user_id)
 
-        # Resolve access token: user object → token manager → form field
+        if not vault_doc:
+            raise HTTPException(status_code=404, detail="Vault document not found")
 
-        session_token = getattr(user, 'access_token', None) or _get_valid_token(user_id) or access_token
+        # Download content from vault for processing
+        from app.services.storage import get_storage_provider
+        storage = get_storage_provider(user.provider.value if hasattr(user.provider, 'value') else str(user.provider))
+        session_token = getattr(user, 'access_token', None) or _get_valid_token(user_id)
 
-        session_provider = getattr(user, 'provider', storage_provider)
+        content = await storage.download_file(vault_doc.storage_path, session_token)
+        mime_type = vault_doc.mime_type or "application/octet-stream"
+        filename = vault_doc.filename
 
-
-
-        vault_doc = await vault_service.upload(
-
-            user_id=user_id,
-
-            filename=file.filename,
-
-            content=content,
-
-            mime_type=mime_type,
-
-            document_type=document_type,
-
-            source_module="documents",
-
-            access_token=session_token,
-
-            storage_provider=session_provider.value if hasattr(session_provider, 'value') else str(session_provider),
-
-        )
-
-        vault_id = vault_doc.vault_id
-
-        logger.info(f"📁 Document stored in vault: {vault_id}")
-
-
-
+        logger.info(f"📁 Retrieved from vault: {vault_id}")
 
     except HTTPException:
-
         raise
-
     except Exception as e:
-
-        logger.error("Vault upload failed: %s", e)
-
+        logger.error("Vault retrieval failed: %s", e)
         raise HTTPException(
-
             status_code=502,
-
             detail={
-
-                "error": "vault_upload_failed",
-
-                "message": "Document was not saved to your vault. Reconnect storage and try again.",
-
+                "error": "vault_retrieval_failed",
+                "message": "Could not retrieve document from vault.",
             },
-
         )
 
-    
-
-    # Initialize response data from vault (auto-registered during upload)
-
+    # Initialize response data from vault
     registry_id = vault_doc.registry_id if vault_doc else None
-
     content_hash = vault_doc.sha256_hash if vault_doc else None
-
     is_duplicate = False
-
     integrity_verified = vault_doc.integrity_status == "verified" if vault_doc else False
-
     forgery_score = 0.0
-
     requires_review = False
-
     intake_status = None
-
     urgency_level = None
-
     action_items_count = 0
-
     matched_statutes = []
 
-    
-
     # =========================================================================
-
     # STEP 1: ENRICH REGISTRY (Vault auto-registered, now enrich with case/IP)
-
     # =========================================================================
 
     if HAS_REGISTRY and registry_id:

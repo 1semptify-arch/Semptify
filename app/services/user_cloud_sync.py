@@ -380,33 +380,6 @@ class UserCloudSync:
             logger.error(f"Failed to save document index: {e}")
             return False
     
-    async def upload_document(self, filename: str, content: bytes, metadata: dict) -> Optional[str]:
-        """Upload document to user's cloud storage."""
-        try:
-            # Upload file
-            path = f"{self.SEMPTIFY_FOLDER}/documents/{filename}"
-            file_id = await self.storage.upload_file(path, content)
-            
-            # Update index
-            docs = await self.load_document_index()
-            doc_entry = {
-                "id": file_id,
-                "filename": filename,
-                "path": path,
-                "size": len(content),
-                "uploaded_at": datetime.now(timezone.utc).isoformat(),
-                **metadata,
-            }
-            docs.append(doc_entry)
-            await self.save_document_index(docs)
-            
-            logger.info(f"📤 Document uploaded: {filename}")
-            return file_id
-            
-        except Exception as e:
-            logger.error(f"Failed to upload document: {e}")
-            return None
-    
     async def download_document(self, file_id_or_path: str) -> Optional[bytes]:
         """Download document from user's cloud storage."""
         try:

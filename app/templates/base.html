@@ -580,20 +580,35 @@
             fd.append('file', file);
             fd.append('source', 'logo_quick_upload');
             try {
-                const res  = await fetch('/api/documents/upload', {
+                // Step 1: Upload to vault
+                const res = await fetch('/api/vault/upload', {
                     method: 'POST',
                     headers: { 'X-CSRF-Token': csrf },
                     body: fd,
                     credentials: 'include'
                 });
                 const data = await res.json();
-                if (res.ok && (data.id || data.vault_id)) {
+                if (!res.ok || !data.vault_id) {
+                    toast(data.message || `Failed: "${file.name}"`, 'error');
+                    return;
+                }
+                // Step 2: Process the vaulted document
+                const processFd = new FormData();
+                processFd.append('vault_id', data.vault_id);
+                const processRes = await fetch('/api/documents/process', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-Token': csrf },
+                    body: processFd,
+                    credentials: 'include'
+                });
+                const processData = await processRes.json();
+                if (processRes.ok) {
                     toast(`"${file.name}" uploaded`, 'success');
                     window.dispatchEvent(new CustomEvent('vault:uploaded', {
-                        detail: { filename: file.name, vault_id: data.vault_id || data.id }
+                        detail: { filename: file.name, vault_id: data.vault_id }
                     }));
                 } else {
-                    toast(data.message || `Failed: "${file.name}"`, 'error');
+                    toast(`Uploaded but processing failed: "${file.name}"`, 'warning');
                 }
             } catch (_) {
                 toast(`Network error — "${file.name}"`, 'error');
