@@ -2223,7 +2223,36 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             documents_template_path = BASE_PATH / "app" / "templates" / "pages" / "documents.html"
             if documents_template_path.exists():
                 try:
-                    return templates.TemplateResponse(request, "pages/documents.html", {"documents": []})
+                    # Fetch documents from vault for the authenticated user
+                    documents_data = []
+                    try:
+                        from app.core.security import yellow_access
+                        from app.services.vault_upload_service import get_vault_service
+                        from fastapi import Depends
+                        from sqlalchemy.ext.asyncio import AsyncSession
+                        from app.core.database import get_db
+                        
+                        # Get user from cookie
+                        from app.core.cookie_auth import verify_user_id, COOKIE_NAME
+                        cookie_value = request.cookies.get(COOKIE_NAME)
+                        if cookie_value:
+                            raw_uid = verify_user_id(cookie_value)
+                            if raw_uid:
+                                vault_service = get_vault_service()
+                                vault_docs = await vault_service.get_user_documents(raw_uid)
+                                documents_data = [
+                                    {
+                                        "id": doc.vault_id,
+                                        "filename": doc.filename,
+                                        "uploaded_at": doc.uploaded_at if isinstance(doc.uploaded_at, str) else doc.uploaded_at.isoformat() if hasattr(doc.uploaded_at, 'isoformat') else str(doc.uploaded_at),
+                                        "document_type": doc.document_type or "document",
+                                    }
+                                    for doc in vault_docs
+                                ]
+                    except Exception as doc_err:
+                        logger.warning("Failed to fetch documents for page: %s", doc_err)
+                    
+                    return templates.TemplateResponse(request, "pages/documents.html", {"documents": documents_data})
                 except Exception as e:  # pylint: disable=broad-exception-caught
                     logger.warning("Documents template error, falling back to static: %s", e)
 
