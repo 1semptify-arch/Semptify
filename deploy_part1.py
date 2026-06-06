@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Semptify Legal Filing Module - Deploy Part 1 of 2
 ===================================================

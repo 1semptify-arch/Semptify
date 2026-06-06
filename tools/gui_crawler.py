@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Semptify GUI Crawler - Find all errors, broken links, and issues
 Run: python tools/gui_crawler.py

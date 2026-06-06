@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Test script for the overlay system API.
 Run this to verify all overlay endpoints work correctly.

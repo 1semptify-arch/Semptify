@@ -201,8 +201,8 @@ class VaultClient:
 
         for folder_path in self._folder_spec.all_folders:
             try:
-                files = await storage.list_files(folder_path)
-                if files is not None:
+                exists = await storage.file_exists(folder_path)
+                if exists:
                     result.folders.append(FolderResult(path=folder_path, status="ok"))
                 else:
                     result.folders.append(FolderResult(
@@ -278,6 +278,11 @@ class VaultClient:
         file_path = f"{VAULT_ROOT}/{subfolder}/{filename}"
         return await storage.delete_file(file_path)
 
+    async def folder_exists(self, folder_path: str) -> bool:
+        """Check whether a folder path exists in provider storage."""
+        storage = self._get_storage()
+        return await storage.file_exists(folder_path)
+
     # ------------------------------------------------------------------
     # Vault Lifecycle
     # ------------------------------------------------------------------
@@ -310,8 +315,8 @@ class VaultClient:
         missing = []
         for folder_path in self._folder_spec.all_folders:
             try:
-                files = await storage.list_files(folder_path)
-                if files is not None:
+                exists = await storage.file_exists(folder_path)
+                if exists:
                     existing.append(folder_path)
                 else:
                     missing.append(folder_path)

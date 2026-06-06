@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Fix Vertex AI session ID collision by adding timestamp to session IDs
 """

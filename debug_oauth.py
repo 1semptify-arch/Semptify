@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Debug OAuth configuration and test basic connectivity
 """

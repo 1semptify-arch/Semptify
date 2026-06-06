@@ -1,3 +1,9 @@
+# =============================================================================
+# SSOT: app/core/vault_paths.py — CANONICAL VAULT PATH DEFINITIONS
+# AI RULE: ALL vault folder paths come from this file ONLY.
+# NEVER hardcode Semptify5.0/ paths anywhere else in the codebase.
+# NEVER rename this file. NEVER duplicate these constants.
+# =============================================================================
 """Canonical cloud vault paths (single source of truth).
 
 Structure in user's cloud storage:

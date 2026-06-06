@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Comprehensive API Endpoint Test Suite for Semptify-FastAPI
 Tests all routes to verify functionality
