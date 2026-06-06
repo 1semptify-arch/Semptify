@@ -278,7 +278,7 @@ async function uploadToVault(fileCount) {
   formData.append('metadata', JSON.stringify(uploadData));
 
   try {
-    const resp = await fetch('/api/vault/sidebar/upload', {
+    const resp = await fetch('/api/vault/upload', {
       method: 'POST',
       body: formData
     });
