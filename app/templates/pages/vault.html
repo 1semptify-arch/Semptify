@@ -281,7 +281,8 @@
 
         async function loadDocuments(accessToken) {
             try {
-                const res = await fetch('/api/vault/?access_token=' + accessToken, { 
+                // Use /api/vault/all - reads from vault database (more reliable than certificates in cloud storage)
+                const res = await fetch('/api/vault/all', { 
                     credentials: 'include' 
                 });
                 const data = await res.json();
@@ -292,13 +293,13 @@
                         <div class="doc-item">
                             <span class="doc-icon">${getIcon(doc.mime_type)}</span>
                             <div class="doc-info">
-                                <div class="doc-name">${doc.original_filename}</div>
+                                <div class="doc-name">${doc.filename}</div>
                                 <div class="doc-meta">
                                     ${formatSize(doc.file_size)} · 
                                     ${new Date(doc.uploaded_at).toLocaleDateString()}
                                 </div>
                             </div>
-                            <button class="btn" onclick="downloadDoc('${doc.id}', '${accessToken}')">
+                            <button class="btn" onclick="downloadDoc('${doc.vault_id}', '${accessToken}')">
                                 Download
                             </button>
                         </div>
