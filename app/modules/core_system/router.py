@@ -213,7 +213,8 @@ async def system_status(current_user = Depends(get_current_user)):
         
     except Exception as e:
         logger.error(f"System status retrieval failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Status retrieval failed: {str(e)}")
+        logger.exception("Status retrieval failed")
+        raise HTTPException(status_code=500, detail="Status retrieval failed")
 
 @core_router.get("/config")
 async def get_system_config(current_user = Depends(get_current_user)):
@@ -233,7 +234,8 @@ async def get_system_config(current_user = Depends(get_current_user)):
         
     except Exception as e:
         logger.error(f"Config retrieval failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Config retrieval failed: {str(e)}")
+        logger.exception("Config retrieval failed")
+        raise HTTPException(status_code=500, detail="Config retrieval failed")
 
 @core_router.post("/config")
 async def update_system_config(request: SystemConfigRequest,
@@ -250,7 +252,8 @@ async def update_system_config(request: SystemConfigRequest,
         
     except Exception as e:
         logger.error(f"Config update failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Config update failed: {str(e)}")
+        logger.exception("Config update failed")
+        raise HTTPException(status_code=500, detail="Config update failed")
 
 @core_router.post("/session")
 async def create_session(request: SessionCreateRequest):
@@ -271,7 +274,8 @@ async def create_session(request: SessionCreateRequest):
         
     except Exception as e:
         logger.error(f"Session creation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Session creation failed: {str(e)}")
+        logger.exception("Session creation failed")
+        raise HTTPException(status_code=500, detail="Session creation failed")
 
 @core_router.get("/session/{session_id}")
 async def validate_session(session_id: str):
@@ -288,7 +292,8 @@ async def validate_session(session_id: str):
         
     except Exception as e:
         logger.error(f"Session validation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Session validation failed: {str(e)}")
+        logger.exception("Session validation failed")
+        raise HTTPException(status_code=500, detail="Session validation failed")
 
 @core_router.delete("/session/{session_id}")
 async def destroy_session(session_id: str,
@@ -310,7 +315,8 @@ async def destroy_session(session_id: str,
         
     except Exception as e:
         logger.error(f"Session destruction failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Session destruction failed: {str(e)}")
+        logger.exception("Session destruction failed")
+        raise HTTPException(status_code=500, detail="Session destruction failed")
 
 @core_router.post("/log")
 async def add_system_log(request: SystemLogRequest,
@@ -332,7 +338,8 @@ async def add_system_log(request: SystemLogRequest,
         
     except Exception as e:
         logger.error(f"Log addition failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Log addition failed: {str(e)}")
+        logger.exception("Log addition failed")
+        raise HTTPException(status_code=500, detail="Log addition failed")
 
 @core_router.get("/logs")
 async def get_system_logs(level: Optional[str] = None,
@@ -356,7 +363,8 @@ async def get_system_logs(level: Optional[str] = None,
         
     except Exception as e:
         logger.error(f"Log retrieval failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Log retrieval failed: {str(e)}")
+        logger.exception("Log retrieval failed")
+        raise HTTPException(status_code=500, detail="Log retrieval failed")
 
 @core_router.get("/statistics")
 async def get_system_statistics(current_user = Depends(get_current_user)):
@@ -376,4 +384,5 @@ async def get_system_statistics(current_user = Depends(get_current_user)):
         
     except Exception as e:
         logger.error(f"Statistics retrieval failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Statistics retrieval failed: {str(e)}")
+        logger.exception("Statistics retrieval failed")
+        raise HTTPException(status_code=500, detail="Statistics retrieval failed")

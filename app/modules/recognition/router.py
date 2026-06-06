@@ -491,7 +491,8 @@ async def analyze_text(
         
     except Exception as e:
         logger.error(f"Analysis failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+        logger.exception("Analysis failed")
+        raise HTTPException(status_code=500, detail="Analysis failed")
 
 
 @router.post("/analyze-file", response_model=RecognitionResponse)
@@ -583,7 +584,8 @@ async def analyze_file(
                     detail="Image OCR not available. Install pytesseract and Pillow."
                 )
             except Exception as e:
-                raise HTTPException(status_code=500, detail=f"OCR failed: {str(e)}")
+                logger.exception("OCR failed")
+                raise HTTPException(status_code=500, detail="OCR failed")
         
         elif file_ext in {'.doc', '.docx'}:
             # Word document
@@ -646,7 +648,8 @@ async def analyze_file(
         raise
     except Exception as e:
         logger.error(f"File analysis failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+        logger.exception("Analysis failed")
+        raise HTTPException(status_code=500, detail="Analysis failed")
 
 
 @router.post("/quick-classify", response_model=QuickClassifyResponse)
@@ -673,7 +676,8 @@ async def quick_classify(
         
     except Exception as e:
         logger.error(f"Classification failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Classification failed: {str(e)}")
+        logger.exception("Classification failed")
+        raise HTTPException(status_code=500, detail="Classification failed")
 
 
 # =============================================================================
@@ -757,7 +761,8 @@ async def analyze_handwriting_endpoint(
         
     except Exception as e:
         logger.error(f"Handwriting analysis failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+        logger.exception("Analysis failed")
+        raise HTTPException(status_code=500, detail="Analysis failed")
 
 
 @router.post("/signature/verify")
@@ -815,7 +820,8 @@ async def verify_signature(
         
     except Exception as e:
         logger.error(f"Signature verification failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Verification failed: {str(e)}")
+        logger.exception("Verification failed")
+        raise HTTPException(status_code=500, detail="Verification failed")
 
 
 @router.get("/forgery/types")
