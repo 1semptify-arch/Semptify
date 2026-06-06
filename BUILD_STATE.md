@@ -3,32 +3,38 @@
 
 ---
 
-## Session — 2026-06-05 (Late) — Vault Ingress SSOT Refactor
-**Commit: pending | Pushed: pending**
+## Session — 2026-06-06 — Document System Audit + Upload Unification
+**Commits: `a1d69bd`, `4275354` | Pushed: 2026-06-06**
 
-### What Was Fixed
-1. **Sidebar upload bypassed VaultUploadService** — `POST /api/vault/sidebar/upload` was doing manual storage calls, manual certificate creation, manual overlay creation. No registry ID, no event bus, no chain of custody.
-2. **Refactored to use VaultUploadService.upload()** — Sidebar now calls the canonical upload service as SSOT.
-3. **Removed manual storage calls** — No more direct `storage.upload_file()`, `ensure_vault_folders()`, or manual ID generation.
-4. **Removed manual certificate creation** — VaultUploadService handles this.
-5. **Removed manual overlay creation** — VaultUploadService handles this.
-6. **Kept timeline extraction** — Runs as secondary post-upload step (non-blocking).
-7. **Mapped response format** — Sidebar response now includes `registry_id` from VaultUploadService result.
-8. **Updated docstring** — Vault router header now documents SSOT architecture with all upload paths.
+### What Was Done
+1. **Document system audit** — Confirmed vault intake fully defined. One door: `VaultUploadService.upload()`. Documents router is downstream (processes, never uploads).
+2. **Corrupted docstring fixed** — `app/modules/documents/router.py` had git commit history pasted into the module docstring (lines 1-54). Stripped and replaced.
+3. **Merged `/sidebar/upload` into unified `/upload`** — Single endpoint handles multi-file, audit logging, timeline extraction, security validation. `/sidebar/upload` is now a 308 redirect stub.
+4. **Updated `vault-portal.js`** — Frontend calls `/api/vault/upload` directly (was `/api/vault/sidebar/upload`).
+5. **Fixed onboarding redirect loop** — `/onboarding/` caused `ERR_TOO_MANY_REDIRECTS`. Added `GET /` root handler redirecting to `/onboarding/start`.
+6. **Playwright 6/6 passed** — welcome, /health, vault upload auth-gated, sidebar redirect stub, onboarding reachable, vault-portal.js path verified.
+7. **`/ship` workflow recreated** — `.devin/workflows/ship.md` updated with all current compile targets and Playwright step.
 
 ### Files Modified
-- `app/modules/vault/router.py` — refactored sidebar_upload, updated docstring
+- `app/modules/vault/router.py` — merged sidebar_upload into unified upload_document
+- `app/modules/onboarding/router.py` — GET / root added to fix redirect loop
+- `app/modules/documents/router.py` — stripped corrupted docstring
+- `static/js/core/vault-portal.js` — upload URL updated to /api/vault/upload
+- `.devin/workflows/ship.md` — recreated with full steps
 
-### What This Achieves
-- All document uploads now go through VaultUploadService (SSOT)
-- Sidebar uploads now get registry IDs (SEM-YYYY-NNNNNN-XXXX)
-- Event bus now triggers for sidebar uploads
-- Consistent certificate format across all upload paths
-- Single point of maintenance for upload logic
+### What Is Known Working (Playwright verified)
+- ✅ Welcome page loads with CTA
+- ✅ `/health` → 200
+- ✅ `/api/vault/upload` exists, auth-gated (401 as expected)
+- ✅ `/api/vault/sidebar/upload` redirect stub alive (not 404)
+- ✅ `/onboarding/` → resolves to `/onboarding/select-role.html` (no loop)
+- ✅ `vault-portal.js` references correct unified path
 
-### Pending Live Test
-- Test sidebar upload after refactor to confirm documents get registry IDs
-- Verify timeline extraction still works
+### What Is Pending Next Session
+- Audit `app/modules/documents/router.py` fully — confirm it never calls VaultUploadService.upload(), only reads from vault
+- Live test: upload a document via vault portal UI with real storage credentials
+- Live test: confirm registry_id (SEM-YYYY-NNNNNN-XXXX) appears in upload response
+- `user_cloud_sync.py` dead `upload_document()` — delete in cleanup pass
 
 ---
 
