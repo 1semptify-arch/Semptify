@@ -4,7 +4,7 @@
 ---
 
 ## Session — 2026-06-06 (PM) — Document Upload & Vault Display Fixes
-**Commits: `2651f74`, `bc055cc`, `f1652fa` | Pushed: 2026-06-06**
+**Commits: `2651f74`, `bc055cc`, `f1652fa`, `bd50372` | Pushed: 2026-06-06**
 
 ### What Was Done
 1. **Fixed `/api/vault/upload` 422 error** — Frontend was sending `file` (singular) instead of `files` (plural) and non-JSON metadata. Fixed in:
@@ -14,7 +14,7 @@
    - `app/main.py` — Added vault document fetching via `vault_service.get_user_documents()`
 3. **Fixed vault.html reading wrong source** — Was reading from cloud storage certificates (unreliable). Changed to vault database:
    - `app/templates/pages/vault.html` — Changed from `/api/vault/?access_token=` to `/api/vault/all`
-4. **Added debug logging** — Added logging to documents page to trace vault document fetching for debugging
+4. **Code cleanup** — Removed debug logging and unused imports from documents page after debugging
 
 ### Files Modified
 - `app/templates/pages/vault.html` — FormData field fix + API endpoint change
@@ -31,7 +31,7 @@
 - Live test: Upload a document via vault portal to confirm 422 error is resolved
 - Live test: Verify documents appear on `/documents` page after upload
 - Verify vault.html displays documents correctly after upload
-- Remove debug logging after confirming documents page works
+- Debug vault view "not working" issue reported by user
 
 ---
 
