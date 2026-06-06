@@ -3,22 +3,28 @@ Document Vault Router (Cloud Storage Version)
 Secure document storage, retrieval, and certification.
 
 =============================================================================
-SSOT — VAULT RESPONSIBILITIES
+SSOT — VAULT INGRESS
 =============================================================================
-The vault STORES and SERVES documents. It does NOT intake them from the UI.
+ALL document uploads go through VaultUploadService.upload() — the single
+source of truth for document ingestion.
 
-UI uploads:   POST /api/intake/upload/auto   (intake.py is the ONE door in)
-Vault reads:  GET  /api/vault/documents      (list tenant's stored documents)
-Vault fetch:  GET  /api/vault/download/{id}  (retrieve a specific document)
+Upload paths:
+- Onboarding: POST /onboarding/api/vault/verify (marks onboarding gates)
+- Sidebar:    POST /api/vault/sidebar/upload (uses VaultUploadService)
+- Documents:  POST /upload (documents router, uses VaultUploadService)
 
-The POST /upload endpoint in this router is for INTERNAL/SERVICE use only.
-It is called by VaultUploadService — never directly from the tenant UI.
-If you are building a UI upload form, point it at /api/intake/upload/auto.
+VaultUploadService handles:
+- Storage in user's cloud (Google Drive, Dropbox, OneDrive)
+- Certificate generation
+- Registry entry (SEM-YYYY-NNNNNN-XXXX)
+- Event bus emission
+- Overlay creation
+- Timeline extraction
 
-Storage:
-- Documents stored in USER's cloud storage (Google Drive, Dropbox, OneDrive)
-- Certificates stored alongside documents in .semptify/vault/certificates/
-- User must be authenticated via storage OAuth before any vault operation
+Vault router endpoints:
+- GET  /api/vault/documents      (list tenant's stored documents)
+- GET  /api/vault/download/{id}  (retrieve a specific document)
+- POST /api/vault/sidebar/upload (sidebar upload via VaultUploadService)
 =============================================================================
 """
 # Migrated from app/routers/vault.py into the vault SDK module.
@@ -1010,9 +1016,7 @@ async def sidebar_upload(
                     })
                     continue
                 
-                # Route through certified upload path so SHA-256, cert,
-                # overlay, timeline extraction, and mesh workflow all fire.
-                # Using already-read file_content (NOT re-reading from uploaded_file)
+                # Resolve access token for VaultUploadService
                 access_token_val = metadata_dict.get("access_token") or getattr(user, "access_token", None)
 
                 # Resolve real access token with fallback chain
@@ -1031,107 +1035,35 @@ async def sidebar_upload(
                         detail="Storage session expired. Please reconnect your storage.",
                     )
 
-                # Generate document ID and hash from already-read content
-                document_id = make_id("doc")
-                sha256_hash = compute_sha256(file_content)
-                ext = uploaded_file.filename.rsplit(".", 1)[-1].lower() if "." in uploaded_file.filename else "bin"
-                safe_filename = f"{document_id}.{ext}"
+                # Use VaultUploadService as SSOT for all document uploads
+                vault_service = get_vault_service()
+                provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
+                
+                vault_doc = await vault_service.upload(
+                    user_id=user.user_id,
+                    filename=uploaded_file.filename,
+                    content=file_content,
+                    mime_type=uploaded_file.content_type or "application/octet-stream",
+                    document_type=metadata_dict.get("document_type"),
+                    description=metadata_dict.get("description"),
+                    tags=metadata_dict.get("tags", []),
+                    source_module="vault_sidebar",
+                    access_token=real_token,
+                    storage_provider=provider_name,
+                )
 
-                # Get storage provider
+                # Timeline extraction after vault upload (secondary, non-blocking)
                 try:
-                    storage = get_provider(user.provider, access_token=real_token)
-                except ValueError as e:
-                    raise HTTPException(status_code=400, detail=str(e))
-
-                # Ensure vault folders and upload file
-                try:
-                    await ensure_vault_folders(storage, user.provider)
-                    storage_path = f"{VAULT_DOCUMENTS}/{safe_filename}"
-                    await storage.upload_file(
-                        file_content=file_content,
-                        destination_path=VAULT_DOCUMENTS,
-                        filename=safe_filename,
-                        mime_type=uploaded_file.content_type or "application/octet-stream",
+                    from app.services.timeline_extraction import extract_timeline_from_upload
+                    timeline_events = await extract_timeline_from_upload(
+                        document_id=vault_doc.vault_id,
+                        overlay_id=vault_doc.overlay_id if hasattr(vault_doc, 'overlay_id') else None,
+                        provider=provider_name,
+                        access_token=real_token,
                     )
+                    logger.info(f"Timeline extraction: {len(timeline_events)} events for {vault_doc.vault_id}")
                 except Exception as e:
-                    error_msg = str(e)
-                    if "401" in error_msg or "Unauthorized" in error_msg or "access" in error_msg.lower():
-                        raise HTTPException(status_code=401, detail=f"Storage authentication failed: {error_msg}")
-                    elif "403" in error_msg or "Forbidden" in error_msg:
-                        raise HTTPException(status_code=403, detail=f"Storage access denied: {error_msg}")
-                    else:
-                        raise HTTPException(status_code=500, detail=f"Storage error: {error_msg}")
-
-                # Create and upload certificate
-                certificate_id = make_id("cert")
-                certificate = {
-                    "certificate_id": certificate_id,
-                    "document_id": document_id,
-                    "sha256": sha256_hash,
-                    "original_filename": uploaded_file.filename,
-                    "file_size": len(file_content),
-                    "mime_type": uploaded_file.content_type or "application/octet-stream",
-                    "document_type": metadata_dict.get("document_type"),
-                    "description": metadata_dict.get("description"),
-                    "tags": [],
-                    "certified_at": datetime.now(timezone.utc).isoformat(),
-                    "request_id": make_id("req"),
-                    "storage_path": storage_path,
-                    "storage_provider": user.provider,
-                    "user_id": user.user_id,
-                    "version": "5.0",
-                    "platform": "Semptify FastAPI Cloud Storage",
-                }
-
-                cert_content = json.dumps(certificate, indent=2).encode("utf-8")
-                try:
-                    await storage.upload_file(
-                        file_content=cert_content,
-                        destination_path=VAULT_CERTIFICATES,
-                        filename=f"{certificate_id}.json",
-                        mime_type="application/json",
-                    )
-                except Exception as e:
-                    logger.warning(f"Certificate upload failed for {document_id}: {e}")
-
-                # Create overlay
-                overlay_id = None
-                try:
-                    from app.services.unified_overlay_manager import UnifiedOverlayManager
-                    from app.models.unified_overlay_models import CreateOverlayRequest
-                    from app.core.overlay_types import OverlayType
-                    overlay_mgr = UnifiedOverlayManager(storage, user.user_id)
-                    overlay_resp = await overlay_mgr.create_overlay(CreateOverlayRequest(
-                        overlay_type=OverlayType.VAULT_UPLOAD_MANIFEST,
-                        document_id=document_id,
-                        vault_path=storage_path,
-                        payload={
-                            "original_filename": uploaded_file.filename,
-                            "mime_type": uploaded_file.content_type or "application/octet-stream",
-                            "file_size_bytes": len(file_content),
-                            "content_hash": sha256_hash,
-                            "storage_provider": user.provider,
-                        },
-                    ))
-                    if overlay_resp.success:
-                        overlay_id = overlay_resp.overlay_id
-                    certificate["overlay_id"] = overlay_id
-
-                    # Timeline extraction using resolved real_token (NOT access_token_val)
-                    try:
-                        from app.services.timeline_extraction import extract_timeline_from_upload
-                        provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
-                        timeline_events = await extract_timeline_from_upload(
-                            document_id=document_id,
-                            overlay_id=overlay_id,
-                            provider=provider_name,
-                            access_token=real_token,
-                        )
-                        certificate["timeline_events_extracted"] = len(timeline_events)
-                    except Exception as e:
-                        certificate["timeline_events_extracted"] = 0
-                except Exception as e:
-                    logger.warning(f"Overlay creation failed for {document_id}: {e}")
+                    logger.warning(f"Timeline extraction failed for {vault_doc.vault_id}: {e}")
 
                 # Issue function token
                 function_token = issue_function_access_token(
@@ -1140,17 +1072,15 @@ async def sidebar_upload(
                         "provider": user.provider,
                         "reason": "vault_upload",
                         "scopes": ["overlay:read", "overlay:write"],
-                        "document_ids": [document_id],
+                        "document_ids": [vault_doc.vault_id],
                     },
                 )
-
-                vault_id = document_id
 
                 # Log successful upload
                 from app.core.audit_logger import log_document_upload
                 log_document_upload(
                     user_id=user.user_id,
-                    document_id=vault_id,
+                    document_id=vault_doc.vault_id,
                     filename=uploaded_file.filename,
                     file_size=len(file_content),
                     file_type=validation_result.file_type,
@@ -1158,30 +1088,31 @@ async def sidebar_upload(
                     user_agent=request.headers.get("user-agent", "unknown")
                 )
 
-                # Build file entry from inline upload results
-                uploaded_at = certificate["certified_at"]
+                # Build file entry from VaultUploadService result
+                uploaded_at = vault_doc.uploaded_at.isoformat() if hasattr(vault_doc.uploaded_at, 'isoformat') else str(vault_doc.uploaded_at)
                 mime_type = uploaded_file.content_type or "application/octet-stream"
                 
                 uploaded_files.append({
-                    "id": vault_id,
+                    "id": vault_doc.vault_id,
                     "name": uploaded_file.filename,
                     "size": len(file_content),
                     "type": mime_type,
                     "category": _get_file_category(uploaded_file.filename),
                     "uploaded_at": uploaded_at,
-                    "certificate_id": certificate_id,
-                    "sha256": sha256_hash,
+                    "certificate_id": vault_doc.certificate_id,
+                    "sha256": vault_doc.sha256_hash,
                     "user_id": user.user_id,
-                    "path": storage_path,
-                    "tags": [],
+                    "path": vault_doc.storage_path,
+                    "tags": vault_doc.tags or [],
                     "metadata": {
                         "source": source,
                         "original_filename": uploaded_file.filename,
                         "upload_timestamp": uploaded_at,
+                        "registry_id": vault_doc.registry_id,
                     }
                 })
 
-                logger.info(f"Vault sidebar upload (certified): {vault_id} for user {user.user_id}")
+                logger.info(f"Vault sidebar upload (SSOT): {vault_doc.vault_id} for user {user.user_id}")
                 
             except Exception as e:
                 import traceback

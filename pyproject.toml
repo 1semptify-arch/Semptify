@@ -3,7 +3,7 @@ name = "semptify"
 version = "5.0.0"
 description = "Tenant Rights Protection Platform - FastAPI Backend"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = "==3.11.9"
 license = {text = "MIT"}
 authors = [
     {name = "Semptify Team", email = "support@semptify.com"}
@@ -15,7 +15,7 @@ classifiers = [
     "Intended Audience :: Legal Industry",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
     "Topic :: Legal",
 ]
 
@@ -145,7 +145,7 @@ directory = "htmlcov"
 
 [tool.black]
 line-length = 120
-target-version = ['py311', 'py312']
+target-version = ['py311']
 include = '\.pyi?$'
 exclude = '''
 /(
