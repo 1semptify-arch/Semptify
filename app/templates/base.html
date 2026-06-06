@@ -577,8 +577,8 @@
         async function uploadFile(file) {
             toast(`Uploading "${file.name}"...`, 'info');
             const fd = new FormData();
-            fd.append('file', file);
-            fd.append('source', 'logo_quick_upload');
+            fd.append('files', file);
+            fd.append('metadata', JSON.stringify({ source: 'logo_quick_upload' }));
             try {
                 // Step 1: Upload to vault
                 const res = await fetch('/api/vault/upload', {
