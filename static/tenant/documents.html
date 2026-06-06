@@ -256,22 +256,41 @@
 
     try {
       progressBar.style.width = '40%';
-      const r = await fetch('/api/documents/upload', {
+      // Step 1: Upload to vault
+      const r = await fetch('/api/vault/upload', {
         method: 'POST',
         body: form,
         credentials: 'include',
       });
 
-      progressBar.style.width = '90%';
       const data = await r.json();
 
-      if (r.ok) {
+      if (!r.ok || !data.vault_id) {
+        const msg = data.detail || data.message || 'Upload failed.';
+        showBanner('Upload failed: ' + msg, 'error');
+        return false;
+      }
+
+      progressBar.style.width = '70%';
+      // Step 2: Process the vaulted document
+      const processForm = new FormData();
+      processForm.append('vault_id', data.vault_id);
+      const processR = await fetch('/api/documents/process', {
+        method: 'POST',
+        body: processForm,
+        credentials: 'include',
+      });
+
+      progressBar.style.width = '90%';
+      const processData = await processR.json();
+
+      if (processR.ok) {
         progressBar.style.width = '100%';
         progressLabel.textContent = 'Done.';
         return true;
       } else {
-        const msg = data.detail || data.message || 'Upload failed.';
-        showBanner('Upload failed: ' + msg, 'error');
+        const msg = processData.detail || processData.message || 'Processing failed.';
+        showBanner('Processing failed: ' + msg, 'error');
         return false;
       }
     } catch (err) {
