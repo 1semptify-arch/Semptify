@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Semptify Legal Filing Module Deployer (simple local writer)
 
 Creates minimal legal filing module files and registers the router in app/main.py.

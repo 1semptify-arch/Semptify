@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Test nav links on authenticated pages (that use base.html nav block)."""
 
 import requests

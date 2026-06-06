@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Semptify Folder Structure Verifier
 Run this to check your vault structure completeness

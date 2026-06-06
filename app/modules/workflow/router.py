@@ -27,6 +27,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.core.workflow_engine import ProcessCode, evaluate_from_params
 from app.core.process_registry import PROCESS_GROUPS, get_groups_for_role
 from app.core.page_contracts import PAGE_CONTRACTS, get_contract, validate_all_contracts
+from app.core.module_contracts import contract_registry
 from app.core.user_context import UserRole
 from app.core.database import get_db_session
 from app.core.oauth_token_manager import get_valid_token_for_user
@@ -978,6 +979,16 @@ async def contract_health() -> dict:
             "total_groups": total_groups,
         },
         "violations": violations,
+    }
+
+
+@router.get("/module-contracts")
+async def list_module_contracts() -> dict:
+    """Return all registered function-group (module) contracts."""
+    contracts = contract_registry.list_contracts()
+    return {
+        "contracts": [c.to_dict() for c in contracts],
+        "total": len(contracts),
     }
 
 

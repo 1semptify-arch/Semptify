@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Require project Bible reading before working on Semptify.
 
 This helper is intended as a manual gate for humans and AI assistants.

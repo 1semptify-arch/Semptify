@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Fix datetime.now(timezone.utc) inconsistencies across the codebase.
 

@@ -18,7 +18,7 @@ async def test_upload_creates_overlay_manifest(tmp_path, monkeypatch):
     service = _isolated_vault_service(tmp_path)
     overlays = []
 
-    def fake_overlay(doc, overlay_type, payload, metadata=None):
+    async def fake_overlay(doc, overlay_type, payload, metadata=None):
         overlays.append(
             {
                 "vault_id": doc.vault_id,
@@ -28,7 +28,7 @@ async def test_upload_creates_overlay_manifest(tmp_path, monkeypatch):
             }
         )
 
-    monkeypatch.setattr(service, "_create_overlay_record", fake_overlay)
+    monkeypatch.setattr(service, "_create_unified_overlay", fake_overlay)
 
     doc = await service.upload(
         user_id="GUtest1234",
@@ -50,7 +50,7 @@ async def test_mark_processed_and_update_type_emit_overlay_records(tmp_path, mon
     service = _isolated_vault_service(tmp_path)
     overlays = []
 
-    def fake_overlay(doc, overlay_type, payload, metadata=None):
+    async def fake_overlay(doc, overlay_type, payload, metadata=None):
         overlays.append(
             {
                 "vault_id": doc.vault_id,
@@ -60,7 +60,7 @@ async def test_mark_processed_and_update_type_emit_overlay_records(tmp_path, mon
             }
         )
 
-    monkeypatch.setattr(service, "_create_overlay_record", fake_overlay)
+    monkeypatch.setattr(service, "_create_unified_overlay", fake_overlay)
 
     doc = await service.upload(
         user_id="GUtest1234",
@@ -71,8 +71,8 @@ async def test_mark_processed_and_update_type_emit_overlay_records(tmp_path, mon
         storage_provider="local",
     )
 
-    service.mark_processed(doc.vault_id, extracted_data={"entities": ["tenant"]})
-    service.update_document_type(doc.vault_id, "notice")
+    await service.mark_processed(doc.vault_id, extracted_data={"entities": ["tenant"]})
+    await service.update_document_type(doc.vault_id, "notice")
 
     overlay_types = [item["overlay_type"] for item in overlays]
     assert "document_extraction" in overlay_types

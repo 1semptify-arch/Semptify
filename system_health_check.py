@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 System Health Check - Comprehensive Backend Verification
 Tests all systems before frontend integration

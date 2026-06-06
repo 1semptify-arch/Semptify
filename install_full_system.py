@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Full System Installer for Semptify
 Installs: Backend, UI, Models, Launcher, Admin Module
