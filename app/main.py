@@ -2226,23 +2226,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     # Fetch documents from vault for the authenticated user
                     documents_data = []
                     try:
-                        from app.core.security import yellow_access
                         from app.services.vault_upload_service import get_vault_service
-                        from fastapi import Depends
-                        from sqlalchemy.ext.asyncio import AsyncSession
-                        from app.core.database import get_db
-                        
-                        # Get user from cookie
                         from app.core.cookie_auth import verify_user_id, COOKIE_NAME
+                        
                         cookie_value = request.cookies.get(COOKIE_NAME)
-                        logger.info("Documents page: cookie_value=%s", cookie_value[:8] + "***" if cookie_value else "None")
                         if cookie_value:
                             raw_uid = verify_user_id(cookie_value)
-                            logger.info("Documents page: raw_uid=%s", raw_uid[:8] + "***" if raw_uid else "None")
                             if raw_uid:
                                 vault_service = get_vault_service()
                                 vault_docs = await vault_service.get_user_documents(raw_uid)
-                                logger.info("Documents page: vault_docs count=%s", len(vault_docs) if vault_docs else 0)
                                 documents_data = [
                                     {
                                         "id": doc.vault_id,
@@ -2252,9 +2244,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                                     }
                                     for doc in vault_docs
                                 ]
-                                logger.info("Documents page: documents_data=%s", len(documents_data))
                     except Exception as doc_err:
-                        logger.error("Failed to fetch documents for page: %s", doc_err, exc_info=True)
+                        logger.warning("Failed to fetch documents for page: %s", doc_err)
                     
                     return templates.TemplateResponse(request, "pages/documents.html", {"documents": documents_data})
                 except Exception as e:  # pylint: disable=broad-exception-caught
