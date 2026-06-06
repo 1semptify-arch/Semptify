@@ -6,6 +6,21 @@ This repository contains a housing-rights and tenant-support product. Any AI age
 
 ---
 
+## 🐍 PYTHON VERSION MANDATE — NON-NEGOTIABLE
+
+**Semptify requires Python 3.11.9. This is a hard mandate, not a suggestion.**
+
+- **ALL code, modules, add-ons, plugins, and extensions MUST target Python 3.11.9.**
+- **Do NOT introduce any dependency that requires Python 3.12, 3.13, 3.14, or any other version.**
+- **Do NOT suggest upgrading Python. Until further notice, 3.11.9 is the locked version.**
+- **Local dev:** Use `venv311` (`.\\venv311\\Scripts\\Activate.ps1` on Windows)
+- **Production:** `Dockerfile` uses `python:3.11-slim`, `runtime.txt` pins `3.11.9`
+- **Before adding ANY new package:** Confirm it supports Python 3.11.9
+
+If a proposed library only works on 3.12+, **reject it and find an alternative.**
+
+---
+
 ## ⚠️ MANDATORY PRE-FLIGHT — Every AI Agent MUST Do This First
 
 **Before writing a single line of code, you MUST:**
@@ -15,6 +30,7 @@ This repository contains a housing-rights and tenant-support product. Any AI age
 3. **Read the Known Failure Registry below** — Do not repeat a past mistake.
 4. **State your plan before acting** — Tell the user what you intend to change and why before touching any file.
 5. **Do not ship without a verification step** — Every change needs a compile check or test run.
+6. **Verify Python 3.11.9** — Confirm the active interpreter is `venv311` before running anything.
 
 **If you skip pre-flight, you will repeat a past mistake. The history proves this.**
 
@@ -86,6 +102,12 @@ These failures have each cost multiple sessions to fix. Read them. Do not cause 
   4. The `_old` file is the rollback. Delete it once the rewrite is verified.
 - **Rule:** NEVER create `_v2`, `_new`, `_fixed`, `_impl` as the "replacement" file. NEVER update references in other files because of a rewrite. If you need to rewrite a file, **ask the user to rename the original first**, then write into the original name.
 - **If in doubt:** Ask. One question prevents hours of cascading breakage.
+
+### 14. Wrong Python Version
+- **What happened:** Code ran on Python 3.13/3.14 (Windows default `python` command) instead of 3.11.9. Silent incompatibilities and startup failures.
+- **Fix:** Always activate `venv311` before running. `main.py` will hard-exit if the wrong Python is detected.
+- **Mandate:** Python 3.11.9 is the ONLY permitted version for this repo. Any new module, add-on, or dependency MUST support 3.11.9. Do NOT upgrade Python without explicit written approval from the project owner.
+- **Local command:** `.\\venv311\\Scripts\\Activate.ps1` then `python -m uvicorn app.main:app ...`
 
 ---
 
