@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 SSOT Architecture Verification Script
 Run this locally before committing to catch violations early.

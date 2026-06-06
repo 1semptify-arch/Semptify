@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Fix PostgreSQL table ownership for Alembic migrations."""
 
 import asyncio

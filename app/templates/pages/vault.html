@@ -376,7 +376,7 @@
 
             for (const file of files) {
                 const formData = new FormData();
-                formData.append('file', file);
+                formData.append('files', file);
                 formData.append('access_token', data.access_token);
 
                 try {

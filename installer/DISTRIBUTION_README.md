@@ -49,10 +49,10 @@ cd path\to\Semptify5.0-Windows
 | OS | Windows 10 | Windows 11 |
 | RAM | 4 GB | 8 GB |
 | Disk | 2 GB | 5 GB |
-| Python | 3.11 | 3.12 |
+| Python | 3.11 | 3.11 |
 
 The installer will automatically install:
-- Python 3.12 (via winget)
+- Python 3.11 (via winget)
 - PostgreSQL 16 (via winget)
 - All Python dependencies
 

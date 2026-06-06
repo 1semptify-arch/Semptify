@@ -1,0 +1,16 @@
+{
+  "certificate_id": "cert_jcwKHCMp4Qpx45BG",
+  "vault_id": "doc_c98HoTib1QP7338P",
+  "sha256": "38dea95d30d280b987f0630ccc774bda163cdc2ee266234b1fb903c86007a863",
+  "original_filename": "greeting.txt",
+  "file_size": 14,
+  "mime_type": "text/plain",
+  "document_type": null,
+  "certified_at": "2026-06-02T05:12:45.087255+00:00",
+  "storage_path": "Semptify5.0/Vault/documents/doc_c98HoTib1QP7338P.txt",
+  "storage_provider": "local",
+  "provider_file_id": null,
+  "user_id": "testuser",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

@@ -173,9 +173,11 @@
         try {
             // Create form data
             const formData = new FormData();
-            formData.append('file', file);
-            formData.append('document_type', 'evidence');
-            formData.append('access_token', 'auto'); // Backend will extract from session
+            formData.append('files', file);
+            formData.append('metadata', JSON.stringify({
+                document_type: 'evidence',
+                source: 'documents_page'
+            }));
             
             // Upload
             const response = await fetchWithCSRF('/api/vault/upload', {

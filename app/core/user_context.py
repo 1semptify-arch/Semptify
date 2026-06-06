@@ -338,8 +338,10 @@ class UserContext:
     role: UserRole = UserRole.USER        # Active role for this session
     permissions: set[str] = field(default_factory=set)
     
-    # SSOT PRIVACY: No email or display_name stored.
-    # User PII lives only in their cloud vault.
+    # SSOT PRIVACY RULE: For the tenant role, no personal user information
+    # may be stored on Semptify servers. Only provider metadata and access state
+    # are retained. Tenant PII remains in the user's cloud vault or provider data.
+    # This is the strict tenant privacy rule; it may extend to other roles later.
 
     # Session tracking
     session_id: Optional[str] = None

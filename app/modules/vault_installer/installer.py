@@ -501,11 +501,8 @@ async def install_vault_for_user(
     result = await installer.install_vault()
     
     if result["success"]:
-        # Mark vault as active in database
-        from app.modules.onboarding.gates import mark_gate
-        await mark_gate(db, user_id, "vault_initialized")
-        logger.info(f"Vault installed and activated for user {user_id[:6]}***")
-    
+        logger.info("Vault folders installed for user %s — gate marked by caller after full onboarding", user_id[:6] + "***")
+
     return result
 
 

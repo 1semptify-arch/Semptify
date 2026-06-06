@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Master Reset Script for Semptify
 Resets: Modules, Logs, Backend, UI, Models (keeps core)

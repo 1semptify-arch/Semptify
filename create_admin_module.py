@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Semptify Admin Console Module Generator
 Creates /modules/admin_console/ with router, UI panel, and SDK registration

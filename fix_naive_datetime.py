@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Fix all naive datetime.now() calls in the app/ directory.
 Replaces datetime.now() with utc_now() from app.core.utc.

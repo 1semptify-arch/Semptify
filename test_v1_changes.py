@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Quick test of V1 changes: calendar route, nav links, OAuth redirect."""
 
 import requests

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Dakota County Eviction Defense Module - Run Script
 Starts the FastAPI server on port 8001 (separate from main Semptify on 8000)

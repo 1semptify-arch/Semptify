@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contract Browser — Semptify Admin</title>
+  <style>
+    :root {
+      --hdr1:#0c4a6e; --hdr2:#075985; --accent:#0369a1; --accent2:#38bdf8;
+      --bg:#0f172a; --surface:#1e293b; --border:#334155;
+      --text:#e2e8f0; --muted:#94a3b8; --green:#22c55e; --yellow:#f59e0b;
+      --red:#ef4444; --purple:#a855f7; --orange:#f97316;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    header{background:linear-gradient(135deg,var(--hdr1),var(--hdr2));padding:0 1.5rem;height:60px;display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border)}
+    .logo{font-weight:800;font-size:1.1rem;color:#fff;text-decoration:none}
+    nav a{color:rgba(255,255,255,0.75);text-decoration:none;padding:0.35rem 0.75rem;border-radius:6px;font-size:0.88rem}
+    nav a:hover{background:rgba(255,255,255,0.15);color:#fff}
+    nav a.active{background:rgba(255,255,255,0.2);color:#fff;font-weight:600}
+    .toolbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0.75rem 1.5rem;display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center}
+    .toolbar input{background:#0f172a;border:1px solid var(--border);color:var(--text);padding:0.45rem 0.75rem;border-radius:8px;font-size:0.88rem;flex:1;min-width:200px;outline:none}
+    .toolbar input:focus{border-color:var(--accent2)}
+    .toolbar select{background:#0f172a;border:1px solid var(--border);color:var(--text);padding:0.45rem 0.6rem;border-radius:8px;font-size:0.88rem;outline:none;cursor:pointer}
+    .tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 1.5rem;background:var(--surface)}
+    .tab{padding:0.65rem 1.25rem;font-size:0.9rem;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);font-weight:500;transition:all 0.15s}
+    .tab.active{color:var(--accent2);border-bottom-color:var(--accent2);font-weight:600}
+    .tab:hover:not(.active){color:var(--text)}
+    .tab-count{font-size:0.72rem;background:var(--border);color:var(--muted);padding:0.1rem 0.45rem;border-radius:10px;margin-left:0.35rem}
+    .tab.active .tab-count{background:rgba(56,189,248,0.2);color:var(--accent2)}
+    .main{padding:1.25rem 1.5rem;max-width:1400px;margin:0 auto}
+    .health-bar{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:0.75rem 1rem;margin-bottom:1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;font-size:0.85rem}
+    .health-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+    .health-stat{display:flex;align-items:center;gap:0.4rem}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:1rem}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color 0.15s}
+    .card:hover{border-color:#475569}
+    .card.has-violations{border-left:3px solid var(--red)}
+    .card-head{padding:1rem 1rem 0.6rem;display:flex;align-items:flex-start;justify-content:space-between;gap:0.5rem}
+    .card-title{font-weight:700;font-size:0.95rem;color:var(--text)}
+    .card-sub{font-size:0.75rem;color:var(--muted);margin-top:0.2rem;font-family:monospace}
+    .badge{font-size:0.68rem;font-weight:700;padding:0.15rem 0.5rem;border-radius:6px;white-space:nowrap;flex-shrink:0}
+    .badge-active{background:rgba(34,197,94,0.15);color:#86efac;border:1px solid rgba(34,197,94,0.3)}
+    .badge-beta{background:rgba(245,158,11,0.15);color:#fcd34d;border:1px solid rgba(245,158,11,0.3)}
+    .badge-coming_soon{background:rgba(148,163,184,0.15);color:var(--muted);border:1px solid var(--border)}
+    .badge-deprecated{background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.3)}
+    .badge-module{background:rgba(168,85,247,0.15);color:#d8b4fe;border:1px solid rgba(168,85,247,0.3)}
+    .card-body{padding:0 1rem 0.75rem;font-size:0.83rem;color:var(--muted);line-height:1.6}
+    .card-body p{margin-bottom:0.5rem}
+    .section-label{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#64748b;margin:0.6rem 0 0.25rem}
+    .pill-row{display:flex;flex-wrap:wrap;gap:0.3rem;margin-bottom:0.5rem}
+    .pill{font-size:0.72rem;padding:0.12rem 0.45rem;border-radius:5px;background:#1e293b;border:1px solid var(--border);color:var(--muted)}
+    .coverage-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0.25rem;margin-bottom:0.5rem}
+    .cov-cell{font-size:0.65rem;padding:0.2rem 0.3rem;border-radius:5px;text-align:center;font-weight:600}
+    .cov-active{background:rgba(34,197,94,0.2);color:#86efac}
+    .cov-linked{background:rgba(56,189,248,0.15);color:#7dd3fc}
+    .cov-guarded{background:rgba(245,158,11,0.15);color:#fcd34d}
+    .cov-na{background:#1e293b;color:#475569}
+    .criteria-list{list-style:none;padding:0}
+    .criteria-list li{padding:0.18rem 0;color:var(--muted);font-size:0.8rem}
+    .criteria-list li::before{content:"✓ ";color:var(--green);font-weight:700}
+    .ai-rules{background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.25);border-radius:8px;padding:0.6rem 0.75rem;margin-top:0.5rem}
+    .ai-rules .rule-title{font-size:0.72rem;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.35rem}
+    .ai-rules li{font-size:0.78rem;color:#fdba74;padding:0.15rem 0;list-style:none}
+    .ai-rules li::before{content:"⚠ ";color:var(--orange)}
+    .card-foot{padding:0.6rem 1rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:0.5rem}
+    .btn{font-size:0.78rem;padding:0.3rem 0.7rem;border-radius:6px;border:none;cursor:pointer;font-weight:600;transition:all 0.15s}
+    .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+    .btn-ghost:hover{background:var(--border);color:var(--text)}
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-primary:hover{filter:brightness(1.15)}
+    .violations-section{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:0.5rem 0.75rem;margin-top:0.5rem}
+    .violations-section .v-title{font-size:0.72rem;font-weight:700;color:#fca5a5;margin-bottom:0.25rem}
+    .violations-section li{font-size:0.78rem;color:#fca5a5;list-style:none;padding:0.1rem 0}
+    .violations-section li::before{content:"✗ ";color:var(--red)}
+    .empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
+    .empty-state .icon{font-size:2.5rem;margin-bottom:0.75rem}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem}
+    .modal-backdrop.open{display:flex}
+    .modal{background:#1a2332;border:1px solid var(--border);border-radius:14px;width:100%;max-width:700px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden}
+    .modal-head{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .modal-head h3{font-size:1rem;font-weight:700}
+    .modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.3rem;line-height:1}
+    .modal-body{padding:1rem 1.25rem;overflow-y:auto;flex:1}
+    .modal-body pre{background:#0f172a;border:1px solid var(--border);border-radius:8px;padding:1rem;font-size:0.78rem;color:#a5f3fc;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+    .modal-foot{padding:0.75rem 1.25rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:0.5rem}
+    .loading{text-align:center;padding:2rem;color:var(--muted);font-size:0.9rem}
+    @media(max-width:640px){.grid{grid-template-columns:1fr}.coverage-grid{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="/admin" class="logo">Semptify</a>
+  <nav style="display:flex;gap:0.25rem;flex:1">
+    <a href="/admin">🏠 Dashboard</a>
+    <a href="/admin/function-browser.html">⚙️ Functions</a>
+    <a href="/admin/contract-browser.html" class="active">📋 Contracts</a>
+    <a href="/admin/review-checklist.html">✅ Review</a>
+  </nav>
+  <div style="font-size:0.8rem;color:rgba(255,255,255,0.6)">🔧 Admin</div>
+</header>
+
+<div class="toolbar">
+  <input type="text" id="search-input" placeholder="Search contracts by title, expectations, scope, page_id…" oninput="applyFilters()">
+  <select id="filter-status" onchange="applyFilters()">
+    <option value="">All Statuses</option>
+    <option value="active">Active</option>
+    <option value="beta">Beta</option>
+    <option value="coming_soon">Coming Soon</option>
+    <option value="deprecated">Deprecated</option>
+  </select>
+  <select id="filter-group" onchange="applyFilters()">
+    <option value="">All Groups</option>
+    <option value="documentation">Documentation</option>
+    <option value="security_validation">Security/Validation</option>
+    <option value="functions_actions">Functions/Actions</option>
+    <option value="output_delivery">Output/Delivery</option>
+    <option value="research_knowledge">Research/Knowledge</option>
+  </select>
+  <select id="filter-violations" onchange="applyFilters()">
+    <option value="">Any Health</option>
+    <option value="violations">Has Violations</option>
+    <option value="clean">Clean</option>
+  </select>
+  <button class="btn btn-ghost" onclick="loadAll()" title="Refresh data">↻ Refresh</button>
+</div>
+
+<div class="tab-bar">
+  <div class="tab active" id="tab-page" onclick="switchTab('page')">Page Contracts <span class="tab-count" id="count-page">—</span></div>
+  <div class="tab" id="tab-module" onclick="switchTab('module')">Module Contracts <span class="tab-count" id="count-module">—</span></div>
+</div>
+
+<div class="main">
+  <div class="health-bar" id="health-bar">
+    <span style="color:var(--muted)">Loading health status…</span>
+  </div>
+  <div class="grid" id="contract-grid">
+    <div class="loading">Loading contracts…</div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-title">Contract Detail</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <pre id="modal-json"></pre>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="copyJson()">📋 Copy JSON</button>
+      <button class="btn btn-primary" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let allPageContracts = [];
+  let allModuleContracts = [];
+  let violations = {};
+  let currentTab = 'page';
+
+  const COV_LABELS = {
+    documentation:'Docs', security_validation:'Security', research_knowledge:'Research',
+    functions_actions:'Actions', output_delivery:'Output', help_contacts:'Help',
+    welcome:'Welcome', system_admin_monitoring:'Admin'
+  };
+
+  async function loadAll() {
+    document.getElementById('contract-grid').innerHTML = '<div class="loading">Loading…</div>';
+    try {
+      const [pageRes, moduleRes, healthRes] = await Promise.all([
+        fetch('/api/workflow/contracts'),
+        fetch('/api/workflow/module-contracts'),
+        fetch('/api/workflow/health'),
+      ]);
+      const pageData = await pageRes.json();
+      const moduleData = await moduleRes.json();
+      const healthData = await healthRes.json();
+
+      allPageContracts = pageData.contracts || [];
+      allModuleContracts = moduleData.contracts || [];
+
+      // Build violations map by page_id
+      violations = {};
+      for (const v of (healthData.violations || [])) {
+        if (!violations[v.page_id]) violations[v.page_id] = [];
+        violations[v.page_id].push(v.message || v.reason || JSON.stringify(v));
+      }
+
+      document.getElementById('count-page').textContent = allPageContracts.length;
+      document.getElementById('count-module').textContent = allModuleContracts.length;
+
+      renderHealthBar(healthData);
+      applyFilters();
+    } catch(e) {
+      document.getElementById('contract-grid').innerHTML =
+        `<div class="loading" style="color:var(--red)">Failed to load: ${e.message}<br><small>Make sure the server is running and you are authenticated.</small></div>`;
+    }
+  }
+
+  function renderHealthBar(h) {
+    const bar = document.getElementById('health-bar');
+    const status = h.status === 'pass';
+    const s = h.summary || {};
+    bar.innerHTML = `
+      <div class="health-dot" style="background:${status?'var(--green)':'var(--red)'}"></div>
+      <span style="font-weight:700;color:${status?'var(--green)':'var(--red)'}">${status?'All Contracts Healthy':'Contract Violations Detected'}</span>
+      <div class="health-stat"><span style="color:var(--text);font-weight:700">${s.total_contracts||0}</span><span style="color:var(--muted)"> page contracts</span></div>
+      <div class="health-stat"><span style="color:${s.failed>0?'var(--red)':'var(--green)'}; font-weight:700">${s.failed||0}</span><span style="color:var(--muted)"> violations</span></div>
+      <div class="health-stat"><span style="color:var(--text);font-weight:700">${s.passed||0}</span><span style="color:var(--muted)"> passed</span></div>
+    `;
+  }
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('tab-page').classList.toggle('active', tab==='page');
+    document.getElementById('tab-module').classList.toggle('active', tab==='module');
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const q = document.getElementById('search-input').value.toLowerCase();
+    const fStatus = document.getElementById('filter-status').value;
+    const fGroup = document.getElementById('filter-group').value;
+    const fViol = document.getElementById('filter-violations').value;
+
+    if (currentTab === 'page') {
+      let items = allPageContracts.filter(c => {
+        if (q && !JSON.stringify(c).toLowerCase().includes(q)) return false;
+        if (fStatus && (c.status||'active') !== fStatus) return false;
+        if (fGroup && !c.primary_groups?.includes(fGroup) && !c.secondary_groups?.includes(fGroup)) return false;
+        if (fViol === 'violations' && !violations[c.page_id]) return false;
+        if (fViol === 'clean' && violations[c.page_id]) return false;
+        return true;
+      });
+      renderPageContracts(items);
+    } else {
+      let items = allModuleContracts.filter(c => {
+        if (q && !JSON.stringify(c).toLowerCase().includes(q)) return false;
+        return true;
+      });
+      renderModuleContracts(items);
+    }
+  }
+
+  function renderPageContracts(contracts) {
+    const grid = document.getElementById('contract-grid');
+    if (!contracts.length) {
+      grid.innerHTML = '<div class="empty-state"><div class="icon">📋</div><div>No contracts match your filters.</div></div>';
+      return;
+    }
+    grid.innerHTML = contracts.map(c => {
+      const v = violations[c.page_id] || [];
+      const status = c.status || 'active';
+      const covHtml = renderCoverage(c.group_coverage || {});
+      const rulesHtml = c.ai_constraints?.length
+        ? `<div class="ai-rules"><div class="rule-title">⚠ AI Rules (Read Before Editing)</div><ul>${c.ai_constraints.map(r=>`<li>${escHtml(r)}</li>`).join('')}</ul></div>`
+        : '';
+      const violHtml = v.length
+        ? `<div class="violations-section"><div class="v-title">✗ ${v.length} Violation${v.length>1?'s':''}</div><ul>${v.map(vv=>`<li>${escHtml(vv)}</li>`).join('')}</ul></div>`
+        : '';
+      return `
+        <div class="card ${v.length?'has-violations':''}">
+          <div class="card-head">
+            <div>
+              <div class="card-title">${escHtml(c.title||c.page_id)}</div>
+              <div class="card-sub">${escHtml(c.page_id||'')} · ${escHtml(c.route||'')}</div>
+            </div>
+            <span class="badge badge-${status}">${status}</span>
+          </div>
+          <div class="card-body">
+            ${c.expectations ? `<p>${escHtml(c.expectations)}</p>` : ''}
+            ${c.scope_of_use ? `<div class="section-label">Scope</div><p>${escHtml(c.scope_of_use)}</p>` : ''}
+            ${covHtml}
+            <div class="section-label">Roles</div>
+            <div class="pill-row">${(c.roles_supported||[]).map(r=>`<span class="pill">${r}</span>`).join('')}</div>
+            ${c.entry_criteria?.length ? `<div class="section-label">Entry</div><ul class="criteria-list">${c.entry_criteria.map(e=>`<li>${escHtml(e)}</li>`).join('')}</ul>` : ''}
+            ${c.exit_criteria?.length ? `<div class="section-label">Exit</div><ul class="criteria-list">${c.exit_criteria.map(e=>`<li>${escHtml(e)}</li>`).join('')}</ul>` : ''}
+            ${rulesHtml}
+            ${violHtml}
+          </div>
+          <div class="card-foot">
+            <button class="btn btn-ghost" onclick="openModal(${JSON.stringify(JSON.stringify(c))}, ${JSON.stringify(c.title||c.page_id)})">{ } View JSON</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderModuleContracts(contracts) {
+    const grid = document.getElementById('contract-grid');
+    if (!contracts.length) {
+      grid.innerHTML = '<div class="empty-state"><div class="icon">⚙️</div><div>No module contracts registered yet.</div></div>';
+      return;
+    }
+    grid.innerHTML = contracts.map(c => `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div class="card-title">${escHtml(c.title||c.group_name)}</div>
+            <div class="card-sub">${escHtml(c.module||'')} :: ${escHtml(c.group_name||'')}</div>
+          </div>
+          <span class="badge badge-module">module</span>
+        </div>
+        <div class="card-body">
+          ${c.description ? `<p>${escHtml(c.description)}</p>` : ''}
+          <div class="section-label">Inputs</div>
+          <div class="pill-row">${(c.inputs||[]).map(i=>`<span class="pill">→ ${escHtml(i)}</span>`).join('')}</div>
+          <div class="section-label">Outputs</div>
+          <div class="pill-row">${(c.outputs||[]).map(o=>`<span class="pill" style="border-color:#22c55e;color:#86efac">← ${escHtml(o)}</span>`).join('')}</div>
+          <div class="section-label">Dependencies</div>
+          <div class="pill-row">${(c.dependencies||[]).map(d=>`<span class="pill" style="font-family:monospace">${escHtml(d)}</span>`).join('')}</div>
+          <div style="margin-top:0.5rem;font-size:0.75rem;color:${c.deterministic?'var(--green)':'var(--yellow)'}">
+            ${c.deterministic ? '✓ Deterministic' : '⚡ Non-deterministic'}
+          </div>
+        </div>
+        <div class="card-foot">
+          <button class="btn btn-ghost" onclick="openModal(${JSON.stringify(JSON.stringify(c))}, ${JSON.stringify(c.title||c.group_name)})">{ } View JSON</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function renderCoverage(cov) {
+    if (!Object.keys(cov).length) return '';
+    const cells = Object.entries(cov).map(([k,v]) => {
+      const cls = v==='active'?'cov-active':v==='linked'?'cov-linked':v==='guarded'?'cov-guarded':'cov-na';
+      return `<div class="cov-cell ${cls}" title="${k}: ${v}">${COV_LABELS[k]||k}</div>`;
+    }).join('');
+    return `<div class="section-label">Coverage</div><div class="coverage-grid">${cells}</div>`;
+  }
+
+  function openModal(jsonStr, title) {
+    const data = JSON.parse(jsonStr);
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-json').textContent = JSON.stringify(data, null, 2);
+    document.getElementById('modal-backdrop').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal-backdrop').classList.remove('open');
+  }
+
+  function copyJson() {
+    const text = document.getElementById('modal-json').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.querySelector('.modal-foot .btn-ghost');
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => btn.textContent = '📋 Copy JSON', 1500);
+    });
+  }
+
+  function escHtml(str) {
+    if (typeof str !== 'string') return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  loadAll();
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Generate a CSV inventory of module/router/service compliance entries using
 `app.core.compliance` discovery. Run from repository root.

@@ -11,6 +11,7 @@ from typing import List
 
 from app.core.vault_paths import (
     SEMPTIFY_ROOT,
+    SYSTEM_FOLDER,
     AUTH_FOLDER,
     VAULT_FOLDER,
     VAULT_ROOT,
@@ -40,6 +41,7 @@ class VaultFolderSpec:
     base_folders: tuple = (
         SEMPTIFY_ROOT,
         VAULT_ROOT,
+        SYSTEM_FOLDER,
         AUTH_FOLDER,
         VAULT_FOLDER,
     )

@@ -21,7 +21,7 @@ This guide covers deploying Semptify FastAPI to production environments.
 
 ### System Requirements
 
-- **Python**: 3.11+ (3.12 recommended)
+- **Python**: 3.11 only
 - **RAM**: Minimum 2GB, recommended 4GB+
 - **Storage**: 10GB+ for application and uploads
 - **OS**: Linux (Ubuntu 22.04+), Windows Server 2019+, or Docker
