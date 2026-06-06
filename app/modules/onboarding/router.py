@@ -47,6 +47,14 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     router = APIRouter(prefix=config.route_prefix, tags=["onboarding"])
 
     # ------------------------------------------------------------------
+    # Root redirect — prevents trailing-slash redirect loop
+    # ------------------------------------------------------------------
+    @router.get("/")
+    async def onboarding_root():
+        """Redirect bare /onboarding/ to the real entry point."""
+        return RedirectResponse(url=f"{config.route_prefix}/start", status_code=302)
+
+    # ------------------------------------------------------------------
     # Test Route - Debug
     # ------------------------------------------------------------------
     @router.get("/test")
