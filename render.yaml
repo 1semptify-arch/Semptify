@@ -19,7 +19,7 @@ services:
     healthCheckPath: /health
 
     # Auto Deploy on Push
-    autoDeploy: true
+    autoDeploy: false
 
     # Build Script
     buildCommand: "./build.sh"
