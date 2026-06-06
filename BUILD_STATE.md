@@ -4,7 +4,7 @@
 ---
 
 ## Session — 2026-06-06 — Document System Audit + Upload Unification
-**Commits: `a1d69bd`, `4275354` | Pushed: 2026-06-06**
+**Commits: `a1d69bd`, `4275354`, `50ae8aa` | Pushed: 2026-06-06**
 
 ### What Was Done
 1. **Document system audit** — Confirmed vault intake fully defined. One door: `VaultUploadService.upload()`. Documents router is downstream (processes, never uploads).
@@ -14,12 +14,19 @@
 5. **Fixed onboarding redirect loop** — `/onboarding/` caused `ERR_TOO_MANY_REDIRECTS`. Added `GET /` root handler redirecting to `/onboarding/start`.
 6. **Playwright 6/6 passed** — welcome, /health, vault upload auth-gated, sidebar redirect stub, onboarding reachable, vault-portal.js path verified.
 7. **`/ship` workflow recreated** — `.devin/workflows/ship.md` updated with all current compile targets and Playwright step.
+8. **Documents router SSOT violation fixed** — `/upload` endpoint called `vault_service.upload()` directly (line 651). Replaced with `/process` endpoint that accepts `vault_id` (already vaulted). Documents router now only processes, never uploads.
+9. **Updated 3 frontend files** — `base.html`, `functions_bar.html`, `documents.html` now use two-step flow: `/api/vault/upload` → `/api/documents/process`.
+10. **Deleted dead `upload_document()`** — Removed from `user_cloud_sync.py` (SSOT violation, not called anywhere).
 
 ### Files Modified
 - `app/modules/vault/router.py` — merged sidebar_upload into unified upload_document
 - `app/modules/onboarding/router.py` — GET / root added to fix redirect loop
-- `app/modules/documents/router.py` — stripped corrupted docstring
+- `app/modules/documents/router.py` — replaced /upload with /process (vault_id-based)
+- `app/templates/base.html` — two-step upload flow
+- `app/templates/components/functions_bar.html` — two-step upload flow
+- `static/tenant/documents.html` — two-step upload flow
 - `static/js/core/vault-portal.js` — upload URL updated to /api/vault/upload
+- `app/services/user_cloud_sync.py` — deleted dead upload_document()
 - `.devin/workflows/ship.md` — recreated with full steps
 
 ### What Is Known Working (Playwright verified)
@@ -29,12 +36,12 @@
 - ✅ `/api/vault/sidebar/upload` redirect stub alive (not 404)
 - ✅ `/onboarding/` → resolves to `/onboarding/select-role.html` (no loop)
 - ✅ `vault-portal.js` references correct unified path
+- ✅ Documents router compiles clean, no upload calls
 
 ### What Is Pending Next Session
-- Audit `app/modules/documents/router.py` fully — confirm it never calls VaultUploadService.upload(), only reads from vault
 - Live test: upload a document via vault portal UI with real storage credentials
 - Live test: confirm registry_id (SEM-YYYY-NNNNNN-XXXX) appears in upload response
-- `user_cloud_sync.py` dead `upload_document()` — delete in cleanup pass
+- Verify two-step frontend flow works end-to-end
 
 ---
 
