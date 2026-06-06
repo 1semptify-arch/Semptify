@@ -3,6 +3,113 @@
 
 ---
 
+## Session — 2026-06-05 — Reconnect & Vault Upload Error Fixes
+**Commit: `748392a` | Pushed: 2026-06-05**
+
+### What Was Fixed
+1. **`AttributeError: 'str' object has no attribute 'isoformat'`** — `vault_doc.uploaded_at` is returned as a string from DB but code called `.isoformat()` expecting a datetime. Fixed by checking `hasattr(..., "isoformat")` before calling it.
+2. **`NameError: name 'IntakeDocument' is not defined`** — `document_flow_orchestrator.py` used `IntakeDocument` as a type annotation but never imported it. Added import from `app.services.document_intake`.
+3. **Reconnect creates new user instead of reusing existing** — `initiate_oauth` compared `existing_uid` (plain) against `cookie_uid` (signed) which never matched → `existing_uid` was nulled → callback created new user. Fixed by verifying cookie before comparing.
+4. **Onboarding OAuth always forces fresh user ID** — `handle_onboarding_callback` had `state_data["force_fresh"] = True` hardcoded, bypassing existing users even when they matched by provider subject. Removed override.
+5. **Onboarding callback always sends to vault-setup** — `vault_initialized: False` was hardcoded in return value. Now reads actual gate from DB via `check_gate()`.
+
+### Files Modified
+- `app/modules/vault/router.py` — uploaded_at coercion
+- `app/services/document_flow_orchestrator.py` — IntakeDocument import
+- `app/modules/storage/router.py` — cookie verification before comparison
+- `app/modules/onboarding/oauth.py` — removed force_fresh and vault_initialized overrides
+
+### What Is Known Working
+- All 4 modified files compile clean
+- Returning users via onboarding OAuth now reuse existing account and skip vault-setup
+- Reconnect flow correctly preserves existing user ID when cookie is valid
+
+### Pending Live Test
+- Test returning user login on production to confirm reconnect routes to /home not onboarding
+
+---
+
+## Session — 2026-06-04 — Vault Onboarding Gate Flow + Pipeline Cleanup
+**Commit: `6c114ed` | Pushed: 2026-06-04**
+
+### What Was Fixed
+1. **Duplicate `/api/vault/status` endpoint** — first registration (returning `vault_installed`) shadowed the correct one (returning `vault_initialized` + `document_uploaded` + `document_count`). Poll helper `vault_status_poll.js` was reading wrong field, never resolved. Fixed: single endpoint at line 277 now returns all three fields.
+2. **Docstring bug** — `vault/verify` docstring said `GET`, endpoint is `POST`. Fixed.
+3. **Eager overlay creation removed from upload pipeline** — `VaultUploadService.upload()` was calling `_create_unified_overlay()` at upload time. Overlays are on-demand only — created by the requesting process, not by upload. Removed.
+4. **Vault contract description corrected** — now explicitly states vault does NOT create overlays, trigger intake, or start workflows.
+5. **`unified_overlay_manager.py` freeze comment added** — name is legacy artifact, scope locked to overlay records only, rename deferred until feature-complete.
+6. **AGENTS.md Rule 13** — File rewrite protocol (shim pattern) added to Known Failure Registry.
+
+### Architecture Clarified This Session
+- Vault = storage adapter only (store, certify, index, emit event)
+- Overlays = on-demand, created by requesting process
+- Timeline = query view, not extraction
+- One door for documents: `VaultUploadService.upload()` — confirmed no bypasses in live code
+- `user_cloud_sync.py` has a dead `upload_document()` that bypasses vault — confirmed not called anywhere
+
+### Known Pending
+- `user_cloud_sync.py` dead `upload_document()` — delete when doing cleanup pass
+- Rename deferred: `unified_overlay_manager` → `overlay_store`, `timeline_extraction` → `timeline_query`, `document_intake_engine` → `document_router`
+- Live test of full 3-step onboarding flow on Render pending
+
+---
+
+## Session — 2026-06-04 — Vault SSOT Fixes (shipped earlier)
+
+### What Was Fixed
+
+**Three vault SSOT bugs fixed + contract enforcement added**
+
+1. **Bug 1 — `app/modules/vault/router.py` `/upload` endpoint bypassed VaultUploadService**
+   - Old: raw `storage.upload_file()` → no `vault_id` in DB, no SHA256 dedup, no registry_id, no event bus
+   - Fix: endpoint now calls `VaultUploadService.upload()` — the canonical SSOT pipeline
+   - All 12 downstream callers unaffected (they call VaultUploadService directly already)
+
+2. **Bug 2 — `app/modules/vault_installer/installer.py` marked `vault_initialized` gate prematurely**
+   - Old: `install_vault_for_user()` marked gate after folder creation only (Step 1 of 3)
+   - Fix: gate mark removed from installer — gate is only marked by `vault_verify()` after all 3 steps pass
+   - Rule: `vault_initialized` = folders + token backup + live probe + document upload all succeeded
+
+3. **Bug 3 — `app/modules/onboarding/router.py` `/api/vault/status` endpoint was dead code**
+   - Old: endpoint was indented 8 spaces inside `vault_verify()` body — unreachable by FastAPI router
+   - Fix: dedented to proper top-level route inside `create_router()`
+
+### SSOT Enforcement Added
+
+4. **`app/core/vault_paths.py`** — Added SSOT header block with AI rules at line 1
+5. **`app/services/vault_upload_service.py`** — Added SSOT header block with 5 explicit AI rules
+6. **`app/services/vault_upload_service.py`** — Added 3 vault module contracts registered at import:
+   - `vault::vault_upload` — canonical upload pipeline contract
+   - `vault::vault_folders` — folder path SSOT contract
+   - `vault::vault_init` — initialization + gate marking rules
+7. **`static/admin/contract-browser.html`** — NEW admin page: live browsable GUI for all contracts
+8. **`app/modules/workflow/router.py`** — Added `GET /api/workflow/module-contracts` endpoint
+9. **`static/admin/dashboard.html`** — Contract Browser linked in Quick Actions + nav drawer
+
+### Files Modified
+- `app/modules/vault/router.py`
+- `app/modules/vault_installer/installer.py`
+- `app/modules/onboarding/router.py`
+- `app/services/vault_upload_service.py`
+- `app/core/vault_paths.py`
+- `app/modules/workflow/router.py`
+- `static/admin/dashboard.html`
+
+### Files Created
+- `static/admin/contract-browser.html`
+
+### What Is Known Working
+- All 5 modified Python files compile clean (`py_compile` verified)
+- Contract browser accessible at `/admin/contract-browser.html`
+- Module contracts API at `GET /api/workflow/module-contracts`
+
+### Pending Live Test
+- Vault upload via `/upload` endpoint through VaultUploadService (needs live provider test)
+- Gate marking sequence: Step 1 → Step 2 → vault_verify → `vault_initialized` marked once only
+- `/api/vault/status` polling endpoint now reachable (was dead code before)
+
+---
+
 ## Shipped — 2026-05-29 (9:40 PM UTC-05) — Commit `a503d8f`
 
 ### What Was Shipped
