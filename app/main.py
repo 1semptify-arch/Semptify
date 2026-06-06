@@ -21,32 +21,28 @@ try:
 except ImportError:
     pass  # Vertex AI not available
 
-# Python version check - Semptify requires Python 3.11+
+# Python version check - Semptify MANDATES Python 3.11.9 ONLY
+# This is a hard requirement. Do NOT change without explicit approval.
+# No add-ons, modules, or extensions may require a different Python version.
 python_version = sys.version_info
-if python_version >= (3, 14):
+if python_version[:2] != (3, 11):
     print("=" * 70)
-    print("âš ï¸  CRITICAL WARNING: Python 3.14+ detected!")
+    print("CRITICAL: Python 3.11.9 REQUIRED — HARD STOP")
     print("=" * 70)
-    print("Semptify is NOT compatible with Python 3.14.")
-    print("Python 3.14 has known compatibility issues with required packages.")
+    print(f"Detected Python {python_version.major}.{python_version.minor}.{python_version.micro}")
+    print("Semptify mandates Python 3.11.9. No other version is permitted.")
+    print("This applies to ALL modules, add-ons, and extensions.")
     print("")
-    print("Please use Python 3.11 or 3.12 instead:")
-    print("  1. Install Python 3.11: https://python.org/downloads/release/python-3119/")
-    print("  2. Create a virtual environment: python3.11 -m venv venv")
-    print("  3. Activate and reinstall dependencies")
-    print("=" * 70)
-    sys.exit(1)
-elif python_version < (3, 11):
-    print("=" * 70)
-    print("âš ï¸  ERROR: Python version too old!")
-    print("=" * 70)
-    print(f"Detected Python {python_version.major}.{python_version.minor}")
-    print("Semptify requires Python 3.11 or higher.")
+    print("Setup:")
+    print("  1. Install Python 3.11.9: https://python.org/downloads/release/python-3119/")
+    print("  2. python3.11 -m venv venv311")
+    print("  3. .\\venv311\\Scripts\\Activate.ps1")
+    print("  4. pip install -r requirements.txt")
+    print("  5. python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload")
     print("=" * 70)
     sys.exit(1)
 else:
-    # Log Python version for debugging
-    print(f"âœ… Python {python_version.major}.{python_version.minor}.{python_version.micro} - Compatible")
+    print(f"Python {python_version.major}.{python_version.minor}.{python_version.micro} - OK")
 
 import asyncio
 import json
@@ -1534,7 +1530,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             if page_path.exists():
                 return FileResponse(page_path)
             # Fallback to OAuth if providers page doesn't exist
-            return ssot_redirect("/onboarding/auth/google_drive", context="providers fallback")
+            return ssot_redirect("/onboarding/auth/google_drive?force_fresh=true", context="providers fallback")
 
         # Register page - explicit route for template
         @fastapi_app.get("/register", response_class=HTMLResponse)

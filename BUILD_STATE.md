@@ -3,7 +3,36 @@
 
 ---
 
-## Session — 2026-06-05 — Reconnect & Vault Upload Error Fixes
+## Session — 2026-06-05 (Late) — Vault Ingress SSOT Refactor
+**Commit: pending | Pushed: pending**
+
+### What Was Fixed
+1. **Sidebar upload bypassed VaultUploadService** — `POST /api/vault/sidebar/upload` was doing manual storage calls, manual certificate creation, manual overlay creation. No registry ID, no event bus, no chain of custody.
+2. **Refactored to use VaultUploadService.upload()** — Sidebar now calls the canonical upload service as SSOT.
+3. **Removed manual storage calls** — No more direct `storage.upload_file()`, `ensure_vault_folders()`, or manual ID generation.
+4. **Removed manual certificate creation** — VaultUploadService handles this.
+5. **Removed manual overlay creation** — VaultUploadService handles this.
+6. **Kept timeline extraction** — Runs as secondary post-upload step (non-blocking).
+7. **Mapped response format** — Sidebar response now includes `registry_id` from VaultUploadService result.
+8. **Updated docstring** — Vault router header now documents SSOT architecture with all upload paths.
+
+### Files Modified
+- `app/modules/vault/router.py` — refactored sidebar_upload, updated docstring
+
+### What This Achieves
+- All document uploads now go through VaultUploadService (SSOT)
+- Sidebar uploads now get registry IDs (SEM-YYYY-NNNNNN-XXXX)
+- Event bus now triggers for sidebar uploads
+- Consistent certificate format across all upload paths
+- Single point of maintenance for upload logic
+
+### Pending Live Test
+- Test sidebar upload after refactor to confirm documents get registry IDs
+- Verify timeline extraction still works
+
+---
+
+## Session — 2026-06-05 (Earlier) — Reconnect & Vault Upload Error Fixes
 **Commit: `748392a` | Pushed: 2026-06-05**
 
 ### What Was Fixed
