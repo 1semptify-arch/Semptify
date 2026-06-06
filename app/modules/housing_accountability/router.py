@@ -478,7 +478,8 @@ async def detect_patterns(request: PatternDetectionRequest,
         
     except Exception as e:
         logger.error(f"Pattern detection failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Pattern detection failed: {str(e)}")
+        logger.exception("Pattern detection failed")
+        raise HTTPException(status_code=500, detail="Pattern detection failed")
 
 @accountability_router.post("/oversight/packet/generate")
 async def generate_oversight_packet(request: OversightPacketRequest,
@@ -514,7 +515,8 @@ async def generate_oversight_packet(request: OversightPacketRequest,
         
     except Exception as e:
         logger.error(f"Oversight packet generation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Packet generation failed: {str(e)}")
+        logger.exception("Packet generation failed")
+        raise HTTPException(status_code=500, detail="Packet generation failed")
 
 @accountability_router.post("/coalition/build")
 async def build_coalition_action(request: CoalitionRequest,
@@ -543,7 +545,8 @@ async def build_coalition_action(request: CoalitionRequest,
         
     except Exception as e:
         logger.error(f"Coalition building failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Coalition building failed: {str(e)}")
+        logger.exception("Coalition building failed")
+        raise HTTPException(status_code=500, detail="Coalition building failed")
 
 @accountability_router.post("/evidence/intake")
 async def process_evidence_intake(request: EvidenceIntakeRequest,
@@ -570,7 +573,8 @@ async def process_evidence_intake(request: EvidenceIntakeRequest,
         
     except Exception as e:
         logger.error(f"Evidence intake failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Evidence intake failed: {str(e)}")
+        logger.exception("Evidence intake failed")
+        raise HTTPException(status_code=500, detail="Evidence intake failed")
 
 @accountability_router.post("/public-records/search")
 async def search_public_records(request: PublicRecordsRequest,
@@ -598,7 +602,8 @@ async def search_public_records(request: PublicRecordsRequest,
         
     except Exception as e:
         logger.error(f"Public records search failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Public records search failed: {str(e)}")
+        logger.exception("Public records search failed")
+        raise HTTPException(status_code=500, detail="Public records search failed")
 
 @accountability_router.post("/press/build")
 async def build_press_release(request: PressBuilderRequest,
@@ -629,7 +634,8 @@ async def build_press_release(request: PressBuilderRequest,
         
     except Exception as e:
         logger.error(f"Press release building failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Press release building failed: {str(e)}")
+        logger.exception("Press release building failed")
+        raise HTTPException(status_code=500, detail="Press release building failed")
 
 # =============================================================================
 # Dashboard & Analyst Endpoints (Engine Layer)

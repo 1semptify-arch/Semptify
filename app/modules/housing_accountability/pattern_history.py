@@ -81,7 +81,8 @@ async def get_pattern_history_endpoint(
         
     except Exception as e:
         logger.error(f"Failed to get pattern history: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve pattern history: {str(e)}")
+        logger.exception("Failed to retrieve pattern history")
+        raise HTTPException(status_code=500, detail="Failed to retrieve pattern history")
 
 
 @pattern_history_router.get("/trends")
@@ -116,7 +117,8 @@ async def get_pattern_trends_endpoint(
         
     except Exception as e:
         logger.error(f"Failed to get pattern trends: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to analyze pattern trends: {str(e)}")
+        logger.exception("Failed to analyze pattern trends")
+        raise HTTPException(status_code=500, detail="Failed to analyze pattern trends")
 
 
 @pattern_history_router.get("/record/{record_id}")
@@ -155,7 +157,8 @@ async def get_pattern_record_detail(
         raise
     except Exception as e:
         logger.error(f"Failed to get pattern record {record_id}: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve pattern record: {str(e)}")
+        logger.exception("Failed to retrieve pattern record")
+        raise HTTPException(status_code=500, detail="Failed to retrieve pattern record")
 
 
 @pattern_history_router.post("/record/{record_id}/review")
@@ -204,7 +207,8 @@ async def mark_pattern_record_reviewed(
     except Exception as e:
         await db.rollback()
         logger.error(f"Failed to mark pattern record {record_id} as reviewed: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to update pattern record: {str(e)}")
+        logger.exception("Failed to update pattern record")
+        raise HTTPException(status_code=500, detail="Failed to update pattern record")
 
 
 @pattern_history_router.get("/stats")
@@ -285,4 +289,5 @@ async def get_pattern_statistics(
         
     except Exception as e:
         logger.error(f"Failed to get pattern statistics: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve pattern statistics: {str(e)}")
+        logger.exception("Failed to retrieve pattern statistics")
+        raise HTTPException(status_code=500, detail="Failed to retrieve pattern statistics")

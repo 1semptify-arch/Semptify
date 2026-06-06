@@ -117,7 +117,8 @@ async def list_files(
             templates=template_files
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error scanning files: {str(e)}")
+        logger.exception("Error scanning files")
+        raise HTTPException(status_code=500, detail="Error scanning files")
 
 
 @router.get("/file")
@@ -159,7 +160,8 @@ async def get_file(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error reading file: {str(e)}")
+        logger.exception("Error reading file")
+        raise HTTPException(status_code=500, detail="Error reading file")
 
 
 @router.post("/save")
@@ -198,7 +200,8 @@ async def save_file(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error saving file: {str(e)}")
+        logger.exception("Error saving file")
+        raise HTTPException(status_code=500, detail="Error saving file")
 
 
 @router.post("/preview")
@@ -261,7 +264,8 @@ async def preview_file(
         return JSONResponse(content={"html": preview_html})
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating preview: {str(e)}")
+        logger.exception("Error generating preview")
+        raise HTTPException(status_code=500, detail="Error generating preview")
 
 
 @router.get("/search")
@@ -297,7 +301,8 @@ async def search_files(
         return {"results": results[:100], "total": len(results)}
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error searching: {str(e)}")
+        logger.exception("Error searching")
+        raise HTTPException(status_code=500, detail="Error searching")
 
 
 @router.get("/page")

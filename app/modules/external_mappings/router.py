@@ -152,7 +152,8 @@ async def create_external_mapping(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create mapping: {str(e)}")
+        logger.exception("Failed to create mapping")
+        raise HTTPException(status_code=500, detail="Failed to create mapping")
 
 
 @mappings_router.get("/mappings")
@@ -175,7 +176,8 @@ async def list_user_mappings(
         })
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve mappings: {str(e)}")
+        logger.exception("Failed to retrieve mappings")
+        raise HTTPException(status_code=500, detail="Failed to retrieve mappings")
 
 
 @mappings_router.get("/mapping/{mapping_id}")
@@ -206,7 +208,8 @@ async def get_mapping_detail(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve mapping: {str(e)}")
+        logger.exception("Failed to retrieve mapping")
+        raise HTTPException(status_code=500, detail="Failed to retrieve mapping")
 
 
 @mappings_router.put("/mapping/{mapping_id}/status")
@@ -253,7 +256,8 @@ async def update_mapping(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to update mapping: {str(e)}")
+        logger.exception("Failed to update mapping")
+        raise HTTPException(status_code=500, detail="Failed to update mapping")
 
 
 # ============================================================================
@@ -334,7 +338,8 @@ async def create_court_case_mapping(
         raise
     except Exception as e:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to create court case mapping: {str(e)}")
+        logger.exception("Failed to create court case mapping")
+        raise HTTPException(status_code=500, detail="Failed to create court case mapping")
 
 
 @mappings_router.get("/court-cases")
@@ -365,7 +370,8 @@ async def list_court_cases(
         })
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve court cases: {str(e)}")
+        logger.exception("Failed to retrieve court cases")
+        raise HTTPException(status_code=500, detail="Failed to retrieve court cases")
 
 
 # ============================================================================
@@ -444,7 +450,8 @@ async def create_property_mapping(
         raise
     except Exception as e:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to create property mapping: {str(e)}")
+        logger.exception("Failed to create property mapping")
+        raise HTTPException(status_code=500, detail="Failed to create property mapping")
 
 
 @mappings_router.get("/properties")
@@ -475,7 +482,8 @@ async def list_properties(
         })
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve properties: {str(e)}")
+        logger.exception("Failed to retrieve properties")
+        raise HTTPException(status_code=500, detail="Failed to retrieve properties")
 
 
 # ============================================================================
@@ -549,7 +557,8 @@ async def create_agency_mapping(
         raise
     except Exception as e:
         await db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to create agency mapping: {str(e)}")
+        logger.exception("Failed to create agency mapping")
+        raise HTTPException(status_code=500, detail="Failed to create agency mapping")
 
 
 @mappings_router.get("/agencies")
@@ -580,7 +589,8 @@ async def list_agency_mappings(
         })
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve agency mappings: {str(e)}")
+        logger.exception("Failed to retrieve agency mappings")
+        raise HTTPException(status_code=500, detail="Failed to retrieve agency mappings")
 
 
 # ============================================================================
@@ -673,4 +683,5 @@ async def search_mappings(
         })
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
+        logger.exception("Search failed")
+        raise HTTPException(status_code=500, detail="Search failed")
