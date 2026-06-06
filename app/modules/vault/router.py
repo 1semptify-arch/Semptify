@@ -171,55 +171,53 @@ async def ensure_vault_folders(storage, provider_name: str) -> None:
 
 @router.post(
     "/upload",
-    response_model=DocumentResponse,
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(rate_limit_dependency("vault-upload", window=60, max_requests=20))],
 )
 async def upload_document(
-    file: UploadFile = File(...),
+    request: Request,
+    files: List[UploadFile] = File(...),
+    metadata: Optional[str] = Form(None),
     document_type: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     tags: Optional[str] = Form(None),
-    access_token: str = Form(..., description="Storage provider access token"),
     user: StorageUser = Depends(yellow_access),
     settings: Settings = Depends(get_settings),
 ):
     """
-    Upload a document to the user's cloud storage vault.
+    Upload one or more documents to the user's cloud storage vault.
 
-    SSOT: All uploads go through VaultUploadService — one pipeline, one index,
-    one certificate, one registry entry, one event bus. Never call storage
-    directly for document uploads.
+    SSOT: The single entry point for ALL vault document uploads.
+    Handles UI uploads (vault portal) and programmatic uploads identically.
 
-    Requires:
-    - User authenticated via storage OAuth
-    - access_token: Current access token for user's storage provider
+    Accepts:
+    - files: one or more files
+    - metadata: optional JSON string with document_type, description, tags, source
+    - document_type / description / tags: optional form fields (override metadata)
+
+    Returns JSON with uploaded file entries and any errors.
     """
     if not HAS_VAULT_SERVICE:
         raise HTTPException(status_code=503, detail="Vault service unavailable")
 
-    if not file.filename:
-        raise HTTPException(status_code=400, detail="Filename required")
+    # Parse optional metadata JSON (from UI portal)
+    metadata_dict = {}
+    if metadata:
+        try:
+            metadata_dict = json.loads(metadata)
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="Invalid metadata JSON")
 
-    if not is_allowed_extension(file.filename, settings):
-        raise HTTPException(
-            status_code=400,
-            detail=f"File type not allowed. Allowed: {settings.allowed_extensions}",
-        )
+    # Form fields override metadata dict
+    doc_type = document_type or metadata_dict.get("document_type")
+    doc_description = description or metadata_dict.get("description")
+    doc_tags = tags.split(",") if tags else metadata_dict.get("tags", [])
+    source = metadata_dict.get("source", "vault_upload")
 
-    content = await file.read()
-    file_size = len(content)
-
-    max_size = settings.max_upload_size_mb * 1024 * 1024
-    if file_size > max_size:
-        raise HTTPException(
-            status_code=400,
-            detail=f"File too large. Maximum: {settings.max_upload_size_mb}MB",
-        )
-
-    # Resolve real access token
-    real_token = access_token
-    if not real_token or real_token == "auto":
+    # Resolve access token with fallback chain
+    access_token_val = metadata_dict.get("access_token") or getattr(user, "access_token", None)
+    real_token = access_token_val
+    if not real_token or real_token in ("auto", "no-token"):
         real_token = getattr(user, "access_token", None)
     if not real_token or real_token in ("auto", "no-token"):
         try:
@@ -234,56 +232,150 @@ async def upload_document(
         )
 
     provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
+    vault_service = get_vault_service()
+    uploaded_files = []
+    upload_errors = []
 
-    try:
-        vault_service = get_vault_service()
-        vault_doc = await vault_service.upload(
-            user_id=user.user_id,
-            filename=file.filename,
-            content=content,
-            mime_type=file.content_type or "application/octet-stream",
-            document_type=document_type,
-            description=description,
-            tags=tags.split(",") if tags else [],
-            source_module="vault_router",
-            access_token=real_token,
-            storage_provider=provider_name,
-        )
-    except Exception as e:
-        error_msg = str(e)
-        if "401" in error_msg or "Unauthorized" in error_msg or "access" in error_msg.lower():
-            raise HTTPException(status_code=401, detail=f"Storage authentication failed: {error_msg}")
-        elif "403" in error_msg or "Forbidden" in error_msg:
-            raise HTTPException(status_code=403, detail=f"Storage access denied: {error_msg}")
-        else:
-            raise HTTPException(status_code=500, detail=f"Upload failed: {error_msg}")
+    for uploaded_file in files:
+        try:
+            file_content = await uploaded_file.read()
 
-    function_token = issue_function_access_token(
-        user.user_id,
-        context={
-            "provider": user.provider,
-            "reason": "vault_upload",
-            "scopes": ["overlay:read", "overlay:write"],
-            "document_ids": [vault_doc.vault_id],
-        },
-    )
+            # Security validation with audit logging
+            from app.core.file_validator import validate_upload_file
+            validation_result = validate_upload_file(file_content, uploaded_file.filename, uploaded_file.size)
+            if not validation_result.is_valid:
+                from app.core.audit_logger import log_security_event
+                log_security_event(
+                    user_id=user.user_id,
+                    event_type="file_validation_failure",
+                    details={
+                        "filename": uploaded_file.filename,
+                        "validation_error": validation_result.error_message,
+                        "security_risk": validation_result.security_risk,
+                    },
+                    ip_address=request.client.host if request.client else "unknown",
+                    user_agent=request.headers.get("user-agent", "unknown"),
+                )
+                upload_errors.append({
+                    "filename": uploaded_file.filename,
+                    "error": validation_result.error_message,
+                    "security_risk": validation_result.security_risk,
+                    "recommended_action": validation_result.recommended_action,
+                })
+                continue
 
-    return DocumentResponse(
-        id=vault_doc.vault_id,
-        filename=vault_doc.safe_filename or vault_doc.vault_id,
-        original_filename=vault_doc.filename,
-        file_size=vault_doc.file_size,
-        mime_type=vault_doc.mime_type,
-        sha256_hash=vault_doc.sha256_hash,
-        certificate_id=vault_doc.certificate_id or "",
-        uploaded_at=(vault_doc.uploaded_at.isoformat() if hasattr(vault_doc.uploaded_at, "isoformat") else vault_doc.uploaded_at) if vault_doc.uploaded_at else utc_now().isoformat(),
-        document_type=vault_doc.document_type,
-        storage_provider=provider_name,
-        storage_path=vault_doc.storage_path or "",
-        function_token=function_token["token"],
-        function_token_expires_at=function_token["expires_at"],
-        function_token_reverify_in_seconds=function_token["reverify_in_seconds"],
-    )
+            # VaultUploadService — the ONE door into the vault
+            vault_doc = await vault_service.upload(
+                user_id=user.user_id,
+                filename=uploaded_file.filename,
+                content=file_content,
+                mime_type=uploaded_file.content_type or "application/octet-stream",
+                document_type=doc_type,
+                description=doc_description,
+                tags=doc_tags,
+                source_module=source,
+                access_token=real_token,
+                storage_provider=provider_name,
+            )
+
+            # Timeline extraction (secondary, non-blocking)
+            try:
+                from app.services.timeline_extraction import extract_timeline_from_upload
+                timeline_events = await extract_timeline_from_upload(
+                    document_id=vault_doc.vault_id,
+                    overlay_id=vault_doc.overlay_id if hasattr(vault_doc, "overlay_id") else None,
+                    provider=provider_name,
+                    access_token=real_token,
+                )
+                logger.info(f"Timeline: {len(timeline_events)} events for {vault_doc.vault_id}")
+            except Exception as e:
+                logger.warning(f"Timeline extraction failed for {vault_doc.vault_id}: {e}")
+
+            # Issue function token for downstream access
+            function_token = issue_function_access_token(
+                user.user_id,
+                context={
+                    "provider": user.provider,
+                    "reason": "vault_upload",
+                    "scopes": ["overlay:read", "overlay:write"],
+                    "document_ids": [vault_doc.vault_id],
+                },
+            )
+
+            # Audit log
+            from app.core.audit_logger import log_document_upload
+            log_document_upload(
+                user_id=user.user_id,
+                document_id=vault_doc.vault_id,
+                filename=uploaded_file.filename,
+                file_size=len(file_content),
+                file_type=validation_result.file_type,
+                ip_address=request.client.host if request.client else "unknown",
+                user_agent=request.headers.get("user-agent", "unknown"),
+            )
+
+            uploaded_at = vault_doc.uploaded_at.isoformat() if hasattr(vault_doc.uploaded_at, "isoformat") else str(vault_doc.uploaded_at)
+
+            uploaded_files.append({
+                "id": vault_doc.vault_id,
+                "name": uploaded_file.filename,
+                "size": len(file_content),
+                "type": uploaded_file.content_type or "application/octet-stream",
+                "category": _get_file_category(uploaded_file.filename),
+                "uploaded_at": uploaded_at,
+                "certificate_id": vault_doc.certificate_id,
+                "sha256": vault_doc.sha256_hash,
+                "user_id": user.user_id,
+                "path": vault_doc.storage_path,
+                "tags": vault_doc.tags or [],
+                "function_token": function_token["token"],
+                "metadata": {
+                    "source": source,
+                    "original_filename": uploaded_file.filename,
+                    "upload_timestamp": uploaded_at,
+                    "registry_id": vault_doc.registry_id,
+                },
+            })
+
+            logger.info(f"Vault upload (SSOT): {vault_doc.vault_id} for user {user.user_id}")
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            import traceback
+            upload_errors.append({
+                "filename": uploaded_file.filename,
+                "error_type": type(e).__name__,
+                "error_message": str(e),
+                "traceback": traceback.format_exc()[:2000],
+            })
+            logger.error(f"Vault upload error for {uploaded_file.filename}: {e}")
+
+    response_data = {
+        "success": True,
+        "message": f"Uploaded {len(uploaded_files)} file(s) to vault",
+        "files": uploaded_files,
+    }
+
+    if upload_errors:
+        response_data["errors"] = upload_errors
+        response_data["message"] = f"Uploaded {len(uploaded_files)} file(s) with {len(upload_errors)} error(s)"
+
+        # Return 401 if any auth errors for auto-redirect
+        auth_error_types = {"token_expired", "storage_required", "authentication_required"}
+        auth_errors = [e for e in upload_errors if e.get("error_type") in auth_error_types]
+        if auth_errors:
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "error": auth_errors[0].get("error_type"),
+                    "message": auth_errors[0].get("error_message", "Storage session expired"),
+                    "redirect_url": "/storage/reconnect?return_to=/vault",
+                    "needs_reconnect": True,
+                },
+            )
+
+    return JSONResponse(response_data)
 
 
 @router.post(
@@ -965,209 +1057,20 @@ async def get_sidebar_files(
     })
 
 @router.post("/sidebar/upload")
-async def sidebar_upload(
+async def sidebar_upload_redirect(
     request: Request,
     files: List[UploadFile] = File(...),
     metadata: str = Form(...),
     user: StorageUser = Depends(yellow_access),
 ):
-    """Handle upload from vault sidebar"""
-    if not HAS_VAULT_SERVICE:
-        raise HTTPException(status_code=404, detail="Vault service not available")
-    
-    try:
-        # Parse metadata
-        metadata_dict = json.loads(metadata)
-        source = metadata_dict.get('source', 'vault_sidebar')
-        
-        # Process uploaded files
-        uploaded_files = []
-        upload_errors = []
-        
-        for i, uploaded_file in enumerate(files):
-            try:
-                # Read file content
-                file_content = await uploaded_file.read()
-                
-                # Validate file
-                from app.core.file_validator import validate_upload_file
-                validation_result = validate_upload_file(file_content, uploaded_file.filename, uploaded_file.size)
-                
-                if not validation_result.is_valid:
-                    # Log validation failure
-                    from app.core.audit_logger import log_security_event
-                    log_security_event(
-                        user_id=user.user_id,
-                        event_type="file_validation_failure",
-                        details={
-                            "filename": uploaded_file.filename,
-                            "validation_error": validation_result.error_message,
-                            "security_risk": validation_result.security_risk
-                        },
-                        ip_address=request.client.host if hasattr(request, 'client') else "unknown",
-                        user_agent=request.headers.get("user-agent", "unknown")
-                    )
-                    
-                    upload_errors.append({
-                        "filename": uploaded_file.filename,
-                        "error": validation_result.error_message,
-                        "security_risk": validation_result.security_risk,
-                        "recommended_action": validation_result.recommended_action
-                    })
-                    continue
-                
-                # Resolve access token for VaultUploadService
-                access_token_val = metadata_dict.get("access_token") or getattr(user, "access_token", None)
+    """Deprecated — redirects to unified /upload endpoint."""
+    return JSONResponse(
+        status_code=308,
+        content={"detail": "Use POST /api/vault/upload instead"},
+        headers={"Location": "/api/vault/upload"},
+    )
 
-                # Resolve real access token with fallback chain
-                real_token = access_token_val
-                if not real_token or real_token == "auto":
-                    real_token = getattr(user, "access_token", None)
-                if not real_token or real_token in ("auto", "no-token"):
-                    try:
-                        from app.core.oauth_token_manager import get_valid_token_for_user
-                        real_token = get_valid_token_for_user(user.user_id) or real_token
-                    except ImportError:
-                        pass
-                if not real_token or real_token in ("auto", "no-token"):
-                    raise HTTPException(
-                        status_code=401,
-                        detail="Storage session expired. Please reconnect your storage.",
-                    )
 
-                # Use VaultUploadService as SSOT for all document uploads
-                vault_service = get_vault_service()
-                provider_name = user.provider.value if hasattr(user.provider, "value") else str(user.provider)
-                
-                vault_doc = await vault_service.upload(
-                    user_id=user.user_id,
-                    filename=uploaded_file.filename,
-                    content=file_content,
-                    mime_type=uploaded_file.content_type or "application/octet-stream",
-                    document_type=metadata_dict.get("document_type"),
-                    description=metadata_dict.get("description"),
-                    tags=metadata_dict.get("tags", []),
-                    source_module="vault_sidebar",
-                    access_token=real_token,
-                    storage_provider=provider_name,
-                )
-
-                # Timeline extraction after vault upload (secondary, non-blocking)
-                try:
-                    from app.services.timeline_extraction import extract_timeline_from_upload
-                    timeline_events = await extract_timeline_from_upload(
-                        document_id=vault_doc.vault_id,
-                        overlay_id=vault_doc.overlay_id if hasattr(vault_doc, 'overlay_id') else None,
-                        provider=provider_name,
-                        access_token=real_token,
-                    )
-                    logger.info(f"Timeline extraction: {len(timeline_events)} events for {vault_doc.vault_id}")
-                except Exception as e:
-                    logger.warning(f"Timeline extraction failed for {vault_doc.vault_id}: {e}")
-
-                # Issue function token
-                function_token = issue_function_access_token(
-                    user.user_id,
-                    context={
-                        "provider": user.provider,
-                        "reason": "vault_upload",
-                        "scopes": ["overlay:read", "overlay:write"],
-                        "document_ids": [vault_doc.vault_id],
-                    },
-                )
-
-                # Log successful upload
-                from app.core.audit_logger import log_document_upload
-                log_document_upload(
-                    user_id=user.user_id,
-                    document_id=vault_doc.vault_id,
-                    filename=uploaded_file.filename,
-                    file_size=len(file_content),
-                    file_type=validation_result.file_type,
-                    ip_address=request.client.host if request.client else "unknown",
-                    user_agent=request.headers.get("user-agent", "unknown")
-                )
-
-                # Build file entry from VaultUploadService result
-                uploaded_at = vault_doc.uploaded_at.isoformat() if hasattr(vault_doc.uploaded_at, 'isoformat') else str(vault_doc.uploaded_at)
-                mime_type = uploaded_file.content_type or "application/octet-stream"
-                
-                uploaded_files.append({
-                    "id": vault_doc.vault_id,
-                    "name": uploaded_file.filename,
-                    "size": len(file_content),
-                    "type": mime_type,
-                    "category": _get_file_category(uploaded_file.filename),
-                    "uploaded_at": uploaded_at,
-                    "certificate_id": vault_doc.certificate_id,
-                    "sha256": vault_doc.sha256_hash,
-                    "user_id": user.user_id,
-                    "path": vault_doc.storage_path,
-                    "tags": vault_doc.tags or [],
-                    "metadata": {
-                        "source": source,
-                        "original_filename": uploaded_file.filename,
-                        "upload_timestamp": uploaded_at,
-                        "registry_id": vault_doc.registry_id,
-                    }
-                })
-
-                logger.info(f"Vault sidebar upload (SSOT): {vault_doc.vault_id} for user {user.user_id}")
-                
-            except Exception as e:
-                import traceback
-                error_detail = {
-                    "filename": uploaded_file.filename,
-                    "error_type": type(e).__name__,
-                    "error_message": str(e),
-                    "traceback": traceback.format_exc()[:2000]  # Truncated for response size
-                }
-                upload_errors.append(error_detail)
-                logger.error(f"Vault sidebar upload error for {uploaded_file.filename}: {error_detail}")
-        
-        # Return response
-        response_data = {
-            "success": True,
-            "message": f"Uploaded {len(uploaded_files)} files to vault",
-            "files": uploaded_files
-        }
-        
-        if upload_errors:
-            response_data["errors"] = upload_errors
-            response_data["message"] = f"Uploaded {len(uploaded_files)} files with {len(upload_errors)} errors"
-            
-            # Check for auth errors - return 401 for auto-redirect
-            auth_error_types = {"token_expired", "storage_required", "authentication_required"}
-            auth_errors = [e for e in upload_errors if e.get("error_type") in auth_error_types]
-            if auth_errors:
-                return JSONResponse(
-                    status_code=401,
-                    content={
-                        "error": auth_errors[0].get("error_type"),
-                        "message": auth_errors[0].get("error_message", "Storage session expired"),
-                        "redirect_url": "/storage/reconnect?return_to=/vault",
-                        "needs_reconnect": True,
-                    }
-                )
-        
-        return JSONResponse(response_data)
-        
-    except json.JSONDecodeError:
-        return JSONResponse({
-            "success": False,
-            "message": "Invalid metadata format",
-            "files": []
-        })
-    except Exception as e:
-        import traceback
-        error_detail = {
-            "error_type": type(e).__name__,
-            "error_message": str(e),
-            "traceback": traceback.format_exc()[:3000],  # Truncated for proxy limits
-            "endpoint": "sidebar_upload"
-        }
-        logger.error(f"Error in vault sidebar upload: {error_detail}")
-        raise HTTPException(status_code=500, detail=error_detail)
 
 @router.get("/sidebar/stats")
 async def get_sidebar_stats(
