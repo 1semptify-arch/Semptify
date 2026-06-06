@@ -328,8 +328,8 @@
         uploadBtn.classList.add('functions-bar__btn--uploading');
 
         const formData = new FormData();
-        formData.append('file', file);
-        formData.append('source', 'functions_bar_quick_upload');
+        formData.append('files', file);
+        formData.append('metadata', JSON.stringify({ source: 'functions_bar_quick_upload' }));
 
         try {
             // Step 1: Upload to vault
