@@ -3,7 +3,39 @@
 
 ---
 
-## Session — 2026-06-06 — Document System Audit + Upload Unification
+## Session — 2026-06-06 (PM) — Document Upload & Vault Display Fixes
+**Commits: `2651f74`, `bc055cc`, `f1652fa` | Pushed: 2026-06-06**
+
+### What Was Done
+1. **Fixed `/api/vault/upload` 422 error** — Frontend was sending `file` (singular) instead of `files` (plural) and non-JSON metadata. Fixed in:
+   - `app/templates/pages/vault.html` — FormData field changed to `files`
+   - `app/templates/pages/documents.html` — FormData field changed to `files` + JSON.stringify metadata
+2. **Fixed documents page empty list** — `/documents` route was hardcoded to pass `{"documents": []}`. Now fetches from vault service:
+   - `app/main.py` — Added vault document fetching via `vault_service.get_user_documents()`
+3. **Fixed vault.html reading wrong source** — Was reading from cloud storage certificates (unreliable). Changed to vault database:
+   - `app/templates/pages/vault.html` — Changed from `/api/vault/?access_token=` to `/api/vault/all`
+4. **Added debug logging** — Added logging to documents page to trace vault document fetching for debugging
+
+### Files Modified
+- `app/templates/pages/vault.html` — FormData field fix + API endpoint change
+- `app/templates/pages/documents.html` — FormData field fix + metadata JSON
+- `app/main.py` — Vault document fetching + debug logging
+
+### What Is Known Working
+- ✅ All modified files compile clean
+- ✅ `/api/vault/upload` now accepts correct FormData format
+- ✅ `/documents` page fetches from vault database
+- ✅ `/vault` page reads from vault database via `/api/vault/all`
+
+### What Is Pending Next Session
+- Live test: Upload a document via vault portal to confirm 422 error is resolved
+- Live test: Verify documents appear on `/documents` page after upload
+- Verify vault.html displays documents correctly after upload
+- Remove debug logging after confirming documents page works
+
+---
+
+## Session — 2026-06-06 (AM) — Document System Audit + Upload Unification
 **Commits: `a1d69bd`, `4275354`, `50ae8aa` | Pushed: 2026-06-06**
 
 ### What Was Done
