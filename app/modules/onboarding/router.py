@@ -100,8 +100,20 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     # Page: Provider Selection
     # ------------------------------------------------------------------
     @router.get("/providers", response_class=HTMLResponse)
-    async def providers_page(role: Optional[str] = Query("tenant")):
-        """Show storage provider selection. Config-driven provider list."""
+    async def providers_page(
+        role: Optional[str] = Query("tenant"),
+        semptify_uid: Optional[str] = Cookie(None),
+    ):
+        """Show storage provider selection. Config-driven provider list.
+
+        Returning users (have valid cookie) are redirected to reconnect flow
+        to skip role/provider selection and go straight to OAuth refresh.
+        """
+        if semptify_uid:
+            raw_uid = verify_user_id(semptify_uid)
+            if raw_uid:
+                # Returning user detected — send to reconnect, skip new user flow
+                return ssot_redirect(navigation.get_reconnect_flow(), context="providers_page reconnect")
         return HTMLResponse(content=_render_providers_page(config))
 
     # ------------------------------------------------------------------
