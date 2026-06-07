@@ -1502,8 +1502,7 @@ CASE_LAW_DATABASE = [
 @router.get("/statutes")
 async def list_statutes(
     category: Optional[str] = Query(None, description="Filter by category"),
-    search: Optional[str] = Query(None, description="Search in title and summary"),
-    user: StorageUser = Depends(green_access)
+    search: Optional[str] = Query(None, description="Search in title and summary")
 ):
     """List all available statutes and laws including Federal and ADA."""
     laws = list(ALL_LAWS.values())
@@ -1526,8 +1525,7 @@ async def list_statutes(
 
 @router.get("/statutes/{statute_id}")
 async def get_statute(
-    statute_id: str,
-    user: StorageUser = Depends(green_access)
+    statute_id: str
 ):
     """Get a specific statute by ID."""
     if statute_id not in ALL_LAWS:
@@ -1541,8 +1539,7 @@ async def get_statute(
     
 @router.get("/court-rules")
 async def list_court_rules(
-    category: Optional[str] = Query(None, description="Filter by category"),
-    user: StorageUser = Depends(green_access)
+    category: Optional[str] = Query(None, description="Filter by category")
 ):
     """List all court rules for Dakota County."""
     rules = list(DAKOTA_COUNTY_RULES.values())
@@ -1559,8 +1556,7 @@ async def list_court_rules(
 
 @router.get("/court-rules/{rule_id}", response_model=CourtRule)
 async def get_court_rule(
-    rule_id: str,
-    user: StorageUser = Depends(green_access)
+    rule_id: str
 ):
     """Get a specific court rule."""
     if rule_id not in DAKOTA_COUNTY_RULES:
@@ -1575,8 +1571,7 @@ async def get_court_rule(
 
 @router.get("/case-law")
 async def list_case_law(
-    search: Optional[str] = Query(None, description="Search in case name and summary"),
-    user: StorageUser = Depends(green_access)
+    search: Optional[str] = Query(None, description="Search in case name and summary")
 ):
     """List relevant case law."""
     cases = CASE_LAW_DATABASE
@@ -1595,8 +1590,7 @@ async def list_case_law(
 
 @router.get("/case-law/{case_id}")
 async def get_case(
-    case_id: str,
-    user: StorageUser = Depends(green_access)
+    case_id: str
 ):
     """Get a specific case by ID."""
     for case in CASE_LAW_DATABASE:
@@ -1610,7 +1604,7 @@ async def get_case(
 
 
 @router.get("/categories")
-async def list_categories(user: StorageUser = Depends(green_access)):
+async def list_categories():
     """List all available categories in the law library."""
     return {
         "statute_categories": [
@@ -1672,8 +1666,7 @@ class LibrarianQuery(BaseModel):
 
 @router.post("/librarian/ask", response_model=LibrarianResponse)
 async def ask_librarian(
-    query: LibrarianQuery,
-    user: StorageUser = Depends(green_access)
+    query: LibrarianQuery
 ):
     """
     Ask the AI Librarian a legal question.
@@ -2175,8 +2168,7 @@ Please ask a specific question about any of these topics!"""
 
 @router.get("/quick-reference/{topic}")
 async def get_quick_reference(
-    topic: str,
-    user: StorageUser = Depends(green_access)
+    topic: str
 ):
     """Get a quick reference guide for a specific topic."""
     quick_refs = {

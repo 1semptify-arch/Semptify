@@ -1396,7 +1396,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     # CORE + DEV = current tenant-rights platform
     # To enable extended features: add ProductTier.EXTENDED, ProductTier.ADVOCATE, etc.
-    register_tiers(fastapi_app, ProductTier.CORE, ProductTier.DEV, ProductTier.EXTENDED, ProductTier.ADVOCATE, ProductTier.ADMIN)
+    register_tiers(fastapi_app, ProductTier.CORE, ProductTier.DEV, ProductTier.EXTENDED, ProductTier.ADVOCATE, ProductTier.ADMIN, ProductTier.RESEARCH)
 
     # Root route â€” serve the welcome page. User clicks "Get Started" â†’ /preamble (routing logic).
     @fastapi_app.get("/", response_class=HTMLResponse)
@@ -2507,40 +2507,18 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/timeline", response_class=HTMLResponse)
     async def timeline_page(request: Request):
-        """Universal timeline page - same for all roles."""
-        from app.core.storage_middleware import is_valid_storage_user
+        """Universal timeline page - read-only GUI over database records. No auth gate, no cloud fetch."""
         from app.core.user_id import COOKIE_USER_ID
-        from app.core.oauth_token_manager import get_valid_token_for_user
         from app.core.database import get_db_session
-        from app.services.storage import get_provider
-        from app.services.timeline_extraction import TimelineStore
         from app.services.timeline_chronology import build_timeline_chronology
         
-        # Check: Can we access the user's cloud storage?
         user_id = request.cookies.get(COOKIE_USER_ID)
-        if not is_valid_storage_user(user_id):
-            providers_stage = navigation.get_stage("providers")
-            providers_path = providers_stage.path if providers_stage else "/storage/providers"
-            return ssot_redirect(providers_path, context="role dashboard unauthenticated")
-        
-        events = []
         chronology_items = []
-        provider_map = {"G": "google_drive", "D": "dropbox", "O": "onedrive"}
-        provider_name = provider_map.get((user_id or "")[:1].upper())
-
-        if provider_name:
-            access_token = get_valid_token_for_user(user_id)
-            if access_token:
-                try:
-                    storage = get_provider(provider_name, access_token=access_token)
-                    timeline_store = TimelineStore(storage, access_token)
-                    events = await timeline_store.get_timeline()
-                except Exception as e:  # pylint: disable=broad-exception-caught
-                    logger.warning("Failed to load timeline events from storage: %s", e)
-
+        
+        # Timeline is DB-only: read existing records, no cloud storage, no auth required
         try:
             async with get_db_session() as db:
-                chronology_items = await build_timeline_chronology(events, db)
+                chronology_items = await build_timeline_chronology([], db)
         except Exception as e:  # pylint: disable=broad-exception-caught
             logger.warning("Failed to build timeline chronology: %s", e)
             chronology_items = []
@@ -2549,7 +2527,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             "pages/timeline.html",
             {
                 "request": request,
-                "events": events,
+                "events": [],
                 "chronology_items": chronology_items,
                 "user_id": user_id,
             }
@@ -2705,6 +2683,33 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         tenant_home_stage = navigation.get_stage("tenant_home")
         tenant_home_path = tenant_home_stage.path if tenant_home_stage else "/tenant/home"
         return ssot_redirect(tenant_home_path, context="tenant_deadlines fallback")
+
+    @fastapi_app.get("/ui/tool/complaints", response_class=HTMLResponse)
+    @fastapi_app.get("/ui/tool/complaints/", response_class=HTMLResponse)
+    async def complaints_page(request: Request):
+        """Complaint filing tool - where to file housing complaints in Minnesota."""
+        guard_redirect = await _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+        return templates.TemplateResponse(request, "pages/complaints.html", {"request": request})
+
+    @fastapi_app.get("/ui/tool/case-builder", response_class=HTMLResponse)
+    @fastapi_app.get("/ui/tool/case-builder/", response_class=HTMLResponse)
+    async def case_builder_page(request: Request):
+        """Case builder tool - organize documents and evidence."""
+        guard_redirect = await _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+        return templates.TemplateResponse(request, "pages/case_builder.html", {"request": request})
+
+    @fastapi_app.get("/ui/tool/plan-maker", response_class=HTMLResponse)
+    @fastapi_app.get("/ui/tool/plan-maker/", response_class=HTMLResponse)
+    async def action_plan_page(request: Request):
+        """Action plan tool - prioritized next steps."""
+        guard_redirect = await _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+        return templates.TemplateResponse(request, "pages/action_plan.html", {"request": request})
 
     @fastapi_app.get("/tenant/{subpage}", response_class=HTMLResponse)
     async def tenant_subpage(subpage: str, request: Request):

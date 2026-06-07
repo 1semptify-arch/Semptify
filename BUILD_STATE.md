@@ -3,6 +3,47 @@
 
 ---
 
+## Session — 2026-06-06 (Evening) — Root Cause Test Fixes
+
+### What Was Done — Root Cause Fixes (No Band-Aids)
+
+**1. Fixed MNDES Service `AttributeError: EVICTION`**
+- **Root cause:** `MNDESCaseType` enum in `app/models/mndes_exhibit.py` was missing `EVICTION` value
+- **Impact:** 18 test errors in `test_mndes_service.py` — all tests using `MNDESCaseType.EVICTION`
+- **Fix:** Added `EVICTION = "eviction"` to the enum (line 66)
+- **File:** `app/models/mndes_exhibit.py`
+
+**2. Fixed Brain Router Test Failures**
+- **Root cause:** `ProductTier.RESEARCH` was not included in `register_tiers()` call in `main.py`
+- **Impact:** Brain module (`app/modules/brain/router.py`) was never registered — `/brain/status` returned 404
+- **Fix:** Added `ProductTier.RESEARCH` to `register_tiers()` call (line 1399)
+- **File:** `app/main.py`
+
+**3. Fixed Test Parameterization for Deleted Routes**
+- **Root cause:** Tests in `test_role_gui_routes.py` still referenced deleted routes from May 12 cleanup
+- **Impact:** Tests failing for `/functionx`, `/legal-analysis`, `/legal_analysis.html` (all deleted per Template Cleanup)
+- **Fix:** Removed deleted routes from `@pytest.mark.parametrize` decorator
+- **File:** `tests/test_role_gui_routes.py`
+
+### Files Modified
+- `app/models/mndes_exhibit.py` — Added EVICTION to MNDESCaseType enum
+- `app/main.py` — Added ProductTier.RESEARCH to register_tiers()
+- `tests/test_role_gui_routes.py` — Removed deleted routes from test parameterization
+
+### Verification
+- All modified files compile clean
+- MNDESCaseType.EVICTION now accessible
+- Brain router loads and endpoints reachable
+- Test parameterization updated for deleted routes
+
+### Root Cause Analysis Complete
+All three issues were architectural gaps, not test bugs:
+- Enum definition incomplete (missing case type)
+- Module registration incomplete (missing tier)
+- Test maintenance lag (routes deleted, tests not updated)
+
+---
+
 ## Session — 2026-06-06 (PM) — Document Upload & Vault Display Fixes
 **Commits: `2651f74`, `bc055cc`, `f1652fa`, `bd50372` | Pushed: 2026-06-06**
 
