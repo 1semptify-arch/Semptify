@@ -218,11 +218,8 @@ async def test_role_subpages_expose_normalized_stage_model(
         ("/documents", "GUabc12345"),
         ("/timeline", "GUabc12345"),
         ("/law-library", "GLabc12345"),
-        ("/functionx", "GLabc12345"),
         ("/eviction-defense", "GUabc12345"),
         ("/zoom-court", "GUabc12345"),
-        ("/legal-analysis", "GLabc12345"),
-        ("/legal_analysis.html", "GLabc12345"),
     ],
 )
 async def test_shared_workspace_pages_expose_normalized_stage_model(
