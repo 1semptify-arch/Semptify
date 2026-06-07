@@ -68,6 +68,26 @@
 
 ---
 
+## Session — 2026-06-07 (Morning) — Basic Tenant Config Revert
+**Commit: `313c31c` | Pushed: 2026-06-07**
+
+### What Was Shipped
+- `app/main.py` — Reverted to basic tenant config (CORE + DEV only)
+- Removed EXTENDED, ADVOCATE, ADMIN, RESEARCH tiers from register_tiers()
+- Basic tenant role only needs CORE + DEV tiers
+- Extended features can be enabled per deployment
+
+### What Is Known Working
+- ✅ Basic tenant config compiles and loads
+- ✅ CORE + DEV tiers registered
+- ✅ Extended tiers disabled for basic deployment
+
+### Next Session Should Start With
+- Verify basic tenant config tests pass
+- Continue with remaining integration test failures
+
+---
+
 ## Session — 2026-06-06 (Evening) — Root Cause Test Fixes
 
 ### What Was Done — Root Cause Fixes (No Band-Aids)
