@@ -419,6 +419,104 @@
         </div>
       </div>
 
+      <!-- RESPONSE TO EVICTION NOTICE -->
+      <div class="letter-card" id="card-eviction">
+        <div class="letter-card-header">
+          <h3>⚖️ Response to Eviction Notice</h3>
+          <p>Formal response to eviction summons or notice</p>
+        </div>
+        <div class="letter-card-body">
+          <p>If you received an eviction summons, you have 7 days to file an Answer with the court. This letter documents your response to the landlord. <strong>Do not rely on this letter alone — you must file an Answer with the court.</strong></p>
+          <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" id="ev-tenant" placeholder="Your full name">
+          </div>
+          <div class="form-group">
+            <label>Property Address</label>
+            <input type="text" id="ev-address" placeholder="123 Main St, Apt 4, City, MN">
+          </div>
+          <div class="form-group">
+            <label>Landlord / Property Manager Name</label>
+            <input type="text" id="ev-landlord" placeholder="Name or company">
+          </div>
+          <div class="form-group">
+            <label>Case Number (if on summons)</label>
+            <input type="text" id="ev-case" placeholder="e.g. 27-CV-XX-XXXXX">
+          </div>
+          <div class="form-group">
+            <label>Date You Received the Notice</label>
+            <input type="date" id="ev-received" title="Date received">
+          </div>
+          <div class="form-group">
+            <label>Your Defense(s) - Why the eviction is wrong</label>
+            <textarea id="ev-defense" placeholder="e.g. I paid rent on time and have receipts. The notice claims nonpayment but this is incorrect. The unit has uninhabitable conditions that the landlord refused to repair."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Today's Date</label>
+            <input type="date" id="ev-date" title="Today's date">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="generateEviction()">Generate Letter</button>
+            <button class="btn btn-copy" onclick="copyLetter('ev-preview')">Copy</button>
+          </div>
+          <div class="copy-confirm" id="ev-confirm">✅ Copied to clipboard</div>
+          <div class="preview-box" id="ev-preview"></div>
+          <div class="sign-row" id="ev-sign-row">
+            <button class="btn btn-sign" onclick="openSigModal('ev')">✍️ Sign</button>
+            <button class="btn btn-print-signed" onclick="printSigned('ev')" id="ev-print-btn" style="display:none">🖨️ Print / Save PDF</button>
+            <img class="sig-preview-img" id="ev-sig-img" style="display:none" alt="signature">
+          </div>
+          <div class="print-sig-block" id="ev-print-sig"></div>
+        </div>
+      </div>
+
+      <!-- COMPLAINT TO HOUSING INSPECTOR -->
+      <div class="letter-card" id="card-inspector">
+        <div class="letter-card-header">
+          <h3>🏢 Complaint to Housing Inspector</h3>
+          <p>Report violations to city housing inspection</p>
+        </div>
+        <div class="letter-card-body">
+          <p>City housing inspectors can enforce building codes and habitability standards. This letter formally requests an inspection of your rental unit.</p>
+          <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" id="insp-tenant" placeholder="Your full name">
+          </div>
+          <div class="form-group">
+            <label>Property Address</label>
+            <input type="text" id="insp-address" placeholder="123 Main St, Apt 4, City, MN">
+          </div>
+          <div class="form-group">
+            <label>Landlord / Property Manager Name</label>
+            <input type="text" id="insp-landlord" placeholder="Name or company">
+          </div>
+          <div class="form-group">
+            <label>Your Phone Number</label>
+            <input type="tel" id="insp-phone" placeholder="Your contact number">
+          </div>
+          <div class="form-group">
+            <label>Describe the Violations</label>
+            <textarea id="insp-violations" placeholder="e.g. No heat since November 3rd. Broken exterior door lock. Mold growth in bathroom. Landlord has not responded to repair requests."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Today's Date</label>
+            <input type="date" id="insp-date" title="Today's date">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="generateInspector()">Generate Letter</button>
+            <button class="btn btn-copy" onclick="copyLetter('insp-preview')">Copy</button>
+          </div>
+          <div class="copy-confirm" id="insp-confirm">✅ Copied to clipboard</div>
+          <div class="preview-box" id="insp-preview"></div>
+          <div class="sign-row" id="insp-sign-row">
+            <button class="btn btn-sign" onclick="openSigModal('insp')">✍️ Sign</button>
+            <button class="btn btn-print-signed" onclick="printSigned('insp')" id="insp-print-btn" style="display:none">🖨️ Print / Save PDF</button>
+            <img class="sig-preview-img" id="insp-sig-img" style="display:none" alt="signature">
+          </div>
+          <div class="print-sig-block" id="insp-print-sig"></div>
+        </div>
+      </div>
+
     </div><!-- /letter-grid -->
 
   </div><!-- /container -->
@@ -734,6 +832,8 @@ ${a}
         fill('dep-tenant',   name);    fill('dep-old-address', addr); fill('dep-landlord',   ll);
         fill('hab-tenant',   name);    fill('hab-address',     addr); fill('hab-landlord',   ll);
         fill('nr-tenant',    name);    fill('nr-address',      addr); fill('nr-landlord',    ll);
+        fill('ev-tenant',    name);    fill('ev-address',      addr); fill('ev-landlord',    ll);
+        fill('insp-tenant',  name);    fill('insp-address',    addr); fill('insp-landlord',  ll);
         const filled = [name && 'name', addr && 'address', ll && 'landlord'].filter(Boolean);
         status.textContent = filled.length
           ? `✅ Filled: ${filled.join(', ')} — review each field before sending.`
@@ -771,6 +871,79 @@ ${retalBlock}
 I intend to fulfill all obligations under my current lease through its expiration date. I expect that you will fulfill your obligations as well, including maintaining the property in habitable condition and providing required notice for any entry.
 
 Please contact me in writing for all further communications regarding this tenancy.
+
+Sincerely,
+
+${t}
+${a}
+`);
+    }
+
+    function generateEviction() {
+      const t = document.getElementById('ev-tenant').value || '[YOUR NAME]';
+      const a = document.getElementById('ev-address').value || '[PROPERTY ADDRESS]';
+      const l = document.getElementById('ev-landlord').value || '[LANDLORD NAME]';
+      const c = document.getElementById('ev-case').value || '[CASE NUMBER]';
+      const rec = fmtDate(document.getElementById('ev-received').value);
+      const def = document.getElementById('ev-defense').value || '[YOUR DEFENSE]';
+      const d = fmtDate(document.getElementById('ev-date').value) || today();
+      show('ev-preview',
+`${d}
+
+${l}
+[Landlord Address]
+
+RE: Response to Eviction Notice${c ? ` — Case ${c}` : ''} — ${a}
+
+Dear ${l},
+
+I received your eviction notice on ${rec}. I am writing to formally respond and to document my position regarding this matter.
+
+The grounds for eviction stated in your notice are incorrect. My defenses are as follows:
+
+${def}
+
+I have paid all rent due and have fulfilled all obligations under my lease. I dispute your claim that I have breached the lease in any way.
+
+I am preserving all evidence of my compliance with the lease terms, including payment records, communications, and documentation of the property condition.
+
+Please withdraw this eviction notice immediately. If you proceed with eviction, I will assert these defenses in court and seek all available remedies under Minnesota law, including damages and attorney fees.
+
+Sincerely,
+
+${t}
+${a}
+`);
+    }
+
+    function generateInspector() {
+      const t = document.getElementById('insp-tenant').value || '[YOUR NAME]';
+      const a = document.getElementById('insp-address').value || '[PROPERTY ADDRESS]';
+      const l = document.getElementById('insp-landlord').value || '[LANDLORD NAME]';
+      const ph = document.getElementById('insp-phone').value || '[YOUR PHONE]';
+      const v = document.getElementById('insp-violations').value || '[DESCRIBE VIOLATIONS]';
+      const d = fmtDate(document.getElementById('insp-date').value) || today();
+      show('insp-preview',
+`${d}
+
+Housing Inspection Department
+[City Name]
+
+RE: Request for Inspection — ${a}
+
+To Whom It May Concern:
+
+I am a tenant at ${a}, which is owned/managed by ${l}.
+
+I am writing to request an inspection of my rental unit due to the following housing code violations:
+
+${v}
+
+I have notified the landlord of these issues on multiple occasions, but the problems remain unresolved. These conditions violate Minnesota's habitability laws (Minn. Stat. § 504B.161) and local housing codes.
+
+I can be reached at ${ph} to schedule the inspection.
+
+Thank you for your attention to this matter.
 
 Sincerely,
 
