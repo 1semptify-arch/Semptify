@@ -678,8 +678,7 @@ CASE_STATISTICS = {
 @router.get("/forms", response_model=List[FormTemplate])
 async def list_forms(
     category: Optional[str] = Query(None, description="Filter by category"),
-    stage: Optional[CaseStage] = Query(None, description="Filter by case stage"),
-    user: StorageUser = Depends(yellow_access)
+    stage: Optional[CaseStage] = Query(None, description="Filter by case stage")
 ):
     """List all available court forms."""
     forms = list(COURT_FORMS.values())
@@ -695,8 +694,7 @@ async def list_forms(
 
 @router.get("/forms/{form_id}", response_model=FormTemplate)
 async def get_form(
-    form_id: str,
-    user: StorageUser = Depends(yellow_access)
+    form_id: str
 ):
     """Get a specific form by ID."""
     if form_id not in COURT_FORMS:
@@ -707,8 +705,7 @@ async def get_form(
 
 @router.get("/motions", response_model=List[Motion])
 async def list_motions(
-    motion_type: Optional[MotionType] = Query(None, description="Filter by motion type"),
-    user: StorageUser = Depends(yellow_access)
+    motion_type: Optional[MotionType] = Query(None, description="Filter by motion type")
 ):
     """List all available motions."""
     motions = list(MOTIONS.values())
@@ -721,8 +718,7 @@ async def list_motions(
 
 @router.get("/motions/{motion_id}", response_model=Motion)
 async def get_motion(
-    motion_id: str,
-    user: StorageUser = Depends(yellow_access)
+    motion_id: str
 ):
     """Get a specific motion by ID."""
     if motion_id not in MOTIONS:
@@ -733,8 +729,7 @@ async def get_motion(
 
 @router.get("/procedures", response_model=List[Procedure])
 async def list_procedures(
-    category: Optional[str] = Query(None, description="Filter by category"),
-    user: StorageUser = Depends(yellow_access)
+    category: Optional[str] = Query(None, description="Filter by category")
 ):
     """List all procedure guides."""
     procedures = list(PROCEDURES.values())
@@ -747,8 +742,7 @@ async def list_procedures(
 
 @router.get("/procedures/{procedure_id}", response_model=Procedure)
 async def get_procedure(
-    procedure_id: str,
-    user: StorageUser = Depends(yellow_access)
+    procedure_id: str
 ):
     """Get a specific procedure guide."""
     if procedure_id not in PROCEDURES:
@@ -758,15 +752,14 @@ async def get_procedure(
 
 
 @router.get("/counterclaims", response_model=List[CounterclaimTemplate])
-async def list_counterclaims(user: StorageUser = Depends(yellow_access)):
+async def list_counterclaims():
     """List all counterclaim templates."""
     return [CounterclaimTemplate(**cc) for cc in COUNTERCLAIMS.values()]
 
 
 @router.get("/counterclaims/{claim_id}", response_model=CounterclaimTemplate)
 async def get_counterclaim(
-    claim_id: str,
-    user: StorageUser = Depends(yellow_access)
+    claim_id: str
 ):
     """Get a specific counterclaim template."""
     if claim_id not in COUNTERCLAIMS:
@@ -776,13 +769,13 @@ async def get_counterclaim(
 
 
 @router.get("/statistics")
-async def get_statistics(user: StorageUser = Depends(yellow_access)):
+async def get_statistics():
     """Get eviction case statistics for Dakota County."""
     return CASE_STATISTICS
 
 
 @router.get("/defenses")
-async def list_defenses(user: StorageUser = Depends(yellow_access)):
+async def list_defenses():
     """List all available eviction defenses with explanations."""
     return {
         "disclaimer": LEGAL_DISCLAIMER,
@@ -842,8 +835,7 @@ class DeadlineCalculation(BaseModel):
 
 @router.post("/calculate-deadlines")
 async def calculate_deadlines(
-    request: DeadlineCalculation,
-    user: StorageUser = Depends(yellow_access)
+    request: DeadlineCalculation
 ):
     """Calculate all important deadlines based on service date."""
     service = request.service_date
@@ -871,8 +863,7 @@ async def calculate_deadlines(
 
 @router.get("/case-checklist/{stage}")
 async def get_case_checklist(
-    stage: CaseStage,
-    user: StorageUser = Depends(yellow_access)
+    stage: CaseStage
 ):
     """Get a checklist of tasks for the current case stage."""
     checklists = {

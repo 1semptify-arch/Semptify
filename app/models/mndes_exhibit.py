@@ -63,6 +63,7 @@ class MNDESCaseType(str, Enum):
     CIVIL    = "civil"
     CRIMINAL = "criminal"
     FAMILY   = "family"
+    EVICTION = "eviction"
     OTHER    = "other"
 
 
