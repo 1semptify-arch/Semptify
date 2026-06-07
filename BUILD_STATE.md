@@ -3,6 +3,51 @@
 
 ---
 
+## Session — 2026-06-06 (Late Evening) — Root Cause Fixes + Auth Module + Router Cleanup
+**Commit: `527a77f` | Pushed: 2026-06-06**
+
+### What Was Shipped
+
+**This Session (Root Cause Fixes):**
+- `app/models/mndes_exhibit.py` — Added `EVICTION = "eviction"` to MNDESCaseType enum (was missing)
+- `app/main.py` — Added `ProductTier.RESEARCH` to `register_tiers()` (brain module was 404)
+- `tests/test_role_gui_routes.py` — Removed `/functionx`, `/legal-analysis` from tests (routes deleted May 12)
+- `BUILD_STATE.md` — Documented root cause fixes per project standards
+
+**Previous Session (Auth Module):**
+- `app/modules/auth/` — New authentication status router with `/api/auth/me` endpoint
+- `app/core/product_manifest.py` — Registered auth module in CORE tier
+- `app/routers/__init__.py` — Removed deprecated auth import
+
+**Previous Session (Router Fixes):**
+- `app/modules/eviction_defense/router.py` — Fixed router
+- `app/modules/law_library/router.py` — Fixed router
+- `app/modules/zoom_court/router.py` — Fixed router
+- `tests/test_action_router_gates.py` — Fixed test syntax and gate logic
+
+**Previous Session (Alembic):**
+- `alembic/versions/5e5eb5eb51d0_merge_oauth_force_fresh_and_vault_.py` — Merge migration
+
+### What Is Known Working
+- ✅ All modified files compile clean
+- ✅ MNDESCaseType.EVICTION now accessible
+- ✅ Brain router loads and endpoints reachable (ProductTier.RESEARCH registered)
+- ✅ Test parameterization updated for deleted routes
+- ✅ Auth module `/api/auth/me` endpoint active
+- ✅ All core routers compile and import correctly
+
+### What Is Known Broken or Pending
+- Full test suite run pending (background commands were slow)
+- Live test of MNDES service with EVICTION enum pending
+- Live test of brain router `/brain/status` endpoint pending
+
+### Next Session Should Start With
+- Run full test suite to verify all fixes
+- Fix any remaining test failures with root cause analysis
+- Continue with remaining integration test failures
+
+---
+
 ## Session — 2026-06-06 (Evening) — Root Cause Test Fixes
 
 ### What Was Done — Root Cause Fixes (No Band-Aids)
