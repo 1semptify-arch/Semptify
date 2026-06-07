@@ -458,13 +458,5 @@ document.querySelectorAll('.capture-chip').forEach(chip => {
 function updateTimestamps() {
     // Could refresh relative times here
 }
-
-// Log page view for analytics (privacy-respecting)
-if (window.fetchWithCSRF) {
-    fetchWithCSRF('/api/analytics/pageview', {
-        method: 'POST',
-        body: JSON.stringify({ page: 'tenant_home' })
-    }).catch(() => {}); // Silent fail
-}
 </script>
 {% endblock %}
