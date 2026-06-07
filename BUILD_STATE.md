@@ -3,6 +3,32 @@
 
 ---
 
+## Session — 2026-06-07 (Morning) — Law Linker Integration
+**Commit: `1672afc` | Pushed: 2026-06-07**
+
+### What Was Shipped
+- `static/js/law-linker.js` — NEW: Hover popup component for legal citations
+  - Auto-detects Minnesota statute citations (504B.xxx, § 504B.xxx, Minn. Stat. § 504B.xxx)
+  - Fetches full law text from `/api/law-library/statutes/{id}` API
+  - Shows styled popup with title, summary, and excerpt of full text
+  - Links to official source at revisor.mn.gov
+  - Caches results for instant repeat views
+- `app/templates/pages/law_library.html` — Added law-linker.js script
+- `app/templates/base.html` — Added law-linker.js globally to all pages
+- `static/tenant/tools/letters.html` — Added law-linker.js for statute citations in letter templates
+
+### What Is Known Working
+- ✅ Law linker JavaScript compiles and loads
+- ✅ API endpoint `/api/law-library/statutes/{id}` exists and responds
+- ✅ Hover popups styled with dark theme matching Semptify design
+- ✅ Citation detection regex handles multiple citation formats
+
+### What Is Pending
+- Live test: Hover over a statute citation on /law-library page
+- Verify popup shows correct law text from database
+
+---
+
 ## Session — 2026-06-07 (Early Morning) — Core Features Implementation
 **Commit: `6e9447f` | Pushed: 2026-06-07**
 
