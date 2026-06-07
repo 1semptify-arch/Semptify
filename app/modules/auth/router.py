@@ -53,7 +53,7 @@ async def get_auth_status(
         else:
             return AuthStatusResponse(authenticated=False)
             
-    except Exception as e:
+    except (ValueError, KeyError, AttributeError) as e:
         logger.warning(f"Auth status check failed: {e}")
         return AuthStatusResponse(authenticated=False)
 
