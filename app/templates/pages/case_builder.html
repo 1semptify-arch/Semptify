@@ -1,0 +1,338 @@
+{% extends "base.html" %}
+
+{% block title %}Build My Case - Semptify{% endblock %}
+{% block description %}Organize your documents and evidence for your housing case.{% endblock %}
+
+{% block nav %}<a href="/tenant/home">← Home</a><a href="/documents">Documents</a><a href="/timeline">Timeline</a>{% endblock %}
+
+{% block styles %}
+<style>
+.case-builder {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.header h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.header p {
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 1.5rem;
+}
+
+.documents-panel {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+
+.evidence-panel {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+
+.panel-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--color-text-primary);
+}
+
+.doc-list {
+    list-style: none;
+    padding: 0;
+}
+
+.doc-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-bottom: 0.5rem;
+}
+
+.doc-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+}
+
+.doc-info {
+    flex: 1;
+}
+
+.doc-name {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--color-text-primary);
+}
+
+.doc-date {
+    font-size: 0.8125rem;
+    color: var(--color-text-muted);
+}
+
+.evidence-section {
+    margin-bottom: 1.5rem;
+}
+
+.evidence-section h3 {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--color-text-primary);
+}
+
+.evidence-item {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.evidence-type {
+    font-size: 0.8125rem;
+    color: var(--color-accent);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.evidence-desc {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+}
+
+.notes-area {
+    width: 100%;
+    min-height: 100px;
+    padding: 0.75rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    color: var(--color-text-primary);
+    font-size: 0.875rem;
+    resize: vertical;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.btn {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.875rem;
+}
+
+.btn-primary {
+    background: var(--color-accent);
+    color: white;
+}
+
+.btn-secondary {
+    background: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--color-text-muted);
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="case-builder">
+
+    <div class="header">
+        <h1>Build My Case</h1>
+        <p>Select documents as evidence and add your notes to build your case summary.</p>
+    </div>
+
+    <div class="main-content">
+        <div class="documents-panel">
+            <h2 class="panel-title">📄 Your Documents</h2>
+            <div id="documents-list">
+                <div class="empty-state">Loading documents...</div>
+            </div>
+        </div>
+
+        <div class="evidence-panel">
+            <h2 class="panel-title">📋 Evidence Summary</h2>
+            
+            <div class="evidence-section">
+                <h3>Selected Documents</h3>
+                <div id="selected-docs">
+                    <p style="color: var(--color-text-muted); font-size: 0.875rem;">No documents selected yet</p>
+                </div>
+            </div>
+
+            <div class="evidence-section">
+                <h3>Case Notes</h3>
+                <textarea id="case-notes" class="notes-area" placeholder="Add your notes about the case: what happened, when, who was involved, what you want to achieve..."></textarea>
+            </div>
+
+            <div class="evidence-section">
+                <h3>Arguments</h3>
+                <textarea id="case-arguments" class="notes-area" placeholder="List your main arguments: e.g., 'Landlord failed to repair heat for 30 days despite written notice', 'Rent was paid on time, landlord claim is false'..."></textarea>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="clearSelection()">Clear</button>
+                <button class="btn btn-primary" onclick="generateSummary()">Generate Summary</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="summary-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 2rem;">
+        <div style="background: var(--color-bg-card); border-radius: var(--radius-lg); padding: 2rem; max-width: 700px; max-height: 80vh; overflow-y: auto;">
+            <h2 style="margin-bottom: 1rem;">Case Summary</h2>
+            <div id="summary-content" style="line-height: 1.8; color: var(--color-text-secondary);"></div>
+            <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem;">
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+                <button class="btn btn-primary" onclick="printSummary()">Print</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+let documents = [];
+let selectedDocs = new Set();
+
+async function loadDocuments() {
+    try {
+        const res = await fetch('/api/vault/all');
+        const data = await res.json();
+        documents = data.documents || [];
+        renderDocuments();
+    } catch (e) {
+        document.getElementById('documents-list').innerHTML = '<div class="empty-state">Failed to load documents</div>';
+    }
+}
+
+function renderDocuments() {
+    const container = document.getElementById('documents-list');
+    if (documents.length === 0) {
+        container.innerHTML = '<div class="empty-state">No documents uploaded yet. <a href="/documents">Upload documents →</a></div>';
+        return;
+    }
+    
+    container.innerHTML = '<ul class="doc-list">' + documents.map(doc => `
+        <li class="doc-item">
+            <input type="checkbox" id="doc-${doc.vault_id}" onchange="toggleDoc('${doc.vault_id}', '${doc.filename}')">
+            <div class="doc-info">
+                <div class="doc-name">${doc.filename}</div>
+                <div class="doc-date">${doc.uploaded_at || 'Unknown date'}</div>
+            </div>
+        </li>
+    `).join('') + '</ul>';
+}
+
+function toggleDoc(id, name) {
+    if (selectedDocs.has(id)) {
+        selectedDocs.delete(id);
+    } else {
+        selectedDocs.add(id);
+    }
+    updateSelectedDocs();
+}
+
+function updateSelectedDocs() {
+    const container = document.getElementById('selected-docs');
+    if (selectedDocs.size === 0) {
+        container.innerHTML = '<p style="color: var(--color-text-muted); font-size: 0.875rem;">No documents selected yet</p>';
+        return;
+    }
+    
+    const selectedNames = documents.filter(d => selectedDocs.has(d.vault_id)).map(d => d.filename);
+    container.innerHTML = '<ul style="list-style: none; padding: 0;">' + selectedNames.map(name => `
+        <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--color-border); font-size: 0.875rem;">📄 ${name}</li>
+    `).join('') + '</ul>';
+}
+
+function clearSelection() {
+    selectedDocs.clear();
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+    updateSelectedDocs();
+    document.getElementById('case-notes').value = '';
+    document.getElementById('case-arguments').value = '';
+}
+
+function generateSummary() {
+    const notes = document.getElementById('case-notes').value;
+    const arguments = document.getElementById('case-arguments').value;
+    const selectedNames = documents.filter(d => selectedDocs.has(d.vault_id)).map(d => d.filename);
+    
+    let summary = '<h3>Evidence Documents</h3>';
+    if (selectedNames.length === 0) {
+        summary += '<p>No documents selected as evidence.</p>';
+    } else {
+        summary += '<ul>' + selectedNames.map(name => `<li>${name}</li>`).join('') + '</ul>';
+    }
+    
+    if (notes) {
+        summary += '<h3>Case Notes</h3><p>' + notes.replace(/\n/g, '<br>') + '</p>';
+    }
+    
+    if (arguments) {
+        summary += '<h3>Main Arguments</h3><p>' + arguments.replace(/\n/g, '<br>') + '</p>';
+    }
+    
+    summary += '<p style="margin-top: 1.5rem; color: var(--color-accent);"><strong>Next Steps:</strong> Review this summary, add any missing information, and use it when filing complaints or speaking with legal aid.</p>';
+    
+    document.getElementById('summary-content').innerHTML = summary;
+    document.getElementById('summary-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('summary-modal').style.display = 'none';
+}
+
+function printSummary() {
+    const content = document.getElementById('summary-content').innerHTML;
+    const printWindow = window.open('', '', 'width=600,height=600');
+    printWindow.document.write('<html><head><title>Case Summary</title></head><body>' + content + '</body></html>');
+    printWindow.document.close();
+    printWindow.print();
+}
+
+loadDocuments();
+</script>
+{% endblock %}

@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}My Action Plan - Semptify{% endblock %}
+{% block description %}Prioritized next steps for your housing case based on your timeline, documents, and journal entries.{% endblock %}
+
+{% block nav %}<a href="/tenant/home">← Home</a><a href="/timeline">Timeline</a><a href="/documents">Documents</a>{% endblock %}
+
+{% block styles %}
+<style>
+.action-plan {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.header h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.header p {
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+}
+
+.priority-section {
+    margin-bottom: 2rem;
+}
+
+.priority-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.priority-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.priority-urgent {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--color-error);
+    border: 1px solid var(--color-error);
+}
+
+.priority-high {
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--color-warning);
+    border: 1px solid var(--color-warning);
+}
+
+.priority-medium {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--color-accent);
+    border: 1px solid var(--color-accent);
+}
+
+.priority-low {
+    background: rgba(107, 114, 128, 0.15);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border);
+}
+
+.task-list {
+    list-style: none;
+    padding: 0;
+}
+
+.task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-bottom: 0.75rem;
+}
+
+.task-item.completed {
+    opacity: 0.6;
+    text-decoration: line-through;
+}
+
+.task-checkbox {
+    width: 22px;
+    height: 22px;
+    margin-top: 0.125rem;
+    cursor: pointer;
+}
+
+.task-content {
+    flex: 1;
+}
+
+.task-title {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.task-desc {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.task-deadline {
+    font-size: 0.8125rem;
+    color: var(--color-accent);
+    font-weight: 500;
+}
+
+.task-link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    font-size: 0.8125rem;
+}
+
+.task-link:hover {
+    background: var(--color-accent);
+    color: white;
+    border-color: var(--color-accent);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--color-text-muted);
+}
+
+.progress-bar {
+    height: 8px;
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--color-accent);
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    margin-top: 0.5rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="action-plan">
+
+    <div class="header">
+        <h1>My Action Plan</h1>
+        <p>Prioritized next steps based on your timeline, documents, and journal entries.</p>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+    </div>
+    <div class="progress-text" id="progress-text">0% complete</div>
+
+    <div class="priority-section">
+        <div class="priority-header">
+            <span class="priority-badge priority-urgent">Urgent</span>
+            <h2>Do These First</h2>
+        </div>
+        <ul class="task-list" id="urgent-tasks">
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                <div class="task-content">
+                    <div class="task-title">Document Everything</div>
+                    <div class="task-desc">Take photos of all problems, save all communications with landlord in writing.</div>
+                    <a href="/tenant/capture" class="task-link">Quick Capture →</a>
+                </div>
+            </li>
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                <div class="task-content">
+                    <div class="task-title">Upload Evidence to Vault</div>
+                    <div class="task-desc">Securely store all documents, photos, and records in your vault.</div>
+                    <a href="/documents" class="task-link">Upload Documents →</a>
+                </div>
+            </li>
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                <div class="task-content">
+                    <div class="task-title">Check Deadlines</div>
+                    <div class="task-desc">If you received an eviction notice, you have 7 days to respond. Don't miss it.</div>
+                    <a href="/law-library" class="task-link">View Deadlines →</a>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="priority-section">
+        <div class="priority-header">
+            <span class="priority-badge priority-high">High</span>
+            <h2>Build Your Case</h2>
+        </div>
+        <ul class="task-list" id="high-tasks">
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                <div class="task-content">
+                    <div class="task-title">Organize Your Evidence</div>
+                    <div class="task-desc">Tag documents as evidence and add case notes.</div>
+                    <a href="/ui/tool/case-builder" class="task-link">Build Case →</a>
+                </div>
+            </li>
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                <div class="task-content">
+                    <div class="task-title">Review Your Rights</div>
+                    <div class="task-desc">Understand Minnesota tenant rights that apply to your situation.</div>
+                    <a href="/law-library" class="task-link">Law Library →</a>
+                </div>
+            </li>
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                <div class="task-content">
+                    <div class="task-title">Call Legal Aid</div>
+                    <div class="task-desc">Free legal help: HOME Line 612-728-5767 or LawHelpMN.org</div>
+                    <a href="/ui/tool/complaints" class="task-link">Contact Info →</a>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="priority-section">
+        <div class="priority-header">
+            <span class="priority-badge priority-medium">Medium</span>
+            <h2>Take Action</h2>
+        </div>
+        <ul class="task-list" id="medium-tasks">
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                <div class="task-content">
+                    <div class="task-title">File a Complaint</div>
+                    <div class="task-desc">Report violations to city code enforcement or state agencies.</div>
+                    <a href="/ui/tool/complaints" class="task-link">File Complaint →</a>
+                </div>
+            </li>
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                <div class="task-content">
+                    <div class="task-title">Send Written Notice</div>
+                    <div class="task-desc">Use letter templates to formally request repairs or respond to notices.</div>
+                    <a href="/tenant/tools/letters" class="task-link">Letter Templates →</a>
+                </div>
+            </li>
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                <div class="task-content">
+                    <div class="task-title">Prepare for Court</div>
+                    <div class="task-desc">If your case is going to court, review the Zoom Court guide.</div>
+                    <a href="/zoom-court" class="task-link">Zoom Court Guide →</a>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="priority-section">
+        <div class="priority-header">
+            <span class="priority-badge priority-low">Low</span>
+            <h2>Stay Organized</h2>
+        </div>
+        <ul class="task-list" id="low-tasks">
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                <div class="task-content">
+                    <div class="task-title">Keep a Journal</div>
+                    <div class="task-desc">Record conversations, events, and interactions as they happen.</div>
+                    <a href="/tenant/journal" class="task-link">Journal →</a>
+                </div>
+            </li>
+            <li class="task-item">
+                <input type="checkbox" class="task-checkbox" onchange="updateProgress()">
+                <div class="task-content">
+                    <div class="task-title">Review Timeline</div>
+                    <div class="task-desc">Check your timeline to see the full chronology of events.</div>
+                    <a href="/timeline" class="task-link">Timeline →</a>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+</div>
+
+<script>
+function updateProgress() {
+    const checkboxes = document.querySelectorAll('.task-checkbox');
+    const checked = document.querySelectorAll('.task-checkbox:checked');
+    const percent = Math.round((checked.length / checkboxes.length) * 100);
+    
+    document.getElementById('progress-fill').style.width = percent + '%';
+    document.getElementById('progress-text').textContent = percent + '% complete';
+    
+    checkboxes.forEach(cb => {
+        const item = cb.closest('.task-item');
+        if (cb.checked) {
+            item.classList.add('completed');
+        } else {
+            item.classList.remove('completed');
+        }
+    });
+}
+
+// Initialize progress
+updateProgress();
+</script>
+{% endblock %}

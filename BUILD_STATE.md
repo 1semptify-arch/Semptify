@@ -3,12 +3,23 @@
 
 ---
 
-## Session — 2026-06-06 (Late Evening) — Root Cause Fixes + Auth Module + Router Cleanup
-**Commit: `527a77f` | Pushed: 2026-06-06**
+## Session — 2026-06-06 (Late Night) — Core Features Implementation
+**Commit: Pending | Pushed: Pending**
 
 ### What Was Shipped
 
-**This Session (Root Cause Fixes):**
+**This Session (Core Features):**
+- `app/modules/law_library/router.py` — Removed `Depends(green_access)` from all read-only endpoints (statutes, court rules, case law, categories, ask_librarian, quick_reference) — Law Library now publicly accessible
+- `app/main.py` — Removed cloud storage fetch and authentication gate from `/timeline` route — Timeline is now DB-only read-only GUI
+- `app/modules/zoom_court/router.py` — Added real static data to stub endpoints: `/api/zoom-court/tech-checklist` (8-item checklist) and `/api/zoom-court/etiquette` (10 rules) — Changed status from "disabled" to "enabled"
+- `app/modules/eviction_defense/router.py` — Removed `Depends(yellow_access)` from read-only endpoints (forms, motions, procedures, counterclaims, statistics, defenses, deadlines, checklists) — Eviction Defense read APIs now publicly accessible
+- `app/templates/pages/complaints.html` — New page: where to file housing complaints in Minnesota (HUD, state agencies, local 311, legal aid contacts)
+- `app/templates/pages/case_builder.html` — New page: organize documents as evidence, add case notes, generate summary
+- `app/templates/pages/action_plan.html` — New page: prioritized next steps checklist with progress tracking
+- `app/main.py` — Added routes for new tool pages: `/ui/tool/complaints`, `/ui/tool/case-builder`, `/ui/tool/plan-maker`
+- `static/tenant/tools/letters.html` — Added 2 new letter templates: Response to Eviction Notice, Complaint to Housing Inspector — Updated autofill to include new fields
+
+**Previous Session (Root Cause Fixes):**
 - `app/models/mndes_exhibit.py` — Added `EVICTION = "eviction"` to MNDESCaseType enum (was missing)
 - `app/main.py` — Added `ProductTier.RESEARCH` to `register_tiers()` (brain module was 404)
 - `tests/test_role_gui_routes.py` — Removed `/functionx`, `/legal-analysis` from tests (routes deleted May 12)
@@ -29,7 +40,13 @@
 - `alembic/versions/5e5eb5eb51d0_merge_oauth_force_fresh_and_vault_.py` — Merge migration
 
 ### What Is Known Working
-- ✅ All modified files compile clean
+- ✅ All modified Python files compile clean
+- ✅ Law Library APIs now publicly accessible (no auth required for read)
+- ✅ Timeline now DB-only (no cloud fetch, no auth gate)
+- ✅ Zoom Court Guide APIs return real static data
+- ✅ Eviction Defense read APIs publicly accessible
+- ✅ 3 new tool pages created and routed
+- ✅ Letter templates now include 6 total types (was 4)
 - ✅ MNDESCaseType.EVICTION now accessible
 - ✅ Brain router loads and endpoints reachable (ProductTier.RESEARCH registered)
 - ✅ Test parameterization updated for deleted routes
@@ -37,13 +54,16 @@
 - ✅ All core routers compile and import correctly
 
 ### What Is Known Broken or Pending
-- Full test suite run pending (background commands were slow)
+- Full test suite run pending
+- Live test of new tool pages pending
+- Live test of letter template generation pending
 - Live test of MNDES service with EVICTION enum pending
 - Live test of brain router `/brain/status` endpoint pending
 
 ### Next Session Should Start With
-- Run full test suite to verify all fixes
-- Fix any remaining test failures with root cause analysis
+- Run full test suite to verify all changes
+- Live test new tool pages (complaints, case-builder, action-plan)
+- Live test letter template generation (especially new eviction and inspector letters)
 - Continue with remaining integration test failures
 
 ---
