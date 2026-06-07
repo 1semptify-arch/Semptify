@@ -82,6 +82,21 @@ BASE_PATH = get_base_path()
 # Jinja2 templates for frontend UI pages
 templates = Jinja2Templates(directory=str(BASE_PATH / "app" / "templates"))
 
+# Add custom Jinja2 filters
+def format_date_filter(value):
+    """Format datetime for display in templates."""
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        try:
+            from datetime import datetime
+            value = datetime.fromisoformat(value)
+        except:
+            return value
+    return value.strftime("%B %d, %Y") if hasattr(value, "strftime") else str(value)
+
+templates.env.filters["format_date"] = format_date_filter
+
 # Product Manifest â€” replaces the 200+ line router-import block
 from app.core.product_manifest import ProductTier, register_tiers
 from app.core.utc import utc_now
