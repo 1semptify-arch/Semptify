@@ -7,7 +7,9 @@
     'use strict';
 
     const lawCache = new Map();
+    const MAX_CACHE_SIZE = 50;
     let popup = null;
+    let scrollHandler = null;
 
     function createPopup() {
         const el = document.createElement('div');
@@ -150,6 +152,21 @@
         return null;
     }
 
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function setCache(key, value) {
+        if (lawCache.size >= MAX_CACHE_SIZE) {
+            const firstKey = lawCache.keys().next().value;
+            lawCache.delete(firstKey);
+        }
+        lawCache.set(key, value);
+    }
+
     async function fetchLaw(citation) {
         const cacheKey = citation.id;
         if (lawCache.has(cacheKey)) {
@@ -159,12 +176,18 @@
             const res = await fetch('/api/law-library/statutes/' + citation.id, {
                 credentials: 'include'
             });
-            if (!res.ok) throw new Error('Not found');
+            if (!res.ok) {
+                if (res.status === 404) {
+                    return { error: 'not_found', message: 'Law not found in database' };
+                }
+                throw new Error('HTTP ' + res.status);
+            }
             const data = await res.json();
-            lawCache.set(cacheKey, data);
+            setCache(cacheKey, data);
             return data;
         } catch (e) {
-            return null;
+            console.error('Law Linker fetch error:', e);
+            return { error: 'fetch_failed', message: 'Unable to load law text' };
         }
     }
 
@@ -190,8 +213,13 @@
         popup.style.left = left + 'px';
         popup.style.top = top + 'px';
         popup.classList.add('visible');
+        attachScrollHandler();
         
         fetchLaw(citation).then(data => {
+            if (data && data.error) {
+                popup.querySelector('.law-linker-content').innerHTML = '<p>' + escapeHtml(data.message) + '</p>';
+                return;
+            }
             if (!data || !data.statute) {
                 popup.querySelector('.law-linker-content').innerHTML = '<p>Could not load law text.</p>';
                 return;
@@ -199,15 +227,25 @@
             const s = data.statute;
             const fullText = s.full_text.length > 800 ? s.full_text.substring(0, 800) + '...' : s.full_text;
             popup.querySelector('.law-linker-content').innerHTML = `
-                <h4>${s.title}</h4>
-                <p>${s.summary}</p>
-                <div class="law-fulltext">${fullText}</div>
+                <h4>${escapeHtml(s.title)}</h4>
+                <p>${escapeHtml(s.summary)}</p>
+                <div class="law-fulltext">${escapeHtml(fullText)}</div>
             `;
         });
     }
 
     function hidePopup() {
         if (popup) popup.classList.remove('visible');
+        if (scrollHandler) {
+            window.removeEventListener('scroll', scrollHandler);
+            scrollHandler = null;
+        }
+    }
+
+    function attachScrollHandler() {
+        if (scrollHandler) return;
+        scrollHandler = () => hidePopup();
+        window.addEventListener('scroll', scrollHandler, { passive: true });
     }
 
     function processElement(element) {
@@ -217,7 +255,7 @@
         
         while (node = walker.nextNode()) {
             const text = node.textContent;
-            if (!text.match(/504B\.\d+/)) continue;
+            if (!text.match(/504B\.\d+/i)) continue;
             if (node.parentElement.closest('.law-linker-cite, #law-linker-popup')) continue;
             
             const regex = /(?:Minn\.\s*Stat\.\s*§?\s*|§\s*)?(504B\.\d+(?:\.\d+)?)/gi;
