@@ -1396,7 +1396,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     # CORE + DEV = current tenant-rights platform
     # To enable extended features: add ProductTier.EXTENDED, ProductTier.ADVOCATE, etc.
-    register_tiers(fastapi_app, ProductTier.CORE, ProductTier.DEV, ProductTier.EXTENDED, ProductTier.ADVOCATE, ProductTier.ADMIN, ProductTier.RESEARCH)
+    register_tiers(fastapi_app, ProductTier.CORE, ProductTier.DEV)
 
     # Root route â€” serve the welcome page. User clicks "Get Started" â†’ /preamble (routing logic).
     @fastapi_app.get("/", response_class=HTMLResponse)
