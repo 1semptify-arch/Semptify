@@ -3,6 +3,18 @@
 
 ---
 
+## Session — 2026-06-07 (Morning) — Law Linker Security Fixes
+**Commit: `ff9801a` | Pushed: 2026-06-07**
+
+### Fixes Applied (Code Review)
+- XSS protection: `escapeHtml()` function for all API-rendered content (title, summary, full_text)
+- Cache limit: LRU eviction at 50 entries to prevent unbounded memory growth
+- Scroll handling: Popup auto-hides on page scroll to prevent floating UI
+- Error handling: Distinct 404 vs fetch error messages, errors logged to console
+- Case sensitivity: Fixed quick-check regex to be case-insensitive for "504b.xxx"
+
+---
+
 ## Session — 2026-06-07 (Morning) — Law Linker Integration
 **Commit: `1672afc` | Pushed: 2026-06-07**
 
