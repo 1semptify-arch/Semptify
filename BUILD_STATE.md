@@ -126,6 +126,28 @@
 
 ---
 
+## Session — 2026-06-07 (Afternoon) — Template Rendering & Analytics Fixes
+**Commits: `1e3ab65`, `871ce68` | Pushed: 2026-06-07**
+
+### What Was Shipped
+- `app/main.py` — Added `format_date` Jinja2 filter to fix template rendering error
+- `app/templates/pages/tenant_home.html` — Removed analytics pageview call (ADMIN tier not enabled)
+
+### Issues Fixed
+- **Template rendering error:** "No filter named 'format_date'" — Added custom filter to templates.env
+- **Console 404 error:** `/api/analytics/pageview` — Removed call since analytics is ADMIN tier only
+
+### What Is Known Working
+- ✅ format_date filter handles datetime, string, and None values
+- ✅ Analytics 404 error resolved by removing call
+- ✅ Basic tenant config (CORE + DEV) stable
+
+### Next Session Should Start With
+- Verify all fixes on Render deployment
+- Continue with remaining integration test failures
+
+---
+
 ## Session — 2026-06-06 (Evening) — Root Cause Test Fixes
 
 ### What Was Done — Root Cause Fixes (No Band-Aids)
