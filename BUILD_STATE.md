@@ -1,6 +1,15 @@
 # BUILD_STATE.md — Semptify Live Deployment State
 # Update this file at the end of every session using /ship
 
+## Project Identity
+
+**Semptify** — A tenant rights advocate organization building technology
+to protect and advance lawful tenant rights through documentation,
+education, and evidence preservation.
+
+**Tenant advocacy, not neutrality.** We advocate for tenants exercising
+their legal rights—not tenants breaking the law.
+
 ---
 
 ## Session — 2026-06-07 (Morning) — Law Linker Security Fixes
