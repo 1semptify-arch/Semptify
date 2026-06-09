@@ -156,7 +156,7 @@ def parse_user_id(user_id: str) -> Tuple[Optional[str], Optional[str], Optional[
         >>> parse_user_id("GU7x9kM2pQ")
         ('google_drive', 'user', '7x9kM2pQ')
     """
-    if not user_id or len(user_id) < 3:
+    if not user_id or len(str(user_id)) < 3:
         return None, None, None
 
     # Strip HMAC signature if present (format: "<user_id>.<sig>")
