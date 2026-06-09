@@ -1829,6 +1829,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         
         return user
 
+    # Alias for backward compatibility with other admin routes
+    require_admin = _stealth_admin_guard
+
     @fastapi_app.get("/admin/dashboard", response_class=HTMLResponse)
     async def admin_dashboard_page(
         request: Request,
