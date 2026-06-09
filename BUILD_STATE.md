@@ -12,6 +12,37 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-08 (Evening) — Identity Statements + Funding Module
+**Commit: `TBD` | Pushed: 2026-06-08**
+
+### What Was Shipped
+- `ABOUT.md` — NEW: Canonical identity document with advocacy/ethics statements
+- `FUNDING_PROSPECTUS_ID_SYSTEM.md` — NEW: Grant-ready ID system funding prospectus
+- `app/modules/funding_mgmt/` — NEW: Admin funding management module
+  - Database models for FundingSource, FundingApplication, FundingTask
+  - Admin GUI at `/admin/funding/` for tracking grants and applications
+  - ID System Prospectus page at `/admin/funding/prospectus`
+- `AGENTS.md`, `BUILD_STATE.md`, `BUILD_GUIDE_SSOT.md` — Updated with identity statements
+- `app/main.py` — Registered funding management module
+
+### Identity & Ethics Positioning
+- **"Semptify is a tenant rights advocate organization"**
+- **"Tenant advocacy, not neutrality"** — We advocate for tenants exercising lawful rights
+- **Ethics statement:** Advocacy for lawful tenant rights only, not endorsement of illegal behavior
+
+### What Is Known Working
+- ✅ All files compile clean (py_compile)
+- ✅ Funding module imports successfully
+- ✅ App starts without errors
+- ✅ Identity statements propagated to all canonical docs
+
+### What Is Pending
+- Database tables for funding module (need migration or create_all)
+- Live test of `/admin/funding/` GUI
+- Grant applications for: LSC, Ford Foundation, Suffolk LIT Lab partnership
+
+---
+
 ## Session — 2026-06-07 (Morning) — Law Linker Security Fixes
 **Commit: `ff9801a` | Pushed: 2026-06-07**
 
