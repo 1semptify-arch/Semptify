@@ -2787,6 +2787,66 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return guard_redirect
         return templates.TemplateResponse(request, "pages/action_plan.html", {"request": request})
 
+    # Generic Module Page Route — renders any module from its PageContract
+    @fastapi_app.get("/tool/{page_id}", response_class=HTMLResponse)
+    async def module_tool_page(page_id: str, request: Request):
+        """
+        Generic module page renderer.
+        Looks up the PageContract by page_id and renders module_page.html
+        with contract metadata. This allows any module with a PageContract
+        to have a UI without creating a dedicated route.
+        """
+        from app.core.page_contracts import get_contract, PAGE_CONTRACTS
+        from app.core.user_context import UserRole
+        
+        # Validate page_id exists
+        if page_id not in PAGE_CONTRACTS:
+            return HTMLResponse(
+                content=f"<h1>Module '{page_id}' not found</h1><p>Available modules: {', '.join(list(PAGE_CONTRACTS.keys())[:20])}...</p>",
+                status_code=404
+            )
+        
+        contract = get_contract(page_id)
+        
+        # Check role access
+        guard_redirect = await _guard_role_page(
+            request, 
+            {role.value for role in contract.roles_supported}
+        )
+        if guard_redirect:
+            return guard_redirect
+        
+        # Build template context from PageContract
+        # Map PageContract fields to template expectations
+        template_contract = {
+            "title": contract.title,
+            "description": contract.expectations or contract.qualification,
+            "icon": "🔧",  # Default icon - could be mapped from page_id
+            "tags": contract.primary_groups + contract.secondary_groups,
+            "disclaimer": "This is a legal self-help tool. Consult an attorney for your specific situation.",
+            "actions": [],  # Placeholder - future: auto-generate from primary_groups
+            "api_base": f"/api/modules/{page_id}",
+            "sections": [
+                {"title": "Entry Criteria", "body": "\n".join(f"• {c}" for c in contract.entry_criteria)},
+                {"title": "Exit Criteria", "body": "\n".join(f"• {c}" for c in contract.exit_criteria)},
+            ] if contract.entry_criteria or contract.exit_criteria else [],
+            "page_id": page_id,
+            "route": contract.route,
+            "status": contract.status,
+            "roles_supported": [r.value for r in contract.roles_supported],
+            "primary_groups": contract.primary_groups,
+            "telemetry_events": contract.telemetry_events,
+        }
+        
+        return templates.TemplateResponse(
+            request, 
+            "pages/module_page.html", 
+            {
+                "request": request,
+                "contract": template_contract,
+            }
+        )
+
     @fastapi_app.get("/tenant/{subpage}", response_class=HTMLResponse)
     async def tenant_subpage(subpage: str, request: Request):
         """Catch-all for tenant sub-pages not matched by explicit routes above."""
