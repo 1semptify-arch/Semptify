@@ -121,10 +121,10 @@ Generic module page template built and working:
 ---
 
 ## 🚫 NOT YET (documented, not building)
-- Role + jurisdiction module activation (`ModuleGateMiddleware`) — onramp in `product_manifest.py`
-- Feature flags DB table
-- Event bus wire-up for `context_loop`
-- `pattern_records` Alembic migration
+- ~~Role + jurisdiction module activation~~ ✅ `ModuleGateMiddleware` built
+- ~~Feature flags DB table~~ ✅ Migration created
+- ~~Event bus wire-up for `context_loop`~~ ✅ Subscribers wired in main.py
+- ~~`pattern_records` Alembic migration~~ ✅ Migration created
 
 ---
 

@@ -3,6 +3,29 @@
 This document is the canonical source-of-truth for the Semptify FastAPI repository.
 It defines the authoritative build reference, governance rules, onboarding flow, and the disciplined doc hierarchy that all developers, reviewers, and AI agents must follow.
 
+## Our Identity
+
+**Semptify is a tenant rights advocate organization.**
+
+**Tenant advocacy, not neutrality.**
+
+We exist to advance the rights of tenants facing housing insecurity,
+documentation challenges, and legal uncertainty. We are on the side
+of tenants, always—but only when they exercise their lawful rights.
+
+## Our Ethics
+
+Semptify advocates for tenants' lawful rights under housing law. We do
+not endorse, promote, or support illegal, unethical, or unjust behavior
+by any party—including tenants who violate leases, damage property, or
+refuse legitimate obligations.
+
+We believe empowered tenants who follow their leases remove every
+landlord excuse. Rights come with responsibilities.
+
+Our mission is rights protection through lawful documentation and
+education, not circumvention of the law.
+
 ## 1. Canonical Source-of-Truth Hierarchy
 
 Use the following files as the primary authoritative references.

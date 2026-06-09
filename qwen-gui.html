@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qwen 2.5 Coder GUI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4cc9f0;
+            margin-bottom: 20px;
+            font-size: 2rem;
+        }
+
+        .section {
+            background: #16213e;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #0f3460;
+        }
+
+        .section h2 {
+            color: #4cc9f0;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #0f3460;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .toggle-item:hover {
+            background: #1a4a7a;
+        }
+
+        .toggle-item.active {
+            background: #4cc9f0;
+            color: #1a1a2e;
+        }
+
+        .toggle-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .cmd-btn {
+            background: #0f3460;
+            color: #eee;
+            border: 2px solid #4cc9f0;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .cmd-btn:hover {
+            background: #4cc9f0;
+            color: #1a1a2e;
+        }
+
+        .cmd-btn.copy-btn {
+            background: #4cc9f0;
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+
+        .prompt-area {
+            width: 100%;
+            height: 100px;
+            background: #0f3460;
+            border: 2px solid #4cc9f0;
+            border-radius: 8px;
+            color: #eee;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+
+        .prompt-area:focus {
+            outline: none;
+            border-color: #4cc9f0;
+        }
+
+        .output-area {
+            width: 100%;
+            height: 200px;
+            background: #0a0a15;
+            border: 2px solid #4cc9f0;
+            border-radius: 8px;
+            color: #4cc9f0;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+
+        .output-area:focus {
+            outline: none;
+            border-color: #4cc9f0;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: #4cc9f0;
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #3ab0d8;
+        }
+
+        .action-btn.secondary {
+            background: #0f3460;
+            color: #eee;
+            border: 2px solid #4cc9f0;
+        }
+
+        .action-btn.secondary:hover {
+            background: #1a4a7a;
+        }
+
+        /* Popout Panel */
+        .popout-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #4cc9f0;
+            color: #1a1a2e;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(76, 201, 240, 0.4);
+            transition: all 0.2s;
+        }
+
+        .popout-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .popout-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #16213e;
+            border: 2px solid #4cc9f0;
+            border-radius: 12px;
+            padding: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 1001;
+            display: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .popout-panel.active {
+            display: block;
+        }
+
+        .popout-panel.stay-on-top {
+            z-index: 9999;
+        }
+
+        .popout-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #0f3460;
+        }
+
+        .popout-header h3 {
+            color: #4cc9f0;
+        }
+
+        .close-btn {
+            background: #e94560;
+            color: #eee;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            background: #c73e54;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: none;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        .stay-on-top-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .slider-container {
+            margin-bottom: 15px;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 8px;
+            color: #4cc9f0;
+        }
+
+        .slider-container input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: #0f3460;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .slider-value {
+            color: #4cc9f0;
+            font-weight: bold;
+        }
+
+        .generated-command {
+            background: #0a0a15;
+            border: 1px solid #4cc9f0;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: monospace;
+            color: #4cc9f0;
+            word-break: break-all;
+            margin-bottom: 10px;
+        }
+
+        .select-input {
+            background: #0f3460;
+            color: #eee;
+            border: 2px solid #4cc9f0;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .select-input:focus {
+            outline: none;
+            border-color: #4cc9f0;
+        }
+
+        @media (max-width: 768px) {
+            .button-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Qwen 2.5 Coder GUI</h1>
+
+        <!-- Model Selection -->
+        <div class="section">
+            <h2>📦 Model Selection</h2>
+            <select class="select-input" id="modelSelect">
+                <option value="qwen2.5-coder:7b">Qwen 2.5 Coder 7B (Recommended)</option>
+                <option value="qwen2.5-coder:14b">Qwen 2.5 Coder 14B (Larger)</option>
+                <option value="qwen2.5:7b">Qwen 2.5 Base 7B (General)</option>
+            </select>
+        </div>
+
+        <!-- Quick Toggles -->
+        <div class="section">
+            <h2>⚡ Quick Toggles</h2>
+            <div class="toggle-row">
+                <div class="toggle-item" onclick="toggleOption(this, 'offline')">
+                    <input type="checkbox" class="toggle-checkbox" id="offline">
+                    <span>Offline Mode</span>
+                </div>
+                <div class="toggle-item" onclick="toggleOption(this, 'gpu')">
+                    <input type="checkbox" class="toggle-checkbox" id="gpu" checked>
+                    <span>GPU Enabled</span>
+                </div>
+                <div class="toggle-item" onclick="toggleOption(this, 'json')">
+                    <input type="checkbox" class="toggle-checkbox" id="json">
+                    <span>JSON Output</span>
+                </div>
+                <div class="toggle-item" onclick="toggleOption(this, 'stream')">
+                    <input type="checkbox" class="toggle-checkbox" id="stream" checked>
+                    <span>Streaming</span>
+                </div>
+                <div class="toggle-item" onclick="toggleOption(this, 'toolServer')">
+                    <input type="checkbox" class="toggle-checkbox" id="toolServer">
+                    <span>Tool Server (127.0.0.1:5001)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Sliders -->
+        <div class="section">
+            <h2>🎛️ Performance Settings</h2>
+            <div class="slider-container">
+                <label>Context Window: <span class="slider-value" id="ctxValue">4096</span></label>
+                <input type="range" id="ctxSlider" min="2048" max="8192" step="1024" value="4096" oninput="updateSlider('ctx')">
+            </div>
+            <div class="slider-container">
+                <label>Temperature: <span class="slider-value" id="tempValue">0.7</span></label>
+                <input type="range" id="tempSlider" min="0" max="1" step="0.1" value="0.7" oninput="updateSlider('temp')">
+            </div>
+            <div class="slider-container">
+                <label>Top-P: <span class="slider-value" id="topPValue">0.9</span></label>
+                <input type="range" id="topPSlider" min="0" max="1" step="0.05" value="0.9" oninput="updateSlider('topP')">
+            </div>
+        </div>
+
+        <!-- Quick Commands -->
+        <div class="section">
+            <h2>🚀 Quick Commands</h2>
+            <div class="button-grid">
+                <button class="cmd-btn" onclick="generateCommand('chat')">💬 Start Chat</button>
+                <button class="cmd-btn" onclick="generateCommand('pull')">⬇️ Pull Model</button>
+                <button class="cmd-btn" onclick="generateCommand('serve')">🖥️ Start Ollama</button>
+                <button class="cmd-btn" onclick="generateCommand('lowram')">💾 Low RAM Mode</button>
+                <button class="cmd-btn" onclick="generateCommand('highspeed')">⚡ High Speed</button>
+                <button class="cmd-btn" onclick="generateCommand('cpuonly')">🔒 CPU Only</button>
+                <button class="cmd-btn" onclick="generateCommand('custom')">🎯 Custom Prompt</button>
+            </div>
+        </div>
+
+        <!-- Model Management -->
+        <div class="section">
+            <h2>📦 Model Management</h2>
+            <div class="button-grid">
+                <button class="cmd-btn" onclick="generateCommand('list')">📋 List Models</button>
+                <button class="cmd-btn" onclick="generateCommand('show')">ℹ️ Show Model Info</button>
+                <button class="cmd-btn" onclick="generateCommand('remove')">🗑️ Remove Model</button>
+                <button class="cmd-btn" onclick="generateCommand('copy')">📄 Copy Model</button>
+                <button class="cmd-btn" onclick="generateCommand('forcePull')">🔄 Force Re-Pull</button>
+            </div>
+            <p style="color: #888; font-size: 0.85rem; margin-top: 10px;">
+                <strong>Notes:</strong> List shows all installed models. Show displays model details. Remove deletes a model (use with caution). Copy creates a duplicate. Force re-pull updates to latest version.
+            </p>
+        </div>
+
+        <!-- System Commands -->
+        <div class="section">
+            <h2>⚙️ System Commands</h2>
+            <div class="button-grid">
+                <button class="cmd-btn" onclick="generateCommand('envOffline')">🌐 Set Offline Env</button>
+                <button class="cmd-btn" onclick="generateCommand('envOnline')">🌍 Set Online Env</button>
+                <button class="cmd-btn" onclick="generateCommand('envNoUpdate')">🚫 Disable Updates</button>
+                <button class="cmd-btn" onclick="generateCommand('envNoTelemetry')">🔒 Disable Telemetry</button>
+                <button class="cmd-btn" onclick="generateCommand('stopSequence')">⏹️ Add Stop Sequence</button>
+            </div>
+            <p style="color: #888; font-size: 0.85rem; margin-top: 10px;">
+                <strong>Notes:</strong> Env vars require terminal restart. Offline mode prevents network access. Disable updates/telemetry for privacy. Stop sequence halts generation when text appears.
+            </p>
+        </div>
+
+        <!-- Prompt Builder -->
+        <div class="section">
+            <h2>✏️ Prompt Builder</h2>
+            <textarea class="prompt-area" id="promptInput" placeholder="Enter your prompt here..."></textarea>
+            <div class="action-row">
+                <button class="action-btn" onclick="generateFromPrompt()">Generate Command</button>
+                <button class="action-btn secondary" onclick="clearPrompt()">Clear</button>
+            </div>
+        </div>
+
+        <!-- Output -->
+        <div class="section">
+            <h2>📋 Generated Command</h2>
+            <div class="generated-command" id="commandOutput">Click a button or enter a prompt to generate a command</div>
+            <div class="action-row">
+                <button class="action-btn" onclick="copyCommand()">📋 Copy to Clipboard</button>
+                <button class="action-btn secondary" onclick="openPopout()">🔧 Advanced Options</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popout Button -->
+    <button class="popout-btn" onclick="openPopout()">🔧 Advanced</button>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay" onclick="closePopout()"></div>
+
+    <!-- Popout Panel -->
+    <div class="popout-panel" id="popoutPanel">
+        <div class="popout-header">
+            <h3>🔧 Advanced Options</h3>
+            <button class="close-btn" onclick="closePopout()">✕</button>
+        </div>
+        
+        <div class="stay-on-top-toggle">
+            <input type="checkbox" id="stayOnTop" onchange="toggleStayOnTop()">
+            <label for="stayOnTop">Stay on Top</label>
+        </div>
+
+        <div class="slider-container">
+            <label>Top-K: <span class="slider-value" id="topKValue">40</span></label>
+            <input type="range" id="topKSlider" min="1" max="100" step="5" value="40" oninput="updateSlider('topK')">
+        </div>
+
+        <div class="slider-container">
+            <label>Repeat Penalty: <span class="slider-value" id="repeatValue">1.1</span></label>
+            <input type="range" id="repeatSlider" min="1" max="2" step="0.1" value="1.1" oninput="updateSlider('repeat')">
+        </div>
+
+        <div class="section">
+            <h2>🌐 Environment Variables</h2>
+            <div class="toggle-row">
+                <div class="toggle-item" onclick="toggleOption(this, 'noUpdate')">
+                    <input type="checkbox" class="toggle-checkbox" id="noUpdate">
+                    <span>Disable Updates</span>
+                </div>
+                <div class="toggle-item" onclick="toggleOption(this, 'noTelemetry')">
+                    <input type="checkbox" class="toggle-checkbox" id="noTelemetry">
+                    <span>Disable Telemetry</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📝 System Prompt</h2>
+            <textarea class="prompt-area" id="systemPrompt" placeholder="Enter system prompt (optional)..."></textarea>
+        </div>
+
+        <button class="action-btn" onclick="applyAdvanced()" style="width: 100%;">Apply & Regenerate</button>
+    </div>
+
+    <script>
+        // Toggle option
+        function toggleOption(element, optionId) {
+            const checkbox = document.getElementById(optionId);
+            checkbox.checked = !checkbox.checked;
+            element.classList.toggle('active', checkbox.checked);
+        }
+
+        // Update slider display
+        function updateSlider(type) {
+            if (type === 'ctx') {
+                document.getElementById('ctxValue').textContent = document.getElementById('ctxSlider').value;
+            } else if (type === 'temp') {
+                document.getElementById('tempValue').textContent = document.getElementById('tempSlider').value;
+            } else if (type === 'topP') {
+                document.getElementById('topPValue').textContent = document.getElementById('topPSlider').value;
+            } else if (type === 'topK') {
+                document.getElementById('topKValue').textContent = document.getElementById('topKSlider').value;
+            } else if (type === 'repeat') {
+                document.getElementById('repeatValue').textContent = document.getElementById('repeatSlider').value;
+            }
+        }
+
+        // Build command from current settings
+        function buildCommand(prompt = '') {
+            const model = document.getElementById('modelSelect').value;
+            const offline = document.getElementById('offline').checked;
+            const gpu = document.getElementById('gpu').checked;
+            const json = document.getElementById('json').checked;
+            const stream = document.getElementById('stream').checked;
+            const toolServer = document.getElementById('toolServer').checked;
+            const ctx = document.getElementById('ctxSlider').value;
+            const temp = document.getElementById('tempSlider').value;
+            const topP = document.getElementById('topPSlider').value;
+            const topK = document.getElementById('topKSlider').value;
+            const repeat = document.getElementById('repeatSlider').value;
+            const systemPrompt = document.getElementById('systemPrompt').value;
+
+            let cmd = `ollama run ${model}`;
+
+            // Add flags
+            if (ctx) cmd += ` --num-ctx ${ctx}`;
+            if (temp !== '0.7') cmd += ` --temperature ${temp}`;
+            if (topP !== '0.9') cmd += ` --top-p ${topP}`;
+            if (topK !== '40') cmd += ` --top-k ${topK}`;
+            if (repeat !== '1.1') cmd += ` --repeat-penalty ${repeat}`;
+            if (!stream) cmd += ` --no-stream`;
+            if (json) cmd += ` --format json`;
+            if (!gpu) cmd += ` --gpu off`;
+            if (toolServer) cmd += ` -t "tool_server=http://127.0.0.1:5001"`;
+            if (systemPrompt) cmd += ` -s "${systemPrompt}"`;
+
+            // Add prompt
+            if (prompt) {
+                cmd += ` "${prompt}"`;
+            }
+
+            return cmd;
+        }
+
+        // Generate command for quick actions
+        function generateCommand(type) {
+            let cmd = '';
+            const model = document.getElementById('modelSelect').value;
+            const offline = document.getElementById('offline').checked;
+
+            switch(type) {
+                case 'chat':
+                    cmd = buildCommand();
+                    break;
+                case 'pull':
+                    cmd = `ollama pull ${model}`;
+                    break;
+                case 'serve':
+                    cmd = offline ? 'ollama serve --offline' : 'ollama serve';
+                    break;
+                case 'lowram':
+                    cmd = `ollama run ${model} --num-ctx 2048 --gpu off`;
+                    break;
+                case 'highspeed':
+                    cmd = `ollama run ${model} --num-ctx 4096 --num-gpu 1`;
+                    break;
+                case 'cpuonly':
+                    cmd = `ollama run ${model} --gpu off`;
+                    break;
+                case 'custom':
+                    const prompt = document.getElementById('promptInput').value;
+                    cmd = buildCommand(prompt);
+                    break;
+                case 'list':
+                    cmd = 'ollama list';
+                    break;
+                case 'show':
+                    cmd = `ollama show ${model}`;
+                    break;
+                case 'remove':
+                    cmd = `ollama rm ${model}`;
+                    break;
+                case 'copy':
+                    cmd = `ollama copy ${model} ${model}-copy`;
+                    break;
+                case 'forcePull':
+                    cmd = `ollama pull ${model} --force`;
+                    break;
+                case 'envOffline':
+                    cmd = 'setx OLLAMA_OFFLINE true';
+                    break;
+                case 'envOnline':
+                    cmd = 'setx OLLAMA_OFFLINE false';
+                    break;
+                case 'envNoUpdate':
+                    cmd = 'setx OLLAMA_NO_UPDATE true';
+                    break;
+                case 'envNoTelemetry':
+                    cmd = 'setx OLLAMA_TELEMETRY_OPTOUT true';
+                    break;
+                case 'stopSequence':
+                    cmd = buildCommand() + ' --stop "<END>"';
+                    break;
+            }
+
+            document.getElementById('commandOutput').textContent = cmd;
+        }
+
+        // Generate from prompt input
+        function generateFromPrompt() {
+            const prompt = document.getElementById('promptInput').value;
+            if (!prompt) {
+                alert('Please enter a prompt first');
+                return;
+            }
+            generateCommand('custom');
+        }
+
+        // Clear prompt
+        function clearPrompt() {
+            document.getElementById('promptInput').value = '';
+        }
+
+        // Copy command to clipboard
+        function copyCommand() {
+            const cmd = document.getElementById('commandOutput').textContent;
+            navigator.clipboard.writeText(cmd).then(() => {
+                alert('Command copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+
+        // Open popout
+        function openPopout() {
+            document.getElementById('popoutPanel').classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+        }
+
+        // Close popout
+        function closePopout() {
+            document.getElementById('popoutPanel').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        // Toggle stay on top
+        function toggleStayOnTop() {
+            const panel = document.getElementById('popoutPanel');
+            const checkbox = document.getElementById('stayOnTop');
+            panel.classList.toggle('stay-on-top', checkbox.checked);
+        }
+
+        // Apply advanced settings
+        function applyAdvanced() {
+            closePopout();
+            generateCommand('chat');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial toggle states
+            document.querySelectorAll('.toggle-item').forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (checkbox && checkbox.checked) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

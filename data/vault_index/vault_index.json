@@ -1,30 +1,49 @@
 {
   "documents": {
-    "doc_E6EpfFtZM6bbtiC8": {
-      "vault_id": "doc_E6EpfFtZM6bbtiC8",
-      "user_id": "GUPOoqHR8Z",
-      "filename": "low income lease rider (1)_ocred.pdf",
-      "safe_filename": "doc_E6EpfFtZM6bbtiC8.pdf",
-      "sha256_hash": "89a927261d3fffa21ab96237e63d5ca66fc0bac2ce469fd817cabeb56de5b959",
-      "file_size": 382782,
+    "doc_xU2zRhtJIoFxD6F3": {
+      "vault_id": "doc_xU2zRhtJIoFxD6F3",
+      "user_id": "GUWkjgVHe2",
+      "filename": "Gmail - Request for Written Rationale Regarding Non-Renewal and Assertion of Anti-Retaliation Right1s - Copy_ocred.pdf",
+      "safe_filename": "doc_xU2zRhtJIoFxD6F3.pdf",
+      "sha256_hash": "cdd50c0b4e001031203370fd71184ba12047b82bfe4a3e07616a5db93e84a18e",
+      "file_size": 96168,
       "mime_type": "application/pdf",
-      "document_type": null,
-      "description": "First document \u2014 uploaded during vault setup",
-      "tags": [
-        "onboarding",
-        "first_document"
-      ],
-      "storage_path": "Semptify5.0/Vault/documents/doc_E6EpfFtZM6bbtiC8.pdf",
+      "document_type": "evidence",
+      "description": null,
+      "tags": [],
+      "storage_path": "Semptify5.0/Vault/documents/doc_xU2zRhtJIoFxD6F3.pdf",
       "storage_provider": "google_drive",
-      "provider_file_id": "1w97FR0GExE1VDT7aneycCCp9rLGYXs4s",
-      "certificate_id": "cert_iwNzCmMHGZ5oms4S",
-      "uploaded_at": "2026-06-04T19:48:23.454089+00:00",
-      "registry_id": "SEM-2026-000002-8B2C",
+      "provider_file_id": "1uadlXz69LsEYRf2P0bCHaka8yUg7gsQS",
+      "certificate_id": "cert_l8Kgj6y0gR9P6chv",
+      "uploaded_at": "2026-06-06T12:41:12.784727+00:00",
+      "registry_id": "SEM-2026-000001-AAFE",
       "integrity_status": "verified",
       "processed": false,
       "extracted_data": null,
-      "source_module": "onboarding"
+      "source_module": "documents_page"
+    },
+    "doc_zJBqywTPz7RZMlo3": {
+      "vault_id": "doc_zJBqywTPz7RZMlo3",
+      "user_id": "GUWkjgVHe2",
+      "filename": "notice of the lease violation _ocred.pdf",
+      "safe_filename": "doc_zJBqywTPz7RZMlo3.pdf",
+      "sha256_hash": "4099610a41f1e8ae3be79ce46319bd45d995a05b7a1f151ca6d452d3ba365586",
+      "file_size": 4948345,
+      "mime_type": "application/pdf",
+      "document_type": "evidence",
+      "description": null,
+      "tags": [],
+      "storage_path": "Semptify5.0/Vault/documents/doc_zJBqywTPz7RZMlo3.pdf",
+      "storage_provider": "google_drive",
+      "provider_file_id": "1xib4L9np8_cmvGtLTC6SdTrW_XCmq0yT",
+      "certificate_id": "cert_rdAV6sW2nmjDEP5f",
+      "uploaded_at": "2026-06-06T12:43:11.405945+00:00",
+      "registry_id": "SEM-2026-000002-9A81",
+      "integrity_status": "verified",
+      "processed": false,
+      "extracted_data": null,
+      "source_module": "documents_page"
     }
   },
-  "updated_at": "2026-06-04T19:48:39.328739+00:00"
+  "updated_at": "2026-06-06T12:43:27.681336+00:00"
 }
