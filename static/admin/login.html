@@ -107,7 +107,8 @@
         
         <div id="error" class="error"></div>
         
-        <form id="loginForm">
+        <!-- Step 1: Username/Password -->
+        <form id="step1Form">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required autocomplete="username">
@@ -118,36 +119,58 @@
                 <input type="password" id="password" name="password" required autocomplete="current-password">
             </div>
             
-            <button type="submit" id="submitBtn">Sign In</button>
+            <button type="submit" id="step1Btn">Continue</button>
+        </form>
+
+        <!-- Step 2: 2FA Code (hidden initially) -->
+        <form id="step2Form" style="display:none;">
+            <div class="form-group">
+                <label for="totpCode">Two-Step Code</label>
+                <input type="text" id="totpCode" name="totpCode" required 
+                       maxlength="6" pattern="[0-9]{6}" 
+                       placeholder="000000" autocomplete="one-time-code">
+                <small style="color:#94a3b8;font-size:12px;margin-top:4px;display:block;">
+                    Enter 6-digit code from your authenticator app
+                </small>
+            </div>
+            
+            <button type="submit" id="step2Btn">Verify & Sign In</button>
+            <button type="button" id="backBtn" style="background:#475569;margin-top:10px;">← Back</button>
         </form>
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        let pendingUsername = '';
+        let pendingPassword = '';
+
+        // Step 1: Validate username/password
+        document.getElementById('step1Form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+            pendingUsername = document.getElementById('username').value;
+            pendingPassword = document.getElementById('password').value;
             const errorDiv = document.getElementById('error');
-            const submitBtn = document.getElementById('submitBtn');
+            const step1Btn = document.getElementById('step1Btn');
             
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Signing in...';
+            step1Btn.disabled = true;
+            step1Btn.textContent = 'Checking...';
             errorDiv.classList.remove('show');
             
             try {
-                const response = await fetch('/admin/api/login', {
+                const response = await fetch('/admin/api/login-step1', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password }),
+                    body: JSON.stringify({ username: pendingUsername, password: pendingPassword }),
                     credentials: 'include'
                 });
                 
                 const data = await response.json();
                 
-                if (response.ok && data.success) {
-                    // Redirect to admin dashboard
-                    window.location.href = '/admin/dashboard.html';
+                if (response.ok && data.step2_required) {
+                    // Show 2FA step
+                    document.getElementById('step1Form').style.display = 'none';
+                    document.getElementById('step2Form').style.display = 'block';
+                    document.getElementById('totpCode').focus();
                 } else {
                     errorDiv.textContent = data.error || 'Invalid credentials';
                     errorDiv.classList.add('show');
@@ -156,9 +179,60 @@
                 errorDiv.textContent = 'Login failed. Please try again.';
                 errorDiv.classList.add('show');
             } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Sign In';
+                step1Btn.disabled = false;
+                step1Btn.textContent = 'Continue';
             }
+        });
+
+        // Step 2: Verify 2FA code
+        document.getElementById('step2Form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const totpCode = document.getElementById('totpCode').value;
+            const errorDiv = document.getElementById('error');
+            const step2Btn = document.getElementById('step2Btn');
+            
+            step2Btn.disabled = true;
+            step2Btn.textContent = 'Verifying...';
+            errorDiv.classList.remove('show');
+            
+            try {
+                const response = await fetch('/admin/api/login-step2', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        username: pendingUsername, 
+                        password: pendingPassword,
+                        totp_code: totpCode 
+                    }),
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    window.location.href = '/admin/dashboard.html';
+                } else {
+                    errorDiv.textContent = data.error || 'Invalid code';
+                    errorDiv.classList.add('show');
+                    document.getElementById('totpCode').value = '';
+                    document.getElementById('totpCode').focus();
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Verification failed. Please try again.';
+                errorDiv.classList.add('show');
+            } finally {
+                step2Btn.disabled = false;
+                step2Btn.textContent = 'Verify & Sign In';
+            }
+        });
+
+        // Back button
+        document.getElementById('backBtn').addEventListener('click', () => {
+            document.getElementById('step2Form').style.display = 'none';
+            document.getElementById('step1Form').style.display = 'block';
+            pendingUsername = '';
+            pendingPassword = '';
         });
     </script>
 </body>
