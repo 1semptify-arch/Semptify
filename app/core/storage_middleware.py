@@ -72,6 +72,12 @@ PUBLIC_PATHS: Set[str] = {
     "/public",
     "/public/",
 
+    # Admin login (must be public to authenticate)
+    "/admin/login",
+    "/admin/logout",
+    "/admin/api/login-step1",
+    "/admin/api/login-step2",
+
     # Welcome/setup pages
     "/welcome.html",
     "/storage_setup.html",
