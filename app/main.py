@@ -1549,10 +1549,29 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         @fastapi_app.get("/onboarding/select-role", response_class=HTMLResponse)
         @fastapi_app.get("/onboarding/select-role.html", response_class=HTMLResponse)
         async def role_select_page():
-            """Serve role selection page."""
+            """Serve role selection page with no-cache headers."""
+            # Try new file first (bypasses any caching issues)
+            pick_role_path = BASE_PATH / "static" / "onboarding" / "pick-role.html"
+            if pick_role_path.exists():
+                return FileResponse(
+                    pick_role_path,
+                    headers={
+                        "Cache-Control": "no-cache, no-store, must-revalidate",
+                        "Pragma": "no-cache",
+                        "Expires": "0"
+                    }
+                )
+            # Fallback to old file
             page_path = BASE_PATH / "static" / "onboarding" / "role-select.html"
             if page_path.exists():
-                return FileResponse(page_path)
+                return FileResponse(
+                    page_path,
+                    headers={
+                        "Cache-Control": "no-cache, no-store, must-revalidate",
+                        "Pragma": "no-cache",
+                        "Expires": "0"
+                    }
+                )
             # Fallback to providers if role-select doesn't exist
             providers_stage = navigation.get_stage("providers")
             providers_path = providers_stage.path if providers_stage else "/storage/providers"
