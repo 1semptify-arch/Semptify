@@ -286,6 +286,62 @@
         <a href="/mndes/compliance-guide?role=admin" class="btn-block">🏛️ MNDES Compliance</a>
       </div>
 
+      <!-- User Search Widget -->
+      <div class="card" id="user-search-card">
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">🔍 User Search</div>
+        <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem">
+          <input type="text" id="user-search-input" placeholder="Search users..." style="flex:1;padding:0.4rem 0.6rem;border:1px solid #e0e0e0;border-radius:6px;font-size:0.85rem">
+          <button onclick="searchUsers()" style="padding:0.4rem 0.75rem;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.85rem">Search</button>
+        </div>
+        <div id="user-search-results" style="font-size:0.8rem;color:#555;max-height:200px;overflow-y:auto">
+          <p style="color:#888;font-style:italic">Enter search term to find users</p>
+        </div>
+        <div id="user-search-loading" style="display:none;font-size:0.8rem;color:#666;margin-top:0.5rem">
+          <span>⏳ Searching...</span>
+        </div>
+      </div>
+
+      <!-- Audit Log Viewer -->
+      <div class="card" id="audit-log-card">
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">📜 Recent Admin Actions</div>
+        <div id="audit-log-results" style="font-size:0.8rem;color:#555;max-height:200px;overflow-y:auto;margin-bottom:0.5rem">
+          <p style="color:#888;font-style:italic">Loading audit log...</p>
+        </div>
+        <div id="audit-log-loading" style="display:none;font-size:0.8rem;color:#666">
+          <span>⏳ Loading...</span>
+        </div>
+        <button onclick="loadAuditLog(20)" style="width:100%;padding:0.3rem;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;cursor:pointer;font-size:0.75rem;margin-top:0.5rem">
+          Refresh Audit Log
+        </button>
+      </div>
+
+      <!-- System Configuration (Phase 3) -->
+      <div class="card" id="system-config-card">
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">⚙️ System Config</div>
+        <div id="system-config-status" style="font-size:0.8rem;margin-bottom:0.75rem">
+          <div style="display:flex;justify-content:space-between;margin-bottom:0.25rem">
+            <span>Tiers:</span>
+            <span id="config-tiers" style="color:#22c55e;font-weight:600">Loading...</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:0.25rem">
+            <span>Modules:</span>
+            <span id="config-modules" style="color:#3b82f6;font-weight:600">Loading...</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span>Flags:</span>
+            <span id="config-flags" style="color:#f59e0b;font-weight:600">Loading...</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.5rem">
+          <button onclick="loadSystemConfig()" style="flex:1;padding:0.3rem;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;cursor:pointer;font-size:0.75rem">
+            Refresh
+          </button>
+          <button onclick="showModuleManager()" style="flex:1;padding:0.3rem;background:#dbeafe;border:1px solid #3b82f6;border-radius:4px;cursor:pointer;font-size:0.75rem;color:#1d4ed8">
+            Modules →
+          </button>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">📊 Today</div>
         <div class="stat-row"><span>New signups</span><span class="stat-val">12</span></div>
@@ -314,8 +370,507 @@
 
   <script src="/js/core/vault-portal.js"></script>
   <script>
+    // Drawer functions
     function openDrawer(){document.getElementById('nav-drawer').classList.add('open');document.getElementById('drawer-backdrop').classList.add('open')}
     function closeDrawer(){document.getElementById('nav-drawer').classList.remove('open');document.getElementById('drawer-backdrop').classList.remove('open')}
+
+    // Admin API Integration
+    const ADMIN_API_BASE = '/admin-console';
+
+    // Search users via API
+    async function searchUsers() {
+      const input = document.getElementById('user-search-input');
+      const resultsDiv = document.getElementById('user-search-results');
+      const loadingDiv = document.getElementById('user-search-loading');
+      const searchTerm = input.value.trim();
+
+      // Show loading
+      loadingDiv.style.display = 'block';
+      resultsDiv.innerHTML = '';
+
+      try {
+        const url = `${ADMIN_API_BASE}/api/users?limit=20${searchTerm ? '&search=' + encodeURIComponent(searchTerm) : ''}`;
+        const response = await fetch(url, {
+          credentials: 'include', // Send cookies for auth
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (response.status === 403) {
+          resultsDiv.innerHTML = '<p style="color:#dc2626">❌ Admin access required. Please ensure you have admin role.</p>';
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        // Handle placeholder response (Phase 1)
+        if (data.note && data.note.includes('placeholder')) {
+          resultsDiv.innerHTML = `
+            <div style="padding:0.5rem;background:#fef3c7;border-radius:6px;border:1px solid #fcd34d">
+              <p style="margin:0;color:#92400e;font-size:0.8rem">
+                ⚠️ ${data.note}<br>
+                <strong>Next step:</strong> Wire this to actual user database query
+              </p>
+            </div>
+          `;
+          return;
+        }
+
+        // Display results
+        if (!data.users || data.users.length === 0) {
+          resultsDiv.innerHTML = '<p style="color:#888">No users found</p>';
+          return;
+        }
+
+        const userList = data.users.map(user => `
+          <div style="padding:0.5rem;border-bottom:1px solid #f0f0f0;cursor:pointer" 
+               onmouseover="this.style.background='#f9fafb'" 
+               onmouseout="this.style.background='none'"
+               onclick="viewUser('${user.user_id}')">
+            <div style="font-weight:600">${user.user_id || 'Unknown'}</div>
+            <div style="font-size:0.75rem;color:#888">${user.role || 'N/A'}</div>
+          </div>
+        `).join('');
+
+        resultsDiv.innerHTML = userList;
+
+      } catch (error) {
+        console.error('User search failed:', error);
+        resultsDiv.innerHTML = `<p style="color:#dc2626">❌ Error: ${error.message}</p>`;
+      } finally {
+        loadingDiv.style.display = 'none';
+      }
+    }
+
+    // View user details
+    async function viewUser(userId) {
+      const resultsDiv = document.getElementById('user-search-results');
+      
+      try {
+        const response = await fetch(`${ADMIN_API_BASE}/api/users/${userId}`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const user = await response.json();
+        
+        // Build sessions list
+        const sessionsHtml = user.sessions && user.sessions.length > 0 
+          ? user.sessions.map(s => `
+              <div style="padding:0.4rem;background:#f8fafc;border-radius:4px;margin-bottom:0.25rem;font-size:0.7rem">
+                <strong>${s.role}</strong> via ${s.provider}
+                ${s.is_expired ? '<span style="color:#dc2626">(expired)</span>' : '<span style="color:#22c55e">(active)</span>'}
+              </div>
+            `).join('')
+          : '<p style="font-size:0.7rem;color:#888">No sessions found</p>';
+        
+        // Build action buttons
+        const canImpersonate = user.admin_actions_available?.includes('impersonate');
+        const canResetGates = user.admin_actions_available?.includes('reset_gates');
+        const canViewVault = user.admin_actions_available?.includes('view_vault');
+        
+        resultsDiv.innerHTML = `
+          <div style="padding:0.75rem;background:#f0f9ff;border-radius:6px;border:1px solid #bae6fd">
+            <div style="font-weight:700;margin-bottom:0.5rem">User Details</div>
+            <div style="font-size:0.75rem;line-height:1.6;margin-bottom:0.75rem">
+              <strong>ID:</strong> ${user.user_id || userId}<br>
+              <strong>Provider:</strong> ${user.provider || 'N/A'}<br>
+              <strong>Current Role:</strong> ${user.current_role || 'N/A'}<br>
+              <strong>Sessions:</strong> ${user.active_sessions || 0} active / ${user.total_sessions || 0} total
+            </div>
+            
+            <div style="margin-bottom:0.75rem">
+              <div style="font-weight:600;font-size:0.7rem;margin-bottom:0.25rem;color:#64748b">SESSIONS</div>
+              <div style="max-height:100px;overflow-y:auto">
+                ${sessionsHtml}
+              </div>
+            </div>
+            
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem">
+              ${canImpersonate ? `
+                <button onclick="event.stopPropagation();impersonateUser('${userId}')" 
+                        style="padding:0.3rem 0.6rem;background:#f59e0b;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.75rem">
+                  👤 Impersonate
+                </button>
+              ` : ''}
+              ${canResetGates ? `
+                <button onclick="event.stopPropagation();resetUserGates('${userId}')" 
+                        style="padding:0.3rem 0.6rem;background:#ef4444;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.75rem">
+                  🔄 Reset Gates
+                </button>
+              ` : ''}
+              ${canViewVault ? `
+                <button onclick="event.stopPropagation();viewVaultSummary('${userId}')" 
+                        style="padding:0.3rem 0.6rem;background:#3b82f6;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.75rem">
+                  📁 Vault
+                </button>
+              ` : ''}
+              <button onclick="event.stopPropagation();searchUsers()" 
+                      style="padding:0.3rem 0.6rem;background:#64748b;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.75rem">
+                ← Back
+              </button>
+            </div>
+          </div>
+        `;
+      } catch (error) {
+        resultsDiv.innerHTML = `<p style="color:#dc2626">Error loading user: ${error.message}</p>`;
+      }
+    }
+
+    // Impersonate user
+    async function impersonateUser(userId) {
+      if (!confirm(`Start impersonating user ${userId}?\n\nAll actions will be logged.`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${ADMIN_API_BASE}/api/users/${userId}/impersonate`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (result.status === 'impersonation_ready') {
+          const msg = `Impersonation ready for ${result.target_user}\n\n` +
+                      `Role: ${result.target_role}\n` +
+                      `Provider: ${result.target_provider}\n` +
+                      `Token: ${result.impersonation_token}\n\n` +
+                      `${result.warning}\n\n` +
+                      `Proceed to ${result.landing_page}?`;
+          
+          if (confirm(msg)) {
+            window.location.href = result.landing_page || '/home.html';
+          }
+        } else {
+          alert(`Impersonation status: ${result.status}\n\nToken: ${result.impersonation_token || 'N/A'}`);
+        }
+      } catch (error) {
+        alert(`Impersonation failed: ${error.message}`);
+      }
+    }
+
+    // Reset user gates
+    async function resetUserGates(userId) {
+      const gates = prompt(
+        `Reset gates for user ${userId}?\n\n` +
+        `Enter gates to reset (comma-separated):\n` +
+        `Options: storage_connected, vault_initialized`,
+        'storage_connected,vault_initialized'
+      );
+      
+      if (!gates) return;
+      
+      const gatesList = gates.split(',').map(g => g.trim()).filter(g => g);
+      
+      if (!confirm(`Reset these gates for ${userId}?\n\n${gatesList.join('\n')}\n\nUser will need to re-complete these steps.`)) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${ADMIN_API_BASE}/api/users/${userId}/reset-gates`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(gatesList)
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+        alert(`Gates reset requested for ${result.user_id}\n\nGates: ${result.gates.join(', ')}\n\n${result.note || ''}`);
+      } catch (error) {
+        alert(`Reset gates failed: ${error.message}`);
+      }
+    }
+
+    // View vault summary
+    async function viewVaultSummary(userId) {
+      try {
+        const response = await fetch(`${ADMIN_API_BASE}/api/users/${userId}/vault-summary`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        const msg = `Vault Summary for ${result.user_id}\n\n` +
+                    `Provider: ${result.provider}\n` +
+                    `Documents: ${result.document_count}\n` +
+                    `Storage Used: ${result.storage_used_mb} MB\n\n` +
+                    `${result.note || ''}`;
+        
+        alert(msg);
+      } catch (error) {
+        alert(`Vault summary failed: ${error.message}`);
+      }
+    }
+
+    // Load audit log
+    async function loadAuditLog(limit = 20) {
+      const auditDiv = document.getElementById('audit-log-results');
+      const loadingDiv = document.getElementById('audit-log-loading');
+      
+      if (!auditDiv) return;
+      
+      loadingDiv.style.display = 'block';
+      auditDiv.innerHTML = '';
+      
+      try {
+        const response = await fetch(`${ADMIN_API_BASE}/api/audit?limit=${limit}`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (!data.entries || data.entries.length === 0) {
+          auditDiv.innerHTML = '<p style="color:#888;font-size:0.8rem">No audit entries found</p>';
+          return;
+        }
+        
+        const entriesHtml = data.entries.map(entry => {
+          const timestamp = new Date(entry.timestamp).toLocaleString();
+          return `
+            <div style="padding:0.5rem;border-bottom:1px solid #f0f0f0;font-size:0.75rem">
+              <div style="display:flex;justify-content:space-between">
+                <strong>${entry.action}</strong>
+                <span style="color:#888">${timestamp}</span>
+              </div>
+              <div style="color:#555">
+                Admin: ${entry.admin_user_id?.substring(0, 8)}... | 
+                Target: ${entry.target_user?.substring(0, 8)}...
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+        auditDiv.innerHTML = entriesHtml;
+        
+      } catch (error) {
+        auditDiv.innerHTML = `<p style="color:#dc2626;font-size:0.8rem">Error loading audit log: ${error.message}</p>`;
+      } finally {
+        loadingDiv.style.display = 'none';
+      }
+    }
+
+    // Load system status on page load
+    async function loadSystemStatus() {
+      try {
+        const response = await fetch(`${ADMIN_API_BASE}/api/system/status`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) return; // Silently fail - dashboard works without live metrics
+
+        const data = await response.json();
+        
+        console.log('System status loaded:', data);
+        
+        // Update the "Today" stats with real session data
+        if (data.sessions) {
+          const statRows = document.querySelectorAll('.stat-row .stat-val');
+          if (statRows.length >= 1) {
+            // Update first stat (New signups) with unique users
+            statRows[0].textContent = data.sessions.unique_users || '0';
+          }
+          if (statRows.length >= 5) {
+            // Update API requests (use session count as proxy)
+            statRows[4].textContent = (data.sessions.active || 0) + ' sessions';
+          }
+        }
+        
+        // Update metrics in console
+        if (data.metrics) {
+          console.log('System metrics:', data.metrics);
+        }
+      } catch (error) {
+        console.log('System status load failed:', error.message);
+      }
+    }
+
+    // Phase 3: System Configuration
+    async function loadSystemConfig() {
+      try {
+        // Load tiers
+        const tiersResponse = await fetch(`${ADMIN_API_BASE}/api/system/tiers`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (tiersResponse.ok) {
+          const tiersData = await tiersResponse.json();
+          const enabledCount = tiersData.tiers.filter(t => t.enabled).length;
+          document.getElementById('config-tiers').textContent = `${enabledCount}/${tiersData.tiers.length}`;
+        }
+        
+        // Load modules count
+        const modulesResponse = await fetch(`${ADMIN_API_BASE}/api/system/modules`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (modulesResponse.ok) {
+          const modulesData = await modulesResponse.json();
+          const total = modulesData.installed_modules?.length || 0;
+          const disabled = modulesData.runtime_disabled?.length || 0;
+          document.getElementById('config-modules').textContent = `${total - disabled}/${total}`;
+        }
+        
+        // Load feature flags count
+        const flagsResponse = await fetch(`${ADMIN_API_BASE}/api/system/feature-flags`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (flagsResponse.ok) {
+          const flagsData = await flagsResponse.json();
+          const flags = flagsData.feature_flags || {};
+          const enabled = Object.values(flags).filter(v => v).length;
+          document.getElementById('config-flags').textContent = `${enabled}/${Object.keys(flags).length}`;
+        }
+      } catch (error) {
+        console.log('System config load failed:', error.message);
+      }
+    }
+
+    // Show module manager modal
+    async function showModuleManager() {
+      try {
+        const response = await fetch(`${ADMIN_API_BASE}/api/system/modules`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+        
+        if (!response.ok) throw new Error('Failed to load modules');
+        
+        const data = await response.json();
+        const modules = data.installed_modules || [];
+        
+        // Group by tier
+        const byTier = {};
+        modules.forEach(m => {
+          const tier = m.manifest?.tier || 'unknown';
+          if (!byTier[tier]) byTier[tier] = [];
+          byTier[tier].push(m);
+        });
+        
+        // Build HTML
+        let html = '<div style="max-height:400px;overflow-y:auto">';
+        
+        Object.entries(byTier).forEach(([tier, tierModules]) => {
+          html += `<div style="margin-bottom:1rem"><h4 style="margin:0 0 0.5rem 0;text-transform:uppercase;font-size:0.75rem;color:#64748b">${tier}</h4>`;
+          
+          tierModules.forEach(m => {
+            const name = m.manifest?.name || 'unknown';
+            const displayName = m.manifest?.display_name || name;
+            const enabled = m.runtime_enabled !== false;
+            const tierEnabled = m.tier_enabled !== false;
+            
+            html += `
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem;background:${enabled && tierEnabled ? '#f0fdf4' : '#fef2f2'};border-radius:4px;margin-bottom:0.25rem">
+                <div>
+                  <div style="font-weight:600;font-size:0.85rem">${displayName}</div>
+                  <div style="font-size:0.7rem;color:#666">${name}</div>
+                </div>
+                <button onclick="toggleModule('${name}', ${enabled})" 
+                        style="padding:0.2rem 0.5rem;background:${enabled ? '#ef4444' : '#22c55e'};color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.7rem">
+                  ${enabled ? 'Disable' : 'Enable'}
+                </button>
+              </div>
+            `;
+          });
+          
+          html += '</div>';
+        });
+        
+        html += '</div>';
+        
+        // Show in modal-like alert (simple approach)
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;';
+        modal.innerHTML = `
+          <div style="background:#fff;padding:1rem;border-radius:8px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto">
+            <h3 style="margin:0 0 1rem 0">Module Manager</h3>
+            ${html}
+            <div style="margin-top:1rem;text-align:right">
+              <button onclick="this.closest('.modal').remove()" style="padding:0.5rem 1rem;background:#64748b;color:#fff;border:none;border-radius:4px;cursor:pointer">Close</button>
+            </div>
+          </div>
+        `;
+        modal.className = 'modal';
+        document.body.appendChild(modal);
+        
+      } catch (error) {
+        alert('Failed to load modules: ' + error.message);
+      }
+    }
+
+    // Toggle module
+    async function toggleModule(moduleName, currentlyEnabled) {
+      if (!confirm(`${currentlyEnabled ? 'Disable' : 'Enable'} module ${moduleName}?\n\nThis takes effect immediately for routing.`)) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`${ADMIN_API_BASE}/api/system/modules/${moduleName}/toggle`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+        
+        if (!response.ok) throw new Error('Toggle failed');
+        
+        const result = await response.json();
+        alert(`Module ${result.module} is now ${result.status}`);
+        
+        // Refresh module manager and config
+        loadSystemConfig();
+        
+      } catch (error) {
+        alert('Failed to toggle module: ' + error.message);
+      }
+    }
+
+    // Allow Enter key to trigger search
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('user-search-input');
+      if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            searchUsers();
+          }
+        });
+      }
+      
+      // Load all data
+      loadSystemStatus();
+      loadAuditLog(10); // Load last 10 audit entries
+      loadSystemConfig(); // Load system configuration
+    });
   </script>
 </body>
 </html>
