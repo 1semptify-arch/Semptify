@@ -1253,6 +1253,19 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     from app.core.oauth_token_manager import init_oauth_token_manager
     init_oauth_token_manager()
     
+    # Initialize Event Bus (central nervous system)
+    from app.core.event_bus import event_bus, EventType
+    logger.info("ðŸ“¢ Event Bus initialized with %d event types", len(EventType))
+    
+    # Initialize Context Loop (background processing engine)
+    # Wire up event subscribers
+    try:
+        from app.modules.context_loop.service import subscribe_context_loop_events
+        subscribe_context_loop_events()
+        logger.info("ðŸ§ Context Loop event subscribers wired")
+    except ImportError:
+        logger.warning("Context Loop not available (optional module)")
+    
     # DISABLED: Performance monitoring - causing high memory usage (85%+)
     # TODO: Re-enable after memory optimization
     # from app.core.performance_monitor import get_performance_monitor
@@ -1362,6 +1375,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         enforce=is_production  # Only enforce in production
     )
     logger.info("ðŸ”’ Storage requirement middleware enabled (enforce=%s)", is_production)
+    
+    # Module Gate Middleware (role + jurisdiction module activation)
+    from app.core.module_gate import ModuleGateMiddleware
+    fastapi_app.add_middleware(ModuleGateMiddleware)
+    logger.info("ðŸšª Module gate middleware enabled (role + jurisdiction activation)")
     
     # Security headers (standard mode, adds headers to all responses)
     from app.core.security_headers import SecurityHeadersMiddleware
@@ -2893,6 +2911,31 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 "contract": template_contract,
             }
         )
+
+    # Module Access API — Returns which modules are accessible to current user
+    @fastapi_app.get("/api/modules/access")
+    async def get_module_access_api(request: Request):
+        """
+        Get module access for current user based on role + jurisdiction.
+        
+        Returns active modules and any restrictions.
+        """
+        from app.core.module_gate import get_module_access, get_jurisdiction
+        
+        access = get_module_access(request)
+        jurisdiction = get_jurisdiction(request)
+        
+        return {
+            "user_role": access.user_role.value,
+            "jurisdiction": {
+                "country": jurisdiction.country,
+                "state": jurisdiction.state,
+                "county": jurisdiction.county,
+            },
+            "active_modules": sorted(access.active_modules),
+            "restricted": access.restricted_modules,
+            "timestamp": utc_now().isoformat(),
+        }
 
     @fastapi_app.get("/tenant/{subpage}", response_class=HTMLResponse)
     async def tenant_subpage(subpage: str, request: Request):

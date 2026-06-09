@@ -394,6 +394,49 @@ class IntensityEngine:
         weight_total = sum(1.0 - i * 0.1 for i in range(min(5, len(scores))))
         
         return round(weighted_sum / weight_total, 1) if weight_total > 0 else 0.0
+    
+    async def recalculate_for_user(self, user_id: str) -> dict:
+        """
+        Recalculate intensity for a specific user.
+        Called when new deadlines or critical events occur.
+        """
+        from app.core.security import ACTIVE_SESSIONS
+        
+        # Get user session for context
+        session = ACTIVE_SESSIONS.get(user_id)
+        if not session:
+            logger.warning(f"No session found for user {user_id}")
+            return {"intensity": 0, "error": "No session found"}
+        
+        # Create minimal context
+        context = UserContext(
+            user_id=user_id,
+            provider=session.provider if hasattr(session, 'provider') else None,
+            role=session.role if hasattr(session, 'role') else "user",
+        )
+        
+        # Calculate current intensity
+        intensity = self.calculate_intensity("recalculation", context)
+        
+        # Store in history
+        if user_id not in self.intensity_history:
+            self.intensity_history[user_id] = []
+        
+        self.intensity_history[user_id].append({
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "intensity": intensity,
+        })
+        
+        # Keep only last 100 entries
+        self.intensity_history[user_id] = self.intensity_history[user_id][-100:]
+        
+        logger.info(f"Intensity recalculated for {user_id}: {intensity}")
+        
+        return {
+            "intensity": intensity,
+            "risk_level": self._get_risk_level(intensity),
+            "user_id": user_id,
+        }
 
 
 class ContextDataLoop:
@@ -988,3 +1031,105 @@ class ContextDataLoop:
 # Global instance
 context_loop = ContextDataLoop()
 intensity_engine = context_loop.intensity_engine
+
+
+# =============================================================================
+# Event Bus Wire-up
+# =============================================================================
+
+def subscribe_context_loop_events():
+    """
+    Subscribe Context Loop to Event Bus events.
+    Called during application startup.
+    """
+    from app.core.event_bus import subscribe_async_to_event, EventType as BusEventType
+    
+    # Subscribe to document events
+    subscribe_async_to_event(
+        BusEventType.DOCUMENT_ADDED,
+        _on_document_added
+    )
+    
+    subscribe_async_to_event(
+        BusEventType.DOCUMENT_PROCESSED,
+        _on_document_processed
+    )
+    
+    # Subscribe to timeline events
+    subscribe_async_to_event(
+        BusEventType.TIMELINE_UPDATED,
+        _on_timeline_updated
+    )
+    
+    # Subscribe to deadline events
+    subscribe_async_to_event(
+        BusEventType.DEADLINE_ADDED,
+        _on_deadline_added
+    )
+    
+    subscribe_async_to_event(
+        BusEventType.DEADLINE_APPROACHING,
+        _on_deadline_approaching
+    )
+    
+    # Subscribe to defense/violation events
+    subscribe_async_to_event(
+        BusEventType.VIOLATION_FOUND,
+        _on_violation_found
+    )
+    
+    logger.info("Context Loop subscribed to %d event types", 6)
+
+
+async def _on_document_added(event):
+    """Handle document added event."""
+    logger.info(f"Context Loop: Document added {event.data.get('doc_id')}")
+    # Trigger document analysis through context loop
+    await context_loop.process_input({
+        "type": EventType.DOCUMENT_UPLOADED,
+        "doc_id": event.data.get("doc_id"),
+        "filename": event.data.get("filename"),
+        "user_id": event.user_id,
+    })
+
+
+async def _on_document_processed(event):
+    """Handle document processed event."""
+    logger.info(f"Context Loop: Document processed {event.data.get('doc_id')}")
+
+
+async def _on_timeline_updated(event):
+    """Handle timeline updated event."""
+    logger.info(f"Context Loop: Timeline updated for {event.user_id}")
+
+
+async def _on_deadline_added(event):
+    """Handle deadline added event."""
+    logger.info(f"Context Loop: Deadline added for {event.user_id}")
+    # Recalculate intensity for this user
+    await intensity_engine.recalculate_for_user(event.user_id)
+
+
+async def _on_deadline_approaching(event):
+    """Handle deadline approaching event."""
+    logger.warning(f"Context Loop: Deadline approaching for {event.user_id}!")
+    # Trigger intensity spike
+    await context_loop.process_input({
+        "type": EventType.INTENSITY_SPIKE,
+        "reason": "deadline_approaching",
+        "user_id": event.user_id,
+        "data": event.data,
+    })
+
+
+async def _on_violation_found(event):
+    """Handle violation found event."""
+    logger.info(f"Context Loop: Violation found for {event.user_id}")
+    # Process as issue detected
+    await context_loop.process_input({
+        "type": EventType.ISSUE_DETECTED,
+        "issue_type": "violation",
+        "violation": event.data.get("violation"),
+        "law_ref": event.data.get("law_ref"),
+        "user_id": event.user_id,
+    })
