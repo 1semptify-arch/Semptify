@@ -172,7 +172,8 @@
                     document.getElementById('step2Form').style.display = 'block';
                     document.getElementById('totpCode').focus();
                 } else {
-                    errorDiv.textContent = data.error || 'Invalid credentials';
+                    const errorMsg = data.error || data.detail || 'Invalid credentials';
+                    errorDiv.textContent = typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg);
                     errorDiv.classList.add('show');
                 }
             } catch (err) {
@@ -213,7 +214,8 @@
                 if (response.ok && data.success) {
                     window.location.href = '/admin/dashboard.html';
                 } else {
-                    errorDiv.textContent = data.error || 'Invalid code';
+                    const errorMsg = data.error || data.detail || 'Invalid code';
+                    errorDiv.textContent = typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg);
                     errorDiv.classList.add('show');
                     document.getElementById('totpCode').value = '';
                     document.getElementById('totpCode').focus();
