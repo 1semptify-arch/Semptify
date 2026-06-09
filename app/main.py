@@ -1711,10 +1711,32 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/admin/login", response_class=HTMLResponse)
     async def admin_login_page(request: Request):
         """Serve the admin login page."""
-        login_path = BASE_PATH / "static" / "admin" / "login.html"
-        if login_path.exists():
-            return FileResponse(str(login_path))
-        return HTMLResponse(content="<h1>Login page not found</h1>", status_code=404)
+        import os
+        # Try multiple possible paths for the login file
+        possible_paths = [
+            BASE_PATH / "static" / "admin" / "login.html",
+            Path("/app/static/admin/login.html"),  # Docker container path
+            Path("./static/admin/login.html"),  # Relative path
+            Path(os.getcwd()) / "static" / "admin" / "login.html",
+        ]
+        
+        for path in possible_paths:
+            logger.info(f"Checking admin login path: {path} (exists: {path.exists()})")
+            if path.exists():
+                logger.info(f"Found admin login at: {path}")
+                return FileResponse(str(path))
+        
+        # Debug: list what's in the directories
+        debug_info = f"BASE_PATH: {BASE_PATH}, cwd: {os.getcwd()}"
+        try:
+            static_path = BASE_PATH / "static"
+            if static_path.exists():
+                debug_info += f", static contents: {list(static_path.iterdir())}"
+        except Exception as e:
+            debug_info += f", error listing static: {e}"
+        
+        logger.error(f"Admin login.html not found. {debug_info}")
+        return HTMLResponse(content=f"<h1>Login page not found</h1><p>{debug_info}</p>", status_code=404)
     
     @fastapi_app.post("/admin/api/login-step1")
     async def admin_login_step1(request: Request):
