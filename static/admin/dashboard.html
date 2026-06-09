@@ -97,6 +97,7 @@
       <div class="header-actions">
         <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">🔒 Vault</button>
         <button class="user-btn">🔧 Admin</button>
+        <button class="user-btn" onclick="logout()" title="Logout">🚪</button>
       </div>
     </div>
   </header>
@@ -400,6 +401,13 @@
     // Drawer functions
     function openDrawer(){document.getElementById('nav-drawer').classList.add('open');document.getElementById('drawer-backdrop').classList.add('open')}
     function closeDrawer(){document.getElementById('nav-drawer').classList.remove('open');document.getElementById('drawer-backdrop').classList.remove('open')}
+
+    // Logout function
+    async function logout() {
+      if (confirm('Logout of admin panel?')) {
+        window.location.href = '/admin/logout';
+      }
+    }
 
     // Admin API Integration
     const ADMIN_API_BASE = '/admin-console';
