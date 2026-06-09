@@ -73,7 +73,7 @@ class SmartCheckpointMiddleware(BaseHTTPMiddleware):
         
         # Has valid session? → Allow (returning user)
         user_id = request.cookies.get(USER_COOKIE)
-        if user_id and len(user_id) >= 10:
+        if user_id and len(str(user_id)) >= 10:
             return await call_next(request)
         
         # Has checkpoint? → Allow (saw welcome)

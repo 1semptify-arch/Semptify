@@ -186,7 +186,7 @@ def is_valid_storage_user(user_id: str) -> bool:
             return False
     
     # Must be at least 10 chars
-    if len(user_id) < 10:
+    if len(str(user_id)) < 10:
         return False
     
     # Validate structure using parser
@@ -197,7 +197,7 @@ def is_valid_storage_user(user_id: str) -> bool:
         return False
     
     # Unique part must be at least 6 chars
-    if len(unique) < 6:
+    if len(str(unique)) < 6:
         return False
     
     return True
