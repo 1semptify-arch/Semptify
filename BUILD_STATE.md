@@ -13,7 +13,7 @@ their legal rights—not tenants breaking the law.
 ---
 
 ## Session — 2026-06-09 (Early Morning) — Admin System Phase 3
-**Commit: `TBD` | Pushed: 2026-06-09**
+**Commit: `72492fb` | Pushed: 2026-06-09**
 
 ### What Was Shipped — Admin Phase 3: System Configuration & Content Management
 
@@ -70,7 +70,7 @@ their legal rights—not tenants breaking the law.
 ---
 
 ## Session — 2026-06-08 (Late Night) — Admin System Phase 2
-**Commit: `TBD` | Pushed: 2026-06-08**
+**Commit: `72492fb` | Pushed: 2026-06-08**
 
 ### What Was Shipped — Admin Phase 2: Admin Capabilities
 
@@ -117,7 +117,7 @@ their legal rights—not tenants breaking the law.
 ---
 
 ## Session — 2026-06-08 (Night) — Admin System Phase 1
-**Commit: `TBD` | Pushed: 2026-06-08**
+**Commit: `72492fb` | Pushed: 2026-06-08**
 
 ### What Was Shipped — Admin Phase 1: Functional Foundation
 
@@ -172,7 +172,7 @@ their legal rights—not tenants breaking the law.
 ---
 
 ## Session — 2026-06-08 (Evening) — Identity Statements + Funding Module
-**Commit: `TBD` | Pushed: 2026-06-08**
+**Commit: `72492fb` | Pushed: 2026-06-08**
 
 ### What Was Shipped
 - `ABOUT.md` — NEW: Canonical identity document with advocacy/ethics statements
