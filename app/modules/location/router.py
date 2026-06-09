@@ -78,7 +78,8 @@ def get_user_id(request: Request) -> str:
 
     if not user_id:
         # Try cookie
-        user_id = request.cookies.get("semptify_user_id")
+        _raw = request.cookies.get("semptify_user_id")
+        user_id = str(_raw) if _raw is not None else None
 
     if not user_id:
         # Generate temporary ID based on client IP (for demo purposes)

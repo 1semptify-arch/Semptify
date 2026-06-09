@@ -25,7 +25,8 @@ def _resolve_overlay_context(evidence: EvidenceItem) -> EvidenceItem:
 
 
 def _get_user_role(request: Request) -> str:
-    user_id = request.cookies.get("semptify_uid", "anonymous")
+    _raw = request.cookies.get("semptify_uid", "anonymous")
+    user_id = str(_raw) if _raw is not None else "anonymous"
     role = get_role_from_user_id(user_id)
     # Default to "user" role if parsing fails (e.g., "anonymous" or malformed)
     if not role:

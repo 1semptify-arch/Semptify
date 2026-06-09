@@ -1525,7 +1525,8 @@ async def initiate_oauth(
 
         # For returning users, extract role from their existing user ID
         # New users default to 'tenant' role
-        cookie_uid = request.cookies.get(COOKIE_USER_ID)
+        _raw_uid = request.cookies.get(COOKIE_USER_ID)
+        cookie_uid = str(_raw_uid) if _raw_uid is not None else None
         effective_uid = existing_uid or cookie_uid
 
         if effective_uid and is_valid_storage_user(effective_uid):
@@ -1546,7 +1547,8 @@ async def initiate_oauth(
         # cookie_uid is the raw signed value (user_id.hmac); existing_uid from the URL
         # is the verified plain user_id (signature already stripped by verify_user_id).
         # Compare the verified form of the cookie against existing_uid.
-        raw_cookie = request.cookies.get(COOKIE_USER_ID)
+        _rc = request.cookies.get(COOKIE_USER_ID)
+        raw_cookie = str(_rc) if _rc is not None else None
         from app.core.cookie_auth import verify_user_id as _verify_uid
         cookie_uid = _verify_uid(raw_cookie) if raw_cookie else None
         if existing_uid and cookie_uid and existing_uid != cookie_uid:

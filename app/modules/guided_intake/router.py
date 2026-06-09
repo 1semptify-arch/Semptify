@@ -73,7 +73,8 @@ async def save_intake(
         )
         
         # Get user ID (from cookie if not authenticated)
-        user_id = user.user_id if user else request.cookies.get('semptify_uid', 'anonymous')
+        _raw = request.cookies.get('semptify_uid', 'anonymous')
+        user_id = user.user_id if user else (str(_raw) if _raw is not None else 'anonymous')
         
         # Store for user
         _intake_storage[user_id] = summary
