@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Your Role - Semptify</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 32px;
+        }
+        .roles {
+            display: grid;
+            gap: 16px;
+        }
+        .role-card {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+            background: white;
+        }
+        .role-card:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+            transform: translateY(-2px);
+        }
+        .role-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 16px;
+            background: #f5f5f5;
+        }
+        .role-icon.admin { background: #fce7f3; }
+        .role-info { flex: 1; text-align: left; }
+        .role-name {
+            font-weight: 600;
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .role-desc {
+            font-size: 14px;
+            color: #666;
+        }
+        .badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        .badge.admin {
+            background: #dc2626;
+            color: white;
+        }
+        .coming-soon {
+            opacity: 0.6;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👤 Select Your Role</h1>
+        <p class="subtitle">Choose how you'll use Semptify</p>
+        
+        <div class="roles">
+            <!-- Tenant -->
+            <a href="/onboarding/providers?role=tenant" class="role-card">
+                <div class="role-icon">🏠</div>
+                <div class="role-info">
+                    <div class="role-name">Tenant <span class="badge" style="background:#10b981;color:white">Available</span></div>
+                    <div class="role-desc">I rent my home and want to organize my housing records</div>
+                </div>
+            </a>
+            
+            <!-- Admin - AVAILABLE NOW -->
+            <a href="/onboarding/providers?role=admin" class="role-card admin">
+                <div class="role-icon admin">🔧</div>
+                <div class="role-info">
+                    <div class="role-name">Administrator <span class="badge admin">Available</span></div>
+                    <div class="role-desc">System administration and organizational management tools</div>
+                </div>
+            </a>
+            
+            <!-- Advocate -->
+            <div class="role-card coming-soon">
+                <div class="role-icon">🤝</div>
+                <div class="role-info">
+                    <div class="role-name">Housing Advocate <span class="badge" style="background:#9ca3af;color:white">Soon</span></div>
+                    <div class="role-desc">I help tenants professionally (Coming Q3 2026)</div>
+                </div>
+            </div>
+            
+            <!-- Legal -->
+            <div class="role-card coming-soon">
+                <div class="role-icon">⚖️</div>
+                <div class="role-info">
+                    <div class="role-name">Legal Professional <span class="badge" style="background:#9ca3af;color:white">Soon</span></div>
+                    <div class="role-desc">Attorneys and legal representatives (Coming Q3 2026)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
