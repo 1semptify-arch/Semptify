@@ -7,6 +7,7 @@ Provides consistent error responses and user feedback across the application.
 
 import logging
 import traceback
+from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -115,13 +116,13 @@ def create_error_response(
     include_details: bool = False
 ) -> JSONResponse:
     """Create standardized error response."""
-    
+
     response_data = {
         "success": False,
         "error": {
             "code": error.error_code,
             "message": error.user_message,
-            "timestamp": "2024-01-01T00:00:00Z"  # Will be updated
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         }
     }
     
