@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Home - Semptify</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0c4a6e 0%, #075985 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .home-box {
+            background: #fff;
+            padding: 48px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+        .logo {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+        h1 {
+            color: #1e293b;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #64748b;
+            font-size: 16px;
+            margin-bottom: 32px;
+        }
+        .status {
+            background: #f1f5f9;
+            border-left: 4px solid #22c55e;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+        .status-title {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        .status-item {
+            color: #64748b;
+            font-size: 14px;
+            margin: 4px 0;
+        }
+        .signin-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: #dc2626;
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .signin-btn:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+        }
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link:hover {
+            color: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="home-box">
+        <div class="logo">🔧</div>
+        <h1>Administrator Portal</h1>
+        <p class="subtitle">Welcome to the admin home screen</p>
+        
+        <div class="status">
+            <div class="status-title">✅ Onboarding Complete</div>
+            <div class="status-item">• Storage connected</div>
+            <div class="status-item">• Account verified</div>
+            <div class="status-item">• Ready for admin access</div>
+        </div>
+        
+        <a href="/admin/login" class="signin-btn">
+            🔐 Admin Sign In
+        </a>
+        
+        <a href="/home" class="back-link">← Back to main home</a>
+    </div>
+</body>
+</html>
