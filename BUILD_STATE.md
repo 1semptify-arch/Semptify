@@ -12,6 +12,23 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-09 AM — Bug Fix: Cookie Object len() Error
+**Commit: `18ba8e2` | Pushed: 2026-06-09**
+
+### What Was Shipped — Cookie Length Fix
+
+**Problem:** Production error `"object of type 'Cookie' has no len()"` caused by `request.cookies.get()` returning a Cookie object instead of a plain string in newer Starlette versions.
+
+**Files Fixed:**
+- `app/core/checkpoint_middleware.py:76` — Session check with `str()` wrapper
+- `app/core/user_id.py:159` — parse_user_id validation with `str()` wrapper  
+- `app/core/storage_middleware.py:189,200` — is_valid_storage_user checks with `str()` wrapper
+- `app/core/security.py:1200` — is_valid_user_storage check with `str()` wrapper
+
+**Impact:** Fixes authentication middleware crashes affecting all protected routes.
+
+---
+
 ## Session — 2026-06-09 (Early Morning) — Admin System Phase 3
 **Commit: `72492fb` | Pushed: 2026-06-09**
 
