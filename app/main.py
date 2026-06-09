@@ -1678,7 +1678,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # =========================================================================
 
     from app.core.security import require_role, get_current_user
-    from app.core.user_context import UserRole
+    from app.core.user_context import UserRole, UserContext
 
     # Admin credentials from environment (set in Render dashboard)
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
