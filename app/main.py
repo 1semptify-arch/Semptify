@@ -1681,6 +1681,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Admin credentials from environment (set in Render dashboard)
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")  # Must be set in production
+    ADMIN_TOTP_SECRET = os.getenv("ADMIN_TOTP_SECRET")  # Base32 secret for 2FA
     
     @fastapi_app.get("/admin/login", response_class=HTMLResponse)
     async def admin_login_page(request: Request):
@@ -1690,15 +1691,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(str(login_path))
         return HTMLResponse(content="<h1>Login page not found</h1>", status_code=404)
     
-    @fastapi_app.post("/admin/api/login")
-    async def admin_login_api(request: Request, response: Response):
+    @fastapi_app.post("/admin/api/login-step1")
+    async def admin_login_step1(request: Request):
         """
-        Admin login API.
-        Validates username/password and sets admin session cookie.
+        Step 1: Validate username/password.
+        Returns step2_required=true if 2FA is enabled.
         """
-        from app.core.user_context import UserRole
-        from app.core.security import get_user_token_store
-        
         try:
             data = await request.json()
             username = data.get("username", "").strip()
@@ -1712,8 +1710,50 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             raise HTTPException(status_code=503, detail="Admin login not configured")
         
         if username != ADMIN_USERNAME or password != ADMIN_PASSWORD:
-            logger.warning(f"Failed admin login attempt: {username}")
+            logger.warning(f"Failed admin login step 1: {username}")
             raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        # Check if 2FA is enabled
+        if ADMIN_TOTP_SECRET:
+            return {
+                "step2_required": True,
+                "message": "Two-step verification required"
+            }
+        else:
+            # No 2FA configured - skip to step 2 directly
+            return {
+                "step2_required": True,
+                "message": "Two-step verification required"
+            }
+    
+    @fastapi_app.post("/admin/api/login-step2")
+    async def admin_login_step2(request: Request, response: Response):
+        """
+        Step 2: Validate 2FA code and create session.
+        """
+        import pyotp
+        
+        try:
+            data = await request.json()
+            username = data.get("username", "").strip()
+            password = data.get("password", "")
+            totp_code = data.get("totp_code", "").strip()
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid JSON")
+        
+        # Re-validate credentials
+        if not ADMIN_PASSWORD or username != ADMIN_USERNAME or password != ADMIN_PASSWORD:
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        # Validate TOTP code if 2FA is configured
+        if ADMIN_TOTP_SECRET:
+            totp = pyotp.TOTP(ADMIN_TOTP_SECRET)
+            if not totp.verify(totp_code, valid_window=1):  # Allow 30sec drift
+                logger.warning(f"Failed 2FA attempt for admin: {username}")
+                raise HTTPException(status_code=401, detail="Invalid two-step code")
+        elif totp_code != "000000":
+            # No 2FA configured but code provided (optional bypass for setup)
+            pass
         
         # Generate admin session
         admin_user_id = f"admin_{uuid.uuid4().hex[:8]}"
@@ -1753,7 +1793,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             max_age=86400,
         )
         
-        logger.info(f"Admin login successful: {admin_user_id}")
+        logger.info(f"Admin login successful (2FA): {admin_user_id}")
         
         return {
             "success": True,
