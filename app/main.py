@@ -1780,6 +1780,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             user_id=admin_user_id,
             provider="local",
             storage_user_id=admin_user_id,
+            access_token=f"admin-token-{uuid.uuid4().hex[:16]}",  # Admin sessions don't need real OAuth tokens
             role="admin",
             created_at=utc_now(),
             expires_at=utc_now() + datetime.timedelta(hours=24),
