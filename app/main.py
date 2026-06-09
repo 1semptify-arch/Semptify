@@ -45,6 +45,7 @@ else:
     print(f"Python {python_version.major}.{python_version.minor}.{python_version.micro} - OK")
 
 import asyncio
+import datetime
 import json
 import logging
 import os
