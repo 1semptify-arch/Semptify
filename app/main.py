@@ -1678,12 +1678,29 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     from app.core.security import require_role, get_current_user
     from app.core.user_context import UserRole
 
-    require_admin = require_role(UserRole.ADMIN)
+    # Stealth admin guard - returns 404 (not 403) to hide admin existence
+    async def _stealth_admin_guard(request: Request) -> UserContext:
+        """
+        Security: Returns 404 Not Found instead of 403 Forbidden.
+        This prevents attackers from discovering admin endpoints exist.
+        """
+        user = await get_current_user(request)
+        
+        # No user = 404 (looks like page doesn't exist)
+        if not user:
+            raise HTTPException(status_code=404, detail="Not Found")
+        
+        # Not admin = 404 (looks like page doesn't exist)
+        if user.role != UserRole.ADMIN:
+            logger.warning(f"Non-admin {user.user_id[:6]}... attempted admin access to {request.url.path}")
+            raise HTTPException(status_code=404, detail="Not Found")
+        
+        return user
 
     @fastapi_app.get("/admin/dashboard", response_class=HTMLResponse)
     async def admin_dashboard_page(
         request: Request,
-        admin_user: UserContext = Depends(require_admin),
+        admin_user: UserContext = Depends(_stealth_admin_guard),
     ):
         """Serve the admin dashboard - ADMIN role required."""
         logger.info(f"Admin {admin_user.user_id[:6]}... accessing dashboard")
@@ -1693,18 +1710,32 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if static_fallback.exists():
             return FileResponse(str(static_fallback))
 
-        return HTMLResponse(content="<h1>Admin Dashboard not found</h1>", status_code=404)
+        return HTMLResponse(content="<h1>Not Found</h1>", status_code=404)
 
+    # Secret admin entry - obfuscated URL, not linked anywhere public
+    @fastapi_app.get("/sys/portal", response_class=HTMLResponse)
+    async def secret_admin_entry(
+        request: Request,
+        admin_user: UserContext = Depends(_stealth_admin_guard),
+    ):
+        """Secret admin portal - not discoverable via public URLs."""
+        admin_dashboard_path = BASE_PATH / "static" / "admin" / "dashboard.html"
+        if admin_dashboard_path.exists():
+            content = admin_dashboard_path.read_text(encoding="utf-8")
+            return HTMLResponse(content=content)
+        return HTMLResponse(content="<h1>Not Found</h1>", status_code=404)
+
+    # Legacy /admin/dashboard.html - 404 for non-admins (stealth mode)
     @fastapi_app.get("/admin/dashboard.html", response_class=HTMLResponse)
     async def admin_dashboard_html(
         request: Request,
-        admin_user: UserContext = Depends(require_admin),
+        admin_user: UserContext = Depends(_stealth_admin_guard),
     ):
         """Serve admin dashboard HTML - ADMIN role required."""
         dashboard_path = BASE_PATH / "static" / "admin" / "dashboard.html"
         if dashboard_path.exists():
             return FileResponse(str(dashboard_path))
-        return HTMLResponse(content="<h1>Admin Dashboard not found</h1>", status_code=404)
+        return HTMLResponse(content="<h1>Not Found</h1>", status_code=404)
 
     @fastapi_app.get("/admin/contract-browser.html", response_class=HTMLResponse)
     async def admin_contract_browser(

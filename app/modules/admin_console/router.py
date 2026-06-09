@@ -29,7 +29,28 @@ from app.core.semptify_internal_sdk import (
 
 logger = logging.getLogger(__name__)
 
-# Admin role guard
+# Stealth admin guard - returns 404 (not 403) to hide admin API existence
+async def _stealth_admin(request: Request) -> UserContext:
+    """
+    Security: Returns 404 Not Found instead of 403 Forbidden.
+    This prevents attackers from discovering admin endpoints exist.
+    """
+    from app.core.security import get_current_user
+    
+    user = await get_current_user(request)
+    
+    # No user = 404 (looks like endpoint doesn't exist)
+    if not user:
+        raise HTTPException(status_code=404, detail="Not Found")
+    
+    # Not admin = 404 (looks like endpoint doesn't exist)
+    if user.role != UserRole.ADMIN:
+        logger.warning(f"Non-admin {user.user_id[:6]}... attempted admin API access to {request.url.path}")
+        raise HTTPException(status_code=404, detail="Not Found")
+    
+    return user
+
+# Admin role guard (legacy - returns 403)
 require_admin = require_role(UserRole.ADMIN)
 
 router = APIRouter(prefix="/admin-console", tags=["Admin Console"])
@@ -56,13 +77,13 @@ _RUNTIME_CONFIG = {
 
 
 @router.get("/panel", response_class=HTMLResponse)
-async def admin_panel(user: UserContext = Depends(require_admin)):
+async def admin_panel(user: UserContext = Depends(_stealth_admin)):
     """Redirect stub panel to real dashboard."""
     return RedirectResponse(url="/admin/dashboard.html")
 
 
 @router.get("/health")
-async def health_check(user: UserContext = Depends(require_admin)):
+async def health_check(user: UserContext = Depends(_stealth_admin)):
     """Admin-only health check with system status."""
     return {
         "status": "admin console online",
@@ -81,7 +102,7 @@ async def list_users(
     offset: int = 0,
     search: Optional[str] = None,
     active_only: bool = True,
-    user: UserContext = Depends(require_admin),
+    user: UserContext = Depends(_stealth_admin),
 ) -> dict:
     """
     List users from session store (active sessions).
@@ -157,7 +178,7 @@ async def list_users(
 @router.get("/api/users/{user_id}")
 async def get_user_details(
     user_id: str,
-    admin_user: UserContext = Depends(require_admin),
+    admin_user: UserContext = Depends(_stealth_admin),
 ) -> dict:
     """
     Get detailed information about a specific user from session store.
@@ -202,7 +223,7 @@ async def get_user_details(
 @router.post("/api/users/{user_id}/impersonate")
 async def impersonate_user(
     user_id: str,
-    admin_user: UserContext = Depends(require_admin),
+    admin_user: UserContext = Depends(_stealth_admin),
 ) -> dict:
     """
     Start impersonation session for user support.
@@ -250,7 +271,7 @@ async def impersonate_user(
 
 
 @router.get("/api/system/status")
-async def system_status(user: UserContext = Depends(require_admin)) -> dict:
+async def system_status(user: UserContext = Depends(_stealth_admin)) -> dict:
     """
     Get comprehensive system status for admin dashboard.
     Includes active sessions, metrics, and navigation info.
