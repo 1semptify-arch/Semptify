@@ -180,24 +180,26 @@ This roadmap moves from "scattered stubs" to "functional admin hub" in 3 phases.
 
 ---
 
-## Phase 4: Advanced Admin (Future)
+## Phase 4: Advanced Admin 🚧 IN PROGRESS
 
 **Goal**: Analytics, automation, remote management.
 
 ### Tasks
 
-#### 4.1 Analytics Dashboard
-- [ ] User signup funnel
-- [ ] Document upload stats
-- [ ] Feature usage metrics
-- [ ] Retention metrics
+#### 4.1 Analytics Dashboard ✅
+- [x] `GET /admin-console/api/analytics/overview` — High-level system overview
+- [x] `GET /admin-console/api/analytics/signup-funnel` — Daily signup breakdown by role/provider
+- [x] `GET /admin-console/api/analytics/feature-usage` — Feature usage metrics
+- [x] `GET /admin-console/api/analytics/retention` — User retention (1d, 7d, 30d)
+- [x] Dashboard: Analytics card with retention stats
+- [x] Dashboard: Analytics details modal with full dashboard
 
-#### 4.2 Automation
+#### 4.2 Automation 🚧 PENDING
 - [ ] Scheduled tasks (cron UI)
 - [ ] Batch operations
 - [ ] Automated compliance checks
 
-#### 4.3 Remote/CLI Admin
+#### 4.3 Remote/CLI Admin 🚧 PENDING
 - [ ] API key authentication for CLI
 - [ ] Admin SDK (`semptify-admin` CLI)
 - [ ] Remote vault inspection

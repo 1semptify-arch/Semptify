@@ -342,6 +342,33 @@
         </div>
       </div>
 
+      <!-- Analytics (Phase 4) -->
+      <div class="card" id="analytics-card">
+        <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">📊 Analytics</div>
+        <div id="analytics-status" style="font-size:0.8rem;margin-bottom:0.75rem">
+          <div style="display:flex;justify-content:space-between;margin-bottom:0.25rem">
+            <span>Active Users:</span>
+            <span id="analytics-users" style="color:#3b82f6;font-weight:600">Loading...</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:0.25rem">
+            <span>7d Retention:</span>
+            <span id="analytics-retention-7d" style="color:#22c55e;font-weight:600">Loading...</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span>30d Retention:</span>
+            <span id="analytics-retention-30d" style="color:#f59e0b;font-weight:600">Loading...</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:0.5rem">
+          <button onclick="loadAnalytics()" style="flex:1;padding:0.3rem;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;cursor:pointer;font-size:0.75rem">
+            Refresh
+          </button>
+          <button onclick="showAnalyticsDetails()" style="flex:1;padding:0.3rem;background:#dbeafe;border:1px solid #3b82f6;border-radius:4px;cursor:pointer;font-size:0.75rem;color:#1d4ed8">
+            Details →
+          </button>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-title" style="font-weight:700;font-size:0.95rem;margin-bottom:0.75rem">📊 Today</div>
         <div class="stat-row"><span>New signups</span><span class="stat-val">12</span></div>
@@ -855,6 +882,112 @@
       }
     }
 
+    // Phase 4: Analytics
+    async function loadAnalytics() {
+      try {
+        // Load retention metrics
+        const retentionResponse = await fetch(`${ADMIN_API_BASE}/api/analytics/retention`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+        
+        if (retentionResponse.ok) {
+          const data = await retentionResponse.json();
+          document.getElementById('analytics-users').textContent = data.total_users || '0';
+          document.getElementById('analytics-retention-7d').textContent = (data.retention_rate_7d || 0) + '%';
+          document.getElementById('analytics-retention-30d').textContent = (data.retention_rate_30d || 0) + '%';
+        }
+      } catch (error) {
+        console.log('Analytics load failed:', error.message);
+        document.getElementById('analytics-users').textContent = 'N/A';
+        document.getElementById('analytics-retention-7d').textContent = 'N/A';
+        document.getElementById('analytics-retention-30d').textContent = 'N/A';
+      }
+    }
+
+    // Show analytics details modal
+    async function showAnalyticsDetails() {
+      try {
+        const [overview, funnel, retention] = await Promise.all([
+          fetch(`${ADMIN_API_BASE}/api/analytics/overview?days=30`, { credentials: 'include', headers: { 'Accept': 'application/json' } }),
+          fetch(`${ADMIN_API_BASE}/api/analytics/signup-funnel?days=30`, { credentials: 'include', headers: { 'Accept': 'application/json' } }),
+          fetch(`${ADMIN_API_BASE}/api/analytics/retention`, { credentials: 'include', headers: { 'Accept': 'application/json' } })
+        ]);
+        
+        const overviewData = overview.ok ? await overview.json() : null;
+        const funnelData = funnel.ok ? await funnel.json() : null;
+        const retentionData = retention.ok ? await retention.json() : null;
+        
+        // Build HTML
+        let html = '<div style="max-height:500px;overflow-y:auto;font-size:0.85rem">';
+        
+        // Overview section
+        if (overviewData) {
+          html += `<h4 style="margin:1rem 0 0.5rem;color:#3b82f6">Overview (Last ${overviewData.period_days} days)</h4>`;
+          html += `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.5rem;margin-bottom:1rem">`;
+          html += `<div style="background:#f0f9ff;padding:0.5rem;border-radius:4px"><div style="font-size:1.5rem;font-weight:700;color:#3b82f6">${overviewData.users?.unique_users || 0}</div><div style="font-size:0.75rem;color:#666">Unique Users</div></div>`;
+          html += `<div style="background:#f0fdf4;padding:0.5rem;border-radius:4px"><div style="font-size:1.5rem;font-weight:700;color:#22c55e">${overviewData.users?.total_active_sessions || 0}</div><div style="font-size:0.75rem;color:#666">Active Sessions</div></div>`;
+          html += `<div style="background:#fffbeb;padding:0.5rem;border-radius:4px"><div style="font-size:1.5rem;font-weight:700;color:#f59e0b">${overviewData.events?.total_tracked || 0}</div><div style="font-size:0.75rem;color:#666">Events Tracked</div></div>`;
+          html += `</div>`;
+        }
+        
+        // Retention section
+        if (retentionData) {
+          html += `<h4 style="margin:1rem 0 0.5rem;color:#22c55e">User Retention</h4>`;
+          html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;margin-bottom:1rem">`;
+          html += `<div style="background:#f8fafc;padding:0.5rem;border-radius:4px"><div style="font-size:1.25rem;font-weight:600">${retentionData.total_users}</div><div style="font-size:0.7rem;color:#666">Total Users</div></div>`;
+          html += `<div style="background:#f0fdf4;padding:0.5rem;border-radius:4px"><div style="font-size:1.25rem;font-weight:600;color:#22c55e">${retentionData.active_last_1d}</div><div style="font-size:0.7rem;color:#666">Active 1d</div></div>`;
+          html += `<div style="background:#f0fdf4;padding:0.5rem;border-radius:4px"><div style="font-size:1.25rem;font-weight:600;color:#22c55e">${retentionData.retention_rate_7d}%</div><div style="font-size:0.7rem;color:#666">7-day Retention</div></div>`;
+          html += `<div style="background:#fffbeb;padding:0.5rem;border-radius:4px"><div style="font-size:1.25rem;font-weight:600;color:#f59e0b">${retentionData.retention_rate_30d}%</div><div style="font-size:0.7rem;color:#666">30-day Retention</div></div>`;
+          html += `</div>`;
+        }
+        
+        // Funnel section
+        if (funnelData) {
+          html += `<h4 style="margin:1rem 0 0.5rem;color:#f59e0b">Signup Funnel</h4>`;
+          html += `<p style="margin:0 0 0.5rem;font-size:0.8rem;color:#666">New sessions: ${funnelData.total_new_sessions || 0}</p>`;
+          
+          if (funnelData.by_role && Object.keys(funnelData.by_role).length > 0) {
+            html += `<div style="margin-bottom:0.5rem"><strong>By Role:</strong></div>`;
+            html += `<div style="display:flex;flex-wrap:wrap;gap:0.25rem;margin-bottom:1rem">`;
+            for (const [role, count] of Object.entries(funnelData.by_role)) {
+              html += `<span style="background:#e0e7ff;padding:0.2rem 0.5rem;border-radius:99px;font-size:0.75rem">${role}: ${count}</span>`;
+            }
+            html += `</div>`;
+          }
+          
+          if (funnelData.by_provider && Object.keys(funnelData.by_provider).length > 0) {
+            html += `<div style="margin-bottom:0.5rem"><strong>By Provider:</strong></div>`;
+            html += `<div style="display:flex;flex-wrap:wrap;gap:0.25rem">`;
+            for (const [provider, count] of Object.entries(funnelData.by_provider)) {
+              html += `<span style="background:#dbeafe;padding:0.2rem 0.5rem;border-radius:99px;font-size:0.75rem">${provider}: ${count}</span>`;
+            }
+            html += `</div>`;
+          }
+        }
+        
+        html += '</div>';
+        
+        // Show modal
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:1000;display:flex;justify-content:center;align-items:center;';
+        modal.innerHTML = `
+          <div style="background:#fff;padding:1.5rem;border-radius:8px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto">
+            <h3 style="margin:0 0 1rem 0">📊 Analytics Dashboard</h3>
+            ${html}
+            <div style="margin-top:1.5rem;text-align:right">
+              <button onclick="this.closest('.modal').remove()" style="padding:0.5rem 1rem;background:#64748b;color:#fff;border:none;border-radius:4px;cursor:pointer">Close</button>
+            </div>
+          </div>
+        `;
+        modal.className = 'modal';
+        document.body.appendChild(modal);
+        
+      } catch (error) {
+        alert('Failed to load analytics: ' + error.message);
+      }
+    }
+
     // Allow Enter key to trigger search
     document.addEventListener('DOMContentLoaded', function() {
       const searchInput = document.getElementById('user-search-input');
@@ -870,6 +1003,7 @@
       loadSystemStatus();
       loadAuditLog(10); // Load last 10 audit entries
       loadSystemConfig(); // Load system configuration
+      loadAnalytics(); // Load analytics
     });
   </script>
 </body>

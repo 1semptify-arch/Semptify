@@ -103,6 +103,14 @@ Quick reference for what's functional vs what's stub. Test these URLs yourself.
 | `GET /admin-console/api/audit` | ✅ **Working** | Filterable audit log (in-memory) |
 | `GET /admin-console/api/audit/actions` | ✅ **Working** | Lists available action types |
 
+### Admin API Endpoints - Analytics (Phase 4)
+| Endpoint | Status | Notes |
+|----------|--------|-------|
+| `GET /admin-console/api/analytics/overview` | ✅ **Working** | High-level system metrics |
+| `GET /admin-console/api/analytics/signup-funnel` | ✅ **Working** | Daily signups by role/provider |
+| `GET /admin-console/api/analytics/feature-usage` | ✅ **Working** | Feature usage metrics |
+| `GET /admin-console/api/analytics/retention` | ✅ **Working** | Retention rates (1d, 7d, 30d) |
+
 ### Admin Dashboard UI (`/admin/dashboard.html`)
 | Feature | Status | Notes |
 |---------|--------|-------|
@@ -115,6 +123,8 @@ Quick reference for what's functional vs what's stub. Test these URLs yourself.
 | System Status | ✅ **Live Data** | Updates "Today" stats with real session counts |
 | **System Config Card** | ✅ **Phase 3** | Shows tiers/modules/flags counts |
 | **Module Manager** | ✅ **Phase 3** | Modal with enable/disable per module |
+| **Analytics Card** | ✅ **Phase 4** | Shows retention rates, user counts |
+| **Analytics Dashboard** | ✅ **Phase 4** | Full modal with overview, funnel, retention |
 
 ### Role Protection
 | Route | Status | Notes |
