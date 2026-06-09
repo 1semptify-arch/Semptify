@@ -91,13 +91,23 @@
 /ship
 ```
 
-### Step 2 — Build the generic module page template
+### Step 2 — Build the generic module page template ✅ COMPLETE
 
-One Jinja2 template + one route that renders ANY module page from its contract.
-- `app/templates/module_page.html` — generic tool page
-- Route: `GET /tool/{module_name}` in `role_ui/router.py`
-- Wire 3 modules as proof: `eviction_defense`, `complaints`, `plan_maker`
-- Every future module gets a page for free
+Generic module page template built and working:
+- `app/templates/pages/module_page.html` — existing template updated
+- Route: `GET /tool/{page_id}` in `app/main.py` — maps PageContract to template
+- Proof modules available:
+  - `/tool/eviction_answer` → Eviction Answer Form
+  - `/tool/counterclaim` → Counterclaim Builder  
+  - `/tool/complaints` → Complaints
+- Every module with a PageContract now gets a UI automatically
+
+**How it works:**
+1. Route looks up `page_id` in `PAGE_CONTRACTS` registry
+2. Maps PageContract fields to template context (title, expectations, groups, etc.)
+3. Renders `module_page.html` with contract metadata
+4. Role protection enforced from `contract.roles_supported`
+5. Shows entry/exit criteria as sections in the UI
 
 ### Step 3 — Live test with a real tenant scenario
 - New user → onboarding → vault → upload a lease → check eviction defense page
