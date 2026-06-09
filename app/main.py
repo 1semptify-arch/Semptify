@@ -2818,17 +2818,64 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         
         # Build template context from PageContract
         # Map PageContract fields to template expectations
+        
+        # Module-specific action definitions
+        MODULE_ACTIONS = {
+            "eviction_answer": [
+                {"icon": "📋", "label": "Start Answer", "description": "Begin filling out eviction answer form", "endpoint": "/start", "method": "POST"},
+                {"icon": "📄", "label": "Load Template", "description": "Load eviction answer template", "endpoint": "/template", "method": "GET"},
+                {"icon": "💾", "label": "Save Draft", "description": "Save current progress", "endpoint": "/save", "method": "POST"},
+            ],
+            "counterclaim": [
+                {"icon": "⚖️", "label": "Build Counterclaim", "description": "Create a counterclaim against landlord", "endpoint": "/build", "method": "POST"},
+                {"icon": "📚", "label": "Legal Grounds", "description": "Browse valid counterclaim grounds", "endpoint": "/grounds", "method": "GET"},
+                {"icon": "📎", "label": "Attach Evidence", "description": "Link supporting documents", "endpoint": "/attach", "method": "POST"},
+            ],
+            "complaints": [
+                {"icon": "📝", "label": "File Complaint", "description": "Submit a new housing complaint", "endpoint": "/file", "method": "POST"},
+                {"icon": "📊", "label": "Track Status", "description": "Check complaint status", "endpoint": "/status", "method": "GET"},
+                {"icon": "🏛️", "label": "Agency Guide", "description": "Find the right agency to complain to", "endpoint": "/agencies", "method": "GET"},
+            ],
+            "case_builder": [
+                {"icon": "🏗️", "label": "Add Fact", "description": "Add case fact or event", "endpoint": "/facts", "method": "POST"},
+                {"icon": "📎", "label": "Link Evidence", "description": "Attach documents to facts", "endpoint": "/evidence", "method": "POST"},
+                {"icon": "📋", "label": "View Timeline", "description": "See case chronology", "endpoint": "/timeline", "method": "GET"},
+            ],
+            "timeline": [
+                {"icon": "➕", "label": "Add Event", "description": "Add event to timeline", "endpoint": "/events", "method": "POST"},
+                {"icon": "📅", "label": "View Calendar", "description": "See deadline calendar", "endpoint": "/calendar", "method": "GET"},
+                {"icon": "🔔", "label": "Set Reminder", "description": "Set deadline reminders", "endpoint": "/remind", "method": "POST"},
+            ],
+        }
+        
+        # Icon mapping for common modules
+        ICON_MAP = {
+            "eviction_answer": "🏠",
+            "counterclaim": "⚖️",
+            "complaints": "📢",
+            "case_builder": "🏗️",
+            "timeline": "📅",
+            "vault": "🔐",
+            "documents": "📄",
+            "law_library": "📚",
+            "hearing_prep": "🎤",
+            "dakota_defense": "🏛️",
+        }
+        
         template_contract = {
             "title": contract.title,
             "description": contract.expectations or contract.qualification,
-            "icon": "🔧",  # Default icon - could be mapped from page_id
+            "icon": ICON_MAP.get(page_id, "🔧"),
             "tags": contract.primary_groups + contract.secondary_groups,
             "disclaimer": "This is a legal self-help tool. Consult an attorney for your specific situation.",
-            "actions": [],  # Placeholder - future: auto-generate from primary_groups
+            "actions": MODULE_ACTIONS.get(page_id, [
+                {"icon": "▶️", "label": "Get Started", "description": "Begin using this tool", "endpoint": "/start", "method": "POST"},
+                {"icon": "📖", "label": "Learn More", "description": "Read documentation", "endpoint": "/docs", "method": "GET"},
+            ]),
             "api_base": f"/api/modules/{page_id}",
             "sections": [
-                {"title": "Entry Criteria", "body": "\n".join(f"• {c}" for c in contract.entry_criteria)},
-                {"title": "Exit Criteria", "body": "\n".join(f"• {c}" for c in contract.exit_criteria)},
+                {"title": "Entry Criteria", "body": "\n".join(f"• {c}" for c in contract.entry_criteria) or "None specified"},
+                {"title": "Exit Criteria", "body": "\n".join(f"• {c}" for c in contract.exit_criteria) or "None specified"},
             ] if contract.entry_criteria or contract.exit_criteria else [],
             "page_id": page_id,
             "route": contract.route,
