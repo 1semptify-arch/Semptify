@@ -1105,7 +1105,7 @@ async def get_current_user(
     #
     # CRITICAL: The cookie is HMAC-signed (e.g. "GT7x9kM2pQ.hmac_hash").
     # We must strip the signature to get the raw user_id for token lookups.
-    if semptify_uid and len(semptify_uid) >= 10:
+    if semptify_uid and len(str(semptify_uid)) >= 10:
         from app.core.cookie_auth import verify_user_id
         raw_uid = verify_user_id(semptify_uid)
         if not raw_uid:
