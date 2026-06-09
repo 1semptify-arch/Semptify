@@ -1780,13 +1780,24 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # Generate admin session
         admin_user_id = f"admin_{uuid.uuid4().hex[:8]}"
         
-        # Set admin cookie using proper cookie auth (semptify_uid)
-        from app.core.cookie_auth import set_auth_cookie
+        # Set admin cookie directly (avoiding helper to prevent Cookie type error)
         from app.core.user_id import COOKIE_USER_ID
+        from app.core.cookie_auth import sign_user_id
         
         # Admin user ID format: L for local, A for admin role
-        cookie_value = f"L.{admin_user_id}.A"
-        set_auth_cookie(response, cookie_value, max_age=86400, secure=True)
+        admin_cookie_value = f"L.{admin_user_id}.A"
+        signed_value = sign_user_id(admin_cookie_value)
+        
+        # Set cookie directly with explicit string values
+        response.set_cookie(
+            key=str(COOKIE_USER_ID),
+            value=str(signed_value),
+            max_age=86400,
+            path="/",
+            httponly=False,
+            secure=True,
+            samesite="lax",
+        )
         
         # Store in session
         from app.core.security import ACTIVE_SESSIONS, StoredSession
@@ -1825,8 +1836,15 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/admin/logout")
     async def admin_logout(response: Response):
         """Clear admin session."""
-        from app.core.cookie_auth import clear_auth_cookie
-        clear_auth_cookie(response)
+        from app.core.user_id import COOKIE_USER_ID
+        # Clear auth cookie directly
+        response.delete_cookie(
+            key=str(COOKIE_USER_ID),
+            path="/",
+            httponly=False,
+            secure=True,
+            samesite="lax",
+        )
         response.delete_cookie("session_id")
         return RedirectResponse(url="/admin/login")
 
