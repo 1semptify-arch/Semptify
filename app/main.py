@@ -3272,3 +3272,7 @@ if __name__ == "__main__":
 
 
 register_admin_console_module(app)
+
+# Funding Management Module (Admin Only)
+from app.modules.funding_mgmt import register_funding_module
+register_funding_module(app)
