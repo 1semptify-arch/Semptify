@@ -58,6 +58,7 @@ class StorageProvider(str, Enum):
     GOOGLE_DRIVE = "google_drive"
     DROPBOX = "dropbox"
     ONEDRIVE = "onedrive"
+    LOCAL = "local"  # For admin/system users without cloud storage
     # R2 is system-only, not for user auth
 
 
