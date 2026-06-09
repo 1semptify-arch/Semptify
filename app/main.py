@@ -3433,102 +3433,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         return await legal_page(request)
 
     # =========================================================================
-    # Admin Pages
+    # Onboarding Support Pages
     # =========================================================================
 
-    @fastapi_app.get("/admin", response_class=HTMLResponse)
-    @fastapi_app.get("/admin/", response_class=HTMLResponse)
-    async def admin_page(request: Request):
-        """Serve the admin dashboard page."""
-        guard_redirect = await _guard_role_page(request, {"admin", "manager"})
-        if guard_redirect:
-            return guard_redirect
-
-        admin_template_path = BASE_PATH / "app" / "templates" / "pages" / "admin.html"
-        if admin_template_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/admin.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Admin template error, falling back to static: %s", e)
-
-        admin_path = BASE_PATH / "static" / "admin" / "mission_control.html"
-        admin_fallback = _render_static_page(admin_path, inject_stage_model=True)
-        if admin_fallback:
-            return admin_fallback
-
-        return HTMLResponse(content="<h1>Admin page not found</h1>", status_code=404)
-
-    @fastapi_app.get("/admin/{subpage}", response_class=HTMLResponse)
-    async def admin_subpage(subpage: str, request: Request):
-        """Serve admin sub-pages with aliases for compatibility."""
-        guard_redirect = await _guard_role_page(request, {"admin", "manager"})
-        if guard_redirect:
-            return guard_redirect
-
-        if ".." in subpage or "/" in subpage or "\\" in subpage:
-            return HTMLResponse(content="<h1>400 - Invalid Request</h1>", status_code=400)
-
-        subpage_aliases = {
-            "system": "mission_control",
-            "analytics": "documentation_hub",
-            "logs": "documentation_hub",
-            "mission-control": "mission_control",
-            "easy-mode": "easy_mode_selector",
-            "docs": "documentation_hub",
-        }
-        target = subpage_aliases.get(subpage, subpage)
-
-        subpage_path = BASE_PATH / "static" / "admin" / f"{target}.html"
-        subpage_fallback = _render_static_page(subpage_path, inject_stage_model=True)
-        if subpage_fallback:
-            return subpage_fallback
-
-        subpage_index = BASE_PATH / "static" / "admin" / target / "index.html"
-        subpage_index_fallback = _render_static_page(subpage_index, inject_stage_model=True)
-        if subpage_index_fallback:
-            return subpage_index_fallback
-
-        admin_stage = navigation.get_stage("admin_portal")
-        admin_path = admin_stage.path if admin_stage else "/admin"
-        return ssot_redirect(admin_path, context="admin_subpage fallback")
-
-    @fastapi_app.get("/admin/home", response_class=HTMLResponse)
-    @fastapi_app.get("/admin/home/", response_class=HTMLResponse)
-    async def admin_home(request: Request):
-        """Serve the admin home hub page (lightweight entry point after onboarding)."""
-        guard_redirect = await _guard_role_page(request, {"admin"})
-        if guard_redirect:
-            return guard_redirect
-        
-        # Try admin home template first, then fall back to main admin template
-        admin_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "admin_home.html"
-        if admin_home_template_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/admin_home.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Admin home template error: %s", e)
-        
-        # Fallback to main admin page
-        return await admin_page(request)
-
-    @fastapi_app.get("/manager/home", response_class=HTMLResponse)
-    @fastapi_app.get("/manager/home/", response_class=HTMLResponse)
-    async def manager_home(request: Request):
-        """Serve the manager (case manager) home hub page (lightweight entry point after onboarding)."""
-        guard_redirect = await _guard_role_page(request, {"manager"})
-        if guard_redirect:
-            return guard_redirect
-        
-        # Try manager home template first, then fall back to admin template (manager uses admin UI)
-        manager_home_template_path = BASE_PATH / "app" / "templates" / "pages" / "manager_home.html"
-        if manager_home_template_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/manager_home.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Manager home template error: %s", e)
-        
-        # Fallback to main admin page (manager uses admin UI)
-        return await admin_page(request)
+    # Note: Admin routes with 2FA are defined earlier in this file (lines ~1700)
 
     @fastapi_app.get("/onboarding/max-redirects", response_class=HTMLResponse)
     @fastapi_app.get("/onboarding/max-redirects/", response_class=HTMLResponse)
@@ -3543,7 +3451,40 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Onboarding Assistance - Semptify</title>
+            <title>Onboarding Help - Semptify</title>
+            <style>
+                body { font-family: system-ui, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; line-height: 1.6; }
+                h1 { color: #1e40af; }
+                .help-box { background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 20px; margin: 20px 0; }
+            </style>
+        </head>
+        <body>
+            <h1>Having trouble getting started?</h1>
+            <div class="help-box">
+                <p>It looks like your setup process was interrupted a few times. This can happen due to:</p>
+                <ul>
+                    <li>Network connection issues</li>
+                    <li>Browser closing unexpectedly</li>
+                    <li>Switching between devices</li>
+                </ul>
+                <p><strong>What to do:</strong></p>
+                <ol>
+                    <li>Make sure you have a stable internet connection</li>
+                    <li>Complete each step without closing the browser</li>
+                    <li>If you get stuck, clear your browser cookies and start fresh</li>
+                </ol>
+            </div>
+            <p><a href="/">← Back to start</a></p>
+        </body>
+        </html>
+        """)
+
+    # =========================================================================
+    # Additional Onboarding Support
+    # =========================================================================
+
+    @fastapi_app.get("/onboarding/assistance", response_class=HTMLResponse)
+    async def onboarding_assistance(request: Request):
             <style>
                 * { margin: 0; padding: 0; box-sizing: border-box; }
                 body {
