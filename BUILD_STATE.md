@@ -12,6 +12,45 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-09 (Late Afternoon) — Admin 2-Step Login Fix
+**Commit: `2c7fb2d` | Pushed: 2026-06-09**
+
+### What Was Shipped
+
+**Problem:** Admin 2FA login at `/admin/login` returning 404 Not Found. Multiple issues:
+1. **Cookie type error:** `request.cookies.get()` returning Cookie objects instead of strings
+2. **Missing LOCAL provider:** Admin authentication failed because `StorageProvider.LOCAL` not in enum
+3. **Duplicate admin routes:** Old `/admin/{subpage}` route overwriting new 2FA routes
+4. **Hardcoded timestamp:** Error responses showing "2024-01-01T00:00:00Z"
+
+**Fixes Applied:**
+- `app/main.py`: Fixed Cookie object TypeError by converting to string in multiple locations
+- `app/main.py`: Added LOCAL provider to StorageProvider enum for admin auth
+- `app/main.py`: Added 'L' to provider_map in get_current_user() for admin support
+- `app/main.py`: Removed duplicate admin routes (lines ~3435) that were overwriting 2FA login
+- `app/main.py`: Served inline HTML for /admin/login to bypass file path issues
+- `app/core/error_handling.py`: Fixed hardcoded timestamp to use actual UTC time
+- `app/core/user_context.py`: Added LOCAL = 'local' to StorageProvider enum
+- `app/core/security.py`: Added 'L': StorageProvider.LOCAL to provider_map
+
+### What Is Known Working
+- ✅ All core files compile clean
+- ✅ `/admin/login` route now serves inline HTML (no file path issues)
+- ✅ Cookie type errors fixed across all middleware and routers
+- ✅ LOCAL provider added for admin authentication
+- ✅ Duplicate admin routes removed (no more overwrites)
+
+### What Is Pending Live Test
+- Test `/admin/login` on semptify.org to verify page loads
+- Test 2FA login flow with username, password, and TOTP code
+- Verify admin cookie is set correctly after successful login
+
+### Next Session Should Start With
+- Live test admin login on production deployment
+- Verify 2FA authentication works end-to-end
+
+---
+
 ## Session — 2026-06-09 (Final) — Bug Fix: Last Cookie len() Crash Site
 **Commit: `29684b1` | Pushed: 2026-06-09**
 
