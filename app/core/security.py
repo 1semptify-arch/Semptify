@@ -1120,6 +1120,7 @@ async def get_current_user(
             'G': StorageProvider.GOOGLE_DRIVE,
             'D': StorageProvider.DROPBOX,
             'O': StorageProvider.ONEDRIVE,
+            'L': StorageProvider.LOCAL,  # Local/admin users
         }
         role_map = {
             'A': UserRole.ADMIN,
