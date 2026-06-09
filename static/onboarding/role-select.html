@@ -97,6 +97,13 @@
         .badge.coming-soon {
             background: #999;
         }
+        .badge.admin {
+            background: #dc2626;
+        }
+        .role-card.admin:hover {
+            border-color: #dc2626;
+            background: #fef2f2;
+        }
     </style>
 </head>
 <body>
@@ -141,7 +148,15 @@
                 <span class="badge coming-soon">Coming Soon</span>
             </div>
             
-            <!-- Admin role hidden from public - access via secret URL only -->
+            <!-- Admin role - leads to admin login -->
+            <a href="/admin/login" class="role-card admin">
+                <div class="role-icon admin">🔧</div>
+                <div class="role-info">
+                    <div class="role-name">Administrator</div>
+                    <div class="role-desc">System administration and organizational management tools</div>
+                </div>
+                <span class="badge admin">Secure</span>
+            </a>
         </div>
     </div>
 </body>
