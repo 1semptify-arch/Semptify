@@ -1,0 +1,22 @@
+{
+    "include": [
+        "app"
+    ],
+    "exclude": [
+        "**/venv311/**",
+        "**/.venv/**",
+        "**/__pycache__/**",
+        "**/node_modules/**",
+        "**/tests/**",
+        "**/*.pyc"
+    ],
+    "ignore": [
+        "**/venv311/**",
+        "**/.venv/**"
+    ],
+    "typeCheckingMode": "off",
+    "useLibraryCodeForTypes": false,
+    "autoImportCompletions": true,
+    "pythonVersion": "3.11",
+    "pythonPlatform": "Windows"
+}
