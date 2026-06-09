@@ -1,18 +1,19 @@
 ﻿"""
 Admin Console Router
-Phase 3: System Configuration & Content Management
+Phase 4: Analytics, Automation & Advanced Admin
 
 Protected by ADMIN role. All routes require user to have UserRole.ADMIN.
 
-Phase 3 Features:
+Phase 4 Features:
+- Analytics dashboard (signup funnel, retention, feature usage)
 - System configuration (tiers, modules, feature flags)
 - Content management (help articles, law library)
-- Advanced analytics
+- Audit logging and compliance
 """
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import logging
 
 from app.core.security import require_role, ACTIVE_SESSIONS, get_metrics
@@ -914,3 +915,180 @@ async def create_letter_template(
         "action": "created" if is_new else "updated",
         "template": _CONTENT_STORE["letter_templates"][template_id],
     }
+
+
+# =============================================================================
+# Phase 4: Analytics Dashboard
+# =============================================================================
+
+# In-memory analytics store (production: time-series DB like InfluxDB/TimescaleDB)
+_ANALYTICS_EVENTS: List[dict] = []
+_DAILY_METRICS: Dict[str, dict] = {}
+
+
+def _track_event(event_type: str, user_id: Optional[str] = None, metadata: Optional[dict] = None):
+    """Track an analytics event."""
+    event = {
+        "timestamp": utc_now().isoformat(),
+        "event_type": event_type,
+        "user_id": user_id,
+        "metadata": metadata or {},
+    }
+    _ANALYTICS_EVENTS.append(event)
+    
+    # Keep memory bounded (last 50k events)
+    if len(_ANALYTICS_EVENTS) > 50000:
+        _ANALYTICS_EVENTS.pop(0)
+
+
+@router.get("/api/analytics/overview")
+async def get_analytics_overview(
+    days: int = 30,
+    user: UserContext = Depends(require_admin),
+) -> dict:
+    """
+    Get high-level analytics overview.
+    
+    Returns signup funnel, active users, document stats.
+    """
+    cutoff = utc_now() - datetime.timedelta(days=days)
+    
+    # Count events in period
+    recent_events = [e for e in _ANALYTICS_EVENTS if datetime.fromisoformat(e["timestamp"]) > cutoff]
+    
+    # User signup funnel (from session data)
+    active_sessions = [
+        s for s in ACTIVE_SESSIONS.values()
+        if s.created_at and s.created_at > cutoff
+    ]
+    
+    unique_users = set(s.user_id for s in active_sessions)
+    by_role = {}
+    for s in active_sessions:
+        role = s.role
+        by_role[role] = by_role.get(role, 0) + 1
+    
+    return {
+        "period_days": days,
+        "generated_at": utc_now().isoformat(),
+        "users": {
+            "total_active_sessions": len(active_sessions),
+            "unique_users": len(unique_users),
+            "by_role": by_role,
+        },
+        "events": {
+            "total_tracked": len(recent_events),
+            "by_type": _count_by_key(recent_events, "event_type"),
+        },
+        "funnel": {
+            "step_1_storage_connected": len([s for s in active_sessions if s.provider]),
+            "step_2_vault_initialized": len([s for s in active_sessions if s.user_id]),
+            "note": "Full funnel requires gate tracking integration",
+        },
+    }
+
+
+@router.get("/api/analytics/signup-funnel")
+async def get_signup_funnel(
+    days: int = 30,
+    user: UserContext = Depends(require_admin),
+) -> dict:
+    """
+    Detailed signup funnel analysis.
+    """
+    cutoff = utc_now() - datetime.timedelta(days=days)
+    
+    # Analyze session creation over time
+    daily_signups = {}
+    for s in ACTIVE_SESSIONS.values():
+        if s.created_at and s.created_at > cutoff:
+            day = s.created_at.strftime("%Y-%m-%d")
+            daily_signups[day] = daily_signups.get(day, 0) + 1
+    
+    return {
+        "period_days": days,
+        "total_new_sessions": sum(daily_signups.values()),
+        "daily_breakdown": daily_signups,
+        "by_provider": _count_by_key(
+            [s for s in ACTIVE_SESSIONS.values() if s.created_at and s.created_at > cutoff],
+            "provider"
+        ),
+        "by_role": _count_by_key(
+            [s for s in ACTIVE_SESSIONS.values() if s.created_at and s.created_at > cutoff],
+            "role"
+        ),
+    }
+
+
+@router.get("/api/analytics/feature-usage")
+async def get_feature_usage(
+    days: int = 30,
+    user: UserContext = Depends(require_admin),
+) -> dict:
+    """
+    Feature usage metrics from tracked events.
+    """
+    cutoff = utc_now() - datetime.timedelta(days=days)
+    recent_events = [
+        e for e in _ANALYTICS_EVENTS
+        if datetime.fromisoformat(e["timestamp"]) > cutoff
+    ]
+    
+    # Count by event type (which maps to features)
+    feature_counts = _count_by_key(recent_events, "event_type")
+    
+    return {
+        "period_days": days,
+        "total_events": len(recent_events),
+        "feature_usage": feature_counts,
+        "top_features": sorted(feature_counts.items(), key=lambda x: x[1], reverse=True)[:10],
+    }
+
+
+@router.get("/api/analytics/retention")
+async def get_retention_metrics(
+    user: UserContext = Depends(require_admin),
+) -> dict:
+    """
+    User retention metrics.
+    """
+    now = utc_now()
+    
+    # Group sessions by user and find last activity
+    user_last_seen = {}
+    for s in ACTIVE_SESSIONS.values():
+        last_seen = s.created_at  # Using creation as proxy
+        if s.user_id in user_last_seen:
+            if last_seen and last_seen > user_last_seen[s.user_id]:
+                user_last_seen[s.user_id] = last_seen
+        else:
+            user_last_seen[s.user_id] = last_seen
+    
+    # Calculate retention buckets
+    day_1 = now - datetime.timedelta(days=1)
+    day_7 = now - datetime.timedelta(days=7)
+    day_30 = now - datetime.timedelta(days=30)
+    
+    active_1d = sum(1 for ts in user_last_seen.values() if ts and ts > day_1)
+    active_7d = sum(1 for ts in user_last_seen.values() if ts and ts > day_7)
+    active_30d = sum(1 for ts in user_last_seen.values() if ts and ts > day_30)
+    
+    total_users = len(user_last_seen)
+    
+    return {
+        "total_users": total_users,
+        "active_last_1d": active_1d,
+        "active_last_7d": active_7d,
+        "active_last_30d": active_30d,
+        "retention_rate_7d": round(active_7d / total_users * 100, 1) if total_users else 0,
+        "retention_rate_30d": round(active_30d / total_users * 100, 1) if total_users else 0,
+    }
+
+
+def _count_by_key(items: List[dict], key: str) -> dict:
+    """Helper: count items by a key value."""
+    counts = {}
+    for item in items:
+        value = item.get(key, "unknown")
+        counts[value] = counts.get(value, 0) + 1
+    return counts
