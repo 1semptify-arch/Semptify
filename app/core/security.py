@@ -1197,7 +1197,7 @@ def is_valid_user_storage(user_id: str) -> bool:
             return False
     
     # Valid user IDs are at least 10 chars (1 provider + 1 role + 8 random)
-    if len(user_id) < 10:
+    if len(str(user_id)) < 10:
         return False
     
     # Check provider code is valid (G, D, O)
