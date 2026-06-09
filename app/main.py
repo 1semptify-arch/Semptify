@@ -1811,6 +1811,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         response.delete_cookie("session_id")
         return RedirectResponse(url="/admin/login")
 
+    @fastapi_app.get("/admin/home", response_class=HTMLResponse)
+    @fastapi_app.get("/admin/home.html", response_class=HTMLResponse)
+    async def admin_home_page():
+        """Admin home page - shown after onboarding, leads to admin sign in."""
+        home_path = BASE_PATH / "static" / "admin" / "home.html"
+        if home_path.exists():
+            return FileResponse(str(home_path))
+        # Fallback to login if home.html missing
+        return RedirectResponse(url="/admin/login")
+
     # Stealth admin guard - returns 404 (not 403) to hide admin existence
     async def _stealth_admin_guard(request: Request) -> UserContext:
         """
