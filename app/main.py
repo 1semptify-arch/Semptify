@@ -1653,31 +1653,92 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         return HTMLResponse(content="<h1>Legal Dashboard not found</h1>", status_code=404)
 
+    # =========================================================================
+    # Admin Routes (Protected - ADMIN role required)
+    # =========================================================================
+
+    from app.core.security import require_role, get_current_user
+    from app.core.user_context import UserRole
+
+    require_admin = require_role(UserRole.ADMIN)
+
     @fastapi_app.get("/admin/dashboard", response_class=HTMLResponse)
-    async def admin_dashboard_page(request: Request):
-        """Serve the admin dashboard with modular components."""
-        from app.core.storage_middleware import is_valid_storage_user
-        from app.core.user_id import COOKIE_USER_ID
+    async def admin_dashboard_page(
+        request: Request,
+        admin_user: UserContext = Depends(require_admin),
+    ):
+        """Serve the admin dashboard - ADMIN role required."""
+        logger.info(f"Admin {admin_user.user_id[:6]}... accessing dashboard")
 
-        user_id = request.cookies.get(COOKIE_USER_ID)
-        if not is_valid_storage_user(user_id):
-            providers_stage = navigation.get_stage("providers")
-            providers_path = providers_stage.path if providers_stage else "/storage/providers"
-            return ssot_redirect(providers_path, context="role dashboard unauthenticated")
-
-        admin_dashboard_path = BASE_PATH / "app" / "templates" / "pages" / "admin_dashboard.html"
-        if admin_dashboard_path.exists():
-            try:
-                return templates.TemplateResponse(request, "pages/admin_dashboard.html")
-            except Exception as e:  # pylint: disable=broad-exception-caught
-                logger.warning("Admin dashboard template error, falling back to static: %s", e)
-
-        # Fallback to static dashboard
+        # Serve static dashboard
         static_fallback = BASE_PATH / "static" / "admin" / "dashboard.html"
         if static_fallback.exists():
             return FileResponse(str(static_fallback))
 
         return HTMLResponse(content="<h1>Admin Dashboard not found</h1>", status_code=404)
+
+    @fastapi_app.get("/admin/dashboard.html", response_class=HTMLResponse)
+    async def admin_dashboard_html(
+        request: Request,
+        admin_user: UserContext = Depends(require_admin),
+    ):
+        """Serve admin dashboard HTML - ADMIN role required."""
+        dashboard_path = BASE_PATH / "static" / "admin" / "dashboard.html"
+        if dashboard_path.exists():
+            return FileResponse(str(dashboard_path))
+        return HTMLResponse(content="<h1>Admin Dashboard not found</h1>", status_code=404)
+
+    @fastapi_app.get("/admin/contract-browser.html", response_class=HTMLResponse)
+    async def admin_contract_browser(
+        request: Request,
+        admin_user: UserContext = Depends(require_admin),
+    ):
+        """Serve contract browser - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "admin" / "contract-browser.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Contract Browser not found</h1>", status_code=404)
+
+    @fastapi_app.get("/admin/function-browser.html", response_class=HTMLResponse)
+    async def admin_function_browser(
+        request: Request,
+        admin_user: UserContext = Depends(require_admin),
+    ):
+        """Serve function browser - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "admin" / "function-browser.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Function Browser not found</h1>", status_code=404)
+
+    @fastapi_app.get("/admin/page-editor.html", response_class=HTMLResponse)
+    async def admin_page_editor(
+        request: Request,
+        admin_user: UserContext = Depends(require_admin),
+    ):
+        """Serve page editor - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "admin" / "page-editor.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Page Editor not found</h1>", status_code=404)
+
+    @fastapi_app.get("/admin/review-checklist.html", response_class=HTMLResponse)
+    async def admin_review_checklist(
+        request: Request,
+        admin_user: UserContext = Depends(require_admin),
+    ):
+        """Serve review checklist - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "admin" / "review-checklist.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Review Checklist not found</h1>", status_code=404)
+
+    @fastapi_app.get("/admin", response_class=HTMLResponse)
+    async def admin_root_redirect(
+        request: Request,
+        admin_user: UserContext = Depends(require_admin),
+    ):
+        """Redirect /admin to dashboard - ADMIN role required."""
+        return RedirectResponse(url="/admin/dashboard.html")
 
     @fastapi_app.get("/manager", response_class=HTMLResponse)
     async def manager_portal_page(request: Request):
