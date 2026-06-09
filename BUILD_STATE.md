@@ -12,6 +12,23 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-09 (Final) — Bug Fix: Last Cookie len() Crash Site
+**Commit: `29684b1` | Pushed: 2026-06-09**
+
+### What Was Shipped
+
+**Problem:** Production error `"object of type 'Cookie' has no len()"` still crashing after previous fix attempts. Root cause: `get_current_user()` dependency in `security.py` line 1108 called `len(semptify_uid)` directly on the raw cookie value without `str()` wrapping.
+
+**Why it was missed:** Previous sessions patched `checkpoint_middleware.py`, `user_id.py`, `storage_middleware.py`, `cookie_auth.py`, and `workflow/router.py` — but `get_current_user()` is a FastAPI `Depends()` used on nearly every authenticated route, making it the highest-impact call site.
+
+**Fix:** `len(semptify_uid)` → `len(str(semptify_uid))` at `security.py:1108`
+
+**Known Working:** All protected routes should now survive requests from returning users with cookies.
+
+**Next Session:** Live test — verify a logged-in user can reach `/tenant/dashboard`, `/home`, and the vault page without 500 errors.
+
+---
+
 ## Session — 2026-06-09 AM — Bug Fix: Cookie Object len() Error
 **Commit: `18ba8e2` | Pushed: 2026-06-09**
 
