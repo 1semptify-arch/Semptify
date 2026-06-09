@@ -1678,6 +1678,96 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     from app.core.security import require_role, get_current_user
     from app.core.user_context import UserRole
 
+    # Admin credentials from environment (set in Render dashboard)
+    ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")  # Must be set in production
+    
+    @fastapi_app.get("/admin/login", response_class=HTMLResponse)
+    async def admin_login_page(request: Request):
+        """Serve the admin login page."""
+        login_path = BASE_PATH / "static" / "admin" / "login.html"
+        if login_path.exists():
+            return FileResponse(str(login_path))
+        return HTMLResponse(content="<h1>Login page not found</h1>", status_code=404)
+    
+    @fastapi_app.post("/admin/api/login")
+    async def admin_login_api(request: Request, response: Response):
+        """
+        Admin login API.
+        Validates username/password and sets admin session cookie.
+        """
+        from app.core.user_context import UserRole
+        from app.core.security import get_user_token_store
+        
+        try:
+            data = await request.json()
+            username = data.get("username", "").strip()
+            password = data.get("password", "")
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid JSON")
+        
+        # Validate credentials
+        if not ADMIN_PASSWORD:
+            logger.error("ADMIN_PASSWORD not set - admin login disabled")
+            raise HTTPException(status_code=503, detail="Admin login not configured")
+        
+        if username != ADMIN_USERNAME or password != ADMIN_PASSWORD:
+            logger.warning(f"Failed admin login attempt: {username}")
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        
+        # Generate admin session
+        admin_user_id = f"admin_{uuid.uuid4().hex[:8]}"
+        
+        # Set admin cookie with role embedded
+        response.set_cookie(
+            key="user_id",
+            value=f"local.admin.{admin_user_id}",  # Format: provider.role.id
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=86400,  # 24 hours
+        )
+        
+        # Store in session
+        from app.core.security import ACTIVE_SESSIONS, StoredSession
+        from app.core.utc import utc_now
+        
+        session = StoredSession(
+            session_id=f"admin_sess_{uuid.uuid4().hex[:12]}",
+            user_id=admin_user_id,
+            provider="local",
+            storage_user_id=admin_user_id,
+            role="admin",
+            created_at=utc_now(),
+            expires_at=utc_now() + datetime.timedelta(hours=24),
+        )
+        ACTIVE_SESSIONS[session.session_id] = session
+        
+        # Also set session_id cookie
+        response.set_cookie(
+            key="session_id",
+            value=session.session_id,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=86400,
+        )
+        
+        logger.info(f"Admin login successful: {admin_user_id}")
+        
+        return {
+            "success": True,
+            "user_id": admin_user_id,
+            "role": "admin",
+        }
+    
+    @fastapi_app.get("/admin/logout")
+    async def admin_logout(response: Response):
+        """Clear admin session."""
+        response.delete_cookie("user_id")
+        response.delete_cookie("session_id")
+        return RedirectResponse(url="/admin/login")
+
     # Stealth admin guard - returns 404 (not 403) to hide admin existence
     async def _stealth_admin_guard(request: Request) -> UserContext:
         """
