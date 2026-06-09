@@ -739,7 +739,8 @@ async def get_case_state(request: Request) -> CaseStateResponse:
     Called by home.html to supply data-backed inputs to the next-step card
     instead of relying on client-side heuristics.
     """
-    user_id = request.cookies.get("semptify_uid", "")
+    _uid_raw = request.cookies.get("semptify_uid", "")
+    user_id = str(_uid_raw) if _uid_raw is not None else ""
     role = _ROLE_MAP.get(user_id[1:2].upper(), "user") if len(user_id) >= 2 else "user"
     storage_connected = user_id[:1].upper() in {"G", "D", "O"} if user_id else False
 

@@ -59,7 +59,8 @@ class OnboardingGateMiddleware(BaseHTTPMiddleware):
                 return await call_next(request)
 
         # Check for user cookie
-        cookie_value = request.cookies.get(self.config.cookie_name)
+        _raw_cookie = request.cookies.get(self.config.cookie_name)
+        cookie_value = str(_raw_cookie) if _raw_cookie is not None else None
         if not cookie_value:
             # No cookie = no user = not our problem (other middleware handles this)
             return await call_next(request)

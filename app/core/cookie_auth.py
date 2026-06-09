@@ -48,10 +48,12 @@ def verify_user_id(cookie_value: Optional[str]) -> Optional[str]:
         user_id string if signature is valid
         None if cookie is missing, malformed, or tampered
     """
-    if not cookie_value:
+    # Ensure cookie_value is a string (not a Cookie object)
+    cookie_str = str(cookie_value) if cookie_value is not None else None
+    if not cookie_str:
         return None
 
-    parts = cookie_value.rsplit(_SEPARATOR, 1)
+    parts = cookie_str.rsplit(_SEPARATOR, 1)
     if len(parts) != 2:
         logger.warning("cookie_auth: malformed cookie (no separator)")
         return None
@@ -82,7 +84,8 @@ def extract_user_id(request) -> Optional[str]:
     Returns raw user_id or None.
     """
     from app.core.user_id import COOKIE_USER_ID
-    raw = request.cookies.get(COOKIE_USER_ID)
+    _raw = request.cookies.get(COOKIE_USER_ID)
+    raw = str(_raw) if _raw is not None else None
     return verify_user_id(raw)
 
 
