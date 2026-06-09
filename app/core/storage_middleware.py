@@ -235,8 +235,9 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
         
         # Get user ID from cookie — pass the signed cookie directly.
         # is_valid_storage_user() calls verify_user_id() internally.
+        # NOTE: request.cookies may return Cookie objects, convert to string
         _raw_cookie = request.cookies.get(COOKIE_USER_ID)
-        user_id = _raw_cookie
+        user_id = str(_raw_cookie) if _raw_cookie is not None else None
 
         # Check if valid storage user format
         if not is_valid_storage_user(user_id):
@@ -371,7 +372,8 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
 
                 # ── Onboarding incomplete ─────────────────────────────────────
                 if not ob_state.is_fully_onboarded:
-                    loop_count_str = request.cookies.get(REDIRECT_LOOP_COOKIE, "0")
+                    _loop_raw = request.cookies.get(REDIRECT_LOOP_COOKIE, "0")
+                    loop_count_str = str(_loop_raw) if _loop_raw is not None else "0"
                     try:
                         loop_count = int(loop_count_str)
                     except ValueError:

@@ -48,7 +48,8 @@ async def preamble(request: Request):
     - Any middleware that needs to restart the flow
     - Root / redirect (unauthenticated users)
     """
-    raw_cookie = request.cookies.get(COOKIE_USER_ID)
+    _raw = request.cookies.get(COOKIE_USER_ID)
+    raw_cookie = str(_raw) if _raw is not None else None
 
     # ── Fast path: no cookie = definitely new user ────────────────────────────
     if not raw_cookie:
