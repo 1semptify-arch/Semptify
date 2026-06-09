@@ -463,7 +463,8 @@ def _extract_user_id(req: Request) -> Optional[str]:
     """Extract user_id from signed cookie. Returns None if not authenticated."""
     try:
         from app.core.user_id import parse_user_id
-        raw = req.cookies.get("user_id", "")
+        _raw = req.cookies.get("user_id", "")
+        raw = str(_raw) if _raw is not None else ""
         parsed = parse_user_id(raw)
         return parsed.get("user_id") if parsed else None
     except Exception:

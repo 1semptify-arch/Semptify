@@ -28,7 +28,8 @@ async def get_emotional_state(request: Request) -> Dict[str, Any]:
     
     Returns 7-dimensional emotional state plus composite scores.
     """
-    user_id = request.cookies.get("semptify_uid", "anonymous")
+    _raw = request.cookies.get("semptify_uid", "anonymous")
+    user_id = str(_raw) if _raw is not None else "anonymous"
     state = get_user_emotional_state(user_id)
     return {
         "success": True,
@@ -56,7 +57,8 @@ async def record_trigger(
     - win_milestone, support_connected, deadline_met, document_organized
     - help_accessed
     """
-    user_id = request.cookies.get("semptify_uid", "anonymous")
+    _raw = request.cookies.get("semptify_uid", "anonymous")
+    user_id = str(_raw) if _raw is not None else "anonymous"
     
     context = {}
     if days_until_deadline is not None:
@@ -90,7 +92,8 @@ async def get_dashboard_configuration(request: Request) -> Dict[str, Any]:
     - color_scheme: Emotionally-appropriate colors
     - animation_config: Animation settings
     """
-    user_id = request.cookies.get("semptify_uid", "anonymous")
+    _raw = request.cookies.get("semptify_uid", "anonymous")
+    user_id = str(_raw) if _raw is not None else "anonymous"
     config = get_adaptive_dashboard(user_id)
     return {
         "success": True,
@@ -107,7 +110,8 @@ async def get_ui_settings(request: Request) -> Dict[str, Any]:
     Returns settings for content density, visual presentation,
     interaction style, tone, navigation, and actions.
     """
-    user_id = request.cookies.get("semptify_uid", "anonymous")
+    _raw = request.cookies.get("semptify_uid", "anonymous")
+    user_id = str(_raw) if _raw is not None else "anonymous"
     adaptation = get_ui_adaptation(user_id)
     return {
         "success": True,
@@ -120,7 +124,8 @@ async def get_suggested_action(request: Request) -> Dict[str, Any]:
     """
     Get the emotionally-appropriate next action for user.
     """
-    user_id = request.cookies.get("semptify_uid", "anonymous")
+    _raw = request.cookies.get("semptify_uid", "anonymous")
+    user_id = str(_raw) if _raw is not None else "anonymous"
     
     # Get available actions (would come from case context in real app)
     # For now, return mock suggestion based on state
@@ -186,7 +191,8 @@ async def simulate_emotional_scenario(
     Simulate an emotional scenario for testing/demo.
     Sets user's emotional state to match scenario.
     """
-    user_id = request.cookies.get("semptify_uid", "anonymous")
+    _raw = request.cookies.get("semptify_uid", "anonymous")
+    user_id = str(_raw) if _raw is not None else "anonymous"
     state = emotion_engine.get_state(user_id)
     
     scenarios = {
@@ -274,7 +280,8 @@ async def get_emotional_history(
     """
     Get recent emotional trigger history for user.
     """
-    user_id = request.cookies.get("semptify_uid", "anonymous")
+    _raw = request.cookies.get("semptify_uid", "anonymous")
+    user_id = str(_raw) if _raw is not None else "anonymous"
     history = emotion_engine.user_history.get(user_id, [])
     
     return {
