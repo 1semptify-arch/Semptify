@@ -1621,7 +1621,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.storage_middleware import is_valid_storage_user
         from app.core.user_id import COOKIE_USER_ID
 
-        user_id = request.cookies.get(COOKIE_USER_ID)
+        _raw = request.cookies.get(COOKIE_USER_ID)
+        user_id = str(_raw) if _raw is not None else None
         if not is_valid_storage_user(user_id):
             providers_stage = navigation.get_stage("providers")
             providers_path = providers_stage.path if providers_stage else "/storage/providers"
@@ -1647,7 +1648,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.storage_middleware import is_valid_storage_user
         from app.core.user_id import COOKIE_USER_ID
 
-        user_id = request.cookies.get(COOKIE_USER_ID)
+        _raw = request.cookies.get(COOKIE_USER_ID)
+        user_id = str(_raw) if _raw is not None else None
         if not is_valid_storage_user(user_id):
             providers_stage = navigation.get_stage("providers")
             providers_path = providers_stage.path if providers_stage else "/storage/providers"
@@ -1673,7 +1675,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.storage_middleware import is_valid_storage_user
         from app.core.user_id import COOKIE_USER_ID
 
-        user_id = request.cookies.get(COOKIE_USER_ID)
+        _raw = request.cookies.get(COOKIE_USER_ID)
+        user_id = str(_raw) if _raw is not None else None
         if not is_valid_storage_user(user_id):
             providers_stage = navigation.get_stage("providers")
             providers_path = providers_stage.path if providers_stage else "/storage/providers"
@@ -1979,7 +1982,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.user_id import COOKIE_USER_ID
         from app.core.user_context import get_role_from_user_id, UserRole
 
-        user_id = request.cookies.get(COOKIE_USER_ID)
+        _raw = request.cookies.get(COOKIE_USER_ID)
+        user_id = str(_raw) if _raw is not None else None
         if not is_valid_storage_user(user_id):
             providers_stage = navigation.get_stage("providers")
             providers_path = providers_stage.path if providers_stage else "/storage/providers"
@@ -2029,7 +2033,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.database import get_db_session
         from app.core.manager_dashboard import get_dashboard_stats
 
-        user_id = request.cookies.get(COOKIE_USER_ID)
+        _raw = request.cookies.get(COOKIE_USER_ID)
+        user_id = str(_raw) if _raw is not None else None
         if not is_valid_storage_user(user_id):
             return JSONResponse({"error": "Not authenticated"}, status_code=401)
 
@@ -2067,7 +2072,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.database import get_db_session
         from app.core.manager_dashboard import get_recent_cases
 
-        user_id = request.cookies.get(COOKIE_USER_ID)
+        _raw = request.cookies.get(COOKIE_USER_ID)
+        user_id = str(_raw) if _raw is not None else None
         if not is_valid_storage_user(user_id):
             return JSONResponse({"error": "Not authenticated"}, status_code=401)
 
@@ -2094,7 +2100,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.database import get_db_session
         from app.core.manager_dashboard import get_staff_list
 
-        user_id = request.cookies.get(COOKIE_USER_ID)
+        _raw = request.cookies.get(COOKIE_USER_ID)
+        user_id = str(_raw) if _raw is not None else None
         if not is_valid_storage_user(user_id):
             return JSONResponse({"error": "Not authenticated"}, status_code=401)
 
@@ -2121,7 +2128,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.database import get_db_session
         from app.core.manager_dashboard import get_recent_activity
 
-        user_id = request.cookies.get(COOKIE_USER_ID)
+        _raw = request.cookies.get(COOKIE_USER_ID)
+        user_id = str(_raw) if _raw is not None else None
         if not is_valid_storage_user(user_id):
             return JSONResponse({"error": "Not authenticated"}, status_code=401)
 
@@ -2300,7 +2308,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         try:
             from app.core.telemetry_hooks import EMITTER
             from app.core.user_id import COOKIE_USER_ID
-            EMITTER.emit("vault_load", "vault", request.cookies.get(COOKIE_USER_ID, "anon"))
+            _rc = request.cookies.get(COOKIE_USER_ID, "anon")
+            EMITTER.emit("vault_load", "vault", str(_rc) if _rc is not None else "anon")
         except Exception:  # pylint: disable=broad-exception-caught
             pass
 
@@ -2393,7 +2402,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         info = {"step": "init"}
         try:
             from app.core.user_id import COOKIE_USER_ID
-            raw_cookie = request.cookies.get(COOKIE_USER_ID, "")
+            _rc = request.cookies.get(COOKIE_USER_ID, "")
+            raw_cookie = str(_rc) if _rc is not None else ""
             info["cookie_present"] = bool(raw_cookie)
             info["cookie_prefix"] = raw_cookie[:12] + "..." if raw_cookie else "NONE"
 
@@ -2523,7 +2533,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             try:
                 from app.core.telemetry_hooks import EMITTER
                 from app.core.user_id import COOKIE_USER_ID
-                EMITTER.emit("documents_page_load", "documents", request.cookies.get(COOKIE_USER_ID, "anon"))
+                _rc = request.cookies.get(COOKIE_USER_ID, "anon")
+                EMITTER.emit("documents_page_load", "documents", str(_rc) if _rc is not None else "anon")
             except Exception:  # pylint: disable=broad-exception-caught
                 pass
 
@@ -2638,7 +2649,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.storage_middleware import is_valid_storage_user
         from app.core.user_id import COOKIE_USER_ID, get_role_from_user_id
 
-        user_id = request.cookies.get(COOKIE_USER_ID)
+        _raw = request.cookies.get(COOKIE_USER_ID)
+        user_id = str(_raw) if _raw is not None else None
         if not is_valid_storage_user(user_id):
             providers_stage = navigation.get_stage("providers")
             providers_path = providers_stage.path if providers_stage else "/storage/providers"
@@ -2710,7 +2722,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 return None  # No contract = public access
 
             # Must be authenticated
-            user_id = request.cookies.get(COOKIE_USER_ID)
+            _raw = request.cookies.get(COOKIE_USER_ID)
+            user_id = str(_raw) if _raw is not None else None
             if not user_id:
                 # No cookie - new user to welcome page
                 root_stage = navigation.get_stage("root")
@@ -2820,7 +2833,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.database import get_db_session
         from app.services.timeline_chronology import build_timeline_chronology
         
-        user_id = request.cookies.get(COOKIE_USER_ID)
+        _raw = request.cookies.get(COOKIE_USER_ID)
+        user_id = str(_raw) if _raw is not None else None
         chronology_items = []
         
         # Timeline is DB-only: read existing records, no cloud storage, no auth required

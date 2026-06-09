@@ -124,7 +124,8 @@ async def redeem_code(
     This permanently associates the code with the user's account
     and grants them the specified role.
     """
-    user_id = request.cookies.get(COOKIE_USER_ID)
+    _raw = request.cookies.get(COOKIE_USER_ID)
+    user_id = str(_raw) if _raw is not None else None
     if not user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
@@ -160,7 +161,8 @@ async def create_code(
     from app.core.user_context import get_role_from_user_id, UserRole
     from app.models.models import User
     
-    user_id = request.cookies.get(COOKIE_USER_ID)
+    _raw = request.cookies.get(COOKIE_USER_ID)
+    user_id = str(_raw) if _raw is not None else None
     if not user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
@@ -208,7 +210,8 @@ async def list_codes(request: Request):
     from app.core.user_context import get_role_from_user_id, UserRole
     from app.models.models import User
     
-    user_id = request.cookies.get(COOKIE_USER_ID)
+    _raw = request.cookies.get(COOKIE_USER_ID)
+    user_id = str(_raw) if _raw is not None else None
     if not user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
@@ -253,7 +256,8 @@ async def delete_code(code: str, request: Request):
     """
     from app.core.user_context import get_role_from_user_id, UserRole
     
-    user_id = request.cookies.get(COOKIE_USER_ID)
+    _raw = request.cookies.get(COOKIE_USER_ID)
+    user_id = str(_raw) if _raw is not None else None
     if not user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
@@ -278,7 +282,8 @@ async def code_stats(code: str, request: Request):
     """
     from app.core.user_context import get_role_from_user_id, UserRole
     
-    user_id = request.cookies.get(COOKIE_USER_ID)
+    _raw = request.cookies.get(COOKIE_USER_ID)
+    user_id = str(_raw) if _raw is not None else None
     if not user_id:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
