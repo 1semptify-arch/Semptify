@@ -1761,15 +1761,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # Generate admin session
         admin_user_id = f"admin_{uuid.uuid4().hex[:8]}"
         
-        # Set admin cookie with role embedded
-        response.set_cookie(
-            key="user_id",
-            value=f"local.admin.{admin_user_id}",  # Format: provider.role.id
-            httponly=True,
-            secure=True,
-            samesite="lax",
-            max_age=86400,  # 24 hours
-        )
+        # Set admin cookie using proper cookie auth (semptify_uid)
+        from app.core.cookie_auth import set_auth_cookie
+        from app.core.user_id import COOKIE_USER_ID
+        
+        # Admin user ID format: L for local, A for admin role
+        cookie_value = f"L.{admin_user_id}.A"
+        set_auth_cookie(response, cookie_value, max_age=86400, secure=True)
         
         # Store in session
         from app.core.security import ACTIVE_SESSIONS, StoredSession
@@ -1808,7 +1806,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/admin/logout")
     async def admin_logout(response: Response):
         """Clear admin session."""
-        response.delete_cookie("user_id")
+        from app.core.cookie_auth import clear_auth_cookie
+        clear_auth_cookie(response)
         response.delete_cookie("session_id")
         return RedirectResponse(url="/admin/login")
 
