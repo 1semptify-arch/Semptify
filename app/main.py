@@ -1776,7 +1776,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 document.getElementById("step1").style.display = "none";
                 document.getElementById("step2").style.display = "block";
             } else {
-                document.getElementById("error").textContent = data.error || "Invalid credentials";
+                const errorMsg = data.error || data.detail || "Invalid credentials";
+                document.getElementById("error").textContent = errorMsg;
                 document.getElementById("btn1").disabled = false;
             }
         }
@@ -1796,7 +1797,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             if (data.success) {
                 window.location.href = "/admin/dashboard";
             } else {
-                document.getElementById("error").textContent = data.error || "Invalid code";
+                const errorMsg = data.error || data.detail || "Invalid code";
+                document.getElementById("error").textContent = errorMsg;
                 document.getElementById("btn2").disabled = false;
             }
         }
