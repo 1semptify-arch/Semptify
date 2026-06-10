@@ -1812,11 +1812,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         Step 1: Validate username/password.
         Returns step2_required=true if 2FA is enabled.
         """
+        logger.info("=== ADMIN LOGIN STEP 1 CALLED ===")
         try:
             data = await request.json()
             username = data.get("username", "").strip()
             password = data.get("password", "")
-        except Exception:
+        except Exception as e:
+            logger.error(f"JSON parse error: {e}")
             raise HTTPException(status_code=400, detail="Invalid JSON")
         
         # Debug: Log credential status (without logging actual passwords)
