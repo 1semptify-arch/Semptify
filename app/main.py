@@ -1712,6 +1712,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/admin/login", response_class=HTMLResponse)
     async def admin_login_page(request: Request):
         """Serve the admin login page - inline HTML to avoid file path issues."""
+        logger.info("=== ADMIN LOGIN PAGE REQUESTED ===")
         return HTMLResponse(content='''<!DOCTYPE html>
 <html lang="en">
 <head>
