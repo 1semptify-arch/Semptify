@@ -1816,13 +1816,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         except Exception:
             raise HTTPException(status_code=400, detail="Invalid JSON")
         
+        # Debug: Log credential status (without logging actual passwords)
+        logger.info(f"Admin login attempt - Username: {username}, ADMIN_USERNAME set: {bool(ADMIN_USERNAME)}, ADMIN_PASSWORD set: {bool(ADMIN_PASSWORD)}, ADMIN_TOTP_SECRET set: {bool(ADMIN_TOTP_SECRET)}")
+        
         # Validate credentials
         if not ADMIN_PASSWORD:
             logger.error("ADMIN_PASSWORD not set - admin login disabled")
             raise HTTPException(status_code=503, detail="Admin login not configured")
         
         if username != ADMIN_USERNAME or password != ADMIN_PASSWORD:
-            logger.warning(f"Failed admin login step 1: {username}")
+            logger.warning(f"Failed admin login step 1: {username} (expected: {ADMIN_USERNAME})")
             raise HTTPException(status_code=401, detail="Invalid credentials")
         
         # Check if 2FA is enabled
