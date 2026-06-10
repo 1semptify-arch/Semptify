@@ -1567,9 +1567,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 return FileResponse(
                     page_path,
                     headers={
-                        "Cache-Control": "no-cache, no-store, must-revalidate",
+                        "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
                         "Pragma": "no-cache",
-                        "Expires": "0"
+                        "Expires": "0",
+                        "Cloudflare-CDN-Cache-Control": "no-cache"
                     }
                 )
             # Fallback to providers if role-select doesn't exist
