@@ -1798,7 +1798,11 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             });
             const data = await res.json();
             if (data.success) {
-                window.location.href = "/admin/dashboard";
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    window.location.href = "/admin/dashboard";
+                }
             } else {
                 const errorMsg = data.error || data.detail || "Invalid code";
                 document.getElementById("error").textContent = errorMsg;
@@ -1852,9 +1856,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             }
     
     @fastapi_app.post("/admin/api/login-step2")
-    async def admin_login_step2(request: Request, response: Response):
+    async def admin_login_step2(request: Request):
         """
-        Step 2: Validate 2FA code and create session.
+        Step 2: Validate 2FA code and redirect to OAuth storage setup.
+        Admin users go through the same OAuth flow as regular users.
         """
         import pyotp
         
@@ -1880,60 +1885,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             # No 2FA configured but code provided (optional bypass for setup)
             pass
         
-        # Generate admin session
-        admin_user_id = f"admin_{uuid.uuid4().hex[:8]}"
+        logger.info(f"Admin credentials validated, redirecting to OAuth storage setup")
         
-        # Set admin cookie directly (avoiding helper to prevent Cookie type error)
-        from app.core.user_id import COOKIE_USER_ID
-        from app.core.cookie_auth import sign_user_id
-        
-        # Admin user ID format: L for local, A for admin role
-        admin_cookie_value = f"L.{admin_user_id}.A"
-        signed_value = sign_user_id(admin_cookie_value)
-        
-        # Set cookie directly with explicit string values
-        response.set_cookie(
-            key=str(COOKIE_USER_ID),
-            value=str(signed_value),
-            max_age=86400,
-            path="/",
-            httponly=False,
-            secure=True,
-            samesite="lax",
-        )
-        
-        # Store in session
-        from app.core.security import ACTIVE_SESSIONS, StoredSession
-        from app.core.utc import utc_now
-        
-        session = StoredSession(
-            session_id=f"admin_sess_{uuid.uuid4().hex[:12]}",
-            user_id=admin_user_id,
-            provider="local",
-            storage_user_id=admin_user_id,
-            access_token=f"admin-token-{uuid.uuid4().hex[:16]}",  # Admin sessions don't need real OAuth tokens
-            role="admin",
-            created_at=utc_now(),
-            expires_at=utc_now() + datetime.timedelta(hours=24),
-        )
-        ACTIVE_SESSIONS[session.session_id] = session
-        
-        # Also set session_id cookie
-        response.set_cookie(
-            key="session_id",
-            value=session.session_id,
-            httponly=True,
-            secure=True,
-            samesite="lax",
-            max_age=86400,
-        )
-        
-        logger.info(f"Admin login successful (2FA): {admin_user_id}")
-        
+        # Admin users go through OAuth storage like regular users
         return {
             "success": True,
-            "user_id": admin_user_id,
-            "role": "admin",
+            "redirect": "/onboarding/providers?role=admin"
         }
     
     @fastapi_app.get("/admin/logout")
@@ -1961,52 +1918,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # Fallback to login if home.html missing
         return RedirectResponse(url="/admin/login")
 
-    # Stealth admin guard - returns 404 (not 403) to hide admin existence
-    async def _stealth_admin_guard(request: Request) -> UserContext:
-        """
-        Security: Returns 404 Not Found instead of 403 Forbidden.
-        This prevents attackers from discovering admin endpoints exist.
-        
-        Admin authentication: Validates admin cookie directly (L.admin_xxxxxxxx.A format)
-        """
-        from app.core.user_id import COOKIE_USER_ID
-        from app.core.cookie_auth import verify_user_id
-        from app.core.user_context import StorageProvider
-        
-        # Get admin cookie
-        _raw_cookie = request.cookies.get(COOKIE_USER_ID)
-        cookie_value = str(_raw_cookie) if _raw_cookie is not None else None
-        
-        if not cookie_value:
-            raise HTTPException(status_code=404, detail="Not Found")
-        
-        # Verify signature and get raw value
-        raw_value = verify_user_id(cookie_value)
-        if raw_value is None:
-            raise HTTPException(status_code=404, detail="Not Found")
-        
-        # Check if it's an admin cookie (format: L.admin_xxxxxxxx.A)
-        if not raw_value.startswith("L.admin_") or not raw_value.endswith(".A"):
-            raise HTTPException(status_code=404, detail="Not Found")
-        
-        # Create admin user context
-        admin_context = UserContext(
-            user_id=raw_value,
-            role=UserRole.ADMIN,
-            provider=StorageProvider.LOCAL,
-            storage_user_id=raw_value,
-            access_token=""
-        )
-        
-        return admin_context
-
-    # Alias for backward compatibility with other admin routes
-    require_admin = _stealth_admin_guard
+    # Admin guard - uses standard storage-based authentication
+    # Admin users go through OAuth storage like regular users
+    require_admin = require_role(UserRole.ADMIN)
 
     @fastapi_app.get("/admin/dashboard", response_class=HTMLResponse)
     async def admin_dashboard_page(
         request: Request,
-        admin_user: UserContext = Depends(_stealth_admin_guard),
+        admin_user: UserContext = Depends(require_admin),
     ):
         """Serve the admin dashboard - ADMIN role required."""
         logger.info(f"Admin {admin_user.user_id[:6]}... accessing dashboard")
@@ -2022,7 +1941,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/sys/portal", response_class=HTMLResponse)
     async def secret_admin_entry(
         request: Request,
-        admin_user: UserContext = Depends(_stealth_admin_guard),
+        admin_user: UserContext = Depends(require_admin),
     ):
         """Secret admin portal - not discoverable via public URLs."""
         admin_dashboard_path = BASE_PATH / "static" / "admin" / "dashboard.html"
@@ -2035,7 +1954,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/admin/dashboard.html", response_class=HTMLResponse)
     async def admin_dashboard_html(
         request: Request,
-        admin_user: UserContext = Depends(_stealth_admin_guard),
+        admin_user: UserContext = Depends(require_admin),
     ):
         """Serve admin dashboard HTML - ADMIN role required."""
         dashboard_path = BASE_PATH / "static" / "admin" / "dashboard.html"
