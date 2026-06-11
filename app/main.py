@@ -1724,100 +1724,107 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # Check if user has an OAuth session
         oauth_uid = extract_user_id(request)
         has_session = oauth_uid is not None
-        return HTMLResponse(content='''<!DOCTYPE html>
+        # Build page — simplified prompt if OAuth session exists, full login if not
+        session_hint = f'<p class="session-badge">&#x2713; Connected as {oauth_uid[:6]}...</p>' if has_session else ''
+        username_field = '' if has_session else '''
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="admin" autocomplete="username">
+            </div>'''
+        return HTMLResponse(content=f'''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Semptify Admin Login</title>
+    <title>Admin Access</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .login-box { background: #1e293b; padding: 2rem; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 400px; }
-        h1 { text-align: center; margin-bottom: 1.5rem; color: #60a5fa; }
-        .input-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #94a3b8; }
-        input { width: 100%; padding: 0.75rem; border: 1px solid #334155; border-radius: 8px; background: #0f172a; color: #e2e8f0; font-size: 1rem; }
-        input:focus { outline: none; border-color: #60a5fa; }
-        button { width: 100%; padding: 0.75rem; background: #3b82f6; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; margin-top: 1rem; }
-        button:hover { background: #2563eb; }
-        button:disabled { background: #475569; cursor: not-allowed; }
-        .error { color: #ef4444; text-align: center; margin-top: 1rem; font-size: 0.875rem; }
-        .step2 { display: none; }
-        .info { text-align: center; color: #64748b; font-size: 0.875rem; margin-top: 1rem; }
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }}
+        .box {{ background: #1e293b; padding: 2rem; border-radius: 12px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); width: 100%; max-width: 360px; }}
+        .lock {{ text-align: center; font-size: 2rem; margin-bottom: 0.5rem; }}
+        h1 {{ text-align: center; margin-bottom: 1.5rem; color: #94a3b8; font-size: 1rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; }}
+        .session-badge {{ text-align: center; color: #34d399; font-size: 0.8rem; margin-bottom: 1.25rem; }}
+        .input-group {{ margin-bottom: 1rem; }}
+        label {{ display: block; margin-bottom: 0.4rem; font-size: 0.8rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }}
+        input {{ width: 100%; padding: 0.75rem; border: 1px solid #334155; border-radius: 8px; background: #0f172a; color: #e2e8f0; font-size: 1rem; }}
+        input:focus {{ outline: none; border-color: #475569; }}
+        input[type=text] {{ letter-spacing: 0.25em; font-size: 1.25rem; text-align: center; }}
+        button {{ width: 100%; padding: 0.75rem; background: #1e40af; color: #bfdbfe; border: none; border-radius: 8px; font-size: 0.9rem; cursor: pointer; margin-top: 0.5rem; letter-spacing: 0.05em; }}
+        button:hover {{ background: #1d4ed8; }}
+        button:disabled {{ background: #1e293b; color: #475569; cursor: not-allowed; border: 1px solid #334155; }}
+        .error {{ color: #f87171; text-align: center; margin-top: 1rem; font-size: 0.85rem; min-height: 1.2rem; }}
+        .step2 {{ display: none; }}
     </style>
 </head>
 <body>
-    <div class="login-box">
-        <h1>Semptify Admin</h1>
+    <div class="box">
+        <div class="lock">&#x1F512;</div>
+        <h1>Secure Access</h1>
+        {session_hint}
         <div id="step1">
-            <div class="input-group">
-                <label>Username</label>
-                <input type="text" id="username" placeholder="admin" value="admin">
-            </div>
+            {username_field}
             <div class="input-group">
                 <label>Password</label>
-                <input type="password" id="password" placeholder="Enter password">
+                <input type="password" id="password" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" autocomplete="current-password">
             </div>
-            <button onclick="loginStep1()" id="btn1">Continue</button>
+            <button onclick="loginStep1()" id="btn1">Continue &rarr;</button>
         </div>
         <div id="step2" class="step2">
             <div class="input-group">
-                <label>Two-Factor Code (6 digits)</label>
-                <input type="text" id="totp" placeholder="000000" maxlength="6" pattern="[0-9]*">
+                <label>6-Digit Code</label>
+                <input type="text" id="totp" placeholder="000000" maxlength="6" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
             </div>
-            <button onclick="loginStep2()" id="btn2">Sign In</button>
+            <button onclick="loginStep2()" id="btn2">Verify &rarr;</button>
         </div>
         <div id="error" class="error"></div>
-        <p class="info">Enter 6-digit code from your authenticator app</p>
     </div>
     <script>
-        async function loginStep1() {
+        const HAS_SESSION = {'true' if has_session else 'false'};
+        document.addEventListener("keydown", e => {{
+            if (e.key === "Enter") {{
+                const s2 = document.getElementById("step2");
+                if (s2.style.display === "block") loginStep2();
+                else loginStep1();
+            }}
+        }});
+        async function loginStep1() {{
             document.getElementById("error").textContent = "";
             document.getElementById("btn1").disabled = true;
-            const res = await fetch("/admin/api/login-step1", {
+            const username = HAS_SESSION ? "{ADMIN_USERNAME}" : (document.getElementById("username")?.value || "");
+            const res = await fetch("/admin/api/login-step1", {{
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    username: document.getElementById("username").value,
-                    password: document.getElementById("password").value
-                })
-            });
+                headers: {{"Content-Type": "application/json"}},
+                body: JSON.stringify({{ username, password: document.getElementById("password").value }})
+            }});
             const data = await res.json();
-            if (data.success) {
+            if (data.success) {{
                 document.getElementById("step1").style.display = "none";
                 document.getElementById("step2").style.display = "block";
-            } else {
-                const errorMsg = data.error || data.detail || "Invalid credentials";
-                document.getElementById("error").textContent = errorMsg;
+                document.getElementById("totp").focus();
+            }} else {{
+                document.getElementById("error").textContent = data.detail || data.error || "Access denied";
                 document.getElementById("btn1").disabled = false;
-            }
-        }
-        async function loginStep2() {
+            }}
+        }}
+        async function loginStep2() {{
             document.getElementById("error").textContent = "";
             document.getElementById("btn2").disabled = true;
-            const res = await fetch("/admin/api/login-step2", {
+            const username = HAS_SESSION ? "{ADMIN_USERNAME}" : (document.getElementById("username")?.value || "");
+            const res = await fetch("/admin/api/login-step2", {{
                 method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    username: document.getElementById("username").value,
-                    password: document.getElementById("password").value,
-                    totp_code: document.getElementById("totp").value
-                })
-            });
+                headers: {{"Content-Type": "application/json"}},
+                body: JSON.stringify({{ username, password: document.getElementById("password").value, totp_code: document.getElementById("totp").value }})
+            }});
             const data = await res.json();
-            if (data.success) {
-                if (data.redirect) {
-                    window.location.href = data.redirect;
-                } else {
-                    window.location.href = "/admin/dashboard";
-                }
-            } else {
-                const errorMsg = data.error || data.detail || "Invalid code";
-                document.getElementById("error").textContent = errorMsg;
+            if (data.success) {{
+                window.location.href = data.redirect || "/admin/dashboard";
+            }} else {{
+                document.getElementById("error").textContent = data.detail || data.error || "Invalid code";
                 document.getElementById("btn2").disabled = false;
-            }
-        }
+                document.getElementById("totp").value = "";
+                document.getElementById("totp").focus();
+            }}
+        }}
     </script>
 </body>
 </html>''')
