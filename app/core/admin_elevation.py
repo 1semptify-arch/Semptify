@@ -16,7 +16,7 @@ Cookie format:
 
 Security:
     - HMAC-SHA256 signed with SECRET_KEY — cannot be forged
-    - Short TTL (4 hours default) — stolen cookie has limited window
+    - Short TTL (2 hours default) — stolen cookie has limited window
     - Requires BOTH valid OAuth session AND valid elevation cookie
     - TOTP required every elevation — no long-lived admin sessions
 """
@@ -118,7 +118,7 @@ def set_elevation_cookie(response, user_id: str) -> None:
         secure=True,
         samesite="strict",
     )
-    logger.info("admin_elevation: elevation granted for uid=%s (4 hours)", user_id[:6])
+    logger.info("admin_elevation: elevation granted for uid=%s (%dh)", user_id[:6], ELEVATION_TTL_SECONDS // 3600)
 
 
 def clear_elevation_cookie(response) -> None:
