@@ -1414,6 +1414,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     async def add_request_id(request: Request, call_next):
         from app.core.id_gen import make_id
         request_id = request.headers.get("X-Request-Id", make_id("req"))
+        if "/admin/api" in request.url.path:
+            logger.info(f"=== ADMIN API REQUEST: {request.method} {request.url.path} ===")
         response = await call_next(request)
         response.headers["X-Request-Id"] = request_id
         return response
@@ -1837,12 +1839,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # Check if 2FA is enabled
         if ADMIN_TOTP_SECRET:
             return {
+                "success": True,
                 "step2_required": True,
                 "message": "Two-step verification required"
             }
         else:
             # No 2FA configured - skip to step 2 directly
             return {
+                "success": True,
                 "step2_required": True,
                 "message": "Two-step verification required"
             }
