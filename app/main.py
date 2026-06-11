@@ -1713,8 +1713,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     
     @fastapi_app.get("/admin/login", response_class=HTMLResponse)
     async def admin_login_page(request: Request):
-        """Serve the admin login page - inline HTML to avoid file path issues."""
-        logger.info("=== ADMIN LOGIN PAGE REQUESTED ===")
+        """Admin elevation prompt — requires existing OAuth session."""
+        from app.core.admin_elevation import ELEVATION_COOKIE_NAME, verify_elevation_cookie
+        from app.core.cookie_auth import extract_user_id
+        logger.info("=== ADMIN ELEVATION PAGE REQUESTED ===")
+        # If already elevated, go straight to dashboard
+        elev_cookie = request.cookies.get(ELEVATION_COOKIE_NAME)
+        if verify_elevation_cookie(str(elev_cookie) if elev_cookie else None):
+            return RedirectResponse(url="/admin/dashboard")
+        # Check if user has an OAuth session
+        oauth_uid = extract_user_id(request)
+        has_session = oauth_uid is not None
         return HTMLResponse(content='''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1856,12 +1865,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             }
     
     @fastapi_app.post("/admin/api/login-step2")
-    async def admin_login_step2(request: Request):
+    async def admin_login_step2(request: Request, response: Response):
         """
-        Step 2: Validate 2FA code and redirect to OAuth storage setup.
-        Admin users go through the same OAuth flow as regular users.
+        Step 2: Validate 2FA code and issue elevation cookie.
+        Requires existing OAuth session. Issues a 4-hour elevation cookie.
         """
         import pyotp
+        from app.core.admin_elevation import set_elevation_cookie
+        from app.core.cookie_auth import extract_user_id
         
         try:
             data = await request.json()
@@ -1882,30 +1893,34 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 logger.warning(f"Failed 2FA attempt for admin: {username}")
                 raise HTTPException(status_code=401, detail="Invalid two-step code")
         elif totp_code != "000000":
-            # No 2FA configured but code provided (optional bypass for setup)
             pass
         
-        logger.info(f"Admin credentials validated, redirecting to OAuth storage setup")
+        # Get OAuth user_id for the elevation token (may be None if no OAuth session yet)
+        oauth_uid = extract_user_id(request) or f"admin_{username}"
         
-        # Admin users go through OAuth storage like regular users
+        # Issue 4-hour elevation cookie
+        set_elevation_cookie(response, oauth_uid)
+        logger.info(f"Admin elevation granted for {oauth_uid[:6]}...")
+        
+        # If no OAuth session yet, redirect to onboarding to connect storage
+        has_oauth = extract_user_id(request) is not None
+        if not has_oauth:
+            return {
+                "success": True,
+                "redirect": "/onboarding/providers?role=admin",
+                "message": "Please connect your storage to continue"
+            }
+        
         return {
             "success": True,
-            "redirect": "/onboarding/providers?role=admin"
+            "redirect": "/admin/dashboard"
         }
     
     @fastapi_app.get("/admin/logout")
     async def admin_logout(response: Response):
-        """Clear admin session."""
-        from app.core.user_id import COOKIE_USER_ID
-        # Clear auth cookie directly
-        response.delete_cookie(
-            key=str(COOKIE_USER_ID),
-            path="/",
-            httponly=False,
-            secure=True,
-            samesite="lax",
-        )
-        response.delete_cookie("session_id")
+        """Clear admin elevation (not the OAuth session)."""
+        from app.core.admin_elevation import clear_elevation_cookie
+        clear_elevation_cookie(response)
         return RedirectResponse(url="/admin/login")
 
     @fastapi_app.get("/admin/home", response_class=HTMLResponse)
@@ -1918,17 +1933,30 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # Fallback to login if home.html missing
         return RedirectResponse(url="/admin/login")
 
-    # Admin guard - uses standard storage-based authentication
-    # Admin users go through OAuth storage like regular users
-    require_admin = require_role(UserRole.ADMIN)
+    # Admin guard - checks elevation cookie (time-limited TOTP-verified elevation)
+    # Does NOT check OAuth role — elevation is separate from storage identity
+    async def _require_elevation(request: Request) -> str:
+        """
+        Stealth admin guard — returns 404 (not 403) to hide admin existence.
+        Requires a valid admin elevation cookie issued by /admin/api/login-step2.
+        Elevation is valid for 4 hours and requires TOTP re-verification.
+        """
+        from app.core.admin_elevation import ELEVATION_COOKIE_NAME, verify_elevation_cookie
+        elev_cookie = request.cookies.get(ELEVATION_COOKIE_NAME)
+        payload = verify_elevation_cookie(str(elev_cookie) if elev_cookie else None)
+        if not payload:
+            raise HTTPException(status_code=404, detail="Not Found")
+        return payload["uid"]
+
+    require_admin = _require_elevation
 
     @fastapi_app.get("/admin/dashboard", response_class=HTMLResponse)
     async def admin_dashboard_page(
         request: Request,
-        admin_user: UserContext = Depends(require_admin),
+        admin_uid: str = Depends(require_admin),
     ):
-        """Serve the admin dashboard - ADMIN role required."""
-        logger.info(f"Admin {admin_user.user_id[:6]}... accessing dashboard")
+        """Serve the admin dashboard - elevation required."""
+        logger.info(f"Admin elevation active for {admin_uid[:6]}... accessing dashboard")
 
         # Serve static dashboard
         static_fallback = BASE_PATH / "static" / "admin" / "dashboard.html"
@@ -1941,7 +1969,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/sys/portal", response_class=HTMLResponse)
     async def secret_admin_entry(
         request: Request,
-        admin_user: UserContext = Depends(require_admin),
+        admin_uid: str = Depends(require_admin),
     ):
         """Secret admin portal - not discoverable via public URLs."""
         admin_dashboard_path = BASE_PATH / "static" / "admin" / "dashboard.html"
@@ -1954,7 +1982,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/admin/dashboard.html", response_class=HTMLResponse)
     async def admin_dashboard_html(
         request: Request,
-        admin_user: UserContext = Depends(require_admin),
+        admin_uid: str = Depends(require_admin),
     ):
         """Serve admin dashboard HTML - ADMIN role required."""
         dashboard_path = BASE_PATH / "static" / "admin" / "dashboard.html"
@@ -1965,7 +1993,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/admin/contract-browser.html", response_class=HTMLResponse)
     async def admin_contract_browser(
         request: Request,
-        admin_user: UserContext = Depends(require_admin),
+        admin_uid: str = Depends(require_admin),
     ):
         """Serve contract browser - ADMIN role required."""
         page_path = BASE_PATH / "static" / "admin" / "contract-browser.html"
@@ -1976,7 +2004,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/admin/function-browser.html", response_class=HTMLResponse)
     async def admin_function_browser(
         request: Request,
-        admin_user: UserContext = Depends(require_admin),
+        admin_uid: str = Depends(require_admin),
     ):
         """Serve function browser - ADMIN role required."""
         page_path = BASE_PATH / "static" / "admin" / "function-browser.html"
@@ -1987,7 +2015,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/admin/page-editor.html", response_class=HTMLResponse)
     async def admin_page_editor(
         request: Request,
-        admin_user: UserContext = Depends(require_admin),
+        admin_uid: str = Depends(require_admin),
     ):
         """Serve page editor - ADMIN role required."""
         page_path = BASE_PATH / "static" / "admin" / "page-editor.html"
@@ -1998,7 +2026,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/admin/review-checklist.html", response_class=HTMLResponse)
     async def admin_review_checklist(
         request: Request,
-        admin_user: UserContext = Depends(require_admin),
+        admin_uid: str = Depends(require_admin),
     ):
         """Serve review checklist - ADMIN role required."""
         page_path = BASE_PATH / "static" / "admin" / "review-checklist.html"
@@ -2009,7 +2037,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/admin", response_class=HTMLResponse)
     async def admin_root_redirect(
         request: Request,
-        admin_user: UserContext = Depends(require_admin),
+        admin_uid: str = Depends(require_admin),
     ):
         """Redirect /admin to dashboard - ADMIN role required."""
         return RedirectResponse(url="/admin/dashboard.html")
