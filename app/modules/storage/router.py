@@ -1820,9 +1820,19 @@ async def oauth_callback(
             matched_user = await get_user_by_provider_subject(db, provider, provider_subject)
             if matched_user:
                 user_id = matched_user.id
-                # Extract role from user_id for returning users
-                _, role, _ = parse_user_id(user_id)
-                role = role or "tenant"
+                # Use stored default_role from DB — authoritative source for role
+                # This ensures admin/manager roles persist across OAuth sessions
+                state_role = (state_data.get("role") or "").strip().lower()
+                db_role = (matched_user.default_role or "tenant").strip().lower()
+                # If a higher-privilege role was requested via state AND the user is already
+                # registered (e.g. admin re-connecting OAuth), update their stored role
+                if state_role and state_role != db_role and state_role in ALLOWED_ROLES:
+                    matched_user.default_role = state_role
+                    await db.commit()
+                    role = state_role
+                    logger.info(f"🔄 OAuth callback: Updated default_role for existing user {user_id[:6]}... from {db_role} to {state_role}")
+                else:
+                    role = db_role
                 logger.info(f"🔄 OAuth callback: Matched existing user by provider subject: {user_id} (role={role})")
             else:
                 # New user - generate ID encoding provider + role
