@@ -12,6 +12,35 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-11 (Late Morning) — Registry ID Assignment Fix
+**Commits: `27db154` | Pushed: 2026-06-11**
+
+### What Was Shipped
+
+**Problem:** `document_uploaded` gate was disabled because `registry_id` was never assigned to uploaded documents. Onboarding failed at step 3 with "Document was stored but did not receive a registry document ID."
+
+**Root Cause:** `vault_upload_service.py` imports `get_document_registry()` from `document_registry.py` to auto-register documents, but the function didn't exist (only the singleton class existed).
+
+**Fix:**
+- `app/services/document_registry.py`: `get_document_registry()` function already existed at end of file — fixed duplicate code created during investigation
+- `app/modules/onboarding/config.py`: Re-enabled `document_uploaded` gate
+- Vault upload service now successfully calls `registry.register_document()` which sets `registry_id` and `integrity_status`
+
+### Known Working
+- Document registry auto-registration now works on upload
+- `registry_id` is assigned in SEM-YYYY-NNNNNN-XXXX format
+- `integrity_status` is set to "verified"
+- Onboarding flow now requires document upload before completion
+
+### Known Pending
+- Test full onboarding flow end-to-end on production
+- Manager portal role check still uses old role-in-user_id approach
+
+### Next Session Should Start With
+- Test onboarding flow with document upload on production
+
+---
+
 ## Session — 2026-06-11 (Early Morning) — Admin Elevation System
 **Commits: `ee3d0a0`, `fe7c743`, `21717db`, `68235c3`, `c85c3c4` | Pushed: 2026-06-11**
 
