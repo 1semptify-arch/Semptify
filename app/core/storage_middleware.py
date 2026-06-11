@@ -72,11 +72,21 @@ PUBLIC_PATHS: Set[str] = {
     "/public",
     "/public/",
 
-    # Admin login (must be public to authenticate)
+    # Admin routes (system users don't need personal storage)
+    "/admin",
+    "/admin/",
     "/admin/login",
     "/admin/logout",
     "/admin/api/login-step1",
     "/admin/api/login-step2",
+    "/admin/dashboard",
+    "/admin/dashboard.html",
+    "/admin/home",
+    "/admin/home.html",
+    "/admin/contract-browser.html",
+    "/admin/function-browser.html",
+    "/admin/page-editor.html",
+    "/admin/review-checklist.html",
 
     # Welcome/setup pages
     "/welcome.html",
