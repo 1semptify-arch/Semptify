@@ -1,10 +1,38 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-05-29
+**Last Updated**: 2026-06-11
 
 ---
 
-## 🎯 Current Priority: Select Next Major System
+> ## ⚠️ AI AGENT — READ THIS FIRST
+> **If you are starting a new session, run `/preflight` BEFORE touching any code.**
+> This file and `BUILD_STATE.md` are your ground truth. Do not assume the previous session's state.
+> Do not repeat failures from the Known Failure Registry in `AGENTS.md`.
+
+---
+
+## 🎯 Current Priority: Admin Auth + Role Hierarchy
+
+### 🔴 IN PROGRESS — Admin OAuth Role Fix
+Admin login works through 2FA → OAuth → vault → dashboard, BUT:
+- If admin uses same Google/Dropbox account as an existing tenant, OAuth callback assigns **tenant** role (matches existing user, extracts role from user_id instead of DB)
+- Fix: `app/modules/storage/router.py` line 1820-1826 — use `matched_user.default_role` from DB
+
+### 🔴 PENDING — Role Hierarchy Design
+- Admin needs to be able to assume child roles (tenant, manager, advocate) for testing
+- Manager needs conditional access to tenant documents (if lease relationship exists)
+- Advocate needs conditional access to client documents (if engagement exists)
+- Need: `user_relationships` table + `can_access(user, target_user)` permission check
+- Need: `acting_as` session context for role impersonation
+
+### 🔴 PENDING — Re-enable document_uploaded Gate
+- `registry_id` assignment broken in vault upload pipeline
+- `app/modules/onboarding/router.py` line 532 checks `vault_doc.registry_id` but it's never set
+- Gate currently disabled in `app/modules/onboarding/config.py`
+
+---
+
+## 🎯 Previously Completed
 
 ### ✅ COMPLETED: Unified Overlay System (2026-04-21)
 
