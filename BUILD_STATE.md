@@ -12,6 +12,64 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-11 (Late Night) — Admin OAuth + Role Hierarchy Foundation
+**Commits: `b2539c6`, `9be469e`, `d812861`, `f8ef535` | Pushed: 2026-06-11**
+
+### What Was Shipped
+
+**Problem:** Admin login 2FA was broken in multiple ways after previous session. After 2FA validated, admin got `UserContext.__init__() got an unexpected keyword argument 'email'` error, then was landing on tenant home page instead of admin dashboard.
+
+**Root Cause Analysis:**
+- Custom admin guard was passing invalid `email`/`display_name` kwargs to `UserContext`
+- Admin cookie approach created auth conflicts with storage middleware
+- No mechanism to preserve admin role through OAuth flow
+- `document_uploaded` gate was blocking onboarding because `registry_id` assignment fails
+
+**Fixes Applied:**
+- `app/main.py` (`b2539c6`): Removed invalid `email`/`display_name` kwargs from `UserContext` in admin guard
+- `app/main.py` + `app/core/storage_middleware.py` (`9be469e`): **Architectural change** — admin users now go through OAuth storage like regular users. Removed custom admin guard. Admin login 2FA now redirects to `/onboarding/providers?role=admin` after successful credential + TOTP validation.
+- `app/modules/onboarding/config.py` (`d812861`): Disabled `document_uploaded` gate — registry_id assignment is broken, blocking onboarding
+- `app/main.py` + `app/modules/onboarding/router.py` (`f8ef535`): Added `admin` to allowed onboarding roles; added role-based redirect after onboarding completion (admin → `/admin/dashboard`, others → `/home`)
+
+### Architectural Decision: Admin Role via OAuth
+Admin users now authenticate exactly like regular users:
+1. `/admin/login` — validates username + password + TOTP (2FA)
+2. Redirect to `/onboarding/providers?role=admin`
+3. OAuth with Google Drive/Dropbox/OneDrive (storage connects)
+4. Vault initialization
+5. Redirect to `/admin/dashboard` (role-based, not hardcoded)
+
+**Why this is better:** Eliminates cookie/auth conflicts, admin can test full tenant experience, no custom auth path to maintain.
+
+### Known Issue: OAuth Role Matching for Returning Users
+If admin uses same Google account as an existing tenant account, OAuth callback matches the existing user and uses **tenant** role instead of admin. Root fix needed:
+- `app/modules/storage/router.py` line 1820-1826: Use `matched_user.default_role` from DB instead of parsing role from user_id
+- This is also the foundation for Manager/Advocate role hierarchy (parent roles with conditional child access)
+
+### What Is Known Working
+- ✅ Admin login page serves correctly at `/admin/login`
+- ✅ 2FA validates username/password/TOTP
+- ✅ Admin redirects to OAuth onboarding after 2FA
+- ✅ Onboarding completes (storage_connected + vault_initialized gates)
+- ✅ Cloudflare dev mode workflow created at `.devin/workflows/cloudflare-dev-mode.md`
+
+### What Is Pending Live Test
+- [ ] Full admin login flow end-to-end on production (needs clean session / incognito)
+- [ ] Verify admin lands on `/admin/dashboard` after OAuth
+
+### What Is Known Broken / Pending Fix
+- `document_uploaded` gate disabled — `registry_id` assignment in document upload pipeline is broken. Fix needed in `app/services/vault_upload_service.py` or `app/modules/onboarding/router.py` line 532
+- OAuth role matching for returning users — admin with existing tenant OAuth account will get tenant role. Fix: use `matched_user.default_role` from DB
+
+### Next Session Should Start With
+1. Run `/preflight`
+2. Test admin login in incognito at `https://semptify.org/admin/login`
+3. Fix OAuth role matching (use `default_role` from DB for returning users)
+4. Design `user_relationships` table for role hierarchy (Admin → any, Manager → tenant with conditions)
+5. Fix `registry_id` assignment to re-enable `document_uploaded` gate
+
+---
+
 ## Session — 2026-06-09 (Late Afternoon) — Admin 2-Step Login Fix
 **Commit: `2c7fb2d` | Pushed: 2026-06-09**
 
