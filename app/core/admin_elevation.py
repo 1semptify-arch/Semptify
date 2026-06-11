@@ -34,7 +34,7 @@ from app.core.utc import utc_now
 logger = logging.getLogger(__name__)
 
 ELEVATION_COOKIE_NAME = "semptify_admin_elev"
-ELEVATION_TTL_SECONDS = 4 * 60 * 60  # 4 hours
+ELEVATION_TTL_SECONDS = 2 * 60 * 60  # 2 hours
 _SEPARATOR = "."
 
 
