@@ -1966,19 +1966,38 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """
         Security: Returns 404 Not Found instead of 403 Forbidden.
         This prevents attackers from discovering admin endpoints exist.
+        
+        Admin authentication: Validates admin cookie directly (L.admin_xxxxxxxx.A format)
         """
-        user = await get_current_user(request)
+        from app.core.user_id import COOKIE_USER_ID
+        from app.core.cookie_auth import verify_user_id
         
-        # No user = 404 (looks like page doesn't exist)
-        if not user:
+        # Get admin cookie
+        _raw_cookie = request.cookies.get(COOKIE_USER_ID)
+        cookie_value = str(_raw_cookie) if _raw_cookie is not None else None
+        
+        if not cookie_value:
             raise HTTPException(status_code=404, detail="Not Found")
         
-        # Not admin = 404 (looks like page doesn't exist)
-        if user.role != UserRole.ADMIN:
-            logger.warning(f"Non-admin {user.user_id[:6]}... attempted admin access to {request.url.path}")
+        # Verify signature and get raw value
+        raw_value = verify_user_id(cookie_value)
+        if raw_value is None:
             raise HTTPException(status_code=404, detail="Not Found")
         
-        return user
+        # Check if it's an admin cookie (format: L.admin_xxxxxxxx.A)
+        if not raw_value.startswith("L.admin_") or not raw_value.endswith(".A"):
+            raise HTTPException(status_code=404, detail="Not Found")
+        
+        # Create admin user context
+        admin_context = UserContext(
+            user_id=raw_value,
+            role=UserRole.ADMIN,
+            provider=StorageProvider.LOCAL,
+            email=ADMIN_USERNAME,
+            display_name="Administrator"
+        )
+        
+        return admin_context
 
     # Alias for backward compatibility with other admin routes
     require_admin = _stealth_admin_guard
