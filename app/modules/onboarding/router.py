@@ -826,6 +826,11 @@ def create_router(config: OnboardingConfig) -> APIRouter:
 
         incomplete = await gate_ops.get_first_incomplete_gate(db, raw_uid, config.gates)
         if incomplete is None:
+            # Role-based redirect after onboarding completion
+            from app.core.user_id import parse_user_id
+            _, role, _ = parse_user_id(raw_uid)
+            if role == "admin":
+                return ssot_redirect("/admin/dashboard", context="status all gates done admin")
             return ssot_redirect(config.on_complete_redirect, context="status all gates done")
 
         return HTMLResponse(content=_render_status_page(config, incomplete))
