@@ -1944,15 +1944,16 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Does NOT check OAuth role — elevation is separate from storage identity
     async def _require_elevation(request: Request) -> str:
         """
-        Stealth admin guard — returns 404 (not 403) to hide admin existence.
+        Stealth admin guard — redirects to /admin/login on missing/expired elevation.
         Requires a valid admin elevation cookie issued by /admin/api/login-step2.
-        Elevation is valid for 4 hours and requires TOTP re-verification.
+        Elevation is valid for 2 hours and requires TOTP re-verification.
         """
         from app.core.admin_elevation import ELEVATION_COOKIE_NAME, verify_elevation_cookie
         elev_cookie = request.cookies.get(ELEVATION_COOKIE_NAME)
         payload = verify_elevation_cookie(str(elev_cookie) if elev_cookie else None)
         if not payload:
-            raise HTTPException(status_code=404, detail="Not Found")
+            # Redirect to elevation prompt — stealth: looks like a normal login page
+            return RedirectResponse(url="/admin/login", status_code=302)
         return payload["uid"]
 
     require_admin = _require_elevation
