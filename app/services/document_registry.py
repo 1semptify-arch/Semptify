@@ -878,13 +878,7 @@ class DocumentRegistry:
     
     def get_flagged_documents(self) -> list[RegisteredDocument]:
         """Get all documents flagged for review."""
-        return [
-            doc for doc in self._documents.values()
-            if doc.requires_review or doc.status in [
-                DocumentStatus.FLAGGED, 
-                DocumentStatus.QUARANTINED
-            ]
-        ]
+        return [doc for doc in self._documents.values() if doc.requires_review]
     
     def associate_case(self, doc_id: str, case_number: str, actor: str) -> bool:
         """Associate a document with a case number."""

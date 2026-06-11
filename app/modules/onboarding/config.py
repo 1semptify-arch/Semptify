@@ -59,7 +59,7 @@ class OnboardingConfig:
     gates: List[str] = field(default_factory=lambda: [
         "storage_connected",
         "vault_initialized",
-        # "document_uploaded",  # Disabled until registry_id assignment is fixed
+        "document_uploaded",
     ])
 
     # --- OAuth ---
