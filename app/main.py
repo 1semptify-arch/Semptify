@@ -1971,6 +1971,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         """
         from app.core.user_id import COOKIE_USER_ID
         from app.core.cookie_auth import verify_user_id
+        from app.core.user_context import StorageProvider
         
         # Get admin cookie
         _raw_cookie = request.cookies.get(COOKIE_USER_ID)
