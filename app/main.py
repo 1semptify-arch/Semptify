@@ -1994,8 +1994,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             user_id=raw_value,
             role=UserRole.ADMIN,
             provider=StorageProvider.LOCAL,
-            email=ADMIN_USERNAME,
-            display_name="Administrator"
+            storage_user_id=raw_value,
+            access_token=""
         )
         
         return admin_context
