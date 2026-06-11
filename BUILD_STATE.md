@@ -12,6 +12,39 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-11 (Early Morning) — Admin Elevation System
+**Commits: `ee3d0a0`, `fe7c743`, `21717db`, `68235c3`, `c85c3c4` | Pushed: 2026-06-11**
+
+### What Was Shipped
+
+**Architectural change:** Admin is no longer a role. It is a **2-hour time-limited elevation** on top of any OAuth session, granted after password + TOTP verification.
+
+**Changes:**
+- `app/core/admin_elevation.py` (new): HMAC-SHA256 signed elevation cookie, 2hr TTL, separate secret from main key
+- `app/main.py`: Admin guard now checks elevation cookie only — no OAuth role check. Expired elevation redirects to `/admin/login` (not 404). Login page shows simplified prompt (password + 6-digit code only) when OAuth session exists.
+- `app/modules/storage/router.py`: Fixed OAuth callback to use `default_role` from DB for returning users — prevents admin using same Google account as tenant getting wrong role
+- `.devin/workflows/cloudflare-dev-mode.md`: Cloudflare dev mode + cache purge workflow (uses env vars, not hardcoded tokens)
+- `scripts/cloudflare-dev-mode.sh`: Same — env vars only
+
+### Known Working
+- Admin login: `/admin/login` → password + TOTP → elevation cookie issued
+- If OAuth session exists: shows simplified prompt (no username)
+- Elevation lasts 2 hours, then re-prompts automatically
+- All `/admin/*` routes protected by elevation check
+- OAuth role preserved through returning-user flows
+
+### Known Pending
+- `document_uploaded` gate still disabled (registry_id assignment broken)
+- No audit log for elevation grants (future: write to DB or vault)
+- Manager portal role check still uses old role-in-user_id approach
+
+### Next Session Should Start With
+- Test full admin flow end-to-end on production
+- Fix `registry_id` assignment in document upload pipeline
+- Re-enable `document_uploaded` gate
+
+---
+
 ## Session — 2026-06-11 (Late Night) — Admin OAuth + Role Hierarchy Foundation
 **Commits: `b2539c6`, `9be469e`, `d812861`, `f8ef535` | Pushed: 2026-06-11**
 
