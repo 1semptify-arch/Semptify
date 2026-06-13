@@ -1393,3 +1393,39 @@ class VaultHashIndexDB(Base):
     
     # Timestamp
     created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+
+
+# =============================================================================
+# Admin Audit Log — Live admin action tracking
+# =============================================================================
+
+class AdminAuditLog(Base):
+    """
+    Comprehensive audit trail for all admin actions.
+    
+    Records every administrative operation with full details for compliance.
+    """
+    __tablename__ = "admin_audit_logs"
+    
+    log_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    
+    # Who performed the action
+    admin_user_id: Mapped[str] = mapped_column(String(256), ForeignKey("users.id"), index=True)
+    admin_role: Mapped[str] = mapped_column(String(50))
+    
+    # What was done
+    action: Mapped[str] = mapped_column(String(100), index=True)
+    target_user: Mapped[Optional[str]] = mapped_column(String(256), nullable=True, index=True)
+    
+    # Full details (JSON) - action-specific data
+    details: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+    
+    # Client info for security tracking
+    ip_address: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
+    user_agent: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    
+    # Timestamp with timezone
+    timestamp: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, index=True)
+    
+    # Relationship to admin user
+    admin_user: Mapped["User"] = relationship("User", foreign_keys=[admin_user_id])
