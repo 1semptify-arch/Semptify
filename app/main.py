@@ -1432,9 +1432,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     # Register Routers via Product Manifest
     # =========================================================================
 
-    # CORE + DEV = current tenant-rights platform
-    # To enable extended features: add ProductTier.EXTENDED, ProductTier.ADVOCATE, etc.
-    register_tiers(fastapi_app, ProductTier.CORE, ProductTier.DEV)
+    # ALL TIERS ENABLED - Full live deployment
+    # CORE + EXTENDED + ADVOCATE + ADMIN + RESEARCH + DEV
+    register_tiers(
+        fastapi_app,
+        ProductTier.CORE,
+        ProductTier.EXTENDED,
+        ProductTier.ADVOCATE,
+        ProductTier.ADMIN,
+        ProductTier.RESEARCH,
+        ProductTier.DEV
+    )
 
     # Root route â€” serve the welcome page. User clicks "Get Started" â†’ /preamble (routing logic).
     @fastapi_app.get("/", response_class=HTMLResponse)

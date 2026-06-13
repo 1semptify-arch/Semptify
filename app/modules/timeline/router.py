@@ -70,6 +70,7 @@ class ItemType(str, Enum):
     CALENDAR_EVENT = "calendar_event"
     VAULT_ITEM = "vault_item"
     RENT_PAYMENT = "rent_payment"
+    CLOUD_EVENT = "cloud_event"  # Events from user's cloud storage (events.json)
 
 
 class Urgency(str, Enum):
@@ -239,6 +240,7 @@ def _get_icon_and_color(item_type: ItemType, subtype: Optional[str],
         ItemType.CALENDAR_EVENT: "calendar",
         ItemType.VAULT_ITEM: "archive",
         ItemType.RENT_PAYMENT: "credit-card",
+        ItemType.CLOUD_EVENT: "cloud",
     }
     
     # Subtype overrides
@@ -279,6 +281,72 @@ def _get_icon_and_color(item_type: ItemType, subtype: Optional[str],
     }
     
     return icon_map.get(item_type, "file"), color_map.get(urgency, "gray")
+
+
+def _cloud_event_to_item(cloud_event: Dict[str, Any], date_axis: DateAxis) -> "TimelineItem":
+    """Convert a cloud timeline event to a TimelineItem."""
+    event_time_str = cloud_event.get("event_time") or cloud_event.get("date")
+    event_time = None
+    if event_time_str:
+        try:
+            event_time = datetime.fromisoformat(event_time_str.replace('Z', '+00:00'))
+        except (ValueError, AttributeError):
+            pass
+    
+    # Determine display date based on axis
+    if date_axis == DateAxis.EVENT_TIME and event_time:
+        date_display = _format_date(event_time)
+    elif date_axis == DateAxis.RECORD_TIME:
+        # Cloud events don't have record_time, fall back to event_time
+        date_display = _format_date(event_time) if event_time else None
+    else:  # entry_time or uploaded_at
+        entry_time_str = cloud_event.get("entry_time") or cloud_event.get("created_at")
+        if entry_time_str:
+            try:
+                entry_time = datetime.fromisoformat(entry_time_str.replace('Z', '+00:00'))
+                date_display = _format_date(entry_time)
+            except (ValueError, AttributeError):
+                date_display = _format_date(event_time)
+        else:
+            date_display = _format_date(event_time)
+    
+    item_type_str = cloud_event.get("item_type", "cloud_event")
+    try:
+        item_type = ItemType(item_type_str)
+    except ValueError:
+        item_type = ItemType.CLOUD_EVENT
+    
+    urgency_str = cloud_event.get("urgency", "normal")
+    try:
+        urgency = Urgency(urgency_str)
+    except ValueError:
+        urgency = Urgency.NORMAL
+    
+    icon, color = _get_icon_and_color(
+        item_type,
+        cloud_event.get("subtype"),
+        cloud_event.get("is_evidence", False),
+        urgency
+    )
+    
+    return TimelineItem(
+        id=cloud_event.get("id") or cloud_event.get("event_id") or make_id("evt"),
+        item_type=ItemType.CLOUD_EVENT,
+        title=cloud_event.get("title") or cloud_event.get("description") or "Cloud Event",
+        description=cloud_event.get("description") or cloud_event.get("notes"),
+        date_display=date_display,
+        event_time=_format_date(event_time),
+        record_time=None,
+        entry_time=_format_date(utc_now()),
+        uploaded_at=None,
+        is_evidence=cloud_event.get("is_evidence", False),
+        urgency=urgency,
+        icon=icon,
+        color=color,
+        source="cloud",
+        source_id=cloud_event.get("id"),
+        can_edit=cloud_event.get("can_edit", True),
+    )
 
 
 # =============================================================================
@@ -649,10 +717,11 @@ async def get_unified_timeline(
             )
             all_items.extend(vault_items)
     
-    # TODO: Merge cloud timeline events (events.json)
-    # cloud_events = await _load_cloud_timeline_events(user)
-    # for ce in cloud_events:
-    #     all_items.append(_cloud_event_to_item(ce, request.date_axis))
+    # Merge cloud timeline events from user's cloud storage (events.json)
+    if ItemType.CLOUD_EVENT in request.item_types:
+        cloud_events = await _load_cloud_timeline_events(user)
+        for ce in cloud_events:
+            all_items.append(_cloud_event_to_item(ce, request.date_axis))
     
     # Sort by display date (descending = newest first)
     all_items.sort(

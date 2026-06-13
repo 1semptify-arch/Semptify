@@ -1,4 +1,4 @@
-﻿"""
+"""
 Admin Console Router
 Phase 4: Analytics, Automation & Advanced Admin
 
@@ -10,7 +10,7 @@ Phase 4 Features:
 - Content management (help articles, law library)
 - Audit logging and compliance
 """
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone, timedelta
@@ -26,6 +26,8 @@ from app.core.semptify_internal_sdk import (
     ProductTier,
     ModuleCapability,
 )
+from app.core.database import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -61,7 +63,7 @@ router = APIRouter(prefix="/admin-console", tags=["Admin Console"])
 
 # In-memory runtime configuration (would be DB-backed in production)
 _RUNTIME_CONFIG = {
-    "enabled_tiers": ["core", "extended", "admin"],  # Default enabled tiers
+    "enabled_tiers": ["core", "extended", "advocate", "admin", "research", "dev"],  # ALL tiers active
     "disabled_modules": [],  # List of module names disabled at runtime
     "feature_flags": {
         "new_onboarding": False,
@@ -249,14 +251,14 @@ async def impersonate_user(
         )
     
     # Generate impersonation token (admin's session + target user context)
-    impersonation_token = f"imp_{admin_user.user_id[:8]}_{user_id[:8]}_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+    impersonation_token = f"imp_{admin_user.user_id[:8]}_{user_id[:8]}_{utc_now().strftime('%Y%m%d%H%M%S')}"
     
     # Log the impersonation attempt
-    _log_admin_action(
+    await _log_admin_action(
         admin_user=admin_user,
         action="impersonate",
         target_user=user_id,
-        details={"provider": target_session.provider, "role": target_session.role}
+        details={"provider": target_session.provider, "role": target_session.role},
     )
     
     return {
@@ -274,7 +276,7 @@ async def impersonate_user(
 async def system_status(user: UserContext = Depends(_stealth_admin)) -> dict:
     """
     Get comprehensive system status for admin dashboard.
-    Includes active sessions, metrics, and navigation info.
+    Includes active sessions, metrics, modules, tiers, and navigation info.
     """
     metrics = get_metrics()
     
@@ -290,13 +292,35 @@ async def system_status(user: UserContext = Depends(_stealth_admin)) -> dict:
     # Get navigation stages count
     nav_stages = len(navigation._stages) if hasattr(navigation, '_stages') else 0
     
+    # Get module counts by tier
+    tier_module_counts = {
+        t.value: len(module_registry.list_by_tier(t))
+        for t in ProductTier.all()
+    }
+    
+    # Calculate total active modules (from enabled tiers, not disabled)
+    total_modules = sum(
+        count for tier, count in tier_module_counts.items()
+        if tier in _RUNTIME_CONFIG["enabled_tiers"]
+    )
+    
     return {
         "status": "operational",
+        "mode": "full_live",
         "timestamp": utc_now().isoformat(),
         "sessions": {
             "active": active_count,
             "total_in_memory": len(ACTIVE_SESSIONS),
             "unique_users": len(unique_users),
+        },
+        "tiers": {
+            "enabled": _RUNTIME_CONFIG["enabled_tiers"],
+            "all_tiers_active": len(_RUNTIME_CONFIG["enabled_tiers"]) == len(ProductTier.all()),
+            "module_counts_by_tier": tier_module_counts,
+        },
+        "modules": {
+            "total_active": total_modules,
+            "runtime_disabled": len(_RUNTIME_CONFIG["disabled_modules"]),
         },
         "metrics": metrics,
         "navigation": {
@@ -312,8 +336,9 @@ async def system_status(user: UserContext = Depends(_stealth_admin)) -> dict:
 @router.post("/api/users/{user_id}/reset-gates")
 async def reset_user_gates(
     user_id: str,
-    gates: List[str],  # e.g., ["storage_connected", "vault_initialized"]
+    gates: List[str],
     admin_user: UserContext = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
     Reset onboarding gates for a user.
@@ -323,22 +348,53 @@ async def reset_user_gates(
         f"GATE_RESET: Admin {admin_user.user_id} resetting gates {gates} for user {user_id}"
     )
     
+    # Import gate functions
+    from app.modules.onboarding.gates import get_user_gates, mark_gate
+    
+    # Get current gates before reset
+    current_gates = await get_user_gates(db, user_id)
+    
+    # Reset requested gates by removing them from completed_groups
+    # Note: Gates are stored as comma-separated values in User.completed_groups
+    from app.models.models import User
+    from sqlalchemy import select
+    
+    result = await db.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+    
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User {user_id} not found"
+        )
+    
+    # Remove the specified gates from completed_groups
+    existing_gates = set(g.strip() for g in (user.completed_groups or "").split(",") if g.strip())
+    removed_gates = existing_gates.intersection(set(gates))
+    remaining_gates = existing_gates - set(gates)
+    
+    user.completed_groups = ",".join(sorted(remaining_gates)) if remaining_gates else None
+    await db.commit()
+    
     # Log the action
-    _log_admin_action(
+    await _log_admin_action(
         admin_user=admin_user,
         action="reset_gates",
         target_user=user_id,
-        details={"gates_reset": gates}
+        details={
+            "gates_reset": list(removed_gates),
+            "gates_before": list(current_gates),
+            "gates_after": list(remaining_gates),
+        },
+        db=db,
     )
     
-    # TODO: Implement actual gate reset via gate service
-    # This would clear the gates from wherever they're stored (DB/cache)
-    
     return {
-        "status": "gates_reset_requested",
+        "status": "gates_reset",
         "user_id": user_id,
-        "gates": gates,
-        "note": "Gate reset not fully implemented - requires gate service integration",
+        "gates_removed": list(removed_gates),
+        "gates_remaining": list(remaining_gates),
+        "live_data": True,
     }
 
 
@@ -367,50 +423,123 @@ async def get_user_vault_summary(
         )
     
     # Log the access (privacy-sensitive)
-    _log_admin_action(
+    await _log_admin_action(
         admin_user=admin_user,
         action="view_vault_summary",
         target_user=user_id,
-        details={"provider": target_session.provider}
+        details={"provider": target_session.provider},
     )
     
-    # TODO: Implement vault service call to get actual document count
-    # For now, return placeholder showing the structure
-    return {
-        "user_id": user_id,
-        "provider": target_session.provider,
-        "document_count": 0,  # Would be actual count from vault
-        "storage_used_mb": 0,  # Would be actual usage
-        "folders": [],  # Would be folder list
-        "recent_documents": [],  # Would be recent docs metadata
-        "note": "Vault summary not fully implemented - requires vault service integration",
-    }
+    # Get live vault data from vault service
+    try:
+        from app.services.vault_upload_service import get_vault_service
+        vault_service = get_vault_service()
+        docs = await vault_service.get_user_documents(user_id)
+        
+        # Calculate storage stats
+        total_size_bytes = sum(doc.file_size for doc in docs if doc.file_size)
+        storage_used_mb = round(total_size_bytes / (1024 * 1024), 2)
+        
+        # Get unique folder paths from document storage paths
+        folders = list(set(
+            doc.storage_path.split('/')[0] if '/' in doc.storage_path else 'root'
+            for doc in docs if hasattr(doc, 'storage_path') and doc.storage_path
+        )) if docs else []
+        
+        # Recent documents (last 5)
+        recent_docs = sorted(
+            docs,
+            key=lambda d: d.uploaded_at if hasattr(d, 'uploaded_at') and d.uploaded_at else datetime.min,
+            reverse=True
+        )[:5] if docs else []
+        
+        recent_documents = [
+            {
+                "vault_id": doc.vault_id,
+                "filename": doc.filename,
+                "document_type": doc.document_type,
+                "file_size": doc.file_size,
+                "uploaded_at": doc.uploaded_at.isoformat() if hasattr(doc.uploaded_at, 'isoformat') else str(doc.uploaded_at),
+            }
+            for doc in recent_docs
+        ]
+        
+        return {
+            "user_id": user_id,
+            "provider": target_session.provider,
+            "document_count": len(docs),
+            "storage_used_mb": storage_used_mb,
+            "folders": folders,
+            "recent_documents": recent_documents,
+            "document_types": {
+                doc_type: sum(1 for d in docs if d.document_type == doc_type)
+                for doc_type in set(d.document_type for d in docs if d.document_type)
+            } if docs else {},
+            "live_data": True,
+            "timestamp": utc_now().isoformat(),
+        }
+    except Exception as e:
+        logger.error(f"Failed to fetch vault summary for {user_id}: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve vault data: {str(e)}"
+        )
 
 
 # =============================================================================
 # Phase 2: Audit Log Endpoints
 # =============================================================================
 
-# In-memory audit log (production would use DB table)
-_AUDIT_LOG: List[dict] = []
-
-
-def _log_admin_action(admin_user: UserContext, action: str, target_user: str, details: dict):
-    """Log an admin action to the audit log."""
-    entry = {
-        "timestamp": utc_now().isoformat(),
-        "admin_user_id": admin_user.user_id,
-        "admin_role": admin_user.role.value,
-        "action": action,
-        "target_user": target_user,
-        "details": details,
-    }
-    _AUDIT_LOG.append(entry)
-    logger.info(f"AUDIT: {action} by {admin_user.user_id} on {target_user}")
+async def _log_admin_action(
+    admin_user: UserContext, 
+    action: str, 
+    target_user: str, 
+    details: dict,
+    db: AsyncSession = None,
+    request: Request = None,
+) -> None:
+    """
+    Log an admin action to the database audit log.
     
-    # Keep log size manageable (keep last 10000 entries)
-    if len(_AUDIT_LOG) > 10000:
-        _AUDIT_LOG.pop(0)
+    Args:
+        admin_user: The admin performing the action
+        action: Action type (e.g., "reset_gates", "view_vault_summary")
+        target_user: Target user_id or resource identifier
+        details: JSON-serializable details dict
+        db: Optional DB session (if None, creates new session)
+        request: Optional FastAPI request for IP/UA logging
+    """
+    from app.models.models import AdminAuditLog
+    from app.core.database import AsyncSessionLocal
+    
+    # Extract client info if request provided
+    ip_address = None
+    user_agent = None
+    if request:
+        ip_address = request.client.host if request.client else None
+        user_agent = request.headers.get("user-agent") if request.headers else None
+    
+    entry = AdminAuditLog(
+        admin_user_id=admin_user.user_id,
+        admin_role=admin_user.role.value,
+        action=action,
+        target_user=target_user if target_user else None,
+        details=details,
+        ip_address=ip_address,
+        user_agent=user_agent,
+        timestamp=utc_now(),
+    )
+    
+    # Write to DB
+    if db:
+        db.add(entry)
+        await db.commit()
+    else:
+        async with AsyncSessionLocal() as session:
+            session.add(entry)
+            await session.commit()
+    
+    logger.info(f"AUDIT: {action} by {admin_user.user_id} on {target_user}")
 
 
 @router.get("/api/audit")
@@ -421,9 +550,10 @@ async def get_audit_log(
     target_user: Optional[str] = None,
     action: Optional[str] = None,
     user: UserContext = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
-    Get admin audit log.
+    Get admin audit log from database.
     
     Query params:
         limit: Max results (default 100)
@@ -432,40 +562,77 @@ async def get_audit_log(
         target_user: Filter by target user_id
         action: Filter by action type
     """
+    from app.models.models import AdminAuditLog
+    from sqlalchemy import select, func, desc
+    
     limit = min(limit, 500)
     
-    # Filter the audit log
-    filtered = _AUDIT_LOG
+    # Build query with filters
+    query = select(AdminAuditLog)
     
     if admin_user:
-        filtered = [e for e in filtered if admin_user in e["admin_user_id"]]
+        query = query.where(AdminAuditLog.admin_user_id.ilike(f"%{admin_user}%"))
     
     if target_user:
-        filtered = [e for e in filtered if target_user in e["target_user"]]
+        query = query.where(AdminAuditLog.target_user.ilike(f"%{target_user}%"))
     
     if action:
-        filtered = [e for e in filtered if e["action"] == action]
+        query = query.where(AdminAuditLog.action == action)
     
-    # Sort by timestamp (newest first)
-    filtered.sort(key=lambda x: x["timestamp"], reverse=True)
+    # Count total matching records
+    count_query = select(func.count()).select_from(query.subquery())
+    total_result = await db.execute(count_query)
+    total = total_result.scalar()
     
-    total = len(filtered)
-    paginated = filtered[offset:offset + limit]
+    # Get paginated results sorted by timestamp desc
+    query = query.order_by(desc(AdminAuditLog.timestamp)).offset(offset).limit(limit)
+    result = await db.execute(query)
+    entries = result.scalars().all()
+    
+    # Format entries
+    formatted_entries = [
+        {
+            "log_id": e.log_id,
+            "timestamp": e.timestamp.isoformat() if e.timestamp else None,
+            "admin_user_id": e.admin_user_id,
+            "admin_role": e.admin_role,
+            "action": e.action,
+            "target_user": e.target_user,
+            "details": e.details,
+            "ip_address": e.ip_address,
+        }
+        for e in entries
+    ]
+    
+    # Get distinct action types for filtering
+    actions_query = select(AdminAuditLog.action).distinct()
+    actions_result = await db.execute(actions_query)
+    available_actions = [a for a in actions_result.scalars().all() if a]
     
     return {
-        "entries": paginated,
+        "entries": formatted_entries,
         "total": total,
         "limit": limit,
         "offset": offset,
-        "available_actions": list(set(e["action"] for e in _AUDIT_LOG)),
+        "available_actions": available_actions,
+        "live_data": True,
     }
 
 
 @router.get("/api/audit/actions")
-async def get_audit_actions(user: UserContext = Depends(require_admin)) -> dict:
-    """Get list of all audit action types that have been logged."""
-    actions = list(set(e["action"] for e in _AUDIT_LOG))
-    return {"actions": actions}
+async def get_audit_actions(
+    user: UserContext = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Get list of all audit action types from database."""
+    from app.models.models import AdminAuditLog
+    from sqlalchemy import select
+    
+    query = select(AdminAuditLog.action).distinct()
+    result = await db.execute(query)
+    actions = [a for a in result.scalars().all() if a]
+    
+    return {"actions": actions, "live_data": True}
 
 
 # =============================================================================
@@ -509,6 +676,7 @@ async def get_modules_status(user: UserContext = Depends(require_admin)) -> dict
 async def toggle_module(
     module_name: str,
     user: UserContext = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
     Enable or disable a module at runtime.
@@ -534,11 +702,12 @@ async def toggle_module(
         new_status = "disabled"
     
     # Log the action
-    _log_admin_action(
+    await _log_admin_action(
         admin_user=user,
         action="toggle_module",
         target_user=module_name,
-        details={"new_status": new_status, "tier": module.manifest.tier.value}
+        details={"new_status": new_status, "tier": module.manifest.tier.value},
+        db=db,
     )
     
     logger.warning(f"MODULE_TOGGLE: Admin {user.user_id} {new_status} module {module_name}")
@@ -571,6 +740,7 @@ async def get_tiers(user: UserContext = Depends(require_admin)) -> dict:
 async def toggle_tier(
     tier_name: str,
     user: UserContext = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
     Enable or disable a product tier.
@@ -604,11 +774,12 @@ async def toggle_tier(
         new_status = "enabled"
     
     # Log the action
-    _log_admin_action(
+    await _log_admin_action(
         admin_user=user,
         action="toggle_tier",
         target_user=tier_name,
-        details={"new_status": new_status}
+        details={"new_status": new_status},
+        db=db,
     )
     
     logger.warning(f"TIER_TOGGLE: Admin {user.user_id} {new_status} tier {tier_name}")
@@ -638,6 +809,7 @@ async def set_feature_flag(
     flag_name: str,
     value: bool,
     user: UserContext = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Set a feature flag value."""
     # Create flag if it doesn't exist
@@ -648,11 +820,12 @@ async def set_feature_flag(
     _RUNTIME_CONFIG["feature_flags"][flag_name] = value
     
     # Log the action
-    _log_admin_action(
+    await _log_admin_action(
         admin_user=user,
         action="set_feature_flag",
         target_user=flag_name,
-        details={"old_value": old_value, "new_value": value}
+        details={"old_value": old_value, "new_value": value},
+        db=db,
     )
     
     logger.warning(f"FEATURE_FLAG: Admin {user.user_id} set {flag_name}={value}")
@@ -677,17 +850,19 @@ async def set_system_setting(
     setting_name: str,
     value: Any,
     user: UserContext = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Set a system setting."""
     old_value = _RUNTIME_CONFIG["system_settings"].get(setting_name)
     _RUNTIME_CONFIG["system_settings"][setting_name] = value
     
     # Log the action
-    _log_admin_action(
+    await _log_admin_action(
         admin_user=user,
         action="set_system_setting",
         target_user=setting_name,
-        details={"old_value": old_value, "new_value": value}
+        details={"old_value": old_value, "new_value": value},
+        db=db,
     )
     
     logger.warning(f"SYSTEM_SETTING: Admin {user.user_id} set {setting_name}={value}")
@@ -773,11 +948,11 @@ async def create_help_article(
     }
     
     action = "create_help_article" if is_new else "update_help_article"
-    _log_admin_action(
+    await _log_admin_action(
         admin_user=user,
         action=action,
         target_user=article_id,
-        details={"title": title, "category": category}
+        details={"title": title, "category": category},
     )
     
     return {
@@ -801,7 +976,7 @@ async def delete_help_article(
     
     article = _CONTENT_STORE["help_articles"].pop(article_id)
     
-    _log_admin_action(
+    await _log_admin_action(
         admin_user=user,
         action="delete_help_article",
         target_user=article_id,
@@ -860,11 +1035,11 @@ async def create_law_library_entry(
     }
     
     action = "create_law_entry" if is_new else "update_law_entry"
-    _log_admin_action(
+    await _log_admin_action(
         admin_user=user,
         action=action,
         target_user=entry_id,
-        details={"title": title, "jurisdiction": jurisdiction}
+        details={"title": title, "jurisdiction": jurisdiction},
     )
     
     return {
@@ -924,11 +1099,11 @@ async def create_letter_template(
     }
     
     action = "create_template" if is_new else "update_template"
-    _log_admin_action(
+    await _log_admin_action(
         admin_user=user,
         action=action,
         target_user=template_id,
-        details={"name": name, "category": category}
+        details={"name": name, "category": category},
     )
     
     return {
