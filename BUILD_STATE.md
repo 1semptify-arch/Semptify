@@ -13,7 +13,7 @@ their legal rights—not tenants breaking the law.
 ---
 
 ## Session — 2026-06-13 — Full Live App Activation (ALL TIERS + LIVE DATA)
-**Commits: `TBD` | Pushed: 2026-06-13**
+**Commits: `37a23dd` | Pushed: 2026-06-13**
 
 ### What Was Shipped
 
