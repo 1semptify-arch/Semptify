@@ -326,6 +326,95 @@ You:           Fully logged out, can't access app
 
 ---
 
+## 🔐 ROLE-SCOPED DATA PRIVACY POLICY (CANONICAL — READ BEFORE BUILDING ANY MODULE)
+
+This section is the single source of truth for what Semptify may and may not store
+by user role. All modules, plugins, add-ons, and AI agents must respect this boundary.
+
+---
+
+### The Core Distinction
+
+**Semptify's no-PII-on-server guarantee is a TENANT-ROLE promise.**
+
+It is not a universal platform rule. It is a specific, legally-meaningful commitment
+made to the most vulnerable users — tenants facing housing insecurity — who have the
+most to lose from their personal data being stored anywhere they don't fully control.
+
+---
+
+### Rule by Role
+
+| Role | Data Storage Rule |
+|------|-------------------|
+| **TENANT** | **Zero PII on Semptify servers. Hard rule. No exceptions without explicit informed consent.** All personal data (name, email, address, case details) lives only in the tenant's own cloud vault (Google Drive / Dropbox / OneDrive). Semptify stores only: provider name, anonymous user ID, completed onboarding gates. |
+| **MANAGER** | May store operational data needed for case management workflows. No tenant PII without tenant consent. |
+| **ADVOCATE** | May store case coordination data. Governed by future advocate data policy (not yet defined). |
+| **LEGAL** | Subject to separate data handling agreement (not yet defined). |
+| **ADMIN** | Internal operational data only. Audit logs are anonymised where possible. |
+| **RESEARCH** | Aggregated, anonymised data only. No individual-level data without explicit consent. |
+
+---
+
+### What "Tenant PII" Means
+
+The following fields **must never appear** in Semptify's PostgreSQL database for a tenant:
+
+- Full name / display name
+- Email address
+- Home or rental property address
+- Phone number
+- Case details (eviction reason, rent amount, hearing dates)
+- Landlord name or address *(exception: landlord contact records the tenant explicitly creates in the Contact table — these are the tenant's own records, not system-collected data)*
+- Any document content
+
+The following **are permitted** in the tenant DB row:
+
+- Anonymous user ID (hashed from provider + provider subject — contains no PII)
+- Storage provider name (`google_drive`, `dropbox`, `onedrive`)
+- Provider subject ID (opaque string from OAuth — no PII)
+- Onboarding gate completion flags (`completed_groups`)
+- Role preference (`default_role`)
+- Timestamps (`created_at`, `last_login`)
+- Jurisdiction state code (derived from IP — not PII under GDPR/CCPA)
+
+---
+
+### Advanced Modules That Need Server-Side Storage
+
+Some future modules (e.g. shared advocacy workflows, AI case analysis, multi-device
+sync indexes, legal filing tracking) may legitimately need to store user data on
+Semptify servers. This is not prohibited — but it requires a consent gate.
+
+**The consent gate requirement for any module storing tenant PII server-side:**
+
+1. **Explain clearly** what data will be stored, where, and why — in plain language, not legalese.
+2. **Name the specific fields** that will be written to Semptify's database.
+3. **State the retention period** and deletion mechanism.
+4. **Obtain explicit opt-in** — pre-checked boxes do not count.
+5. **Make it skippable** — the core Semptify experience must remain available without consent.
+6. **Record the consent** — store a timestamped consent record in the user's cloud vault, not only on Semptify servers.
+
+Until a consent gate is implemented for a module, that module **must not write tenant PII
+to Semptify's database**, even if technically convenient.
+
+---
+
+### For AI Agents and Future Developers
+
+When building a new module or endpoint that touches user data, ask:
+
+> "Is this user a tenant? If yes — does this write PII to the Semptify DB?"
+
+If yes → **stop**. Either:
+- Store it in the user's cloud vault via `UserCloudSync`, or
+- Implement a consent gate first, then store it
+
+**Do not route around this rule with workarounds** (e.g. storing PII in a "metadata"
+or "context" field). The rule is about the data, not the column name.
+
+---
+
 ## 🎯 OUR PRIVACY COMMITMENTS (LEGALLY BINDING)
 
 ### 1. No User Registration
@@ -612,6 +701,6 @@ Is this simple enough? Yes. Is it actually secure? Yes. Do you have to trust us 
 
 ---
 
-**Last Updated:** March 23, 2026  
-**Version:** 5.0 - Security & Privacy Final  
+**Last Updated:** June 14, 2026  
+**Version:** 5.1 - Role-Scoped Privacy Policy Added  
 **Status:** ✅ In Production (Verified)
