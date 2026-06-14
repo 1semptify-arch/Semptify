@@ -53,6 +53,16 @@ class CoreSystemService:
         self.config_cache = {}
         self.session_store = {}
         self.log_store = []
+        self._start_time = datetime.now(timezone.utc)
+
+    def _get_uptime(self) -> str:
+        """Return human-readable uptime string."""
+        delta = datetime.now(timezone.utc) - self._start_time
+        total_seconds = int(delta.total_seconds())
+        days = total_seconds // 86400
+        hours = (total_seconds % 86400) // 3600
+        minutes = (total_seconds % 3600) // 60
+        return f"{days}d {hours}h {minutes}m"
     
     def get_config(self, key: str, default: Any = None) -> Any:
         """Get configuration value."""
@@ -132,7 +142,7 @@ class CoreSystemService:
                 "name": "Semptify",
                 "version": "5.0.0",
                 "environment": "development",
-                "uptime": "0d 0h 0m"  # TODO: Implement uptime tracking
+                "uptime": self._get_uptime()
             },
             "database": {
                 "type": "SQLite",

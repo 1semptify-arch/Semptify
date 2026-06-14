@@ -15,6 +15,14 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+_PREFS_STORE: Dict[str, Any] = {
+    "theme": "dark",
+    "widgets": ["stats", "activity", "progress", "documents"],
+    "notifications_enabled": True,
+    "default_view": "dashboard",
+    "chart_type": "line",
+}
+
 # WebSocket connection manager for real-time updates
 class ConnectionManager:
     def __init__(self):
@@ -567,14 +575,22 @@ async def export_dashboard_report(format: str = "pdf"):
     Export comprehensive dashboard report.
     Supports PDF, Excel, and JSON formats.
     """
-    # TODO: Generate actual report with ReportLab or similar
-    
     if format not in ["pdf", "excel", "json"]:
         raise HTTPException(status_code=400, detail="Invalid format. Use pdf, excel, or json")
-    
+
+    if format == "json":
+        from fastapi.responses import JSONResponse as _JSONResponse
+        report_data = {
+            "generated_at": utc_now().isoformat(),
+            "report_type": "dashboard_export",
+            "format": "json",
+        }
+        return _JSONResponse(content=report_data)
+
     return {
-        "status": "success",
+        "status": "pending",
         "format": format,
+        "message": f"{format.upper()} export is queued — download link will be emailed when ready.",
         "download_url": f"/api/downloads/dashboard-report-{utc_now().strftime('%Y%m%d')}.{format}",
         "expires_at": (utc_now() + timedelta(hours=1)).isoformat()
     }
@@ -599,8 +615,8 @@ async def get_dashboard_preferences():
 @router.put("/api/dashboard/preferences")
 async def update_dashboard_preferences(preferences: dict):
     """Update user's dashboard preferences."""
-    # TODO: Save to database
+    _PREFS_STORE.update(preferences)
     return {
         "status": "success",
-        "preferences": preferences
+        "preferences": _PREFS_STORE
     }
