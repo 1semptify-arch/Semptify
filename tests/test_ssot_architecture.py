@@ -237,6 +237,178 @@ def test_ssot_api_endpoint_exists():
 
 
 # =============================================================================
+# Tenant PII Boundary Tests
+# Enforce: no PII fields written to Semptify DB for tenant users.
+# Source of truth: SECURITY_AND_PRIVACY_ARCHITECTURE.md § Role-Scoped Data Privacy Policy
+# =============================================================================
+
+# Fields that must NEVER appear as DB column assignments in tenant-role code paths.
+# These are the canonical forbidden PII fields on the User model and related tables.
+TENANT_PII_FORBIDDEN_FIELDS = [
+    "email",
+    "display_name",
+    "full_name",
+    "first_name",
+    "last_name",
+    "phone",
+    "phone_number",
+    "address",
+    "property_address",
+    "home_address",
+    "street_address",
+]
+
+# DB model classes that must never receive tenant PII fields.
+# Expanding this list is the right way to add new models to the check.
+PROTECTED_DB_MODELS = [
+    "User",
+    "LinkedProvider",
+]
+
+# Files that are explicitly exempt (e.g. migrations, seed scripts, test fixtures).
+TENANT_PII_EXEMPT_FILES: Set[str] = {
+    "tests/test_ssot_architecture.py",
+    "app/core/user_context.py",         # Comments only — no DB writes
+    "app/models/models.py",             # Model definition — checked separately
+    "SECURITY_AND_PRIVACY_ARCHITECTURE.md",
+}
+
+
+def test_user_model_has_no_pii_fields():
+    """
+    Verify the User DB model does not declare PII columns.
+
+    The User table is the canonical tenant identity record.
+    PII fields must never be added to it.
+    """
+    models_file = APP_DIR / "models" / "models.py"
+    if not models_file.exists():
+        pytest.skip("models.py not found")
+
+    content = models_file.read_text(encoding="utf-8")
+
+    # Find the User class block (up to the next class or end of file)
+    user_class_match = re.search(r"class User\b.*?(?=\nclass |\Z)", content, re.DOTALL)
+    if not user_class_match:
+        pytest.skip("User class not found in models.py")
+
+    user_class_body = user_class_match.group(0)
+    violations = []
+
+    for field in TENANT_PII_FORBIDDEN_FIELDS:
+        # Match column declarations like:  email: Mapped[...] = mapped_column(...)
+        pattern = rf"^\s+{re.escape(field)}\s*[:=]"
+        if re.search(pattern, user_class_body, re.MULTILINE | re.IGNORECASE):
+            violations.append(f"User model contains forbidden PII field: '{field}'")
+
+    if violations:
+        raise SSOTViolation(
+            "TENANT PII VIOLATION — User model has PII fields:\n" +
+            "\n".join(violations) +
+            "\nSee SECURITY_AND_PRIVACY_ARCHITECTURE.md § Role-Scoped Data Privacy Policy"
+        )
+
+
+def test_no_pii_written_to_user_model_in_routers():
+    """
+    Scan all router and module Python files for attempts to assign PII fields
+    to User model instances (e.g. user.email = ..., User(email=...)).
+
+    This catches runtime violations — code that would write PII to the DB.
+    """
+    violations = []
+
+    search_dirs = [
+        APP_DIR / "routers",
+        APP_DIR / "modules",
+        APP_DIR / "core",
+        APP_DIR / "services",
+    ]
+
+    for search_dir in search_dirs:
+        if not search_dir.exists():
+            continue
+        for file_path in search_dir.rglob("*.py"):
+            relative_path = str(file_path.relative_to(PROJECT_ROOT)).replace("\\", "/")
+            if relative_path in TENANT_PII_EXEMPT_FILES:
+                continue
+
+            content = file_path.read_text(encoding="utf-8")
+
+            for field in TENANT_PII_FORBIDDEN_FIELDS:
+                # Pattern 1: user.email = "..." or user.email=value
+                attr_assign = rf"\buser\.{re.escape(field)}\s*="
+                for match in re.finditer(attr_assign, content, re.IGNORECASE):
+                    line_num = content[: match.start()].count("\n") + 1
+                    violations.append(
+                        f"{relative_path}:{line_num} — user.{field} assigned "
+                        f"(tenant PII must not be written to DB)"
+                    )
+
+                # Pattern 2: User(email=...) constructor kwarg
+                for model in PROTECTED_DB_MODELS:
+                    ctor_kwarg = rf"\b{re.escape(model)}\s*\([^)]*\b{re.escape(field)}\s*="
+                    for match in re.finditer(ctor_kwarg, content, re.DOTALL | re.IGNORECASE):
+                        line_num = content[: match.start()].count("\n") + 1
+                        violations.append(
+                            f"{relative_path}:{line_num} — {model}({field}=...) "
+                            f"constructor with PII field (tenant PII must not be written to DB)"
+                        )
+
+    if violations:
+        raise SSOTViolation(
+            "TENANT PII VIOLATIONS — PII field assignments found:\n" +
+            "\n".join(violations) +
+            "\nSee SECURITY_AND_PRIVACY_ARCHITECTURE.md § Role-Scoped Data Privacy Policy"
+        )
+
+
+def test_create_or_update_user_no_pii():
+    """
+    Specifically verify the create_or_update_user function (the canonical
+    user-upsert path) does not pass PII fields.
+    """
+    storage_router = APP_DIR / "modules" / "storage" / "router.py"
+    if not storage_router.exists():
+        pytest.skip("storage/router.py not found")
+
+    content = storage_router.read_text(encoding="utf-8")
+
+    # Find the create_or_update_user function body
+    fn_match = re.search(
+        r"async def create_or_update_user\b.*?(?=\nasync def |\ndef |\Z)",
+        content,
+        re.DOTALL,
+    )
+    if not fn_match:
+        pytest.skip("create_or_update_user not found")
+
+    fn_body = fn_match.group(0)
+    violations = []
+
+    # Strip triple-quoted docstrings and comment lines before checking.
+    # Avoids false positives where a docstring documents what the function does NOT store
+    # (e.g. 'No email, display_name, or PII is written').
+    code_only = re.sub(r'""".*?"""', "", fn_body, flags=re.DOTALL)
+    code_only = re.sub(r"'''.*?'''", "", code_only, flags=re.DOTALL)
+    code_only = "\n".join(
+        line for line in code_only.splitlines()
+        if not re.match(r"^\s*#", line)
+    )
+
+    for field in TENANT_PII_FORBIDDEN_FIELDS:
+        if re.search(rf"\b{re.escape(field)}\b", code_only, re.IGNORECASE):
+            violations.append(f"create_or_update_user references PII field: '{field}'")
+
+    if violations:
+        raise SSOTViolation(
+            "TENANT PII VIOLATION in create_or_update_user:\n" +
+            "\n".join(violations) +
+            "\nThis function is the canonical user-upsert path. It must never write PII."
+        )
+
+
+# =============================================================================
 # CI/CD Integration Helpers
 # =============================================================================
 
@@ -278,6 +450,21 @@ def run_ssot_audit() -> List[str]:
         test_ssot_api_endpoint_exists()
     except (SSOTViolation, AssertionError) as e:
         violations.append(f"SSOT endpoint check: {e}")
+
+    try:
+        test_user_model_has_no_pii_fields()
+    except SSOTViolation as e:
+        violations.append(str(e))
+
+    try:
+        test_no_pii_written_to_user_model_in_routers()
+    except SSOTViolation as e:
+        violations.append(str(e))
+
+    try:
+        test_create_or_update_user_no_pii()
+    except SSOTViolation as e:
+        violations.append(str(e))
 
     return violations
 
