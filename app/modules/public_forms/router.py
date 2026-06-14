@@ -122,11 +122,11 @@ async def tenant_autofill(request: Request):
 
     Currently populated:
     - tenant_name: from briefcase.user_name (if available)
+    - landlord_name: from Contact table where contact_type="landlord" (if available)
+    - property_address: from the landlord Contact's address, if recorded
 
-    Not yet implemented (returns empty string):
-    - property_address: TODO - needs document parsing or user profile
-    - landlord_name: TODO - needs document parsing or user profile
-    - email: TODO - User.email column was dropped in PII migration
+    NOT stored in the DB by privacy design (PII lives only in the cloud vault):
+    - email: Semptify never stores tenant email in its database.
     """
     from app.core.cookie_auth import extract_user_id
     user_id = extract_user_id(request) or ""
@@ -149,6 +149,37 @@ async def tenant_autofill(request: Request):
         logger.warning("autofill: network error for %s: %s", user_id[:8] if user_id else "none", exc)
     except Exception as exc:  # pylint: disable=broad-exception-caught
         logger.error("autofill: unexpected error for %s: %s", user_id[:8] if user_id else "none", exc, exc_info=True)
+
+    # Fetch landlord name + address from the Contact table (the only PII-free
+    # case data Semptify persists). Tenant email is never stored in the DB.
+    try:
+        from app.core.database import get_db_session
+        from app.models.models import Contact
+        from sqlalchemy import select
+
+        async with get_db_session() as db:
+            contact_result = await db.execute(
+                select(Contact).where(
+                    Contact.user_id == user_id,
+                    Contact.contact_type == "landlord"
+                ).order_by(Contact.created_at.desc())
+            )
+            landlord = contact_result.scalars().first()
+            if landlord:
+                if landlord.name:
+                    result["landlord_name"] = landlord.name
+                # Build a property address from the landlord contact's address fields
+                addr_parts = [
+                    landlord.address_line1,
+                    landlord.city,
+                    landlord.state,
+                    landlord.zip_code,
+                ]
+                addr = ", ".join(p for p in addr_parts if p)
+                if addr:
+                    result["property_address"] = addr
+    except Exception as exc:
+        logger.warning("autofill: DB error for %s: %s", user_id[:8] if user_id else "none", exc)
 
     return JSONResponse(result)
 
