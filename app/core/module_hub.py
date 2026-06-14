@@ -848,8 +848,15 @@ class ModuleHub:
                 "county": user_store.get("county", "Dakota"),
             }
             
-            # TODO: Query law engine
-            return {"laws": [], "context": context}
+            doc_types = context["document_types"]
+            issues = context["issues"]
+            doc_text = " ".join(issues)
+            laws = law_engine.get_applicable_laws(
+                doc_type=doc_types[0] if doc_types else "general",
+                doc_text=doc_text,
+                doc_terms=issues,
+            )
+            return {"laws": laws, "context": context}
         except Exception as e:
             return {"laws": [], "error": str(e)}
     
