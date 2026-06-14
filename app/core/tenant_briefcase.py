@@ -507,10 +507,30 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
                 icon="📅",
             ))
     
-    # TODO: Load actual timeline events from VAULT_TIMELINE_EVENTS_FILE
-    # For now, derive from vault
-    
-    # Find next deadline (placeholder logic)
+    # Load real timeline events from DB
+    try:
+        from app.core.database import get_db_session
+        from app.models.models import TimelineEvent as TimelineEventModel
+        from sqlalchemy import select as _sel
+        async with get_db_session() as _db:
+            result = await _db.execute(
+                _sel(TimelineEventModel)
+                .where(TimelineEventModel.user_id == user_id)
+                .order_by(TimelineEventModel.event_date.asc())
+            )
+            for te in result.scalars().all():
+                date_val = te.event_date.isoformat() if te.event_date else None
+                events.append(TimelineEvent(
+                    id=str(te.id),
+                    event_type=te.event_type or "event",
+                    title=te.title or te.event_type or "Event",
+                    date=date_val,
+                    icon="📅",
+                ))
+    except Exception as _e:
+        logger.warning("Timeline DB load failed: %s", _e)
+
+    # Find next deadline
     today = datetime.now(timezone.utc).date()
     for event in events:
         if event.date:
@@ -539,21 +559,47 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
 
 async def _load_journal_summary(user_id: str, vault: VaultSummary) -> JournalSummary:
     """Load journal entries (captures)."""
-    # TODO: Load from actual journal database table
-    # For now, treat vault documents as journal entries
-    
     entries = []
-    for doc in vault.documents:
-        is_urgent = doc.get("doc_type") in ["eviction_notice", "court_order", "lease_termination"]
-        entries.append(JournalEntry(
-            id=doc["id"],
-            entry_type="document_upload",
-            description=f"Document: {doc['title']}",
-            created_at=doc.get("uploaded_at", ""),
-            is_urgent=is_urgent,
-            has_attachments=True,
-            attachment_count=1,
-        ))
+    try:
+        from app.core.database import get_db_session
+        from app.models.models import Document as DocumentModel
+        from sqlalchemy import select as _sel
+        async with get_db_session() as _db:
+            result = await _db.execute(
+                _sel(DocumentModel)
+                .where(DocumentModel.user_id == user_id)
+                .order_by(DocumentModel.uploaded_at.desc())
+                .limit(50)
+            )
+            for doc in result.scalars().all():
+                is_urgent = (doc.document_type or "") in (
+                    "eviction_notice", "court_order", "lease_termination", "court_summons", "court_complaint"
+                )
+                entries.append(JournalEntry(
+                    id=str(doc.id),
+                    entry_type="document_upload",
+                    description=f"Document: {doc.original_filename or doc.filename}",
+                    created_at=doc.uploaded_at.isoformat() if doc.uploaded_at else "",
+                    is_urgent=is_urgent,
+                    has_attachments=True,
+                    attachment_count=1,
+                ))
+        # fall through to vault fallback below if nothing loaded
+    except Exception as _e:
+        logger.warning("Journal DB load failed: %s", _e)
+
+    if not entries:
+        for doc in vault.documents:
+            is_urgent = doc.get("doc_type") in ["eviction_notice", "court_order", "lease_termination"]
+            entries.append(JournalEntry(
+                id=doc["id"],
+                entry_type="document_upload",
+                description=f"Document: {doc['title']}",
+                created_at=doc.get("uploaded_at", ""),
+                is_urgent=is_urgent,
+                has_attachments=True,
+                attachment_count=1,
+            ))
     
     urgent_count = len([e for e in entries if e.is_urgent])
     

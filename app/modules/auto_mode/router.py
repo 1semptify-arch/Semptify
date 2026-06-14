@@ -134,11 +134,47 @@ async def get_available_features(user: StorageUser = Depends(yellow_access)):
 @router.get("/analysis/{doc_id}")
 async def get_analysis_summary(doc_id: str, user: StorageUser = Depends(yellow_access)):
     """Get comprehensive analysis summary for a document"""
-    # TODO: Retrieve from database
-    return {
-        "status": "analysis_not_found",
-        "message": "Please wait for analysis to complete"
-    }
+    try:
+        from app.core.database import get_db_session
+        from app.models.models import Document
+        from sqlalchemy import select
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(Document).where(
+                    Document.id == doc_id,
+                    Document.user_id == user.sub,
+                )
+            )
+            doc = result.scalar_one_or_none()
+        if doc is None:
+            return {"status": "analysis_not_found", "message": "Document not found"}
+
+        extraction = {}
+        if getattr(doc, "extracted_text", None):
+            extraction["has_text"] = True
+            extraction["text_length"] = len(doc.extracted_text)
+        if getattr(doc, "document_type", None):
+            extraction["document_type"] = doc.document_type
+        if getattr(doc, "key_dates", None):
+            extraction["key_dates"] = doc.key_dates
+        if getattr(doc, "parties", None):
+            extraction["parties"] = doc.parties
+        if getattr(doc, "amounts", None):
+            extraction["amounts"] = doc.amounts
+        if getattr(doc, "issues", None):
+            extraction["issues"] = doc.issues
+        if getattr(doc, "summary", None):
+            extraction["summary"] = doc.summary
+
+        status = "complete" if extraction else "pending"
+        return {
+            "status": status,
+            "doc_id": doc_id,
+            "filename": doc.original_filename or doc.filename,
+            "analysis": extraction,
+        }
+    except Exception as exc:
+        return {"status": "error", "message": str(exc)}
 
 
 @router.post("/run-analysis/{doc_id}")
