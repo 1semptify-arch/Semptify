@@ -126,23 +126,42 @@ async def generate_form(
     }
     ```
     """
-    # Get case data from FormDataHub
+    # Layer 1: Cloud vault — tenant name, landlord, address (PII lives in vault)
     case_data = {}
+    try:
+        from app.modules.public_forms.router import load_tenant_autofill
+        vault_data = await load_tenant_autofill(user.user_id)
+        if vault_data.get("tenant_name"):
+            case_data["defendant_name"] = vault_data["tenant_name"]
+            case_data["tenant_name"] = vault_data["tenant_name"]
+        if vault_data.get("landlord_name"):
+            case_data["plaintiff_name"] = vault_data["landlord_name"]
+            case_data["landlord_name"] = vault_data["landlord_name"]
+        if vault_data.get("property_address"):
+            case_data["defendant_address"] = vault_data["property_address"]
+            case_data["property_address"] = vault_data["property_address"]
+        if vault_data.get("landlord_address"):
+            case_data["plaintiff_address"] = vault_data["landlord_address"]
+    except Exception as e:
+        logger.warning("court_forms: vault autofill unavailable: %s", e)
 
+    # Layer 2: FormDataHub — case number, hearing date, extracted document data
     try:
         from app.services.form_data import get_form_data_service
         form_service = get_form_data_service(user.user_id)
         if form_service:
-            hub_data = await form_service.get_full_data()
-            case_data.update(hub_data)
+            await form_service.load()
+            hub_data = form_service.get_answer_form_data()
+            for key, value in hub_data.items():
+                if key not in case_data or not case_data[key]:
+                    case_data[key] = value
     except Exception as e:
         logger.warning(f"Could not load FormDataHub: {e}")
 
-    # Override with provided case_data
+    # Layer 3: caller-provided overrides
     if request.case_data:
         case_data.update(request.case_data)
 
-    # Add user info
     case_data.setdefault("defendant_name", user.user_id)
 
     # Generate form
@@ -244,23 +263,42 @@ async def generate_form_html(
     
     Example: /api/forms/generate/answer_to_complaint?defenses=improper_notice,habitability
     """
-    # Get case data
+    # Layer 1: Cloud vault
     case_data = {}
-    
+    try:
+        from app.modules.public_forms.router import load_tenant_autofill
+        vault_data = await load_tenant_autofill(user.user_id)
+        if vault_data.get("tenant_name"):
+            case_data["defendant_name"] = vault_data["tenant_name"]
+            case_data["tenant_name"] = vault_data["tenant_name"]
+        if vault_data.get("landlord_name"):
+            case_data["plaintiff_name"] = vault_data["landlord_name"]
+        if vault_data.get("property_address"):
+            case_data["defendant_address"] = vault_data["property_address"]
+            case_data["property_address"] = vault_data["property_address"]
+        if vault_data.get("landlord_address"):
+            case_data["plaintiff_address"] = vault_data["landlord_address"]
+    except Exception as e:
+        logger.warning("court_forms: vault autofill unavailable: %s", e)
+
+    # Layer 2: FormDataHub — case number, hearing date, document extraction
     try:
         from app.services.form_data import get_form_data_service
         form_service = get_form_data_service(user.user_id)
         if form_service:
-            hub_data = await form_service.get_full_data()
-            case_data.update(hub_data)
+            await form_service.load()
+            hub_data = form_service.get_answer_form_data()
+            for key, value in hub_data.items():
+                if key not in case_data or not case_data[key]:
+                    case_data[key] = value
     except Exception as e:
         logger.warning(f"Could not load FormDataHub: {e}")
-    
+
     case_data.setdefault("defendant_name", user.user_id)
-    
+
     # Parse defenses
     defense_list = defenses.split(",") if defenses else None
-    
+
     # Generate HTML form
     result = await form_generator.generate_form(
         form_type=form_type,
@@ -286,23 +324,42 @@ async def download_form_pdf(
     
     Returns PDF file for download/printing.
     """
-    # Get case data
+    # Layer 1: Cloud vault
     case_data = {}
-    
+    try:
+        from app.modules.public_forms.router import load_tenant_autofill
+        vault_data = await load_tenant_autofill(user.user_id)
+        if vault_data.get("tenant_name"):
+            case_data["defendant_name"] = vault_data["tenant_name"]
+            case_data["tenant_name"] = vault_data["tenant_name"]
+        if vault_data.get("landlord_name"):
+            case_data["plaintiff_name"] = vault_data["landlord_name"]
+        if vault_data.get("property_address"):
+            case_data["defendant_address"] = vault_data["property_address"]
+            case_data["property_address"] = vault_data["property_address"]
+        if vault_data.get("landlord_address"):
+            case_data["plaintiff_address"] = vault_data["landlord_address"]
+    except Exception as e:
+        logger.warning("court_forms: vault autofill unavailable: %s", e)
+
+    # Layer 2: FormDataHub — case number, hearing date
     try:
         from app.services.form_data import get_form_data_service
         form_service = get_form_data_service(user.user_id)
         if form_service:
-            hub_data = await form_service.get_full_data()
-            case_data.update(hub_data)
+            await form_service.load()
+            hub_data = form_service.get_answer_form_data()
+            for key, value in hub_data.items():
+                if key not in case_data or not case_data[key]:
+                    case_data[key] = value
     except Exception as e:
         logger.warning(f"Could not load FormDataHub: {e}")
-    
+
     case_data.setdefault("defendant_name", user.user_id)
-    
+
     # Parse defenses
     defense_list = defenses.split(",") if defenses else None
-    
+
     # Generate PDF
     result = await form_generator.generate_form(
         form_type=form_type,
@@ -498,14 +555,33 @@ async def generate_form_from_documents(
     Document-extracted data takes priority for critical fields like
     case number, hearing date, and party names.
     """
-    # Get document-extracted data first
+    # Layer 1: Cloud vault — tenant name, landlord, address
+    form_data = {}
+    try:
+        from app.modules.public_forms.router import load_tenant_autofill
+        vault_data = await load_tenant_autofill(user.user_id)
+        if vault_data.get("tenant_name"):
+            form_data["defendant_name"] = vault_data["tenant_name"]
+            form_data["tenant_name"] = vault_data["tenant_name"]
+        if vault_data.get("landlord_name"):
+            form_data["plaintiff_name"] = vault_data["landlord_name"]
+        if vault_data.get("property_address"):
+            form_data["defendant_address"] = vault_data["property_address"]
+            form_data["property_address"] = vault_data["property_address"]
+        if vault_data.get("landlord_address"):
+            form_data["plaintiff_address"] = vault_data["landlord_address"]
+    except Exception as e:
+        logger.warning("court_forms: vault autofill unavailable: %s", e)
+
+    # Layer 2: Document extraction — case number, hearing date, financials
     hub = get_document_hub()
     doc_autofill = hub.get_form_autofill(user.user_id, "GENERAL")
     case_data = hub.get_case_data(user.user_id)
-    
-    # Start with document data
-    form_data = {}
-    form_data.update(doc_autofill)
+
+    # Merge document data without overwriting vault data
+    for key, value in doc_autofill.items():
+        if key not in form_data or not form_data[key]:
+            form_data[key] = value
     
     # Add additional extracted data
     form_data["case_number"] = case_data.primary_case_number or form_data.get("case_number")
