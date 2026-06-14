@@ -12,6 +12,38 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-14 — Gap Closure: Live Data Wiring (All Blocking Gaps Fixed)
+**Commit: `ce22bb4` | Pushed: 2026-06-14**
+
+### What Was Shipped
+
+| File | Change |
+|------|--------|
+| `app/modules/public_forms/router.py` | Autofill now pulls `landlord_name` + address from `Contact` table (DB). Respects privacy design — no email/address in User table. |
+| `app/core/audit.py` | `_log_to_database()` implemented — writes to `admin_audit_logs` table when DB logging enabled. Skips anonymous events (NOT NULL FK constraint). |
+| `app/core/gdpr_compliance.py` | `_get_user_account_info()` now queries real `User.created_at` and `User.last_login` via async thread pool. |
+| `app/core/manager_dashboard.py` | Staff tracking numbers set; removed non-existent `User.property_address` reference. |
+| `app/modules/state_laws/router.py` | `/detect/location` now calls ip-api.com for real IP geolocation. Falls back to MN on failure. |
+| `app/core/product_manifest.py` | Marked 4 dev scaffolding modules as inactive (plugins, components, legal_filing, auto_mode). |
+
+### Known Working
+- All 6 modified files compile clean
+- `main.py` compiles clean
+- Pushed to main — Render will auto-deploy
+
+### Known Pending
+- Live test: Cloudflare env vars needed to enable dev mode (`CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN`)
+- Live test: Verify autofill endpoint returns landlord data for tenants with Contact records
+- Live test: Verify IP geolocation returns correct state (non-localhost)
+- DB migration: `admin_audit_logs` table must exist before DB audit logging can be enabled
+
+### Next Session Should Start With
+- Test semptify.org live — verify all pages load
+- Check startup logs for import errors
+- Run Cloudflare dev mode if env vars available
+
+---
+
 ## Session — 2026-06-13 — Full Live App Activation (ALL TIERS + LIVE DATA)
 **Commits: `37a23dd` | Pushed: 2026-06-13**
 
