@@ -113,20 +113,16 @@ async def submit_feedback(body: FeedbackRequest):
 @limiter.limit("30/minute")
 async def tenant_autofill(request: Request):
     """
-    Return pre-fill data for the letter forms based on the tenant's case.
-    Reads user_id from cookie, then pulls the best available case data.
-    Returns empty strings for any field that cannot be resolved so the form
-    still works — the user just fills those fields manually.
+    Return pre-fill data for letter forms from the tenant's own cloud storage.
 
-    POST method to prevent CSRF attacks.
+    Priority:
+    1. Cloud vault (case.json + profile.json in user's Google Drive/Dropbox/OneDrive)
+       — tenant_name, email, property_address, landlord_name, landlord_address
+    2. DB Contact table (landlord name/address only — PII-free fallback)
+    3. TenantBriefcase user_name (in-memory fallback)
 
-    Currently populated:
-    - tenant_name: from briefcase.user_name (if available)
-    - landlord_name: from Contact table where contact_type="landlord" (if available)
-    - property_address: from the landlord Contact's address, if recorded
-
-    NOT stored in the DB by privacy design (PII lives only in the cloud vault):
-    - email: Semptify never stores tenant email in its database.
+    POST to prevent CSRF. Returns empty strings for unresolved fields so the
+    form still works — the user fills those manually.
     """
     from app.core.cookie_auth import extract_user_id
     user_id = extract_user_id(request) or ""
@@ -134,53 +130,118 @@ async def tenant_autofill(request: Request):
         "tenant_name": "",
         "property_address": "",
         "landlord_name": "",
+        "landlord_address": "",
         "email": "",
     }
 
     if not user_id:
         return JSONResponse(result)
 
-    try:
-        from app.core.tenant_briefcase import get_tenant_briefcase
-        briefcase = await get_tenant_briefcase(user_id)
-        if briefcase and briefcase.user_name:
-            result["tenant_name"] = briefcase.user_name
-    except (ConnectionError, TimeoutError) as exc:
-        logger.warning("autofill: network error for %s: %s", user_id[:8] if user_id else "none", exc)
-    except Exception as exc:  # pylint: disable=broad-exception-caught
-        logger.error("autofill: unexpected error for %s: %s", user_id[:8] if user_id else "none", exc, exc_info=True)
-
-    # Fetch landlord name + address from the Contact table (the only PII-free
-    # case data Semptify persists). Tenant email is never stored in the DB.
+    # -------------------------------------------------------------------------
+    # Layer 1: Cloud vault — profile.json + case.json (PII lives here, not DB)
+    # -------------------------------------------------------------------------
+    cloud_loaded = False
     try:
         from app.core.database import get_db_session
-        from app.models.models import Contact
-        from sqlalchemy import select
+        from app.modules.storage.router import get_valid_session
+        from app.services.user_cloud_sync import UserCloudSync
 
         async with get_db_session() as db:
-            contact_result = await db.execute(
-                select(Contact).where(
-                    Contact.user_id == user_id,
-                    Contact.contact_type == "landlord"
-                ).order_by(Contact.created_at.desc())
-            )
-            landlord = contact_result.scalars().first()
-            if landlord:
-                if landlord.name:
-                    result["landlord_name"] = landlord.name
-                # Build a property address from the landlord contact's address fields
-                addr_parts = [
-                    landlord.address_line1,
-                    landlord.city,
-                    landlord.state,
-                    landlord.zip_code,
-                ]
-                addr = ", ".join(p for p in addr_parts if p)
-                if addr:
-                    result["property_address"] = addr
-    except Exception as exc:
-        logger.warning("autofill: DB error for %s: %s", user_id[:8] if user_id else "none", exc)
+            session = await get_valid_session(db, user_id)
 
+        if session:
+            provider = session.get("provider")
+            access_token = session.get("access_token")
+            storage = None
+
+            if provider == "google_drive":
+                from app.services.storage.google_drive import GoogleDriveProvider
+                storage = GoogleDriveProvider(access_token)
+            elif provider == "dropbox":
+                from app.services.storage.dropbox import DropboxProvider
+                storage = DropboxProvider(access_token)
+            elif provider == "onedrive":
+                from app.services.storage.onedrive import OneDriveProvider
+                storage = OneDriveProvider(access_token)
+
+            if storage:
+                sync = UserCloudSync(storage, user_id)
+                profile = await sync.load_profile()
+                case = await sync.load_case()
+
+                if profile:
+                    if profile.display_name:
+                        result["tenant_name"] = profile.display_name
+                    if profile.email:
+                        result["email"] = profile.email
+
+                if case:
+                    if case.tenant_name and not result["tenant_name"]:
+                        result["tenant_name"] = case.tenant_name
+                    if case.property_address:
+                        result["property_address"] = case.property_address
+                    if case.landlord_name:
+                        result["landlord_name"] = case.landlord_name
+                    if case.landlord_address:
+                        result["landlord_address"] = case.landlord_address
+
+                cloud_loaded = True
+                logger.debug("autofill: cloud vault loaded for %s", user_id[:8])
+
+    except Exception as exc:
+        logger.debug("autofill: cloud vault unavailable for %s: %s", user_id[:8], exc)
+
+    # -------------------------------------------------------------------------
+    # Layer 2: DB Contact table — landlord only (no PII, fills any cloud gaps)
+    # -------------------------------------------------------------------------
+    if not result["landlord_name"] or not result["property_address"]:
+        try:
+            from app.core.database import get_db_session
+            from app.models.models import Contact
+            from sqlalchemy import select
+
+            async with get_db_session() as db:
+                contact_result = await db.execute(
+                    select(Contact).where(
+                        Contact.user_id == user_id,
+                        Contact.contact_type == "landlord"
+                    ).order_by(Contact.created_at.desc())
+                )
+                landlord = contact_result.scalars().first()
+                if landlord:
+                    if landlord.name and not result["landlord_name"]:
+                        result["landlord_name"] = landlord.name
+                    if not result["property_address"]:
+                        addr_parts = [
+                            landlord.address_line1,
+                            landlord.city,
+                            landlord.state,
+                            landlord.zip_code,
+                        ]
+                        addr = ", ".join(p for p in addr_parts if p)
+                        if addr:
+                            result["property_address"] = addr
+        except Exception as exc:
+            logger.warning("autofill: DB fallback error for %s: %s", user_id[:8], exc)
+
+    # -------------------------------------------------------------------------
+    # Layer 3: TenantBriefcase — user_name only (last resort for tenant name)
+    # -------------------------------------------------------------------------
+    if not result["tenant_name"]:
+        try:
+            from app.core.tenant_briefcase import get_tenant_briefcase
+            briefcase = await get_tenant_briefcase(user_id)
+            if briefcase and briefcase.user_name:
+                result["tenant_name"] = briefcase.user_name
+        except Exception as exc:
+            logger.debug("autofill: briefcase unavailable for %s: %s", user_id[:8], exc)
+
+    logger.debug(
+        "autofill: resolved fields=%s cloud=%s user=%s",
+        [k for k, v in result.items() if v],
+        cloud_loaded,
+        user_id[:8],
+    )
     return JSONResponse(result)
 
 
