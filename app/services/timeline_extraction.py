@@ -186,9 +186,44 @@ class TimelineExtractor:
     
     def _normalize_date(self, date_str: str) -> Optional[str]:
         """Convert various date formats to ISO YYYY-MM-DD."""
-        # TODO: Implement proper date normalization
-        # For now, return as-is with current year if missing
-        return date_str
+        from datetime import datetime
+        import re
+
+        s = date_str.strip()
+
+        # Try formats in order of specificity
+        for fmt in (
+            "%B %d, %Y",   # January 15, 2024
+            "%b %d, %Y",   # Jan 15, 2024
+            "%B %d %Y",    # January 15 2024
+            "%b %d %Y",    # Jan 15 2024
+            "%m/%d/%Y",    # 01/15/2024
+            "%m-%d-%Y",    # 01-15-2024
+            "%Y-%m-%d",    # 2024-01-15  (already ISO)
+            "%d/%m/%Y",    # 15/01/2024
+            "%B %Y",       # January 2024  (day unknown → 1st)
+            "%b %Y",       # Jan 2024
+        ):
+            try:
+                return datetime.strptime(s, fmt).strftime("%Y-%m-%d")
+            except ValueError:
+                pass
+
+        # Month name + day without year — inject current year
+        m = re.match(
+            r'^(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|'
+            r'Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)'
+            r'\s+\d{1,2}$', s, re.IGNORECASE
+        )
+        if m:
+            year = datetime.now().year
+            for fmt in ("%B %d", "%b %d"):
+                try:
+                    return datetime.strptime(f"{s} {year}", f"{fmt} %Y").strftime("%Y-%m-%d")
+                except ValueError:
+                    pass
+
+        return None
     
     def _classify_event_type(self, context: str) -> EventType:
         """Determine event type from context keywords."""
