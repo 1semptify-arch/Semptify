@@ -109,23 +109,21 @@ async def submit_feedback(body: FeedbackRequest):
     return JSONResponse({"status": "ok", "received": True})
 
 
-@router.post("/tenant/autofill")
-@limiter.limit("30/minute")
-async def tenant_autofill(request: Request):
+async def load_tenant_autofill(user_id: str) -> dict:
     """
-    Return pre-fill data for letter forms from the tenant's own cloud storage.
+    Resolve pre-fill data for any form from the tenant's own cloud storage.
 
     Priority:
-    1. Cloud vault (case.json + profile.json in user's Google Drive/Dropbox/OneDrive)
-       — tenant_name, email, property_address, landlord_name, landlord_address
-    2. DB Contact table (landlord name/address only — PII-free fallback)
-    3. TenantBriefcase user_name (in-memory fallback)
+    1. Cloud vault — profile.json + case.json (PII lives here, not DB)
+    2. DB Contact table — landlord name/address only (PII-free fallback)
+    3. TenantBriefcase — user_name only (last resort)
 
-    POST to prevent CSRF. Returns empty strings for unresolved fields so the
-    form still works — the user fills those manually.
+    Returns a dict with keys: tenant_name, property_address, landlord_name,
+    landlord_address, email. Empty string for any unresolved field.
+
+    This function is callable from any module (e.g. court_forms router).
+    The /tenant/autofill endpoint delegates to it.
     """
-    from app.core.cookie_auth import extract_user_id
-    user_id = extract_user_id(request) or ""
     result = {
         "tenant_name": "",
         "property_address": "",
@@ -135,7 +133,7 @@ async def tenant_autofill(request: Request):
     }
 
     if not user_id:
-        return JSONResponse(result)
+        return result
 
     # -------------------------------------------------------------------------
     # Layer 1: Cloud vault — profile.json + case.json (PII lives here, not DB)
@@ -242,6 +240,20 @@ async def tenant_autofill(request: Request):
         cloud_loaded,
         user_id[:8],
     )
+    return result
+
+
+@router.post("/tenant/autofill")
+@limiter.limit("30/minute")
+async def tenant_autofill(request: Request):
+    """
+    Return pre-fill data for letter forms from the tenant's own cloud storage.
+    Delegates to load_tenant_autofill() — callable from any module.
+    POST to prevent CSRF.
+    """
+    from app.core.cookie_auth import extract_user_id
+    user_id = extract_user_id(request) or ""
+    result = await load_tenant_autofill(user_id)
     return JSONResponse(result)
 
 
