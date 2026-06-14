@@ -424,9 +424,52 @@ class EvictionCaseBuilder:
             email=user.email,
         )
         
-        # TODO: Enhance with lease document extraction
-        # Look for lease documents and extract address, rent amount, etc.
-        
+        import re as _re
+        for doc in documents:
+            doc_type = (doc.document_type or "").lower()
+            text = (getattr(doc, "extracted_text", None) or "").lower()
+            if not text or doc_type not in ("lease", "rental_agreement", "lease_agreement"):
+                continue
+
+            # Tenant name from lease ("tenant:", "lessee:", "resident:")
+            if not tenant.full_name or tenant.full_name == (user.email or ""):
+                name_m = _re.search(
+                    r'(?:tenant|lessee|resident)\s*[:\-]?\s*([A-Z][a-zA-Z\s\.\,]+?)(?:\n|,|address|phone|$)',
+                    text, _re.IGNORECASE
+                )
+                if name_m:
+                    tenant.full_name = name_m.group(1).strip().rstrip(',').title()
+
+            # Address from lease
+            if not tenant.address:
+                addr_m = _re.search(
+                    r'(?:property\s+address|rental\s+(?:unit|property)|premises)[^\n]{0,40}?'
+                    r'(\d{2,5}\s+[A-Za-z][A-Za-z0-9\s\.,]+(?:street|st|avenue|ave|road|rd|blvd|drive|dr|lane|ln|court|ct|way|circle|cir)\.?)',
+                    text, _re.IGNORECASE
+                )
+                if not addr_m:
+                    addr_m = _re.search(
+                        r'(\d{2,5}\s+[A-Za-z][A-Za-z0-9\s\.,]+(?:street|st|avenue|ave|road|rd|blvd|drive|dr|lane|ln|court|ct|way|circle|cir)\.?)',
+                        text, _re.IGNORECASE
+                    )
+                if addr_m:
+                    tenant.address = addr_m.group(1).strip().title()
+
+            # Append unit number to address if found
+            unit_m = _re.search(r'(?:unit|apt\.?|apartment)\s*#?\s*([A-Za-z0-9\-]+)', text, _re.IGNORECASE)
+            if unit_m and tenant.address and "unit" not in tenant.address.lower():
+                tenant.address = f"{tenant.address} Unit {unit_m.group(1).strip()}"
+
+            # City / state / zip
+            if not tenant.city:
+                city_m = _re.search(r',\s*([A-Za-z\s]+),\s*(MN|Minnesota)\s+(\d{5})', text, _re.IGNORECASE)
+                if city_m:
+                    tenant.city = city_m.group(1).strip().title()
+                    tenant.state = "MN"
+                    tenant.zip_code = city_m.group(3).strip()
+
+            break
+
         return tenant
     
     async def _get_documents(
