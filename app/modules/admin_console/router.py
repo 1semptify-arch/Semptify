@@ -1288,3 +1288,117 @@ def _count_by_key(items: List[dict], key: str) -> dict:
         value = item.get(key, "unknown")
         counts[value] = counts.get(value, 0) + 1
     return counts
+
+
+# =============================================================================
+# API Key / Environment Variable Management
+# =============================================================================
+
+_MANAGED_KEYS = [
+    ("Storage OAuth",   ["GOOGLE_DRIVE_CLIENT_ID", "GOOGLE_DRIVE_CLIENT_SECRET",
+                         "DROPBOX_APP_KEY", "DROPBOX_APP_SECRET",
+                         "ONEDRIVE_CLIENT_ID", "ONEDRIVE_CLIENT_SECRET"]),
+    ("AI Providers",    ["ANTHROPIC_API_KEY", "GROQ_API_KEY", "OPENAI_API_KEY",
+                         "GEMINI_API_KEY", "GOOGLE_AI_API_KEY"]),
+    ("Azure AI",        ["AZURE_AI_ENDPOINT", "AZURE_AI_KEY1", "AZURE_AI_KEY2",
+                         "AZURE_AI_REGION", "AZURE_OPENAI_ENDPOINT", "AZURE_OPENAI_API_KEY"]),
+    ("Cloudflare R2",   ["STORAGE_ENDPOINT", "STORAGE_ACCESS_KEY", "STORAGE_SECRET_KEY"]),
+    ("Email",           ["RESEND_API_KEY", "FROM_EMAIL", "SUPPORT_EMAIL"]),
+    ("Research APIs",   ["NEWS_API_KEY", "ASSESSOR_API_KEY", "RECORDER_API_KEY",
+                         "UCC_API_KEY", "BANKRUPTCY_API_KEY", "SOS_API_KEY",
+                         "DISPATCH_API_KEY", "INSURANCE_API_KEY"]),
+    ("Core System",     ["SECRET_KEY", "DATABASE_URL", "PUBLIC_BASE_URL",
+                         "SECURITY_MODE", "GITHUB_TOKEN", "INVITE_CODES", "TSA_URL"]),
+]
+_ALL_MANAGED_KEYS = [k for _, keys in _MANAGED_KEYS for k in keys]
+
+
+@router.get("/api/env-status")
+async def env_status(user: UserContext = Depends(_stealth_admin)) -> dict:
+    """
+    Return status of all managed env vars — names and set/unset state only.
+    Values are NEVER returned; only whether each key is currently set.
+    """
+    import os
+    groups = []
+    for group_name, keys in _MANAGED_KEYS:
+        groups.append({
+            "group": group_name,
+            "keys": [
+                {"key": k, "set": bool(os.environ.get(k, "").strip())}
+                for k in keys
+            ],
+        })
+    total = sum(len(keys) for _, keys in _MANAGED_KEYS)
+    filled = sum(1 for k in _ALL_MANAGED_KEYS if os.environ.get(k, "").strip())
+    return {"groups": groups, "total": total, "filled": filled}
+
+
+@router.post("/api/env-update")
+async def env_update(
+    payload: Dict[str, Any],
+    user: UserContext = Depends(_stealth_admin),
+) -> dict:
+    """
+    Update one or more managed environment variables at runtime.
+    Also writes the changes to the project .env file for persistence.
+
+    Body: { "updates": { "KEY": "value", ... } }
+    Only keys in _ALL_MANAGED_KEYS are accepted — all others are rejected.
+    """
+    import os
+    from pathlib import Path
+
+    updates: Dict[str, str] = payload.get("updates", {})
+    if not updates:
+        raise HTTPException(status_code=400, detail="No updates provided")
+
+    rejected = [k for k in updates if k not in _ALL_MANAGED_KEYS]
+    if rejected:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unrecognised or disallowed keys: {', '.join(rejected)}"
+        )
+
+    # Apply to running process
+    applied = []
+    for key, value in updates.items():
+        if not isinstance(value, str):
+            continue
+        os.environ[key] = value
+        applied.append(key)
+        logger.info("Admin %s updated env var: %s", user.user_id[:6], key)
+
+    # Persist to .env file (project root)
+    env_path = Path(__file__).resolve().parent.parent.parent.parent / ".env"
+    try:
+        existing_lines: list[str] = []
+        if env_path.exists():
+            existing_lines = env_path.read_text(encoding="utf-8").splitlines()
+
+        # Build a dict of existing entries
+        env_dict: dict[str, str] = {}
+        for line in existing_lines:
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#") and "=" in stripped:
+                k, _, v = stripped.partition("=")
+                env_dict[k.strip()] = v
+
+        # Overwrite with new values
+        for k, v in updates.items():
+            env_dict[k] = v
+
+        # Write back
+        new_lines = [f"{k}={v}" for k, v in env_dict.items()]
+        env_path.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
+        persisted = True
+    except Exception as exc:
+        logger.warning("Could not write .env file: %s", exc)
+        persisted = False
+
+    return {
+        "applied": applied,
+        "persisted_to_env": persisted,
+        "env_path": str(env_path) if persisted else None,
+        "note": "Changes are live immediately. Restart is NOT required for runtime changes.",
+    }

@@ -133,7 +133,15 @@ async def init_db():
     # Tables that require explicit opt-in or a separate Alembic migration.
     # They are excluded from auto create_all to avoid permission errors on
     # restricted DB users (e.g. Neon free tier).
-    _OPTIONAL_TABLES = {"pattern_records"}
+    _OPTIONAL_TABLES = {
+        "pattern_records",
+        "fems_cases",
+        "fems_documents",
+        "fems_chunks",
+        "fems_phone_numbers",
+        "fems_document_phones",
+        "fems_quarantine",
+    }
 
     engine = get_engine()
     async with engine.begin() as conn:
@@ -162,6 +170,12 @@ async def close_db():
 
 
 from contextlib import asynccontextmanager
+
+# Register FEMS models with SQLAlchemy Base
+try:
+    import app.modules.fems.models  # noqa: F401
+except ImportError:
+    pass
 
 
 @asynccontextmanager
