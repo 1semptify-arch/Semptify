@@ -2595,36 +2595,19 @@ async def lookup_user(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Look up user by email or provider for returning user reconnect.
-    
-    Request body: {"email": "user@example.com"} OR {"provider": "google", "provider_account_id": "..."}
-    Response: {"found": true, "user_id": "usr_...", "role": "tenant"} OR {"found": false}
+    Look up user by provider for returning user reconnect.
+
+    Semptify does not store email — email-based lookup is not supported.
+    Request body: {"provider": "google_drive"}
+    Response: {"found": true, "oauth_required": true} OR {"found": false}
     """
     try:
         data = await request.json()
-        
+
         if not data:
             return {"found": False, "error": "No data provided"}
-        
-        # Lookup by email
-        if "email" in data and data["email"]:
-            from app.models.database import User
-            from sqlalchemy import select
-            
-            result = await db.execute(
-                select(User).where(User.email == data["email"])
-            )
-            user = result.scalar_one_or_none()
-            
-            if user:
-                return {
-                    "found": True,
-                    "user_id": user.user_id,
-                    "role": user.role,
-                    "provider": user.provider,
-                }
-        
-        # Lookup by provider (when user clicks provider button instead of entering email)
+
+        # Lookup by provider (user selects their provider to re-authenticate)
         if "provider" in data and data["provider"]:
             # User selected a provider - they'll need to OAuth to identify themselves
             # Store preference and return redirect info

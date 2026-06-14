@@ -46,8 +46,6 @@ async def create_user(
     user_id: str,
     provider: str,
     storage_user_id: str,
-    email: Optional[str] = None,
-    display_name: Optional[str] = None,
     default_role: str = "tenant",
 ) -> User:
     """Create a new user from storage provider auth."""
@@ -56,7 +54,6 @@ async def create_user(
             id=user_id,
             primary_provider=provider,
             storage_user_id=storage_user_id,
-            email=email,
             default_role=default_role,
             created_at=utc_now(),
             last_login=utc_now(),
@@ -71,8 +68,6 @@ async def get_or_create_user(
     user_id: str,
     provider: str,
     storage_user_id: str,
-    email: Optional[str] = None,
-    display_name: Optional[str] = None,
     default_role: str = "tenant",
 ) -> tuple[User, bool]:
     """
@@ -81,21 +76,16 @@ async def get_or_create_user(
     """
     user = await get_user_by_id(user_id)
     if user:
-        # Update last login
         async with get_db_session() as session:
             user.last_login = utc_now()
-            if email and not user.email:
-                user.email = email
             session.add(user)
             await session.commit()
         return user, False
-    
+
     user = await create_user(
         user_id=user_id,
         provider=provider,
         storage_user_id=storage_user_id,
-        email=email,
-        display_name=display_name,
         default_role=default_role,
     )
     return user, True
@@ -116,21 +106,16 @@ async def update_user_role(user_id: str, role: str) -> Optional[User]:
         return user
 
 
-async def update_user_profile(
+async def update_user_role_and_timestamp(
     user_id: str,
-    email: Optional[str] = None,
-    display_name: Optional[str] = None,
-    avatar_url: Optional[str] = None,
 ) -> Optional[User]:
-    """Update user profile info."""
+    """Update user last-active timestamp. PII updates go to cloud vault, not here."""
     async with get_db_session() as session:
         result = await session.execute(
             select(User).where(User.id == user_id)
         )
         user = result.scalar_one_or_none()
         if user:
-            if email is not None:
-                user.email = email
             user.updated_at = utc_now()
             await session.commit()
             await session.refresh(user)
