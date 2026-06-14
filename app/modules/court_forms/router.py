@@ -413,20 +413,40 @@ async def preview_form(
     
     mapping = FORM_MAPPINGS[request.form_type]
     
-    # Get case data
+    # Layer 1: Cloud vault
     case_data = {}
+    try:
+        from app.modules.public_forms.router import load_tenant_autofill
+        vault_data = await load_tenant_autofill(user.user_id)
+        if vault_data.get("tenant_name"):
+            case_data["defendant_name"] = vault_data["tenant_name"]
+            case_data["tenant_name"] = vault_data["tenant_name"]
+        if vault_data.get("landlord_name"):
+            case_data["plaintiff_name"] = vault_data["landlord_name"]
+        if vault_data.get("property_address"):
+            case_data["defendant_address"] = vault_data["property_address"]
+            case_data["property_address"] = vault_data["property_address"]
+        if vault_data.get("landlord_address"):
+            case_data["plaintiff_address"] = vault_data["landlord_address"]
+    except Exception:
+        pass
+
+    # Layer 2: FormDataHub
     try:
         from app.services.form_data import get_form_data_service
         form_service = get_form_data_service(user.user_id)
         if form_service:
-            hub_data = await form_service.get_full_data()
-            case_data.update(hub_data)
+            await form_service.load()
+            hub_data = form_service.get_answer_form_data()
+            for key, value in hub_data.items():
+                if key not in case_data or not case_data[key]:
+                    case_data[key] = value
     except Exception:
         pass
-    
+
     if request.case_data:
         case_data.update(request.case_data)
-    
+
     # Show field mapping
     field_preview = {}
     for form_field, source_fields in mapping["fields"].items():
@@ -473,22 +493,42 @@ async def quick_generate_answer(
     
     Returns HTML form ready for printing.
     """
+    # Layer 1: Cloud vault
     case_data = {}
-    
+    try:
+        from app.modules.public_forms.router import load_tenant_autofill
+        vault_data = await load_tenant_autofill(user.user_id)
+        if vault_data.get("tenant_name"):
+            case_data["defendant_name"] = vault_data["tenant_name"]
+            case_data["tenant_name"] = vault_data["tenant_name"]
+        if vault_data.get("landlord_name"):
+            case_data["plaintiff_name"] = vault_data["landlord_name"]
+        if vault_data.get("property_address"):
+            case_data["defendant_address"] = vault_data["property_address"]
+            case_data["property_address"] = vault_data["property_address"]
+        if vault_data.get("landlord_address"):
+            case_data["plaintiff_address"] = vault_data["landlord_address"]
+    except Exception:
+        pass
+
+    # Layer 2: FormDataHub
     try:
         from app.services.form_data import get_form_data_service
         form_service = get_form_data_service(user.user_id)
         if form_service:
-            hub_data = await form_service.get_full_data()
-            case_data.update(hub_data)
+            await form_service.load()
+            hub_data = form_service.get_answer_form_data()
+            for key, value in hub_data.items():
+                if key not in case_data or not case_data[key]:
+                    case_data[key] = value
     except Exception:
         pass
-    
+
     if case_number:
         case_data["case_number"] = case_number
     if defendant_name:
         case_data["defendant_name"] = defendant_name
-    
+
     case_data.setdefault("defendant_name", user.user_id)
     
     defense_list = defenses.split(",") if defenses else ["improper_notice"]
@@ -599,13 +639,13 @@ async def generate_form_from_documents(
     # Add matched statutes for legal references
     form_data["applicable_statutes"] = case_data.matched_statutes
     
-    # Merge with FormDataHub data
+    # Layer 3: FormDataHub — fill any remaining gaps
     try:
         from app.services.form_data import get_form_data_service
         form_service = get_form_data_service(user.user_id)
         if form_service:
-            hub_data = await form_service.get_full_data()
-            # Only fill in missing fields from FormDataHub
+            await form_service.load()
+            hub_data = form_service.get_answer_form_data()
             for key, value in hub_data.items():
                 if key not in form_data or not form_data[key]:
                     form_data[key] = value
