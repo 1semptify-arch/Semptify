@@ -8,7 +8,7 @@ Provides dynamic state law information with MN as the complete reference impleme
 import json
 import os
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 import logging
 logger = logging.getLogger(__name__)
@@ -187,25 +187,54 @@ async def find_nearby_states(
 
 
 @router.get("/detect/location")
-async def detect_user_state():
+async def detect_user_state(request: Request):
     """
     Detect user's likely state based on IP geolocation.
     
-    Note: This is a placeholder. Production would use:
-    - IP geolocation service (MaxMind, IP-API)
-    - Browser geolocation API (with permission)
-    - User profile preference
+    Uses ip-api.com free service for IP geolocation.
+    Falls back to MN if detection fails.
     
     Returns:
         Detected or default state information.
     """
-    # For now, default to MN as the primary supported state
-    # Production: integrate with geolocation service
+    try:
+        import httpx
+        client_ip = request.client.host if request.client else "127.0.0.1"
+        
+        # Skip localhost for dev
+        if client_ip in ("127.0.0.1", "localhost", "::1"):
+            return {
+                "method": "default",
+                "detected_state": "MN",
+                "state_name": "Minnesota",
+                "confidence": "medium",
+                "message": "Local development detected. Defaulting to Minnesota.",
+                "manual_selection_url": "/library.html#state-selector"
+            }
+        
+        async with httpx.AsyncClient(timeout=3.0) as http_client:
+            response = await http_client.get(f"http://ip-api.com/json/{client_ip}")
+            if response.status_code == 200:
+                data = response.json()
+                state_code = data.get("regionCode", "MN")
+                state_name = data.get("region", "Minnesota")
+                return {
+                    "method": "ip_geolocation",
+                    "detected_state": state_code,
+                    "state_name": state_name,
+                    "confidence": "high",
+                    "message": f"Detected location based on your IP address.",
+                    "manual_selection_url": "/library.html#state-selector"
+                }
+    except Exception as e:
+        logger.warning(f"IP geolocation failed: {e}")
+    
+    # Fallback to MN
     return {
         "method": "default",
         "detected_state": "MN",
         "state_name": "Minnesota",
-        "confidence": "high",
-        "message": "Minnesota is our primary service area. Select your state manually if different.",
+        "confidence": "medium",
+        "message": "Could not detect location. Defaulting to Minnesota.",
         "manual_selection_url": "/library.html#state-selector"
     }

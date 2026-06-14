@@ -197,9 +197,39 @@ class AuditLogger:
             logger.error("Failed to write audit log: %s", e)
     
     async def _log_to_database(self, entry: AuditEntry) -> None:
-        """Write audit entry to database."""
-        # TODO: Implement database logging when audit table is created
-        pass
+        """
+        Write audit entry to the admin_audit_logs table.
+
+        Note: admin_audit_logs.admin_user_id is a NOT NULL FK to users.id, so
+        anonymous events (no user_id) cannot be persisted here and are skipped
+        (they still go to the file backend). The file backend remains the
+        canonical sink; the DB backend is an opt-in mirror.
+        """
+        if not entry.user_id:
+            return
+        try:
+            from app.core.database import get_db_session
+            from app.models.models import AdminAuditLog
+
+            # Derive role from details if present (AuditEntry has no role field).
+            admin_role = "unknown"
+            if entry.details and isinstance(entry.details, dict):
+                admin_role = entry.details.get("role", admin_role)
+
+            async with get_db_session() as db:
+                audit_log = AdminAuditLog(
+                    admin_user_id=entry.user_id,
+                    admin_role=admin_role,
+                    action=entry.action.value,
+                    target_user=entry.resource_id,
+                    details=entry.details,
+                    ip_address=entry.ip_address,
+                    user_agent=entry.user_agent,
+                )
+                db.add(audit_log)
+                await db.commit()
+        except Exception as e:
+            logger.error("Failed to write audit log to database: %s", e)
     
     async def _log_to_webhook(self, entry: AuditEntry) -> None:
         """Send audit entry to external webhook."""

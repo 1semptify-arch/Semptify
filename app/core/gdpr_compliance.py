@@ -372,14 +372,49 @@ class GDPRComplianceManager:
             return {}
     
     def _get_user_account_info(self, user_id: str) -> Dict[str, Any]:
-        """Get user account information."""
-        # This would depend on your user management system
-        return {
+        """
+        Get user account information from the database.
+
+        The DB layer is async-only, but this method is part of a synchronous
+        export chain, so the async query is executed in a dedicated thread with
+        its own event loop to avoid clashing with any running loop.
+        """
+        fallback = {
             "user_id": user_id,
-            "account_created": datetime.now(timezone.utc).isoformat(),  # Placeholder
-            "last_login": datetime.now(timezone.utc).isoformat(),  # Placeholder
-            "account_status": "active"
+            "account_created": None,
+            "last_login": None,
+            "account_status": "active",
         }
+
+        async def _fetch() -> Dict[str, Any]:
+            from app.core.database import get_db_session
+            from app.models.models import User
+            from sqlalchemy import select
+
+            async with get_db_session() as db:
+                result = await db.execute(select(User).where(User.id == user_id))
+                user = result.scalar_one_or_none()
+                if user:
+                    return {
+                        "user_id": user_id,
+                        "account_created": user.created_at.isoformat() if user.created_at else None,
+                        "last_login": user.last_login.isoformat() if getattr(user, "last_login", None) else None,
+                        "account_status": "active",
+                    }
+            return fallback
+
+        try:
+            import asyncio
+            from concurrent.futures import ThreadPoolExecutor
+
+            def _run() -> Dict[str, Any]:
+                return asyncio.run(_fetch())
+
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                return pool.submit(_run).result(timeout=10)
+        except Exception as e:
+            logger.error(f"Error getting user account info: {e}")
+            return fallback
     
     def _get_document_content(self, document_id: str) -> Optional[bytes]:
         """Get document content for export."""

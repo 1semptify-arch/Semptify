@@ -236,11 +236,11 @@ _register("app.modules.websocket.router", prefix="/ws", tags=("WebSocket Events"
 _register("app.modules.free_api.router", tags=("Free APIs",), tier=ProductTier.CORE)
 
 # Plugins
-_register("app.modules.plugins.router", tags=("Plugin System",), tier=ProductTier.CORE)
+# _register("app.modules.plugins.router", tags=("Plugin System",), tier=ProductTier.CORE)  # INACTIVE: Marketplace not built
 
 # Modular components & core infrastructure
-_register("app.modules.components.router", tags=("Modular Components",), tier=ProductTier.CORE,
-          log_message="Modular Components router connected - Component system integration active")
+# _register("app.modules.components.router", tags=("Modular Components",), tier=ProductTier.CORE,
+#           log_message="Modular Components router connected - Component system integration active")  # INACTIVE: Dev scaffolding
 _register("app.modules.core_system.router", router_attr="core_router", tags=("Core System",), tier=ProductTier.CORE)
 _register("app.modules.security.router", prefix="/api/security", tags=("Advanced Security",), tier=ProductTier.CORE,
           log_message="Advanced Security router connected - 2FA and session management active")
@@ -254,12 +254,22 @@ _register("app.modules.mndes.router", tags=("MNDES",), optional=False, tier=Prod
 # EXTENDED TIER — Legal Tools & Advanced Features (Disabled by Default)
 # =============================================================================
 
+# FEMS — Forensic Evidence Management System
+_register(
+    "app.modules.fems.router",
+    tags=("FEMS",),
+    prefix="",
+    optional=True,
+    tier=ProductTier.EXTENDED,
+    log_message="FEMS router loaded — Forensic Evidence Management active at /api/fems",
+)
+
 _register("app.modules.eviction_defense.router", tags=("Eviction Defense Toolkit",), tier=ProductTier.EXTENDED)
 _register("app.modules.zoom_court.router", tags=("Zoom Courtroom",), tier=ProductTier.EXTENDED)
 _register("app.modules.zoom_court_prep.router", tags=("Zoom Court Prep",), tier=ProductTier.EXTENDED)
 _register("app.modules.court_forms.router", tags=("Court Forms",), tier=ProductTier.EXTENDED)
 _register("app.modules.court_packet.router", tags=("Court Packet",), tier=ProductTier.EXTENDED)
-_register("app.modules.legal_filing.router", tags=("Legal Filing",), tier=ProductTier.EXTENDED)
+# _register("app.modules.legal_filing.router", tags=("Legal Filing",), tier=ProductTier.EXTENDED)  # INACTIVE: Not integrated with mesh/network
 _register("app.modules.legal_trails.router", tags=("Legal Trails",), tier=ProductTier.EXTENDED)
 _register("app.modules.tenant_defense", tags=("Tenant Defense",), tier=ProductTier.EXTENDED,
           log_message="Tenant Defense module loaded - Evidence, petitions, and screening disputes")
@@ -328,7 +338,7 @@ _register("app.modules.cloud_sync.router", tags=("Cloud Sync",), tier=ProductTie
 # AI infrastructure
 _register("app.modules.brain.router", prefix="/brain", tags=("Positronic Brain",), tier=ProductTier.RESEARCH,
           log_message="Positronic Brain connected - Central intelligence hub active")
-_register("app.modules.auto_mode.router", tags=("Auto Mode",), tier=ProductTier.RESEARCH)
+# _register("app.modules.auto_mode.router", tags=("Auto Mode",), tier=ProductTier.RESEARCH)  # INACTIVE: Not production-ready
 _register("app.modules.emotion.router", tags=("Emotion Engine",), tier=ProductTier.RESEARCH)
 _register("app.modules.positronic_mesh.router", prefix="/api", tags=("Positronic Mesh",), tier=ProductTier.RESEARCH)
 _register("app.modules.mesh_network.router", prefix="/api", tags=("Mesh Network",), tier=ProductTier.RESEARCH)
