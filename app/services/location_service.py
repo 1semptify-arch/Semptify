@@ -514,3 +514,54 @@ def register_with_mesh():
 
 # Auto-register on import
 register_with_mesh()
+
+
+# =============================================================================
+# JURISDICTION AUTO-DETECT
+# =============================================================================
+
+async def auto_detect_jurisdiction(user_id: str, client_ip: str) -> None:
+    """
+    Silently resolve jurisdiction from IP and store in LocationService.
+
+    Called once per session by JurisdictionMiddleware. If the user already
+    has a location set (or the IP is localhost) this is a no-op.
+    """
+    # Already set — nothing to do
+    if user_id in location_service.user_locations:
+        return
+
+    # Skip localhost / dev
+    if not client_ip or client_ip in ("127.0.0.1", "::1", "localhost"):
+        location_service.set_user_location(
+            user_id=user_id,
+            state_code="MN",
+            detection_method="default_dev",
+        )
+        return
+
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=3.0) as client:
+            resp = await client.get(f"http://ip-api.com/json/{client_ip}?fields=status,regionCode,region,city,zip,county")
+            if resp.status_code == 200:
+                data = resp.json()
+                if data.get("status") == "success":
+                    location_service.set_user_location(
+                        user_id=user_id,
+                        state_code=data.get("regionCode", "MN"),
+                        city=data.get("city"),
+                        zip_code=data.get("zip"),
+                        county=data.get("county"),
+                        detection_method="ip_geolocation",
+                    )
+                    return
+    except Exception as e:
+        logger.debug("auto_detect_jurisdiction: IP lookup failed for %s: %s", client_ip, e)
+
+    # Fallback
+    location_service.set_user_location(
+        user_id=user_id,
+        state_code="MN",
+        detection_method="default_fallback",
+    )

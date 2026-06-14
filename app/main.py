@@ -1383,7 +1383,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     from app.core.module_gate import ModuleGateMiddleware
     fastapi_app.add_middleware(ModuleGateMiddleware)
     logger.info("ðŸšª Module gate middleware enabled (role + jurisdiction activation)")
-    
+
+    # Jurisdiction Engine — auto-detects user state/county from IP (once per session)
+    from app.core.jurisdiction_middleware import JurisdictionMiddleware
+    fastapi_app.add_middleware(JurisdictionMiddleware)
+    logger.info("📍 Jurisdiction middleware enabled (auto-detect state from IP)")
+
     # Security headers (standard mode, adds headers to all responses)
     from app.core.security_headers import SecurityHeadersMiddleware
     fastapi_app.add_middleware(
