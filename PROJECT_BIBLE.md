@@ -37,6 +37,7 @@ If any other file conflicts with these, the canonical file wins unless the team 
 4. `SECURITY_AND_PRIVACY_ARCHITECTURE.md` — Canonical integrity, security, and privacy guide.
 5. `DEPLOYMENT_READINESS.md` — Canonical production readiness and deployment verification checklist.
 6. `BUILD_GUIDE_SSOT.md` — Canonical build status, testing results, and known issues.
+7. `SEMPTIFY_SYSTEM_MANIFEST.md` — Canonical module registry: active modules, disabled modules, tier map, and rules for adding new modules. **Any AI must read this before touching any module or router.**
 
 ## 2. Single Build Reference
 
@@ -128,6 +129,7 @@ This flow must land the user in an active vault session and a role-specific home
 - `AGENTS.md` is the AI and product ethics bible.
 - `SECURITY_AND_PRIVACY_ARCHITECTURE.md` is the system integrity bible.
 - `DEPLOYMENT_READINESS.md` is the production acceptance bible.
+- `SEMPTIFY_SYSTEM_MANIFEST.md` is the module registry bible. **All new modules are registered in `app/core/product_manifest.py` — never directly in `main.py`.**
 
 If there is any ambiguity, update `PROJECT_BIBLE.md` and the referenced canonical doc.
 

@@ -12,13 +12,7 @@ Read these files before touching any code:
 2. Read `BUILD_STATE.md` — last 2 entries only (what shipped, what is broken, what is pending)
 3. Read the Known Failure Registry in `AGENTS.md` — do not repeat past mistakes
 
-### Step 2: Check the tunnel
-// turbo
-Run this to check if cloudflared is running:
-```powershell
-sc query cloudflared | findstr STATE
-```
-If it shows STOPPED, remind the user to run as Admin: `sc start cloudflared`
+
 
 ### Step 3: Check the app
 // turbo
