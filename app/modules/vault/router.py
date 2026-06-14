@@ -279,6 +279,7 @@ async def upload_document(
             )
 
             # Timeline extraction (secondary, non-blocking)
+            timeline_events = []
             try:
                 from app.services.timeline_extraction import extract_timeline_from_upload
                 timeline_events = await extract_timeline_from_upload(
@@ -290,6 +291,115 @@ async def upload_document(
                 logger.info(f"Timeline: {len(timeline_events)} events for {vault_doc.vault_id}")
             except Exception as e:
                 logger.warning(f"Timeline extraction failed for {vault_doc.vault_id}: {e}")
+
+            # Document extraction + classification overlays (secondary, non-blocking)
+            try:
+                from app.services.document_intake import DocumentClassifier, DataExtractor
+                from app.services.unified_overlay_manager import get_unified_overlay_manager
+                from app.models.unified_overlay_models import CreateOverlayRequest
+                from app.core.overlay_types import OverlayType
+                from app.services.storage import get_provider as get_storage_provider
+
+                text = ""
+                try:
+                    from app.services.document_intake import IntakeService
+                    _intake = IntakeService()
+                    text = await _intake._extract_text(
+                        file_content, uploaded_file.content_type or "application/octet-stream", uploaded_file.filename
+                    )
+                except Exception:
+                    pass
+
+                if text and real_token:
+                    storage_prov = get_storage_provider(provider_name, access_token=real_token)
+                    ovl_mgr = await get_unified_overlay_manager(storage_prov, user.user_id)
+
+                    doc_type, type_confidence = DocumentClassifier.classify(text, uploaded_file.filename)
+                    dates = DataExtractor.extract_dates(text)
+                    amounts = DataExtractor.extract_amounts(text)
+                    parties = DataExtractor.extract_parties(text, doc_type)
+
+                    # DOCUMENT_EXTRACTION overlay
+                    await ovl_mgr.create_overlay(CreateOverlayRequest(
+                        overlay_type=OverlayType.DOCUMENT_EXTRACTION,
+                        document_id=vault_doc.vault_id,
+                        vault_path=vault_doc.storage_path,
+                        payload={
+                            "extracted_dates": dates,
+                            "extracted_parties": parties,
+                            "extracted_amounts": amounts,
+                            "key_terms": [],
+                            "confidence_score": type_confidence,
+                            "extraction_model": "text_parse",
+                        },
+                        metadata={"source_module": source, "filename": uploaded_file.filename},
+                    ))
+
+                    # DOCUMENT_CLASSIFICATION overlay
+                    await ovl_mgr.create_overlay(CreateOverlayRequest(
+                        overlay_type=OverlayType.DOCUMENT_CLASSIFICATION,
+                        document_id=vault_doc.vault_id,
+                        vault_path=vault_doc.storage_path,
+                        payload={
+                            "document_type": doc_type.value if hasattr(doc_type, "value") else str(doc_type),
+                            "confidence_score": type_confidence,
+                            "classification_model": "text_parse",
+                            "alternative_types": [],
+                        },
+                        metadata={"source_module": source, "filename": uploaded_file.filename},
+                    ))
+                    logger.info("Extraction overlays created for %s (type=%s)", vault_doc.vault_id, doc_type)
+            except Exception as e:
+                logger.warning("Extraction overlay creation failed for %s: %s", vault_doc.vault_id, e)
+
+            # Auto-sync timeline events to calendar (secondary, non-blocking)
+            if timeline_events:
+                try:
+                    from app.services.calendar_service import CalendarService
+                    from app.models.models import CalendarEvent as CalendarEventModel
+                    from app.core.database import get_db_session
+                    from app.core.id_gen import make_id as _make_id
+                    from app.core.utc import utc_now as _utc_now
+                    from datetime import datetime, timezone
+
+                    cal_service = CalendarService()
+                    cal_events = await cal_service.generate_events_from_timeline(
+                        [e if isinstance(e, dict) else (e.__dict__ if hasattr(e, "__dict__") else {}) for e in timeline_events]
+                    )
+
+                    if cal_events:
+                        async with get_db_session() as _db:
+                            from sqlalchemy import select as _select
+                            existing_titles_q = await _db.execute(
+                                _select(CalendarEventModel.title).where(
+                                    CalendarEventModel.user_id == user.user_id
+                                )
+                            )
+                            existing_titles = {r[0] for r in existing_titles_q.fetchall()}
+
+                            added = 0
+                            for ce in cal_events:
+                                if ce.title in existing_titles:
+                                    continue
+                                start_dt = datetime.combine(ce.start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+                                _db.add(CalendarEventModel(
+                                    id=_make_id("cal"),
+                                    user_id=user.user_id,
+                                    title=ce.title,
+                                    description=ce.description,
+                                    start_datetime=start_dt,
+                                    end_datetime=None,
+                                    all_day=True,
+                                    event_type=ce.event_type.value,
+                                    is_critical=ce.event_type.value in ("court_hearing", "notice_deadline"),
+                                    reminder_days=ce.reminders[0] // 1440 if ce.reminders else 1,
+                                    created_at=_utc_now(),
+                                ))
+                                added += 1
+                            await _db.commit()
+                        logger.info("Auto-synced %d calendar events from timeline for %s", added, vault_doc.vault_id)
+                except Exception as e:
+                    logger.warning("Calendar auto-sync failed for %s: %s", vault_doc.vault_id, e)
 
             # Issue function token for downstream access
             function_token = issue_function_access_token(
