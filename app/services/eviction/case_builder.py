@@ -479,20 +479,92 @@ class EvictionCaseBuilder:
     
     def _extract_landlord_info(self, documents: list[Document]) -> Optional[ExtractedLandlordInfo]:
         """Extract landlord info from documents."""
-        # TODO: Use AI extraction from lease documents
-        # For now, return placeholder
+        import re
+        for doc in documents:
+            doc_type = (doc.document_type or "").lower()
+            text = (getattr(doc, "extracted_text", None) or "").lower()
+            if not text or doc_type not in ("lease", "eviction_notice", "notice_to_quit", "court_summons", "court_complaint"):
+                continue
+
+            name = ""
+            address = ""
+
+            # Name: "landlord: X", "plaintiff: X", "lessor: X", "owner: X"
+            name_m = re.search(
+                r'(?:landlord|plaintiff|lessor|property\s+owner|owner)\s*[:\-]?\s*([A-Z][a-zA-Z\s\.\,]+?)(?:\n|,|address|phone|$)',
+                text, re.IGNORECASE
+            )
+            if name_m:
+                name = name_m.group(1).strip().rstrip(',').title()
+
+            # Address: first street address following landlord name block
+            addr_m = re.search(
+                r'(?:landlord|plaintiff|lessor)[^\n]{0,80}?\n\s*(\d{2,5}\s+[A-Za-z][A-Za-z0-9\s\.,]+(?:street|st|avenue|ave|road|rd|blvd|drive|dr|lane|ln|court|ct|way|circle|cir)\.?)',
+                text, re.IGNORECASE
+            )
+            if addr_m:
+                address = addr_m.group(1).strip().title()
+
+            if name:
+                return ExtractedLandlordInfo(name=name, address=address)
+
         return ExtractedLandlordInfo(name="")
     
     def _extract_notice_info(self, documents: list[Document]) -> Optional[EvictionNoticeInfo]:
         """Extract eviction notice info from documents."""
-        # Look for eviction notice documents
+        import re
+        NOTICE_TYPES = ("eviction_notice", "notice_to_quit", "court_summons", "court_complaint")
         for doc in documents:
-            if doc.document_type and "eviction" in doc.document_type.lower():
-                # TODO: Use AI extraction
-                return EvictionNoticeInfo(
-                    notice_type="nonpayment",  # Would be extracted
-                    date_served=doc.uploaded_at,
-                )
+            doc_type = (doc.document_type or "").lower()
+            filename = (doc.original_filename or doc.filename or "").lower()
+            text = (getattr(doc, "extracted_text", None) or "").lower()
+
+            is_notice = any(t in doc_type for t in NOTICE_TYPES) or \
+                any(kw in filename for kw in ("eviction", "notice", "summons", "complaint"))
+            if not is_notice:
+                continue
+
+            # Determine notice type
+            notice_type = "nonpayment"  # default
+            if re.search(r'non[- ]?payment|failure\s+to\s+pay|unpaid\s+rent', text):
+                notice_type = "nonpayment"
+            elif re.search(r'lease\s+violation|breach\s+of\s+lease|violation\s+of', text):
+                notice_type = "lease_violation"
+            elif re.search(r'holdover|end\s+of\s+tenancy|termination\s+of\s+tenancy', text):
+                notice_type = "holdover"
+            elif re.search(r'30[- ]day|thirty[- ]day', text):
+                notice_type = "30day_notice"
+            elif re.search(r'14[- ]day|fourteen[- ]day', text):
+                notice_type = "14day_notice"
+
+            # Notice amount claimed
+            amount = None
+            amt_m = re.search(r'\$\s*([\d,]+(?:\.\d{2})?)\s*(?:in\s+)?(?:rent|unpaid|owed|due)', text)
+            if amt_m:
+                try:
+                    amount = int(float(amt_m.group(1).replace(",", "")) * 100)
+                except ValueError:
+                    pass
+
+            # Date served — look for "served on", "dated", or fall back to uploaded_at
+            date_served = doc.uploaded_at
+            date_m = re.search(
+                r'(?:served|dated|notice\s+date|date\s+of\s+notice)\s*[:\-]?\s*(\w+\s+\d{1,2},?\s+\d{4})',
+                text, re.IGNORECASE
+            )
+            if date_m:
+                for fmt in ("%B %d %Y", "%B %d, %Y"):
+                    try:
+                        date_served = datetime.strptime(date_m.group(1).strip().rstrip(','), fmt).replace(tzinfo=timezone.utc)
+                        break
+                    except ValueError:
+                        pass
+
+            return EvictionNoticeInfo(
+                notice_type=notice_type,
+                date_served=date_served,
+                amount_claimed=amount,
+            )
         return None
     
     async def _get_timeline_events(

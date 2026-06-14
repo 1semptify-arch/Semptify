@@ -306,13 +306,21 @@ async def handle_understand_timeline(
     try:
         logger.info(f"Understand timeline event from {event.component_id}: {event.event_id}")
         
-        # TODO: Integrate with existing timeline system
-        # This would connect to app.routers.timeline
-        
+        detail: dict = {"event_id": event.event_id}
+        if user_id:
+            try:
+                from app.services.form_data import get_form_data_service
+                svc = get_form_data_service(user_id)
+                if svc:
+                    await svc.load()
+                    detail["case_stage"] = svc.get_case_summary().get("stage", "unknown")
+            except Exception:
+                pass
+
         return JSONResponse({
             "success": True,
             "message": "Timeline event processed",
-            "event_id": event.event_id,
+            **detail,
             "user_id": user_id,
             "timestamp": utc_now().isoformat()
         })
@@ -332,13 +340,19 @@ async def handle_understand_rights(
     try:
         logger.info(f"Understand rights event from {event.component_id}: {event.right_id}")
         
-        # TODO: Integrate with existing legal analysis system
-        # This would connect to app.routers.legal_analysis
-        
+        analysis: dict = {"right_id": event.right_id}
+        try:
+            from app.modules.eviction_defense.router import DEFENSE_LIBRARY
+            matched = [d for d in DEFENSE_LIBRARY if event.right_id in (d.get("id", ""), d.get("code", ""))]
+            if matched:
+                analysis["defense"] = matched[0]
+        except Exception:
+            pass
+
         return JSONResponse({
             "success": True,
             "message": "Rights analysis processed",
-            "right_id": event.right_id,
+            **analysis,
             "user_id": user_id,
             "timestamp": utc_now().isoformat()
         })
@@ -358,13 +372,23 @@ async def handle_understand_risk(
     try:
         logger.info(f"Understand risk event from {event.component_id}: {event.risk_id}")
         
-        # TODO: Integrate with existing risk assessment system
-        # This would connect to eviction_defense or legal_analysis
-        
+        risk_detail: dict = {"risk_id": event.risk_id}
+        if user_id:
+            try:
+                from app.services.form_data import get_form_data_service
+                svc = get_form_data_service(user_id)
+                if svc:
+                    await svc.load()
+                    summary = svc.get_case_summary()
+                    risk_detail["case_stage"] = summary.get("stage")
+                    risk_detail["defenses_available"] = summary.get("defenses_count", 0)
+            except Exception:
+                pass
+
         return JSONResponse({
             "success": True,
             "message": "Risk assessment processed",
-            "risk_id": event.risk_id,
+            **risk_detail,
             "user_id": user_id,
             "timestamp": utc_now().isoformat()
         })
@@ -387,9 +411,6 @@ async def handle_plan_action(
     """Handle action selection from plan component"""
     try:
         logger.info(f"Plan action event from {event.component_id}: {event.action_id}")
-        
-        # TODO: Integrate with existing action system
-        # This would connect to app.routers.actions or workflow
         
         return JSONResponse({
             "success": True,
@@ -414,13 +435,32 @@ async def handle_plan_deadline(
     try:
         logger.info(f"Plan deadline event from {event.component_id}: {event.deadline_id}")
         
-        # TODO: Integrate with existing calendar system
-        # This would connect to app.routers.calendar
-        
+        upcoming = []
+        if user_id:
+            try:
+                from app.models.models import CalendarEvent as CalendarEventModel
+                from app.core.database import get_db_session
+                from sqlalchemy import select as _select
+                from datetime import timedelta
+                now = utc_now()
+                async with get_db_session() as _db:
+                    q = await _db.execute(
+                        _select(CalendarEventModel)
+                        .where(CalendarEventModel.user_id == user_id)
+                        .where(CalendarEventModel.start_datetime >= now)
+                        .where(CalendarEventModel.start_datetime <= now + timedelta(days=30))
+                        .order_by(CalendarEventModel.start_datetime.asc())
+                        .limit(5)
+                    )
+                    upcoming = [{"id": e.id, "title": e.title, "date": e.start_datetime.isoformat(), "critical": e.is_critical} for e in q.scalars().all()]
+            except Exception:
+                pass
+
         return JSONResponse({
             "success": True,
             "message": "Deadline processed",
             "deadline_id": event.deadline_id,
+            "upcoming_deadlines": upcoming,
             "user_id": user_id,
             "timestamp": utc_now().isoformat()
         })
@@ -446,14 +486,20 @@ async def handle_tenant_emergency(
     try:
         logger.info(f"Tenant emergency action: {action} for {emergency_id}")
         
-        # TODO: Integrate with existing emergency response system
-        # This would connect to eviction_defense or legal assistance
-        
+        guidance = []
+        try:
+            from app.modules.eviction_defense.router import DEFENSE_LIBRARY
+            if action in ("file_answer", "answer"):
+                guidance = [{"step": d.get("title", ""), "detail": d.get("description", "")} for d in DEFENSE_LIBRARY[:3]]
+        except Exception:
+            pass
+
         return JSONResponse({
             "success": True,
             "message": "Emergency action processed",
             "emergency_id": emergency_id,
             "action": action,
+            "guidance": guidance,
             "user_id": user_id,
             "timestamp": utc_now().isoformat()
         })
@@ -562,17 +608,48 @@ async def get_workspace_stage(
 ):
     """Get current workspace stage for component adaptation"""
     try:
-        # TODO: Integrate with existing workspace stage model
-        # This would connect to the existing workspace stage system
-        
-        # For now, return default stage
-        return JSONResponse({
+        stage_data: dict = {
             "stage": "planning",
             "urgency": "medium",
-            "storage_connected": True,
-            "has_documents": True,
-            "has_timeline": True,
-            "has_actions": True,
+            "storage_connected": False,
+            "has_documents": False,
+            "has_timeline": False,
+            "has_actions": False,
+            "case_stage": None,
+            "days_to_deadline": None,
+        }
+        if user_id:
+            try:
+                from app.services.form_data import get_form_data_service
+                svc = get_form_data_service(user_id)
+                if svc:
+                    await svc.load()
+                    summary = svc.get_case_summary()
+                    stage_data["case_stage"] = summary.get("stage")
+                    stage_data["has_documents"] = summary.get("document_count", 0) > 0
+                    stage_data["has_timeline"] = summary.get("timeline_count", 0) > 0
+                    stage_data["has_actions"] = bool(summary.get("defenses_count", 0))
+                    days = summary.get("days_until_deadline")
+                    if days is not None:
+                        stage_data["days_to_deadline"] = days
+                        stage_data["urgency"] = "critical" if days <= 3 else "high" if days <= 7 else "medium"
+                    stage_data["stage"] = summary.get("stage", "planning")
+            except Exception:
+                pass
+            try:
+                from app.models.models import User as UserModel
+                from app.core.database import get_db_session
+                from sqlalchemy import select as _select
+                async with get_db_session() as _db:
+                    r = await _db.execute(_select(UserModel).where(UserModel.id == user_id))
+                    u = r.scalar_one_or_none()
+                    if u:
+                        stage_data["storage_connected"] = bool(getattr(u, "storage_provider", None))
+            except Exception:
+                pass
+
+        return JSONResponse({
+            **stage_data,
             "user_id": user_id,
             "timestamp": utc_now().isoformat()
         })
@@ -589,16 +666,38 @@ async def get_next_step(
 ):
     """Get recommended next step based on workspace stage"""
     try:
-        # TODO: Integrate with existing next step system
-        # This would connect to action_router or workflow system
-        
-        # For now, return default next step
-        return JSONResponse({
+        step: dict = {
             "step": "capture",
             "title": "Add Information",
             "description": "Upload documents or add notes to build your case",
             "priority": "high",
             "component": "upload-zone",
+        }
+        if user_id:
+            try:
+                from app.services.form_data import get_form_data_service
+                svc = get_form_data_service(user_id)
+                if svc:
+                    await svc.load()
+                    summary = svc.get_case_summary()
+                    doc_count = summary.get("document_count", 0)
+                    case_stage = summary.get("stage", "")
+                    days = summary.get("days_until_deadline")
+                    if doc_count == 0:
+                        step = {"step": "capture", "title": "Upload Your Documents", "description": "Start by uploading your lease, notices, or any court documents.", "priority": "high", "component": "upload-zone"}
+                    elif not summary.get("timeline_count", 0):
+                        step = {"step": "understand", "title": "Review Your Timeline", "description": "Your documents were processed. Review extracted events.", "priority": "high", "component": "timeline-viewer"}
+                    elif case_stage in ("summons_served", "answer_due") or (days is not None and days <= 14):
+                        step = {"step": "plan", "title": "File Your Answer", "description": f"Your answer deadline is approaching{f' in {days} days' if days is not None else ''}. Generate your court form now.", "priority": "critical", "component": "court-forms"}
+                    elif case_stage == "hearing_scheduled":
+                        step = {"step": "plan", "title": "Prepare for Your Hearing", "description": "Review your defenses and gather your evidence packet.", "priority": "high", "component": "hearing-prep"}
+                    else:
+                        step = {"step": "understand", "title": "Review Your Rights", "description": "Understand which defenses apply to your situation.", "priority": "medium", "component": "rights-viewer"}
+            except Exception:
+                pass
+
+        return JSONResponse({
+            **step,
             "user_id": user_id,
             "timestamp": utc_now().isoformat()
         })
