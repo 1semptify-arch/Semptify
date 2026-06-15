@@ -131,6 +131,43 @@
         
         <!-- Main Content -->
         <main class="dashboard-content">
+            <!-- Data Freshness Status -->
+            {% if freshness_score is defined %}
+            <div class="freshness-status-section" style="margin-bottom: 1.5rem; padding: 1rem; background: {% if freshness_score >= 80 %}#dcfce7{% elif freshness_score >= 50 %}#fef3c7{% else %}#fee2e2{% endif %}; border-radius: 0.5rem; border-left: 4px solid {% if freshness_score >= 80 %}#22c55e{% elif freshness_score >= 50 %}#f59e0b{% else %}#ef4444{% endif %}; display: {% if freshness_warnings %}block{% else %}none{% endif %};" id="freshness-banner">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.25rem;">{% if freshness_score >= 80 %}✅{% elif freshness_score >= 50 %}⚠️{% else %}🚨{% endif %}</span>
+                        <div>
+                            <div style="font-weight: 600; color: {% if freshness_score >= 80 %}#166534{% elif freshness_score >= 50 %}#92400e{% else %}#991b1b{% endif %};">
+                                Data Freshness: {{ freshness_score }}%
+                            </div>
+                            {% if freshness_warnings %}
+                            <div style="font-size: 0.875rem; color: {% if freshness_score >= 80 %}#166534{% elif freshness_score >= 50 %}#92400e{% else %}#991b1b{% endif %}; margin-top: 0.25rem;">
+                                <strong>Warnings:</strong> {{ freshness_warnings|join(', ') }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <button onclick="dismissFreshnessBanner()" style="background: none; border: none; cursor: pointer; font-size: 1.25rem; color: inherit; opacity: 0.6;">×</button>
+                </div>
+                {% if freshness_recommendations %}
+                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(0,0,0,0.1);">
+                    <div style="font-size: 0.8rem; font-weight: 600; color: inherit; margin-bottom: 0.5rem;">Recommendations:</div>
+                    <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.875rem; color: inherit;">
+                        {% for rec in freshness_recommendations %}
+                        <li>{{ rec }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            <script>
+                function dismissFreshnessBanner() {
+                    document.getElementById('freshness-banner').style.display = 'none';
+                }
+            </script>
+            {% endif %}
+
             <!-- Emergency Actions -->
             <div class="emergency-section">
                 {% include "design-system/components/function-groups/role-specific/tenant/emergency-actions.html" %}
