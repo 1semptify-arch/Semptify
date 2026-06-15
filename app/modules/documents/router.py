@@ -1037,6 +1037,60 @@ async def process_document(
 
     # =========================================================================
 
+    # STEP 9: FILEDORED POST-PROCESSING (Virtual Organization)
+
+    # =========================================================================
+
+    try:
+
+        # Process through filedored system for virtual folder organization
+        from app.services.filedored_service import process_uploaded_document
+
+        filedored_result = await process_uploaded_document(
+
+            vault_id=vault_id,
+
+            user_id=user_id,
+
+            filename=doc.filename,
+
+            content=content,
+
+            sha256_hash=content_hash,
+
+            enable_ai=False  # AI classification disabled by default
+
+        )
+
+        logger.info(f"Filedored processing: {filedored_result.get('status', 'unknown')} for {vault_id}")
+
+        # Detect duplicates across vault
+        from app.services.duplicate_detection_service import detect_duplicates
+
+        duplicate_result = await detect_duplicates(
+
+            user_id=user_id,
+
+            vault_id=vault_id,
+
+            sha256_hash=content_hash,
+
+            filename=doc.filename
+
+        )
+
+        if duplicate_result.get("is_duplicate"):
+
+            logger.info(f"Duplicate detected: {vault_id} matches {duplicate_result.get('original_vault_id')}")
+
+    except Exception as e:
+
+        logger.warning(f"Filedored processing failed (non-critical): %s", e)
+
+
+
+    # =========================================================================
+
     # BUILD COMPREHENSIVE RESPONSE
 
     # =========================================================================
