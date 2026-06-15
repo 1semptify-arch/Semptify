@@ -12,6 +12,47 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-15 PM — Kimi 2.6: Case Builder Freshness + Minnesota Rules + UI
+**Commit: f0e6d40 | Status: Deployed to Render**
+
+### What Was Shipped
+
+#### Case Builder Data Freshness Integration (COMPLETE)
+- **General freshness validation** — `validate_case_freshness()` checks legal content, court rules, forms, deadlines
+- **Minnesota-specific legal rules** — `validate_minnesota_legal_requirements()` with 7-day/14-day notice periods, service methods, right-to-counsel counties
+- **Court forms freshness** — `validate_court_forms_freshness()` with case-type specific form checking
+- **Action recommendations** — `get_freshness_action_recommendations()` generates prioritized actionable items
+- **4 new API endpoints** — `/validate-freshness`, `/validate-minnesota`, `/validate-court-forms`, `/freshness-recommendations`
+- **Deadline freshness in intake** — `intake_complaint()` now checks deadline_rules freshness and warns users
+
+#### Tenant Dashboard Freshness UI (COMPLETE)
+- **Color-coded freshness banner** — Green (≥80%), amber (50-79%), red (<50%) with emoji indicators
+- **Dismissible warnings** — Click × to hide banner; shows only when warnings exist
+- **Recommendations list** — Expandable section with specific action steps
+- **Template context integration** — Reads `freshness_score`, `freshness_warnings`, `freshness_recommendations` from TenantBriefcase
+
+### What Is Known Working
+- All validation functions compile and execute correctly
+- TenantBriefcase freshness properties update and expose to templates
+- Minnesota validation correctly identifies MN cases and checks notice periods
+- Court form validation tracks required forms per case type
+- All files compile clean: `python -m py_compile` passes
+
+### What Is Known Broken or Pending
+- No live server testing performed (Playwright tests skipped — server not running)
+- `registry_id` assignment broken in vault upload pipeline (from ACTIVE_CONTEXT.md)
+- Admin OAuth role fix pending (from ACTIVE_CONTEXT.md)
+- SWE 1.6 tasks (swe-1 to swe-8) not started
+
+### What Next Session Should Start With
+- Run `/preflight` before any code changes
+- Current priority per ACTIVE_CONTEXT.md: **Admin Auth + Role Hierarchy**
+  - Fix: `app/modules/storage/router.py` line 1820-1826 — use `matched_user.default_role`
+  - Design: Role hierarchy with `user_relationships` table + `acting_as` session context
+  - Fix: `registry_id` assignment in vault upload pipeline
+
+---
+
 ## Session — 2026-06-15 — Data Freshness Integration with Context Systems
 **Commit: aaeae82 | Status: Deployed to Render**
 
