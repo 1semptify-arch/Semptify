@@ -371,10 +371,6 @@ class DataFreshnessManager:
         logger.info("Stopping background freshness scheduler")
 
 
-# Global instance
-data_freshness_manager = DataFreshnessManager()
-
-
 # Default refresh functions (to be implemented)
 async def refresh_legal_content(metadata: Dict[str, Any]):
     """Refresh legal content from various sources."""
@@ -418,6 +414,9 @@ async def refresh_search_index(metadata: Dict[str, Any]):
     # Implementation would rebuild search indexes
     pass
 
+
+# Global instance - created after all functions are defined
+data_freshness_manager = DataFreshnessManager()
 
 # Register default functions
 # Temporarily disabled to debug unhashable dict error
