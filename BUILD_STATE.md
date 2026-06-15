@@ -13,7 +13,7 @@ their legal rights—not tenants breaking the law.
 ---
 
 ## Session — 2026-06-14 — Repository Cleanup & Filedored Integration
-**Commit: pending | Status: Ready for push**
+**Commit: 1e33b12 | Status: Committed locally, push failed (auth issue)**
 
 ### What Was Shipped
 
