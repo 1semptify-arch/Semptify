@@ -12,6 +12,98 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-14 — Repository Cleanup & Filedored Integration
+**Commit: pending | Status: Ready for push**
+
+### What Was Shipped
+
+#### Filedored Document Organization System (COMPLETE)
+- **Filedored router** (`app/modules/filedored/router.py`) - 5 REST endpoints
+- **Filedored service** (`app/services/filedored_service.py`) - Virtual organization logic
+- **Duplicate detection service** (`app/services/duplicate_detection_service.py`) - Cross-vault dedup
+- **Overlay types** - `FILEDORED` and `DUPLICATE_DETECTION` registered
+- **Document router integration** - Auto-processing in `/process` endpoint
+- **UI integration** - Added to Office and Tools pages
+- **GUI Requirements** - Complete specification following new contract pattern
+
+#### Repository Infrastructure
+- **GUI Requirements Contract** (`app/core/gui_contract.py`) - Universal UI spec system
+- **AI Tool Crib** (`app/core/ai_tool_crib.py`) - Centralized AI service management
+- **Accountability Planner** (`app/core/accountability_planner.py`) - Audit & compliance framework
+- **Contracts Framework** (`app/core/contracts_framework.py`) - Legal agreement management
+- **Repository Assessment** (`REPOSITORY_CLEANUP_ASSESSMENT.md`) - Complete health analysis
+
+#### Documentation Updates
+- **README.md** - Updated with latest features and repository health
+- **BUILD_STATE.md** - Current session status
+- **Multiple assessment reports** - Identified need for consolidation
+
+### Known Working
+- ✅ Filedored virtual folder organization
+- ✅ Automatic duplicate detection
+- ✅ Document router integration
+- ✅ Office & Tools page integration
+- ✅ GUI contract system
+- ✅ AI service management framework
+- ✅ Accountability and compliance tracking
+
+### Known Pending
+- 📋 System bleed cleanup (localhost references, hardcoded credentials)
+- 📋 Consolidate duplicate assessment documents
+- 📋 Remove debug code from production
+- 📋 Complete missing contracts/waivers
+- 📋 Mobile module integration planning
+- 📋 AI service SWE 1.6 integration
+
+### System Health
+- **Total Files:** 350+ (Python: 230+, HTML: 54+, JS: 49+, MD: 68+)
+- **Production Modules:** 85+ active modules
+- **Security Issues:** 15+ files with localhost references
+- **Missing Contracts:** 6 contracts need implementation
+- **Documentation:** Comprehensive but needs consolidation
+
+### Next Session Start
+1. Remove system bleed (localhost, hardcoded credentials)
+2. Consolidate duplicate assessment documents
+3. Remove debug code from production files
+4. Complete missing legal contracts
+5. Plan mobile module integration
+
+---
+
+## Session — 2026-06-14 — FEMS Module + System Manifest
+**Commit: `581ab5a` | Push: pending (GitHub token refresh needed)**
+
+### What Was Shipped
+
+- **FEMS module** (`app/modules/fems/`) — Forensic Evidence Management System
+  - 6 PostgreSQL tables in `semptifty_db` via Alembic migration
+  - File ingestion with SHA-256 dedup, PDF/OCR/email text extraction, phone number extraction
+  - Full-text keyword search + phone number search across all evidence
+  - 10 REST endpoints at `/api/fems/*`
+  - Registered in EXTENDED tier in `product_manifest.py`
+- **Neon schema permissions** — `GRANT CREATE ON SCHEMA public TO authenticator` applied
+- **Alembic migrations** — merged dual heads, ran all 4 pending migrations clean
+- **SEMPTIFY_SYSTEM_MANIFEST.md** — new canonical doc: module registry, tiers, AI agent rules
+- **PROJECT_BIBLE.md** — manifest added as item #7 in canonical doc hierarchy
+
+### Known Working
+- Server starts clean, all tiers loaded, FEMS router active at `/api/fems`
+- All 6 FEMS tables created in `semptifty_db`
+- Cloudflare dev mode ON + cache purged
+
+### Known Pending
+- GitHub token expired — need to refresh and push `581ab5a` to origin
+- FEMS admin UI (upload, search interface) not yet built
+- `vault_all_in_one` router still skipped (pre-existing: `VaultIngestionService` import error)
+
+### Next Session Start
+1. Refresh GitHub token and push `581ab5a`
+2. Build FEMS upload/search UI page at `static/fems/`
+3. Link FEMS to Semptify user accounts (add `user_id` column to `fems_cases`)
+
+---
+
 ## Session — 2026-06-14 — Gap Closure: Live Data Wiring (All Blocking Gaps Fixed)
 **Commit: `ce22bb4` | Pushed: 2026-06-14**
 
@@ -1344,7 +1436,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 1. **Traceback Size Limit** — Truncate error tracebacks to 3000 characters
    - Proxy buffers (Cloudflare/Render) truncate responses at ~4KB
    - Caused JSON parsing errors at position 3949
-   - Now tracebacks are truncated with "[truncated for response size]" notice
+   - Now tracebacks are truncated with "\[truncated for response size\]" notice
 
 ---
 
