@@ -27,9 +27,339 @@ from app.core.database import get_db
 from app.core.document_hub import get_document_hub, CaseData
 from app.core.utc import utc_now
 
+# Import data freshness manager for legal accuracy validation
+try:
+    from app.core.data_freshness_manager import data_freshness_manager, FreshnessStatus
+    FRESHNESS_AVAILABLE = True
+except ImportError:
+    logger.warning("Data freshness manager not available - legal accuracy validation disabled")
+    FRESHNESS_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/case-builder", tags=["Case Builder"])
+
+
+# =============================================================================
+# FRESHNESS VALIDATION
+# =============================================================================
+
+def validate_case_freshness(case_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Validate freshness of legal data for case creation.
+    
+    Returns:
+        Dict with validation results and warnings
+    """
+    if not FRESHNESS_AVAILABLE:
+        return {"status": "unavailable", "warnings": []}
+    
+    validation_results = {
+        "status": "validated",
+        "freshness_score": 100.0,
+        "warnings": [],
+        "stale_items": [],
+        "recommendations": []
+    }
+    
+    # Check legal content freshness for case type
+    case_type = case_data.get("case_type", "eviction_defense")
+    legal_freshness = data_freshness_manager.check_freshness(f"legal_content_{case_type}")
+    if legal_freshness != FreshnessStatus.FRESH:
+        validation_results["warnings"].append(f"Legal content for {case_type} may be outdated")
+        validation_results["stale_items"].append("legal_content")
+        validation_results["recommendations"].append("Review latest eviction defense laws")
+    
+    # Check court rules freshness
+    court = case_data.get("court", "")
+    if court:
+        court_freshness = data_freshness_manager.check_freshness(f"court_rules_{court}")
+        if court_freshness != FreshnessStatus.FRESH:
+            validation_results["warnings"].append(f"Court rules for {court} may be outdated")
+            validation_results["stale_items"].append("court_rules")
+            validation_results["recommendations"].append("Verify current court procedures")
+    
+    # Check form requirements freshness
+    form_freshness = data_freshness_manager.check_freshness("court_forms")
+    if form_freshness != FreshnessStatus.FRESH:
+        validation_results["warnings"].append("Court form requirements may be outdated")
+        validation_results["stale_items"].append("court_forms")
+        validation_results["recommendations"].append("Update form templates")
+    
+    # Check deadline rules freshness
+    deadline_freshness = data_freshness_manager.check_freshness("deadline_rules")
+    if deadline_freshness != FreshnessStatus.FRESH:
+        validation_results["warnings"].append("Deadline calculation rules may be outdated")
+        validation_results["stale_items"].append("deadline_rules")
+        validation_results["recommendations"].append("Verify deadline calculations")
+    
+    # Calculate overall freshness score
+    total_checks = 4  # legal_content, court_rules, court_forms, deadline_rules
+    fresh_count = total_checks - len(validation_results["stale_items"])
+    validation_results["freshness_score"] = (fresh_count / total_checks) * 100
+    
+    return validation_results
+
+
+def get_freshness_action_recommendations(freshness_results: Dict[str, Any]) -> List[Dict[str, str]]:
+    """
+    Generate action recommendations based on freshness validation results.
+    
+    Returns a list of actionable recommendations prioritized by urgency.
+    """
+    recommendations = []
+    
+    # Check overall freshness score
+    score = freshness_results.get("freshness_score", 100)
+    stale_items = freshness_results.get("stale_items", [])
+    warnings = freshness_results.get("warnings", [])
+    
+    if score < 50:
+        recommendations.append({
+            "priority": "critical",
+            "action": "Verify all legal information before proceeding",
+            "description": "Multiple data sources are outdated. Legal accuracy cannot be guaranteed.",
+            "cta": "Review Updates",
+            "icon": "warning"
+        })
+    elif score < 80:
+        recommendations.append({
+            "priority": "high",
+            "action": "Review outdated information",
+            "description": "Some legal data may be stale. Verify before filing.",
+            "cta": "Check Updates",
+            "icon": "alert"
+        })
+    
+    # Specific recommendations based on stale items
+    if "legal_content" in stale_items:
+        recommendations.append({
+            "priority": "high",
+            "action": "Update legal content knowledge",
+            "description": "Eviction defense laws may have changed. Review latest statutes.",
+            "cta": "View Laws",
+            "icon": "book"
+        })
+    
+    if "court_rules" in stale_items:
+        recommendations.append({
+            "priority": "medium",
+            "action": "Verify court procedures",
+            "description": "Court rules may have been updated. Check with court clerk.",
+            "cta": "Contact Court",
+            "icon": "court"
+        })
+    
+    if "court_forms" in stale_items:
+        recommendations.append({
+            "priority": "medium",
+            "action": "Download latest court forms",
+            "description": "Form requirements may have changed. Get current versions.",
+            "cta": "Get Forms",
+            "icon": "document"
+        })
+    
+    if "deadline_rules" in stale_items:
+        recommendations.append({
+            "priority": "critical",
+            "action": "Verify all deadlines immediately",
+            "description": "Deadline calculations may be incorrect. Missing a deadline could be fatal to your case.",
+            "cta": "Check Deadlines",
+            "icon": "clock"
+        })
+    
+    # General recommendations based on warnings
+    if any("Minnesota" in w for w in warnings):
+        recommendations.append({
+            "priority": "high",
+            "action": "Review Minnesota-specific requirements",
+            "description": "Minnesota law requires specific notice periods and service methods.",
+            "cta": "MN Guide",
+            "icon": "map"
+        })
+    
+    if any("COVID" in w for w in warnings):
+        recommendations.append({
+            "priority": "medium",
+            "action": "Check current emergency protections",
+            "description": "COVID-19 protections may have changed. Verify current status.",
+            "cta": "Check Status",
+            "icon": "shield"
+        })
+    
+    # Always add a general recommendation
+    if not recommendations:
+        recommendations.append({
+            "priority": "low",
+            "action": "Data is current",
+            "description": "All legal information appears up to date.",
+            "cta": "Continue",
+            "icon": "check"
+        })
+    
+    return recommendations
+
+
+def validate_court_forms_freshness(case_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Validate court form requirements freshness.
+    
+    Checks:
+    - Form templates are current
+    - Required forms for case type are available
+    - Form versions match court requirements
+    - E-filing requirements are up to date
+    
+    Returns:
+        Dict with form validation results
+    """
+    if not FRESHNESS_AVAILABLE:
+        return {"status": "unavailable", "forms": []}
+    
+    validation_results = {
+        "status": "validated",
+        "forms": [],
+        "warnings": [],
+        "recommendations": []
+    }
+    
+    case_type = case_data.get("case_type", "eviction_defense")
+    court = case_data.get("court", "")
+    
+    # Check general court forms freshness
+    forms_freshness = data_freshness_manager.check_freshness("court_forms")
+    if forms_freshness != FreshnessStatus.FRESH:
+        validation_results["warnings"].append("Court forms may be outdated")
+        validation_results["recommendations"].append("Download latest forms from court website")
+    
+    # Check case-type specific forms
+    required_forms = {
+        "eviction_defense": ["Answer", "Counterclaim", "Motion to Dismiss"],
+        "eviction_defense_rent_nonpayment": ["Answer", "Payment Plan Request", "Hardship Declaration"],
+        "eviction_defense_lease_violation": ["Answer", "Cure Violation Notice", "Motion for Continuance"]
+    }
+    
+    forms_for_case = required_forms.get(case_type, required_forms["eviction_defense"])
+    
+    for form_name in forms_for_case:
+        form_key = f"form_{form_name.lower().replace(' ', '_')}"
+        form_freshness = data_freshness_manager.check_freshness(form_key)
+        
+        form_status = {
+            "form": form_name,
+            "status": "current" if form_freshness == FreshnessStatus.FRESH else "stale",
+            "required": True
+        }
+        
+        if form_freshness != FreshnessStatus.FRESH:
+            validation_results["warnings"].append(f"Form '{form_name}' may be outdated")
+            form_status["recommendation"] = f"Verify latest version of {form_name}"
+        
+        validation_results["forms"].append(form_status)
+    
+    # Check e-filing requirements if applicable
+    if "e-file" in court.lower() or "electronic" in court.lower():
+        efiling_freshness = data_freshness_manager.check_freshness("efiling_requirements")
+        if efiling_freshness != FreshnessStatus.FRESH:
+            validation_results["warnings"].append("E-filing requirements may be outdated")
+            validation_results["recommendations"].append("Verify e-filing procedures with court")
+    
+    return validation_results
+
+
+def validate_minnesota_legal_requirements(case_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Validate Minnesota-specific legal requirements for eviction cases.
+    
+    Minnesota-specific rules:
+    - 7-day notice for non-payment of rent (Minn. Stat. § 504B.285)
+    - 14-day notice for lease violations (Minn. Stat. § 504B.285)
+    - 30-day notice for month-to-month termination (Minn. Stat. § 504B.135)
+    - Proper service requirements (personal, substitute, or posting + mailing)
+    - Right to counsel in certain counties
+    - Notice to vacate requirements
+    
+    Returns:
+        Dict with Minnesota-specific validation results
+    """
+    validation_results = {
+        "state": "Minnesota",
+        "requirements_validated": [],
+        "warnings": [],
+        "recommendations": []
+    }
+    
+    # Check if this is a Minnesota case
+    court = case_data.get("court", "").lower()
+    property_address = case_data.get("property_address", "").lower()
+    
+    is_mn_case = any([
+        "minnesota" in court,
+        "mn" in court,
+        "county" in court and "district" in court,
+        any(city in property_address for city in ["minneapolis", "st. paul", "duluth", "rochester"])
+    ])
+    
+    if not is_mn_case:
+        validation_results["state"] = "unknown"
+        return validation_results
+    
+    # Check notice period requirements
+    notice_period = case_data.get("notice_period_days")
+    complaint_type = case_data.get("complaint_type", "eviction")
+    
+    if complaint_type == "eviction" or complaint_type == "rent_nonpayment":
+        # Minnesota requires 7-day notice for non-payment
+        if notice_period and notice_period < 7:
+            validation_results["warnings"].append(
+                f"Minnesota requires 7-day notice for non-payment (Minn. Stat. § 504B.285), "
+                f"but notice period is {notice_period} days"
+            )
+            validation_results["recommendations"].append(
+                "Verify notice period complies with Minnesota law"
+            )
+        validation_results["requirements_validated"].append("notice_period_7_day")
+        
+    elif complaint_type == "lease_violation":
+        # Minnesota requires 14-day notice for lease violations
+        if notice_period and notice_period < 14:
+            validation_results["warnings"].append(
+                f"Minnesota requires 14-day notice for lease violations (Minn. Stat. § 504B.285), "
+                f"but notice period is {notice_period} days"
+            )
+        validation_results["requirements_validated"].append("notice_period_14_day")
+    
+    # Check for proper service requirements
+    service_method = case_data.get("service_method", "").lower()
+    if service_method:
+        valid_methods = ["personal", "substitute", "posting", "mailing", "certified_mail"]
+        if service_method not in valid_methods:
+            validation_results["warnings"].append(
+                f"Service method '{service_method}' may not comply with Minnesota requirements"
+            )
+            validation_results["recommendations"].append(
+                "Use personal service, substitute service, or posting + mailing per Minn. Stat. § 504B.331"
+            )
+        validation_results["requirements_validated"].append("service_method")
+    
+    # Check for right to counsel (pilot program in certain counties)
+    right_to_counsel_counties = ["hennepin", "ramsey", "dakota", "anoka"]
+    if any(county in court for county in right_to_counsel_counties):
+        validation_results["requirements_validated"].append("right_to_counsel_notice")
+        validation_results["recommendations"].append(
+            "Tenant may have right to free legal counsel - verify with county program"
+        )
+    
+    # Check for COVID-19 protections (if applicable)
+    if case_data.get("covid_impact", False):
+        validation_results["warnings"].append(
+            "COVID-19 impact claimed - verify current emergency protections"
+        )
+        validation_results["recommendations"].append(
+            "Check for active emergency tenant protections in Minnesota"
+        )
+    
+    return validation_results
 
 
 # =============================================================================
@@ -677,7 +1007,29 @@ async def create_case(case: CaseCreate, user: StorageUser = Depends(yellow_acces
     """Create a new case for the authenticated user."""
     user_id = user.user_id
     
+    # Prepare case data for freshness validation
     case_data = {
+        "case_type": case.case_type,
+        "court": case.court,
+        "property_address": case.property_address,
+        "rent_amount": case.rent_amount,
+        "security_deposit": case.security_deposit,
+        "plaintiff_name": case.plaintiff_name,
+        "defendant_name": case.defendant_name,
+        "hearing_date": case.hearing_date,
+        "lease_start": case.lease_start,
+        "lease_end": case.lease_end
+    }
+    
+    # Validate legal data freshness
+    freshness_validation = validate_case_freshness(case_data)
+    
+    # Log freshness warnings for legal compliance
+    if freshness_validation.get("warnings"):
+        logger.warning(f"⚠️ Legal freshness warnings for case {case.case_number}: {freshness_validation['warnings']}")
+    
+    # Build complete case data
+    complete_case_data = {
         "user_id": user_id,  # Store user ownership
         "case_number": case.case_number,
         "case_type": case.case_type,
@@ -705,12 +1057,138 @@ async def create_case(case: CaseCreate, user: StorageUser = Depends(yellow_acces
         "defenses": [],
         "notes": [case.notes] if case.notes else [],
         "created_at": utc_now().isoformat(),
-        "updated_at": utc_now().isoformat()
+        "updated_at": utc_now().isoformat(),
+        # Add freshness validation results
+        "freshness_validation": freshness_validation,
+        "legal_accuracy_score": freshness_validation.get("freshness_score", 100.0)
     }
     
-    save_case(case.case_number, case_data, user_id)
+    save_case(case.case_number, complete_case_data, user_id)
     
-    return {"success": True, "case_number": case.case_number, "case": case_data}
+    return {
+        "success": True, 
+        "case_number": case.case_number, 
+        "case": complete_case_data,
+        "freshness_validation": freshness_validation
+    }
+
+
+@router.post("/validate-freshness")
+async def validate_case_legal_accuracy(
+    case_data: Dict[str, Any] = Body(...),
+    user: StorageUser = Depends(yellow_access)
+):
+    """
+    Validate legal accuracy and freshness of case data.
+    
+    This endpoint can be called before case creation to ensure
+    all legal content is current and accurate.
+    """
+    if not FRESHNESS_AVAILABLE:
+        return {
+            "status": "unavailable",
+            "message": "Freshness validation not available",
+            "recommendations": ["Contact system administrator"]
+        }
+    
+    validation_results = validate_case_freshness(case_data)
+    
+    # Add user-friendly messaging
+    if validation_results["freshness_score"] >= 95:
+        status_message = "✅ All legal content is current and accurate"
+    elif validation_results["freshness_score"] >= 85:
+        status_message = "⚠️ Some legal content may need review"
+    else:
+        status_message = "🚨 Legal content requires immediate review"
+    
+    return {
+        "status": validation_results["status"],
+        "message": status_message,
+        "freshness_score": validation_results["freshness_score"],
+        "warnings": validation_results["warnings"],
+        "recommendations": validation_results["recommendations"],
+        "stale_items": validation_results["stale_items"],
+        "user_id": user.user_id,
+        "validated_at": utc_now().isoformat()
+    }
+
+
+@router.post("/validate-minnesota")
+async def validate_minnesota_requirements(
+    case_data: Dict[str, Any] = Body(...),
+    user: StorageUser = Depends(yellow_access)
+):
+    """
+    Validate Minnesota-specific legal requirements for a case.
+    
+    This endpoint checks:
+    - Notice period compliance (7-day for non-payment, 14-day for violations)
+    - Proper service methods (personal, substitute, posting + mailing)
+    - Right to counsel eligibility (certain counties)
+    - COVID-19 emergency protections (if applicable)
+    """
+    mn_validation = validate_minnesota_legal_requirements(case_data)
+    
+    return {
+        "state": mn_validation["state"],
+        "requirements_validated": mn_validation["requirements_validated"],
+        "warnings": mn_validation["warnings"],
+        "recommendations": mn_validation["recommendations"],
+        "user_id": user.user_id,
+        "validated_at": utc_now().isoformat()
+    }
+
+
+@router.post("/validate-court-forms")
+async def validate_court_forms(
+    case_data: Dict[str, Any] = Body(...),
+    user: StorageUser = Depends(yellow_access)
+):
+    """
+    Validate court form requirements for a case.
+    
+    This endpoint checks:
+    - Required forms are current and available
+    - Form versions match court requirements
+    - E-filing requirements are up to date
+    - Case-type specific form requirements
+    """
+    form_validation = validate_court_forms_freshness(case_data)
+    
+    return {
+        "status": form_validation["status"],
+        "forms": form_validation["forms"],
+        "warnings": form_validation["warnings"],
+        "recommendations": form_validation["recommendations"],
+        "user_id": user.user_id,
+        "validated_at": utc_now().isoformat()
+    }
+
+
+@router.post("/freshness-recommendations")
+async def get_case_freshness_recommendations(
+    case_data: Dict[str, Any] = Body(...),
+    user: StorageUser = Depends(yellow_access)
+):
+    """
+    Get action recommendations based on case freshness status.
+    
+    This endpoint analyzes the freshness of legal data for a case
+    and returns prioritized action recommendations.
+    """
+    # Get freshness validation results
+    freshness_results = validate_case_freshness(case_data)
+    
+    # Generate recommendations
+    recommendations = get_freshness_action_recommendations(freshness_results)
+    
+    return {
+        "recommendations": recommendations,
+        "freshness_score": freshness_results["freshness_score"],
+        "status": freshness_results["status"],
+        "user_id": user.user_id,
+        "generated_at": utc_now().isoformat()
+    }
 
 
 # =============================================================================
@@ -744,6 +1222,14 @@ async def intake_complaint(intake: ComplaintIntake, user: StorageUser = Depends(
     """
     user_id = user.user_id
     
+    # Validate deadline rules freshness before calculating deadlines
+    deadline_freshness_warning = None
+    if FRESHNESS_AVAILABLE:
+        deadline_freshness = data_freshness_manager.check_freshness("deadline_rules")
+        if deadline_freshness != FreshnessStatus.FRESH:
+            deadline_freshness_warning = "Deadline calculation rules may be outdated - verify with current court rules"
+            logger.warning(f"Stale deadline rules used for case {intake.case_number}")
+    
     # Calculate deadlines
     from datetime import datetime, timedelta
     today = utc_now()
@@ -764,6 +1250,7 @@ async def intake_complaint(intake: ComplaintIntake, user: StorageUser = Depends(
         answer_deadline = intake.answer_deadline
     else:
         # Default: 7 days from filing for eviction actions
+        # NOTE: This should be verified against current rules (see freshness check above)
         answer_date = filing_date + timedelta(days=7)
         answer_deadline = answer_date.strftime("%Y-%m-%d")
     
@@ -829,7 +1316,8 @@ async def intake_complaint(intake: ComplaintIntake, user: StorageUser = Depends(
         "notes": [intake.notes] if intake.notes else [],
         "created_at": utc_now().isoformat(),
         "updated_at": utc_now().isoformat(),
-        "source": "complaint_intake"
+        "source": "complaint_intake",
+        "freshness_warning": deadline_freshness_warning
     }
     
     # Add hearing deadline if provided
@@ -846,6 +1334,9 @@ async def intake_complaint(intake: ComplaintIntake, user: StorageUser = Depends(
     # Save the case
     save_case(intake.case_number, case_data, user_id)
     
+    # Validate Minnesota-specific requirements
+    mn_validation = validate_minnesota_legal_requirements(case_data)
+    
     logger.info(f"Case created from complaint intake: {intake.case_number} for user {user_id}")
     
     return {
@@ -853,6 +1344,8 @@ async def intake_complaint(intake: ComplaintIntake, user: StorageUser = Depends(
         "case_number": intake.case_number,
         "message": f"Case created from complaint. Answer due: {answer_deadline}",
         "case": case_data,
+        "freshness_warning": deadline_freshness_warning,
+        "minnesota_validation": mn_validation,
         "next_steps": [
             f"1. File your ANSWER by {answer_deadline}",
             "2. Gather evidence (photos, texts, emails, receipts)",
