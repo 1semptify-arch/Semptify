@@ -31,7 +31,7 @@ class SecuritySettings(BaseSettings):
     
     # CORS Settings
     ALLOWED_ORIGINS: List[str] = Field(
-        default=["https://localhost:8443", "https://semptify.local"]
+        default=os.getenv("CORS_ORIGINS", "https://localhost:8443,https://semptify.local").split(",")
     )
     ALLOW_CREDENTIALS: bool = Field(default=True)
     ALLOW_METHODS: List[str] = Field(

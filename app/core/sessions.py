@@ -101,8 +101,9 @@ class RedisSessionBackend(SessionBackend):
     Supports horizontal scaling and persistent sessions.
     """
     
-    def __init__(self, redis_url: str = "redis://localhost:6379", prefix: str = "semptify:session:"):
-        self.redis_url = redis_url
+    def __init__(self, redis_url: str = None, prefix: str = "semptify:session:"):
+        import os
+        self.redis_url = redis_url or os.getenv("REDIS_URL", "redis://localhost:6379")
         self.prefix = prefix
         self._client = None
     
@@ -199,7 +200,8 @@ def configure_session_backend(redis_url: Optional[str] = None):
     Configure the session backend.
     
     Call this during application startup:
-        configure_session_backend("redis://localhost:6379")
+        import os
+        configure_session_backend(os.getenv("REDIS_URL", "redis://localhost:6379"))
     
     Args:
         redis_url: Redis connection URL. If None, uses in-memory storage.
