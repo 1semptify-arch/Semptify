@@ -5,6 +5,7 @@ Uses slowapi with configurable limits per endpoint category.
 Supports Redis backend for production distributed rate limiting.
 """
 
+import os
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
@@ -40,7 +41,7 @@ def get_user_identifier(request: Request) -> str:
 limiter = Limiter(
     key_func=get_user_identifier,
     default_limits=["200/minute", "1000/hour"],  # Default for all endpoints
-    storage_uri="memory://",  # Use Redis URI for production: "redis://localhost:6379"
+    storage_uri=os.getenv("REDIS_URL", "memory://"),  # Use Redis URI for production
     strategy="fixed-window",  # Options: fixed-window, moving-window
 )
 
