@@ -59,9 +59,13 @@ class InventoryItem:
 class InventoryManager:
     """Manages file inventory with rotation and security features."""
     
-    def __init__(self, inventory_dir: str = "inventory"):
+    def __init__(self, inventory_dir: str = None):
+        import os
+        # Use a writable directory within the app
+        if inventory_dir is None:
+            inventory_dir = os.getenv("INVENTORY_DIR", "/app/data/inventory")
         self.inventory_dir = Path(inventory_dir)
-        self.inventory_dir.mkdir(exist_ok=True)
+        self.inventory_dir.mkdir(parents=True, exist_ok=True)
         self.items: Dict[str, InventoryItem] = {}
         self._load_inventory()
     

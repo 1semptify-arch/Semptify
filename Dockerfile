@@ -72,8 +72,8 @@ ARG CACHEBUST=2024-06-09-v2
 COPY --chown=semptify:semptify . .
 
 # Create runtime directories
-RUN mkdir -p uploads uploads/vault logs security data && \
-    chown -R semptify:semptify uploads logs security data
+RUN mkdir -p uploads uploads/vault logs security data data/inventory && \
+    chown -R semptify:semptify uploads logs security data data
 
 # Switch to non-root user
 USER semptify
