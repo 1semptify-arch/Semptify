@@ -180,6 +180,11 @@ class TenantBriefcase:
     generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     is_fresh: bool = True  # False if any subsystem failed to load
     
+    # Freshness indicators
+    freshness_score: float = 100.0  # Overall freshness score 0-100
+    freshness_warnings: List[str] = field(default_factory=list)
+    data_freshness_indicators: Dict[str, str] = field(default_factory=dict)
+    
     # =============================================================================
     # Smart Properties (Template-friendly)
     # =============================================================================
@@ -238,6 +243,39 @@ class TenantBriefcase:
     def case_progress(self) -> int:
         """Percentage of case completion (0-100)."""
         return self.actions.completion_percentage
+    
+    @property
+    def has_freshness_issues(self) -> bool:
+        """True if any data freshness issues detected."""
+        return (
+            self.freshness_score < 90.0 or
+            len(self.freshness_warnings) > 0 or
+            any(status == "stale" for status in self.data_freshness_indicators.values())
+        )
+    
+    @property
+    def freshness_status(self) -> str:
+        """Overall freshness status for UI display."""
+        if self.freshness_score >= 95:
+            return "excellent"
+        elif self.freshness_score >= 85:
+            return "good"
+        elif self.freshness_score >= 70:
+            return "fair"
+        else:
+            return "poor"
+    
+    @property
+    def freshness_color(self) -> str:
+        """Color indicator for freshness status."""
+        if self.freshness_score >= 95:
+            return "#10b981"  # green
+        elif self.freshness_score >= 85:
+            return "#3b82f6"  # blue
+        elif self.freshness_score >= 70:
+            return "#f59e0b"  # amber
+        else:
+            return "#ef4444"  # red
     
     # =============================================================================
     # Smart Methods (Lazy-load details)
@@ -339,6 +377,44 @@ class TenantBriefcase:
         activities.sort(key=lambda x: x.get("date") or "", reverse=True)
         return activities[:max_items]
     
+    def update_freshness_indicators(self) -> None:
+        """Update freshness indicators from data freshness manager."""
+        try:
+            from app.core.data_freshness_manager import data_freshness_manager, FreshnessStatus
+        except ImportError:
+            logger.warning("Data freshness manager not available")
+            return
+        
+        # Check key data freshness
+        indicators = {}
+        warnings = []
+        
+        # Legal content freshness
+        legal_freshness = data_freshness_manager.check_freshness("legal_content")
+        indicators["legal_content"] = legal_freshness.value
+        if legal_freshness != FreshnessStatus.FRESH:
+            warnings.append("Legal content may be outdated")
+        
+        # Court forms freshness
+        forms_freshness = data_freshness_manager.check_freshness("court_forms")
+        indicators["court_forms"] = forms_freshness.value
+        if forms_freshness != FreshnessStatus.FRESH:
+            warnings.append("Court form requirements may be outdated")
+        
+        # Deadline rules freshness
+        deadlines_freshness = data_freshness_manager.check_freshness("deadline_rules")
+        indicators["deadline_rules"] = deadlines_freshness.value
+        if deadlines_freshness != FreshnessStatus.FRESH:
+            warnings.append("Deadline calculation rules may be outdated")
+        
+        # Update briefcase
+        self.data_freshness_indicators = indicators
+        self.freshness_warnings = warnings
+        
+        # Calculate overall score
+        fresh_count = sum(1 for status in indicators.values() if status == FreshnessStatus.FRESH.value)
+        self.freshness_score = (fresh_count / len(indicators)) * 100 if indicators else 100.0
+    
     def to_template_context(self) -> Dict[str, Any]:
         """Convert to flat dict for template rendering."""
         return {
@@ -362,6 +438,14 @@ class TenantBriefcase:
             "has_urgent_items": self.has_urgent_items,
             "needs_attention": self.needs_attention,
             "next_deadline": self.next_deadline,
+            
+            # Freshness indicators
+            "freshness_score": self.freshness_score,
+            "freshness_status": self.freshness_status,
+            "freshness_color": self.freshness_color,
+            "has_freshness_issues": self.has_freshness_issues,
+            "freshness_warnings": self.freshness_warnings,
+            "data_freshness_indicators": self.data_freshness_indicators,
             
             # Pre-computed lists
             "urgent_items": self.get_urgent_items(),
@@ -428,6 +512,12 @@ async def get_tenant_briefcase(user_id: str, user_name: Optional[str] = None) ->
     except Exception as e:
         logger.warning(f"Failed to load actions for {user_id}: {e}")
         briefcase.is_fresh = False
+    
+    # Update freshness indicators (non-blocking)
+    try:
+        briefcase.update_freshness_indicators()
+    except Exception as e:
+        logger.warning(f"Failed to update freshness indicators for {user_id}: {e}")
     
     return briefcase
 
