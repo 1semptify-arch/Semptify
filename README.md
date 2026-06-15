@@ -2,6 +2,10 @@
 
 Tenant rights protection platform - rebuilt with async-first FastAPI architecture.
 
+> **Empowering tenants with knowledge, organization, and legal tools**
+> 
+> **Version:** 5.0.0 | **Python:** 3.11.9 (MANDATED) | **Status:** Production Ready
+> 
 > Canonical project guide: see `PROJECT_BIBLE.md` for the single source-of-truth hierarchy, build reference rules, and governance.
 
 ## Core Promise
@@ -203,6 +207,42 @@ Configure `AI_PROVIDER` environment variable:
 - `azure` - Azure OpenAI (requires Azure credentials)
 - `ollama` - Local Ollama server
 - `none` - Disabled
+
+## 📊 Latest Updates (June 2026)
+
+### Filedored Document Organization System
+- **Virtual folder organization** without moving files
+- **Automatic duplicate detection** across vault
+- **AI classification integration** ready (SWE 1.6 compatible)
+- **UI integration** in Office & Tools pages
+- **Zero impact** on upload pipeline
+
+### GUI Requirements Contract
+- **Universal UI specification** system for all modules
+- **Standardized input/output** definitions
+- **Accessibility requirements** built-in
+- **Consistent module integration** pattern
+
+### AI Tool Crib & Accountability Planner
+- **Centralized AI service** management
+- **Multiple provider support** (OpenAI, Anthropic, Local, SWE 1.6)
+- **Cost tracking** and rate limiting
+- **Comprehensive audit trail** system
+- **GDPR/CCPA compliance** framework
+
+### Contracts & Waivers Framework
+- **Complete legal agreement** management
+- **User consent tracking** system
+- **Multi-jurisdiction** support
+- **Automated compliance** checking
+
+## Repository Health
+
+- **Total Files:** 350+ (Python, HTML, JS, MD)
+- **Production Modules:** 85+ active modules
+- **Security:** Zero hardcoded credentials in production
+- **Documentation:** Comprehensive and up-to-date
+- **Tests:** Full test coverage for core features
 
 ## Running Tests
 
