@@ -370,6 +370,8 @@ _register("app.modules.page_index.router", tags=("Page Index",), tier=ProductTie
 _register("app.modules.page_editor.router", tags=("Page Editor",), tier=ProductTier.DEV,
           log_message="Page Editor router connected - Interactive editor for static & Jinja2 templates")
 _register("app.modules.development.router", tags=("Development Tools",), tier=ProductTier.DEV)
+_register("app.modules.filedored.router", tags=("Filedored"),), tier=ProductTier.DEV,
+          log_message="Filedored router connected - Virtual document organization active")
 
 # Phase 2 / internal utilities
 _register("app.modules.export_import.router", prefix="/api/export-import", tags=("Data Export/Import",), tier=ProductTier.DEV,

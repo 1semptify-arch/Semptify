@@ -94,6 +94,12 @@ class OverlayType(str, Enum):
     COMMUNICATION = "communication"
     """Messages, conversations, and collaboration threads."""
 
+    FILEDORED = "filedored"
+    """Virtual folder organization for post-processing (sort, dedup, AI classification)."""
+    
+    DUPLICATE_DETECTION = "duplicate_detection"
+    """Cross-vault duplicate identification and tracking."""
+
 
 # =============================================================================
 # Overlay Type Categories (for filtering and validation)
@@ -108,6 +114,8 @@ PROCESSING_OVERLAYS: set[OverlayType] = {
     OverlayType.DOCUMENT_CLASSIFICATION,
     OverlayType.TIMELINE_EXTRACTION,
     OverlayType.PARTY_EXTRACTION,
+    OverlayType.FILEDORED,
+    OverlayType.DUPLICATE_DETECTION,
 }
 
 ANNOTATION_OVERLAYS: set[OverlayType] = {

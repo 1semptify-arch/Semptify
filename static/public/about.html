@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About Semptify</title>
+  <title>About Semptify — The Cause, The Mission, The Promise</title>
   <style>
     :root { --hdr1: #1a237e; --hdr2: #283593; --accent: #3949ab; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -33,22 +33,60 @@
     .hero h1 { color: #fff; font-size: 2.25rem; margin-bottom: 0.75rem; }
     .hero p { color: rgba(255,255,255,0.9); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
 
+    /* ── Layout ── */
     .value-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem; }
     .value-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; }
     .value-card .emoji { font-size: 1.6rem; display: block; margin-bottom: 0.5rem; }
     .value-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; color: #1a1a2e; }
     .value-card p { font-size: 0.88rem; color: #555; margin-bottom: 0; }
 
-    .stat-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2.5rem; }
+    .promise-banner { background: linear-gradient(135deg, #0c4a6e, #0369a1); color: #fff; border-radius: 14px; padding: 2rem 2rem 1.75rem; margin-bottom: 2.5rem; }
+    .promise-banner h2 { color: #fff; margin-top: 0; font-size: 1.35rem; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 0.75rem; margin-bottom: 1.25rem; }
+    .promise-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+    .promise-list li { display: flex; gap: 0.6rem; align-items: flex-start; font-size: 0.92rem; line-height: 1.5; }
+    .promise-list li .mark { flex-shrink: 0; margin-top: 0.05rem; font-size: 1rem; }
+    .promise-list li span { opacity: 0.93; }
+
+    .hard-no { background: #fff7ed; border: 1px solid #fed7aa; border-radius: 12px; padding: 1.5rem; margin-bottom: 2.5rem; }
+    .hard-no h2 { color: #9a3412; margin-top: 0; font-size: 1.15rem; margin-bottom: 1rem; }
+    .hard-no-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.75rem; }
+    .hard-no-item { background: #fff; border: 1px solid #fed7aa; border-radius: 8px; padding: 0.85rem 1rem; display: flex; gap: 0.6rem; align-items: flex-start; }
+    .hard-no-item .no-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .hard-no-item strong { font-size: 0.88rem; display: block; color: #9a3412; margin-bottom: 0.15rem; }
+    .hard-no-item span { font-size: 0.82rem; color: #7c2d12; line-height: 1.4; }
+
+    .data-box { background: #f0fdf4; border: 1px solid #86efac; border-radius: 12px; padding: 1.5rem; margin-bottom: 2.5rem; }
+    .data-box h2 { color: #14532d; margin-top: 0; font-size: 1.15rem; margin-bottom: 0.5rem; }
+    .data-box p { color: #166534; margin-bottom: 0.75rem; font-size: 0.92rem; }
+    .data-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+    .data-col h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .data-col.never h4 { color: #dc2626; }
+    .data-col.only h4 { color: #16a34a; }
+    .data-col ul { list-style: none; padding: 0; margin: 0; }
+    .data-col ul li { font-size: 0.85rem; padding: 0.35rem 0; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; gap: 0.4rem; }
+    .data-col ul li:last-child { border-bottom: none; }
+
+    .funding-box { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 0 12px 12px 0; padding: 1.5rem 1.75rem; margin-bottom: 2.5rem; }
+    .funding-box h2 { color: #1e3a8a; margin-top: 0; font-size: 1.15rem; margin-bottom: 0.75rem; }
+    .funding-box p { color: #1e40af; font-size: 0.93rem; margin-bottom: 0.6rem; }
+    .funding-box p:last-child { margin-bottom: 0; }
+    .orgs-section { margin-bottom: 2.5rem; }
+    .orgs-section h2 { font-size: 1.15rem; margin-bottom: 0.4rem; }
+    .orgs-note { font-size: 0.88rem; color: #666; margin-bottom: 1.25rem; background: #f8f9ff; border: 1px solid #e0e0ef; border-radius: 8px; padding: 0.75rem 1rem; }
+    .org-group { margin-bottom: 1.5rem; }
+    .org-group h3 { font-size: 0.9rem; font-weight: 700; color: #444; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.6rem; }
+    .org-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .org-chip { display: inline-block; background: #fff; border: 1px solid #dde1f0; border-radius: 6px; padding: 0.35rem 0.75rem; font-size: 0.83rem; color: #374151; text-decoration: none; }
+    .org-chip:hover { border-color: #3949ab; color: #3949ab; }
+    .org-chip[target="_blank"]::after { content: " ↗"; font-size: 0.7rem; opacity: 0.6; }
+
+    .stat-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2.5rem; }
     .stat-box { background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; text-align: center; }
-    .stat-box .num { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
-    .stat-box .label { font-size: 0.82rem; color: #888; margin-top: 0.25rem; }
+    .stat-box .num { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+    .stat-box .label { font-size: 0.78rem; color: #888; margin-top: 0.25rem; line-height: 1.3; }
 
-    .team-note { background: #eff6ff; border-left: 4px solid var(--accent); padding: 1rem 1.25rem; border-radius: 0 8px 8px 0; margin: 1.5rem 0; font-size: 0.92rem; color: #1e3a5f; }
-    .team-note strong { display: block; margin-bottom: 0.35rem; color: var(--hdr1); }
-
-    footer { background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: rgba(255,255,255,0.8); text-align: center; padding: 1.25rem; font-size: 0.82rem; margin-top: 2rem; }
-    footer a { color: rgba(255,255,255,0.7); margin: 0 0.5rem; text-decoration: none; }
+    .team-note { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 12px; padding: 1.5rem; margin: 1.5rem 0 2.5rem; font-size: 0.92rem; color: #333; }
+    .team-note strong { display: block; margin-bottom: 0.5rem; font-size: 1rem; color: var(--hdr1); }
 
     .nav-drawer { display: none; position: fixed; top: 0; left: 0; width: 280px; height: 100vh; background: var(--hdr1); z-index: 999; padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
     .nav-drawer.open { display: flex; }
@@ -57,7 +95,12 @@
     .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 998; }
     .drawer-backdrop.open { display: block; }
 
-    @media (max-width: 768px) { nav.core-nav { display: none; } .hamburger { display: block; } .stat-bar { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+      nav.core-nav { display: none; } .hamburger { display: block; }
+      .stat-bar { grid-template-columns: 1fr 1fr; }
+      .promise-list { grid-template-columns: 1fr; }
+      .data-cols { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -69,6 +112,7 @@
       <button onclick="closeDrawer()" style="background:none;border:none;color:#fff;font-size:1.5rem;cursor:pointer;">✕</button>
     </div>
     <a href="/">🏠 Home</a>
+    <a href="/public/about.html">About</a>
     <a href="/public/privacy.html">Privacy</a>
     <a href="/public/terms.html">Terms</a>
     <a href="/public/disclaimer.html">Disclaimer</a>
@@ -81,134 +125,352 @@
       <a href="/" class="logo">Semptify</a>
       <nav class="core-nav">
         <a href="/">🏠 Home</a>
+        <a href="/public/about.html" style="color:#fff;background:rgba(255,255,255,0.15)">About</a>
         <a href="/public/privacy.html">Privacy</a>
         <a href="/public/terms.html">Terms</a>
         <a href="/public/disclaimer.html">Disclaimer</a>
         <a href="/public/contact.html">Contact</a>
       </nav>
       <div class="header-actions">
-        <button class="vault-btn" onclick="typeof openVaultUpload!=='undefined'&&openVaultUpload()">🔒 Vault</button>
+        <a href="/" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;text-decoration:none;padding:0.45rem 1rem;border-radius:8px;font-weight:700;font-size:0.9rem;">Get Started</a>
       </div>
     </div>
   </header>
 
   <div class="breadcrumb">
     <div class="breadcrumb-inner">
-      <a href="/">Home</a> ›
-      <strong>About</strong>
+      <a href="/">Home</a> › <strong>About Semptify</strong>
     </div>
   </div>
 
   <div class="main">
+
+    <!-- ── HERO ─────────────────────────────────────────────────── -->
     <div class="hero">
-      <h1>About Semptify</h1>
-      <p>Built to protect the rights of people facing housing problems. Free forever. No ads. Privacy-first.</p>
+      <h1>The Cause Behind Semptify</h1>
+      <p>We built this because people facing housing problems deserve the same tools that attorneys have — and they deserve them for free, without someone profiting from their crisis.</p>
     </div>
 
-    <h2>Our Mission</h2>
-    <p>Housing is a human right. Yet millions of people face eviction, unsafe conditions, rent hikes, and retaliation every year — often without the resources to defend themselves. Semptify exists to level the playing field.</p>
-    <p>We build tools that help tenants, advocates, and legal professionals organize evidence, track deadlines, generate documents, and communicate securely. Everything we make is designed for people under stress, with limited time, limited money, and a lot at stake.</p>
+    <!-- ── THE CAUSE ──────────────────────────────────────────────── -->
+    <h2>Why This Exists</h2>
+    <p>
+      Every year, hundreds of thousands of people face eviction, uninhabitable conditions, illegal rent increases, and landlord retaliation. 
+      The legal system can help them — but only if they can organize their evidence, meet their deadlines, communicate clearly, and show up with the right documents.
+    </p>
+    <p>
+      Most people in a housing crisis do not have a lawyer. They do not have money for one. They are often working multiple jobs, managing children, dealing with health problems, or simply overwhelmed by a system that was not designed with them in mind.
+    </p>
+    <p>
+      Semptify exists to close that gap. Not by replacing attorneys — we never claim to do that — but by giving people the same organizational tools, the same record-keeping discipline, and the same document-ready posture that a well-funded legal team would provide.
+    </p>
+    <p>
+      <strong>When a tenant has organized evidence, a complete timeline, and records of every communication, their landlord has far fewer excuses. That is what we build for.</strong>
+    </p>
 
-    <h2>What We Believe</h2>
+    <!-- ── WHO WE SERVE ────────────────────────────────────────── -->
+    <h2>Who We Serve</h2>
     <div class="value-grid">
       <div class="value-card">
-        <span class="emoji">🛡️</span>
-        <h3>Privacy First</h3>
-        <p>Your documents stay in your cloud storage. We do not sell data, run ads, or train AI on your files. You control everything.</p>
-      </div>
-      <div class="value-card">
-        <span class="emoji">⚖️</span>
-        <h3>Truth From Both Sides</h3>
-        <p>We do not assume any party is automatically right. We build for facts, records, chronology, and evidence.</p>
-      </div>
-      <div class="value-card">
-        <span class="emoji">🆓</span>
-        <h3>Free Forever</h3>
-        <p>We will never charge tenants for core access. No paywalls, no subscriptions, no freemium traps.</p>
-      </div>
-      <div class="value-card">
-        <span class="emoji">📋</span>
-        <h3>Evidence Over Novelty</h3>
-        <p>Every feature is judged by whether it improves rights protection, evidence integrity, or user control.</p>
-      </div>
-      <div class="value-card">
-        <span class="emoji">🔒</span>
-        <h3>Transparent & Auditable</h3>
-        <p>Open-source by default. Deterministic workflows. No hidden state that weakens accountability.</p>
+        <span class="emoji">🏠</span>
+        <h3>Tenants</h3>
+        <p>People renting a home who need to document conditions, track rent payments, record communications, and build a clear record of their tenancy. This is our primary user and our first priority in every decision.</p>
       </div>
       <div class="value-card">
         <span class="emoji">🤝</span>
-        <h3>Built With, Not For</h3>
-        <p>We design with housing advocates, legal aid clinics, and tenants — not in isolation.</p>
+        <h3>Advocates</h3>
+        <p>Housing counselors, tenant unions, and community organizers who help multiple tenants at once. Semptify helps them manage cases, deliver documents securely, and stay organized without spreadsheets.</p>
+      </div>
+      <div class="value-card">
+        <span class="emoji">⚖️</span>
+        <h3>Legal Aid & Attorneys</h3>
+        <p>Legal professionals working in housing law who need organized case files, evidence trails, and court-ready documents. We build to MN Supreme Court exhibit standards (MNDES ADM09-8010).</p>
+      </div>
+      <div class="value-card">
+        <span class="emoji">🔬</span>
+        <h3>Researchers & Policy</h3>
+        <p>Academics and policy professionals studying housing patterns. We provide aggregate, anonymized insights — never individual data — to support better housing policy.</p>
       </div>
     </div>
 
-    <h2>Who We Serve</h2>
-    <ul>
-      <li><strong>Tenants</strong> — Organize documents, track deadlines, communicate with landlords, and preserve evidence</li>
-      <li><strong>Advocates</strong> — Manage multiple clients, review evidence, send documents, and coordinate cases</li>
-      <li><strong>Legal Professionals</strong> — Access organized case files, track signatures, and manage court deadlines</li>
-      <li><strong>Researchers & Policy Makers</strong> — Access anonymized insights to improve housing policy</li>
-    </ul>
-
-    <h2>How It Works</h2>
-    <p>Semptify connects to your personal cloud storage (Google Drive, OneDrive). Your documents live there — not on our servers. We provide the organization layer: timeline tracking, document tagging, secure delivery, and evidence generation. When you leave, your documents stay with you.</p>
-
-    <div class="stat-bar">
-      <div class="stat-box"><div class="num">Free</div><div class="label">Forever</div></div>
-      <div class="stat-box"><div class="num">Private</div><div class="label">By Design</div></div>
-      <div class="stat-box"><div class="num">Open</div><div class="label">Source</div></div>
+    <!-- ── THE PROMISE ─────────────────────────────────────────── -->
+    <div class="promise-banner">
+      <h2>Our Promises to You — Every One of Them Permanent</h2>
+      <ul class="promise-list">
+        <li><span class="mark">✅</span><span><strong>Free forever.</strong> No paywalls. No subscriptions. No "basic vs premium." Core tools are always free.</span></li>
+        <li><span class="mark">✅</span><span><strong>No advertising. Ever.</strong> Not banner ads. Not sponsored content. Not "partner" placements. Nothing.</span></li>
+        <li><span class="mark">✅</span><span><strong>No data sales.</strong> We do not sell, trade, license, or share your information with any third party for any commercial purpose.</span></li>
+        <li><span class="mark">✅</span><span><strong>No user tracking.</strong> We do not track how you use the app, which buttons you press, or how long you spend on a page.</span></li>
+        <li><span class="mark">✅</span><span><strong>Your documents are yours.</strong> Files live in your own cloud storage — Google Drive, Dropbox, or OneDrive. We never own them.</span></li>
+        <li><span class="mark">✅</span><span><strong>No behavioral analytics.</strong> We do not build profiles of your behavior, interests, or activity — not even anonymized ones.</span></li>
+        <li><span class="mark">✅</span><span><strong>Donation-only funding.</strong> We survive entirely on donations and grants. No investors. No growth targets. No exit strategy.</span></li>
+        <li><span class="mark">✅</span><span><strong>Open source.</strong> Anyone can inspect the code, verify our claims, or run their own instance. No black boxes.</span></li>
+      </ul>
     </div>
 
-    <h2>Open Source & Community</h2>
-    <p>Semptify is open-source software. Anyone can inspect the code, suggest improvements, or run their own instance. We believe housing justice tools should be public infrastructure, not proprietary products.</p>
-    <p>We welcome contributors — developers, designers, housing advocates, legal professionals, and tenants. If you want to help, reach out.</p>
+    <!-- ── HARD NOs ────────────────────────────────────────────── -->
+    <div class="hard-no">
+      <h2>Things We Will Never Do — These Are Not Negotiable</h2>
+      <div class="hard-no-grid">
+        <div class="hard-no-item">
+          <span class="no-icon">🚫</span>
+          <div><strong>Advertising of any kind</strong><span>No ads, no promoted results, no sponsored listings, no affiliate links. Organizations listed on this platform are listed because they help people — not because they paid us.</span></div>
+        </div>
+        <div class="hard-no-item">
+          <span class="no-icon">🚫</span>
+          <div><strong>Selling or trading user data</strong><span>Not to advertisers, not to data brokers, not to researchers, not to anyone. Your data is not our product.</span></div>
+        </div>
+        <div class="hard-no-item">
+          <span class="no-icon">🚫</span>
+          <div><strong>Tracking your behavior</strong><span>We do not record which features you use, how often you log in, what you click on, or any other behavioral signal.</span></div>
+        </div>
+        <div class="hard-no-item">
+          <span class="no-icon">🚫</span>
+          <div><strong>Profiling users</strong><span>We build no profile of who you are, your demographics, your situation, or your interests — anonymous or otherwise.</span></div>
+        </div>
+        <div class="hard-no-item">
+          <span class="no-icon">🚫</span>
+          <div><strong>Venture capital or investor funding</strong><span>Investors require returns. Returns require monetisation. Monetisation compromises the mission. We do not take investment.</span></div>
+        </div>
+        <div class="hard-no-item">
+          <span class="no-icon">🚫</span>
+          <div><strong>Paywalling rights information</strong><span>Legal rights information, law library resources, and document templates are always free. We will not charge for access to information that people need to protect themselves.</span></div>
+        </div>
+        <div class="hard-no-item">
+          <span class="no-icon">🚫</span>
+          <div><strong>Victim-blaming content</strong><span>We will not produce content that softens legal facts, hedges clear tenant protections, or creates false equivalence between tenants and landlords when the law is clear.</span></div>
+        </div>
+        <div class="hard-no-item">
+          <span class="no-icon">🚫</span>
+          <div><strong>Surveillance features</strong><span>No keystroke logging, screen capture, location tracking, or any feature that monitors what users do outside of what is strictly necessary for the app to function.</span></div>
+        </div>
+      </div>
+    </div>
 
+    <!-- ── DATA PRACTICES ─────────────────────────────────────── -->
+    <div class="data-box">
+      <h2>Exactly What Data We Use — And What We Do Not</h2>
+      <p>We believe you should know precisely what we collect and why. Here is the complete picture.</p>
+      <div class="data-cols">
+        <div class="data-col never">
+          <h4>We NEVER collect or keep</h4>
+          <ul>
+            <li>🚫 <span>Your document contents</span></li>
+            <li>🚫 <span>Which pages you visit or for how long</span></li>
+            <li>🚫 <span>Which buttons or features you use</span></li>
+            <li>🚫 <span>Your IP address (beyond routing)</span></li>
+            <li>🚫 <span>Your device type, browser, or OS</span></li>
+            <li>🚫 <span>Your physical location</span></li>
+            <li>🚫 <span>Your search terms inside the app</span></li>
+            <li>🚫 <span>How many times you tap anything</span></li>
+            <li>🚫 <span>Any behavioral or usage analytics</span></li>
+            <li>🚫 <span>Third-party tracking cookies</span></li>
+            <li>🚫 <span>Advertising identifiers</span></li>
+          </ul>
+        </div>
+        <div class="data-col only">
+          <h4>We ONLY keep (engineering use only)</h4>
+          <ul>
+            <li>✅ <span>Server error logs (anonymised, auto-deleted)</span></li>
+            <li>✅ <span>API response times (no user identifiers)</span></li>
+            <li>✅ <span>Crash reports (stack traces, no user data)</span></li>
+            <li>✅ <span>Rate limit counters (IP-based, ephemeral)</span></li>
+            <li>✅ <span>Session tokens (signed, stored in your browser only)</span></li>
+            <li>✅ <span>Onboarding gate state (which steps are complete)</span></li>
+          </ul>
+          <p style="font-size:0.8rem;color:#166534;margin-top:0.75rem;font-style:italic;">
+            Technical data is used only to keep the platform running correctly. It is never used to understand user behaviour, target content, or report to any third party.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── HOW IT WORKS ────────────────────────────────────────── -->
+    <h2>How Semptify Works</h2>
+    <p>
+      When you connect to Semptify, you connect your own cloud storage account — Google Drive, Dropbox, or OneDrive. Your documents go directly into <em>your</em> storage. Semptify is the organisation layer: it helps you tag documents, build a timeline, track communications, and generate court-ready exhibits.
+    </p>
+    <p>
+      When you leave Semptify — if you ever do — your documents are still in your account, in your folders, exactly where you put them. We do not have copies. We cannot hold your files hostage. There is no lock-in.
+    </p>
+
+    <div class="stat-bar">
+      <div class="stat-box"><div class="num">Free</div><div class="label">Forever, No Exceptions</div></div>
+      <div class="stat-box"><div class="num">$0</div><div class="label">Cost to You, Always</div></div>
+      <div class="stat-box"><div class="num">Zero</div><div class="label">Ads or Promotions</div></div>
+      <div class="stat-box"><div class="num">Yours</div><div class="label">Documents Stay With You</div></div>
+    </div>
+
+    <!-- ── HOW WE SURVIVE ─────────────────────────────────────── -->
+    <div class="funding-box">
+      <h2>How We Keep the Lights On</h2>
+      <p>
+        Semptify runs entirely on <strong>donations and grants</strong>. That is the whole model. No investors. No ad revenue. No data sales. No subscription tiers. No "freemium" plan waiting to lock you in.
+      </p>
+      <p>
+        If you find Semptify useful and want to support it, a donation directly funds server costs, development time, and the ongoing work of building tools for people who need them most. Every dollar goes to the mission — none of it to shareholders, none of it to growth teams, none of it to marketing.
+      </p>
+      <p>
+        If you cannot donate, that is completely fine. Using Semptify, sharing it with someone who needs it, and giving us feedback are all valuable contributions. The tool exists to be used, not to be monetised.
+      </p>
+    </div>
+
+    <!-- ── ORGANISATIONS ──────────────────────────────────────── -->
+    <div class="orgs-section">
+      <h2>Organisations &amp; Government Agencies</h2>
+      <div class="orgs-note">
+        These organisations are listed because they provide real help to people facing housing problems. 
+        <strong>None of them pay to be listed here. None of them are partners in a commercial sense. 
+        We do not promote, endorse, or receive anything from them.</strong> 
+        We list them because knowing they exist can help someone in a difficult situation.
+      </div>
+
+      <div class="org-group">
+        <h3>Emergency & Crisis Lines</h3>
+        <div class="org-chips">
+          <a class="org-chip" href="tel:211">211 — Basic Needs &amp; Crisis</a>
+          <a class="org-chip" href="tel:988">988 — Mental Health Crisis Line</a>
+          <a class="org-chip" href="tel:18007456686">HOME Line — 1-800-745-6686</a>
+        </div>
+      </div>
+
+      <div class="org-group">
+        <h3>National Housing Resources</h3>
+        <div class="org-chips">
+          <a class="org-chip" href="https://www.211.org" target="_blank" rel="noopener">211.org — Find Local Help</a>
+          <a class="org-chip" href="https://www.hud.gov" target="_blank" rel="noopener">HUD — U.S. Dept. of Housing</a>
+          <a class="org-chip" href="https://www.consumerfinance.gov/housing" target="_blank" rel="noopener">CFPB Housing Help</a>
+          <a class="org-chip" href="https://nlihc.org" target="_blank" rel="noopener">NLIHC — National Low Income Housing Coalition</a>
+          <a class="org-chip" href="https://www.lawhelp.org" target="_blank" rel="noopener">LawHelp.org — Free Legal Aid</a>
+          <a class="org-chip" href="https://www.lsc.gov" target="_blank" rel="noopener">Legal Services Corporation</a>
+        </div>
+      </div>
+
+      <div class="org-group">
+        <h3>Minnesota State &amp; Local</h3>
+        <div class="org-chips">
+          <a class="org-chip" href="https://www.mnhousing.gov" target="_blank" rel="noopener">MN Housing Finance Agency</a>
+          <a class="org-chip" href="https://www.homeline.org" target="_blank" rel="noopener">HOME Line (MN Tenant Advocacy)</a>
+          <a class="org-chip" href="https://www.lawhelpmn.org" target="_blank" rel="noopener">LawHelpMN.org</a>
+          <a class="org-chip" href="https://www.mncourts.gov/Help-Topics/Housing.aspx" target="_blank" rel="noopener">MN Courts — Housing Help</a>
+          <a class="org-chip" href="https://www.housinglink.org" target="_blank" rel="noopener">HousingLink MN</a>
+          <a class="org-chip" href="https://www.midmnlegal.org" target="_blank" rel="noopener">Mid-MN Legal Aid</a>
+          <a class="org-chip" href="https://www.smrls.org" target="_blank" rel="noopener">Southern MN Regional Legal Services</a>
+          <a class="org-chip" href="https://www.lsnm.org" target="_blank" rel="noopener">Legal Services of NE Minnesota</a>
+        </div>
+      </div>
+
+      <div class="org-group">
+        <h3>Minnesota County Emergency Contacts</h3>
+        <div class="org-chips">
+          <a class="org-chip" href="tel:6123483000">Hennepin County — 612-348-3000</a>
+          <a class="org-chip" href="tel:6512664444">Ramsey County — 651-266-4444</a>
+          <a class="org-chip" href="tel:6515545611">Dakota County — 651-554-5611</a>
+          <a class="org-chip" href="tel:7633241300">Anoka County — 763-324-1300</a>
+          <a class="org-chip" href="tel:6514306459">Washington County — 651-430-6459</a>
+          <a class="org-chip" href="tel:2187262000">St. Louis County — 218-726-2000</a>
+          <a class="org-chip" href="tel:3203438870">Stearns County — 320-343-8870</a>
+          <a class="org-chip" href="tel:5073282393">Olmsted County — 507-328-2393</a>
+        </div>
+      </div>
+
+      <div class="org-group">
+        <h3>Fair Housing &amp; Discrimination</h3>
+        <div class="org-chips">
+          <a class="org-chip" href="https://www.hud.gov/program_offices/fair_housing_equal_opp" target="_blank" rel="noopener">HUD Fair Housing</a>
+          <a class="org-chip" href="https://www.mnhousing.gov/faqs/fair-housing.jsp" target="_blank" rel="noopener">MN Fair Housing</a>
+          <a class="org-chip" href="https://www.culturalwellnessenter.org" target="_blank" rel="noopener">Cultural Wellness Center</a>
+          <a class="org-chip" href="https://www.tcfhc.org" target="_blank" rel="noopener">Twin Cities Fair Housing Council</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── WHAT WE BELIEVE ─────────────────────────────────────── -->
+    <h2>What We Believe</h2>
+    <div class="value-grid">
+      <div class="value-card">
+        <span class="emoji">⚖️</span>
+        <h3>The Law Is the Law</h3>
+        <p>When the law protects a tenant, we say so clearly. We do not soften legal facts to avoid controversy. We do not hedge to create false balance.</p>
+      </div>
+      <div class="value-card">
+        <span class="emoji">📋</span>
+        <h3>Evidence Integrity First</h3>
+        <p>Every feature is evaluated on whether it improves rights protection, evidence preservation, or user control. Features that optimise for engagement or growth are not our priority.</p>
+      </div>
+      <div class="value-card">
+        <span class="emoji">🔒</span>
+        <h3>Privacy Is Not a Feature</h3>
+        <p>Privacy is not a selling point we can remove if business demands change. It is a structural commitment built into how the platform works.</p>
+      </div>
+      <div class="value-card">
+        <span class="emoji">🧭</span>
+        <h3>Clarity Under Stress</h3>
+        <p>Our users are often scared, overwhelmed, and short on time. Clear, plain-language guidance beats impressive jargon every time.</p>
+      </div>
+      <div class="value-card">
+        <span class="emoji">🌐</span>
+        <h3>Public Infrastructure</h3>
+        <p>Housing justice tools should be public goods, not proprietary products. Open source by default. Anyone can inspect, fork, or build on what we make.</p>
+      </div>
+      <div class="value-card">
+        <span class="emoji">🤲</span>
+        <h3>Conviction, Not Commerce</h3>
+        <p>We are not building toward an acquisition or an IPO. We are building something that should exist and currently does not exist well enough.</p>
+      </div>
+    </div>
+
+    <!-- ── TEAM NOTE ───────────────────────────────────────────── -->
     <div class="team-note">
       <strong>Semptify is a labor of conviction.</strong>
-      This project was built by people who believe that technology should serve those who need it most — not those who can pay the most. We are sustained by grants, donations, and volunteer effort. We do not have investors, we do not have a "growth team," and we do not optimize for engagement.
+      This platform was built by people who believe that technology should serve those who need it most — not those who can pay the most. 
+      We have no investors, no growth team, and no engagement metrics to hit. 
+      We measure success by whether someone was able to protect their housing because of what we built. 
+      We are sustained by grants, donations, and the effort of people who believe housing justice matters.
+      If that resonates with you, we would be grateful for your support — and even more grateful if you use the tool and share it with someone who needs it.
     </div>
 
     <h2>Contact</h2>
     <p>General inquiries: <a href="mailto:hello@semptify.org">hello@semptify.org</a></p>
     <p>Privacy questions: <a href="mailto:privacy@semptify.org">privacy@semptify.org</a></p>
-    <p>Legal questions about the platform: <a href="mailto:legal@semptify.org">legal@semptify.org</a></p>
-    <p>Contributors & code: <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener">github.com/1semptify-arch/Semptify</a></p>
-  </div>
+    <p>Platform &amp; legal: <a href="mailto:legal@semptify.org">legal@semptify.org</a></p>
+    <p>Code &amp; contributors: <a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener">github.com/1semptify-arch/Semptify</a></p>
+
+  </div><!-- /.main -->
 
   <footer style="background: linear-gradient(135deg, var(--hdr1), var(--hdr2)); color: #fff; padding: 2rem 1.5rem; margin-top: 2rem;">
     <div style="max-width: 1200px; margin: 0 auto;">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
         <div>
           <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">⚖️ Semptify</div>
-          <p style="font-size: 0.85rem; opacity: 0.8; line-height: 1.5; margin: 0;">
-            The Tenant's Journal. Helping renters document their tenancy, understand rights AND responsibilities, and stay organized.
+          <p style="font-size: 0.85rem; opacity: 0.8; line-height: 1.6; margin: 0;">
+            Free forever. No ads. No data sales. No tracking.<br>Built for tenants, sustained by donations.
           </p>
         </div>
         <div>
           <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">Legal</h4>
           <ul style="list-style: none; padding: 0; margin: 0;">
-            <li style="margin-bottom: 0.4rem;"><a href="/public/privacy.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Privacy</a></li>
-            <li style="margin-bottom: 0.4rem;"><a href="/public/terms.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Terms</a></li>
-            <li style="margin-bottom: 0.4rem;"><a href="/public/disclaimer.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Disclaimer</a></li>
+            <li style="margin-bottom: 0.4rem;"><a href="/public/privacy.html" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.85rem;">Privacy Policy</a></li>
+            <li style="margin-bottom: 0.4rem;"><a href="/public/terms.html" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.85rem;">Terms of Use</a></li>
+            <li style="margin-bottom: 0.4rem;"><a href="/public/disclaimer.html" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.85rem;">Disclaimer</a></li>
           </ul>
         </div>
         <div>
-          <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">Connect</h4>
+          <h4 style="font-size: 0.9rem; margin-bottom: 0.75rem; opacity: 0.9;">Platform</h4>
           <ul style="list-style: none; padding: 0; margin: 0;">
-            <li style="margin-bottom: 0.4rem;"><a href="/public/contact.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Contact</a></li>
-            <li style="margin-bottom: 0.4rem;"><a href="/public/feedback.html" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.85rem;">Feedback</a></li>
+            <li style="margin-bottom: 0.4rem;"><a href="/public/about.html" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.85rem;">About &amp; Mission</a></li>
+            <li style="margin-bottom: 0.4rem;"><a href="/public/contact.html" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.85rem;">Contact</a></li>
+            <li style="margin-bottom: 0.4rem;"><a href="https://github.com/1semptify-arch/Semptify" target="_blank" rel="noopener" style="color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.85rem;">Open Source ↗</a></li>
           </ul>
         </div>
       </div>
-      <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+      <div style="background: rgba(255,255,255,0.07); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
         <p style="font-size: 0.85rem; margin: 0; opacity: 0.9;">
-          <strong>Important:</strong> Semptify is an organizational tool, not legal advice. Always consult a qualified attorney for legal guidance.
+          <strong>Important:</strong> Semptify is an organisational tool, not legal advice. Always consult a qualified attorney for legal guidance specific to your situation.
         </p>
       </div>
       <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; text-align: center;">
-        <p style="font-size: 0.85rem; margin: 0 0 0.5rem 0; opacity: 0.8;">© 2024-2026 Semptify</p>
-        <p style="font-size: 0.8rem; margin: 0; opacity: 0.7;">Free Forever • No Ads • Open Source</p>
+        <p style="font-size: 0.85rem; margin: 0 0 0.35rem 0; opacity: 0.8;">© 2024–2026 Semptify</p>
+        <p style="font-size: 0.8rem; margin: 0; opacity: 0.65;">Free Forever &nbsp;·&nbsp; No Ads &nbsp;·&nbsp; No Tracking &nbsp;·&nbsp; Open Source &nbsp;·&nbsp; Donation Supported</p>
       </div>
     </div>
   </footer>

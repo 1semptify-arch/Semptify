@@ -60,6 +60,27 @@ VAULT_OVERLAY_DOCUMENTS  = normalize_cloud_path(f"{VAULT_OVERLAYS}/documents")
 VAULT_OVERLAY_QUERIES    = normalize_cloud_path(f"{VAULT_OVERLAYS}/queries")
 VAULT_OVERLAYS_FORMS     = normalize_cloud_path(f"{VAULT_OVERLAYS}/forms")
 VAULT_OVERLAY_REDACTIONS = normalize_cloud_path(f"{VAULT_OVERLAYS}/redactions")
+
+# =============================================================================
+# Filedored Post-Processing Structure (auto-sort + dedup + AI classification)
+# =============================================================================
+VAULT_FILEDORED          = normalize_cloud_path(f"{VAULT_ROOT}/filedored")
+VAULT_FILEDORED_PDF      = normalize_cloud_path(f"{VAULT_FILEDORED}/Documents/PDF")
+VAULT_FILEDORED_WORD     = normalize_cloud_path(f"{VAULT_FILEDORED}/Documents/Word")
+VAULT_FILEDORED_TEXT     = normalize_cloud_path(f"{VAULT_FILEDORED}/Documents/Text")
+VAULT_FILEDORED_SPREADS  = normalize_cloud_path(f"{VAULT_FILEDORED}/Documents/Spreadsheets")
+VAULT_FILEDORED_PRESENTS = normalize_cloud_path(f"{VAULT_FILEDORED}/Documents/Presentations")
+VAULT_FILEDORED_SCANS    = normalize_cloud_path(f"{VAULT_FILEDORED}/Scans/Images")
+VAULT_FILEDORED_DUPLICATES = normalize_cloud_path(f"{VAULT_FILEDORED}/__DUPLICATES__")
+VAULT_FILEDORED_OTHER    = normalize_cloud_path(f"{VAULT_FILEDORED}/__OTHER__")
+VAULT_FILEDORED_AI       = normalize_cloud_path(f"{VAULT_FILEDORED}/__AI_CLASSIFIED__")
+VAULT_FILEDORED_AI_LEASE = normalize_cloud_path(f"{VAULT_FILEDORED_AI}/lease")
+VAULT_FILEDORED_AI_NOTICE = normalize_cloud_path(f"{VAULT_FILEDORED_AI}/notice")
+VAULT_FILEDORED_AI_EVIDENCE = normalize_cloud_path(f"{VAULT_FILEDORED_AI}/evidence")
+VAULT_FILEDORED_AI_PHOTO = normalize_cloud_path(f"{VAULT_FILEDORED_AI}/photo")
+VAULT_FILEDORED_AI_INVOICE = normalize_cloud_path(f"{VAULT_FILEDORED_AI}/invoice")
+VAULT_FILEDORED_AI_COMM = normalize_cloud_path(f"{VAULT_FILEDORED_AI}/communication")
+VAULT_FILEDORED_AI_UNKNOWN = normalize_cloud_path(f"{VAULT_FILEDORED_AI}/unknown")
 CANONICAL_VAULT_FOLDERS = [
     SEMPTIFY_ROOT,
     VAULT_ROOT,
@@ -71,6 +92,23 @@ CANONICAL_VAULT_FOLDERS = [
     VAULT_OVERLAY_QUERIES,
     VAULT_OVERLAYS_FORMS,
     VAULT_OVERLAY_REDACTIONS,
+    VAULT_FILEDORED,
+    VAULT_FILEDORED_PDF,
+    VAULT_FILEDORED_WORD,
+    VAULT_FILEDORED_TEXT,
+    VAULT_FILEDORED_SPREADS,
+    VAULT_FILEDORED_PRESENTS,
+    VAULT_FILEDORED_SCANS,
+    VAULT_FILEDORED_DUPLICATES,
+    VAULT_FILEDORED_OTHER,
+    VAULT_FILEDORED_AI,
+    VAULT_FILEDORED_AI_LEASE,
+    VAULT_FILEDORED_AI_NOTICE,
+    VAULT_FILEDORED_AI_EVIDENCE,
+    VAULT_FILEDORED_AI_PHOTO,
+    VAULT_FILEDORED_AI_INVOICE,
+    VAULT_FILEDORED_AI_COMM,
+    VAULT_FILEDORED_AI_UNKNOWN,
     SYSTEM_FOLDER,
     AUTH_FOLDER,
     VAULT_FOLDER,
