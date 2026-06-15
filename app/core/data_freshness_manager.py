@@ -419,11 +419,10 @@ async def refresh_search_index(metadata: Dict[str, Any]):
 data_freshness_manager = DataFreshnessManager()
 
 # Register default functions
-# Temporarily disabled to debug unhashable dict error
-# data_freshness_manager.register_refresh_function("refresh_legal_content", refresh_legal_content)
-# data_freshness_manager.register_refresh_function("refresh_court_data", refresh_court_data)
-# data_freshness_manager.register_refresh_function("refresh_forms", refresh_forms)
-# data_freshness_manager.register_refresh_function("refresh_state_laws", refresh_state_laws)
-# data_freshness_manager.register_refresh_function("refresh_deadlines", refresh_deadlines)
-# data_freshness_manager.register_refresh_function("refresh_cache", refresh_cache)
-# data_freshness_manager.register_refresh_function("refresh_search_index", refresh_search_index)
+data_freshness_manager.register_refresh_function("refresh_legal_content", refresh_legal_content)
+data_freshness_manager.register_refresh_function("refresh_court_data", refresh_court_data)
+data_freshness_manager.register_refresh_function("refresh_forms", refresh_forms)
+data_freshness_manager.register_refresh_function("refresh_state_laws", refresh_state_laws)
+data_freshness_manager.register_refresh_function("refresh_deadlines", refresh_deadlines)
+data_freshness_manager.register_refresh_function("refresh_cache", refresh_cache)
+data_freshness_manager.register_refresh_function("refresh_search_index", refresh_search_index)
