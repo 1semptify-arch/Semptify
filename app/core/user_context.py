@@ -339,6 +339,11 @@ class UserContext:
     role: UserRole = UserRole.USER        # Active role for this session
     permissions: set[str] = field(default_factory=set)
     
+    # Role impersonation (acting_as)
+    # When set, this user is impersonating another user's context
+    acting_as: Optional[str] = None      # user_id of user being impersonated
+    acting_as_role: Optional[UserRole] = None  # Role being assumed
+    
     # SSOT PRIVACY RULE: For the tenant role, no personal user information
     # may be stored on Semptify servers. Only provider metadata and access state
     # are retained. Tenant PII remains in the user's cloud vault or provider data.
@@ -384,6 +389,43 @@ class UserContext:
     @property
     def is_admin(self) -> bool:
         return self.role == UserRole.ADMIN
+    
+    @property
+    def is_impersonating(self) -> bool:
+        """Check if user is currently impersonating another user."""
+        return self.acting_as is not None
+    
+    def start_impersonation(self, target_user_id: str, target_role: UserRole) -> None:
+        """
+        Start impersonating another user.
+        
+        Only admins should be able to do this. Permission check should happen
+        before calling this method.
+        """
+        self.acting_as = target_user_id
+        self.acting_as_role = target_role
+        logger.info(f"User {self.user_id[:6]}... started impersonating {target_user_id[:6]}... as {target_role}")
+    
+    def stop_impersonation(self) -> None:
+        """Stop impersonating and return to original role."""
+        if self.acting_as:
+            logger.info(f"User {self.user_id[:6]}... stopped impersonating {self.acting_as[:6]}...")
+            self.acting_as = None
+            self.acting_as_role = None
+    
+    def get_effective_user_id(self) -> str:
+        """
+        Get the effective user ID for this session.
+        Returns acting_as user_id if impersonating, otherwise own user_id.
+        """
+        return self.acting_as if self.acting_as else self.user_id
+    
+    def get_effective_role(self) -> UserRole:
+        """
+        Get the effective role for this session.
+        Returns acting_as_role if impersonating, otherwise own role.
+        """
+        return self.acting_as_role if self.acting_as_role else self.role
 
 
 # =============================================================================
