@@ -9,6 +9,7 @@ from enum import Enum
 from pydantic import BaseModel
 import logging
 from datetime import datetime, timezone
+from app.core.utc import utc_now
 import json
 import hashlib
 
@@ -117,7 +118,7 @@ class AccountabilityPlanner:
                 findings=[],
                 recommendations=[],
                 checked_at=datetime.now(timezone.utc),
-                next_review=datetime.now(timezone.utc).replace(year=datetime.now().year + 1)
+                next_review=datetime.now(timezone.utc).replace(year=utc_now().year + 1)
             ),
             ComplianceType.CCPA: ComplianceCheck(
                 check_id="ccpa_001",
@@ -133,7 +134,7 @@ class AccountabilityPlanner:
                 findings=[],
                 recommendations=[],
                 checked_at=datetime.now(timezone.utc),
-                next_review=datetime.now(timezone.utc).replace(year=datetime.now().year + 1)
+                next_review=datetime.now(timezone.utc).replace(year=utc_now().year + 1)
             ),
             ComplianceType.HOUSING_LAW: ComplianceCheck(
                 check_id="housing_001",
@@ -149,7 +150,7 @@ class AccountabilityPlanner:
                 findings=[],
                 recommendations=[],
                 checked_at=datetime.now(timezone.utc),
-                next_review=datetime.now(timezone.utc).replace(month=datetime.now().month + 6)
+                next_review=datetime.now(timezone.utc).replace(month=utc_now().month + 6)
             ),
         }
         
@@ -162,7 +163,7 @@ class AccountabilityPlanner:
                        user_agent: Optional[str] = None) -> str:
         """Log an audit event."""
         event_id = hashlib.sha256(
-            f"{datetime.now().isoformat()}{user_id}{action}{resource}".encode()
+            f"{utc_now().isoformat()}{user_id}{action}{resource}".encode()
         ).hexdigest()[:16]
         
         event = AuditEvent(

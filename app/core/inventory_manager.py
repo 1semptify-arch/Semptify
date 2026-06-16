@@ -8,6 +8,7 @@ import logging
 from typing import Dict, List, Optional, Any, Tuple
 from enum import Enum
 from datetime import datetime, timezone
+from app.core.utc import utc_now
 from dataclasses import dataclass
 import hashlib
 import json
@@ -182,7 +183,7 @@ class InventoryManager:
             
             # Create inventory item
             item = InventoryItem(
-                item_id=f"{inventory_type.value}_{int(datetime.now().timestamp())}",
+                item_id=f"{inventory_type.value}_{int(utc_now().timestamp())}",
                 inventory_type=inventory_type,
                 file_path=str(inventory_path),
                 created_at=datetime.now(timezone.utc),

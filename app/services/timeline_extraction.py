@@ -12,6 +12,7 @@ Principles:
 import re
 import json
 from datetime import datetime, timezone
+from app.core.utc import utc_now
 from dataclasses import dataclass, asdict
 from typing import List, Optional, Dict, Any
 from enum import Enum
@@ -216,7 +217,7 @@ class TimelineExtractor:
             r'\s+\d{1,2}$', s, re.IGNORECASE
         )
         if m:
-            year = datetime.now().year
+            year = utc_now().year
             for fmt in ("%B %d", "%b %d"):
                 try:
                     return datetime.strptime(f"{s} {year}", f"{fmt} %Y").strftime("%Y-%m-%d")

@@ -9,6 +9,7 @@ from enum import Enum
 from pydantic import BaseModel
 import logging
 from datetime import datetime, timezone
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -210,7 +211,7 @@ class ContractsFramework:
         if not contract:
             raise ValueError(f"Contract not found: {contract_id}")
         
-        consent_id = f"{user_id}_{contract_id}_{datetime.now().timestamp()}"
+        consent_id = f"{user_id}_{contract_id}_{utc_now().timestamp()}"
         
         consent = UserConsent(
             consent_id=consent_id,

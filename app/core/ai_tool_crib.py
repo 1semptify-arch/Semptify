@@ -9,6 +9,7 @@ from enum import Enum
 from pydantic import BaseModel
 import logging
 from datetime import datetime
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +156,7 @@ class AIToolCrib:
         
         metrics = self.metrics[service_type]
         metrics.requests_total += 1
-        metrics.last_used = datetime.now()
+        metrics.last_used = utc_now()
         
         if success:
             metrics.requests_successful += 1

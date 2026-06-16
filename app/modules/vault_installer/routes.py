@@ -22,12 +22,12 @@ router = APIRouter(prefix="/api/vault-installer", tags=["vault-installer"])
 @router.get("/debug")
 async def debug_vault_installer():
     """Simple debug endpoint to verify router is accessible. PUBLIC - NO AUTH REQUIRED."""
-    import datetime
+    from app.core.utc import utc_now
     return {
         "status": "vault_installer_router_ok",
         "router_prefix": router.prefix,
         "routes": [r.path for r in router.routes],
-        "timestamp": datetime.datetime.now().isoformat()
+        "timestamp": utc_now().isoformat()
     }
 
 
