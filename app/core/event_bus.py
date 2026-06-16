@@ -192,13 +192,11 @@ class EventBus:
                 except Exception as e:
                     logger.error(f"Error in sync subscriber {callback.__name__}: {e}")
         
-        # Call async subscribers
+        # Call async subscribers — fire-and-forget so they never add latency
+        # to the request that published the event (Cloudflare 30s gate safety)
         if event_type in self._async_subscribers:
             for callback in self._async_subscribers[event_type]:
-                try:
-                    await callback(event)
-                except Exception as e:
-                    logger.error(f"Error in async subscriber {callback.__name__}: {e}")
+                asyncio.create_task(callback(event))
         
         # Push to WebSocket connections
         await self._push_to_websockets(event, user_id)
