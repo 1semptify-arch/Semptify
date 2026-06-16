@@ -12,6 +12,24 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-16 — Milestone 7: Role Hierarchy Wiring (COMPLETE)
+**Files: `app/modules/user/router.py`, `app/core/product_manifest.py`, `tests/e2e/role_hierarchy_smoke.spec.js`**
+
+### What Was Fixed
+- Created `app/modules/user/router.py` with:
+  - `POST /api/user/act-as` — starts impersonation after `can_access()` check
+  - `DELETE /api/user/act-as` — clears impersonation
+- Registered user router in `product_manifest.py` (CORE tier)
+- `get_current_user()` already propagates `acting_as` via `StoredSession.to_context()` — no change needed
+- Added Playwright smoke test verifying endpoints gate unauthenticated access without 500s
+
+### Verification
+- All files compile clean
+- `can_access()` takes `from_user_id`, `to_user_id`, `db` and checks `UserRelationship` table
+- `update_session_impersonation()` sets `acting_as` / `acting_as_role` on stored session
+
+---
+
 ## Session — 2026-06-16 — Milestone 6: Missing Alembic Migrations (COMPLETE)
 **Files: `alembic/versions/20260616_add_admin_audit_logs_and_document_annotations.py`**
 
