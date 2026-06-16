@@ -316,6 +316,8 @@ _register("app.modules.batch.router", prefix="/api/batch", tags=("Batch Operatio
           log_message="Batch Operations router connected - Bulk document management active")
 _register("app.modules.registry.router", tags=("Document Registry",), tier=ProductTier.ADMIN)
 _register("app.modules.tenancy_hub.router", tags=("Tenancy Hub",), tier=ProductTier.ADMIN)
+_register("app.modules.capabilities.router", prefix="", tags=("Capabilities",), tier=ProductTier.ADMIN,
+          log_message="Capabilities router active — user capability and overlay management enabled")
 
 
 # =============================================================================
