@@ -57,7 +57,7 @@ try:
     from app.services.storage import get_provider
     HAS_STORAGE = True
 except ImportError:
-    HAS_STORAGE = True
+    HAS_STORAGE = False
     logger.warning("Storage provider not available")
 
 # Note: document_registry and DB certification models are imported lazily at
@@ -720,7 +720,7 @@ class VaultUploadService:
                     failure_detail=f"Registry computed successfully but DB write failed: {db_err}",
                     stage="registry_db_write",
                 )
-                raise RuntimeError(f"Registry DB write failed for {vault_id}: {db_err}") from db_err
+                raise RuntimeError(f"Document could not be saved. Please retry or contact support.") from db_err
 
             # SUCCESS — write compliance record
             await _write_certification_event(
@@ -733,7 +733,7 @@ class VaultUploadService:
         except RuntimeError:
             raise
         except Exception as e:
-            detail = f"Registry registration raised unexpected error: {type(e).__name__}: {e}"
+            detail = f"Registry registration raised unexpected error: {type(e).__name__}: {e}"  # internal log only
             logger.error(f"Certification failed for {vault_id}: {detail}")
             await _write_certification_event(
                 result=CertificationResult.FAILED.value,
