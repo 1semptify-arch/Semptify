@@ -387,6 +387,70 @@ _register("app.modules.documentation.router", prefix="/api/docs", tags=("API Doc
 
 
 # =============================================================================
+# Capability Defaults — Role-based Default Feature Module Sets
+# =============================================================================
+#
+# These are the Feature Modules seeded into user_capabilities on first login.
+# Keys match UserRole values: "tenant", "advocate", "manager", "admin".
+# Values are module_path strings matching ModuleEntry.module_path.
+#
+# Rules:
+# - Only Feature Modules go here. Pipeline modules are always-on, never listed.
+# - Keep tenant defaults small — stressed users need clarity, not noise.
+# - Advocate gets everything tenant gets plus collaboration tools.
+# - Admin gets all tiers.
+# - Adding a module here does NOT enable it for existing users — only new logins.
+#   Use a migration or admin grant to backfill existing users.
+# =============================================================================
+
+CAPABILITY_DEFAULTS: dict[str, list[str]] = {
+    "tenant": [
+        "app.modules.vault.router",
+        "app.modules.timeline.router",
+        "app.modules.documents.router",
+        "app.modules.state_laws.router",
+        "app.modules.law_library.router",
+        "app.modules.contacts.router",
+        "app.modules.search.router",
+    ],
+    "advocate": [
+        # Everything tenant gets
+        "app.modules.vault.router",
+        "app.modules.timeline.router",
+        "app.modules.documents.router",
+        "app.modules.state_laws.router",
+        "app.modules.law_library.router",
+        "app.modules.contacts.router",
+        "app.modules.search.router",
+        # Plus extended legal tools
+        "app.modules.case_builder.router",
+        "app.modules.eviction_defense.router",
+        "app.modules.court_forms.router",
+        "app.modules.legal_trails.router",
+        "app.modules.intake.router",
+        "app.modules.guided_intake.router",
+        "app.modules.plan_maker.router",
+        # Plus collaboration
+        "app.modules.document_delivery.router",
+        "app.modules.communication.router",
+        "app.modules.invite_codes.router",
+    ],
+    "manager": [
+        "app.modules.documents.router",
+        "app.modules.timeline.router",
+        "app.modules.contacts.router",
+        "app.modules.state_laws.router",
+        "app.modules.search.router",
+    ],
+    "admin": [
+        # Admin gets all tiers — resolved at runtime from MANIFEST
+        # This sentinel value triggers full-grant in seed_capability_defaults()
+        "__all__",
+    ],
+}
+
+
+# =============================================================================
 # FUTURE: Role + Jurisdiction + Device Module Activation (NOT BUILT YET)
 # =============================================================================
 #

@@ -238,6 +238,63 @@ Every schema change requires a migration. Never modify tables by hand.
 
 ---
 
+---
+
+## Key Pipeline Modules — How They Work
+
+### Context Loop (`app/modules/context_loop/`)
+The analyst. Tracks everything happening to one user and maintains their live
+situational picture. Always running. Feeds every feature module that needs to
+know how urgent a tenant's situation is.
+
+Flow: `INPUT → PROCESS → INTENSITY → OUTPUT → LEARN`
+
+- Receives events: document uploaded, deadline found, issue reported
+- Scores urgency 0-100 (eviction notice = 85, court summons = 90)
+- Applies multipliers: 3 days to court → ×1.25 → score hits CRITICAL
+- Flags rights at risk, generates predictions, recommends next actions
+- Publishes `UI_REFRESH_NEEDED` so the dashboard updates in real time
+
+**Answers:** "How bad is this tenant's situation right now, and what next?"
+
+### Positronic Brain (`app/services/positronic_brain.py`)
+The coordinator. Connects all modules so they can talk without knowing about
+each other. Runs multi-step workflows. Tracks module dependencies.
+
+- Modules register with the Brain on startup
+- Brain maintains a dependency graph (eviction module needs documents + timeline + calendar)
+- When something happens, Brain fires events to every subscribed module in order
+- Runs full workflows: upload → classify → extract → timeline → defenses → court forms
+- Shared state store so all modules see the same picture
+
+**Answers:** "When something happens, which modules need to know, and in what order?"
+
+### How They Fit Together
+```
+User uploads document
+        ↓
+Vault Upload Service     (certifies, stores — pipeline)
+        ↓
+Positronic Brain         (fires events, runs workflow — pipeline)
+        ↓         ↓          ↓           ↓
+   Classifier  Extractor  Timeline   Calendar
+        ↓
+Context Loop             (scores urgency, updates user picture — pipeline)
+        ↓
+Feature Modules          (case_builder, eviction_defense, court_forms...)
+        ↓
+User sees updated dashboard with urgency score + recommended actions
+```
+
+### Where The Capability System Plugs In
+The Brain knows which modules are connected (dependency graph).
+The Capability System tells the Brain which modules THIS user has active.
+When a tenant without `eviction_defense` uploads an eviction notice, the Brain
+skips that step — not in their capability set. No code changes needed in the
+Brain. The capability layer gates what the Brain coordinates, per user.
+
+---
+
 ## What Is NOT a Module
 
 To be explicit, these things are **not** modules:
