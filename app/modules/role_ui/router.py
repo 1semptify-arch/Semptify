@@ -237,7 +237,9 @@ async def get_role_features(
     """
     Get feature flags based on user's role.
     Frontend uses this to show/hide UI elements.
+    Role-specific UI flags are combined with live DB feature flags.
     """
+    from app.core.features import features as _features, Feature
     if not user:
         return {
             "features": {
@@ -301,7 +303,18 @@ async def get_role_features(
             "show_user_management": True,
             "show_all_features": True,
         })
-    
+
+    # Overlay live DB feature flags — role-gated checks
+    role_val = user.role.value
+    features["ai_copilot"] = await _features.is_enabled_for_role(Feature.AI_COPILOT, role_val)
+    features["ai_document_analysis"] = await _features.is_enabled_for_role(Feature.AI_DOCUMENT_ANALYSIS, role_val)
+    features["court_forms"] = await _features.is_enabled_for_role(Feature.COURT_FORMS, role_val)
+    features["complaint_wizard"] = await _features.is_enabled_for_role(Feature.COMPLAINT_WIZARD, role_val)
+    features["eviction_defense"] = await _features.is_enabled_for_role(Feature.EVICTION_DEFENSE, role_val)
+    features["bulk_upload"] = await _features.is_enabled_for_role(Feature.BULK_UPLOAD, role_val)
+    features["beta_dashboard"] = await _features.is_enabled_for_role(Feature.BETA_DASHBOARD, role_val)
+    features["audit_logging"] = await _features.is_enabled_for_role(Feature.AUDIT_LOGGING, role_val)
+
     return {"features": features, "role": user.role.value}
 
 
