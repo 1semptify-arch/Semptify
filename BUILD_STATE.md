@@ -12,6 +12,35 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-16 — Milestone 3: Capability System (COMPLETE — already built)
+**Files: `tests/e2e/capabilities_smoke.spec.js` (verified existing: `app/core/capabilities.py`, `app/core/product_manifest.py`, `app/models/models.py`, `app/modules/capabilities/router.py`, `app/modules/storage/router.py`)**
+
+### What Was Found / Verified
+
+The Capability System was already fully implemented. Full audit confirmed:
+
+- **`UserCapability` DB model** — `app/models/models.py` — correct schema, all fields
+- **Alembic migration** — `68e486c460de_add_user_capabilities_table.py` — creates table + 5 indexes, chained correctly
+- **`app/core/capabilities.py`** — full public API: `seed_capability_defaults`, `get_user_capabilities`, `can_load_module`, `grant_capability`, `revoke_capability`, `require_capability()` gate factory, Redis cache (1h TTL), overlay system (add-only, Redis, 1h TTL)
+- **`app/core/product_manifest.py`** — `CAPABILITY_DEFAULTS` for tenant/advocate/manager/admin, `require_capability()` usage documented, all modules registered by tier
+- **`app/modules/capabilities/router.py`** — admin CRUD: list, grant, revoke, attach/detach/get overlay
+- **`app/modules/storage/router.py` line 1952** — `seed_capability_defaults()` called on every OAuth callback, wrapped in try/except (non-blocking)
+
+### What Was Shipped
+
+- **`tests/e2e/capabilities_smoke.spec.js`** — 7 tests: all 6 capability endpoints gate unauthenticated correctly + app startup confirms no crash from capability registration.
+- **7/7 passing** against `semptify.org`
+
+### Known Working
+- ✅ Full system compiles clean
+- ✅ Capabilities smoke tests 7/7 pass
+- ⏳ Live seeding test — first login after deploy will seed `user_capabilities` rows
+
+### Next Session Starts With
+- Milestone 4: Identify next highest-value gap (check BUILD_STATE.md)
+
+---
+
 ## Session — 2026-06-16 — Milestone 2: Timeline End-to-End (COMPLETE)
 **Files: `app/modules/timeline/router.py`, `app/core/event_subscribers.py`, `app/main.py`, `tests/e2e/timeline_smoke.spec.js`**
 
