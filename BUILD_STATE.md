@@ -13,7 +13,7 @@ their legal rights—not tenants breaking the law.
 ---
 
 ## Session — 2026-06-15 Evening — Registry Persistence + Compliance System
-**Commit: pending | Status: Staged**
+**Commits: `ce77976`, `9a0f7dd`, `ae73448` | Pushed: 2026-06-15**
 
 ### What Was Shipped
 
@@ -42,11 +42,10 @@ their legal rights—not tenants breaking the law.
 - Cloudflare dev mode ON, cache purged
 
 ### Known Pending
-- `register_document()` is sync — should be wrapped in `run_in_executor` to avoid blocking event loop on large files
+- Test document upload end-to-end through onboarding to confirm certification passes
 - Data flow tracker concept (pipeline diagnostics) — deferred
 
 ### Next Session Starts With
-- Wrap `registry.register_document()` in `asyncio` executor (Bug 1 from review)
 - Test a real document upload end-to-end through onboarding to confirm certification passes
 
 ---
