@@ -898,6 +898,7 @@ class VaultUploadService:
                     "document_type": doc.document_type,
                     "storage_path": doc.storage_path,
                     "source_module": doc.source_module,
+                    "sha256_hash": doc.sha256_hash or "",
                 },
                 user_id=doc.user_id,
             )

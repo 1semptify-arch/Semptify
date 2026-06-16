@@ -1268,6 +1268,44 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         logger.info("ðŸ§ Context Loop event subscribers wired")
     except ImportError:
         logger.warning("Context Loop not available (optional module)")
+
+    # Wire filedored on-demand folder creation + document sorting
+    try:
+        from app.services.filedored_service import process_uploaded_document
+        from app.core.event_bus import EventType as _ET
+
+        async def _on_document_added(event_type, data: dict):
+            vault_id = data.get("vault_id")
+            user_id = data.get("user_id")
+            filename = data.get("filename", "")
+            if not vault_id or not user_id:
+                return
+            try:
+                from app.services.vault_upload_service import VaultUploadService
+                vault_svc = VaultUploadService()
+                doc = await vault_svc.get_document(vault_id, user_id)
+                content = b""
+                if doc:
+                    try:
+                        content = await vault_svc._get_document_content(doc) or b""
+                    except Exception:
+                        pass
+                await process_uploaded_document(
+                    vault_id=vault_id,
+                    user_id=user_id,
+                    filename=filename,
+                    content=content,
+                    sha256_hash=data.get("sha256_hash", ""),
+                    enable_ai=False,
+                )
+                logger.debug("Filedored: sorted %s for user %s", vault_id, user_id[:6])
+            except Exception as _fe:
+                logger.warning("Filedored post-process failed for %s: %s", vault_id, _fe)
+
+        event_bus.subscribe_async(_ET.DOCUMENT_ADDED, _on_document_added)
+        logger.info("📂 Filedored event subscriber wired")
+    except ImportError:
+        logger.warning("Filedored service not available (optional module)")
     
     # DISABLED: Performance monitoring - causing high memory usage (85%+)
     # TODO: Re-enable after memory optimization
