@@ -163,12 +163,33 @@ async def process_uploaded_document(
         }
 
 
+_FILEDORED_FLAG_PREFIX = "semptify:filedored_ready:"
+_FILEDORED_FLAG_TTL = 60 * 60 * 24 * 30  # 30 days
+
+
+async def _filedored_flag_key(user_id: str) -> str:
+    return f"{_FILEDORED_FLAG_PREFIX}{user_id}"
+
+
 async def ensure_filedored_folders(vault_client) -> dict:
     """
     Ensure all filedored folders exist in the vault.
     Called on-demand before the first filedored overlay is written.
     Returns dict with folder creation status.
+    Skips the 17 API calls if a Redis flag confirms folders already exist.
     """
+    user_id = getattr(vault_client, "user_id", None)
+    if user_id:
+        try:
+            from app.core.redis_client import get_redis
+            redis = await get_redis()
+            if redis is not None:
+                flag = await redis.get(await _filedored_flag_key(user_id))
+                if flag:
+                    return {"status": "already_ready", "folders_created": [], "folders_failed": []}
+        except Exception as _re:
+            logger.debug("Filedored Redis flag check skipped: %s", _re)
+
     from app.sdk.vault.folder_spec import BASE_VAULT
 
     filedored_spec = BASE_VAULT.extend([
@@ -193,6 +214,16 @@ async def ensure_filedored_folders(vault_client) -> dict:
 
     vault_client._folder_spec = filedored_spec
     result = await vault_client.create_folders()
+
+    if result.all_ok and user_id:
+        try:
+            from app.core.redis_client import get_redis
+            redis = await get_redis()
+            if redis is not None:
+                await redis.set(await _filedored_flag_key(user_id), "1", ex=_FILEDORED_FLAG_TTL)
+        except Exception as _re:
+            logger.debug("Filedored Redis flag set skipped: %s", _re)
+
     return {
         "status": "complete" if result.all_ok else "partial",
         "folders_created": [f.path for f in result.folders if f.status == "ok"],

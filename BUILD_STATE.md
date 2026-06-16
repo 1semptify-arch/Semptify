@@ -12,6 +12,46 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-16 — Milestone 1: Harden Foundation (COMPLETE)
+**Files: `app/modules/case_builder/router.py`, `app/services/filedored_service.py`, `tests/e2e/onboarding_smoke.spec.js`, `playwright.config.js`**
+
+### What Was Shipped
+
+#### Case Builder PostgreSQL Migration (COMPLETE)
+- **Root cause:** `case_builder/router.py` stored all case data in local JSON files under `data/cases/<user_id>/`. Wiped on every Render restart. Tenants lost all cases on every deploy.
+- **Fix:** Replaced `load_case`, `save_case`, `verify_case_ownership`, `list_cases`, `create_case`, `intake_complaint`, `delete_case` with async DB implementations using existing `Incident` model (`incident_metadata` JSONB column). No migration needed — column already existed.
+- **All 20+ endpoints** now `await` the async storage functions. Compile-verified clean.
+- **Case IDs** are now `incident_id` integers from PostgreSQL — stable across restarts.
+
+#### Filedored Idempotency Flag (COMPLETE)
+- **Root cause:** `ensure_filedored_folders()` ran 17 cloud storage API calls on every document upload, even after folders were already created.
+- **Fix:** Redis flag `semptify:filedored_ready:<user_id>` — set after first successful folder creation, expires 30 days. Subsequent uploads skip the 17 API calls entirely.
+- **Fallback:** If Redis unavailable, creates folders normally (no regression).
+
+#### Playwright Smoke Test (COMPLETE)
+- **New:** `playwright.config.js` — targets `https://semptify.org` by default, overridable via `SEMPTIFY_URL`
+- **New:** `tests/e2e/onboarding_smoke.spec.js` — 8 tests covering:
+  - Welcome page loads (200)
+  - Get Started CTA visible
+  - Role selection page loads + contains tenant option
+  - Storage providers page reachable
+  - API health endpoint returns ok
+  - Protected routes return auth redirect, not 500
+  - Welcome → role select navigation doesn't crash
+- **Run:** `SEMPTIFY_URL=https://semptify.org npx playwright test onboarding_smoke.spec.js`
+
+### Known Working (Tested)
+- ✅ Case builder router compiles clean
+- ✅ Filedored service compiles clean
+- ⏳ Case builder DB storage — pending live test on Render
+- ⏳ Filedored Redis flag — pending live test
+- ⏳ Playwright smoke tests — pending run against semptify.org
+
+### Next Session Starts With
+- Milestone 2: Timeline module — live test `GET /api/timeline/unified`, wire upload → timeline entry
+
+---
+
 ## Session — 2026-06-16 — Onboarding End-to-End Fix (COMPLETE)
 **Commits: `379aff0`, `30b6798`, `2c02b58`, `d135279`, `c27f8fd`, `8dca553` | Pushed: 2026-06-16**
 
