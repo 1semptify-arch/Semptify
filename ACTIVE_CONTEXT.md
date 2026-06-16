@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-06-11
+**Last Updated**: 2026-06-15
 
 ---
 
@@ -11,12 +11,28 @@
 
 ---
 
-## 🎯 Current Priority: Admin Auth + Role Hierarchy
+## 🎯 Current Priority: Test Onboarding End-to-End
 
-### 🔴 IN PROGRESS — Admin OAuth Role Fix
-Admin login works through 2FA → OAuth → vault → dashboard, BUT:
-- If admin uses same Google/Dropbox account as an existing tenant, OAuth callback assigns **tenant** role (matches existing user, extracts role from user_id instead of DB)
-- Fix: `app/modules/storage/router.py` line 1820-1826 — use `matched_user.default_role` from DB
+### ✅ COMPLETED — Admin OAuth Role Fix (2026-06-15)
+- Fixed: `app/modules/storage/router.py` — returning users now use `matched_user.default_role` from DB, not parsed from user_id string
+- Admin elevation system shipped: time-limited HMAC-signed cookie, 2h TTL, `app/core/admin_elevation.py`
+
+### ✅ COMPLETED — document_uploaded Gate Re-enabled (2026-06-15)
+- `get_document_registry()` helper added to `app/services/document_registry.py`
+- `registry.register_document()` wrapped in `asyncio.run_in_executor()` in `vault_upload_service.py`
+- Gate re-enabled in `app/modules/onboarding/config.py`
+
+### ✅ COMPLETED — Vault Folder Creation Root Cause Fixed (2026-06-15)
+- Root cause: Google Drive `_get_folder_id()` returned `None` when folder existed due to race/eventual consistency
+- Fix: `app/services/storage/google_drive.py` — search-before-create with retry + exponential backoff
+- Removed VaultClient downstream workaround — storage provider now correct
+- Commits: `14a9e2c`, `73eaeca`
+
+### 🔴 PENDING — Test Onboarding Flow End-to-End
+- Clear browser cookies for `semptify.org`
+- Complete OAuth → vault init → document upload
+- Verify `document_uploaded` gate marked
+- Verify `registry_id` in SEM-YYYY-NNNNNN-XXXX format and `integrity_status` = "verified"
 
 ### 🔴 PENDING — Role Hierarchy Design
 - Admin needs to be able to assume child roles (tenant, manager, advocate) for testing
@@ -24,11 +40,6 @@ Admin login works through 2FA → OAuth → vault → dashboard, BUT:
 - Advocate needs conditional access to client documents (if engagement exists)
 - Need: `user_relationships` table + `can_access(user, target_user)` permission check
 - Need: `acting_as` session context for role impersonation
-
-### 🔴 PENDING — Re-enable document_uploaded Gate
-- `registry_id` assignment broken in vault upload pipeline
-- `app/modules/onboarding/router.py` line 532 checks `vault_doc.registry_id` but it's never set
-- Gate currently disabled in `app/modules/onboarding/config.py`
 
 ---
 
