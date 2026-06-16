@@ -510,7 +510,7 @@ async def _log_admin_action(
         request: Optional FastAPI request for IP/UA logging
     """
     from app.models.models import AdminAuditLog
-    from app.core.database import AsyncSessionLocal
+    from app.core.database import get_db_session
     
     # Extract client info if request provided
     ip_address = None
@@ -535,7 +535,7 @@ async def _log_admin_action(
         db.add(entry)
         await db.commit()
     else:
-        async with AsyncSessionLocal() as session:
+        async with get_db_session() as session:
             session.add(entry)
             await session.commit()
     
