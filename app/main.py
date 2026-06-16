@@ -1800,6 +1800,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # Check if user has an OAuth session
         oauth_uid = extract_user_id(request)
         has_session = oauth_uid is not None
+        has_session_js = 'true' if has_session else 'false'
         # Build page — simplified prompt if OAuth session exists, full login if not
         session_hint = f'<p class="session-badge">&#x2713; Connected as {oauth_uid[:6]}...</p>' if has_session else ''
         username_field = '' if has_session else '''
@@ -1837,42 +1838,48 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         <div class="lock">&#x1F512;</div>
         <h1>Secure Access</h1>
         {session_hint}
-        <div id="step1">
+        <form id="step1" onsubmit="loginStep1(); return false;">
             {username_field}
             <div class="input-group">
                 <label>Password</label>
                 <input type="password" id="password" placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" autocomplete="current-password">
             </div>
-            <button onclick="loginStep1()" id="btn1">Continue &rarr;</button>
-        </div>
-        <div id="step2" class="step2">
+            <button type="submit" id="btn1">Continue &rarr;</button>
+        </form>
+        <form id="step2" class="step2" onsubmit="loginStep2(); return false;">
             <div class="input-group">
                 <label>6-Digit Code</label>
                 <input type="text" id="totp" placeholder="000000" maxlength="6" pattern="[0-9]*" inputmode="numeric" autocomplete="one-time-code">
             </div>
-            <button onclick="loginStep2()" id="btn2">Verify &rarr;</button>
-        </div>
+            <button type="submit" id="btn2">Verify &rarr;</button>
+        </form>
         <div id="error" class="error"></div>
     </div>
     <script>
-        const HAS_SESSION = {'true' if has_session else 'false'};
-        document.addEventListener("keydown", e => {{
+        var HAS_SESSION = {has_session_js};
+        var SESSION_USERNAME = "{ADMIN_USERNAME}";
+        document.addEventListener("keydown", function(e) {{
             if (e.key === "Enter") {{
-                const s2 = document.getElementById("step2");
+                var s2 = document.getElementById("step2");
                 if (s2.style.display === "block") loginStep2();
                 else loginStep1();
             }}
         }});
+        function getUsername() {{
+            if (HAS_SESSION) return SESSION_USERNAME;
+            var el = document.getElementById("username");
+            return el ? el.value : "";
+        }}
         async function loginStep1() {{
             document.getElementById("error").textContent = "";
             document.getElementById("btn1").disabled = true;
-            const username = HAS_SESSION ? "{ADMIN_USERNAME}" : (document.getElementById("username")?.value || "");
-            const res = await fetch("/admin/api/login-step1", {{
+            var username = getUsername();
+            var res = await fetch("/admin/api/login-step1", {{
                 method: "POST",
                 headers: {{"Content-Type": "application/json"}},
-                body: JSON.stringify({{ username, password: document.getElementById("password").value }})
+                body: JSON.stringify({{ username: username, password: document.getElementById("password").value }})
             }});
-            const data = await res.json();
+            var data = await res.json();
             if (data.success) {{
                 document.getElementById("step1").style.display = "none";
                 document.getElementById("step2").style.display = "block";
@@ -1885,13 +1892,13 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         async function loginStep2() {{
             document.getElementById("error").textContent = "";
             document.getElementById("btn2").disabled = true;
-            const username = HAS_SESSION ? "{ADMIN_USERNAME}" : (document.getElementById("username")?.value || "");
-            const res = await fetch("/admin/api/login-step2", {{
+            var username = getUsername();
+            var res = await fetch("/admin/api/login-step2", {{
                 method: "POST",
                 headers: {{"Content-Type": "application/json"}},
-                body: JSON.stringify({{ username, password: document.getElementById("password").value, totp_code: document.getElementById("totp").value }})
+                body: JSON.stringify({{ username: username, password: document.getElementById("password").value, totp_code: document.getElementById("totp").value }})
             }});
-            const data = await res.json();
+            var data = await res.json();
             if (data.success) {{
                 window.location.href = data.redirect || "/admin/dashboard";
             }} else {{
@@ -1972,7 +1979,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         # Validate TOTP code if 2FA is configured
         if ADMIN_TOTP_SECRET:
             totp = pyotp.TOTP(ADMIN_TOTP_SECRET)
-            if not totp.verify(totp_code, valid_window=1):  # Allow 30sec drift
+            if not totp.verify(totp_code, valid_window=2):  # Allow 60sec drift
                 logger.warning(f"Failed 2FA attempt for admin: {username}")
                 raise HTTPException(status_code=401, detail="Invalid two-step code")
         elif totp_code != "000000":
