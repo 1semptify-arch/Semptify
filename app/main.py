@@ -3073,6 +3073,76 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         }
         return templates.TemplateResponse(request, "pages/tenant_capture.html", context)
 
+    @fastapi_app.post("/api/tenant/capture")
+    async def tenant_capture_post(request: Request):
+        """Create a timeline event from quick capture form."""
+        from app.models.models import TimelineEvent
+        from app.core.database import get_db_session
+        
+        guard_redirect = await _guard_role_page(request, {"tenant"})
+        if guard_redirect:
+            return guard_redirect
+        
+        user_id = extract_user_id(request)
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Authentication required")
+        
+        form_data = await request.form()
+        
+        capture_type = form_data.get("capture_type", "other")
+        is_urgent = form_data.get("is_urgent") == "true"
+        description = form_data.get("description", "")
+        event_date_str = form_data.get("event_date", "")
+        event_time_str = form_data.get("event_time", "")
+        who_involved = form_data.get("who_involved", "")
+        location = form_data.get("location", "")
+        
+        if not description:
+            raise HTTPException(status_code=400, detail="Description is required")
+        
+        if not event_date_str:
+            raise HTTPException(status_code=400, detail="Date is required")
+        
+        # Parse date/time
+        from app.core.utc import utc_now
+        try:
+            event_date = datetime.strptime(event_date_str, "%Y-%m-%d").date()
+            if event_time_str:
+                event_datetime = datetime.combine(event_date, datetime.strptime(event_time_str, "%H:%M").time())
+            else:
+                event_datetime = datetime.combine(event_date, datetime.min.time())
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid date or time format")
+        
+        # Map capture types to event types
+        type_mapping = {
+            "notice": "notice",
+            "conversation": "communication",
+            "repair": "maintenance",
+            "harassment": "communication",
+            "payment": "payment",
+            "other": "other"
+        }
+        event_type = type_mapping.get(capture_type, "other")
+        
+        async with get_db_session() as db:
+            event = TimelineEvent(
+                user_id=user_id,
+                event_type=event_type,
+                title=f"{capture_type.title()} Event",
+                description=description,
+                event_date=event_datetime,
+                is_urgent=is_urgent,
+                who_involved=who_involved,
+                location=location,
+                is_evidence=False,
+                created_at=utc_now()
+            )
+            db.add(event)
+            await db.commit()
+        
+        return {"success": True, "event_id": event.id}
+
     @fastapi_app.get("/tenant/journal", response_class=HTMLResponse)
     @fastapi_app.get("/tenant/journal/", response_class=HTMLResponse)
     async def tenant_journal(request: Request):
