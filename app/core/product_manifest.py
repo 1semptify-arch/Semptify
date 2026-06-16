@@ -22,6 +22,36 @@ Design Rules:
 2. Optional routers fail silently (ImportError/AttributeError logged as warning).
 3. Required routers raise on import failure — the app should not start without them.
 4. No business logic here. This is a declaration layer, not an execution layer.
+
+==========================================================================
+CAPABILITY SYSTEM CONTRACT — READ BEFORE ADDING ANY MODULE
+==========================================================================
+
+Every NEW Feature Module must do THREE things in this file:
+
+  1. Add its module_path to CAPABILITY_DEFAULTS for every role that gets it
+     by default. Admin is automatic — do NOT add to admin list.
+
+  2. Call _register() in the correct tier block below (CORE / EXTENDED /
+     ADVOCATE / ADMIN / RESEARCH / DEV). The module_path in _register()
+     MUST be identical to the string used in CAPABILITY_DEFAULTS and in
+     the require_capability() call inside the router itself.
+
+  3. In the router file, add require_capability() as a router-level
+     dependency so the gate is enforced on every endpoint automatically:
+
+        from app.core.capabilities import require_capability
+        router = APIRouter(
+            dependencies=[Depends(require_capability("app.modules.X.router"))]
+        )
+
+Pipeline modules (context_loop, positronic_brain, vault services) are
+EXEMPT from the capability system. They are always-on, never added to
+CAPABILITY_DEFAULTS, and never gated with require_capability().
+
+The string "app.modules.your_module.router" is the capability key.
+It must be IDENTICAL in all three locations or the gate will not work.
+==========================================================================
 """
 
 from __future__ import annotations
