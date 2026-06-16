@@ -166,11 +166,20 @@ class VaultClient:
                 if created:
                     result.folders.append(FolderResult(path=folder_path, status="ok"))
                 else:
-                    result.folders.append(FolderResult(
-                        path=folder_path,
-                        status="error",
-                        detail="create_folder returned False",
-                    ))
+                    # False may mean "folder already exists" (idempotent) - verify
+                    exists = await storage.file_exists(folder_path)
+                    if exists:
+                        result.folders.append(FolderResult(
+                            path=folder_path,
+                            status="ok",
+                            detail="folder already exists",
+                        ))
+                    else:
+                        result.folders.append(FolderResult(
+                            path=folder_path,
+                            status="error",
+                            detail="create_folder returned False and folder does not exist",
+                        ))
             except Exception as exc:
                 logger.error("Folder creation failed for %s: %s", folder_path, exc)
                 result.folders.append(FolderResult(
