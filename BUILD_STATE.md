@@ -93,6 +93,22 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-16 — Milestone 9: Filedored On-Demand Folder Creation (COMPLETE)
+**Files: `app/services/filedored_service.py`**
+
+### What Was Fixed
+- Split filedored folders into `BASE_FILEDORED_FOLDERS` (9 folders, upfront) and `AI_FILEDORED_FOLDERS` (8 subdirectories, on-demand)
+- `ensure_filedored_folders()` now only creates base folders — skips 8 AI API calls on first upload
+- Added `ensure_filedored_folder(storage_provider, path)` for lazy single-folder creation
+- Wired lazy trigger in `process_uploaded_document()`: before writing an AI-classified overlay, creates the target AI folder on-demand
+- Fixed `datetime.now(timezone.utc)` → `utc_now()` in overlay timestamps (2 occurrences)
+
+### Verification
+- `filedored_service.py` compiles clean
+- AI folders created only when `enable_ai=True` and a document is actually AI-classified
+
+---
+
 ## Session — 2026-06-16 — Milestone 8: Rent Ledger CRUD Router (COMPLETE)
 **Files: `app/modules/rent/router.py`, `app/core/product_manifest.py`, `tests/e2e/rent_ledger_smoke.spec.js`**
 
