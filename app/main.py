@@ -403,6 +403,10 @@ async def lifespan(_app: FastAPI):
             # plugin_stats = plugin_manager.load_all()
             
             logger.info("   âš¡ Core services only - mesh/brain/plugins DISABLED for memory optimization")
+
+            from app.core.event_subscribers import register_all_subscribers
+            register_all_subscribers()
+            logger.info("   Event subscribers registered")
         
         await run_stage(5, TOTAL_STAGES, "Initialize Services", init_services)
         

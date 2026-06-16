@@ -12,7 +12,13 @@
 
 ---
 
-## ✅ COMPLETED THIS SESSION (2026-06-16) — Milestone 1
+## ✅ COMPLETED THIS SESSION (2026-06-16) — Milestone 2
+
+- **Timeline Pydantic crash fixed** — `_cloud_event_to_item()` used wrong field names (`event_time` → `event_date`, etc.). Would have crashed `/api/timeline/unified` for any user with cloud events.
+- **Upload → timeline wired** — `app/core/event_subscribers.py`: `DOCUMENT_ADDED` → writes `TimelineEvent` row. Registered at startup Stage 5. Fire-and-forget, zero latency cost.
+- **Timeline smoke tests** — `tests/e2e/timeline_smoke.spec.js`, 4/4 passing.
+
+## ✅ COMPLETED PREVIOUS SESSION (2026-06-16) — Milestone 1
 
 - **Case builder storage fixed** — cases now in PostgreSQL `incidents.incident_metadata`, not local JSON. Survives Render restarts.
 - **Filedored idempotency** — Redis flag `semptify:filedored_ready:<user_id>` skips 17 API calls on repeat uploads
@@ -24,20 +30,22 @@
 
 ---
 
-## 🎯 Next Priority: Milestone 2 — Timeline End-to-End
+## 🎯 Next Priority: Milestone 3 — Capability System
 
-### Steps
-1. Live test `GET /api/timeline/unified` with a real account — fix any DB/import errors found
-2. Wire `DOCUMENT_ADDED` event → creates a `TimelineEvent` row so uploads appear on timeline automatically
-3. Verify all three date axes work: `event_time`, `record_time`, `entry_time`
-4. Playwright test: upload a doc → appears on timeline
+### Steps (Session A)
+1. Add `user_capabilities` table to `app/models/models.py`
+2. Create Alembic migration
+3. Implement `get_capabilities(user_id)` with Redis cache in `app/core/capabilities.py`
+4. Wire role defaults on login
 
-### After Milestone 2
-- Milestone 3: Capability System (already designed below — Session A + B)
+### Steps (Session B)
+5. Build `CapabilityOverlay` — add-only, pipeline modules cannot be overlaid
+6. Gate endpoints with capability checks
+7. Playwright tests
 
 ---
 
-## 🔵 Capability System (Milestone 3 — designed, not yet built)
+## 🔵 Capability System (Milestone 3 — designed)
 
 ### Architecture Decision — LOCKED (2026-06-16)
 
