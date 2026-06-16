@@ -12,17 +12,32 @@
 
 ---
 
-## ✅ COMPLETED THIS SESSION (2026-06-16)
+## ✅ COMPLETED THIS SESSION (2026-06-16) — Milestone 1
 
+- **Case builder storage fixed** — cases now in PostgreSQL `incidents.incident_metadata`, not local JSON. Survives Render restarts.
+- **Filedored idempotency** — Redis flag `semptify:filedored_ready:<user_id>` skips 17 API calls on repeat uploads
+- **Playwright smoke tests** — `tests/e2e/onboarding_smoke.spec.js` + `playwright.config.js` — 8 tests, run against semptify.org
 - **Vault folder timeout fixed** — `google_drive.py` single search/create, 409-only retry
 - **DB certification fixed** — lazy imports in `vault_upload_service.py`, removed `HAS_*` flags
 - **`AsyncSessionLocal` replaced** — `get_db_session()` in `vault_upload_service.py` and `admin_console/router.py`
 - **Full onboarding tested live** — OAuth → vault → upload → gates all pass ✅
-- **`SEMPTIFY_DICTIONARY.md` created** — canonical term definitions committed to repo
 
 ---
 
-## 🎯 Current Priority: Capability System
+## 🎯 Next Priority: Milestone 2 — Timeline End-to-End
+
+### Steps
+1. Live test `GET /api/timeline/unified` with a real account — fix any DB/import errors found
+2. Wire `DOCUMENT_ADDED` event → creates a `TimelineEvent` row so uploads appear on timeline automatically
+3. Verify all three date axes work: `event_time`, `record_time`, `entry_time`
+4. Playwright test: upload a doc → appears on timeline
+
+### After Milestone 2
+- Milestone 3: Capability System (already designed below — Session A + B)
+
+---
+
+## 🔵 Capability System (Milestone 3 — designed, not yet built)
 
 ### Architecture Decision — LOCKED (2026-06-16)
 

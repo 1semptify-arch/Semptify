@@ -13,8 +13,6 @@ depends on shared infrastructure (security, database, document_hub).
 Now integrated with DocumentHub for auto-population from uploaded documents.
 """
 
-import os
-import json
 import logging
 from datetime import datetime, date, timedelta
 from typing import Optional, List, Dict, Any
@@ -22,10 +20,15 @@ from fastapi import APIRouter, HTTPException, Depends, Query, Body
 from pydantic import BaseModel
 from enum import Enum
 
+from sqlalchemy import select, delete
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.security import require_user, StorageUser, yellow_access
-from app.core.database import get_db
+from app.core.database import get_db_session
 from app.core.document_hub import get_document_hub, CaseData
+from app.core.id_gen import make_id
 from app.core.utc import utc_now
+from app.models.models import Incident
 
 # Import data freshness manager for legal accuracy validation
 try:
@@ -441,70 +444,62 @@ class DefenseCreate(BaseModel):
 
 
 # =============================================================================
-# DATA STORAGE PATH - USER-SCOPED FOR PRIVACY
+# DATA STORAGE — PostgreSQL via Incident model
+# Full case JSON stored in incident_metadata JSONB column.
+# Replaces ephemeral local file storage (wiped on Render restart).
 # =============================================================================
 
-def get_user_case_data_dir(user_id: str):
-    """Get/create the user-specific case data directory."""
-    # Sanitize user_id to prevent path traversal
-    safe_user_id = "".join(c for c in user_id if c.isalnum() or c in '_-')
-    data_dir = os.path.join(os.getcwd(), "data", "cases", safe_user_id)
-    os.makedirs(data_dir, exist_ok=True)
-    return data_dir
+async def load_case(case_id: str, user_id: str) -> Optional[Dict]:
+    """Load case from DB, enforcing user ownership."""
+    async with get_db_session() as session:
+        row = await session.execute(
+            select(Incident).where(
+                Incident.incident_id == int(case_id),
+                Incident.user_id == user_id,
+            )
+        )
+        incident = row.scalar_one_or_none()
+        if not incident:
+            return None
+        data = dict(incident.incident_metadata or {})
+        data["case_id"] = str(incident.incident_id)
+        data["user_id"] = incident.user_id
+        data["status"] = incident.status
+        data["created_at"] = incident.created_at.isoformat()
+        data["updated_at"] = incident.updated_at.isoformat()
+        return data
 
 
-def get_case_data_dir():
-    """Get/create the legacy case data directory (for migration only)."""
-    data_dir = os.path.join(os.getcwd(), "data", "cases")
-    os.makedirs(data_dir, exist_ok=True)
-    return data_dir
-
-
-def get_case_file(case_id: str, user_id: str) -> str:
-    """Get path to case file for a specific user."""
-    data_dir = get_user_case_data_dir(user_id)
-    safe_case_id = case_id.replace('-', '_').replace(' ', '_').replace('/', '_').replace('\\', '_')
-    return os.path.join(data_dir, f"{safe_case_id}.json")
-
-
-def load_case(case_id: str, user_id: str) -> Optional[Dict]:
-    """Load case from file, ensuring user ownership."""
-    file_path = get_case_file(case_id, user_id)
-    if os.path.exists(file_path):
-        with open(file_path, 'r') as f:
-            case = json.load(f)
-            # Verify user ownership (defense in depth)
-            if case.get("user_id") and case.get("user_id") != user_id:
-                logger.warning(f"User {user_id} attempted to access case owned by {case.get('user_id')}")
-                return None
-            return case
-    return None
-
-
-def save_case(case_id: str, case_data: Dict, user_id: str):
-    """Save case to file in user's directory."""
-    # Ensure user_id is set in case data
+async def save_case(case_id: str, case_data: Dict, user_id: str) -> None:
+    """Persist full case JSON into incident_metadata."""
     case_data["user_id"] = user_id
-    case_data["updated_at"] = utc_now().isoformat()
-    
-    file_path = get_case_file(case_id, user_id)
-    with open(file_path, 'w') as f:
-        json.dump(case_data, f, indent=2, default=str)
+    async with get_db_session() as session:
+        row = await session.execute(
+            select(Incident).where(
+                Incident.incident_id == int(case_id),
+                Incident.user_id == user_id,
+            )
+        )
+        incident = row.scalar_one_or_none()
+        if not incident:
+            raise ValueError(f"Case {case_id} not found for user")
+        incident.incident_metadata = case_data
+        incident.status = case_data.get("status", incident.status)
+        incident.title = case_data.get("case_name") or case_data.get("title") or incident.title
+        incident.incident_type = case_data.get("case_type") or incident.incident_type
+        await session.commit()
 
 
-def verify_case_ownership(case_id: str, user_id: str) -> bool:
-    """Verify that a case belongs to a specific user."""
-    file_path = get_case_file(case_id, user_id)
-    if not os.path.exists(file_path):
-        return False
-    
-    with open(file_path, 'r') as f:
-        case = json.load(f)
-        # Case is owned if user_id matches or user_id not set (legacy)
-        stored_user_id = case.get("user_id")
-        if stored_user_id and stored_user_id != user_id:
-            return False
-    return True
+async def verify_case_ownership(case_id: str, user_id: str) -> bool:
+    """Return True if case exists and belongs to user."""
+    async with get_db_session() as session:
+        row = await session.execute(
+            select(Incident.incident_id).where(
+                Incident.incident_id == int(case_id),
+                Incident.user_id == user_id,
+            )
+        )
+        return row.scalar_one_or_none() is not None
 
 
 # =============================================================================
@@ -877,118 +872,79 @@ async def case_builder_info():
 async def list_cases(user: StorageUser = Depends(yellow_access)):
     """List all cases for the authenticated user with computed status and progress."""
     user_id = user.user_id
-    data_dir = get_user_case_data_dir(user_id)
     cases = []
-    
-    # Only list cases from user's directory
-    if not os.path.exists(data_dir):
-        return {"cases": [], "count": 0}
-    
-    for filename in os.listdir(data_dir):
-        if filename.endswith('.json'):
-            file_path = os.path.join(data_dir, filename)
+
+    async with get_db_session() as session:
+        rows = await session.execute(
+            select(Incident)
+            .where(Incident.user_id == user_id)
+            .order_by(Incident.updated_at.desc())
+        )
+        incidents = rows.scalars().all()
+
+    for incident in incidents:
+        case = dict(incident.incident_metadata or {})
+        case["case_id"] = str(incident.incident_id)
+        case["status"] = incident.status
+        case["updated_at"] = incident.updated_at.isoformat()
+
+        status = case.get("status", "draft") or "draft"
+
+        progress = 0
+        if case.get("case_number"):    progress += 10
+        if case.get("property_address"): progress += 10
+        if case.get("plaintiff", {}).get("name"): progress += 10
+        if len(case.get("timeline", [])): progress += 15
+        if len(case.get("evidence", [])): progress += 20
+        if len(case.get("defenses", [])): progress += 15
+        if len(case.get("motions", [])):  progress += 20
+        progress = min(progress, 100)
+
+        next_deadline = next_deadline_task = None
+        urgent = False
+        deadlines = case.get("deadlines", [])
+        if deadlines:
+            today = date.today()
+            upcoming = sorted(
+                [d for d in deadlines if d.get("deadline") and datetime.fromisoformat(d["deadline"]).date() >= today],
+                key=lambda x: x["deadline"]
+            )
+            if upcoming:
+                next_dl = upcoming[0]
+                next_deadline = next_dl.get("deadline")
+                next_deadline_task = next_dl.get("title", "Deadline")
+                urgent = (datetime.fromisoformat(next_deadline).date() - today).days <= 7
+        if not next_deadline and case.get("hearing_date"):
+            next_deadline = case.get("hearing_date")
+            next_deadline_task = "Hearing"
             try:
-                with open(file_path, 'r') as f:
-                    case = json.load(f)
-                
-                # Double-check user ownership (defense in depth)
-                if case.get("user_id") and case.get("user_id") != user_id:
-                    logger.warning(f"Skipping case with mismatched user_id in {filename}")
-                    continue
-                
-                # Compute case status based on data
-                status = case.get("status", "draft")
-                if not status:
-                    # Auto-determine status
-                    has_answer = any(m.get("motion_type") == "answer" for m in case.get("motions", []))
-                    has_hearing = bool(case.get("hearing_date"))
-                    if has_answer:
-                        status = "filed"
-                    elif has_hearing:
-                        status = "active"
-                    else:
-                        status = "draft"
-                
-                # Compute progress
-                progress = 0
-                if case.get("case_number"):
-                    progress += 10
-                if case.get("property_address"):
-                    progress += 10
-                if case.get("plaintiff", {}).get("name"):
-                    progress += 10
-                if len(case.get("timeline", [])) > 0:
-                    progress += 15
-                if len(case.get("evidence", [])) > 0:
-                    progress += 20
-                if len(case.get("defenses", [])) > 0:
-                    progress += 15
-                if len(case.get("motions", [])) > 0:
-                    progress += 20
-                progress = min(progress, 100)
-                
-                # Find next deadline
-                deadlines = case.get("deadlines", [])
-                next_deadline = None
-                next_deadline_task = None
-                urgent = False
-                
-                if deadlines:
-                    today = date.today()
-                    upcoming = sorted([
-                        d for d in deadlines 
-                        if d.get("deadline") and datetime.fromisoformat(d["deadline"]).date() >= today
-                    ], key=lambda x: x["deadline"])
-                    
-                    if upcoming:
-                        next_dl = upcoming[0]
-                        next_deadline = next_dl.get("deadline")
-                        next_deadline_task = next_dl.get("title", "Deadline")
-                        days_until = (datetime.fromisoformat(next_deadline).date() - today).days
-                        urgent = days_until <= 7
-                
-                # If no deadline set but has hearing, use hearing as deadline
-                if not next_deadline and case.get("hearing_date"):
-                    next_deadline = case.get("hearing_date")
-                    next_deadline_task = "Hearing"
-                    try:
-                        days_until = (datetime.fromisoformat(next_deadline).date() - date.today()).days
-                        urgent = days_until <= 7
-                    except ValueError:
-                        pass
-                
-                # Build case ID from filename
-                case_id = filename.replace('.json', '')
-                
-                cases.append({
-                    "id": case_id,
-                    "case_number": case.get("case_number"),
-                    "case_type": case.get("case_type"),
-                    "status": status,
-                    "court": case.get("court"),
-                    "property_address": case.get("property_address"),
-                    "hearing_date": case.get("hearing_date"),
-                    "plaintiff_name": case.get("plaintiff", {}).get("name"),
-                    "defendant_name": case.get("defendant", {}).get("name"),
-                    "progress": progress,
-                    "next_deadline": next_deadline,
-                    "next_deadline_task": next_deadline_task,
-                    "urgent": urgent,
-                    "defenses": [d.get("defense_type") for d in case.get("defenses", [])],
-                    "evidence_count": len(case.get("evidence", [])),
-                    "timeline_events": [
-                        {"date": e.get("date"), "title": e.get("title")}
-                        for e in (case.get("timeline", []) or [])[:5]
-                    ],
-                    "updated_at": case.get("updated_at")
-                })
-            except Exception as e:
-                logger.error(f"Error loading case file {filename}: {e}")
-                continue
-    
-    # Sort by updated_at descending
-    cases.sort(key=lambda x: x.get("updated_at") or "", reverse=True)
-    
+                urgent = (datetime.fromisoformat(next_deadline).date() - date.today()).days <= 7
+            except ValueError:
+                pass
+
+        cases.append({
+            "id": case["case_id"],
+            "case_number": case.get("case_number"),
+            "case_type": case.get("case_type"),
+            "status": status,
+            "court": case.get("court"),
+            "property_address": case.get("property_address"),
+            "hearing_date": case.get("hearing_date"),
+            "plaintiff_name": case.get("plaintiff", {}).get("name"),
+            "defendant_name": case.get("defendant", {}).get("name"),
+            "progress": progress,
+            "next_deadline": next_deadline,
+            "next_deadline_task": next_deadline_task,
+            "urgent": urgent,
+            "defenses": [d.get("defense_type") for d in case.get("defenses", [])],
+            "evidence_count": len(case.get("evidence", [])),
+            "timeline_events": [
+                {"date": e.get("date"), "title": e.get("title")}
+                for e in (case.get("timeline", []) or [])[:5]
+            ],
+            "updated_at": case.get("updated_at"),
+        })
+
     return {"cases": cases, "count": len(cases)}
 
 
@@ -996,7 +952,7 @@ async def list_cases(user: StorageUser = Depends(yellow_access)):
 async def get_case(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get a specific case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     return case
@@ -1063,11 +1019,23 @@ async def create_case(case: CaseCreate, user: StorageUser = Depends(yellow_acces
         "legal_accuracy_score": freshness_validation.get("freshness_score", 100.0)
     }
     
-    save_case(case.case_number, complete_case_data, user_id)
-    
+    async with get_db_session() as session:
+        incident = Incident(
+            user_id=user_id,
+            title=case.case_number or "New Case",
+            status="draft",
+            incident_type=case.case_type,
+            incident_metadata=complete_case_data,
+        )
+        session.add(incident)
+        await session.commit()
+        await session.refresh(incident)
+    complete_case_data["case_id"] = str(incident.incident_id)
+
     return {
-        "success": True, 
-        "case_number": case.case_number, 
+        "success": True,
+        "case_id": str(incident.incident_id),
+        "case_number": case.case_number,
         "case": complete_case_data,
         "freshness_validation": freshness_validation
     }
@@ -1331,8 +1299,18 @@ async def intake_complaint(intake: ComplaintIntake, user: StorageUser = Depends(
             "status": "pending"
         })
     
-    # Save the case
-    save_case(intake.case_number, case_data, user_id)
+    async with get_db_session() as session:
+        incident = Incident(
+            user_id=user_id,
+            title=intake.case_number or "Complaint Intake",
+            status="active",
+            incident_type=f"eviction_defense_{intake.complaint_type}",
+            incident_metadata=case_data,
+        )
+        session.add(incident)
+        await session.commit()
+        await session.refresh(incident)
+    case_data["case_id"] = str(incident.incident_id)
     
     # Validate Minnesota-specific requirements
     mn_validation = validate_minnesota_legal_requirements(case_data)
@@ -1359,21 +1337,14 @@ async def intake_complaint(intake: ComplaintIntake, user: StorageUser = Depends(
 async def update_case(case_id: str, updates: Dict[str, Any] = Body(...), user: StorageUser = Depends(yellow_access)):
     """Update a case belonging to the authenticated user."""
     user_id = user.user_id
-    
-    # Verify ownership before loading
-    if not verify_case_ownership(case_id, user_id):
+    if not await verify_case_ownership(case_id, user_id):
         raise HTTPException(status_code=404, detail="Case not found")
-    
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
-    
-    # Prevent user_id from being changed
     updates.pop("user_id", None)
-    
     case.update(updates)
-    save_case(case_id, case, user_id)
-    
+    await save_case(case_id, case, user_id)
     return {"success": True, "case": case}
 
 
@@ -1381,16 +1352,16 @@ async def update_case(case_id: str, updates: Dict[str, Any] = Body(...), user: S
 async def delete_case(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Delete a case belonging to the authenticated user."""
     user_id = user.user_id
-    
-    # Verify ownership before deletion
-    if not verify_case_ownership(case_id, user_id):
+    if not await verify_case_ownership(case_id, user_id):
         raise HTTPException(status_code=404, detail="Case not found")
-    
-    file_path = get_case_file(case_id, user_id)
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="Case not found")
-    
-    os.remove(file_path)
+    async with get_db_session() as session:
+        await session.execute(
+            delete(Incident).where(
+                Incident.incident_id == int(case_id),
+                Incident.user_id == user_id,
+            )
+        )
+        await session.commit()
     return {"success": True, "message": f"Case {case_id} deleted"}
 
 
@@ -1402,7 +1373,7 @@ async def delete_case(case_id: str, user: StorageUser = Depends(yellow_access)):
 async def get_timeline(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get all timeline events for a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -1417,7 +1388,7 @@ async def get_timeline(case_id: str, user: StorageUser = Depends(yellow_access))
 async def add_timeline_event(case_id: str, event: TimelineEventCreate, user: StorageUser = Depends(yellow_access)):
     """Add a timeline event to a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -1437,7 +1408,7 @@ async def add_timeline_event(case_id: str, event: TimelineEventCreate, user: Sto
     if "timeline" not in case:
         case["timeline"] = []
     case["timeline"].append(event_data)
-    save_case(case_id, case, user_id)
+    await save_case(case_id, case, user_id)
     
     return {"success": True, "event_id": event_id, "event": event_data}
 
@@ -1446,12 +1417,12 @@ async def add_timeline_event(case_id: str, event: TimelineEventCreate, user: Sto
 async def delete_timeline_event(case_id: str, event_id: str, user: StorageUser = Depends(yellow_access)):
     """Delete a timeline event from a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
     case["timeline"] = [e for e in case.get("timeline", []) if e.get("id") != event_id]
-    save_case(case_id, case, user_id)
+    await save_case(case_id, case, user_id)
     
     return {"success": True}
 
@@ -1464,7 +1435,7 @@ async def delete_timeline_event(case_id: str, event_id: str, user: StorageUser =
 async def get_evidence(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get all evidence for a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -1475,7 +1446,7 @@ async def get_evidence(case_id: str, user: StorageUser = Depends(yellow_access))
 async def add_evidence(case_id: str, evidence: EvidenceCreate, user: StorageUser = Depends(yellow_access)):
     """Add evidence to a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -1497,7 +1468,7 @@ async def add_evidence(case_id: str, evidence: EvidenceCreate, user: StorageUser
     if "evidence" not in case:
         case["evidence"] = []
     case["evidence"].append(evidence_data)
-    save_case(case_id, case, user_id)
+    await save_case(case_id, case, user_id)
     
     return {"success": True, "evidence_id": evidence_id, "evidence": evidence_data}
 
@@ -1510,7 +1481,7 @@ async def add_evidence(case_id: str, evidence: EvidenceCreate, user: StorageUser
 async def get_counterclaims(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get all counterclaims for a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -1521,7 +1492,7 @@ async def get_counterclaims(case_id: str, user: StorageUser = Depends(yellow_acc
 async def add_counterclaim(case_id: str, claim: CounterclaimCreate, user: StorageUser = Depends(yellow_access)):
     """Add a counterclaim to a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -1547,7 +1518,7 @@ async def add_counterclaim(case_id: str, claim: CounterclaimCreate, user: Storag
     if "counterclaims" not in case:
         case["counterclaims"] = []
     case["counterclaims"].append(claim_data)
-    save_case(case_id, case, user_id)
+    await save_case(case_id, case, user_id)
     
     return {"success": True, "claim_id": claim_id, "counterclaim": claim_data}
 
@@ -1560,7 +1531,7 @@ async def add_counterclaim(case_id: str, claim: CounterclaimCreate, user: Storag
 async def get_motions(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get all motions for a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -1571,7 +1542,7 @@ async def get_motions(case_id: str, user: StorageUser = Depends(yellow_access)):
 async def add_motion(case_id: str, motion: MotionCreate, user: StorageUser = Depends(yellow_access)):
     """Add a motion to a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -1599,7 +1570,7 @@ async def add_motion(case_id: str, motion: MotionCreate, user: StorageUser = Dep
     if "motions" not in case:
         case["motions"] = []
     case["motions"].append(motion_data)
-    save_case(case_id, case, user_id)
+    await save_case(case_id, case, user_id)
     
     return {"success": True, "motion_id": motion_id, "motion": motion_data}
 
@@ -1612,7 +1583,7 @@ async def add_motion(case_id: str, motion: MotionCreate, user: StorageUser = Dep
 async def get_deadlines(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get all deadlines for a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -1646,7 +1617,7 @@ async def get_deadlines(case_id: str, user: StorageUser = Depends(yellow_access)
 async def add_deadline(case_id: str, deadline: DeadlineCreate, user: StorageUser = Depends(yellow_access)):
     """Add a deadline to a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -1666,7 +1637,7 @@ async def add_deadline(case_id: str, deadline: DeadlineCreate, user: StorageUser
     if "deadlines" not in case:
         case["deadlines"] = []
     case["deadlines"].append(deadline_data)
-    save_case(case_id, case, user_id)
+    await save_case(case_id, case, user_id)
     
     return {"success": True, "deadline_id": deadline_id, "deadline": deadline_data}
 
@@ -1675,7 +1646,7 @@ async def add_deadline(case_id: str, deadline: DeadlineCreate, user: StorageUser
 async def complete_deadline(case_id: str, deadline_id: str, user: StorageUser = Depends(yellow_access)):
     """Mark a deadline as complete for a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -1684,7 +1655,7 @@ async def complete_deadline(case_id: str, deadline_id: str, user: StorageUser = 
             d["completed"] = True
             d["completed_at"] = utc_now().isoformat()
     
-    save_case(case_id, case, user_id)
+    await save_case(case_id, case, user_id)
     return {"success": True}
 
 
@@ -1696,7 +1667,7 @@ async def complete_deadline(case_id: str, deadline_id: str, user: StorageUser = 
 async def get_defenses(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get all defenses for a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -1707,7 +1678,7 @@ async def get_defenses(case_id: str, user: StorageUser = Depends(yellow_access))
 async def add_defense(case_id: str, defense: DefenseCreate, user: StorageUser = Depends(yellow_access)):
     """Add a defense strategy to a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -1731,7 +1702,7 @@ async def add_defense(case_id: str, defense: DefenseCreate, user: StorageUser = 
     if "defenses" not in case:
         case["defenses"] = []
     case["defenses"].append(defense_data)
-    save_case(case_id, case, user_id)
+    await save_case(case_id, case, user_id)
     
     return {"success": True, "defense_id": defense_id, "defense": defense_data}
 
@@ -1766,7 +1737,7 @@ async def get_motion_templates():
 async def generate_counterclaim_doc(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Generate the counterclaim document for a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -1864,7 +1835,7 @@ async def generate_counterclaim_doc(case_id: str, user: StorageUser = Depends(ye
 async def generate_motion_doc(case_id: str, motion_type: str, params: Dict[str, Any] = Body(default={}), user: StorageUser = Depends(yellow_access)):
     """Generate a motion document for a case belonging to the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -1920,7 +1891,7 @@ async def generate_motion_doc(case_id: str, motion_type: str, params: Dict[str, 
 async def get_case_summary(case_id: str, user: StorageUser = Depends(yellow_access)):
     """Get a complete case summary with reminders for the authenticated user."""
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     
@@ -2206,7 +2177,7 @@ async def populate_case_from_documents(
     - deadlines
     """
     user_id = user.user_id
-    case = load_case(case_id, user_id)
+    case = await load_case(case_id, user_id)
     
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
