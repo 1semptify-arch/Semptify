@@ -1274,7 +1274,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.services.filedored_service import process_uploaded_document
         from app.core.event_bus import EventType as _ET
 
-        async def _on_document_added(event_type, data: dict):
+        async def _on_document_added(event, data: dict = None):
+            if data is None:
+                data = event.data if hasattr(event, "data") else {}
             vault_id = data.get("vault_id")
             user_id = data.get("user_id")
             filename = data.get("filename", "")
@@ -1282,6 +1284,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 return
             try:
                 from app.services.vault_upload_service import VaultUploadService
+                from app.services.filedored_service import ensure_filedored_folders
+                from app.core.oauth_token_manager import get_valid_token_for_user
                 vault_svc = VaultUploadService()
                 doc = await vault_svc.get_document(vault_id, user_id)
                 content = b""
@@ -1290,6 +1294,23 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                         content = await vault_svc._get_document_content(doc) or b""
                     except Exception:
                         pass
+                    # Ensure filedored folders exist on-demand (lazy, first upload only)
+                    try:
+                        from app.sdk.vault.client import VaultClient
+                        from app.sdk.vault.folder_spec import BASE_VAULT
+                        from app.services.storage import get_provider
+                        access_token = get_valid_token_for_user(user_id)
+                        if access_token and doc.storage_provider not in ("local", None):
+                            storage = get_provider(doc.storage_provider, access_token=access_token)
+                            vault_client = VaultClient(
+                                provider=storage,
+                                access_token=access_token,
+                                user_id=user_id,
+                                folder_spec=BASE_VAULT,
+                            )
+                            await ensure_filedored_folders(vault_client)
+                    except Exception as _fe2:
+                        logger.debug("Filedored folder ensure skipped: %s", _fe2)
                 await process_uploaded_document(
                     vault_id=vault_id,
                     user_id=user_id,
