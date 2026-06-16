@@ -41,19 +41,49 @@ domain. A router is the HTTP surface of a module. It calls services. It does
 not contain business logic itself. Lives inside a module folder as `router.py`.
 
 ### Module
-A self-contained folder under `app/modules/` that bundles:
-- A `router.py` (HTTP endpoints)
-- A `service.py` or equivalent (business logic)
-- Optionally: models, schemas, templates, static files
+A module is one of two types. Every module in Semptify is one or the other.
+Never mix them. Never blur the line.
 
-A module owns one domain. It does not reach into other modules.
-It declares its dependencies explicitly. Examples:
-- `app/modules/fems/` — Forensic Evidence Management
-- `app/modules/onboarding/` — New user setup flow
-- `app/modules/case_builder/` — Build a legal case file
+#### Pipeline Module
+A set of instructions that prepares output for another module or the DB.
+No UI. No direct user interaction. Always running. Part of the engine.
 
-**A module is NOT a function. A module is NOT a service.**
-A module = router + service + everything needed for one domain to work.
+Rules:
+- Never hot-swapped or user-loadable
+- Lives in `app/services/` or as a service-only module in `app/modules/`
+- Called BY feature modules — never calls feature modules back
+- Failure here is a system failure, not a user feature being unavailable
+
+Examples: `vault_upload_service`, `document_registry`, `certification`,
+`extraction`, `context_loop`, `token_manager`
+
+#### Feature Module
+A complete, self-contained user capability. Has UI, routes, and backend logic.
+Can be loaded per user, per role, or per session. Can be overlaid in dev mode.
+
+Rules:
+- Can be loaded or unloaded without touching other modules or the engine
+- Has a single HTTP entry point (`router.py`)
+- Talks DOWN to pipeline modules — never sideways to other feature modules
+- Lives in `app/modules/` as a full folder (router + service + templates)
+- Absence of a feature module = feature unavailable. App still runs fine.
+
+Examples: `case_builder`, `fems`, `timeline`, `court_forms`,
+`eviction_defense`, `onboarding`, `admin_console`
+
+#### The One Rule That Protects Everything
+```
+USER
+  ↓
+Feature Module
+  ↓
+Pipeline Module
+  ↓
+Database / Storage / External APIs
+```
+Feature modules call DOWN to pipeline modules.
+Pipeline modules NEVER call UP to feature modules.
+Feature modules NEVER call sideways to other feature modules directly.
 
 ### Tier
 A named group of modules that form a product boundary. Tiers are declared in
