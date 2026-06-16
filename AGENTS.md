@@ -31,6 +31,7 @@ If a proposed library only works on 3.12+, **reject it and find an alternative.*
 4. **State your plan before acting** — Tell the user what you intend to change and why before touching any file.
 5. **Do not ship without a verification step** — Every change needs a compile check or test run.
 6. **Verify Python 3.11.9** — Confirm the active interpreter is `venv311` before running anything.
+7. **Fix the root cause, not the symptom** — Trace every bug to its source. NEVER add downstream compensating checks to mask upstream failures. Band-aids compound. Fix the source.
 
 **If you skip pre-flight, you will repeat a past mistake. The history proves this.**
 
@@ -108,6 +109,12 @@ These failures have each cost multiple sessions to fix. Read them. Do not cause 
 - **Fix:** Always activate `venv311` before running. `main.py` will hard-exit if the wrong Python is detected.
 - **Mandate:** Python 3.11.9 is the ONLY permitted version for this repo. Any new module, add-on, or dependency MUST support 3.11.9. Do NOT upgrade Python without explicit written approval from the project owner.
 - **Local command:** `.\\venv311\\Scripts\\Activate.ps1` then `python -m uvicorn app.main:app ...`
+
+### 15. Workaround Instead of Root Cause Fix
+- **What happened:** A bug in `google_drive.py`'s `_get_folder_id()` caused `create_folder()` to return `False` when a folder already existed. Instead of fixing the source, an additional `file_exists()` check was added in `VaultClient` as a band-aid. This masked the root cause, added an unnecessary API call per folder, and left the downstream code fragile.
+- **Fix:** Always trace the error to the source and fix it there. If a storage provider returns an incorrect value, fix the provider. If a function returns wrong results, fix that function. Do NOT add compensating checks downstream.
+- **Rule: NEVER add workarounds downstream when the root cause is upstream. Fix the root. Band-aids compound over time.**
+- **File:** `app/services/storage/google_drive.py` — fixed `_get_folder_id()` to search before create with retry logic.
 
 ---
 
