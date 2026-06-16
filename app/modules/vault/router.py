@@ -30,6 +30,7 @@ Vault router endpoints:
 # Migrated from app/routers/vault.py into the vault SDK module.
 # All imports remain absolute since vault is a CORE module.
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -423,6 +424,17 @@ async def upload_document(
                 ip_address=request.client.host if request.client else "unknown",
                 user_agent=request.headers.get("user-agent", "unknown"),
             )
+
+            # Fire DOCUMENT_ADDED → timeline subscriber creates TimelineEvent row
+            try:
+                from app.core.event_bus import notify_document_added
+                asyncio.create_task(notify_document_added(
+                    doc_id=vault_doc.vault_id,
+                    filename=uploaded_file.filename,
+                    user_id=user.user_id,
+                ))
+            except Exception as _ev_err:
+                logger.debug("Event bus notify skipped: %s", _ev_err)
 
             uploaded_at = vault_doc.uploaded_at.isoformat() if hasattr(vault_doc.uploaded_at, "isoformat") else str(vault_doc.uploaded_at)
 

@@ -7,6 +7,7 @@ import asyncio
 from typing import Any, Callable, Dict, List, Optional
 from datetime import datetime
 from dataclasses import dataclass, field
+from app.core.utc import utc_now
 from enum import Enum
 import logging
 import json
@@ -91,7 +92,7 @@ class Event:
     """Event data structure"""
     type: EventType
     data: Dict[str, Any]
-    timestamp: datetime = field(default_factory=datetime.now)
+    timestamp: datetime = field(default_factory=utc_now)
     source: str = "system"
     user_id: Optional[str] = None
     
