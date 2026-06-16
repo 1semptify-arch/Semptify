@@ -1949,6 +1949,14 @@ async def oauth_callback(
         # This is the ProcessGroup exit gate: session saved + user row written = storage connected.
         await _mark_group_complete(db, user_id, "storage_connected")
 
+        # Seed capability defaults for this user if not already seeded.
+        # Safe to call on every login — only inserts missing rows.
+        try:
+            from app.core.capabilities import seed_capability_defaults
+            await seed_capability_defaults(user_id, role, db)
+        except Exception as _cap_err:
+            logger.warning("Capability seeding skipped for %s: %s", user_id[:6], _cap_err)
+
         # Cache token in-memory so vault_init (called seconds later) can find it.
         # Without this, get_current_user falls back to DB lookup which may race.
         from app.core.oauth_token_manager import token_manager, OAuthToken

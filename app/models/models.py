@@ -1588,3 +1588,55 @@ class UserRelationship(Base):
     # Relationships to User model
     from_user: Mapped["User"] = relationship("User", foreign_keys=[from_user_id])
     to_user: Mapped["User"] = relationship("User", foreign_keys=[to_user_id])
+
+
+# =============================================================================
+# User Capabilities — Per-user Feature Module Access Control
+# =============================================================================
+
+class UserCapability(Base):
+    """
+    Per-user capability record. Controls which Feature Modules a user has active.
+
+    One row per (user_id, module_name) pair.
+    Seeded with role defaults on first login.
+    Can be granted/revoked by admin at any time.
+
+    Rules:
+    - Pipeline modules are never stored here — they are always on.
+    - Only Feature Modules (user-loadable capabilities) get rows here.
+    - source='role_default' means auto-seeded from product_manifest.py defaults.
+    - source='admin_grant' means explicitly granted by an admin.
+    - source='user_activated' means user opted in themselves.
+    """
+    __tablename__ = "user_capabilities"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+
+    # The user this capability belongs to
+    user_id: Mapped[str] = mapped_column(String(256), ForeignKey("users.id"), index=True)
+
+    # Dotted module path matching ModuleEntry.module_path in product_manifest.py
+    # e.g. "app.modules.case_builder.router"
+    module_name: Mapped[str] = mapped_column(String(256), index=True)
+
+    # Whether this capability is currently active for this user
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+
+    # How this capability was granted
+    source: Mapped[str] = mapped_column(
+        String(50),
+        default="role_default",
+        index=True,
+    )
+
+    # Timestamps
+    granted_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
+    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTimeTZ, nullable=True, index=True)
+
+    # Who granted this capability (for audit — null = system-seeded)
+    granted_by: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)
+
+    # Relationship to User model
+    user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
