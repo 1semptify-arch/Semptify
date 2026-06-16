@@ -452,7 +452,11 @@ class StoredSession:
     
     # Role (can be switched)
     role: str = "user"  # UserRole value
-    
+
+    # Impersonation state (admin only)
+    acting_as: Optional[str] = None           # user_id being impersonated
+    acting_as_role: Optional[str] = None      # role being assumed
+
     # SSOT PRIVACY: No email or display_name stored.
 
     # Timestamps
@@ -461,7 +465,7 @@ class StoredSession:
     
     def to_context(self) -> UserContext:
         """Convert stored session to UserContext for route handlers."""
-        return UserContext(
+        ctx = UserContext(
             user_id=self.user_id,
             provider=StorageProvider(self.provider),
             storage_user_id=self.storage_user_id,
@@ -470,6 +474,10 @@ class StoredSession:
             session_id=self.session_id,
             authenticated_at=self.created_at,
         )
+        if self.acting_as:
+            ctx.acting_as = self.acting_as
+            ctx.acting_as_role = UserRole(self.acting_as_role) if self.acting_as_role else None
+        return ctx
     
     def to_dict(self) -> dict:
         """Serialize for storage."""
@@ -482,6 +490,8 @@ class StoredSession:
             "refresh_token": self.refresh_token,
             "token_expires_at": self.token_expires_at.isoformat() if self.token_expires_at else None,
             "role": self.role,
+            "acting_as": self.acting_as,
+            "acting_as_role": self.acting_as_role,
             "created_at": self.created_at.isoformat(),
             "expires_at": self.expires_at.isoformat() if self.expires_at else None,
         }
@@ -498,6 +508,8 @@ class StoredSession:
             refresh_token=data.get("refresh_token"),
             token_expires_at=datetime.fromisoformat(data["token_expires_at"]) if data.get("token_expires_at") else None,
             role=data.get("role", "user"),
+            acting_as=data.get("acting_as"),
+            acting_as_role=data.get("acting_as_role"),
             created_at=datetime.fromisoformat(data["created_at"]),
             expires_at=datetime.fromisoformat(data["expires_at"]) if data.get("expires_at") else None,
         )

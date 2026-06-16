@@ -597,6 +597,21 @@ def update_session_role(session_id: str, role: str) -> Optional[StoredSession]:
     return None
 
 
+def update_session_impersonation(
+    session_id: str,
+    acting_as: Optional[str],
+    acting_as_role: Optional[str],
+) -> Optional[StoredSession]:
+    """Set or clear the acting_as impersonation state on a session."""
+    session = _load_session(session_id)
+    if session:
+        session.acting_as = acting_as
+        session.acting_as_role = acting_as_role
+        _store_session(session_id, session)
+        return session
+    return None
+
+
 def update_session_token(session_id: str, access_token: str) -> Optional[StoredSession]:
     """Update the access token for an existing session."""
     session = _load_session(session_id)
@@ -1636,6 +1651,7 @@ __all__ = [
     "ACTIVE_SESSIONS",
     "get_session",
     "update_session_role",
+    "update_session_impersonation",
     "update_session_token",
     "invalidate_session",
     # User ID
