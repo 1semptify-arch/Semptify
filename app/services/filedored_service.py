@@ -166,36 +166,35 @@ async def process_uploaded_document(
 async def ensure_filedored_folders(vault_client) -> dict:
     """
     Ensure all filedored folders exist in the vault.
+    Called on-demand before the first filedored overlay is written.
     Returns dict with folder creation status.
     """
-    from app.sdk.vault.folder_spec import VaultFolderSpec
-    
-    filedored_spec = VaultFolderSpec(
-        name="filedored",
-        folders=[
-            VAULT_FILEDORED,
-            VAULT_FILEDORED_PDF,
-            VAULT_FILEDORED_WORD,
-            VAULT_FILEDORED_TEXT,
-            VAULT_FILEDORED_SPREADS,
-            VAULT_FILEDORED_PRESENTS,
-            VAULT_FILEDORED_SCANS,
-            VAULT_FILEDORED_DUPLICATES,
-            VAULT_FILEDORED_OTHER,
-            VAULT_FILEDORED_AI,
-            VAULT_FILEDORED_AI_LEASE,
-            VAULT_FILEDORED_AI_NOTICE,
-            VAULT_FILEDORED_AI_EVIDENCE,
-            VAULT_FILEDORED_AI_PHOTO,
-            VAULT_FILEDORED_AI_INVOICE,
-            VAULT_FILEDORED_AI_COMM,
-            VAULT_FILEDORED_AI_UNKNOWN,
-        ],
-    )
-    
-    result = await vault_client.create_folders(filedored_spec)
+    from app.sdk.vault.folder_spec import BASE_VAULT
+
+    filedored_spec = BASE_VAULT.extend([
+        VAULT_FILEDORED,
+        VAULT_FILEDORED_PDF,
+        VAULT_FILEDORED_WORD,
+        VAULT_FILEDORED_TEXT,
+        VAULT_FILEDORED_SPREADS,
+        VAULT_FILEDORED_PRESENTS,
+        VAULT_FILEDORED_SCANS,
+        VAULT_FILEDORED_DUPLICATES,
+        VAULT_FILEDORED_OTHER,
+        VAULT_FILEDORED_AI,
+        VAULT_FILEDORED_AI_LEASE,
+        VAULT_FILEDORED_AI_NOTICE,
+        VAULT_FILEDORED_AI_EVIDENCE,
+        VAULT_FILEDORED_AI_PHOTO,
+        VAULT_FILEDORED_AI_INVOICE,
+        VAULT_FILEDORED_AI_COMM,
+        VAULT_FILEDORED_AI_UNKNOWN,
+    ])
+
+    vault_client._folder_spec = filedored_spec
+    result = await vault_client.create_folders()
     return {
         "status": "complete" if result.all_ok else "partial",
-        "folders_created": result.created_folders,
-        "folders_failed": result.failed_folders,
+        "folders_created": [f.path for f in result.folders if f.status == "ok"],
+        "folders_failed": [f.path for f in result.failed],
     }
