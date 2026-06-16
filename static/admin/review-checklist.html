@@ -984,7 +984,7 @@
               btn.textContent = '❌ Fail';
               btn.style.background = '#ef4444';
               // Show AI Fix button
-              showAIFixButton(itemId, item, e?.message || 'Test failed');
+              showAIFixButton(id, item, 'Test failed');
               setTimeout(() => {
                 btn.textContent = '🧪 Test';
                 btn.style.background = '';
@@ -995,7 +995,7 @@
             btn.textContent = '❌ Error';
             btn.style.background = '#ef4444';
             // Show AI Fix button
-            showAIFixButton(itemId, item, e.message);
+            showAIFixButton(id, item, e.message);
             setTimeout(() => {
               btn.textContent = '🧪 Test';
               btn.style.background = '';
@@ -1106,7 +1106,7 @@
     
     // AI Fix button for failed tests
     function showAIFixButton(itemId, item, errorMessage) {
-      const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
+      const itemElement = document.querySelector(`[data-id="${itemId}"]`);
       if (!itemElement) return;
       
       // Remove existing AI fix button if present
