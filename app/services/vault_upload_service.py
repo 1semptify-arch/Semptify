@@ -741,7 +741,7 @@ class VaultUploadService:
                 failure_detail=detail,
                 stage="registry_register",
             )
-            raise RuntimeError(f"Document certification failed for {vault_id}. Please retry or contact support.") from e
+            raise RuntimeError(f"Document certification failed for {vault_id}: {type(e).__name__}: {e}") from e
         
         # Add to index (now with registry info if available)
         await self.index.add(doc)
