@@ -5,7 +5,8 @@
 {# Usage in any page template:                                       #}
 {#   {% from "components/ui_macros.html" import hero, card_grid,     #}
 {#          info_box, service_card, quick_link, section_title,       #}
-{#          emergency_box, privacy_note, vault_cta, nav_bar %}       #}
+{#          emergency_box, privacy_note, vault_cta, nav_bar,        #}
+{#          admin_nav %}                                             #}
 {#                                                                   #}
 {# Every macro is self-contained with its own CSS.                   #}
 {# CSS is scoped by class prefix to avoid collisions.                #}
@@ -289,5 +290,33 @@
 .ui-progress__step--active .ui-progress__label { color: var(--color-accent); font-weight: 600; }
 .ui-progress__line { width: 40px; height: 2px; background: var(--color-border); margin: 0 0.25rem; margin-bottom: 1.2rem; }
 .ui-progress__line--done { background: var(--color-success); }
+
+/* Admin Navigation */
+.admin-nav { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.admin-nav__item { color: var(--color-text-secondary); text-decoration: none; padding: 0.4rem 0.75rem; border-radius: var(--radius-md); font-size: 0.85rem; transition: all 0.15s; white-space: nowrap; }
+.admin-nav__item:hover { background: var(--color-bg-hover); color: var(--color-text-primary); }
+.admin-nav__item--active { background: var(--color-accent); color: #fff; font-weight: 600; }
 </style>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# ADMIN NAVIGATION                                                  #}
+{# Consistent admin navigation across all admin pages.                #}
+{#                                                                   #}
+{# Args:                                                             #}
+{#   current_page: str  — Current page identifier                    #}
+{#              options: "dashboard", "function-browser",            #}
+{#                       "contract-browser", "page-editor",          #}
+{#                       "review-checklist", "manual"                 #}
+{# ----------------------------------------------------------------- #}
+{% macro admin_nav(current_page="dashboard") %}
+<nav class="admin-nav">
+  <a href="/admin/dashboard.html" class="admin-nav__item {% if current_page == 'dashboard' %}admin-nav__item--active{% endif %}">🏠 Dashboard</a>
+  <a href="/admin/function-browser.html" class="admin-nav__item {% if current_page == 'function-browser' %}admin-nav__item--active{% endif %}">⚙️ Functions</a>
+  <a href="/admin/contract-browser.html" class="admin-nav__item {% if current_page == 'contract-browser' %}admin-nav__item--active{% endif %}">📋 Contracts</a>
+  <a href="/admin/page-editor.html" class="admin-nav__item {% if current_page == 'page-editor' %}admin-nav__item--active{% endif %}">📝 Editor</a>
+  <a href="/admin/review-checklist.html" class="admin-nav__item {% if current_page == 'review-checklist' %}admin-nav__item--active{% endif %}">✅ Review</a>
+  <a href="/admin/manual.html" class="admin-nav__item {% if current_page == 'manual' %}admin-nav__item--active{% endif %}">📖 Manual</a>
+</nav>
 {% endmacro %}

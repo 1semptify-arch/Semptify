@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Semptify Page Editor</title>
   <link rel="stylesheet" href="/css/ssot-design-system.css">
+  <link rel="stylesheet" href="/css/admin-nav.css">
   <style>
     :root {
       --editor-bg: #1e1e1e;
@@ -48,6 +49,31 @@
     .editor-actions {
       display: flex;
       gap: 0.5rem;
+    }
+    
+    .editor-nav {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    
+    .editor-nav a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      padding: 0.4rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      transition: all 0.15s;
+    }
+    
+    .editor-nav a:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    
+    .editor-nav a.active {
+      background: var(--accent-color);
+      color: #fff;
     }
     
     .btn {
@@ -390,6 +416,7 @@
       <span>📝</span>
       <span>Semptify Page Editor</span>
     </div>
+    <div id="admin-nav-container" class="admin-nav--dark"></div>
     <div class="editor-actions">
       <button class="btn btn-secondary" onclick="togglePreview()">👁 Preview</button>
       <button class="btn btn-primary" onclick="saveFile()">💾 Save</button>
@@ -840,5 +867,6 @@
       return 'Text';
     }
   </script>
+  <script src="/js/admin-nav.js"></script>
 </body>
 </html>
