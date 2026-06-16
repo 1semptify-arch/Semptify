@@ -54,23 +54,16 @@ class VaultInstaller:
         self.access_token = access_token
         self.user_id = user_id
         
-        # Use Vault SDK for storage operations (SSOT)
+        # Use Vault SDK for storage operations (SSOT).
+        # Only TENANT_VAULT folders (7 total) are created at onboarding time.
+        # Filedored, overlay, and AI-classified folders are created on-demand
+        # when those features are first used, not at account creation.
         self.vault_client = VaultClient(
             provider=provider_name,
             access_token=access_token,
             user_id=user_id,
             folder_spec=TENANT_VAULT,
         )
-        
-        # Additional folders beyond base TENANT_VAULT spec
-        self.additional_folders = [
-            folder
-            for folder in CANONICAL_VAULT_FOLDERS
-            if folder not in TENANT_VAULT.all_folders
-        ]
-
-        # Register additional folders with SDK
-        self.vault_client.register_folders(self.additional_folders)
 
     async def install_vault(self) -> Dict:
         """
