@@ -231,6 +231,8 @@ _register("app.modules.role_ui.router", tags=("Role UI",), tier=ProductTier.CORE
 _register("app.modules.storage.router", tags=("Storage Auth",), tier=ProductTier.CORE)
 _register("app.modules.user.router", tags=("User",), tier=ProductTier.CORE,
           log_message="User router active — act-as impersonation endpoints enabled")
+_register("app.modules.rent.router", prefix="/api/rent", tags=("Rent Ledger",), tier=ProductTier.CORE,
+          log_message="Rent ledger router active — payment tracking endpoints enabled")
 _register("app.modules.auth.router", tags=("Authentication",), tier=ProductTier.CORE,
           log_message="Auth status router active at /api/auth/me")
 _register("app.modules.onboarding.reconnect", tags=("Onboarding", "Reconnect"), tier=ProductTier.CORE,
