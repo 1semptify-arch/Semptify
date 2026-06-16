@@ -4,6 +4,8 @@
 
 {% block styles %}
 <link rel="stylesheet" href="/static/css/workspace-stage-model.css">
+{% from "components/ui_macros.html" import admin_nav, ui_styles %}
+{{ ui_styles() }}
 <style>
 .role-container {
     max-width: 1150px;
@@ -50,6 +52,7 @@
 
 {% block content %}
 <div class="role-container">
+    {{ admin_nav('dashboard') }}
     <h1>Admin Dashboard</h1>
     <p>System control center with direct, valid navigation.</p>
 

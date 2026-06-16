@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Manual — Semptify</title>
+  <link rel="stylesheet" href="/css/admin-nav.css">
+  <style>
+    :root {
+      --hdr1: #0c4a6e;
+      --hdr2: #075985;
+      --accent: #0369a1;
+      --accent2: #38bdf8;
+      --bg: #0f172a;
+      --surface: #1e293b;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --error: #ef4444;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    header {
+      background: linear-gradient(135deg, var(--hdr1), var(--hdr2));
+      padding: 0 1.5rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .logo { font-weight: 800; font-size: 1.1rem; color: #fff; text-decoration: none; }
+    
+    nav a {
+      color: rgba(255,255,255,0.75);
+      text-decoration: none;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.88rem;
+      transition: all 0.15s;
+    }
+    
+    nav a:hover { background: rgba(255,255,255,0.15); color: #fff; }
+    nav a.active { background: rgba(255,255,255,0.2); color: #fff; font-weight: 600; }
+    
+    .search-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    
+    .search-input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    
+    .search-input:focus { border-color: var(--accent2); }
+    
+    .main {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      min-height: calc(100vh - 120px);
+    }
+    
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 1rem;
+      overflow-y: auto;
+      position: sticky;
+      top: 120px;
+      height: calc(100vh - 120px);
+    }
+    
+    .toc-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+    
+    .toc-item {
+      display: block;
+      padding: 0.5rem 0.75rem;
+      color: var(--text);
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-bottom: 0.25rem;
+      transition: all 0.15s;
+    }
+    
+    .toc-item:hover { background: var(--border); }
+    .toc-item.active { background: var(--accent); color: #fff; }
+    .toc-item.sub { padding-left: 1.5rem; font-size: 0.8rem; color: var(--muted); }
+    
+    .content { padding: 2rem 3rem; max-width: 900px; }
+    
+    h1 { font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: #fff; }
+    .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; }
+    h2 { font-size: 1.5rem; font-weight: 600; margin: 2.5rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); color: var(--accent2); }
+    h3 { font-size: 1.2rem; font-weight: 600; margin: 1.5rem 0 0.75rem; color: var(--text); }
+    p { line-height: 1.7; margin-bottom: 1rem; color: #cbd5e1; }
+    
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+    }
+    
+    .collapsible {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: 1rem 0;
+      overflow: hidden;
+    }
+    
+    .collapsible-header {
+      padding: 1rem 1.25rem;
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+    
+    .collapsible-header:hover { background: rgba(255,255,255,0.05); }
+    
+    .collapsible-content {
+      padding: 0 1.25rem;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+    
+    .collapsible.open .collapsible-content { padding: 1.25rem; max-height: 2000px; }
+    .collapsible-arrow { transition: transform 0.3s ease; }
+    .collapsible.open .collapsible-arrow { transform: rotate(180deg); }
+    
+    .how-to-box {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+    }
+    
+    .how-to-title { color: #86efac; font-weight: 600; margin-bottom: 0.75rem; }
+    
+    .testing-box {
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+    }
+    
+    .testing-title { color: #93c5fd; font-weight: 600; margin-bottom: 0.75rem; }
+    
+    .troubleshoot-box {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin: 1rem 0;
+    }
+    
+    .troubleshoot-title { color: #fca5a5; font-weight: 600; margin-bottom: 0.75rem; }
+    
+    table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.85rem; }
+    th, td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+    th { background: var(--surface); font-weight: 600; color: var(--text); }
+    td { color: var(--muted); }
+    
+    code { background: rgba(0,0,0,0.3); padding: 0.15rem 0.4rem; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.85rem; color: #a5f3fc; }
+    
+    .back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--accent);
+      color: #fff;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+      border: none;
+      font-size: 1.2rem;
+    }
+    
+    .back-to-top.visible { opacity: 1; visibility: visible; }
+    .back-to-top:hover { background: var(--accent2); transform: translateY(-2px); }
+    
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .content { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/admin/dashboard.html" class="logo">Semptify</a>
+    <div id="admin-nav-container" class="admin-nav--dark" style="display: flex; gap: 0.25rem; flex: 1;"></div>
+  </header>
+
+  <div class="search-bar">
+    <input type="text" class="search-input" id="searchInput" placeholder="Search manual... (Ctrl+K)" oninput="searchManual(this.value)">
+    <span style="color: var(--muted); font-size: 0.85rem;" id="searchResults"></span>
+  </div>
+
+  <div class="main">
+    <aside class="sidebar" id="sidebar">
+      <div class="toc-title">CONTENTS</div>
+      <div id="toc"></div>
+    </aside>
+
+    <main class="content" id="content">
+      <h1>📖 Admin Manual</h1>
+      <p class="subtitle">Version 1.0 • Last Updated: 2026-06-16 • For System Administrators</p>
+
+      <div class="feature-card">
+        <h3>🎯 Quick Start</h3>
+        <p>This manual provides comprehensive documentation for all Semptify admin features. Use the table of contents on the left to navigate, or search above to find specific topics.</p>
+        <p><strong>Key Sections:</strong></p>
+        <ul>
+          <li><a href="#admin-portal-overview">Admin Portal Overview</a> - Access requirements and page list</li>
+          <li><a href="#admin-dashboard">Admin Dashboard</a> - System monitoring and metrics</li>
+          <li><a href="#function-browser">Function Browser</a> - Interactive function documentation</li>
+          <li><a href="#contract-browser">Contract Browser</a> - Page/module contracts and health</li>
+          <li><a href="#page-editor">Page Editor</a> - Edit pages directly in browser</li>
+          <li><a href="#review-checklist">Review Checklist</a> - Automated verification tests</li>
+          <li><a href="#fix-it-bot">Fix-It Bot</a> - Automated issue resolution</li>
+          <li><a href="#troubleshooting-guide">Troubleshooting Guide</a> - Common issues and solutions</li>
+        </ul>
+      </div>
+
+      <h2 id="admin-portal-overview">Admin Portal Overview</h2>
+      <p>The Semptify Admin Portal provides system-wide oversight, configuration, and maintenance tools. Access requires admin credentials and 2FA authentication.</p>
+
+      <div class="feature-card">
+        <h3>🔐 Access Requirements</h3>
+        <p><strong>Authentication:</strong> Username + Password + 6-digit TOTP code</p>
+        <p><strong>Environment Variables Required:</strong></p>
+        <ul>
+          <li><code>ADMIN_USERNAME</code> - Admin username (default: "admin")</li>
+          <li><code>ADMIN_PASSWORD</code> - Admin password</li>
+          <li><code>ADMIN_TOTP_SECRET</code> - TOTP secret for 2FA</li>
+        </ul>
+      </div>
+
+      <h3>Admin Pages</h3>
+      <table>
+        <thead><tr><th>Page</th><th>URL</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>Admin Home</td><td><code>/admin/home</code></td><td>Entry point with sign-in</td></tr>
+          <tr><td>Admin Dashboard</td><td><code>/admin/dashboard.html</code></td><td>System overview and metrics</td></tr>
+          <tr><td>Function Browser</td><td><code>/admin/function-browser.html</code></td><td>Interactive function documentation</td></tr>
+          <tr><td>Contract Browser</td><td><code>/admin/contract-browser.html</code></td><td>Page/module contracts and health</td></tr>
+          <tr><td>Page Editor</td><td><code>/admin/page-editor.html</code></td><td>Edit static/template files</td></tr>
+          <tr><td>Review Checklist</td><td><code>/admin/review-checklist.html</code></td><td>System verification tests</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="admin-dashboard">Admin Dashboard</h2>
+      <p><strong>Location:</strong> <code>/admin/dashboard.html</p>
+      <p><strong>Purpose:</strong> Central hub for system monitoring, user management, and quick access to admin tools.</p>
+
+      <div class="collapsible" onclick="toggleCollapsible(this)">
+        <div class="collapsible-header"><span>1. System Overview Hero</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-content">
+          <p><strong>What it does:</strong> Displays high-level platform metrics at a glance.</p>
+          <p><strong>Metrics shown:</strong> Total users, Active cases, Documents in vaults, Pending signatures, Uptime, Security incidents, Rate limit violations, Blockchain timestamps.</p>
+          <div class="how-to-box"><div class="how-to-title">💡 How to Use</div><p>Monitor these metrics daily to detect anomalies. Sudden drops in uptime or spikes in rate limit violations may indicate attacks or system issues.</p></div>
+          <div class="testing-box"><div class="testing-title">🧪 Testing</div><p>No switches to test. Metrics are read-only from database.</p></div>
+          <div class="troubleshoot-box"><div class="troubleshoot-title">🔧 Troubleshooting</div><ul><li><strong>Metrics not loading:</strong> Check database connection. Verify <code>get_db_session()</code> is working.</li><li><strong>Stale data:</strong> Metrics may cache for up to 5 minutes. Refresh page.</li></ul></div>
+        </div>
+      </div>
+
+      <div class="collapsible" onclick="toggleCollapsible(this)">
+        <div class="collapsible-header"><span>2. User Search Widget</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-content">
+          <p><strong>What it does:</strong> Search for users by ID, email, or name. View user details and perform admin actions.</p>
+          <p><strong>Admin Actions:</strong> Impersonate (log in as user), Reset Gates (reset onboarding gates), View Vault (view vault summary).</p>
+          <div class="how-to-box"><div class="how-to-title">💡 How to Use</div><ol><li>Enter search term in input field</li><li>Click "Search" button</li><li>Click on a user result to view details</li><li>Use action buttons: Impersonate, Reset Gates, View Vault</li></ol></div>
+          <div class="troubleshoot-box"><div class="troubleshoot-title">🔧 Troubleshooting</div><ul><li><strong>Search returns 403:</strong> Verify admin role is set in cookie. Check <code>_guard_role_page()</code> middleware.</li><li><strong>Impersonate fails:</strong> Check if impersonation endpoint exists at <code>/admin-console/api/users/{user_id}/impersonate</code>.</li></ul></div>
+        </div>
+      </div>
+
+      <h2 id="function-browser">Function Browser</h2>
+      <p><strong>Location:</strong> <code>/admin/function-browser.html</p>
+      <p><strong>Purpose:</strong> Interactive documentation of all Semptify functions. View function details, inputs, settings, and related pages.</p>
+
+      <div class="collapsible" onclick="toggleCollapsible(this)">
+        <div class="collapsible-header"><span>1. Filter by View</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-content">
+          <p><strong>What it does:</strong> Filter functions by page group (Home, Library, Office, Tools, Help).</p>
+          <div class="how-to-box"><div class="how-to-title">💡 How to Use</div><p>Click filter buttons to show only functions in that group. Click "All" to show all functions.</p></div>
+          <div class="troubleshoot-box"><div class="troubleshoot-title">🔧 Troubleshooting</div><ul><li><strong>Filter not working:</strong> Check JavaScript filter logic in <code>function-browser.html</code>.</li></ul></div>
+        </div>
+      </div>
+
+      <h2 id="contract-browser">Contract Browser</h2>
+      <p><strong>Location:</strong> <code>/admin/contract-browser.html</p>
+      <p><strong>Purpose:</strong> View and verify page contracts and module contracts. Check health status and violations.</p>
+
+      <div class="collapsible" onclick="toggleCollapsible(this)">
+        <div class="collapsible-header"><span>1. Health Bar</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-content">
+          <p><strong>What it does:</strong> Shows overall contract health status (pass/fail) and summary statistics.</p>
+          <div class="how-to-box"><div class="how-to-title">💡 How to Use</div><p>Monitor overall system health. Green = all contracts healthy. Red = violations detected.</p></div>
+          <div class="troubleshoot-box"><div class="troubleshoot-title">🔧 Troubleshooting</div><ul><li><strong>Health not loading:</strong> Check if health endpoint exists at <code>/api/workflow/health</code>.</li><li><strong>Always failing:</strong> Review contract violations. Fix underlying issues.</li></ul></div>
+        </div>
+      </div>
+
+      <h2 id="page-editor">Page Editor</h2>
+      <p><strong>Location:</strong> <code>/admin/page-editor.html</p>
+      <p><strong>Purpose:</strong> Edit static HTML files and Jinja2 templates directly in the browser with live preview.</p>
+
+      <div class="collapsible" onclick="toggleCollapsible(this)">
+        <div class="collapsible-header"><span>1. Save File</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-content">
+          <p><strong>What it does:</strong> Save current file changes to the server.</p>
+          <div class="how-to-box"><div class="how-to-title">💡 How to Use</div><p>Click Save button or press Ctrl+S. Status bar shows "Saved [filename]" on success.</p></div>
+          <div class="troubleshoot-box"><div class="troubleshoot-title">🔧 Troubleshooting</div><ul><li><strong>Save failing:</strong> Check if save endpoint exists at <code>/api/editor/save</code>.</li><li><strong>Permission error:</strong> Check file system permissions for the target file.</li></ul></div>
+        </div>
+      </div>
+
+      <h2 id="review-checklist">Review Checklist</h2>
+      <p><strong>Location:</strong> <code>/admin/review-checklist.html</p>
+      <p><strong>Purpose:</strong> Run automated verification tests for contracts, routes, SSOT compliance, footer consistency, and security.</p>
+
+      <div class="collapsible" onclick="toggleCollapsible(this)">
+        <div class="collapsible-header"><span>1. Run Tests Button</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-content">
+          <p><strong>What it does:</strong> Run all automated tests in sequence and display results.</p>
+          <div class="how-to-box"><div class="how-to-title">💡 How to Use</div><p>Click "Run Tests" button. Wait for all tests to complete. Review results panel.</p></div>
+          <div class="troubleshoot-box"><div class="troubleshoot-title">🔧 Troubleshooting</div><ul><li><strong>Tests not running:</strong> Check JavaScript test execution logic.</li><li><strong>Tests hanging:</strong> Check if any test has infinite loop or timeout.</li></ul></div>
+        </div>
+      </div>
+
+      <h2 id="fix-it-bot">Fix-It Bot</h2>
+      <p><strong>Purpose:</strong> Automated issue detection and resolution system that fixes problems without deleting data or functionality.</p>
+
+      <div class="feature-card">
+        <h3>🎯 Design Principles</h3>
+        <ol>
+          <li><strong>Never Delete:</strong> The bot never deletes data, files, or configurations. It only fixes, adds, or modifies.</li>
+          <li><strong>Root Cause First:</strong> Always identify and fix the root cause, not symptoms.</li>
+          <li><strong>Safe Rollback:</strong> All changes are logged and can be rolled back if needed.</li>
+          <li><strong>Human Review:</strong> Critical fixes require human approval before execution.</li>
+          <li><strong>Explainable:</strong> Every fix includes a clear explanation of what was changed and why.</li>
+        </ol>
+      </div>
+
+      <div class="collapsible" onclick="toggleCollapsible(this)">
+        <div class="collapsible-header"><span>1. Automated Health Checks</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-content">
+          <p><strong>What it does:</strong> Continuously monitors system health and detects issues.</p>
+          <p><strong>Checks performed:</strong> Database connection, Storage provider connectivity, API endpoint availability, SSL certificate validity, Disk space, Memory usage, Error rate monitoring.</p>
+          <div class="troubleshoot-box"><div class="troubleshoot-title">🔧 Troubleshooting</div><ul><li><strong>Bot not detecting issues:</strong> Check health check logic. Verify monitoring endpoints.</li><li><strong>Alerts not sending:</strong> Check notification configuration.</li></ul></div>
+        </div>
+      </div>
+
+      <h2 id="troubleshooting-guide">Troubleshooting Guide</h2>
+
+      <div class="collapsible" onclick="toggleCollapsible(this)">
+        <div class="collapsible-header"><span>Issue: Admin Login Fails with 401 Unauthorized</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-content">
+          <p><strong>Symptoms:</strong> Admin login returns 401 error, TOTP code always rejected, "Invalid credentials" message.</p>
+          <p><strong>Root Causes:</strong> <code>ADMIN_PASSWORD</code> not set, <code>ADMIN_TOTP_SECRET</code> not set, Clock drift, Wrong TOTP code.</p>
+          <p><strong>Fix:</strong> Set missing environment variables in <code>.env</code> or Render dashboard, Sync server time with NTP, Regenerate TOTP secret if needed.</p>
+        </div>
+      </div>
+
+      <div class="collapsible" onclick="toggleCollapsible(this)">
+        <div class="collapsible-header"><span>Issue: Dashboard Metrics Not Loading</span><span class="collapsible-arrow">▼</span></div>
+        <div class="collapsible-content">
+          <p><strong>Symptoms:</strong> Dashboard shows "Loading..." indefinitely, Metrics display as zero, Console shows 500 errors.</p>
+          <p><strong>Root Causes:</strong> Database connection failed, Metrics query timed out, Missing database tables, Insufficient permissions.</p>
+          <p><strong>Fix:</strong> Fix database connection string, Create missing tables via Alembic migrations, Optimize slow queries, Grant necessary permissions.</p>
+        </div>
+      </div>
+
+      <h2 id="issue-reporting">Issue Reporting</h2>
+
+      <div class="feature-card">
+        <h3>📝 How to Report Issues</h3>
+        <p><strong>GitHub Issues (Recommended):</strong> <a href="https://github.com/1semptify-arch/Semptify/issues" target="_blank" style="color: var(--accent2);">https://github.com/1semptify-arch/Semptify/issues</a></p>
+        <p><strong>Email:</strong> <a href="mailto:admin@semptify.org" style="color: var(--accent2);">admin@semptify.org</a></p>
+      </div>
+
+      <div class="feature-card">
+        <h3>⚡ Severity Levels</h3>
+        <ul>
+          <li><strong>Critical:</strong> System down, data loss, security breach (Within 1 hour)</li>
+          <li><strong>High:</strong> Major feature broken, significant impact (Within 4 hours)</li>
+          <li><strong>Medium:</strong> Minor feature broken, workaround available (Within 24 hours)</li>
+          <li><strong>Low:</strong> Cosmetic issue, minor inconvenience (Within 3 days)</li>
+        </ul>
+      </div>
+
+      <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.85rem;">
+        <p><strong>Document Version:</strong> 1.0 • <strong>Last Updated:</strong> 2026-06-16</p>
+        <p><strong>Maintained By:</strong> Semptify Development Team</p>
+      </div>
+    </main>
+  </div>
+
+  <button class="back-to-top" id="backToTop" onclick="scrollToTop()">↑</button>
+
+  <script>
+    function generateTOC() {
+      const toc = document.getElementById('toc');
+      const content = document.getElementById('content');
+      const headings = content.querySelectorAll('h2, h3');
+      let html = '';
+      
+      headings.forEach(heading => {
+        const id = heading.id;
+        const text = heading.textContent;
+        if (heading.tagName === 'H2') {
+          html += `<a href="#${id}" class="toc-item" data-target="${id}">${text}</a>`;
+        } else {
+          html += `<a href="#${id}" class="toc-item sub" data-target="${id}">${text}</a>`;
+        }
+      });
+      
+      toc.innerHTML = html;
+      
+      toc.querySelectorAll('.toc-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+          const target = document.querySelector(item.getAttribute('href'));
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          toc.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+        });
+      });
+    }
+    
+    function toggleCollapsible(element) {
+      element.classList.toggle('open');
+    }
+    
+    function searchManual(query) {
+      const content = document.getElementById('content');
+      const results = document.getElementById('searchResults');
+      
+      if (!query) {
+        results.textContent = '';
+        content.querySelectorAll('.collapsible').forEach(c => c.style.display = '');
+        return;
+      }
+      
+      const lowerQuery = query.toLowerCase();
+      let matchCount = 0;
+      
+      content.querySelectorAll('.collapsible').forEach(section => {
+        const text = section.textContent.toLowerCase();
+        const matches = text.includes(lowerQuery);
+        
+        if (matches) {
+          section.style.display = '';
+          section.classList.add('open');
+          matchCount++;
+        } else {
+          section.style.display = 'none';
+        }
+      });
+      
+      results.textContent = `${matchCount} sections found`;
+    }
+    
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
+    window.addEventListener('scroll', () => {
+      const btn = document.getElementById('backToTop');
+      if (window.scrollY > 500) btn.classList.add('visible');
+      else btn.classList.remove('visible');
+      
+      const toc = document.getElementById('toc');
+      const headings = document.querySelectorAll('#content h2, #content h3');
+      const tocItems = toc.querySelectorAll('.toc-item');
+      let currentId = '';
+      
+      headings.forEach(heading => {
+        const rect = heading.getBoundingClientRect();
+        if (rect.top <= 150) currentId = heading.id;
+      });
+      
+      tocItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.target === currentId) item.classList.add('active');
+      });
+    });
+    
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        document.getElementById('searchInput').focus();
+      }
+    });
+    
+    generateTOC();
+  </script>
+  <script src="/js/admin-nav.js"></script>
+</body>
+</html>
