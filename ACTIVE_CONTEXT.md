@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-06-15
+**Last Updated**: 2026-06-16
 
 ---
 
@@ -8,38 +8,78 @@
 > **If you are starting a new session, run `/preflight` BEFORE touching any code.**
 > This file and `BUILD_STATE.md` are your ground truth. Do not assume the previous session's state.
 > Do not repeat failures from the Known Failure Registry in `AGENTS.md`.
+> All structural terms are defined in `SEMPTIFY_DICTIONARY.md`. Read it before asking what a "module" is.
 
 ---
 
-## 🎯 Current Priority: Test Onboarding End-to-End
+## ✅ COMPLETED THIS SESSION (2026-06-16)
 
-### ✅ COMPLETED — Admin OAuth Role Fix (2026-06-15)
-- Fixed: `app/modules/storage/router.py` — returning users now use `matched_user.default_role` from DB, not parsed from user_id string
-- Admin elevation system shipped: time-limited HMAC-signed cookie, 2h TTL, `app/core/admin_elevation.py`
+- **Vault folder timeout fixed** — `google_drive.py` single search/create, 409-only retry
+- **DB certification fixed** — lazy imports in `vault_upload_service.py`, removed `HAS_*` flags
+- **`AsyncSessionLocal` replaced** — `get_db_session()` in `vault_upload_service.py` and `admin_console/router.py`
+- **Full onboarding tested live** — OAuth → vault → upload → gates all pass ✅
+- **`SEMPTIFY_DICTIONARY.md` created** — canonical term definitions committed to repo
 
-### ✅ COMPLETED — document_uploaded Gate Re-enabled (2026-06-15)
-- `get_document_registry()` helper added to `app/services/document_registry.py`
-- `registry.register_document()` wrapped in `asyncio.run_in_executor()` in `vault_upload_service.py`
-- Gate re-enabled in `app/modules/onboarding/config.py`
+---
 
-### ✅ COMPLETED — Vault Folder Creation Root Cause Fixed (2026-06-15)
-- Root cause: Google Drive `_get_folder_id()` returned `None` when folder existed due to race/eventual consistency
-- Fix: `app/services/storage/google_drive.py` — search-before-create with retry + exponential backoff
-- Removed VaultClient downstream workaround — storage provider now correct
-- Commits: `14a9e2c`, `73eaeca`
+## 🎯 Current Priority: Capability System
 
-### 🔴 PENDING — Test Onboarding Flow End-to-End
-- Clear browser cookies for `semptify.org`
-- Complete OAuth → vault init → document upload
-- Verify `document_uploaded` gate marked
-- Verify `registry_id` in SEM-YYYY-NNNNNN-XXXX format and `integrity_status` = "verified"
+### Architecture Decision — LOCKED (2026-06-16)
 
-### 🔴 PENDING — Role Hierarchy Design
-- Admin needs to be able to assume child roles (tenant, manager, advocate) for testing
-- Manager needs conditional access to tenant documents (if lease relationship exists)
-- Advocate needs conditional access to client documents (if engagement exists)
-- Need: `user_relationships` table + `can_access(user, target_user)` permission check
-- Need: `acting_as` session context for role impersonation
+The following decisions are final. Do not re-litigate them. Build to these specs.
+
+| # | Decision | Answer |
+|---|----------|--------|
+| 1 | Module types | **Pipeline Module** (always-on engine) + **Feature Module** (user-loadable capability) |
+| 2 | Capability store | **New `user_capabilities` DB table** + Redis cache per session |
+| 3 | Role defaults | **Defined in `product_manifest.py`** — small set per role, everything else opt-in |
+| 4 | Overlay boundary | **Add-only**. Overlays can never replace existing routes. Pipeline modules cannot be overlaid. |
+| 5 | Relationships vs capabilities | **Separate tables**. `user_relationships` = who sees who. `user_capabilities` = what features are on. |
+| 6 | Load trigger | **Role defaults on login** (preloaded, no friction). **Everything else lazy** — loads on first navigation, stays for session. |
+
+### Data Flow Rule — NEVER VIOLATE
+```
+USER
+  ↓
+Feature Module  (case_builder, fems, timeline, court_forms...)
+  ↓
+Pipeline Module (registry, certification, extraction, context_loop...)
+  ↓
+Database / Storage / External APIs
+```
+Feature modules call DOWN to pipeline modules.
+Pipeline modules NEVER call UP to feature modules.
+Feature modules NEVER call sideways to other feature modules directly.
+
+---
+
+## 🔴 NEXT — Build the Capability System (3 sessions estimated)
+
+### Session A — Foundation
+1. Add `user_capabilities` table to `app/models/models.py`
+2. Create Alembic migration
+3. Define role default sets in `product_manifest.py` (tenant=5, advocate=9, admin=all)
+4. Wire defaults: on login, insert missing defaults for the user's role
+
+### Session B — Loading
+1. Lazy feature module loader — checks `user_capabilities` before mounting route
+2. Session cache in Redis — capability set loaded once per session
+3. `can_load_module(user_id, module_name)` helper in `app/core/capabilities.py`
+
+### Session C — Overlay + Dev Node
+1. Overlay flag on `ModuleEntry` in `product_manifest.py`
+2. Dev session attach/detach endpoint (admin only)
+3. Overlay mount enforces add-only rule at registration time
+4. Overlay stripped on session end
+
+---
+
+## 🔴 ALSO PENDING (lower priority than capability system)
+
+- **Role hierarchy wiring** — `user_relationships` table exists but `can_access()` not wired
+- **`acting_as` session context** — admin impersonation of child roles
+- **Filedored/overlay folders** — on-demand creation not yet wired
+- **`HAS_STORAGE` bug** — both branches of try/except set `True` — meaningless guard
 
 ---
 
