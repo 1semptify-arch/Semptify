@@ -3103,14 +3103,19 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if not event_date_str:
             raise HTTPException(status_code=400, detail="Date is required")
         
-        # Parse date/time
-        from app.core.utc import utc_now
+        # Parse date/time (must be UTC-aware — event_date is DateTimeTZ)
         try:
-            event_date = datetime.strptime(event_date_str, "%Y-%m-%d").date()
+            event_date = datetime.datetime.strptime(event_date_str, "%Y-%m-%d").date()
             if event_time_str:
-                event_datetime = datetime.combine(event_date, datetime.strptime(event_time_str, "%H:%M").time())
+                event_datetime = datetime.datetime.combine(
+                    event_date,
+                    datetime.datetime.strptime(event_time_str, "%H:%M").time(),
+                    tzinfo=datetime.timezone.utc,
+                )
             else:
-                event_datetime = datetime.combine(event_date, datetime.min.time())
+                event_datetime = datetime.datetime.combine(
+                    event_date, datetime.datetime.min.time(), tzinfo=datetime.timezone.utc
+                )
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid date or time format")
         
