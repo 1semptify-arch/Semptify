@@ -93,6 +93,24 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-16 — Milestone 8: Rent Ledger CRUD Router (COMPLETE)
+**Files: `app/modules/rent/router.py`, `app/core/product_manifest.py`, `tests/e2e/rent_ledger_smoke.spec.js`**
+
+### What Was Fixed
+- Created `app/modules/rent/router.py` with full CRUD:
+  - `POST /api/rent/payments` — create payment (amount in dollars, stored as cents)
+  - `GET /api/rent/payments` — list current user's payments
+  - `GET /api/rent/payments/:id` — get single payment
+  - `DELETE /api/rent/payments/:id` — delete payment
+- Registered rent router in `product_manifest.py` (CORE tier, prefix `/api/rent`)
+- Added Playwright smoke test verifying endpoints gate unauthenticated access without 500s
+
+### Verification
+- All files compile clean
+- `RentPayment` model already existed in `models.py` with `amount` stored as Integer (cents)
+
+---
+
 ## Session — 2026-06-16 — Milestone 7: Role Hierarchy Wiring (COMPLETE)
 **Files: `app/modules/user/router.py`, `app/core/product_manifest.py`, `tests/e2e/role_hierarchy_smoke.spec.js`**
 
