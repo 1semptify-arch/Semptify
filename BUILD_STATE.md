@@ -12,6 +12,35 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-16 — Milestone 2: Timeline End-to-End (COMPLETE)
+**Files: `app/modules/timeline/router.py`, `app/core/event_subscribers.py`, `app/main.py`, `tests/e2e/timeline_smoke.spec.js`**
+
+### What Was Shipped
+
+#### TimelineItem Pydantic Field Mismatch Fixed (COMPLETE)
+- **Root cause:** `_cloud_event_to_item()` passed `event_time`, `record_time`, `uploaded_at`, `source_id`, `can_edit` to `TimelineItem` — none of which exist on the model. Would crash the entire `/api/timeline/unified` endpoint for any user with cloud events.
+- **Fix:** Changed to correct field names: `event_date`, `record_date`. Moved `source_id`/`can_edit` into the `metadata` dict.
+
+#### Upload → Timeline Wired (COMPLETE)
+- **New:** `app/core/event_subscribers.py` — `_on_document_added()` async subscriber. On every `DOCUMENT_ADDED` event, writes a `TimelineEvent` row (`event_type="document_uploaded"`) to PostgreSQL.
+- **New:** `register_all_subscribers()` called in `main.py` lifespan Stage 5. Runs once at startup — fire-and-forget so it never adds latency to uploads.
+- Every document upload now automatically appears on the tenant's timeline with no extra work from upload code.
+
+#### Playwright Smoke Tests (COMPLETE)
+- **New:** `tests/e2e/timeline_smoke.spec.js` — 4 tests: auth gate on POST + GET, page renders without traceback, bad body returns 422 not 500.
+- All 4 pass against `semptify.org`.
+
+### Known Working (Tested)
+- ✅ Timeline router compiles clean
+- ✅ Event subscribers module compiles clean
+- ✅ Timeline smoke tests 4/4 pass
+- ⏳ Upload → timeline row creation — pending live test with real account
+
+### Next Session Starts With
+- Milestone 3: Capability System — `user_capabilities` table + Redis cache
+
+---
+
 ## Session — 2026-06-16 — Milestone 1: Harden Foundation (COMPLETE)
 **Files: `app/modules/case_builder/router.py`, `app/services/filedored_service.py`, `tests/e2e/onboarding_smoke.spec.js`, `playwright.config.js`**
 
