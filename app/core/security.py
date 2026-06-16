@@ -43,6 +43,14 @@ from app.core.user_context import (
 )
 from app.core.oauth_token_manager import get_token_manager, get_valid_token_for_user
 
+try:
+    from sqlalchemy.ext.asyncio import AsyncSession
+    from sqlalchemy import select
+    from app.models.models import UserRelationship, RelationshipType
+    SQLALCHEMY_AVAILABLE = True
+except ImportError:
+    SQLALCHEMY_AVAILABLE = False
+
 
 # =============================================================================
 # Logging Setup
@@ -1679,4 +1687,70 @@ __all__ = [
     "log_event",
     # Legacy
     "StorageUser",
+    # Role Hierarchy
+    "can_access",
 ]
+
+
+# =============================================================================
+# Role Hierarchy — Permission Check
+# =============================================================================
+
+async def can_access(
+    from_user_id: str,
+    to_user_id: str,
+    db: AsyncSession,
+    relationship_type: Optional[str] = None,
+) -> bool:
+    """
+    Check if from_user has permission to access to_user's resources.
+    
+    Permission rules:
+    - Admin users (default_role='admin') can access any user via ADMIN_OVERRIDE
+    - Manager can access tenant if LEASE relationship exists
+    - Advocate can access client if ADVOCACY relationship exists
+    - Team members can access each other if TEAM_MEMBER relationship exists
+    
+    Args:
+        from_user_id: User requesting access
+        to_user_id: User being accessed
+        db: Database session
+        relationship_type: Optional filter for specific relationship type
+    
+    Returns:
+        True if access is permitted, False otherwise
+    """
+    if not SQLALCHEMY_AVAILABLE:
+        logger.warning("SQLAlchemy not available - can_access check skipped")
+        return False
+    
+    # Self-access always allowed
+    if from_user_id == to_user_id:
+        return True
+    
+    # Build query for active relationships
+    query = select(UserRelationship).where(
+        UserRelationship.from_user_id == from_user_id,
+        UserRelationship.to_user_id == to_user_id,
+        UserRelationship.is_active == True,
+    )
+    
+    # Filter by relationship type if specified
+    if relationship_type:
+        query = query.where(UserRelationship.relationship_type == relationship_type)
+    
+    # Check for non-expired relationships
+    from app.core.utc import utc_now
+    query = query.where(
+        (UserRelationship.expires_at.is_(None)) | (UserRelationship.expires_at > utc_now())
+    )
+    
+    result = await db.execute(query)
+    relationship = result.scalar_one_or_none()
+    
+    if relationship:
+        logger.info(f"Access granted: {from_user_id[:6]}... -> {to_user_id[:6]}... via {relationship.relationship_type}")
+        return True
+    
+    logger.info(f"Access denied: {from_user_id[:6]}... -> {to_user_id[:6]}... (no active relationship)")
+    return False

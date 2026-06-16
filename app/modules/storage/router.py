@@ -1805,9 +1805,9 @@ async def oauth_callback(
                 if matched_user:
                     # Found a different user account for this OAuth subject
                     user_id = matched_user.id
-                    _, role, _ = parse_user_id(user_id)
-                    role = role or "tenant"
-                    logger.info(f"🔄 OAuth callback: Matched existing user by provider subject (different from existing_uid): {user_id}")
+                    # Use stored default_role from DB — authoritative source for role
+                    role = (matched_user.default_role or "tenant").strip().lower()
+                    logger.info(f"🔄 OAuth callback: Matched existing user by provider subject (different from existing_uid): {user_id} (role={role})")
                 else:
                     # Completely new user - generate new ID
                     role = (state_data.get("role") or "tenant").strip().lower()

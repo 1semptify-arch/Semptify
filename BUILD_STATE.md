@@ -12,6 +12,45 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-15 Evening — Registry Persistence + Compliance System
+**Commit: pending | Status: Staged**
+
+### What Was Shipped
+
+#### Document Registry Persistence (COMPLETE)
+- **Root cause fixed** — Registry was `data/registry/registry.json` on ephemeral Render host, wiped on every restart
+- **`DocumentRegistryEntry` model** — New PostgreSQL table, persistent chain-of-custody record per certified document
+- **`CertificationEvent` model** — Compliance audit log, one row per upload attempt (pass OR fail), written before any exception
+- **Migration `41ccf7debf12`** — Creates `document_registry`, `certification_events`, `user_relationships` tables
+- **Migration `20260615_drop_cert_events_user_fk`** — Drops FK on `certification_events.user_id` (audit logs must never fail due to missing user)
+
+#### Certification Pipeline (COMPLETE)
+- **`vault_upload_service.py`** — Replaced silent JSON registry with fail-fast PostgreSQL write
+- **`CertificationFailureCode` enum** — Exact failure reasons: `REGISTRY_IMPORT_ERROR`, `REGISTRY_WRITE_FAILED`, `UNKNOWN_ERROR`, etc.
+- **`HAS_DB_CERTIFICATION=False` now blocks uploads** — Previously silently skipped DB write; now fails upload cleanly
+- **Onboarding line 532** — Strict `registry_id` check unchanged
+
+#### Admin Auth + Role Hierarchy (COMPLETE)
+- **OAuth role fix** — Uses DB `default_role`, not user_id string parsing
+- **`UserRelationship` model** — Role hierarchy table (lease, advocacy, admin override, team)
+- **`can_access()` in `security.py`** — Async permission check querying active relationships
+- **`UserContext` impersonation** — `acting_as` / `acting_as_role` fields
+
+### Known Working
+- All 6 core files compile clean
+- Alembic at head (3 migrations applied to live DB)
+- Cloudflare dev mode ON, cache purged
+
+### Known Pending
+- `register_document()` is sync — should be wrapped in `run_in_executor` to avoid blocking event loop on large files
+- Data flow tracker concept (pipeline diagnostics) — deferred
+
+### Next Session Starts With
+- Wrap `registry.register_document()` in `asyncio` executor (Bug 1 from review)
+- Test a real document upload end-to-end through onboarding to confirm certification passes
+
+---
+
 ## Session — 2026-06-15 PM — Kimi 2.6: Case Builder Freshness + Minnesota Rules + UI
 **Commit: f0e6d40 | Status: Deployed to Render**
 
