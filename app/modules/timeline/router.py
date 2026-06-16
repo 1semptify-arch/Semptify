@@ -334,18 +334,16 @@ def _cloud_event_to_item(cloud_event: Dict[str, Any], date_axis: DateAxis) -> "T
         item_type=ItemType.CLOUD_EVENT,
         title=cloud_event.get("title") or cloud_event.get("description") or "Cloud Event",
         description=cloud_event.get("description") or cloud_event.get("notes"),
-        date_display=date_display,
-        event_time=_format_date(event_time),
-        record_time=None,
-        entry_time=_format_date(utc_now()),
-        uploaded_at=None,
+        date_display=date_display or "",
+        event_date=_format_date(event_time),
+        record_date=None,
+        entry_date=_format_date(utc_now()) or "",
         is_evidence=cloud_event.get("is_evidence", False),
         urgency=urgency,
         icon=icon,
         color=color,
         source="cloud",
-        source_id=cloud_event.get("id"),
-        can_edit=cloud_event.get("can_edit", True),
+        metadata={"source_id": cloud_event.get("id"), "can_edit": cloud_event.get("can_edit", True)},
     )
 
 
