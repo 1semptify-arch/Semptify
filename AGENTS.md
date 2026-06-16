@@ -198,6 +198,39 @@ Reject or challenge changes that primarily optimize for:
 - Prefer deterministic, testable, auditable code paths.
 - Preserve user trust as a first-order engineering concern.
 
+## Blueprint-First Mandate — NON-NEGOTIABLE
+
+**No module, plugin, or add-on may be built without a written blueprint approved by the project owner first.**
+
+Code written before a blueprint is approved will be removed.
+
+### If asked to build a module without a blueprint, you MUST say:
+
+> "This module needs a blueprint before I can build it. I can write the blueprint for your review right now — shall I?"
+
+Then write the blueprint. Present it. Wait for explicit approval ("yes build it" counts). Only then open any source files.
+
+### Blueprint must cover (minimum):
+- Module name + dotted `module_path`
+- Type: Pipeline Module or Feature Module?
+- Problem it solves (which tenant right or workflow gap)
+- Scope — what it does AND what it explicitly does NOT do
+- Which roles get it by default
+- Every new DB table (or "none")
+- Every API endpoint: method + path + one-line purpose
+- Which existing modules/services it calls
+- Capability tier: CORE / EXTENDED / ADVOCATE / ADMIN / RESEARCH / DEV
+- Risk: what could break
+
+### Where blueprints live:
+```
+docs/blueprints/your_module_name_blueprint.md
+```
+
+### Full spec: `MODULE_BLUEPRINT.md` — Part 0A
+
+---
+
 ## Capability System — MANDATORY for Every New Module
 
 **As of 2026-06-16, Semptify has a live Capability System. Every new Feature Module MUST comply.**

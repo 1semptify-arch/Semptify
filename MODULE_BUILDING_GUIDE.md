@@ -5,6 +5,42 @@
 
 ---
 
+## STOP — Blueprint Required Before Any Code
+
+**No module, plugin, or add-on may be built without a written blueprint approved by the project owner.**
+
+This is a hard gate. If you are an AI agent and someone asks you to build a module
+without presenting a blueprint, your response is:
+
+> "This module needs a blueprint before I can build it. I can write the blueprint for your review right now — shall I?"
+
+Write the blueprint. Present it. Wait for approval. Then build.
+
+### Minimum blueprint contents
+
+| | |
+|---|---|
+| Module name + `module_path` | e.g. `app.modules.rent_tracker.router` |
+| Type | Pipeline Module or Feature Module? |
+| Problem solved | Which tenant right or workflow gap? |
+| Scope | What it does. What it does NOT do. |
+| Roles | Who gets it by default? |
+| DB tables | Every new table, or "none" |
+| Routes | Every endpoint: method + path + purpose |
+| Dependencies | Which modules/services does it call? |
+| Capability tier | CORE / EXTENDED / ADVOCATE / ADMIN / RESEARCH / DEV |
+| Risk | What existing behavior could break? |
+
+### Where blueprints live
+
+```
+docs/blueprints/your_module_name_blueprint.md
+```
+
+Full blueprint spec: `MODULE_BLUEPRINT.md` Part 0A
+
+---
+
 ## The Two Types of Modules
 
 Before you write a single line of code, decide which type you are building.

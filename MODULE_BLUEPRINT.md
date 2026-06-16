@@ -64,6 +64,65 @@ When choosing between two approaches, always prefer the one that better serves:
 
 ---
 
+## PART 0A — BLUEPRINT-FIRST MANDATE (NON-NEGOTIABLE)
+
+**No module, plugin, or add-on may be built without a written blueprint approved by the project owner first.**
+
+This is not a suggestion. It is a hard gate. Code written before a blueprint is approved will be removed.
+
+### What a Blueprint Must Cover
+
+Before writing a single line of code, you must produce a written blueprint document containing:
+
+| Section | What to answer |
+|---|---|
+| **Module name** | What is it called? What is the dotted module_path? |
+| **Type** | Pipeline Module or Feature Module? (see Part 1) |
+| **Problem it solves** | What tenant right or workflow gap does this address? |
+| **Scope** | What does it do? What does it explicitly NOT do? |
+| **User-facing or internal?** | Does a tenant interact with it directly? |
+| **Roles** | Which roles get it by default? (tenant / advocate / manager / admin) |
+| **DB tables** | List every new table. If none, state that explicitly. |
+| **Routes** | List every API endpoint with method + path + one-line purpose. |
+| **Dependencies** | Which existing modules or services does it call? |
+| **Data flow** | Where does data come from? Where does it go? |
+| **What it does NOT touch** | Explicitly list modules, tables, or routes it does not affect. |
+| **Capability tier** | CORE / EXTENDED / ADVOCATE / ADMIN / RESEARCH / DEV |
+| **Risk** | What could go wrong? What existing behavior could it break? |
+
+### Where to Put the Blueprint
+
+Blueprints live in the `docs/blueprints/` folder:
+```
+docs/blueprints/your_module_name_blueprint.md
+```
+
+Use plain Markdown. No special format required beyond the sections above.
+
+### The Approval Gate
+
+1. Write the blueprint
+2. Present it to the project owner (the human) for review
+3. Wait for explicit approval — "yes build it" counts
+4. Only then open any source files and write code
+
+**AI agents:** If asked to build a module without a blueprint, you MUST respond:
+> "This module needs a blueprint before I can build it. I can write the blueprint for your review right now — shall I?"
+
+Do NOT start implementation. Write the blueprint first. Present it. Wait.
+
+### Why This Rule Exists
+
+Semptify has a complex, interconnected architecture. A module built without a blueprint has:
+- Undefined scope (grows beyond its original purpose)
+- Unknown dependencies (breaks things it was never meant to touch)
+- No record of what was intended (impossible to review or roll back)
+- No capability plan (gate never gets wired, defaults never get set)
+
+A 10-minute blueprint prevents a 3-session cleanup.
+
+---
+
 ## PART 1 — THE THREE TYPES OF EXTENSIONS
 
 | Type | What It Is | Example |
