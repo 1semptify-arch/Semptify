@@ -12,6 +12,42 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-16 — Onboarding End-to-End Fix (COMPLETE)
+**Commits: `379aff0`, `30b6798`, `2c02b58`, `d135279`, `c27f8fd`, `8dca553` | Pushed: 2026-06-16**
+
+### What Was Shipped
+
+#### Vault Folder Timeout Fix (COMPLETE)
+- **Root cause:** `_get_folder_id()` had unconditional retry loop (3x + sleep) before every folder create — added ~14s of pure wait on a fresh account
+- **Fix:** `app/services/storage/google_drive.py` — single GET search, single POST create, 409-only retry (no sleep)
+- **Root cause 2:** `VaultInstaller` was registering all 29 `CANONICAL_VAULT_FOLDERS` at onboarding — 29 folders × multiple path segments × 2 API calls each = timeout
+- **Fix:** `app/modules/vault_installer/installer.py` — onboarding creates only 7 `TENANT_VAULT` folders. Filedored/overlay/AI folders are on-demand
+- **Fix:** `app/modules/onboarding/vault.py` — health check also scoped to 7 `TENANT_VAULT` folders only
+
+#### DB Certification Import Fix (COMPLETE)
+- **Root cause:** `vault_upload_service.py` module-level `try/except ImportError` ran at first import (before DB ready), set `HAS_DB_CERTIFICATION=False` permanently for the process lifetime
+- **Fix:** Removed all `HAS_*` flags. DB imports now happen lazily inside the certification block at call time
+- **Root cause 2:** `AsyncSessionLocal` referenced throughout — never existed in `app.core.database`
+- **Fix:** Replaced all `AsyncSessionLocal()` with `get_db_session()` in `vault_upload_service.py` and `admin_console/router.py`
+
+### Known Working (Tested Live)
+- ✅ Vault folder creation completes within timeout (7 folders, ~2s)
+- ✅ Document upload certifies successfully end-to-end
+- ✅ `registry_id` assigned in SEM-YYYY-NNNNNN-XXXX format
+- ✅ `document_uploaded` gate marks correctly
+- ✅ Full onboarding flow: OAuth → vault init → document upload → gates marked
+
+### Known Pending
+- Revert debug error message in `vault_upload_service.py` line 744 back to clean user-facing text
+- Role Hierarchy Design (`user_relationships` table, `can_access()`, role impersonation)
+- Filedored/overlay folders still need on-demand creation wiring
+
+### Next Session Starts With
+- Revert debug error message (1 line change)
+- Role hierarchy design or next feature
+
+---
+
 ## Session — 2026-06-15 Evening — Registry Persistence + Compliance System
 **Commits: `ce77976`, `9a0f7dd`, `ae73448` | Pushed: 2026-06-15**
 
