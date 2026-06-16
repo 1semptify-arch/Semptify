@@ -12,6 +12,11 @@
 
 ---
 
+## ✅ COMPLETED THIS SESSION (2026-06-16) — Milestone 3
+
+- **Capability System audited** — fully built: model, migration, core module, admin router, seeding on login. No gaps found.
+- **Capabilities smoke tests** — `tests/e2e/capabilities_smoke.spec.js`, 7/7 passing.
+
 ## ✅ COMPLETED THIS SESSION (2026-06-16) — Milestone 2
 
 - **Timeline Pydantic crash fixed** — `_cloud_event_to_item()` used wrong field names (`event_time` → `event_date`, etc.). Would have crashed `/api/timeline/unified` for any user with cloud events.
@@ -30,22 +35,18 @@
 
 ---
 
-## 🎯 Next Priority: Milestone 3 — Capability System
+## 🎯 Next Priority: Milestone 4 — TBD
 
-### Steps (Session A)
-1. Add `user_capabilities` table to `app/models/models.py`
-2. Create Alembic migration
-3. Implement `get_capabilities(user_id)` with Redis cache in `app/core/capabilities.py`
-4. Wire role defaults on login
-
-### Steps (Session B)
-5. Build `CapabilityOverlay` — add-only, pipeline modules cannot be overlaid
-6. Gate endpoints with capability checks
-7. Playwright tests
+Run `/preflight` to check current state before choosing next milestone.
+Candidates (in rough priority order):
+1. **Rent ledger live test** — verify `POST /api/rent/payments` creates a `RentPayment` row
+2. **Case builder live test** — confirm DB-backed cases survive a Render restart
+3. **FEMS integration check** — forensic evidence module smoke test
+4. **Admin console** — verify admin dashboard loads without 500
 
 ---
 
-## 🔵 Capability System (Milestone 3 — designed)
+## 🔵 Capability System (Milestone 3 — COMPLETE)
 
 ### Architecture Decision — LOCKED (2026-06-16)
 
