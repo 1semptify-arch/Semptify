@@ -1,8 +1,8 @@
 """Filedored Vault Post-Processing Service — overlay-based sorting, dedup, AI classification."""
 import logging
 from typing import Optional
-from datetime import datetime, timezone
 
+from app.core.utc import utc_now
 from app.core.vault_paths import (
     VAULT_FILEDORED,
     VAULT_FILEDORED_PDF,
@@ -26,6 +26,31 @@ from app.core.overlay_types import OverlayType
 from app.models.unified_overlay_models import CreateOverlayRequest
 
 logger = logging.getLogger(__name__)
+
+# Base folders — created upfront when filedored is first used
+BASE_FILEDORED_FOLDERS = [
+    VAULT_FILEDORED,
+    VAULT_FILEDORED_PDF,
+    VAULT_FILEDORED_WORD,
+    VAULT_FILEDORED_TEXT,
+    VAULT_FILEDORED_SPREADS,
+    VAULT_FILEDORED_PRESENTS,
+    VAULT_FILEDORED_SCANS,
+    VAULT_FILEDORED_DUPLICATES,
+    VAULT_FILEDORED_OTHER,
+]
+
+# AI subdirectories — created on-demand when first AI-classified document arrives
+AI_FILEDORED_FOLDERS = [
+    VAULT_FILEDORED_AI,
+    VAULT_FILEDORED_AI_LEASE,
+    VAULT_FILEDORED_AI_NOTICE,
+    VAULT_FILEDORED_AI_EVIDENCE,
+    VAULT_FILEDORED_AI_PHOTO,
+    VAULT_FILEDORED_AI_INVOICE,
+    VAULT_FILEDORED_AI_COMM,
+    VAULT_FILEDORED_AI_UNKNOWN,
+]
 
 DOCUMENT_EXTENSIONS = {
     "pdf": VAULT_FILEDORED_PDF,
@@ -105,13 +130,18 @@ async def process_uploaded_document(
             label = ai_classify_document(vault_id, content, filename)
             if label != "unknown":
                 target_path = AI_CLASSIFICATION_MAP.get(label, VAULT_FILEDORED_AI_UNKNOWN)
+
+                # Lazy-create the AI subdirectory on first use
+                if overlay_manager and hasattr(overlay_manager, "storage"):
+                    await ensure_filedored_folder(overlay_manager.storage, target_path)
+
                 overlay_data = {
                     "original_vault_id": vault_id,
                     "filedored_category": label,
                     "classification_method": "ai",
-                    "classified_at": datetime.now(timezone.utc).isoformat(),
+                    "classified_at": utc_now().isoformat(),
                 }
-                
+
                 overlay_req = CreateOverlayRequest(
                     vault_id=vault_id,
                     user_id=user_id,
@@ -119,7 +149,7 @@ async def process_uploaded_document(
                     overlay_path=target_path,
                     overlay_data=overlay_data,
                 )
-                
+
                 await overlay_manager.create_overlay(overlay_req)
                 
                 return {
@@ -136,7 +166,7 @@ async def process_uploaded_document(
             "original_vault_id": vault_id,
             "filedored_category": "extension_based",
             "file_extension": ext,
-            "sorted_at": datetime.now(timezone.utc).isoformat(),
+            "sorted_at": utc_now().isoformat(),
         }
         
         overlay_req = CreateOverlayRequest(
@@ -173,10 +203,13 @@ async def _filedored_flag_key(user_id: str) -> str:
 
 async def ensure_filedored_folders(vault_client) -> dict:
     """
-    Ensure all filedored folders exist in the vault.
+    Ensure base filedored folders exist in the vault.
     Called on-demand before the first filedored overlay is written.
     Returns dict with folder creation status.
-    Skips the 17 API calls if a Redis flag confirms folders already exist.
+    Skips API calls if a Redis flag confirms folders already exist.
+
+    NOTE: AI subdirectories are NOT created here — they are lazy-created
+    on first AI-classified document via ensure_filedored_folder().
     """
     user_id = getattr(vault_client, "user_id", None)
     if user_id:
@@ -192,26 +225,7 @@ async def ensure_filedored_folders(vault_client) -> dict:
 
     from app.sdk.vault.folder_spec import BASE_VAULT
 
-    filedored_spec = BASE_VAULT.extend([
-        VAULT_FILEDORED,
-        VAULT_FILEDORED_PDF,
-        VAULT_FILEDORED_WORD,
-        VAULT_FILEDORED_TEXT,
-        VAULT_FILEDORED_SPREADS,
-        VAULT_FILEDORED_PRESENTS,
-        VAULT_FILEDORED_SCANS,
-        VAULT_FILEDORED_DUPLICATES,
-        VAULT_FILEDORED_OTHER,
-        VAULT_FILEDORED_AI,
-        VAULT_FILEDORED_AI_LEASE,
-        VAULT_FILEDORED_AI_NOTICE,
-        VAULT_FILEDORED_AI_EVIDENCE,
-        VAULT_FILEDORED_AI_PHOTO,
-        VAULT_FILEDORED_AI_INVOICE,
-        VAULT_FILEDORED_AI_COMM,
-        VAULT_FILEDORED_AI_UNKNOWN,
-    ])
-
+    filedored_spec = BASE_VAULT.extend(BASE_FILEDORED_FOLDERS)
     vault_client._folder_spec = filedored_spec
     result = await vault_client.create_folders()
 
@@ -229,3 +243,24 @@ async def ensure_filedored_folders(vault_client) -> dict:
         "folders_created": [f.path for f in result.folders if f.status == "ok"],
         "folders_failed": [f.path for f in result.failed],
     }
+
+
+async def ensure_filedored_folder(storage_provider, folder_path: str) -> bool:
+    """
+    Lazily create a single filedored folder (and its parents) on demand.
+    Used for AI subdirectories that are only created when first needed.
+
+    Args:
+        storage_provider: Cloud storage adapter with create_folder method
+        folder_path: Path to create
+
+    Returns True if the folder exists or was created successfully.
+    """
+    try:
+        created = await storage_provider.create_folder(folder_path)
+        if created:
+            logger.info("Filedored folder created on-demand: %s", folder_path)
+        return created
+    except Exception as exc:
+        logger.error("Failed to create filedored folder %s: %s", folder_path, exc)
+        return False
