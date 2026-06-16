@@ -52,13 +52,7 @@ from app.services.unified_overlay_manager import get_unified_overlay_manager
 
 logger = logging.getLogger(__name__)
 
-# Import storage provider
-try:
-    from app.services.storage import get_provider
-    HAS_STORAGE = True
-except ImportError:
-    HAS_STORAGE = False
-    logger.warning("Storage provider not available")
+from app.services.storage import get_provider
 
 # Note: document_registry and DB certification models are imported lazily at
 # call time (inside _certify_and_register) to avoid import-order issues where
@@ -496,7 +490,7 @@ class VaultUploadService:
         All overlays are stored in user's cloud storage, not locally.
         """
         try:
-            if not HAS_STORAGE or not access_token:
+            if not access_token:
                 logger.debug("Storage unavailable, skipping overlay creation for %s", doc.vault_id)
                 return
 
@@ -774,7 +768,7 @@ class VaultUploadService:
                 )
                 return False
 
-        if not HAS_STORAGE or not access_token:
+        if not access_token:
             logger.warning(
                 "Cannot verify existing cloud document %s: missing storage access",
                 existing.vault_id,
@@ -811,8 +805,6 @@ class VaultUploadService:
             )
             return (f"{self.VAULT_FOLDER}/{safe_filename}", None)
 
-        if not HAS_STORAGE:
-            raise RuntimeError("storage provider unavailable")
         if not access_token:
             raise RuntimeError("missing storage access token")
 
@@ -871,8 +863,6 @@ class VaultUploadService:
             )
             return certificate_id
 
-        if not HAS_STORAGE:
-            raise RuntimeError("storage provider unavailable")
         if not access_token:
             raise RuntimeError("missing storage access token")
 
@@ -937,7 +927,7 @@ class VaultUploadService:
         if doc.storage_provider == "local":
             return self._local_read_file(doc.storage_path)
 
-        if not HAS_STORAGE or not access_token:
+        if not access_token:
             logger.debug("Storage provider unavailable or missing access token for vault_id=%s", vault_id)
             return None
 
