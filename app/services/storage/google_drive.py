@@ -88,63 +88,69 @@ class GoogleDriveProvider(StorageProvider):
                     parent_id = self._folder_cache[current_path]
                     continue
                 
-                # Search for folder
+                # Search for folder with retry for 409 conflicts
                 escaped_name = self._escape_drive_query_value(part)
                 query = (
                     f"name='{escaped_name}' and '{parent_id}' in parents "
                     f"and mimeType='application/vnd.google-apps.folder' and trashed=false"
                 )
-                response = await client.get(
+                
+                # Try to find existing folder first
+                folder_id = await self._search_folder_with_retry(client, query, part, parent_id)
+                if folder_id:
+                    parent_id = folder_id
+                    self._folder_cache[current_path] = parent_id
+                    continue
+                
+                # Folder doesn't exist, create it
+                create_response = await client.post(
                     f"{self.BASE_URL}/files",
-                    headers=self._headers(),
-                    params={"q": query, "fields": "files(id,name)"},
+                    headers={**self._headers(), "Content-Type": "application/json"},
+                    json={
+                        "name": part,
+                        "mimeType": "application/vnd.google-apps.folder",
+                        "parents": [parent_id],
+                    },
                     timeout=10.0,
                 )
                 
-                if response.status_code == 200:
-                    files = response.json().get("files", [])
-                    if files:
-                        parent_id = files[0]["id"]
-                        self._folder_cache[current_path] = parent_id
-                    else:
-                        # Create folder
-                        create_response = await client.post(
-                            f"{self.BASE_URL}/files",
-                            headers={**self._headers(), "Content-Type": "application/json"},
-                            json={
-                                "name": part,
-                                "mimeType": "application/vnd.google-apps.folder",
-                                "parents": [parent_id],
-                            },
-                            timeout=10.0,
-                        )
-                        if create_response.status_code in (200, 201):
-                            parent_id = create_response.json()["id"]
-                            self._folder_cache[current_path] = parent_id
-                        elif create_response.status_code == 409:
-                            # 409 = folder already exists (keys in use), which is fine
-                            # Search again to get the existing folder ID
-                            search_response = await client.get(
-                                f"{self.BASE_URL}/files",
-                                headers=self._headers(),
-                                params={"q": query, "fields": "files(id,name)"},
-                                timeout=10.0,
-                            )
-                            if search_response.status_code == 200:
-                                existing_files = search_response.json().get("files", [])
-                                if existing_files:
-                                    parent_id = existing_files[0]["id"]
-                                    self._folder_cache[current_path] = parent_id
-                                else:
-                                    return None
-                            else:
-                                return None
-                        else:
-                            return None
+                if create_response.status_code in (200, 201):
+                    parent_id = create_response.json()["id"]
+                    self._folder_cache[current_path] = parent_id
                 else:
+                    logger.error(
+                        "Failed to create folder %s in parent %s: HTTP %s",
+                        part, parent_id, create_response.status_code
+                    )
                     return None
         
         return parent_id
+    
+    async def _search_folder_with_retry(
+        self, client: httpx.AsyncClient, query: str, part: str, parent_id: str
+    ) -> Optional[str]:
+        """Search for folder with retry logic for eventual consistency."""
+        import asyncio
+        
+        max_retries = 3
+        for attempt in range(max_retries):
+            response = await client.get(
+                f"{self.BASE_URL}/files",
+                headers=self._headers(),
+                params={"q": query, "fields": "files(id,name)"},
+                timeout=10.0,
+            )
+            
+            if response.status_code == 200:
+                files = response.json().get("files", [])
+                if files:
+                    return files[0]["id"]
+            
+            # If not found and not last attempt, wait and retry
+            if attempt < max_retries - 1:
+                await asyncio.sleep(0.5 * (attempt + 1))  # Exponential backoff: 0.5s, 1s, 1.5s
+        
+        return None
     
     async def upload_file(
         self,
