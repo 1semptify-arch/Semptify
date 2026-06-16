@@ -12,6 +12,26 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-16 — Milestone 5: Event Bus + Upload→Timeline Fully Wired (COMPLETE)
+**Files: `app/core/event_bus.py`, `app/modules/vault/router.py`**
+
+### What Was Fixed
+
+#### Event dataclass UTC bug (`event_bus.py`)
+- `Event.timestamp` used `default_factory=datetime.now` — naive, no timezone. Every event timestamp was wrong.
+- Fixed: `default_factory=utc_now`. All event timestamps are now UTC-aware.
+
+#### Upload → DOCUMENT_ADDED event never fired (`vault/router.py`)
+- `notify_document_added()` existed in `event_bus.py` but was **never called** anywhere. The Milestone 2 subscriber was subscribed but the event never arrived.
+- Fixed: added `asyncio.create_task(notify_document_added(...))` immediately after the audit log in the SSOT upload path. Fire-and-forget — never touches Cloudflare 30s gate.
+- Full chain now live: **upload → `notify_document_added` → `DOCUMENT_ADDED` event → `_on_document_added` subscriber → `TimelineEvent` row written to PostgreSQL → appears on timeline.**
+
+### Verification
+- Both files compile clean
+- `grep datetime.now()` across `app/` → **0 results** (still zero after this session)
+
+---
+
 ## Session — 2026-06-16 — Milestone 4: datetime.now() Purge (COMPLETE)
 **Files: 8 files fixed — `app/modules/inventory/router.py`, `app/modules/vault_installer/routes.py`, `app/modules/document_converter/converter.py`, `app/core/ai_tool_crib.py`, `app/core/contracts_framework.py`, `app/core/accountability_planner.py`, `app/core/inventory_manager.py`, `app/services/timeline_extraction.py`**
 
