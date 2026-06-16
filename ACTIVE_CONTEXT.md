@@ -12,37 +12,42 @@
 
 ---
 
-## ✅ COMPLETED THIS SESSION (2026-06-16) — Milestone 3
+## ✅ COMPLETED THIS SESSION (2026-06-16) — Milestones 1–6 ALL DONE
 
-- **Capability System audited** — fully built: model, migration, core module, admin router, seeding on login. No gaps found.
-- **Capabilities smoke tests** — `tests/e2e/capabilities_smoke.spec.js`, 7/7 passing.
+| Milestone | What | Commit |
+|-----------|------|--------|
+| M1 | Case builder → PostgreSQL, filedored idempotency, vault timeout fix, smoke tests | `8093096` |
+| M2 | Timeline Pydantic fix, upload→timeline wired, smoke tests | `59c8c62` |
+| M3 | Capability system audit (already built), smoke tests 7/7 | `9780a1f` |
+| M4 | 13× `datetime.now()` → `utc_now()` across 8 files. 0 violations remain. | `9780a1f` |
+| M5 | Event bus UTC fix, `notify_document_added()` now fired from upload path | `4c56a77` |
+| M6 | 2 missing Alembic migrations created: `admin_audit_logs`, `document_annotations` | `6bb0fa3` |
 
-## ✅ COMPLETED THIS SESSION (2026-06-16) — Milestone 2
-
-- **Timeline Pydantic crash fixed** — `_cloud_event_to_item()` used wrong field names (`event_time` → `event_date`, etc.). Would have crashed `/api/timeline/unified` for any user with cloud events.
-- **Upload → timeline wired** — `app/core/event_subscribers.py`: `DOCUMENT_ADDED` → writes `TimelineEvent` row. Registered at startup Stage 5. Fire-and-forget, zero latency cost.
-- **Timeline smoke tests** — `tests/e2e/timeline_smoke.spec.js`, 4/4 passing.
-
-## ✅ COMPLETED PREVIOUS SESSION (2026-06-16) — Milestone 1
-
-- **Case builder storage fixed** — cases now in PostgreSQL `incidents.incident_metadata`, not local JSON. Survives Render restarts.
-- **Filedored idempotency** — Redis flag `semptify:filedored_ready:<user_id>` skips 17 API calls on repeat uploads
-- **Playwright smoke tests** — `tests/e2e/onboarding_smoke.spec.js` + `playwright.config.js` — 8 tests, run against semptify.org
-- **Vault folder timeout fixed** — `google_drive.py` single search/create, 409-only retry
-- **DB certification fixed** — lazy imports in `vault_upload_service.py`, removed `HAS_*` flags
-- **`AsyncSessionLocal` replaced** — `get_db_session()` in `vault_upload_service.py` and `admin_console/router.py`
-- **Full onboarding tested live** — OAuth → vault → upload → gates all pass ✅
+**HEAD: `6bb0fa3` — clean, pushed, Render auto-deploying**
 
 ---
 
-## 🎯 Next Priority: Milestone 4 — TBD
+## 🎯 IMMEDIATE NEXT: Live Tests (verify what was built)
 
-Run `/preflight` to check current state before choosing next milestone.
-Candidates (in rough priority order):
-1. **Rent ledger live test** — verify `POST /api/rent/payments` creates a `RentPayment` row
-2. **Case builder live test** — confirm DB-backed cases survive a Render restart
-3. **FEMS integration check** — forensic evidence module smoke test
-4. **Admin console** — verify admin dashboard loads without 500
+These are marked "pending live test" — need a real action on semptify.org:
+
+1. **Upload → timeline** — Upload a document. Check `/api/timeline/unified` for
+   `event_type: "document_uploaded"` row. See `HANDOFF_SWE1.6.md` Task 2.
+2. **Case builder restart** — Create case, restart Render, reload case. Must survive.
+   See `HANDOFF_SWE1.6.md` Task 3.
+3. **Capability seeding** — Fresh login → check `user_capabilities` table has rows.
+   See `HANDOFF_SWE1.6.md` Task 4.
+4. **Migration ran** — Verify `admin_audit_logs` table exists on production DB.
+   See `HANDOFF_SWE1.6.md` Task 1.
+
+## 🎯 NEXT AFTER LIVE TESTS
+
+1. **Role hierarchy wiring** — `can_access()` + `acting_as` endpoint (Task 6)
+2. **Rent ledger live test** (Task 7)
+3. **Filedored on-demand folder creation** (Task 8)
+
+## 📋 FULL TASK LIST: See `HANDOFF_SWE1.6.md`
+## 📋 FULL CONTEXT + INSTRUCTIONS: See `HANDOFF_KIMI2.6.md`
 
 ---
 
