@@ -60,22 +60,9 @@ except ImportError:
     HAS_STORAGE = True
     logger.warning("Storage provider not available")
 
-# Import document registry for auto-registration
-try:
-    from app.services.document_registry import get_document_registry
-    HAS_REGISTRY = True
-except Exception as _registry_exc:
-    HAS_REGISTRY = False
-    logger.error("Document registry failed to load: %s: %s", type(_registry_exc).__name__, _registry_exc)
-
-# Import DB session factory and compliance models
-try:
-    from app.core.database import AsyncSessionLocal
-    from app.models.models import DocumentRegistryEntry, CertificationEvent, CertificationResult, CertificationFailureCode
-    HAS_DB_CERTIFICATION = True
-except Exception as _db_cert_exc:
-    HAS_DB_CERTIFICATION = False
-    logger.error("DB certification models failed to load: %s: %s", type(_db_cert_exc).__name__, _db_cert_exc)
+# Note: document_registry and DB certification models are imported lazily at
+# call time (inside _certify_and_register) to avoid import-order issues where
+# this module is loaded before the DB/app startup completes.
 
 
 # =============================================================================
@@ -649,6 +636,17 @@ class VaultUploadService:
         # pass or fail — before any exception is raised.
         # This is the compliance record. No bypasses. No softening.
         # =========================================================================
+        # Lazy imports — must happen at call time, not module load time, to avoid
+        # import-order issues when this module is first loaded before DB is ready.
+        from app.services.document_registry import get_document_registry
+        from app.core.database import AsyncSessionLocal
+        from app.models.models import (
+            DocumentRegistryEntry,
+            CertificationEvent,
+            CertificationResult,
+            CertificationFailureCode,
+        )
+
         async def _write_certification_event(
             result: str,
             document_id: Optional[str] = None,
@@ -657,8 +655,6 @@ class VaultUploadService:
             stage: Optional[str] = None,
         ) -> None:
             """Write a CertificationEvent row to PostgreSQL. Best-effort — never raises."""
-            if not HAS_DB_CERTIFICATION:
-                return
             try:
                 async with AsyncSessionLocal() as cert_session:
                     event = CertificationEvent(
@@ -676,21 +672,6 @@ class VaultUploadService:
                     await cert_session.commit()
             except Exception as cert_err:
                 logger.error(f"Failed to write CertificationEvent for {vault_id}: {cert_err}")
-
-        if not HAS_REGISTRY:
-            detail = "Document registry module failed to import at server startup. No certification possible."
-            await _write_certification_event(
-                result=CertificationResult.FAILED.value,
-                failure_code=CertificationFailureCode.REGISTRY_IMPORT_ERROR.value,
-                failure_detail=detail,
-                stage="registry_import",
-            )
-            raise RuntimeError(detail)
-
-        if not HAS_DB_CERTIFICATION:
-            detail = "DB certification models unavailable at startup. Cannot persist registry or compliance record."
-            logger.error(f"Blocking upload for {vault_id}: {detail}")
-            raise RuntimeError(detail)
 
         try:
             registry = get_document_registry()
@@ -710,37 +691,36 @@ class VaultUploadService:
             doc.integrity_status = reg_doc.integrity_status.value
 
             # Write to PostgreSQL DocumentRegistryEntry (persistent, survives restarts)
-            if HAS_DB_CERTIFICATION:
-                try:
-                    async with AsyncSessionLocal() as reg_session:
-                        db_entry = DocumentRegistryEntry(
-                            document_id=reg_doc.document_id,
-                            user_id=user_id,
-                            vault_id=vault_id,
-                            original_filename=filename,
-                            file_size=len(content),
-                            mime_type=mime_type,
-                            content_hash=reg_doc.content_hash,
-                            metadata_hash=reg_doc.metadata_hash,
-                            combined_hash=reg_doc.combined_hash,
-                            status=reg_doc.status.value,
-                            integrity_status=reg_doc.integrity_status.value,
-                            is_duplicate=reg_doc.is_duplicate,
-                            original_document_id=reg_doc.original_document_id,
-                            forgery_score=reg_doc.forgery_score,
-                            requires_review=reg_doc.requires_review,
-                        )
-                        reg_session.add(db_entry)
-                        await reg_session.commit()
-                except Exception as db_err:
-                    logger.error(f"DocumentRegistryEntry DB write failed for {vault_id}: {db_err}")
-                    await _write_certification_event(
-                        result=CertificationResult.FAILED.value,
-                        failure_code=CertificationFailureCode.REGISTRY_WRITE_FAILED.value,
-                        failure_detail=f"Registry computed successfully but DB write failed: {db_err}",
-                        stage="registry_db_write",
+            try:
+                async with AsyncSessionLocal() as reg_session:
+                    db_entry = DocumentRegistryEntry(
+                        document_id=reg_doc.document_id,
+                        user_id=user_id,
+                        vault_id=vault_id,
+                        original_filename=filename,
+                        file_size=len(content),
+                        mime_type=mime_type,
+                        content_hash=reg_doc.content_hash,
+                        metadata_hash=reg_doc.metadata_hash,
+                        combined_hash=reg_doc.combined_hash,
+                        status=reg_doc.status.value,
+                        integrity_status=reg_doc.integrity_status.value,
+                        is_duplicate=reg_doc.is_duplicate,
+                        original_document_id=reg_doc.original_document_id,
+                        forgery_score=reg_doc.forgery_score,
+                        requires_review=reg_doc.requires_review,
                     )
-                    raise RuntimeError(f"Registry DB write failed for {vault_id}: {db_err}") from db_err
+                    reg_session.add(db_entry)
+                    await reg_session.commit()
+            except Exception as db_err:
+                logger.error(f"DocumentRegistryEntry DB write failed for {vault_id}: {db_err}")
+                await _write_certification_event(
+                    result=CertificationResult.FAILED.value,
+                    failure_code=CertificationFailureCode.REGISTRY_WRITE_FAILED.value,
+                    failure_detail=f"Registry computed successfully but DB write failed: {db_err}",
+                    stage="registry_db_write",
+                )
+                raise RuntimeError(f"Registry DB write failed for {vault_id}: {db_err}") from db_err
 
             # SUCCESS — write compliance record
             await _write_certification_event(
