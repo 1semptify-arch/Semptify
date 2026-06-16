@@ -639,7 +639,7 @@ class VaultUploadService:
         # Lazy imports — must happen at call time, not module load time, to avoid
         # import-order issues when this module is first loaded before DB is ready.
         from app.services.document_registry import get_document_registry
-        from app.core.database import AsyncSessionLocal
+        from app.core.database import get_db_session
         from app.models.models import (
             DocumentRegistryEntry,
             CertificationEvent,
@@ -656,7 +656,7 @@ class VaultUploadService:
         ) -> None:
             """Write a CertificationEvent row to PostgreSQL. Best-effort — never raises."""
             try:
-                async with AsyncSessionLocal() as cert_session:
+                async with get_db_session() as cert_session:
                     event = CertificationEvent(
                         vault_id=vault_id,
                         user_id=user_id,
@@ -692,7 +692,7 @@ class VaultUploadService:
 
             # Write to PostgreSQL DocumentRegistryEntry (persistent, survives restarts)
             try:
-                async with AsyncSessionLocal() as reg_session:
+                async with get_db_session() as reg_session:
                     db_entry = DocumentRegistryEntry(
                         document_id=reg_doc.document_id,
                         user_id=user_id,
