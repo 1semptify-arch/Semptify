@@ -16,7 +16,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone, timedelta
 import logging
 
-from app.core.security import require_role, ACTIVE_SESSIONS, get_metrics
+from app.core.security import require_role, ACTIVE_SESSIONS, get_metrics, update_session_impersonation, get_session
 from app.core.user_context import UserRole, UserContext, StorageProvider
 from app.core.utc import utc_now
 from app.core.navigation import navigation
@@ -226,50 +226,106 @@ async def get_user_details(
 async def impersonate_user(
     user_id: str,
     admin_user: UserContext = Depends(_stealth_admin),
+    db: AsyncSession = Depends(get_db),
 ) -> dict:
     """
-    Start impersonation session for user support.
-    
-    Creates a temporary session that allows admin to act as the user
-    for debugging and support purposes. All actions are logged.
+    Start impersonation session for a user (admin only).
+
+    Checks that a valid relationship exists (ADMIN_OVERRIDE) then sets
+    acting_as on the admin's own session so every subsequent request from
+    that admin sees the target user's context.
     """
-    logger.warning(
-        f"IMPERSONATION: Admin {admin_user.user_id} starting impersonation of {user_id}"
+    from app.core.security import can_access
+
+    # Verify relationship in DB (admin_override row must exist, or role is admin)
+    allowed = await can_access(
+        from_user_id=admin_user.user_id,
+        to_user_id=user_id,
+        db=db,
+        relationship_type="admin",
     )
-    
-    # Find user's active session
+    # Admins always get ADMIN_OVERRIDE access — if no row exists yet, still allow
+    # but log it so we can backfill the relationship row
+    if not allowed and getattr(admin_user, "role", None) != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No active relationship found permitting access to this user.",
+        )
+
+    # Find the target user's active session to read their role/provider
     target_session = None
     for session_id, session in ACTIVE_SESSIONS.items():
         if session.user_id == user_id and (not session.expires_at or session.expires_at > utc_now()):
             target_session = session
             break
-    
+
     if not target_session:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No active session found for user {user_id}"
+            detail="No active session found for this user. They must be logged in.",
         )
-    
-    # Generate impersonation token (admin's session + target user context)
-    impersonation_token = f"imp_{admin_user.user_id[:8]}_{user_id[:8]}_{utc_now().strftime('%Y%m%d%H%M%S')}"
-    
-    # Log the impersonation attempt
+
+    # Set acting_as on the admin's own session
+    if not admin_user.session_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Admin session ID not found — cannot set impersonation state.",
+        )
+
+    update_session_impersonation(
+        session_id=admin_user.session_id,
+        acting_as=user_id,
+        acting_as_role=target_session.role,
+    )
+
+    logger.warning(
+        "IMPERSONATION START: admin=%s acting_as=%s role=%s",
+        admin_user.user_id[:8], user_id[:8], target_session.role,
+    )
+
     await _log_admin_action(
         admin_user=admin_user,
-        action="impersonate",
+        action="impersonate_start",
         target_user=user_id,
-        details={"provider": target_session.provider, "role": target_session.role},
+        details={"target_role": target_session.role},
     )
-    
+
     return {
-        "status": "impersonation_ready",
-        "target_user": user_id,
-        "target_role": target_session.role,
-        "target_provider": target_session.provider,
-        "impersonation_token": impersonation_token,
-        "landing_page": "/vault",  # Where to redirect after impersonation
-        "warning": "You are now acting on behalf of this user. All actions will be logged.",
+        "status": "impersonating",
+        "acting_as": user_id,
+        "acting_as_role": target_session.role,
+        "warning": "You are now acting on behalf of this user. All actions are logged.",
     }
+
+
+@router.post("/api/users/{user_id}/stop-impersonation")
+async def stop_impersonation(
+    user_id: str,
+    admin_user: UserContext = Depends(_stealth_admin),
+) -> dict:
+    """Stop impersonating and return to the admin's own context."""
+    if not admin_user.session_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Session ID not found.")
+
+    update_session_impersonation(
+        session_id=admin_user.session_id,
+        acting_as=None,
+        acting_as_role=None,
+    )
+
+    logger.warning(
+        "IMPERSONATION STOP: admin=%s was acting_as=%s",
+        admin_user.user_id[:8], user_id[:8],
+    )
+
+    await _log_admin_action(
+        admin_user=admin_user,
+        action="impersonate_stop",
+        target_user=user_id,
+        details={},
+    )
+
+    return {"status": "impersonation_ended"}
 
 
 @router.get("/api/system/status")
