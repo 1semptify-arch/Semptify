@@ -12,6 +12,28 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-16 — Milestone 6: Missing Alembic Migrations (COMPLETE)
+**Files: `alembic/versions/20260616_add_admin_audit_logs_and_document_annotations.py`**
+
+### Root Cause
+Full scan of `Base.metadata.tables` vs all migration files found 2 tables defined in `models.py` with **zero migration coverage** — they did not exist on Render PostgreSQL:
+- `admin_audit_logs` (`AdminAuditLog`) — admin action audit trail
+- `document_annotations` (`DocumentAnnotation`) — footnote/highlight indexing for briefcase
+
+Any code writing to either table would silently fail with a "relation does not exist" DB error.
+
+### What Was Fixed
+- Created `20260616_add_admin_audit_logs_and_document_annotations.py` chained to `68e486c460de`
+- All columns, FK constraints, and indexes matching exact model definitions
+- New single head: `20260616_add_missing_tables`
+
+### Verification
+- Migration file compiles clean
+- `alembic heads` → `20260616_add_missing_tables (head)` — single clean head
+- Deploy will run `alembic upgrade head` and create both tables on Render
+
+---
+
 ## Session — 2026-06-16 — Milestone 5: Event Bus + Upload→Timeline Fully Wired (COMPLETE)
 **Files: `app/core/event_bus.py`, `app/modules/vault/router.py`**
 
