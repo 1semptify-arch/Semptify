@@ -30,6 +30,8 @@ This ensures:
 - Metadata persists across server restarts (DB-backed)
 """
 
+import asyncio
+import functools
 import hashlib
 import json
 import logging
@@ -692,12 +694,17 @@ class VaultUploadService:
 
         try:
             registry = get_document_registry()
-            reg_doc = registry.register_document(
-                user_id=user_id,
-                content=content,
-                filename=filename,
-                mime_type=mime_type,
-                ip_address=None,
+            loop = asyncio.get_event_loop()
+            reg_doc = await loop.run_in_executor(
+                None,
+                functools.partial(
+                    registry.register_document,
+                    user_id=user_id,
+                    content=content,
+                    filename=filename,
+                    mime_type=mime_type,
+                    ip_address=None,
+                )
             )
             doc.registry_id = reg_doc.document_id
             doc.integrity_status = reg_doc.integrity_status.value
