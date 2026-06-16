@@ -1,0 +1,107 @@
+"""
+User module router — role hierarchy and impersonation endpoints.
+
+Endpoints:
+- POST /api/user/act-as   — Start impersonating another user (admin/advocate only)
+- DELETE /api/user/act-as — Stop impersonating
+"""
+
+from typing import Optional
+
+from fastapi import APIRouter, Request, Cookie, HTTPException, Depends
+from pydantic import BaseModel
+
+from app.core.user_context import UserContext, UserRole
+from app.core.security import get_current_user, can_access, update_session_impersonation
+from app.core.database import get_db_session
+
+router = APIRouter()
+
+
+class ActAsRequest(BaseModel):
+    target_user_id: str
+    reason: str = ""
+
+
+@router.post("/api/user/act-as")
+async def start_acting_as(
+    request: Request,
+    body: ActAsRequest,
+    semptify_session: Optional[str] = Cookie(None),
+    current_user: Optional[UserContext] = Depends(get_current_user),
+):
+    """
+    Start impersonating another user.
+
+    Only admin and advocate roles may impersonate.
+    A valid relationship must exist in the user_relationships table.
+    """
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    # Only admin and advocate may act-as
+    if current_user.role not in (UserRole.ADMIN, UserRole.ADVOCATE):
+        raise HTTPException(status_code=403, detail="Only admin or advocate may act on behalf of another user")
+
+    # Need a session cookie to update impersonation state
+    if not semptify_session:
+        raise HTTPException(status_code=400, detail="Session cookie required")
+
+    # Verify relationship exists
+    async with get_db_session() as db:
+        allowed = await can_access(
+            from_user_id=current_user.user_id,
+            to_user_id=body.target_user_id,
+            db=db,
+        )
+
+    if not allowed:
+        raise HTTPException(status_code=403, detail="No active relationship permits acting on behalf of this user")
+
+    # Set impersonation state on the stored session
+    session = update_session_impersonation(
+        session_id=semptify_session,
+        acting_as=body.target_user_id,
+        acting_as_role="tenant",  # Default to tenant when acting on behalf
+    )
+
+    if not session:
+        raise HTTPException(status_code=400, detail="Session not found — cannot set impersonation")
+
+    return {
+        "success": True,
+        "acting_as": body.target_user_id,
+        "original_user": current_user.user_id,
+        "reason": body.reason,
+    }
+
+
+@router.delete("/api/user/act-as")
+async def stop_acting_as(
+    semptify_session: Optional[str] = Cookie(None),
+    current_user: Optional[UserContext] = Depends(get_current_user),
+):
+    """Clear impersonation and return to original user context."""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
+    if not semptify_session:
+        raise HTTPException(status_code=400, detail="Session cookie required")
+
+    if not current_user.is_impersonating:
+        return {"success": True, "message": "Not impersonating — no action taken"}
+
+    session = update_session_impersonation(
+        session_id=semptify_session,
+        acting_as=None,
+        acting_as_role=None,
+    )
+
+    if not session:
+        raise HTTPException(status_code=400, detail="Session not found")
+
+    return {
+        "success": True,
+        "message": "Impersonation cleared",
+        "restored_user": current_user.user_id,
+    }
