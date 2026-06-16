@@ -12,7 +12,7 @@
 
 ---
 
-## ✅ COMPLETED THIS SESSION (2026-06-16) — Milestones 1–6 ALL DONE
+## ✅ COMPLETED THIS SESSION (2026-06-16) — Milestones 1–9 ALL DONE
 
 | Milestone | What | Commit |
 |-----------|------|--------|
@@ -22,8 +22,11 @@
 | M4 | 13× `datetime.now()` → `utc_now()` across 8 files. 0 violations remain. | `9780a1f` |
 | M5 | Event bus UTC fix, `notify_document_added()` now fired from upload path | `4c56a77` |
 | M6 | 2 missing Alembic migrations created: `admin_audit_logs`, `document_annotations` | `6bb0fa3` |
+| M7 | Role hierarchy wiring: `POST /api/user/act-as`, `DELETE /api/user/act-as`, smoke test | `41392fb` |
+| M8 | Rent Ledger CRUD router: `POST/GET/DELETE /api/rent/payments`, smoke test | `2ea26c4` |
+| M9 | Filedored on-demand: split base vs AI folders, lazy `ensure_filedored_folder()` | `5b3990b` |
 
-**HEAD: `6bb0fa3` — clean, pushed, Render auto-deploying**
+**HEAD: `5b3990b` — clean, pushed**
 
 ---
 
@@ -42,9 +45,8 @@ These are marked "pending live test" — need a real action on semptify.org:
 
 ## 🎯 NEXT AFTER LIVE TESTS
 
-1. **Role hierarchy wiring** — `can_access()` + `acting_as` endpoint (Task 6)
-2. **Rent ledger live test** (Task 7)
-3. **Filedored on-demand folder creation** (Task 8)
+1. **Scan for remaining TODO/stub code** (Task 9) — scan completed, no critical stubs in core paths
+2. **Documentation cleanup** (Task 10) — update stale docs, retire completed handoff items
 
 ## 📋 FULL TASK LIST: See `HANDOFF_SWE1.6.md`
 ## 📋 FULL CONTEXT + INSTRUCTIONS: See `HANDOFF_KIMI2.6.md`
