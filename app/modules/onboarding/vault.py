@@ -98,21 +98,16 @@ async def verify_vault(
     from app.sdk.vault import VaultClient, TENANT_VAULT
     
     try:
-        # Use Vault SDK health check
+        # Use Vault SDK health check.
+        # Only verify TENANT_VAULT folders — those are the only ones created at
+        # onboarding. Filedored/overlay/AI folders are on-demand and will not
+        # exist yet, so checking them would always report failure.
         vault_client = VaultClient(
             provider=provider_name,
             access_token=access_token,
             user_id=user_id,
             folder_spec=TENANT_VAULT,
         )
-        
-        # Register canonical vault folders beyond the base tenant vault spec
-        expected_folders = [
-            folder
-            for folder in CANONICAL_VAULT_FOLDERS
-            if folder not in TENANT_VAULT.all_folders
-        ]
-        vault_client.register_folders(expected_folders)
         
         health = await vault_client.health_check()
         
