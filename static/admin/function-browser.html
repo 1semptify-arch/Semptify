@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Semptify Function Browser - Interactive Documentation</title>
   <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/admin-nav.css">
   <style>
     * { box-sizing: border-box; }
     
@@ -364,12 +365,7 @@
 <body>
   
   <div class="browser-header">
-    <nav style="margin-bottom: 1rem; font-size: 0.9rem;">
-      <a href="/docs/navigation-structure.html" style="color: #94a3b8; text-decoration: none; margin-right: 1.5rem;">🧭 Navigation</a>
-      <a href="/docs/component-inventory.html" style="color: #94a3b8; text-decoration: none; margin-right: 1.5rem;">📦 Components</a>
-      <a href="/admin/function-browser.html" style="color: #10b981; text-decoration: none; margin-right: 1.5rem; font-weight: bold;">⚙️ Functions</a>
-      <a href="/docs/core-navigation-functions.md" style="color: #94a3b8; text-decoration: none;">📝 Reference</a>
-    </nav>
+    <div id="admin-nav-container" class="admin-nav--dark" style="margin-bottom: 1rem;"></div>
     <h1>⚙️ Semptify Function Browser</h1>
     <p>Interactive documentation - Click any function to see details, settings, and related pages</p>
   </div>
@@ -969,6 +965,6 @@
     // Initialize
     showGroup('all');
   </script>
-  
+  <script src="/js/admin-nav.js"></script>
 </body>
 </html>

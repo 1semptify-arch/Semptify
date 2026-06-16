@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Semptify Review Checklist - Contracts & Routes</title>
   <link rel="stylesheet" href="/css/ssot-design-system.css">
+  <link rel="stylesheet" href="/css/admin-nav.css">
   <style>
     :root {
       --review-bg: #0f172a;
@@ -38,6 +39,34 @@
       padding: 2rem;
       background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
       border-radius: 12px;
+    }
+    
+    .header-nav {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    
+    .header-nav a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      padding: 0.4rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      transition: all 0.15s;
+    }
+    
+    .header-nav a:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    
+    .header-nav a.active {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      font-weight: 600;
     }
     
     .header h1 {
@@ -471,6 +500,7 @@
   <div class="container">
     <!-- Header -->
     <div class="header">
+      <div id="admin-nav-container" class="admin-nav--dark"></div>
       <h1>🔍 Review Checklist</h1>
       <p>Contracts & Routes Verification — Ensure all systems work correctly</p>
       
@@ -953,6 +983,8 @@
             } else {
               btn.textContent = '❌ Fail';
               btn.style.background = '#ef4444';
+              // Show AI Fix button
+              showAIFixButton(itemId, item, e?.message || 'Test failed');
               setTimeout(() => {
                 btn.textContent = '🧪 Test';
                 btn.style.background = '';
@@ -962,6 +994,8 @@
           } catch (e) {
             btn.textContent = '❌ Error';
             btn.style.background = '#ef4444';
+            // Show AI Fix button
+            showAIFixButton(itemId, item, e.message);
             setTimeout(() => {
               btn.textContent = '🧪 Test';
               btn.style.background = '';
@@ -1070,6 +1104,84 @@
       localStorage.setItem('reviewNotes', JSON.stringify(notes));
     }
     
+    // AI Fix button for failed tests
+    function showAIFixButton(itemId, item, errorMessage) {
+      const itemElement = document.querySelector(`[data-item-id="${itemId}"]`);
+      if (!itemElement) return;
+      
+      // Remove existing AI fix button if present
+      const existingBtn = itemElement.querySelector('.ai-fix-btn');
+      if (existingBtn) existingBtn.remove();
+      
+      const fixBtn = document.createElement('button');
+      fixBtn.className = 'ai-fix-btn';
+      fixBtn.textContent = '🤖 AI Fix';
+      fixBtn.style.cssText = `
+        margin-left: auto;
+        padding: 0.4rem 0.8rem;
+        background: linear-gradient(135deg, #8b5cf6, #6366f1);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      `;
+      fixBtn.onmouseover = () => fixBtn.style.transform = 'translateY(-1px)';
+      fixBtn.onmouseout = () => fixBtn.style.transform = 'translateY(0)';
+      fixBtn.onclick = () => openAIPortal(item, errorMessage);
+      
+      const itemActions = itemElement.querySelector('.item-actions') || itemElement;
+      itemActions.appendChild(fixBtn);
+    }
+    
+    // Open AI portal for issue resolution
+    function openAIPortal(item, errorMessage) {
+      const issueContext = {
+        testId: item.id,
+        testTitle: item.title,
+        testDescription: item.description,
+        error: errorMessage,
+        category: item.category || 'unknown',
+        timestamp: new Date().toISOString()
+      };
+      
+      // Construct AI portal URL with context
+      // This opens VS Code or Windsurf with the issue context
+      const portalUrl = `vscode://vscode.git/git/clone?url=${encodeURIComponent(window.location.origin)}&issue=${encodeURIComponent(JSON.stringify(issueContext))}`;
+      
+      // Fallback: open GitHub issue or copy to clipboard
+      const issueText = `
+## Admin Test Failure
+
+**Test:** ${item.title}
+**ID:** ${item.id}
+**Description:** ${item.description}
+**Error:** ${errorMessage}
+**Timestamp:** ${new Date().toISOString()}
+
+### Context
+- Page: ${window.location.pathname}
+- Category: ${item.category || 'unknown'}
+
+### Action Required
+Please investigate and fix this issue. The test is failing and needs correction.
+      `.trim();
+      
+      // Try to open AI portal, fallback to clipboard
+      try {
+        window.open(portalUrl, '_blank');
+      } catch (e) {
+        // Fallback: copy to clipboard and show alert
+        navigator.clipboard.writeText(issueText).then(() => {
+          alert('Issue copied to clipboard. Open your AI editor (VS Code/Windsurf) to fix this issue.');
+        }).catch(() => {
+          alert('Could not open AI portal. Please manually report this issue:\n\n' + issueText);
+        });
+      }
+    }
+    
     function getNote(id) {
       const notes = JSON.parse(localStorage.getItem('reviewNotes') || '{}');
       return notes[id] || '';
@@ -1097,5 +1209,6 @@
       }
     }
   </script>
+  <script src="/js/admin-nav.js"></script>
 </body>
 </html>

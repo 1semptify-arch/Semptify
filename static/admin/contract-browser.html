@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contract Browser — Semptify Admin</title>
+  <link rel="stylesheet" href="/css/admin-nav.css">
   <style>
     :root {
       --hdr1:#0c4a6e; --hdr2:#075985; --accent:#0369a1; --accent2:#38bdf8;
@@ -92,12 +93,7 @@
 
 <header>
   <a href="/admin" class="logo">Semptify</a>
-  <nav style="display:flex;gap:0.25rem;flex:1">
-    <a href="/admin">🏠 Dashboard</a>
-    <a href="/admin/function-browser.html">⚙️ Functions</a>
-    <a href="/admin/contract-browser.html" class="active">📋 Contracts</a>
-    <a href="/admin/review-checklist.html">✅ Review</a>
-  </nav>
+  <div id="admin-nav-container" class="admin-nav--dark" style="display:flex;gap:0.25rem;flex:1"></div>
   <div style="font-size:0.8rem;color:rgba(255,255,255,0.6)">🔧 Admin</div>
 </header>
 
@@ -359,5 +355,6 @@
 
   loadAll();
 </script>
+<script src="/js/admin-nav.js"></script>
 </body>
 </html>
