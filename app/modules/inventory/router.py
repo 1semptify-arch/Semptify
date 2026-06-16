@@ -6,9 +6,10 @@ Purpose: API endpoints for file inventory with rotation and dating
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from typing import Dict, List, Optional, Any
-from datetime import datetime
 import logging
+from datetime import datetime
 
+from app.core.utc import utc_now
 from app.core.inventory_manager import (
     inventory_manager,
     InventoryType,
@@ -70,7 +71,7 @@ async def create_backup(
             "filename": file.filename,
             "size": len(content),
             "rotation_policy": "keep_2",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": utc_now().isoformat()
         }
     except Exception as e:
         logger.error(f"Error creating backup: {str(e)}")
@@ -126,7 +127,7 @@ async def create_snapshot(
             "filename": file.filename,
             "size": len(content),
             "rotation_policy": "keep_5",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": utc_now().isoformat()
         }
     except Exception as e:
         logger.error(f"Error creating snapshot: {str(e)}")
@@ -243,7 +244,7 @@ async def rotate_inventory(inventory_type: Optional[str] = None):
         
         return {
             "message": f"Rotation triggered for {inventory_type or 'all types'}",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": utc_now().isoformat()
         }
     except Exception as e:
         logger.error(f"Error rotating inventory: {str(e)}")
@@ -295,13 +296,13 @@ async def inventory_health():
         
         return {
             "status": health_status,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": utc_now().isoformat(),
             "metrics": {
                 "total_items": total_items,
                 "total_size_mb": round(summary['total_size'] / (1024 * 1024), 2),
                 "types": len(summary['by_type']),
                 "oldest_item_days": (
-                    (datetime.now() - summary['oldest_item'].created_at).days
+                    (utc_now() - summary['oldest_item'].created_at).days
                     if summary['oldest_item'] else 0
                 )
             }
@@ -310,6 +311,6 @@ async def inventory_health():
         logger.error(f"Error in inventory health check: {str(e)}")
         return {
             "status": "error",
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": utc_now().isoformat(),
             "error": str(e)
         }

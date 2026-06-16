@@ -12,6 +12,28 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-16 — Milestone 4: datetime.now() Purge (COMPLETE)
+**Files: 8 files fixed — `app/modules/inventory/router.py`, `app/modules/vault_installer/routes.py`, `app/modules/document_converter/converter.py`, `app/core/ai_tool_crib.py`, `app/core/contracts_framework.py`, `app/core/accountability_planner.py`, `app/core/inventory_manager.py`, `app/services/timeline_extraction.py`**
+
+### Root Cause
+Known Failure #8: `datetime.now()` without timezone causes token expiry bugs and incorrect time comparisons. Full codebase scan found 13 occurrences across 8 files.
+
+### What Was Fixed
+- `inventory/router.py` — 6 occurrences → `utc_now()`
+- `vault_installer/routes.py` — 1 occurrence → `utc_now()`
+- `document_converter/converter.py` — 2 occurrences → `utc_now()`
+- `ai_tool_crib.py` — 1 occurrence → `utc_now()`
+- `contracts_framework.py` — 1 occurrence → `utc_now()`
+- `accountability_planner.py` — 4 occurrences → `utc_now()`
+- `inventory_manager.py` — 1 occurrence → `utc_now()`
+- `timeline_extraction.py` — 1 occurrence → `utc_now()`
+
+### Verification
+- All 8 files compile clean
+- `grep datetime.now()` across `app/` → **0 results**
+
+---
+
 ## Session — 2026-06-16 — Milestone 3: Capability System (COMPLETE — already built)
 **Files: `tests/e2e/capabilities_smoke.spec.js` (verified existing: `app/core/capabilities.py`, `app/core/product_manifest.py`, `app/models/models.py`, `app/modules/capabilities/router.py`, `app/modules/storage/router.py`)**
 

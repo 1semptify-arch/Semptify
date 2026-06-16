@@ -130,7 +130,7 @@ class DocumentConverter:
                     doc.add_paragraph(line)
         
         # Save document
-        filename = f"document_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx"
+        filename = f"document_{utc_now().strftime('%Y%m%d_%H%M%S')}.docx"
         filepath = self.output_dir / filename
         doc.save(filepath)
         
@@ -216,7 +216,7 @@ class DocumentConverter:
         html_template += '</body></html>'
         
         # Save HTML file
-        filename = f"document_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+        filename = f"document_{utc_now().strftime('%Y%m%d_%H%M%S')}.html"
         filepath = self.output_dir / filename
         
         with open(filepath, 'w', encoding='utf-8') as f:
