@@ -18,8 +18,9 @@ Architecture:
 """
 
 import logging
-from typing import Optional
+from typing import Callable, Optional
 
+from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -242,3 +243,166 @@ async def revoke_capability(
         await _cache_invalidate(user_id)
         logger.info("Capability revoked: user=%s module=%s by=%s",
                     user_id, module_name, revoked_by)
+
+
+# =============================================================================
+# Gate — FastAPI Dependency Factory
+# =============================================================================
+
+def require_capability(module_name: str) -> Callable:
+    """
+    FastAPI dependency factory. Returns a dependency that enforces capability
+    access for a specific module.
+
+    Usage in a router:
+        from app.core.capabilities import require_capability
+
+        @router.get("/something", dependencies=[Depends(require_capability("app.modules.case_builder.router"))])
+        async def my_endpoint(): ...
+
+    Or as a router-level dependency:
+        router = APIRouter(dependencies=[Depends(require_capability("app.modules.fems.router"))])
+
+    Rules:
+    - Admin role always passes — admins have __all__.
+    - If user has no capability rows yet (not seeded), falls back to ALLOW
+      so existing users are not locked out before their defaults are seeded.
+    - If the capability row exists and is_active=False, returns 403.
+    """
+    async def _gate(
+        request: Request,
+        db: AsyncSession = Depends(_get_db),
+    ) -> None:
+        user_id: Optional[str] = request.cookies.get("semptify_uid")
+        if not user_id:
+            return  # No user — let auth dependency handle it downstream
+
+        # Admin bypass — admins have __all__
+        try:
+            from app.core.user_id import parse_user_id
+            _, role, _ = parse_user_id(user_id)
+            if role == "admin":
+                return
+        except Exception:
+            pass
+
+        # Check overlay first — overlay grants always win
+        overlay = await _overlay_get(user_id)
+        if overlay and module_name in overlay:
+            return
+
+        capabilities = await get_user_capabilities(user_id, db)
+
+        # No rows at all = not yet seeded = allow through (graceful degradation)
+        if not capabilities:
+            return
+
+        if module_name not in capabilities:
+            logger.warning("Capability gate blocked: user=%s module=%s", user_id[:6], module_name)
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail={
+                    "error": "capability_required",
+                    "module": module_name,
+                    "message": "This feature is not available for your account.",
+                },
+            )
+
+    return _gate
+
+
+async def _get_db():
+    """Thin wrapper so the gate can import get_db without circular imports."""
+    from app.core.database import get_db
+    async for session in get_db():
+        yield session
+
+
+# =============================================================================
+# Overlay — Dev Node / Admin Hot-Swap Session Grants
+# =============================================================================
+#
+# An overlay is a temporary set of extra modules attached to a user's session
+# by an admin. It does NOT touch user_capabilities — it lives only in Redis.
+# Stripped automatically when the session ends or the admin detaches it.
+#
+# Rules:
+# - Overlay is ADD-ONLY. You cannot use it to remove a user's real capabilities.
+# - Only admins can attach an overlay.
+# - Overlay key expires with the Redis TTL (1 hour by default).
+# =============================================================================
+
+_OVERLAY_TTL = 3600  # 1 hour
+_OVERLAY_PREFIX = "overlay:"
+
+
+def _overlay_key(user_id: str) -> str:
+    return f"{_OVERLAY_PREFIX}{user_id}"
+
+
+async def _overlay_get(user_id: str) -> Optional[set[str]]:
+    """Read active overlay modules for a user. Returns None if no overlay."""
+    try:
+        from app.core.redis_client import get_redis
+        redis = await get_redis()
+        if redis is None:
+            return None
+        raw = await redis.smembers(_overlay_key(user_id))
+        if raw:
+            return {v.decode() if isinstance(v, bytes) else v for v in raw}
+        return None
+    except Exception as exc:
+        logger.debug("Overlay read skipped: %s", exc)
+        return None
+
+
+async def attach_overlay(
+    target_user_id: str,
+    module_names: list[str],
+    attached_by: str,
+) -> None:
+    """
+    Admin attaches an overlay to a user's session.
+    Grants temporary access to the listed modules without modifying user_capabilities.
+    """
+    try:
+        from app.core.redis_client import get_redis
+        redis = await get_redis()
+        if redis is None:
+            raise RuntimeError("Redis unavailable — overlay requires Redis")
+        key = _overlay_key(target_user_id)
+        if module_names:
+            await redis.sadd(key, *module_names)
+            await redis.expire(key, _OVERLAY_TTL)
+        logger.info("Overlay attached: target=%s modules=%s by=%s",
+                    target_user_id[:6], module_names, attached_by[:6])
+    except RuntimeError:
+        raise
+    except Exception as exc:
+        raise RuntimeError(f"Failed to attach overlay: {exc}") from exc
+
+
+async def detach_overlay(
+    target_user_id: str,
+    detached_by: str,
+) -> None:
+    """
+    Admin removes the overlay from a user's session.
+    The user immediately loses the temporary modules.
+    """
+    try:
+        from app.core.redis_client import get_redis
+        redis = await get_redis()
+        if redis is None:
+            return
+        await redis.delete(_overlay_key(target_user_id))
+        logger.info("Overlay detached: target=%s by=%s",
+                    target_user_id[:6], detached_by[:6])
+    except Exception as exc:
+        logger.warning("Overlay detach skipped: %s", exc)
+
+
+async def get_overlay_modules(target_user_id: str) -> list[str]:
+    """Return the current overlay module list for a user (empty list if none)."""
+    modules = await _overlay_get(target_user_id)
+    return sorted(modules) if modules else []
