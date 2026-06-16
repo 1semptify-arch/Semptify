@@ -198,6 +198,86 @@ Reject or challenge changes that primarily optimize for:
 - Prefer deterministic, testable, auditable code paths.
 - Preserve user trust as a first-order engineering concern.
 
+## Capability System — MANDATORY for Every New Module
+
+**As of 2026-06-16, Semptify has a live Capability System. Every new Feature Module MUST comply.**
+
+### The Two Module Types (never confuse them)
+
+| Type | What it is | Always on? | In user_capabilities? | Gated? |
+|---|---|---|---|---|
+| **Pipeline Module** | Internal processor, no UI, passes output to other modules | YES | NO | NO |
+| **Feature Module** | User-facing capability with UI + routes | NO | YES | YES |
+
+**Examples:**
+- `context_loop`, `positronic_brain`, `vault_upload_service` → Pipeline. Never gate these.
+- `case_builder`, `eviction_defense`, `timeline`, `vault` UI → Feature. Gate these.
+
+### When Building a NEW Feature Module
+
+**Step 1 — Add it to `CAPABILITY_DEFAULTS` in `app/core/product_manifest.py`**
+
+Decide which roles get it by default and add the `module_path` to the appropriate list:
+```python
+CAPABILITY_DEFAULTS = {
+    "tenant":   [..., "app.modules.your_module.router"],
+    "advocate": [..., "app.modules.your_module.router"],
+    ...
+}
+```
+If it's admin-only, skip all role lists — admins get `__all__` automatically.
+
+**Step 2 — Add the gate to your router**
+
+One line at the top of your `router.py`:
+```python
+from app.core.capabilities import require_capability
+
+router = APIRouter(
+    prefix="/api/your-module",
+    tags=["Your Module"],
+    dependencies=[Depends(require_capability("app.modules.your_module.router"))],
+)
+```
+That's it. The gate handles admin bypass, overlay grants, unseeded users, and 403 responses automatically.
+
+**Step 3 — Register in `product_manifest.py`**
+
+Add a `_register(...)` call in the correct tier block. The module_path MUST match exactly what you used in `CAPABILITY_DEFAULTS` and `require_capability()`.
+
+### When Building a NEW Pipeline Module
+
+- Do NOT add it to `CAPABILITY_DEFAULTS`
+- Do NOT add `require_capability()` to it
+- Pipeline modules are always registered and always running
+- They call DOWN to services, never UP to feature modules
+
+### The One Rule That Protects Everything
+
+```
+Feature modules  →  call DOWN to  →  Pipeline modules
+Pipeline modules →  NEVER call UP  →  Feature modules
+Feature modules  →  NEVER call     →  Other feature modules directly
+```
+
+### Admin Overlay (Dev Node / Hot-Swap)
+
+Admins can temporarily grant any module to any user without touching the database:
+```
+POST /api/capabilities/{user_id}/overlay
+{ "module_names": ["app.modules.your_module.router"] }
+```
+Expires in 1 hour. Cannot be used to REMOVE real capabilities — add-only.
+
+### Key Files
+
+- `app/core/capabilities.py` — `require_capability()`, `seed_capability_defaults()`, `can_load_module()`, overlay functions
+- `app/core/product_manifest.py` — `CAPABILITY_DEFAULTS` dict, `_register()` calls
+- `app/modules/capabilities/router.py` — Admin REST API for granting/revoking/overlaying
+- `app/models/models.py` — `UserCapability` SQLAlchemy model
+
+---
+
 ## SSOT Architecture Enforcement (CRITICAL)
 
 All navigation, routing, and URL construction MUST follow Single Source of Truth (SSOT) principles:
