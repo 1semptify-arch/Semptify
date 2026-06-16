@@ -798,8 +798,10 @@ async def toggle_tier(
 @router.get("/api/system/feature-flags")
 async def get_feature_flags(user: UserContext = Depends(require_admin)) -> dict:
     """Get all feature flags and their current values."""
+    from app.core.features import features as _features
     return {
-        "feature_flags": _RUNTIME_CONFIG["feature_flags"],
+        "feature_flags": await _features.get_all_flags(),
+        "status": await _features.get_status(),
         "timestamp": utc_now().isoformat(),
     }
 
@@ -811,15 +813,11 @@ async def set_feature_flag(
     user: UserContext = Depends(require_admin),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """Set a feature flag value."""
-    # Create flag if it doesn't exist
-    if flag_name not in _RUNTIME_CONFIG["feature_flags"]:
-        logger.info(f"Creating new feature flag: {flag_name}")
-    
-    old_value = _RUNTIME_CONFIG["feature_flags"].get(flag_name)
-    _RUNTIME_CONFIG["feature_flags"][flag_name] = value
-    
-    # Log the action
+    """Set a feature flag value — persists to PostgreSQL."""
+    from app.core.features import features as _features
+    all_flags = await _features.get_all_flags()
+    old_value = all_flags.get(flag_name, {}).get("enabled")
+    await _features.set_enabled(flag_name, value, updated_by=user.user_id)
     await _log_admin_action(
         admin_user=user,
         action="set_feature_flag",
@@ -827,9 +825,7 @@ async def set_feature_flag(
         details={"old_value": old_value, "new_value": value},
         db=db,
     )
-    
     logger.warning(f"FEATURE_FLAG: Admin {user.user_id} set {flag_name}={value}")
-    
     return {
         "flag": flag_name,
         "value": value,
