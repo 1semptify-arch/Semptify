@@ -64,18 +64,18 @@ except ImportError:
 try:
     from app.services.document_registry import get_document_registry
     HAS_REGISTRY = True
-except ImportError:
+except Exception as _registry_exc:
     HAS_REGISTRY = False
-    logger.error("Document registry module failed to import at startup — all uploads will fail certification")
+    logger.error("Document registry failed to load: %s: %s", type(_registry_exc).__name__, _registry_exc)
 
 # Import DB session factory and compliance models
 try:
     from app.core.database import AsyncSessionLocal
     from app.models.models import DocumentRegistryEntry, CertificationEvent, CertificationResult, CertificationFailureCode
     HAS_DB_CERTIFICATION = True
-except ImportError:
+except Exception as _db_cert_exc:
     HAS_DB_CERTIFICATION = False
-    logger.error("DB certification models unavailable — CertificationEvent rows will not be written")
+    logger.error("DB certification models failed to load: %s: %s", type(_db_cert_exc).__name__, _db_cert_exc)
 
 
 # =============================================================================
