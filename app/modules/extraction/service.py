@@ -10,6 +10,7 @@ This bridges the gap between:
 """
 
 import re
+from app.core.utc import utc_now
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List, Tuple
@@ -249,7 +250,7 @@ class FormFieldExtractor:
         """
         self.documents = documents
         self.result = FormFieldsExtraction()
-        self.result.extraction_date = datetime.now(timezone.utc).isoformat()
+        self.result.extraction_date = utc_now().isoformat()
         
         # Combine all document text for analysis
         combined_text = ""

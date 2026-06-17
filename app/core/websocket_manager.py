@@ -14,6 +14,7 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 from collections import defaultdict
 from app.core.id_gen import make_id
+from app.core.utc import utc_now
 import weakref
 
 logger = logging.getLogger(__name__)
@@ -104,8 +105,8 @@ class WebSocketManager:
             websocket=websocket,
             user_id=user_id,
             session_id=session_id,
-            connected_at=datetime.now(timezone.utc),
-            last_ping=datetime.now(timezone.utc),
+            connected_at=utc_now(),
+            last_ping=utc_now(),
             subscriptions=set()
         )
         
@@ -128,9 +129,9 @@ class WebSocketManager:
             data={
                 "connection_id": connection_id,
                 "session_id": session_id,
-                "server_time": datetime.now(timezone.utc).isoformat()
+                "server_time": utc_now().isoformat()
             },
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             user_id=user_id
         ))
         
@@ -276,7 +277,7 @@ class WebSocketManager:
                 "progress": progress,
                 "result": result
             },
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             user_id=user_id
         )
         
@@ -291,7 +292,7 @@ class WebSocketManager:
                 "filename": filename,
                 "status": status
             },
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             user_id=user_id
         )
         
@@ -305,7 +306,7 @@ class WebSocketManager:
                 "message": message,
                 "severity": severity
             },
-            timestamp=datetime.now(timezone.utc)
+            timestamp=utc_now()
         )
         
         if target_users:
@@ -322,7 +323,7 @@ class WebSocketManager:
                 "event_type": event_type,
                 "details": details
             },
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             user_id=user_id
         )
         
@@ -390,8 +391,8 @@ class WebSocketManager:
         """Ping all connections to check they're alive."""
         ping_message = WebSocketMessage(
             type="ping",
-            data={"timestamp": datetime.now(timezone.utc).isoformat()},
-            timestamp=datetime.now(timezone.utc)
+            data={"timestamp": utc_now().isoformat()},
+            timestamp=utc_now()
         )
         
         dead_connections = []
@@ -399,7 +400,7 @@ class WebSocketManager:
         for connection_id, connection_info in self.connections.items():
             try:
                 await connection_info.websocket.send_text(json.dumps(ping_message.to_dict()))
-                connection_info.last_ping = datetime.now(timezone.utc)
+                connection_info.last_ping = utc_now()
             except Exception:
                 dead_connections.append(connection_id)
         

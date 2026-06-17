@@ -33,6 +33,7 @@ import asyncio
 
 from app.core.user_id import get_role_from_user_id, get_provider_from_user_id
 from app.core.event_bus import event_bus, EventType
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -157,7 +158,7 @@ class AccessResult:
     
     # Audit trail
     request_id: str = field(default_factory=lambda: make_id("acr"))
-    checked_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    checked_at: datetime = field(default_factory=lambda: utc_now())
 
 
 @dataclass
@@ -401,7 +402,7 @@ class VaultAccessEngine:
                 id=resource_id,
                 type=resource_type,
                 owner_id=user_id,
-                created_at=datetime.now(timezone.utc),
+                created_at=utc_now(),
                 data=data,
             )
         else:
@@ -474,7 +475,7 @@ class VaultAccessEngine:
             logger.info(f"Hard deleted: {resource_id} by {user_id}")
         else:
             resource.is_deleted = True
-            resource.deleted_at = datetime.now(timezone.utc)
+            resource.deleted_at = utc_now()
             resource.deleted_by = user_id
             logger.info(f"Soft deleted: {resource_id} by {user_id}")
 
@@ -659,7 +660,7 @@ class VaultAccessEngine:
         """Create an immutable audit log entry."""
         entry = AuditEntry(
             id=make_id("aud"),
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             user_id=user_id,
             action=action,
             resource_type=resource_type,

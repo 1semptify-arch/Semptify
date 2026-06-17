@@ -12,6 +12,7 @@ from typing import Optional
 import httpx
 
 from app.core.config import get_settings
+from app.core.utc import utc_now
 import logging
 logger = logging.getLogger(__name__)
 
@@ -186,7 +187,7 @@ Important: Flag any illegal eviction threats (lockouts, utility shutoffs). Check
             key_amounts=data.get("key_amounts", []),
             key_terms=data.get("key_terms", []),
             issues_detected=data.get("issues_detected", []),
-            analyzed_at=datetime.now(timezone.utc)
+            analyzed_at=utc_now()
         )
 
     def _fallback_analysis(self, text: str, filename: str) -> OllamaAnalysisResult:
@@ -225,7 +226,7 @@ Important: Flag any illegal eviction threats (lockouts, utility shutoffs). Check
             key_amounts=[],
             key_terms=[],
             issues_detected=[],
-            analyzed_at=datetime.now(timezone.utc)
+            analyzed_at=utc_now()
         )
 
     async def quick_classify(self, text: str) -> tuple[str, float]:

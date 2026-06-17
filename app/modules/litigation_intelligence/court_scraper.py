@@ -7,6 +7,7 @@ Handles captcha, session persistence, and comprehensive data extraction.
 """
 
 import asyncio
+from app.core.utc import utc_now
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
@@ -239,7 +240,7 @@ class CourtScraperPack:
                 "court": await court.inner_text(),
                 "judge": await judge.inner_text() if judge else None,
                 "source": "mncis",
-                "scraped_at": datetime.now(timezone.utc).isoformat()
+                "scraped_at": utc_now().isoformat()
             }
             
         except Exception as e:
@@ -261,7 +262,7 @@ class CourtScraperPack:
                 "case_title": await case_title.inner_text(),
                 "party_info": await party_info.inner_text() if party_info else None,
                 "source": "efilemn",
-                "scraped_at": datetime.now(timezone.utc).isoformat()
+                "scraped_at": utc_now().isoformat()
             }
             
         except Exception as e:
@@ -282,7 +283,7 @@ class CourtScraperPack:
                 "filing_date": await filing_date.inner_text(),
                 "filing_type": await filing_type.inner_text(),
                 "filing_party": await filing_party.inner_text() if filing_party else None,
-                "scraped_at": datetime.now(timezone.utc).isoformat()
+                "scraped_at": utc_now().isoformat()
             }
             
         except Exception as e:

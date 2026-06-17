@@ -6,6 +6,7 @@ Provides comprehensive testing capabilities for the Semptify application.
 """
 
 import logging
+from app.core.utc import utc_now
 import asyncio
 import pytest
 import unittest
@@ -215,13 +216,13 @@ class TestFramework:
             raise ValueError(f"Test suite not found: {suite_id}")
         
         suite = self.test_suites[suite_id]
-        run_id = f"run_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{suite_id}"
+        run_id = f"run_{utc_now().strftime('%Y%m%d_%H%M%S')}_{suite_id}"
         
         # Create test run
         run = TestRun(
             run_id=run_id,
             suite_id=suite_id,
-            started_at=datetime.now(timezone.utc),
+            started_at=utc_now(),
             environment=environment or {}
         )
         
@@ -257,8 +258,8 @@ class TestFramework:
                     error_result = TestResult(
                         test_id="unknown",
                         status=TestStatus.ERROR,
-                        started_at=datetime.now(timezone.utc),
-                        completed_at=datetime.now(timezone.utc),
+                        started_at=utc_now(),
+                        completed_at=utc_now(),
                         error_message=str(result)
                     )
                     run.test_results.append(error_result)
@@ -266,7 +267,7 @@ class TestFramework:
                     run.test_results.append(result)
             
             # Update run status
-            run.completed_at = datetime.now(timezone.utc)
+            run.completed_at = utc_now()
             run.status = TestStatus.PASSED if all(tr.passed for tr in run.test_results) else TestStatus.FAILED
             
             # Update statistics
@@ -282,7 +283,7 @@ class TestFramework:
             
         except Exception as e:
             run.status = TestStatus.ERROR
-            run.completed_at = datetime.now(timezone.utc)
+            run.completed_at = utc_now()
             logger.error(f"Test run {run_id} failed: {e}")
             return run
     
@@ -292,7 +293,7 @@ class TestFramework:
             result = TestResult(
                 test_id=test_case.test_id,
                 status=TestStatus.RUNNING,
-                started_at=datetime.now(timezone.utc)
+                started_at=utc_now()
             )
             
             try:
@@ -301,7 +302,7 @@ class TestFramework:
                     await self._execute_code(test_case.setup_code, "setup")
                 
                 # Execute test code
-                start_time = datetime.now(timezone.utc)
+                start_time = utc_now()
                 
                 try:
                     actual_result = await self._execute_code(test_case.test_code, "test")
@@ -322,7 +323,7 @@ class TestFramework:
                     result.actual_result = actual_result
                     result.expected_result = test_case.expected_result
                 
-                end_time = datetime.now(timezone.utc)
+                end_time = utc_now()
                 result.duration_seconds = (end_time - start_time).total_seconds()
                 result.completed_at = end_time
                 
@@ -335,7 +336,7 @@ class TestFramework:
             except Exception as e:
                 result.status = TestStatus.ERROR
                 result.error_message = str(e)
-                result.completed_at = datetime.now(timezone.utc)
+                result.completed_at = utc_now()
                 return result
     
     async def _execute_code(self, code: str, context: str) -> Any:
@@ -431,7 +432,7 @@ class CICDPipeline:
     
     def create_pipeline_config(self, name: str, config: Dict[str, Any] = None) -> str:
         """Create a new pipeline configuration."""
-        pipeline_id = f"pipeline_{name}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+        pipeline_id = f"pipeline_{name}_{utc_now().strftime('%Y%m%d_%H%M%S')}"
         
         # Merge with default config
         final_config = self.default_config.copy()
@@ -441,7 +442,7 @@ class CICDPipeline:
         self.pipeline_configs[pipeline_id] = {
             "name": name,
             "config": final_config,
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": utc_now().isoformat(),
             "active": True
         }
         
@@ -454,13 +455,13 @@ class CICDPipeline:
             raise ValueError(f"Pipeline config not found: {pipeline_id}")
         
         config = self.pipeline_configs[pipeline_id]["config"]
-        run_id = f"run_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{pipeline_id}"
+        run_id = f"run_{utc_now().strftime('%Y%m%d_%H%M%S')}_{pipeline_id}"
         
         # Create pipeline run
         self.pipeline_runs[run_id] = {
             "pipeline_id": pipeline_id,
             "trigger": trigger,
-            "started_at": datetime.now(timezone.utc).isoformat(),
+            "started_at": utc_now().isoformat(),
             "status": "running",
             "stages": {},
             "logs": []
@@ -477,7 +478,7 @@ class CICDPipeline:
         """Execute pipeline stages."""
         try:
             for stage in config["stages"]:
-                stage_start = datetime.now(timezone.utc)
+                stage_start = utc_now()
                 
                 self.pipeline_runs[run_id]["stages"][stage] = {
                     "status": "running",
@@ -487,7 +488,7 @@ class CICDPipeline:
                 # Execute stage
                 success = await self._execute_stage(stage, config.get("environment", {}))
                 
-                stage_end = datetime.now(timezone.utc)
+                stage_end = utc_now()
                 duration = (stage_end - stage_start).total_seconds()
                 
                 self.pipeline_runs[run_id]["stages"][stage].update({
@@ -501,7 +502,7 @@ class CICDPipeline:
                     break
             
             # Mark pipeline as completed
-            self.pipeline_runs[run_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
+            self.pipeline_runs[run_id]["completed_at"] = utc_now().isoformat()
             if self.pipeline_runs[run_id]["status"] == "running":
                 self.pipeline_runs[run_id]["status"] = "passed"
             

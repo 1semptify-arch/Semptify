@@ -102,8 +102,8 @@ class ContractsFramework:
                 required_consent=ConsentLevel.EXPRESS,
                 jurisdictions=["US", "CA", "EU"],
                 dependencies=[],
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
+                created_at=utc_now(),
+                updated_at=utc_now(),
                 created_by="system"
             ),
             "privacy_2024_v1": Contract(
@@ -119,8 +119,8 @@ class ContractsFramework:
                 required_consent=ConsentLevel.EXPRESS,
                 jurisdictions=["US", "CA", "EU"],
                 dependencies=["terms_2024_v1"],
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
+                created_at=utc_now(),
+                updated_at=utc_now(),
                 created_by="system"
             ),
             "ai_consent_2024_v1": Contract(
@@ -136,8 +136,8 @@ class ContractsFramework:
                 required_consent=ConsentLevel.INFORMED,
                 jurisdictions=["US", "CA", "EU"],
                 dependencies=["privacy_2024_v1"],
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
+                created_at=utc_now(),
+                updated_at=utc_now(),
                 created_by="system"
             ),
             "data_processing_2024_v1": Contract(
@@ -153,8 +153,8 @@ class ContractsFramework:
                 required_consent=ConsentLevel.EXPRESS,
                 jurisdictions=["US", "CA", "EU"],
                 dependencies=["privacy_2024_v1"],
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
+                created_at=utc_now(),
+                updated_at=utc_now(),
                 created_by="system"
             ),
             "mobile_app_2024_v1": Contract(
@@ -170,8 +170,8 @@ class ContractsFramework:
                 required_consent=ConsentLevel.EXPRESS,
                 jurisdictions=["US", "CA"],
                 dependencies=["terms_2024_v1", "privacy_2024_v1"],
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
+                created_at=utc_now(),
+                updated_at=utc_now(),
                 created_by="system"
             ),
             "plugin_dev_2024_v1": Contract(
@@ -187,8 +187,8 @@ class ContractsFramework:
                 required_consent=ConsentLevel.WRITTEN,
                 jurisdictions=["US", "CA", "EU"],
                 dependencies=["terms_2024_v1"],
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
+                created_at=utc_now(),
+                updated_at=utc_now(),
                 created_by="system"
             ),
         }
@@ -218,7 +218,7 @@ class ContractsFramework:
             user_id=user_id,
             contract_id=contract_id,
             consent_level=consent_level,
-            consented_at=datetime.now(timezone.utc),
+            consented_at=utc_now(),
             ip_address=ip_address,
             user_agent=user_agent,
             withdrawn_at=None,
@@ -265,7 +265,7 @@ class ContractsFramework:
         user_consents = self.user_consents[user_id]
         for consent in user_consents:
             if consent.contract_id == contract_id and not consent.withdrawn_at:
-                consent.withdrawn_at = datetime.now(timezone.utc)
+                consent.withdrawn_at = utc_now()
                 logger.info(f"Withdrew consent for user {user_id} on contract {contract_id}")
                 return True
         

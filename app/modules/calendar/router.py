@@ -395,7 +395,7 @@ async def get_events_from_documents(
             event_type=event.get("type", "reminder"),
             is_critical=event.get("critical", False),
             reminder_days=7 if event.get("critical") else 3,
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=utc_now().isoformat(),
         ))
     
     return DocumentEventsResponse(
@@ -491,7 +491,7 @@ async def sync_document_events(
                 event_type=event.get("type", "deadline"),
                 is_critical=event.get("critical", False),
                 reminder_days=7 if event.get("critical") else 3,
-                created_at=datetime.now(timezone.utc),
+                created_at=utc_now(),
             )
             session.add(db_event)
             synced += 1

@@ -7,6 +7,7 @@ document preview, batch operations, security, and testing.
 """
 
 import asyncio
+from app.core.utc import utc_now
 import logging
 from typing import Dict, Any, List, Optional, Union
 from datetime import datetime, timezone
@@ -399,7 +400,7 @@ class HousingRightsSDK(Phase2SDK):
                 "legal_categories": self._get_legal_categories(evidence_type),
                 "urgency": self._assess_urgency(evidence_type),
                 "jurisdiction": "minnesota",  # Default jurisdiction
-                "processed_at": datetime.now(timezone.utc).isoformat()
+                "processed_at": utc_now().isoformat()
             }
             
             preview_result["housing_metadata"] = housing_metadata
@@ -450,7 +451,7 @@ class HousingRightsSDK(Phase2SDK):
             "case_category": self._get_case_category(case_data.get("case_type")),
             "tenant_protections": self._get_tenant_protections(case_data.get("case_type")),
             "landlord_obligations": self._get_landlord_obligations(case_data.get("case_type")),
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": utc_now().isoformat()
         }
         
         # Create batch operation for case processing

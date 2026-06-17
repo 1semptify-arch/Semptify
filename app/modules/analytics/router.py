@@ -142,7 +142,7 @@ async def track_pageview(
             user_id=user.user_id,
             metadata={
                 "page_path": page_path,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": utc_now().isoformat()
             }
         )
         
@@ -208,7 +208,7 @@ async def get_metrics(
         time_period = period_map.get(period.lower(), TimePeriod.DAY)
         
         # Calculate time range
-        end_time = datetime.now(timezone.utc)
+        end_time = utc_now()
         start_time = end_time - timedelta(hours=hours)
         
         # Aggregate metrics
@@ -237,7 +237,7 @@ async def get_realtime_metrics(
     try:
         engine = get_analytics_engine()
         
-        end_time = datetime.now(timezone.utc)
+        end_time = utc_now()
         start_time = end_time - timedelta(minutes=5)
         
         metrics = await engine.aggregate_metrics(
@@ -355,7 +355,7 @@ async def export_json(
     try:
         engine = get_analytics_engine()
         
-        end_time = datetime.now(timezone.utc)
+        end_time = utc_now()
         start_time = end_time - timedelta(days=days)
         
         json_data = engine.export_to_json(start_time=start_time, end_time=end_time)
@@ -440,7 +440,7 @@ async def get_dashboard_summary(
         engine = get_analytics_engine()
         
         # Get metrics for different time periods
-        now = datetime.now(timezone.utc)
+        now = utc_now()
         
         today = await engine.aggregate_metrics(
             period=TimePeriod.DAY,

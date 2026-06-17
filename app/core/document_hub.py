@@ -29,6 +29,7 @@ USAGE:
 """
 
 import logging
+from app.core.utc import utc_now
 from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List
@@ -215,7 +216,7 @@ class DocumentHub:
         # Check cache
         if not force_refresh and user_id in self._cache:
             cached = self._cache[user_id]
-            if cached.last_updated and datetime.now(timezone.utc) - cached.last_updated < self._cache_ttl:
+            if cached.last_updated and utc_now() - cached.last_updated < self._cache_ttl:
                 return cached
         
         # Build case data from distributor
@@ -334,7 +335,7 @@ class DocumentHub:
             except Exception as e:
                 logger.debug(f"Pipeline data not available: {e}")
         
-        case_data.last_updated = datetime.now(timezone.utc)
+        case_data.last_updated = utc_now()
         self._cache[user_id] = case_data
         
         return case_data
@@ -432,7 +433,7 @@ class DocumentHub:
         if case_data.answer_deadline:
             try:
                 deadline = datetime.fromisoformat(case_data.answer_deadline.replace("Z", "+00:00"))
-                now = datetime.now(timezone.utc)
+                now = utc_now()
                 delta = deadline - now
                 days_until = delta.days
                 is_past = days_until < 0
@@ -621,7 +622,7 @@ class DocumentHub:
             if event_date:
                 try:
                     dt = datetime.fromisoformat(event_date.replace("Z", "+00:00"))
-                    if dt > datetime.now(timezone.utc):
+                    if dt > utc_now():
                         events.append({
                             "id": f"timeline_{user_id}_{i}",
                             "title": event.get("title", "Event"),

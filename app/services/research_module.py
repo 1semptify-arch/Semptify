@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from app.core.id_gen import make_id
+from app.core.utc import utc_now
 from dataclasses import dataclass, field
 
 import httpx
@@ -90,7 +91,7 @@ class LandlordProfile:
     entity_info: Dict[str, Any] = field(default_factory=dict)
     fraud_flags: List[FraudFlag] = field(default_factory=list)
     sources: Dict[str, Any] = field(default_factory=dict)
-    generated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    generated_at: datetime = field(default_factory=lambda: utc_now())
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -125,7 +126,7 @@ class ResearchCheckpoint:
     user_id: str
     property_id: str
     profile: LandlordProfile
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: utc_now())
     
     def to_dict(self) -> Dict[str, Any]:
         return {

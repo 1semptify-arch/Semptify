@@ -34,6 +34,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
+from app.core.utc import utc_now
 import logging
 logger = logging.getLogger(__name__)
 
@@ -119,7 +120,7 @@ class CaseOutcomeRecord:
     tenant_represented: bool = False  # Had attorney?
     used_semptify: bool = True
     
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: utc_now())
 
 
 @dataclass
@@ -231,7 +232,7 @@ class CourtLearningEngine:
             outcome=outcome,
             defenses_used=defenses_used,
             primary_defense=primary_defense,
-            outcome_date=datetime.now(timezone.utc),
+            outcome_date=utc_now(),
             **kwargs
         )
         
@@ -275,7 +276,7 @@ class CourtLearningEngine:
             case_outcome_id=case_outcome_id,
             motion_type=motion_type,
             outcome=outcome,
-            decided_date=datetime.now(timezone.utc),
+            decided_date=utc_now(),
             judge_name=judge_name,
             reasoning=reasoning,
         )

@@ -28,7 +28,7 @@ def utc_now() -> datetime:
         
         created_at = utc_now()  # 2025-12-08 03:00:00+00:00
     """
-    return datetime.now(timezone.utc)
+    return utc_now()
 
 
 def utc_now_iso() -> str:

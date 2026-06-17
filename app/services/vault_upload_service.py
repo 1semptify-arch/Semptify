@@ -332,7 +332,7 @@ class VaultDocumentIndex:
         index_file = self.data_dir / "vault_index.json"
         data = {
             "documents": {vid: doc.to_dict() for vid, doc in self._documents.items()},
-            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": utc_now().isoformat(),
         }
         with open(index_file, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
@@ -577,7 +577,7 @@ class VaultUploadService:
         vault_id = make_id("doc")
         safe_filename = self._get_safe_filename(vault_id, filename)
         file_size = len(content)
-        now = datetime.now(timezone.utc).isoformat()
+        now = utc_now().isoformat()
         
         # Store document (returns storage path and provider file id)
         storage_path, provider_file_id = await self._store_document(
@@ -844,7 +844,7 @@ class VaultUploadService:
             "file_size": file_size,
             "mime_type": mime_type,
             "document_type": document_type,
-            "certified_at": datetime.now(timezone.utc).isoformat(),
+            "certified_at": utc_now().isoformat(),
             "storage_path": storage_path,
             "storage_provider": storage_provider,
             "provider_file_id": provider_file_id,

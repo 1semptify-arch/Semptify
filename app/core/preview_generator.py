@@ -6,6 +6,7 @@ Generates previews and thumbnails for various document formats.
 """
 
 import logging
+from app.core.utc import utc_now
 import os
 import io
 import tempfile
@@ -179,7 +180,7 @@ class PreviewGenerator:
                 content=thumbnail_data,
                 format=self.config.format,
                 size_bytes=len(thumbnail_data) if isinstance(thumbnail_data, bytes) else 0,
-                generated_at=datetime.now(timezone.utc),
+                generated_at=utc_now(),
                 cache_key=cache_key,
                 metadata={
                     "page_number": page_number,
@@ -237,7 +238,7 @@ class PreviewGenerator:
                 content=preview_data,
                 format="json",
                 size_bytes=len(str(preview_data).encode()),
-                generated_at=datetime.now(timezone.utc),
+                generated_at=utc_now(),
                 cache_key=cache_key,
                 metadata={
                     "max_pages": max_pages,

@@ -284,7 +284,7 @@ class GUIButlerIntegration:
                 success=False,
                 data={},
                 message=f"Unknown command: {command_id}",
-                timestamp=datetime.now(timezone.utc)
+                timestamp=utc_now()
             )
         
         command = self.command_registry[command_id]
@@ -314,7 +314,7 @@ class GUIButlerIntegration:
                 success=True,
                 data=result,
                 message=f"Command {command_id} executed successfully",
-                timestamp=datetime.now(timezone.utc)
+                timestamp=utc_now()
             )
             
         except Exception as e:
@@ -324,7 +324,7 @@ class GUIButlerIntegration:
                 success=False,
                 data={},
                 message=f"Command failed: {str(e)}",
-                timestamp=datetime.now(timezone.utc)
+                timestamp=utc_now()
             )
     
     async def _handle_court_scraper_command(self, command: ButlerCommand,
@@ -505,8 +505,8 @@ class GUIButlerIntegration:
         """Register a new GUI Butler session."""
         self.active_sessions[session_id] = {
             "user_context": user_context,
-            "created_at": datetime.now(timezone.utc),
-            "last_activity": datetime.now(timezone.utc)
+            "created_at": utc_now(),
+            "last_activity": utc_now()
         }
         logger.info(f"Registered GUI Butler session: {session_id}")
     
@@ -517,11 +517,11 @@ class GUIButlerIntegration:
     def update_session_activity(self, session_id: str):
         """Update session activity timestamp."""
         if session_id in self.active_sessions:
-            self.active_sessions[session_id]["last_activity"] = datetime.now(timezone.utc)
+            self.active_sessions[session_id]["last_activity"] = utc_now()
     
     def cleanup_sessions(self, max_age_hours: int = 24):
         """Clean up old sessions."""
-        current_time = datetime.now(timezone.utc)
+        current_time = utc_now()
         expired_sessions = []
         
         for session_id, session_data in self.active_sessions.items():

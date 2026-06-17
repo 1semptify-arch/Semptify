@@ -4,6 +4,7 @@ Async OneDrive client using Microsoft Graph API.
 """
 
 from typing import Optional
+from app.core.utc import utc_now
 from datetime import datetime, timezone
 import json
 
@@ -98,7 +99,7 @@ class OneDriveProvider(StorageProvider):
                         mime_type=data.get("file", {}).get("mimeType", mime_type or "application/octet-stream"),
                         modified_at=datetime.fromisoformat(
                             data.get("lastModifiedDateTime", "").replace("Z", "+00:00")
-                        ) if data.get("lastModifiedDateTime") else datetime.now(timezone.utc),
+                        ) if data.get("lastModifiedDateTime") else utc_now(),
                     )
                 else:
                     logger.error(f"OneDrive upload failed: {response.status_code} - {response.text}")
@@ -174,7 +175,7 @@ class OneDriveProvider(StorageProvider):
                         mime_type=item.get("file", {}).get("mimeType", "folder" if is_folder else "application/octet-stream"),
                         modified_at=datetime.fromisoformat(
                             item.get("lastModifiedDateTime", "").replace("Z", "+00:00")
-                        ) if item.get("lastModifiedDateTime") else datetime.now(timezone.utc),
+                        ) if item.get("lastModifiedDateTime") else utc_now(),
                         is_folder=is_folder,
                     )
                     files.append(storage_file)
@@ -204,7 +205,7 @@ class OneDriveProvider(StorageProvider):
                                 mime_type=item.get("file", {}).get("mimeType", "folder" if is_folder else "application/octet-stream"),
                                 modified_at=datetime.fromisoformat(
                                     item.get("lastModifiedDateTime", "").replace("Z", "+00:00")
-                                ) if item.get("lastModifiedDateTime") else datetime.now(timezone.utc),
+                                ) if item.get("lastModifiedDateTime") else utc_now(),
                                 is_folder=is_folder,
                             ))
                     else:

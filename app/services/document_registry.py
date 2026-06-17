@@ -125,7 +125,7 @@ class ForgeryAlert:
     description: str
     affected_area: Optional[str] = None  # e.g., "page 2, signature block"
     evidence: Optional[str] = None  # Supporting evidence for the alert
-    detected_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    detected_at: datetime = field(default_factory=lambda: utc_now())
 
     def to_dict(self) -> dict:
         return {
@@ -192,7 +192,7 @@ class RegisteredDocument:
     requires_review: bool = False
     
     # Timestamps
-    registered_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    registered_at: datetime = field(default_factory=lambda: utc_now())
     last_verified_at: Optional[datetime] = None
     last_accessed_at: Optional[datetime] = None
     
@@ -260,7 +260,7 @@ class DocumentIDGenerator:
         NNNNNN = Sequential counter (resets yearly)
         XXXX = Random suffix for uniqueness
         """
-        now = datetime.now(timezone.utc)
+        now = utc_now()
         date_part = now.strftime("%Y")
         
         # Reset counter for new year
@@ -698,7 +698,7 @@ class DocumentRegistry:
             "mime_type": mime_type,
             "user_id": user_id,
             "case_number": case_number,
-            "registered_at": datetime.now(timezone.utc).isoformat(),
+            "registered_at": utc_now().isoformat(),
         }
         
         metadata_hash = HashGenerator.metadata_hash(metadata)
@@ -746,7 +746,7 @@ class DocumentRegistry:
         
         # Add initial custody record
         doc.custody_chain.append(CustodyRecord(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             action=CustodyAction.RECEIVED,
             actor=user_id,
             details=f"Document registered: {filename}",
@@ -758,7 +758,7 @@ class DocumentRegistry:
         # Add initial version
         doc.versions.append(DocumentVersion(
             version=1,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             content_hash=content_hash,
             changes="Initial registration",
             changed_by=user_id,
@@ -799,7 +799,7 @@ class DocumentRegistry:
         if current_hash != doc.content_hash:
             doc.integrity_status = IntegrityStatus.TAMPERED
             doc.custody_chain.append(CustodyRecord(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=utc_now(),
                 action=CustodyAction.INTEGRITY_CHECK,
                 actor="system",
                 details=f"TAMPER DETECTED: Content hash mismatch",
@@ -829,7 +829,7 @@ class DocumentRegistry:
         if not HashGenerator.verify_integrity(content, metadata, doc.document_id, doc.combined_hash):
             doc.integrity_status = IntegrityStatus.CORRUPTED
             doc.custody_chain.append(CustodyRecord(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=utc_now(),
                 action=CustodyAction.INTEGRITY_CHECK,
                 actor="system",
                 details="Integrity hash mismatch: Stored combined hash invalid",
@@ -840,9 +840,9 @@ class DocumentRegistry:
         
         # All checks passed
         doc.integrity_status = IntegrityStatus.VERIFIED
-        doc.last_verified_at = datetime.now(timezone.utc)
+        doc.last_verified_at = utc_now()
         doc.custody_chain.append(CustodyRecord(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             action=CustodyAction.INTEGRITY_CHECK,
             actor="system",
             details="Integrity verified: All hashes match",
@@ -856,7 +856,7 @@ class DocumentRegistry:
         """Get a document by ID."""
         doc = self._documents.get(doc_id)
         if doc:
-            doc.last_accessed_at = datetime.now(timezone.utc)
+            doc.last_accessed_at = utc_now()
         return doc
     
     def get_documents_by_case(self, case_number: str) -> list[RegisteredDocument]:
@@ -901,7 +901,7 @@ class DocumentRegistry:
         
         # Record in custody chain
         doc.custody_chain.append(CustodyRecord(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             action=CustodyAction.MODIFIED,
             actor=actor,
             details=f"Case association changed: {old_case} -> {case_number}",
@@ -933,7 +933,7 @@ class DocumentRegistry:
             ))
         
         doc.custody_chain.append(CustodyRecord(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             action=CustodyAction.FLAGGED,
             actor=actor,
             details=f"Flagged: {reason}",
@@ -955,9 +955,9 @@ class DocumentRegistry:
         if not doc:
             return
         
-        doc.last_accessed_at = datetime.now(timezone.utc)
+        doc.last_accessed_at = utc_now()
         doc.custody_chain.append(CustodyRecord(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             action=action,
             actor=actor,
             details=details,

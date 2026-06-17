@@ -43,6 +43,7 @@ from datetime import datetime, timedelta, timezone
 from enum import Enum
 from typing import Optional
 from app.core.id_gen import make_id
+from app.core.utc import utc_now
 
 from app.services.document_recognition import (
     DocumentCategory,
@@ -197,7 +198,7 @@ class IntelligenceResult:
     reasoning_chain: list[str] = field(default_factory=list)
     
     # Metadata
-    analyzed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    analyzed_at: datetime = field(default_factory=lambda: utc_now())
     analysis_version: str = "5.0"
     
     def to_dict(self) -> dict:
@@ -439,7 +440,7 @@ class DocumentIntelligenceService:
     
     def _enhance_dates(self, recognition: RecognitionResult) -> list[dict]:
         """Enhance extracted dates with better labels and days-until."""
-        now = datetime.now(timezone.utc)
+        now = utc_now()
         enhanced = []
         
         for entity in recognition.dates:
@@ -513,7 +514,7 @@ class DocumentIntelligenceService:
     def _generate_timeline_events(self, recognition: RecognitionResult) -> list[TimelineEvent]:
         """Generate timeline events from extracted dates."""
         events = []
-        now = datetime.now(timezone.utc)
+        now = utc_now()
         
         for entity in recognition.dates:
             try:
@@ -604,7 +605,7 @@ class DocumentIntelligenceService:
     ) -> list[ActionItem]:
         """Generate specific action items based on document type."""
         actions = []
-        now = datetime.now(timezone.utc)
+        now = utc_now()
         priority = 1
         
         # Critical court documents

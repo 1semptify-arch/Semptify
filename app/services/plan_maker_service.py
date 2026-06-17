@@ -18,6 +18,7 @@ No plan content is retained server-side after the request.
 from __future__ import annotations
 
 from app.core.id_gen import make_id
+from app.core.utc import utc_now
 import json
 import logging
 from datetime import datetime, timezone
@@ -222,7 +223,7 @@ def create_plan(
     Create a new AccountabilityPlan with sensible defaults.
     Returns the plan object — caller is responsible for vault storage.
     """
-    now = datetime.now(timezone.utc).isoformat()
+    now = utc_now().isoformat()
     plan_id = make_id("plan")
 
     next_steps = (
@@ -254,19 +255,19 @@ def create_plan(
 
 def add_entity(plan: AccountabilityPlan, entity: EntityRecord) -> AccountabilityPlan:
     plan.entities.append(entity)
-    plan.updated_at = datetime.now(timezone.utc).isoformat()
+    plan.updated_at = utc_now().isoformat()
     return plan
 
 
 def add_evidence(plan: AccountabilityPlan, item: EvidenceItem) -> AccountabilityPlan:
     plan.evidence_items.append(item)
-    plan.updated_at = datetime.now(timezone.utc).isoformat()
+    plan.updated_at = utc_now().isoformat()
     return plan
 
 
 def add_next_step(plan: AccountabilityPlan, step: NextStep) -> AccountabilityPlan:
     plan.next_steps.append(step)
-    plan.updated_at = datetime.now(timezone.utc).isoformat()
+    plan.updated_at = utc_now().isoformat()
     return plan
 
 
@@ -275,7 +276,7 @@ def mark_step_complete(
 ) -> AccountabilityPlan:
     if 0 <= step_index < len(plan.next_steps):
         plan.next_steps[step_index].completed = True
-        plan.updated_at = datetime.now(timezone.utc).isoformat()
+        plan.updated_at = utc_now().isoformat()
     return plan
 
 

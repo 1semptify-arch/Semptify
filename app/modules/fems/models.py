@@ -5,6 +5,7 @@ from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
+from app.core.utc import utc_now
 
 
 class FemsCase(Base):
@@ -14,7 +15,7 @@ class FemsCase(Base):
     case_number = Column(String(100), unique=True, nullable=False)
     title = Column(String(500))
     status = Column(String(50), default="active")
-    opened_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    opened_at = Column(DateTime, default=lambda: utc_now())
 
     documents = relationship("FemsDocument", back_populates="case", cascade="all, delete-orphan")
 
@@ -29,7 +30,7 @@ class FemsDocument(Base):
     file_hash = Column(String(64), unique=True, index=True)
     file_size = Column(BigInteger, default=0)
     extracted_text = Column(Text)
-    ingested_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    ingested_at = Column(DateTime, default=lambda: utc_now())
 
     case = relationship("FemsCase", back_populates="documents")
     chunks = relationship("FemsChunk", back_populates="document", cascade="all, delete-orphan")
@@ -53,7 +54,7 @@ class FemsPhoneNumber(Base):
     id = Column(Integer, primary_key=True, index=True)
     number = Column(String(50), unique=True, nullable=False, index=True)
     label = Column(String(200))
-    first_seen = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    first_seen = Column(DateTime, default=lambda: utc_now())
 
     doc_links = relationship("FemsDocumentPhone", back_populates="phone", cascade="all, delete-orphan")
 
@@ -78,4 +79,4 @@ class FemsQuarantineFile(Base):
     file_hash = Column(String(64), index=True)
     file_size = Column(BigInteger, default=0)
     reason = Column(String(200), default="duplicate")
-    quarantined_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    quarantined_at = Column(DateTime, default=lambda: utc_now())

@@ -64,6 +64,7 @@ from fastapi import FastAPI
 
 from app.core.id_gen import make_id
 from app.core.event_bus import event_bus, EventType as BusEventType
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -845,7 +846,7 @@ class InfoPack:
     
     # Status tracking
     status: str = "pending"  # pending, sent, received, processed, failed
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: utc_now())
     processed_at: Optional[datetime] = None
     
     # Confidence scores for auto-filled data
@@ -900,7 +901,7 @@ class DataRequest:
     status: str = "pending"  # pending, processing, completed, failed
     error: Optional[str] = None
     
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: utc_now())
     completed_at: Optional[datetime] = None
 
     def to_dict(self) -> Dict[str, Any]:
@@ -940,7 +941,7 @@ class ModuleUpdate:
     # Broadcast to all modules?
     broadcast: bool = False
     
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: utc_now())
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -975,7 +976,7 @@ class RegisteredModule:
     
     # Status
     active: bool = True
-    registered_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    registered_at: datetime = field(default_factory=lambda: utc_now())
 
 
 # =============================================================================
@@ -1325,7 +1326,7 @@ class ModuleHub:
             response = await self._process_request(request)
             request.response_data = response
             request.status = "completed"
-            request.completed_at = datetime.now(timezone.utc)
+            request.completed_at = utc_now()
         except Exception as e:
             request.status = "failed"
             request.error = str(e)
@@ -1569,7 +1570,7 @@ class ModuleHub:
     def _log_comm(self, comm_type: str, module: str, details: Dict, user_id: str):
         """Log a communication event"""
         self._comm_log.append({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": utc_now().isoformat(),
             "type": comm_type,
             "module": module,
             "details": details,

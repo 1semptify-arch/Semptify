@@ -18,6 +18,7 @@ Categories of Information:
 """
 
 from dataclasses import dataclass, field
+from app.core.utc import utc_now
 from datetime import datetime, date, timezone
 from typing import Optional, Dict, Any, List, Set
 from enum import Enum
@@ -768,7 +769,7 @@ class TenancyHubService:
     def create_case(self, user_id: str, case_name: str = "") -> TenancyCase:
         """Create a new tenancy case."""
         case_id = self._generate_id("case")
-        now = datetime.now(timezone.utc).isoformat()
+        now = utc_now().isoformat()
         
         case = TenancyCase(
             id=case_id,
@@ -802,7 +803,7 @@ class TenancyHubService:
         if not party.id:
             party.id = self._generate_id("party")
         
-        party.created_at = datetime.now(timezone.utc).isoformat()
+        party.created_at = utc_now().isoformat()
         party.updated_at = party.created_at
         
         case.parties[party.id] = party
@@ -819,7 +820,7 @@ class TenancyHubService:
             party.city, party.company_name
         ])
         
-        case.updated_at = datetime.now(timezone.utc).isoformat()
+        case.updated_at = utc_now().isoformat()
         return party
     
     # -------------------------------------------------------------------------
@@ -835,7 +836,7 @@ class TenancyHubService:
         if not document.id:
             document.id = self._generate_id("doc")
         
-        document.created_at = datetime.now(timezone.utc).isoformat()
+        document.created_at = utc_now().isoformat()
         
         case.documents[document.id] = document
         
@@ -845,7 +846,7 @@ class TenancyHubService:
             document.summary, document.full_text[:1000] if document.full_text else "",
         ] + document.tags + document.key_points)
         
-        case.updated_at = datetime.now(timezone.utc).isoformat()
+        case.updated_at = utc_now().isoformat()
         return document
     
     # -------------------------------------------------------------------------
@@ -861,7 +862,7 @@ class TenancyHubService:
         if not event.id:
             event.id = self._generate_id("event")
         
-        event.created_at = datetime.now(timezone.utc).isoformat()
+        event.created_at = utc_now().isoformat()
         
         case.events[event.id] = event
         
@@ -872,7 +873,7 @@ class TenancyHubService:
             event.case_number, event.court_name,
         ])
         
-        case.updated_at = datetime.now(timezone.utc).isoformat()
+        case.updated_at = utc_now().isoformat()
         return event
     
     # -------------------------------------------------------------------------
@@ -897,7 +898,7 @@ class TenancyHubService:
             str(payment.amount),
         ])
         
-        case.updated_at = datetime.now(timezone.utc).isoformat()
+        case.updated_at = utc_now().isoformat()
         return payment
     
     # -------------------------------------------------------------------------
@@ -922,7 +923,7 @@ class TenancyHubService:
             issue.location_in_property, issue.resolution,
         ])
         
-        case.updated_at = datetime.now(timezone.utc).isoformat()
+        case.updated_at = utc_now().isoformat()
         return issue
     
     # -------------------------------------------------------------------------
@@ -946,7 +947,7 @@ class TenancyHubService:
             legal_case.county, legal_case.case_type,
         ] + legal_case.claims + legal_case.defenses)
         
-        case.updated_at = datetime.now(timezone.utc).isoformat()
+        case.updated_at = utc_now().isoformat()
         return legal_case
     
     # -------------------------------------------------------------------------

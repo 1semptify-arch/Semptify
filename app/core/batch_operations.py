@@ -8,6 +8,7 @@ Handles batch operations for document management with progress tracking.
 import logging
 import asyncio
 from app.core.id_gen import make_id
+from app.core.utc import utc_now
 from typing import Dict, Any, List, Optional, Callable, Union
 from datetime import datetime, timezone
 from dataclasses import dataclass, asdict
@@ -84,7 +85,7 @@ class BatchOperation:
     
     def __post_init__(self):
         if self.created_at is None:
-            self.created_at = datetime.now(timezone.utc)
+            self.created_at = utc_now()
         if self.total_items == 0:
             self.total_items = len(self.items)
         if self.settings is None:
@@ -177,7 +178,7 @@ class BatchProcessor:
         
         operation = self.operations[operation_id]
         operation.status = BatchOperationStatus.RUNNING
-        operation.started_at = datetime.now(timezone.utc)
+        operation.started_at = utc_now()
         
         # Start processing task
         task = asyncio.create_task(self._process_batch_operation(operation))
@@ -231,8 +232,8 @@ class BatchProcessor:
                         operation.items[item_index].error = "No result returned"
                         operation.failed_items += 1
                     
-                    operation.items[item_index].started_at = datetime.now(timezone.utc)
-                    operation.items[item_index].completed_at = datetime.now(timezone.utc)
+                    operation.items[item_index].started_at = utc_now()
+                    operation.items[item_index].completed_at = utc_now()
                 
                 processed_items += len(batch_items)
                 
@@ -249,7 +250,7 @@ class BatchProcessor:
             # Mark operation as completed
             if operation.status != BatchOperationStatus.CANCELLED:
                 operation.status = BatchOperationStatus.COMPLETED
-                operation.completed_at = datetime.now(timezone.utc)
+                operation.completed_at = utc_now()
                 operation.progress = 100.0
                 
                 self.stats["completed_operations"] += 1
@@ -268,7 +269,7 @@ class BatchProcessor:
             
         except Exception as e:
             operation.status = BatchOperationStatus.FAILED
-            operation.completed_at = datetime.now(timezone.utc)
+            operation.completed_at = utc_now()
             
             self.stats["failed_operations"] += 1
             
@@ -296,7 +297,7 @@ class BatchProcessor:
                 "completed_items": operation.completed_items,
                 "failed_items": operation.failed_items,
                 "total_items": operation.total_items,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": utc_now().isoformat()
             }
             
             await ws_manager.send_to_user(
@@ -304,7 +305,7 @@ class BatchProcessor:
                 WebSocketMessage(
                     type="batch_operation_update",
                     data=update_data,
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=utc_now(),
                     user_id=operation.user_id
                 )
             )
@@ -370,7 +371,7 @@ class BatchProcessor:
     
     async def cleanup_old_operations(self, days_old: int = 30):
         """Clean up old completed operations."""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(days=days_old)
+        cutoff_time = utc_now() - timedelta(days=days_old)
         
         operations_to_remove = []
         for operation_id, operation in self.operations.items():
@@ -397,7 +398,7 @@ async def batch_upload_handler(items: List[BatchItem], settings: Dict[str, Any])
                 "success": True,
                 "item_id": item.item_id,
                 "data": {
-                    "uploaded_at": datetime.now(timezone.utc).isoformat(),
+                    "uploaded_at": utc_now().isoformat(),
                     "file_path": f"/uploads/{item.data.get('filename', 'unknown')}"
                 }
             })
@@ -423,7 +424,7 @@ async def batch_delete_handler(items: List[BatchItem], settings: Dict[str, Any])
                 "success": True,
                 "item_id": item.item_id,
                 "data": {
-                    "deleted_at": datetime.now(timezone.utc).isoformat(),
+                    "deleted_at": utc_now().isoformat(),
                     "document_id": item.data.get("document_id")
                 }
             })
@@ -468,7 +469,7 @@ async def batch_export_handler(items: List[BatchItem], settings: Dict[str, Any])
                     "item_id": item.item_id,
                     "data": {
                         "export_id": export_id,
-                        "exported_at": datetime.now(timezone.utc).isoformat(),
+                        "exported_at": utc_now().isoformat(),
                         "format": "zip"
                     }
                 })

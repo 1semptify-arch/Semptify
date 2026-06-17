@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 
 from app.core.security import require_user, StorageUser, green_access
 from app.core.oauth_token_manager import get_valid_token_for_user
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -147,11 +148,11 @@ async def save_letter(
     }
     doc_type = type_map.get(request.letter_type, "letter")
     safe_type = request.letter_type.replace("_", "-")
-    filename = request.title or f"{safe_type}-letter-{datetime.now(timezone.utc).strftime('%Y%m%d')}.txt"
+    filename = request.title or f"{safe_type}-letter-{utc_now().strftime('%Y%m%d')}.txt"
 
     meta = request.metadata or {}
     meta["letter_type"] = request.letter_type
-    meta["generated_at"] = datetime.now(timezone.utc).isoformat()
+    meta["generated_at"] = utc_now().isoformat()
 
     result = await _save_text_to_vault(
         user=user,
@@ -180,11 +181,11 @@ async def save_checklist(
     }
     doc_type = type_map.get(request.checklist_type, "checklist")
     safe_type = request.checklist_type.replace("_", "-")
-    filename = request.title or f"{safe_type}-checklist-{datetime.now(timezone.utc).strftime('%Y%m%d')}.json"
+    filename = request.title or f"{safe_type}-checklist-{utc_now().strftime('%Y%m%d')}.json"
 
     payload = {
         "checklist_type": request.checklist_type,
-        "saved_at": datetime.now(timezone.utc).isoformat(),
+        "saved_at": utc_now().isoformat(),
         "items": request.checklist_data,
     }
 
@@ -215,11 +216,11 @@ async def save_calculation(
         "deposit_interest": "deposit_interest_calculation",
     }
     doc_type = type_map.get(request.calc_type, "calculation")
-    filename = f"{request.calc_type}-calc-{datetime.now(timezone.utc).strftime('%Y%m%d')}.json"
+    filename = f"{request.calc_type}-calc-{utc_now().strftime('%Y%m%d')}.json"
 
     payload = {
         "calc_type": request.calc_type,
-        "saved_at": datetime.now(timezone.utc).isoformat(),
+        "saved_at": utc_now().isoformat(),
         "inputs": request.inputs,
         "result": request.result,
         "notes": request.notes,

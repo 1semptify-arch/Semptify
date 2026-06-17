@@ -1177,7 +1177,7 @@ async def process_document(
 
         # Metadata
 
-        processed_at=datetime.now(timezone.utc).isoformat(),
+        processed_at=utc_now().isoformat(),
 
         message="✅ Document fully processed: uploaded, registered, analyzed, classified, and cross-referenced"
 

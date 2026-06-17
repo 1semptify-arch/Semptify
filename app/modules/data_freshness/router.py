@@ -15,6 +15,7 @@ from app.core.data_freshness_manager import (
     FreshnessStatus
 )
 from app.core.accountability_planner import accountability_planner, AuditAction
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ async def get_freshness_status():
         status = await data_freshness_manager.check_all_freshness()
         
         return {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": utc_now().isoformat(),
             "status": status,
             "summary": {
                 "total": len(status),
@@ -73,7 +74,7 @@ async def refresh_data(rule_id: str, background_tasks: BackgroundTasks):
         return {
             "message": f"Refresh queued for {rule_id}",
             "rule_id": rule_id,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": utc_now().isoformat()
         }
     except Exception as e:
         logger.error(f"Error queuing refresh for {rule_id}: {str(e)}")
@@ -99,7 +100,7 @@ async def refresh_stale_data(background_tasks: BackgroundTasks, priority: int = 
         return {
             "message": f"Bulk refresh queued for priority <= {priority}",
             "priority": priority,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": utc_now().isoformat()
         }
     except Exception as e:
         logger.error(f"Error queuing bulk refresh: {str(e)}")
@@ -204,7 +205,7 @@ async def daily_refresh_cron():
         
         return {
             "message": "Daily refresh completed",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": utc_now().isoformat(),
             "results": {
                 "total": total_count,
                 "successful": success_count,
@@ -249,7 +250,7 @@ async def hourly_deadlines_cron():
         
         return {
             "message": "Hourly deadlines refresh completed",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": utc_now().isoformat(),
             "success": success
         }
     except Exception as e:
@@ -287,7 +288,7 @@ async def health_check():
         
         return {
             "status": health_status,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": utc_now().isoformat(),
             "metrics": {
                 "total_rules": len(status),
                 "expired": expired_count,
@@ -301,6 +302,6 @@ async def health_check():
         logger.error(f"Error in health check: {str(e)}")
         return {
             "status": "error",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": utc_now().isoformat(),
             "error": str(e)
         }

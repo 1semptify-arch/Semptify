@@ -103,7 +103,7 @@ class InventoryManager:
         
         data = {
             'items': [],
-            'last_updated': datetime.now(timezone.utc).isoformat()
+            'last_updated': utc_now().isoformat()
         }
         
         for item in self.items.values():
@@ -142,7 +142,7 @@ class InventoryManager:
     
     def _format_filename_with_date(self, base_name: str, extension: str = "") -> str:
         """Format filename with readable date."""
-        now = datetime.now(timezone.utc)
+        now = utc_now()
         date_str = now.strftime("%Y-%m-%d_%H-%M-%S")
         
         if extension:
@@ -186,7 +186,7 @@ class InventoryManager:
                 item_id=f"{inventory_type.value}_{int(utc_now().timestamp())}",
                 inventory_type=inventory_type,
                 file_path=str(inventory_path),
-                created_at=datetime.now(timezone.utc),
+                created_at=utc_now(),
                 file_size=source_path.stat().st_size,
                 checksum=checksum,
                 metadata=metadata or {},

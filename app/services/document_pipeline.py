@@ -14,6 +14,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 from app.core.id_gen import make_id
+from app.core.utc import utc_now
 
 from app.services.azure_ai import get_azure_ai, DocumentType, ExtractedDocument
 
@@ -286,7 +287,7 @@ class DocumentPipeline:
             file_size=len(content),
             storage_path=str(file_path),
             status=ProcessingStatus.PENDING,
-            uploaded_at=datetime.now(timezone.utc)
+            uploaded_at=utc_now()
         )
 
         self._documents[doc_id] = doc

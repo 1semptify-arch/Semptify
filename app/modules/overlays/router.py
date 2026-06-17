@@ -31,6 +31,7 @@ from app.core.database import get_db
 from app.core.config import get_settings, Settings
 from app.core.security import require_user, StorageUser, verify_function_token_for_operation, yellow_access
 from app.core.vault_paths import VAULT_OVERLAYS, VAULT_OVERLAY_DOCUMENTS
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +102,7 @@ class Highlight(BaseModel):
     range: TextRange
     color: str = "yellow"  # yellow, green, blue, pink, red
     note: Optional[str] = None
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = Field(default_factory=lambda: utc_now().isoformat())
     created_by: Optional[str] = None
 
 
@@ -113,7 +114,7 @@ class Note(BaseModel):
     note_type: str = "user"  # user, ai, system, legal
     priority: str = "normal"  # low, normal, high, critical
     tags: List[str] = []
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = Field(default_factory=lambda: utc_now().isoformat())
     created_by: Optional[str] = None
     resolved: bool = False
 
@@ -125,7 +126,7 @@ class Footnote(BaseModel):
     range: TextRange  # Where footnote marker appears
     content: str
     citation: Optional[str] = None  # Legal citation if applicable
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = Field(default_factory=lambda: utc_now().isoformat())
     created_by: Optional[str] = None
 
 
@@ -138,7 +139,7 @@ class Edit(BaseModel):
     edit_type: str = "replace"  # insert, delete, replace
     reason: Optional[str] = None
     status: str = "pending"  # pending, accepted, rejected
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = Field(default_factory=lambda: utc_now().isoformat())
     created_by: Optional[str] = None
 
 
@@ -151,7 +152,7 @@ class ProcessingResult(BaseModel):
     suggestions: List[str] = []
     warnings: List[str] = []
     confidence: Optional[float] = None
-    processed_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    processed_at: str = Field(default_factory=lambda: utc_now().isoformat())
     processing_time_ms: Optional[int] = None
 
 
@@ -166,8 +167,8 @@ class DocumentOverlay(BaseModel):
     edits: List[Edit] = []
     processing: List[ProcessingResult] = []
     metadata: dict = {}
-    created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = Field(default_factory=lambda: utc_now().isoformat())
+    updated_at: str = Field(default_factory=lambda: utc_now().isoformat())
 
 
 # =============================================================================
@@ -293,7 +294,7 @@ async def save_overlay(storage, overlay: DocumentOverlay) -> bool:
         pass
     
     # Update timestamp
-    overlay.updated_at = datetime.now(timezone.utc).isoformat()
+    overlay.updated_at = utc_now().isoformat()
     
     # Save
     content = overlay.model_dump_json(indent=2).encode("utf-8")
@@ -874,7 +875,7 @@ async def export_overlay(
         "success": True,
         "document_id": document_id,
         "export": overlay.model_dump(),
-        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "exported_at": utc_now().isoformat(),
     }
 
 

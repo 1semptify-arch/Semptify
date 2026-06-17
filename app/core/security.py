@@ -144,7 +144,7 @@ def log_event(event_type: str, details: Optional[dict] = None) -> None:
     """
     try:
         event = {
-            "ts": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "ts": utc_now().isoformat().replace("+00:00", "Z"),
             "type": event_type,
             "details": details or {},
         }
@@ -212,7 +212,7 @@ class UserTokenStore:
         users = self._read_json()
         users[user_id] = {
             "hash": token_hash,
-            "created": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "created": utc_now().isoformat().replace("+00:00", "Z"),
             "type": "vault_user",
         }
         self._atomic_write(users)
@@ -336,7 +336,7 @@ def _store_session(session_id: str, session: "StoredSession") -> None:
         try:
             ttl = None
             if session.expires_at:
-                ttl = int((session.expires_at - datetime.now(timezone.utc)).total_seconds())
+                ttl = int((session.expires_at - utc_now()).total_seconds())
             payload = _json.dumps(_session_to_dict(session))
             key = _REDIS_SESSION_PREFIX + session_id
             if ttl and ttl > 0:
@@ -383,7 +383,7 @@ FUNCTION_TOKEN_REVERIFY_SECONDS = 120
 
 
 def _purge_expired_function_tokens() -> None:
-    now = datetime.now(timezone.utc)
+    now = utc_now()
     expired = [
         token
         for token, data in FUNCTION_ACCESS_TOKENS.items()
@@ -408,7 +408,7 @@ def issue_function_access_token(
 ) -> dict:
     """Create a short-lived function token tied to a user session context."""
     _purge_expired_function_tokens()
-    now = datetime.now(timezone.utc)
+    now = utc_now()
     expires_at = now + timedelta(seconds=max(30, ttl_seconds))
     token = secrets.token_urlsafe(32)
 
@@ -437,7 +437,7 @@ def verify_function_access_token(
     _purge_expired_function_tokens()
 
     revoked_until = FUNCTION_REVOKED_ACCESS_TOKENS.get(token)
-    if revoked_until and revoked_until > datetime.now(timezone.utc):
+    if revoked_until and revoked_until > utc_now():
         return {
             "valid": False,
             "reason": "token_revoked",
@@ -459,7 +459,7 @@ def verify_function_access_token(
             "reverify_in_seconds": FUNCTION_TOKEN_REVERIFY_SECONDS,
         }
 
-    now = datetime.now(timezone.utc)
+    now = utc_now()
     expires_at = token_data["expires_at"]
     if expires_at <= now:
         FUNCTION_ACCESS_TOKENS.pop(token, None)
@@ -547,12 +547,12 @@ def get_function_token_user_id(token: str) -> Optional[str]:
     """
     _purge_expired_function_tokens()
     revoked_until = FUNCTION_REVOKED_ACCESS_TOKENS.get(token)
-    if revoked_until and revoked_until > datetime.now(timezone.utc):
+    if revoked_until and revoked_until > utc_now():
         return None
     data = FUNCTION_ACCESS_TOKENS.get(token)
     if data is None:
         return None
-    if data.get("expires_at") and data["expires_at"] <= datetime.now(timezone.utc):
+    if data.get("expires_at") and data["expires_at"] <= utc_now():
         return None
     return data.get("user_id")
 
@@ -580,7 +580,7 @@ def get_session(session_id: str) -> Optional[StoredSession]:
         return None
 
     # Check expiry (belt-and-suspenders: Redis TTL handles it, but check locally too)
-    if session.expires_at and session.expires_at < datetime.now(timezone.utc):
+    if session.expires_at and session.expires_at < utc_now():
         _delete_session(session_id)
         return None
 

@@ -713,7 +713,7 @@ async def get_dashboard(
             }
             for e in events
         ],
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": utc_now().isoformat(),
     })
 
 
@@ -795,7 +795,7 @@ async def get_analyst(
             "vault_items": vault_count,
             "incidents": incident_count,
         },
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": utc_now().isoformat(),
     })
 
 

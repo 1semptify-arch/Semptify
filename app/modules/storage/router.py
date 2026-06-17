@@ -385,7 +385,7 @@ async def get_valid_session(
     #             expires_at = session.get("expires_at")
     #             if expires_at:
     #                 expires_datetime = datetime.fromtimestamp(expires_at, timezone.utc)
-    #                 if datetime.now(timezone.utc) >= (expires_datetime - TOKEN_EXPIRY_BUFFER):
+    #                 if utc_now() >= (expires_datetime - TOKEN_EXPIRY_BUFFER):
     #                     logger.info(f"Session from cloud storage expired for user={user_id[:4]}..., checking DB")
     #                     # Fall through to DB check for potential refresh
     #                 else:

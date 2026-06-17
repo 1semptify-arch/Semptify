@@ -6,6 +6,7 @@ Tracks application performance, bottlenecks, and optimization opportunities.
 """
 
 import logging
+from app.core.utc import utc_now
 import time
 import psutil
 import asyncio
@@ -152,7 +153,7 @@ class PerformanceMonitor:
                 memory_percent=memory_percent,
                 disk_usage_percent=disk_usage_percent,
                 active_connections=connections,
-                timestamp=datetime.now(timezone.utc)
+                timestamp=utc_now()
             )
             
             self.system_metrics.append(metrics)
@@ -219,7 +220,7 @@ class PerformanceMonitor:
             name=name,
             value=value,
             unit=unit,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             tags=tags
         )
         self.metrics[name].append(metric)
@@ -232,7 +233,7 @@ class PerformanceMonitor:
             method=method,
             status_code=status_code,
             duration_ms=duration_ms,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             user_id=user_id,
             ip_address=ip_address
         )
@@ -282,7 +283,7 @@ class PerformanceMonitor:
                 "type": "database",
                 "query": query[:100],  # First 100 chars
                 "duration_ms": duration_ms,
-                "timestamp": datetime.now(timezone.utc)
+                "timestamp": utc_now()
             })
     
     def record_storage_operation(self, operation: str, duration_ms: float, 
@@ -316,7 +317,7 @@ class PerformanceMonitor:
     
     def get_performance_summary(self) -> Dict[str, Any]:
         """Get performance summary statistics."""
-        now = datetime.now(timezone.utc)
+        now = utc_now()
         one_hour_ago = now - timedelta(hours=1)
         
         # Request metrics
@@ -432,14 +433,14 @@ class PerformanceMonitor:
                     "type": item.get("type", "unknown"),
                     "query": item.get("query", ""),
                     "duration_ms": item.get("duration_ms", 0),
-                    "timestamp": item.get("timestamp", datetime.now(timezone.utc)).isoformat()
+                    "timestamp": item.get("timestamp", utc_now()).isoformat()
                 })
         
         return result
     
     def get_metrics_history(self, metric_name: str, hours: int = 24) -> List[Dict[str, Any]]:
         """Get historical data for a specific metric."""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
+        cutoff_time = utc_now() - timedelta(hours=hours)
         
         if metric_name not in self.metrics:
             return []
@@ -453,7 +454,7 @@ class PerformanceMonitor:
     
     def export_performance_data(self, hours: int = 24) -> Dict[str, Any]:
         """Export all performance data for analysis."""
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
+        cutoff_time = utc_now() - timedelta(hours=hours)
         
         # Filter recent data
         recent_requests = [
@@ -477,7 +478,7 @@ class PerformanceMonitor:
                     recent_slow.append(item)
         
         return {
-            "export_timestamp": datetime.now(timezone.utc).isoformat(),
+            "export_timestamp": utc_now().isoformat(),
             "time_range_hours": hours,
             "requests": recent_requests,
             "system_metrics": recent_system,

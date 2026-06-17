@@ -6,6 +6,7 @@ Handles data export and import operations with GDPR compliance and validation.
 """
 
 import logging
+from app.core.utc import utc_now
 import json
 import csv
 import io
@@ -108,7 +109,7 @@ class DataExportImportManager:
     def create_export_request(self, user_id: str, export_type: ExportType,
                            format: ExportFormat, filters: Dict[str, Any] = None) -> str:
         """Create a new export request."""
-        export_id = f"export_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(user_id.encode()).hexdigest()[:8]}"
+        export_id = f"export_{utc_now().strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(user_id.encode()).hexdigest()[:8]}"
         
         request = ExportRequest(
             export_id=export_id,
@@ -116,7 +117,7 @@ class DataExportImportManager:
             export_type=export_type,
             format=format,
             filters=filters or {},
-            created_at=datetime.now(timezone.utc)
+            created_at=utc_now()
         )
         
         self.active_exports[export_id] = request
@@ -128,7 +129,7 @@ class DataExportImportManager:
     def create_import_request(self, user_id: str, import_type: str,
                            format: ImportFormat, validation_required: bool = True) -> str:
         """Create a new import request."""
-        import_id = f"import_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(user_id.encode()).hexdigest()[:8]}"
+        import_id = f"import_{utc_now().strftime('%Y%m%d_%H%M%S')}_{hashlib.md5(user_id.encode()).hexdigest()[:8]}"
         
         request = ImportRequest(
             import_id=import_id,
@@ -136,7 +137,7 @@ class DataExportImportManager:
             import_type=import_type,
             format=format,
             validation_required=validation_required,
-            created_at=datetime.now(timezone.utc)
+            created_at=utc_now()
         )
         
         self.active_imports[import_id] = request
@@ -174,8 +175,8 @@ class DataExportImportManager:
             file_path = await self._generate_export_file(export_data, request)
             request.file_path = file_path
             request.status = "completed"
-            request.completed_at = datetime.now(timezone.utc)
-            request.expires_at = datetime.now(timezone.utc) + timedelta(days=self.export_retention_days)
+            request.completed_at = utc_now()
+            request.expires_at = utc_now() + timedelta(days=self.export_retention_days)
             
             # Generate download URL
             request.download_url = f"/export/download/{export_id}"
@@ -190,7 +191,7 @@ class DataExportImportManager:
             
         except Exception as e:
             request.status = "failed"
-            request.completed_at = datetime.now(timezone.utc)
+            request.completed_at = utc_now()
             logger.error(f"Export {export_id} failed: {e}")
             return False
     
@@ -206,7 +207,7 @@ class DataExportImportManager:
         return {
             "export_type": "all_data",
             "user_id": user_id,
-            "exported_at": datetime.now(timezone.utc).isoformat(),
+            "exported_at": utc_now().isoformat(),
             "documents": documents.get("documents", []),
             "timeline": timeline.get("events", []),
             "contacts": contacts.get("contacts", []),
@@ -266,7 +267,7 @@ class DataExportImportManager:
                 return {
                     "export_type": "documents",
                     "user_id": user_id,
-                    "exported_at": datetime.now(timezone.utc).isoformat(),
+                    "exported_at": utc_now().isoformat(),
                     "documents": export_documents,
                     "total_count": len(export_documents),
                     "filters": filters
@@ -323,7 +324,7 @@ class DataExportImportManager:
                 return {
                     "export_type": "timeline",
                     "user_id": user_id,
-                    "exported_at": datetime.now(timezone.utc).isoformat(),
+                    "exported_at": utc_now().isoformat(),
                     "events": export_events,
                     "total_count": len(export_events),
                     "filters": filters
@@ -370,7 +371,7 @@ class DataExportImportManager:
                 return {
                     "export_type": "contacts",
                     "user_id": user_id,
-                    "exported_at": datetime.now(timezone.utc).isoformat(),
+                    "exported_at": utc_now().isoformat(),
                     "contacts": export_contacts,
                     "total_count": len(export_contacts),
                     "filters": filters
@@ -399,7 +400,7 @@ class DataExportImportManager:
                 profile = {
                     "export_type": "user_profile",
                     "user_id": user_id,
-                    "exported_at": datetime.now(timezone.utc).isoformat(),
+                    "exported_at": utc_now().isoformat(),
                     "profile": {
                         "email": user.email,
                         "created_at": user.created_at.isoformat() if user.created_at else None,
@@ -433,7 +434,7 @@ class DataExportImportManager:
             return {
                 "export_type": "audit_log",
                 "user_id": user_id,
-                "exported_at": datetime.now(timezone.utc).isoformat(),
+                "exported_at": utc_now().isoformat(),
                 "events": [event.to_dict() for event in audit_events],
                 "total_count": len(audit_events),
                 "filters": filters
@@ -611,7 +612,7 @@ class DataExportImportManager:
     
     def cleanup_expired_exports(self):
         """Clean up expired export files."""
-        current_time = datetime.now(timezone.utc)
+        current_time = utc_now()
         expired_exports = []
         
         for export_id, request in self.active_exports.items():

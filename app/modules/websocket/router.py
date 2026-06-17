@@ -14,6 +14,7 @@ import json
 from app.core.event_bus import event_bus, EventType
 from app.core.websocket_manager import get_websocket_manager, WebSocketMessage
 from app.core.job_processor import get_job_processor
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -185,7 +186,7 @@ async def send_notification_to_user(user_id: str, notification: dict):
     message = WebSocketMessage(
         type=message_type,
         data=message_data,
-        timestamp=datetime.now(timezone.utc),
+        timestamp=utc_now(),
         user_id=user_id
     )
     
@@ -211,7 +212,7 @@ async def broadcast_notification(notification: dict):
     message = WebSocketMessage(
         type=message_type,
         data=message_data,
-        timestamp=datetime.now(timezone.utc)
+        timestamp=utc_now()
     )
     
     success = await ws_manager.broadcast_to_all(message)

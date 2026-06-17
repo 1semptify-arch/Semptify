@@ -28,6 +28,7 @@ from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, asdict
 
 from app.core.config import get_settings
+from app.core.utc import utc_now
 from app.services.storage.legal_integrity import (
     hash_document,
     create_timestamp_proof,
@@ -86,7 +87,7 @@ class VerificationCertificate:
 
 def generate_certificate_id() -> str:
     """Generate unique certificate ID."""
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d")
+    timestamp = utc_now().strftime("%Y%m%d")
     random_part = secrets.token_hex(6).upper()
     return f"SMPT-{timestamp}-{random_part}"
 
@@ -129,7 +130,7 @@ def create_verification_certificate(
     """
     from app.core.user_id import parse_user_id
     
-    now = datetime.now(timezone.utc)
+    now = utc_now()
     certificate_id = generate_certificate_id()
     
     # Parse user info for display

@@ -21,6 +21,7 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 
 from app.core.id_gen import make_id
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -223,7 +224,7 @@ class DocumentNotarizationService:
             tags=tags or [],
             storage_path=storage_path,
             storage_provider=storage_provider,
-            notarized_at=datetime.now(timezone.utc).isoformat(),
+            notarized_at=utc_now().isoformat(),
             notarized_by="DocumentNotarizationService",
             ip_address=ip_address,
             user_agent=user_agent,

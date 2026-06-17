@@ -25,6 +25,7 @@ import json
 import logging
 
 from app.core.event_bus import event_bus, EventType as BusEventType, subscribe_async_to_event
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -381,7 +382,7 @@ class IntensityEngine:
     
     def _get_deadline_multiplier(self, deadline: datetime) -> tuple[float, str]:
         """Get multiplier based on how close the deadline is."""
-        now = datetime.now(timezone.utc)
+        now = utc_now()
         # Make deadline timezone-aware if it's naive
         if deadline.tzinfo is None:
             deadline = deadline.replace(tzinfo=timezone.utc)
@@ -426,7 +427,7 @@ class IntensityEngine:
             self.intensity_history[user_id] = []
         
         self.intensity_history[user_id].append({
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": utc_now().isoformat(),
             "intensity": intensity,
         })
 
@@ -672,7 +673,7 @@ class ContextDataLoop:
         """Check for approaching deadlines and notify."""
         for deadline in context.deadlines:
             if deadline.date:
-                days_remaining = (deadline.date - datetime.now(timezone.utc)).days
+                days_remaining = (deadline.date - utc_now()).days
                 if 0 < days_remaining <= 7:
                     await event_bus.publish(
                         BusEventType.DEADLINE_APPROACHING,
@@ -712,7 +713,7 @@ class ContextDataLoop:
     ) -> ContextEvent:
         """Emit an event into the loop."""
         event_id = hashlib.sha256(
-            f"{event_type}{user_id}{datetime.now(timezone.utc).isoformat()}".encode()
+            f"{event_type}{user_id}{utc_now().isoformat()}".encode()
         ).hexdigest()[:16]
 
         context = self.get_context(user_id)
@@ -729,7 +730,7 @@ class ContextDataLoop:
         event = ContextEvent(
             id=event_id,
             type=event_type,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             user_id=user_id,
             data=data,
             intensity=intensity,
@@ -755,8 +756,8 @@ class ContextDataLoop:
         context = self.get_context(event.user_id)
         
         # Update last activity
-        context.last_activity = datetime.now(timezone.utc)
-        context.updated_at = datetime.now(timezone.utc)
+        context.last_activity = utc_now()
+        context.updated_at = utc_now()
 
         # Add to event history
         context.events.append(event.to_dict())
@@ -964,7 +965,7 @@ class ContextDataLoop:
                     # Make timezone-aware if naive
                     if dl_date.tzinfo is None:
                         dl_date = dl_date.replace(tzinfo=timezone.utc)
-                    days_left = (dl_date - datetime.now(timezone.utc)).days
+                    days_left = (dl_date - utc_now()).days
                     if 0 < days_left <= 7:
                         predictions.append({
                             "type": "deadline_warning",

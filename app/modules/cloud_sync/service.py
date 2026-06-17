@@ -27,6 +27,7 @@ Benefits:
 """
 
 import json
+from app.core.utc import utc_now
 import hashlib
 import logging
 from datetime import datetime, timezone
@@ -219,7 +220,7 @@ class UserCloudSync:
     async def save_profile(self, profile: UserProfile) -> bool:
         """Save user profile to cloud."""
         try:
-            profile.last_sync = datetime.now(timezone.utc).isoformat()
+            profile.last_sync = utc_now().isoformat()
             data = profile.to_dict()
             await self._write_json("profile.json", data)
             self._cache["profile"] = data
@@ -235,7 +236,7 @@ class UserCloudSync:
         if not profile:
             profile = UserProfile(
                 user_id=self.user_id,
-                created_at=datetime.now(timezone.utc).isoformat(),
+                created_at=utc_now().isoformat(),
             )
             await self.save_profile(profile)
         return profile
@@ -259,7 +260,7 @@ class UserCloudSync:
     async def save_case(self, case: CaseData) -> bool:
         """Save case to cloud."""
         try:
-            case.updated_at = datetime.now(timezone.utc).isoformat()
+            case.updated_at = utc_now().isoformat()
             data = case.to_dict()
             await self._write_json("case.json", data)
             self._cache["case"] = data
@@ -276,7 +277,7 @@ class UserCloudSync:
             from app.core.id_gen import make_id
             case = CaseData(
                 case_id=make_id("case"),
-                created_at=datetime.now(timezone.utc).isoformat(),
+                created_at=utc_now().isoformat(),
             )
             await self.save_case(case)
         return case
@@ -302,7 +303,7 @@ class UserCloudSync:
             data = {
                 "events": events,
                 "count": len(events),
-                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": utc_now().isoformat(),
             }
             await self._write_json("timeline.json", data)
             self._cache["timeline"] = events
@@ -339,7 +340,7 @@ class UserCloudSync:
             data = {
                 "events": events,
                 "count": len(events),
-                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": utc_now().isoformat(),
             }
             await self._write_json("calendar.json", data)
             self._cache["calendar"] = events
@@ -370,7 +371,7 @@ class UserCloudSync:
             data = {
                 "documents": documents,
                 "count": len(documents),
-                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": utc_now().isoformat(),
             }
             await self._write_json("documents/index.json", data)
             self._cache["documents"] = documents
@@ -394,7 +395,7 @@ class UserCloudSync:
                 "filename": filename,
                 "path": path,
                 "size": len(content),
-                "uploaded_at": datetime.now(timezone.utc).isoformat(),
+                "uploaded_at": utc_now().isoformat(),
                 **metadata,
             }
             docs.append(doc_entry)
@@ -496,7 +497,7 @@ class UserCloudSync:
                 "timeline_count": len(timeline),
                 "calendar_count": len(calendar),
                 "document_count": len(documents),
-                "synced_at": datetime.now(timezone.utc).isoformat(),
+                "synced_at": utc_now().isoformat(),
             }
             
             logger.info(f"🔄 Full sync complete for user {self.user_id[:8]}...")
@@ -514,7 +515,7 @@ class UserCloudSync:
         """Export all user data as a single JSON blob."""
         return {
             "version": "1.0",
-            "exported_at": datetime.now(timezone.utc).isoformat(),
+            "exported_at": utc_now().isoformat(),
             "user_id": self.user_id,
             "profile": self._cache.get("profile"),
             "case": self._cache.get("case"),
@@ -570,7 +571,7 @@ class UserCloudSync:
     async def _update_sync_state(self) -> None:
         """Update sync state metadata."""
         state = SyncState(
-            last_sync=datetime.now(timezone.utc).isoformat(),
+            last_sync=utc_now().isoformat(),
             sync_count=self._cache.get("sync_count", 0) + 1,
             checksum=self._calculate_checksum(),
         )

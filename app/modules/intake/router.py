@@ -46,6 +46,7 @@ from app.services.document_intake import (
     LanguageCode,
 )
 from app.core.event_bus import event_bus, EventType as BusEventType
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -767,13 +768,13 @@ async def process_document_from_vault(
             for doc in vault_index.get("documents", []):
                 if doc.get("document_id") == doc_id:
                     doc["processed"] = True
-                    doc["processed_at"] = datetime.now(timezone.utc).isoformat()
+                    doc["processed_at"] = utc_now().isoformat()
                     doc["intake_id"] = intake_doc.id
                     if intake_doc.doc_type:
                         doc["document_type"] = intake_doc.doc_type.value
                     break
             
-            vault_index["last_updated"] = datetime.now(timezone.utc).isoformat()
+            vault_index["last_updated"] = utc_now().isoformat()
             await sync.storage.upload_file(
                 f"{vault_folder}/index.json",
                 json.dumps(vault_index, indent=2).encode("utf-8")

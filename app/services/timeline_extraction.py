@@ -143,7 +143,7 @@ class TimelineExtractor:
                 description=context[:200],  # First 200 chars as description
                 source_document_id=original_id,
                 source_overlay_id=overlay_id,
-                extracted_at=datetime.now(timezone.utc).isoformat(),
+                extracted_at=utc_now().isoformat(),
                 confidence=0.7,  # Regex-based = moderate confidence
                 verified=False
             )

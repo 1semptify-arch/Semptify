@@ -22,6 +22,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional, Any
 from app.core.id_gen import make_id
+from app.core.utc import utc_now
 import logging
 logger = logging.getLogger(__name__)
 
@@ -206,7 +207,7 @@ class ExtractionResult:
     key_points: list[str] = field(default_factory=list)
     
     # Metadata
-    extracted_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    extracted_at: datetime = field(default_factory=lambda: utc_now())
     extraction_method: str = ""  # ocr, text_parse, ai_extraction
     raw_ai_response: Optional[dict] = None
 
@@ -254,7 +255,7 @@ class IntakeDocument:
     matched_laws: list[str] = field(default_factory=list)
     
     # Timestamps
-    uploaded_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    uploaded_at: datetime = field(default_factory=lambda: utc_now())
     processed_at: Optional[datetime] = None
     
     # Storage - documents are in vault
@@ -440,7 +441,7 @@ class DataExtractor:
     def extract_dates(cls, text: str) -> list[ExtractedDate]:
         """Extract all dates from text."""
         dates = []
-        today = datetime.now(timezone.utc).date()
+        today = utc_now().date()
         
         # Pattern 1: MM/DD/YYYY or MM-DD-YYYY
         for match in re.finditer(r'\b(\d{1,2})[/-](\d{1,2})[/-](\d{4})\b', text):
@@ -1077,7 +1078,7 @@ class DocumentIntakeEngine:
             doc.status = IntakeStatus.COMPLETE
             doc.status_message = "Processing complete"
             doc.progress_percent = 100
-            doc.processed_at = datetime.now(timezone.utc)
+            doc.processed_at = utc_now()
             
             self._save_documents()
             

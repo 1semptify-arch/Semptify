@@ -192,7 +192,7 @@ class LitigationStorageLayer:
                     case_data.get("case_title", ""),
                     case_data.get("case_type", "general"),
                     case_data.get("court", "unknown"),
-                    case_data.get("filing_date", datetime.now(timezone.utc)),
+                    case_data.get("filing_date", utc_now()),
                     case_data.get("status", "active"),
                     json.dumps(case_data.get("parties", {})),
                     json.dumps(case_data.get("documents", [])),
@@ -502,7 +502,7 @@ async def example_usage():
         "case_title": "Eviction for non-payment",
         "case_type": "eviction",
         "court": "Hennepin County",
-        "filing_date": datetime.now(timezone.utc),
+        "filing_date": utc_now(),
         "status": "active",
         "parties": {
             "landlord": "Professional Properties LLC",

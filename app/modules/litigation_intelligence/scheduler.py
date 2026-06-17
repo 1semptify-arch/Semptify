@@ -89,9 +89,9 @@ class LitigationScheduler:
         if task.schedule_type == "cron":
             task.next_run = self._calculate_next_cron_run(task.schedule_expression)
         elif task.schedule_type == "interval":
-            task.next_run = datetime.now(timezone.utc) + self._parse_interval(task.schedule_expression)
+            task.next_run = utc_now() + self._parse_interval(task.schedule_expression)
         elif task.schedule_type == "once":
-            task.next_run = datetime.now(timezone.utc) + self._parse_interval(task.schedule_expression)
+            task.next_run = utc_now() + self._parse_interval(task.schedule_expression)
         
         logger.info(f"Added scheduled task: {task.task_name} ({task.task_id})")
         return task.task_id
@@ -159,7 +159,7 @@ class LitigationScheduler:
     def _get_ready_tasks(self) -> List[ScheduledTask]:
         """Get tasks that are ready to run."""
         ready_tasks = []
-        current_time = datetime.now(timezone.utc)
+        current_time = utc_now()
         
         for task in self.scheduled_tasks.values():
             if not task.enabled:
@@ -176,7 +176,7 @@ class LitigationScheduler:
         
         try:
             # Update last run time
-            task.last_run = datetime.now(timezone.utc)
+            task.last_run = utc_now()
             
             # Calculate next run time
             if task.schedule_type == "interval":
@@ -212,12 +212,12 @@ class LitigationScheduler:
                 "task_id": task.task_id,
                 "task_name": task.task_name,
                 "error": str(e),
-                "failed_at": datetime.now(timezone.utc).isoformat()
+                "failed_at": utc_now().isoformat()
             })
     
     async def _check_overdue_tasks(self):
         """Check for overdue tasks and create alerts."""
-        current_time = datetime.now(timezone.utc)
+        current_time = utc_now()
         
         for task in self.scheduled_tasks.values():
             if not task.enabled:
@@ -264,9 +264,9 @@ class LitigationScheduler:
                     data={
                         "storage_health": storage_health,
                         "external_health": external_health,
-                        "checked_at": datetime.now(timezone.utc).isoformat()
+                        "checked_at": utc_now().isoformat()
                     },
-                    created_at=datetime.now(timezone.utc)
+                    created_at=utc_now()
                 )
                 
                 self.add_watchdog_alert(alert)
@@ -337,7 +337,7 @@ class LitigationScheduler:
         """Calculate next run time for cron expression."""
         # Simplified cron parsing - would use a full cron library
         # For now, assume daily at midnight
-        current_time = datetime.now(timezone.utc)
+        current_time = utc_now()
         next_run = current_time.replace(hour=0, minute=0, second=0)
         
         # If next run is in the past, add a day
@@ -421,7 +421,7 @@ async def example_usage():
         handler="case_scanner",
         parameters={"scan_type": "new_cases"},
         enabled=True,
-        created_at=datetime.now(timezone.utc)
+        created_at=utc_now()
     )
     
     task2 = ScheduledTask(
@@ -432,7 +432,7 @@ async def example_usage():
         handler="pattern_analyzer",
         parameters={"analysis_type": "trends"},
         enabled=True,
-        created_at=datetime.now(timezone.utc)
+        created_at=utc_now()
     )
     
     scheduler.add_scheduled_task(task1)

@@ -7,6 +7,7 @@ and privacy controls.
 """
 
 import logging
+from app.core.utc import utc_now
 import json
 import zipfile
 import io
@@ -101,10 +102,10 @@ class GDPRComplianceManager:
             # Update existing record
             existing_record.status = status
             if status == ConsentStatus.GRANTED:
-                existing_record.granted_at = datetime.now(timezone.utc)
+                existing_record.granted_at = utc_now()
                 existing_record.withdrawn_at = None
             elif status == ConsentStatus.WITHDRAWN:
-                existing_record.withdrawn_at = datetime.now(timezone.utc)
+                existing_record.withdrawn_at = utc_now()
             existing_record.ip_address = ip_address
             existing_record.user_agent = user_agent
         else:
@@ -112,8 +113,8 @@ class GDPRComplianceManager:
             record = ConsentRecord(
                 consent_type=consent_type,
                 status=status,
-                granted_at=datetime.now(timezone.utc) if status == ConsentStatus.GRANTED else None,
-                withdrawn_at=datetime.now(timezone.utc) if status == ConsentStatus.WITHDRAWN else None,
+                granted_at=utc_now() if status == ConsentStatus.GRANTED else None,
+                withdrawn_at=utc_now() if status == ConsentStatus.WITHDRAWN else None,
                 ip_address=ip_address,
                 user_agent=user_agent,
                 purpose=purpose,
@@ -141,13 +142,13 @@ class GDPRComplianceManager:
     def create_data_request(self, user_id: str, request_type: str, 
                           ip_address: str, user_agent: str) -> str:
         """Create a data subject request."""
-        request_id = f"dsr_{datetime.now(timezone.utc).timestamp()}_{user_id}"
+        request_id = f"dsr_{utc_now().timestamp()}_{user_id}"
         
         request = DataSubjectRequest(
             request_id=request_id,
             user_id=user_id,
             request_type=request_type,
-            requested_at=datetime.now(timezone.utc),
+            requested_at=utc_now(),
             status="pending",
             completed_at=None,
             data_export_url=None,
@@ -182,7 +183,7 @@ class GDPRComplianceManager:
             
             if success:
                 request.status = "completed"
-                request.completed_at = datetime.now(timezone.utc)
+                request.completed_at = utc_now()
                 logger.info(f"Successfully completed data request {request_id}")
             else:
                 request.status = "failed"
@@ -206,7 +207,7 @@ class GDPRComplianceManager:
             export_data = {
                 "request_id": request.request_id,
                 "user_id": request.user_id,
-                "export_date": datetime.now(timezone.utc).isoformat(),
+                "export_date": utc_now().isoformat(),
                 "data": user_data
             }
             
@@ -436,7 +437,7 @@ class GDPRComplianceManager:
     
     def apply_retention_policies(self):
         """Apply data retention policies."""
-        current_time = datetime.now(timezone.utc)
+        current_time = utc_now()
         
         # Clean up old data requests
         expired_requests = []
