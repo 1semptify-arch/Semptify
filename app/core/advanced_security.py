@@ -14,6 +14,8 @@ import base64
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, asdict
+
+from app.core.utc import utc_now
 from enum import Enum
 import hashlib
 import json
@@ -178,7 +180,7 @@ class TwoFactorAuthManager:
             backup_codes=backup_codes,
             qr_code=qr_code,
             method=method,
-            created_at=datetime.now(timezone.utc)
+            created_at=utc_now()
         )
         
         # Store setup data
@@ -228,7 +230,7 @@ class TwoFactorAuthManager:
         if user_id not in self.totp_secrets:
             return False
         
-        self.verified_users[user_id] = datetime.now(timezone.utc)
+        self.verified_users[user_id] = utc_now()
         logger.info(f"Enabled 2FA for user {user_id}")
         return True
     
@@ -308,9 +310,9 @@ class SessionManager:
         session = UserSession(
             session_id=session_id,
             user_id=user_id,
-            created_at=datetime.now(timezone.utc),
-            last_activity=datetime.now(timezone.utc),
-            expires_at=datetime.now(timezone.utc) + duration,
+            created_at=utc_now(),
+            last_activity=utc_now(),
+            expires_at=utc_now() + duration,
             ip_address=ip_address,
             user_agent=user_agent,
             device_info=device_info or {}
@@ -341,7 +343,7 @@ class SessionManager:
         session = self.sessions[session_id]
         
         # Check if session is expired
-        if datetime.now(timezone.utc) > session.expires_at:
+        if utc_now() > session.expires_at:
             session.status = SessionStatus.EXPIRED
             self.revoke_session(session_id)
             return None
@@ -366,7 +368,7 @@ class SessionManager:
             )
         
         # Update last activity
-        session.last_activity = datetime.now(timezone.utc)
+        session.last_activity = utc_now()
         
         return session
     
@@ -429,7 +431,7 @@ class SessionManager:
         if duration is None:
             duration = self.default_session_duration
         
-        session.expires_at = datetime.now(timezone.utc) + duration
+        session.expires_at = utc_now() + duration
         
         # Log security event
         self.log_security_event(

@@ -294,7 +294,7 @@ class AccountabilityPlanner:
     def get_compliance_report(self) -> Dict[str, Any]:
         """Generate comprehensive compliance report."""
         report = {
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": utc_now().isoformat(),
             "metrics": self.metrics.dict(),
             "compliance_checks": {},
             "recent_events": self.get_audit_trail(limit=50),
@@ -323,7 +323,7 @@ class AccountabilityPlanner:
         
         export_data = {
             "user_id": user_id,
-            "export_date": datetime.now(timezone.utc).isoformat(),
+            "export_date": utc_now().isoformat(),
             "total_events": len(user_events),
             "events": [event.dict() for event in user_events]
         }
