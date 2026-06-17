@@ -31,7 +31,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 try:
-    from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, Boolean, Float, Enum
+    from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, Boolean, Float, Enum, ARRAY
     from sqlalchemy.types import JSON
     JSONB = JSON  # Use generic JSON that works with both SQLite and PostgreSQL
     from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -1640,3 +1640,46 @@ class UserCapability(Base):
 
     # Relationship to User model
     user: Mapped["User"] = relationship("User", foreign_keys=[user_id])
+
+
+class ModuleRegistry(Base):
+    """
+    Module Registry — single source of truth for module status.
+
+    Each module gets one row. Tracks:
+    - status: unknown | active | beta | deprecated | broken
+    - is_enabled: runtime toggle (can disable without code change)
+    - dev_mode: when True, all requests get strict logging
+    - version, route_prefix, depends_on for dependency management
+
+    Core system code never changes — only these rows do.
+    """
+    __tablename__ = "module_registry"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(128), unique=True, index=True, nullable=False)
+    display_name: Mapped[str] = mapped_column(String(256), nullable=False, default="")
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    # Status: unknown, active, beta, deprecated, broken
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="unknown")
+
+    # Runtime toggle — can flip without restart
+    is_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+    # Dev mode — enables strict request/response logging
+    dev_mode: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    version: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
+    route_prefix: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
+
+    # Array of module names this module depends on
+    depends_on: Mapped[Optional[list[str]]] = mapped_column(ARRAY(String), nullable=True)
+
+    # Admin notes for tracking issues, rollout status, etc.
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    # Audit
+    created_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, onupdate=utc_now)
+    updated_by: Mapped[Optional[str]] = mapped_column(String(256), nullable=True)

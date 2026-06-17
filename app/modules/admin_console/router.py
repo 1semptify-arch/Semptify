@@ -1454,3 +1454,107 @@ async def env_update(
         "env_path": str(env_path) if persisted else None,
         "note": "Changes are live immediately. Restart is NOT required for runtime changes.",
     }
+
+
+# =============================================================================
+# Module Registry / Overlay System Endpoints
+# =============================================================================
+
+@router.get("/api/system/modules")
+async def list_modules(user: UserContext = Depends(require_admin)) -> dict:
+    """List all modules in the registry with their status."""
+    from app.core.module_overlay import module_overlay
+    modules = await module_overlay.list_modules()
+    return {
+        "modules": modules,
+        "count": len(modules),
+        "timestamp": utc_now().isoformat(),
+    }
+
+
+@router.get("/api/system/modules/{module_name}")
+async def get_module_status(
+    module_name: str,
+    user: UserContext = Depends(require_admin),
+) -> dict:
+    """Get detailed status of a single module."""
+    from app.core.module_overlay import module_overlay
+    info = await module_overlay.get_module_status(module_name)
+    if not info:
+        raise HTTPException(status_code=404, detail=f"Module {module_name} not found")
+    return info
+
+
+@router.post("/api/system/modules/{module_name}/toggle")
+async def toggle_module(
+    module_name: str,
+    user: UserContext = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Toggle a module on/off. Creates registry entry if missing."""
+    from app.core.module_overlay import module_overlay
+    info = await module_overlay.get_module_status(module_name)
+    if not info:
+        raise HTTPException(status_code=404, detail=f"Module {module_name} not found in registry")
+    new_state = not info["is_enabled"]
+    success = await module_overlay.set_module_enabled(module_name, new_state, updated_by=user.user_id)
+    await _log_admin_action(
+        admin_user=user,
+        action="toggle_module",
+        target_user=module_name,
+        details={"enabled": new_state},
+        db=db,
+    )
+    logger.warning(f"MODULE_TOGGLE: Admin {user.user_id} set {module_name} enabled={new_state}")
+    return {"module": module_name, "enabled": new_state, "previous": info["is_enabled"]}
+
+
+@router.post("/api/system/modules/{module_name}/dev-mode")
+async def set_module_dev_mode(
+    module_name: str,
+    enabled: bool,
+    user: UserContext = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Enable/disable dev mode strict logging for a module."""
+    from app.core.module_overlay import module_overlay
+    info = await module_overlay.get_module_status(module_name)
+    if not info:
+        raise HTTPException(status_code=404, detail=f"Module {module_name} not found")
+    success = await module_overlay.set_dev_mode(module_name, enabled, updated_by=user.user_id)
+    await _log_admin_action(
+        admin_user=user,
+        action="set_dev_mode",
+        target_user=module_name,
+        details={"dev_mode": enabled},
+        db=db,
+    )
+    logger.warning(f"DEV_MODE: Admin {user.user_id} set {module_name} dev_mode={enabled}")
+    return {"module": module_name, "dev_mode": enabled}
+
+
+@router.post("/api/system/modules/{module_name}/status")
+async def set_module_status(
+    module_name: str,
+    status: str,  # unknown | active | beta | deprecated | broken
+    user: UserContext = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Set module lifecycle status."""
+    from app.core.module_overlay import module_overlay
+    valid = {"unknown", "active", "beta", "deprecated", "broken"}
+    if status not in valid:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid}")
+    info = await module_overlay.get_module_status(module_name)
+    if not info:
+        raise HTTPException(status_code=404, detail=f"Module {module_name} not found")
+    await module_overlay.set_status(module_name, status, updated_by=user.user_id)
+    await _log_admin_action(
+        admin_user=user,
+        action="set_module_status",
+        target_user=module_name,
+        details={"status": status},
+        db=db,
+    )
+    logger.warning(f"MODULE_STATUS: Admin {user.user_id} set {module_name} status={status}")
+    return {"module": module_name, "status": status}
