@@ -1255,6 +1255,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     fastapi_app.state.limiter = limiter
     fastapi_app.add_middleware(SlowAPIMiddleware)
     fastapi_app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+
+    # =========================================================================
+    # Dev Mode Middleware — strict logging for modules in development
+    # =========================================================================
+    from app.core.dev_mode_middleware import DevModeMiddleware
+    fastapi_app.add_middleware(DevModeMiddleware)
     
     # Initialize OAuth token manager
     from app.core.oauth_token_manager import init_oauth_token_manager
