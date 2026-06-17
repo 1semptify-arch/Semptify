@@ -94,7 +94,7 @@ def format_date_filter(value):
         try:
             from datetime import datetime
             value = datetime.fromisoformat(value)
-        except:
+        except (ValueError, TypeError):
             return value
     return value.strftime("%B %d, %Y") if hasattr(value, "strftime") else str(value)
 
