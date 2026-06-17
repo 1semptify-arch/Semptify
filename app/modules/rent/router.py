@@ -18,10 +18,23 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 
 from app.core.user_context import UserContext
-from app.core.security import get_current_user, require_user
+from app.core.security import get_current_user, require_user, can_access
 from app.core.database import get_db_session
 from app.core.utc import utc_now
 from app.models.models import RentPayment
+
+
+async def _validate_access(user: UserContext, target_user_id: str) -> None:
+    """Validate that the current user can access target_user_id's resources."""
+    if user.user_id == target_user_id:
+        return
+    if user.is_impersonating and user.acting_as == target_user_id:
+        async with get_db_session() as db:
+            allowed = await can_access(user.user_id, target_user_id, db)
+            if not allowed:
+                raise HTTPException(status_code=403, detail="Access denied: no active relationship")
+        return
+    raise HTTPException(status_code=403, detail="Access denied")
 
 router = APIRouter()
 
@@ -81,6 +94,7 @@ async def create_payment(
     user: UserContext = Depends(require_user),
 ):
     """Create a new rent payment record."""
+    await _validate_access(user, user.get_effective_user_id())
     try:
         payment_dt = datetime.strptime(body.payment_date, "%Y-%m-%d").replace(tzinfo=datetime.timezone.utc)
     except ValueError:
@@ -118,6 +132,7 @@ async def list_payments(
     user: UserContext = Depends(require_user),
 ):
     """List all rent payments for the current user."""
+    await _validate_access(user, user.get_effective_user_id())
     async with get_db_session() as db:
         result = await db.execute(
             select(RentPayment)
@@ -135,6 +150,7 @@ async def get_payment(
     user: UserContext = Depends(require_user),
 ):
     """Get a single rent payment by ID."""
+    await _validate_access(user, user.get_effective_user_id())
     async with get_db_session() as db:
         result = await db.execute(
             select(RentPayment).where(
@@ -157,6 +173,7 @@ async def update_payment(
     user: UserContext = Depends(require_user),
 ):
     """Update a rent payment record."""
+    await _validate_access(user, user.get_effective_user_id())
     async with get_db_session() as db:
         result = await db.execute(
             select(RentPayment).where(
@@ -201,6 +218,7 @@ async def delete_payment(
     user: UserContext = Depends(require_user),
 ):
     """Delete a rent payment record."""
+    await _validate_access(user, user.get_effective_user_id())
     async with get_db_session() as db:
         result = await db.execute(
             select(RentPayment).where(
