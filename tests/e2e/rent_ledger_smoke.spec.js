@@ -36,6 +36,14 @@ test('GET /api/rent/payments/nonexistent-id returns auth gate, not 500', async (
   expect(res.status()).not.toBeGreaterThanOrEqual(500);
 });
 
+test('PUT /api/rent/payments/nonexistent-id returns auth gate, not 500', async ({ request }) => {
+  const res = await request.put(BASE + '/api/rent/payments/test-id-123', {
+    data: { amount: 1000.00, status: 'late' },
+    headers: { 'Content-Type': 'application/json' },
+  });
+  expect(res.status()).not.toBeGreaterThanOrEqual(500);
+});
+
 test('DELETE /api/rent/payments/nonexistent-id returns auth gate, not 500', async ({ request }) => {
   const res = await request.delete(BASE + '/api/rent/payments/test-id-123');
   expect(res.status()).not.toBeGreaterThanOrEqual(500);

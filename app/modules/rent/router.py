@@ -2,10 +2,11 @@
 Rent Ledger router — payment tracking and rent history.
 
 Endpoints:
-- POST /api/rent/payments   — Create a payment record
-- GET  /api/rent/payments   — List current user's payments
-- GET  /api/rent/payments/:id — Get a single payment
-- DELETE /api/rent/payments/:id — Delete a payment
+- POST   /api/rent/payments       — Create a payment record
+- GET    /api/rent/payments       — List current user's payments
+- GET    /api/rent/payments/:id   — Get a single payment
+- PUT    /api/rent/payments/:id   — Update a payment
+- DELETE /api/rent/payments/:id   — Delete a payment
 """
 
 import uuid
@@ -31,6 +32,16 @@ class RentPaymentCreate(BaseModel):
     due_date: Optional[str] = Field(None, description="ISO date string YYYY-MM-DD")
     status: str = Field("paid", description="paid, late, partial, missed")
     payment_method: Optional[str] = Field(None, description="check, cash, venmo, etc.")
+    notes: Optional[str] = None
+    receipt_document_id: Optional[str] = None
+
+
+class RentPaymentUpdate(BaseModel):
+    amount: Optional[float] = Field(None, gt=0, description="Payment amount in dollars")
+    payment_date: Optional[str] = Field(None, description="ISO date string YYYY-MM-DD")
+    due_date: Optional[str] = Field(None, description="ISO date string YYYY-MM-DD")
+    status: Optional[str] = Field(None, description="paid, late, partial, missed")
+    payment_method: Optional[str] = None
     notes: Optional[str] = None
     receipt_document_id: Optional[str] = None
 
@@ -137,6 +148,51 @@ async def get_payment(
         raise HTTPException(status_code=404, detail="Payment not found")
 
     return {"payment": _to_response(payment)}
+
+
+@router.put("/api/rent/payments/{payment_id}")
+async def update_payment(
+    payment_id: str,
+    body: RentPaymentUpdate,
+    user: UserContext = Depends(require_user),
+):
+    """Update a rent payment record."""
+    async with get_db_session() as db:
+        result = await db.execute(
+            select(RentPayment).where(
+                RentPayment.id == payment_id,
+                RentPayment.user_id == user.get_effective_user_id(),
+            )
+        )
+        payment = result.scalar_one_or_none()
+
+        if not payment:
+            raise HTTPException(status_code=404, detail="Payment not found")
+
+        if body.amount is not None:
+            payment.amount = int(body.amount * 100)
+        if body.payment_date is not None:
+            try:
+                payment.payment_date = datetime.strptime(body.payment_date, "%Y-%m-%d").replace(tzinfo=datetime.timezone.utc)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid payment_date format. Use YYYY-MM-DD.")
+        if body.due_date is not None:
+            try:
+                payment.due_date = datetime.strptime(body.due_date, "%Y-%m-%d").replace(tzinfo=datetime.timezone.utc)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid due_date format. Use YYYY-MM-DD.")
+        if body.status is not None:
+            payment.status = body.status
+        if body.payment_method is not None:
+            payment.payment_method = body.payment_method
+        if body.notes is not None:
+            payment.notes = body.notes
+        if body.receipt_document_id is not None:
+            payment.receipt_document_id = body.receipt_document_id
+
+        await db.commit()
+
+    return {"success": True, "payment": _to_response(payment)}
 
 
 @router.delete("/api/rent/payments/{payment_id}")
