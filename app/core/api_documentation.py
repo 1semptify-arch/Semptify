@@ -6,6 +6,7 @@ Generates comprehensive API documentation and developer portal.
 """
 
 import logging
+from app.core.utc import utc_now
 import json
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
@@ -570,7 +571,7 @@ class APIDocumentationGenerator:
                 }
                 for module in self.modules.values()
             ],
-            "last_updated": datetime.now(timezone.utc).isoformat()
+            "last_updated": utc_now().isoformat()
         }
 
 # Global documentation generator instance

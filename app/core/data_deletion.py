@@ -6,6 +6,7 @@ Handles secure deletion of user data, documents, and compliance requirements.
 """
 
 import logging
+from app.core.utc import utc_now
 import os
 import shutil
 from datetime import datetime, timezone
@@ -59,7 +60,7 @@ class DataDeletionManager:
     def create_deletion_request(self, user_id: str, scope: DeletionScope, 
                               target_id: Optional[str] = None, reason: str = "") -> str:
         """Create a new deletion request."""
-        request_id = f"del_{datetime.now(timezone.utc).timestamp()}_{user_id}"
+        request_id = f"del_{utc_now().timestamp()}_{user_id}"
         
         request = DeletionRequest(
             request_id=request_id,
@@ -67,7 +68,7 @@ class DataDeletionManager:
             scope=scope,
             target_id=target_id,
             reason=reason,
-            requested_at=datetime.now(timezone.utc),
+            requested_at=utc_now(),
             status=DeletionStatus.PENDING
         )
         
@@ -96,7 +97,7 @@ class DataDeletionManager:
             return False
         
         request.status = DeletionStatus.IN_PROGRESS
-        request.audit_log.append(f"Started deletion at {datetime.now(timezone.utc)}")
+        request.audit_log.append(f"Started deletion at {utc_now()}")
         
         try:
             if request.scope == DeletionScope.SINGLE_DOCUMENT:
@@ -112,7 +113,7 @@ class DataDeletionManager:
             
             if success:
                 request.status = DeletionStatus.COMPLETED
-                request.completed_at = datetime.now(timezone.utc)
+                request.completed_at = utc_now()
                 request.audit_log.append(f"Deletion completed at {request.completed_at}")
                 logger.info(f"Successfully completed deletion request {request_id}")
             else:
@@ -302,7 +303,7 @@ class DataDeletionManager:
             return False
         
         request.status = DeletionStatus.CANCELLED
-        request.completed_at = datetime.now(timezone.utc)
+        request.completed_at = utc_now()
         request.audit_log.append(f"Request cancelled at {request.completed_at}")
         
         logger.info(f"Cancelled deletion request {request_id}")
@@ -310,7 +311,7 @@ class DataDeletionManager:
     
     def cleanup_old_requests(self):
         """Clean up old deletion requests."""
-        cutoff_date = datetime.now(timezone.utc) - timedelta(days=self.deletion_retention_days)
+        cutoff_date = utc_now() - timedelta(days=self.deletion_retention_days)
         
         old_requests = [
             req_id for req_id, req in self.requests.items()

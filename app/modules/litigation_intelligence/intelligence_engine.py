@@ -7,6 +7,7 @@ Detects patterns, scores risks, and provides strategic insights.
 """
 
 import logging
+from app.core.utc import utc_now
 from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass, asdict
@@ -105,7 +106,7 @@ class LitigationIntelligenceEngine:
         # Initialize report
         report = IntelligenceReport(
             case_id=case_id,
-            analysis_date=datetime.now(timezone.utc),
+            analysis_date=utc_now(),
             patterns_detected=[],
             risk_assessment=RiskAssessment(
                 risk_level=RiskLevel.LOW,
@@ -580,7 +581,7 @@ async def example_usage():
         "case_number": "27-CV-21-12345",
         "case_title": "Eviction for non-payment of rent",
         "case_type": "eviction",
-        "filing_date": datetime.now(timezone.utc) - timedelta(days=10),
+        "filing_date": utc_now() - timedelta(days=10),
         "parties": {
             "landlord": "Professional Properties LLC",
             "tenant": "John Doe"

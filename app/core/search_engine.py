@@ -6,6 +6,7 @@ Provides advanced search capabilities with document indexing and relevance scori
 """
 
 import logging
+from app.core.utc import utc_now
 import re
 import math
 from typing import Dict, Any, List, Optional, Set, Tuple
@@ -372,7 +373,7 @@ class InvertedIndex:
         score += title_matches * 2.0
         
         # Boost for recent documents
-        days_old = (datetime.now(timezone.utc) - doc.created_at).days
+        days_old = (utc_now() - doc.created_at).days
         recency_boost = max(0, 1 - (days_old / 365))  # Decay over year
         score += recency_boost * 0.5
         
@@ -450,8 +451,8 @@ class SearchEngine:
                 title=title,
                 content=content,
                 metadata=metadata,
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc),
+                created_at=utc_now(),
+                updated_at=utc_now(),
                 file_type=file_type,
                 tags=tags or []
             )
@@ -481,7 +482,7 @@ class SearchEngine:
                tags: List[str] = None, date_range: Optional[Tuple[datetime, datetime]] = None,
                limit: int = 50, offset: int = 0) -> Dict[str, Any]:
         """Perform search."""
-        start_time = datetime.now(timezone.utc)
+        start_time = utc_now()
         
         try:
             # Create search query
@@ -501,7 +502,7 @@ class SearchEngine:
             results = self.index.search(search_query)
             
             # Update statistics
-            search_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            search_time = (utc_now() - start_time).total_seconds()
             self.search_stats["total_searches"] += 1
             self.search_stats["avg_search_time"] = (
                 (self.search_stats["avg_search_time"] * (self.search_stats["total_searches"] - 1) + search_time) /
@@ -526,7 +527,7 @@ class SearchEngine:
                 "results": [],
                 "total": 0,
                 "error": str(e),
-                "search_time": (datetime.now(timezone.utc) - start_time).total_seconds()
+                "search_time": (utc_now() - start_time).total_seconds()
             }
     
     def suggest_queries(self, partial_query: str, user_id: str = None, limit: int = 10) -> List[str]:

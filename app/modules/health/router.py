@@ -25,6 +25,7 @@ from fastapi.responses import PlainTextResponse, JSONResponse, HTMLResponse
 
 from app.core.config import Settings, get_settings
 from app.core.security import get_metrics, incr_metric, record_request_latency
+from app.core.utc import utc_now
 import logging
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,7 @@ async def health_check():
     Returns 200 if the process is alive.
     Use for Kubernetes livenessProbe.
     """
-    return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
+    return {"status": "ok", "timestamp": utc_now().isoformat()}
 
 
 @router.get("/livez")
@@ -51,19 +52,19 @@ async def liveness_check():
     Kubernetes liveness probe alias.
     Returns 200 if the process is alive.
     """
-    return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
+    return {"status": "ok", "timestamp": utc_now().isoformat()}
 
 
 @router.get("/health")
 async def health_alias():
     """Alias for /healthz for compatibility."""
-    return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
+    return {"status": "ok", "timestamp": utc_now().isoformat()}
 
 
 @router.get("/api/health")
 async def api_health_alias():
     """API-prefixed health alias used by external probes and scripts."""
-    return {"status": "ok", "timestamp": datetime.now(timezone.utc).isoformat()}
+    return {"status": "ok", "timestamp": utc_now().isoformat()}
 
 
 @router.get("/readyz")
@@ -165,7 +166,7 @@ async def readiness_check(settings: Settings = Depends(get_settings)):
             "checks": checks,
             "details": details,
             "uptime_seconds": round(time.time() - _start_time, 2),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": utc_now().isoformat(),
         }
     )
 
@@ -687,5 +688,5 @@ async def api_summary():
             "tenant_dashboard": "/dashboard",
             "system_dashboard": "/system-dashboard"
         },
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": utc_now().isoformat()
     }

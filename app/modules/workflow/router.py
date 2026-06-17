@@ -31,6 +31,7 @@ from app.core.module_contracts import contract_registry
 from app.core.user_context import UserRole
 from app.core.database import get_db_session
 from app.core.oauth_token_manager import get_valid_token_for_user
+from app.core.utc import utc_now
 from app.models.models import CalendarEvent as CalendarEventModel, TimelineEvent, Document, DocumentPipelineIndex
 from app.services.storage import get_provider
 from app.services.timeline_extraction import TimelineStore
@@ -744,7 +745,7 @@ async def get_case_state(request: Request) -> CaseStateResponse:
     role = _ROLE_MAP.get(user_id[1:2].upper(), "user") if len(user_id) >= 2 else "user"
     storage_connected = user_id[:1].upper() in {"G", "D", "O"} if user_id else False
 
-    now_utc = datetime.now(timezone.utc)
+    now_utc = utc_now()
     doc_count = 0
     timeline_count = 0
     hearing_count = 0

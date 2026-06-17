@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 
 from app.core.security import get_user_id
+from app.core.utc import utc_now
 from app.services.tenancy_hub import (
     get_tenancy_hub_service,
     TenancyCase,
@@ -297,7 +298,7 @@ async def set_property(case_id: str, request: PropertyRequest):
     )
     
     case.property = property_obj
-    case.updated_at = datetime.now(timezone.utc).isoformat()
+    case.updated_at = utc_now().isoformat()
     
     return {"success": True, "property": property_obj.to_dict()}
 
@@ -347,7 +348,7 @@ async def set_lease(case_id: str, request: LeaseRequest):
     )
     
     case.lease = lease
-    case.updated_at = datetime.now(timezone.utc).isoformat()
+    case.updated_at = utc_now().isoformat()
     
     return {"success": True, "lease": lease.to_dict()}
 
@@ -581,7 +582,7 @@ async def add_issue(case_id: str, request: IssueRequest):
         severity=severity,
         title=request.title,
         description=request.description,
-        reported_date=request.reported_date or datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        reported_date=request.reported_date or utc_now().strftime("%Y-%m-%d"),
         location_in_property=request.location_in_property,
         is_habitability_issue=request.is_habitability_issue,
         is_lease_violation=request.is_lease_violation,

@@ -22,6 +22,7 @@ Usage in Python:
 """
 
 import logging
+from app.core.utc import utc_now
 from dataclasses import dataclass, field
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any
@@ -177,7 +178,7 @@ class TenantBriefcase:
     actions: ActionSummary = field(default_factory=ActionSummary)
     
     # Metadata
-    generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    generated_at: str = field(default_factory=lambda: utc_now().isoformat())
     is_fresh: bool = True  # False if any subsystem failed to load
     
     # Freshness indicators
@@ -552,7 +553,7 @@ async def _load_vault_summary(user_id: str) -> VaultSummary:
             })
         
         # Count recent (this month)
-        now = datetime.now(timezone.utc)
+        now = utc_now()
         recent = len([
             d for d in docs 
             if d.uploaded_at and (now - d.uploaded_at).days < 30
@@ -621,7 +622,7 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
         logger.warning("Timeline DB load failed: %s", _e)
 
     # Find next deadline
-    today = datetime.now(timezone.utc).date()
+    today = utc_now().date()
     for event in events:
         if event.date:
             try:
@@ -713,7 +714,7 @@ async def _load_inbox_summary(user_id: str, briefcase: TenantBriefcase) -> Inbox
             notification_type="document",
             title=f"{briefcase.vault.recent_documents} new document(s)",
             message="Your vault has been updated with new uploads.",
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=utc_now().isoformat(),
             is_read=False,
             is_urgent=False,
             action_url="/tenant/journal",
@@ -729,7 +730,7 @@ async def _load_inbox_summary(user_id: str, briefcase: TenantBriefcase) -> Inbox
                 notification_type="deadline",
                 title=f"Deadline in {days} days!",
                 message=briefcase.timeline.next_deadline.title,
-                created_at=datetime.now(timezone.utc).isoformat(),
+                created_at=utc_now().isoformat(),
                 is_read=False,
                 is_urgent=True,
                 action_url="/timeline",
@@ -743,7 +744,7 @@ async def _load_inbox_summary(user_id: str, briefcase: TenantBriefcase) -> Inbox
             notification_type="alert",
             title=f"{briefcase.journal.urgent_entries} urgent item(s)",
             message="Documents requiring immediate attention",
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=utc_now().isoformat(),
             is_read=False,
             is_urgent=True,
             action_url="/tenant/journal",

@@ -28,6 +28,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db_session
+from app.core.utc import utc_now
 from app.models.models import (
     User, Document, TimelineEvent, CalendarEvent, RentPayment
 )
@@ -229,8 +230,8 @@ class EvictionCase:
     compliance: Optional[ComplianceReport] = None
     
     # Metadata
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: utc_now())
+    updated_at: datetime = field(default_factory=lambda: utc_now())
     language: str = "en"
     
     def to_dict(self) -> dict:
@@ -778,7 +779,7 @@ class EvictionCaseBuilder:
             warnings += 1
         else:
             # Check if deadline is approaching
-            days_until = (case.notice.court_date - datetime.now(timezone.utc)).days
+            days_until = (case.notice.court_date - utc_now()).days
             if days_until < 0:
                 checks.append(ComplianceCheck(
                     rule="court_date_required",

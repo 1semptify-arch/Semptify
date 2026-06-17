@@ -6,6 +6,7 @@ Manages caching for frequently accessed data with multiple backends.
 """
 
 import logging
+from app.core.utc import utc_now
 import json
 import time
 import hashlib
@@ -50,12 +51,12 @@ class CacheEntry:
         """Check if entry is expired."""
         if self.expires_at is None:
             return False
-        return datetime.now(timezone.utc) >= self.expires_at
+        return utc_now() >= self.expires_at
     
     def touch(self):
         """Update access statistics."""
         self.access_count += 1
-        self.last_accessed = datetime.now(timezone.utc)
+        self.last_accessed = utc_now()
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -112,14 +113,14 @@ class MemoryCache:
             # Calculate expiration
             expires_at = None
             if ttl_seconds:
-                expires_at = datetime.now(timezone.utc) + timedelta(seconds=ttl_seconds)
+                expires_at = utc_now() + timedelta(seconds=ttl_seconds)
             
             # Create entry
             entry = CacheEntry(
                 key=key,
                 value=value,
                 expires_at=expires_at,
-                created_at=datetime.now(timezone.utc),
+                created_at=utc_now(),
                 tags=tags or []
             )
             

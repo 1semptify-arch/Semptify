@@ -15,6 +15,7 @@ from typing import Optional, Dict, Any, List
 from enum import Enum
 
 from app.core.event_bus import event_bus, EventType
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -383,8 +384,8 @@ class DocumentDistributor:
             integrity_verified=integrity_verified,
             forgery_score=forgery_score,
             requires_review=requires_review,
-            uploaded_at=datetime.now(timezone.utc),
-            processed_at=datetime.now(timezone.utc),
+            uploaded_at=utc_now(),
+            processed_at=utc_now(),
         )
         
         # Store document
