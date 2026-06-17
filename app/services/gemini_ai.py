@@ -12,6 +12,7 @@ from typing import Optional
 import httpx
 
 from app.core.config import get_settings
+from app.core.utc import utc_now
 import logging
 logger = logging.getLogger(__name__)
 
@@ -244,7 +245,7 @@ Respond ONLY with valid JSON."""
                 key_amounts=data.get("key_amounts", []),
                 key_terms=data.get("key_terms", []),
                 issues_detected=data.get("issues_detected", []),
-                analyzed_at=datetime.now(timezone.utc),
+                analyzed_at=utc_now(),
             )
         except json.JSONDecodeError:
             # Return minimal result on parse failure
@@ -258,7 +259,7 @@ Respond ONLY with valid JSON."""
                 key_amounts=[],
                 key_terms=[],
                 issues_detected=[],
-                analyzed_at=datetime.now(timezone.utc),
+                analyzed_at=utc_now(),
             )
 
     def _get_system_prompt(self, context: str) -> str:

@@ -102,7 +102,7 @@ async def scrape_court_system(request: CourtScrapingRequest,
             "success": True,
             "cases": cases,
             "court_system": request.court_system,
-            "scraped_at": datetime.now(timezone.utc).isoformat()
+            "scraped_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -120,7 +120,7 @@ async def scrape_case_filings(case_number: str,
             "success": True,
             "case_number": case_number,
             "filings": filings,
-            "scraped_at": datetime.now(timezone.utc).isoformat()
+            "scraped_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -140,7 +140,7 @@ async def normalize_entity(request: EntityNormalizationRequest,
         return JSONResponse(content={
             "success": True,
             "resolution": resolution.to_dict(),
-            "normalized_at": datetime.now(timezone.utc).isoformat()
+            "normalized_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -164,7 +164,7 @@ async def normalize_entities(request: Dict[str, Any],
         return JSONResponse(content={
             "success": True,
             "resolutions": [r.to_dict() for r in resolutions],
-            "normalized_at": datetime.now(timezone.utc).isoformat()
+            "normalized_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -181,7 +181,7 @@ async def analyze_case_intelligence(request: CaseAnalysisRequest,
         return JSONResponse(content={
             "success": True,
             "intelligence_report": report.__dict__,
-            "analyzed_at": datetime.now(timezone.utc).isoformat()
+            "analyzed_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -233,7 +233,7 @@ async def build_entity_graph(request: GraphVisualizationRequest,
             "success": True,
             "graph_data": graph_engine.export_graph_data(),
             "analysis": analysis.to_dict(),
-            "built_at": datetime.now(timezone.utc).isoformat()
+            "built_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -255,7 +255,7 @@ async def generate_graph_visualization(request: GraphVisualizationRequest,
         return JSONResponse(content={
             "success": True,
             "visualization": visualization_data,
-            "generated_at": datetime.now(timezone.utc).isoformat()
+            "generated_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -275,7 +275,7 @@ async def find_shortest_path(source_entity: str,
             "source_entity": source_entity,
             "target_entity": target_entity,
             "path": path,
-            "calculated_at": datetime.now(timezone.utc).isoformat()
+            "calculated_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -307,7 +307,7 @@ async def generate_report(request: ReportGenerationRequest,
         return JSONResponse(content={
             "success": True,
             "report": report.__dict__,
-            "generated_at": datetime.now(timezone.utc).isoformat()
+            "generated_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -354,7 +354,7 @@ async def export_report(report_id: str,
             "success": True,
             "export_data": export_data,
             "format": format,
-            "exported_at": datetime.now(timezone.utc).isoformat()
+            "exported_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -376,7 +376,7 @@ async def schedule_task(request: ScheduledTaskRequest,
             handler=request.task_name,
             parameters=request.parameters,
             enabled=request.enabled,
-            created_at=datetime.now(timezone.utc)
+            created_at=utc_now()
         )
         
         task_id = scheduler.add_scheduled_task(task)
@@ -385,7 +385,7 @@ async def schedule_task(request: ScheduledTaskRequest,
             "success": True,
             "task_id": task_id,
             "message": "Task scheduled successfully",
-            "scheduled_at": datetime.now(timezone.utc).isoformat()
+            "scheduled_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -401,7 +401,7 @@ async def get_scheduled_tasks(current_user = Depends(get_current_user)):
         return JSONResponse(content={
             "success": True,
             "tasks": tasks,
-            "retrieved_at": datetime.now(timezone.utc).isoformat()
+            "retrieved_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -419,7 +419,7 @@ async def remove_scheduled_task(task_id: str,
             "success": success,
             "task_id": task_id,
             "message": "Task removed successfully" if success else "Task not found",
-            "removed_at": datetime.now(timezone.utc).isoformat()
+            "removed_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -446,7 +446,7 @@ async def get_lis_statistics(current_user = Depends(get_current_user)):
                     "total_reports": len(report_stats),
                     "available_reports": report_stats
                 },
-                "generated_at": datetime.now(timezone.utc).isoformat()
+                "generated_at": utc_now().isoformat()
             }
         })
         
@@ -469,7 +469,7 @@ async def health_check():
             "scheduler": "operational",
             "gui_butler": "operational"
         },
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": utc_now().isoformat()
     })
 
 # Initialize storage layer

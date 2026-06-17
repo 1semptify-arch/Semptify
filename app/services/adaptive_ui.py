@@ -12,6 +12,7 @@ The GUI literally builds itself based on what's relevant to THIS tenant.
 """
 
 from dataclasses import dataclass, field
+from app.core.utc import utc_now
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
@@ -208,7 +209,7 @@ class AdaptiveUIEngine:
         
         # Check for timeline-based issues
         if ctx.lease_end:
-            days_to_end = (ctx.lease_end - datetime.now(timezone.utc)).days
+            days_to_end = (ctx.lease_end - utc_now()).days
             if 0 < days_to_end <= 30:
                 issues.append("lease_ending_soon")
             elif days_to_end <= 60:
@@ -546,7 +547,7 @@ class AdaptiveUIEngine:
         ctx = self.get_or_create_context(user_id)
         ctx.actions_taken.append({
             "action": action,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": utc_now().isoformat(),
         })
 
 

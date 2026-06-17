@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 import logging
 
 from app.core.security import get_current_user
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -53,11 +54,11 @@ class CoreSystemService:
         self.config_cache = {}
         self.session_store = {}
         self.log_store = []
-        self._start_time = datetime.now(timezone.utc)
+        self._start_time = utc_now()
 
     def _get_uptime(self) -> str:
         """Return human-readable uptime string."""
-        delta = datetime.now(timezone.utc) - self._start_time
+        delta = utc_now() - self._start_time
         total_seconds = int(delta.total_seconds())
         days = total_seconds // 86400
         hours = (total_seconds % 86400) // 3600
@@ -73,7 +74,7 @@ class CoreSystemService:
         self.config_cache[key] = {
             "value": value,
             "description": description,
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": utc_now().isoformat()
         }
     
     def create_session(self, user_id: str, ip_address: Optional[str] = None,
@@ -86,8 +87,8 @@ class CoreSystemService:
             "user_id": user_id,
             "ip_address": ip_address,
             "user_agent": user_agent,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "expires_at": (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat(),
+            "created_at": utc_now().isoformat(),
+            "expires_at": (utc_now() + timedelta(hours=1)).isoformat(),
             "is_active": True
         }
         
@@ -101,7 +102,7 @@ class CoreSystemService:
         session = self.session_store[session_id]
         expires_at = datetime.fromisoformat(session["expires_at"])
         
-        if not session["is_active"] or expires_at < datetime.now(timezone.utc):
+        if not session["is_active"] or expires_at < utc_now():
             return None
         
         return session["user_id"]
@@ -113,7 +114,7 @@ class CoreSystemService:
             "module": module,
             "message": message,
             "data": data,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": utc_now().isoformat()
         }
         
         self.log_store.append(log_entry)
@@ -179,7 +180,7 @@ async def health_check():
         # Basic health checks
         health_status = {
             "status": "healthy",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": utc_now().isoformat(),
             "version": "5.0.0",
             "services": {
                 "core_system": "healthy",
@@ -194,7 +195,7 @@ async def health_check():
         logger.error(f"Health check failed: {e}")
         return JSONResponse(content={
             "status": "unhealthy",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": utc_now().isoformat(),
             "error": str(e)
         }, status_code=503)
 
@@ -207,7 +208,7 @@ async def system_status(current_user = Depends(get_current_user)):
         return JSONResponse(content={
             "success": True,
             "status": status,
-            "retrieved_at": datetime.now(timezone.utc).isoformat()
+            "retrieved_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -227,7 +228,7 @@ async def get_system_config(current_user = Depends(get_current_user)):
         return JSONResponse(content={
             "success": True,
             "config": safe_config,
-            "retrieved_at": datetime.now(timezone.utc).isoformat()
+            "retrieved_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -244,7 +245,7 @@ async def update_system_config(request: SystemConfigRequest,
         return JSONResponse(content={
             "success": True,
             "message": f"Configuration '{request.key}' updated successfully",
-            "updated_at": datetime.now(timezone.utc).isoformat()
+            "updated_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -265,7 +266,7 @@ async def create_session(request: SessionCreateRequest):
             "success": True,
             "session_id": session_id,
             "user_id": request.user_id,
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -282,7 +283,7 @@ async def validate_session(session_id: str):
             "success": True,
             "valid": user_id is not None,
             "user_id": user_id,
-            "validated_at": datetime.now(timezone.utc).isoformat()
+            "validated_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -304,7 +305,7 @@ async def destroy_session(session_id: str,
             "success": True,
             "message": message,
             "session_id": session_id,
-            "destroyed_at": datetime.now(timezone.utc).isoformat()
+            "destroyed_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -326,7 +327,7 @@ async def add_system_log(request: SystemLogRequest,
         return JSONResponse(content={
             "success": True,
             "message": "Log entry added successfully",
-            "logged_at": datetime.now(timezone.utc).isoformat()
+            "logged_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -350,7 +351,7 @@ async def get_system_logs(level: Optional[str] = None,
                 "module": module,
                 "limit": limit
             },
-            "retrieved_at": datetime.now(timezone.utc).isoformat()
+            "retrieved_at": utc_now().isoformat()
         })
         
     except Exception as e:
@@ -370,7 +371,7 @@ async def get_system_statistics(current_user = Depends(get_current_user)):
                 "application": status["application"],
                 "modules": status["modules"]
             },
-            "retrieved_at": datetime.now(timezone.utc).isoformat()
+            "retrieved_at": utc_now().isoformat()
         })
         
     except Exception as e:

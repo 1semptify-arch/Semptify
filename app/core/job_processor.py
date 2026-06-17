@@ -8,6 +8,7 @@ Handles asynchronous background jobs for document analysis and processing.
 import logging
 import asyncio
 from app.core.id_gen import make_id
+from app.core.utc import utc_now
 import json
 import time
 from typing import Dict, Any, List, Optional, Callable, Union
@@ -44,7 +45,7 @@ class Job:
     payload: Dict[str, Any]
     status: JobStatus = JobStatus.PENDING
     priority: JobPriority = JobPriority.NORMAL
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: utc_now())
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     error_message: Optional[str] = None
@@ -217,7 +218,7 @@ class JobProcessor:
     def _process_job(self, job: Job):
         """Process a single job."""
         job.status = JobStatus.RUNNING
-        job.started_at = datetime.now(timezone.utc)
+        job.started_at = utc_now()
         self.running_jobs[job.id] = job
         
         start_time = time.time()
@@ -241,7 +242,7 @@ class JobProcessor:
             job.status = JobStatus.COMPLETED
             job.result = result
             job.progress = 100.0
-            job.completed_at = datetime.now(timezone.utc)
+            job.completed_at = utc_now()
             
             self.stats["jobs_processed"] += 1
             
@@ -252,7 +253,7 @@ class JobProcessor:
             
         except Exception as e:
             job.error_message = str(e)
-            job.completed_at = datetime.now(timezone.utc)
+            job.completed_at = utc_now()
             
             # Check if should retry
             if job.retry_count < job.max_retries:
@@ -340,7 +341,7 @@ class JobProcessor:
                 WebSocketMessage(
                     type="job_update",
                     data=notification_data,
-                    timestamp=datetime.now(timezone.utc)
+                    timestamp=utc_now()
                 )
             ))
             
@@ -536,7 +537,7 @@ def register_default_handlers(processor: JobProcessor):
             "document_id": document_id,
             "indexed_words": len(content.split()),
             "keywords": ["housing", "tenant", "rights"][:10],
-            "indexed_at": datetime.now(timezone.utc).isoformat()
+            "indexed_at": utc_now().isoformat()
         }
     
     # Register handlers

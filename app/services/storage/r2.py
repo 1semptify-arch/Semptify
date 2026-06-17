@@ -11,6 +11,7 @@ R2 stores only system-level data that must survive server restarts:
 """
 
 import json
+from app.core.utc import utc_now
 import logging
 from datetime import datetime, timezone
 from typing import Optional
@@ -111,7 +112,7 @@ class R2Provider(StorageProvider):
             path=key,
             size=len(file_content),
             mime_type=content_type,
-            modified_at=datetime.now(timezone.utc),
+            modified_at=utc_now(),
         )
 
     async def download_file(self, file_path: str) -> bytes:
@@ -161,7 +162,7 @@ class R2Provider(StorageProvider):
                         path=key,
                         size=obj.get("Size", 0),
                         mime_type="application/octet-stream",
-                        modified_at=obj.get("LastModified", datetime.now(timezone.utc)),
+                        modified_at=obj.get("LastModified", utc_now()),
                     ))
 
         return files

@@ -14,6 +14,7 @@ from typing import Optional
 import httpx
 
 from app.core.config import get_settings
+from app.core.utc import utc_now
 import logging
 logger = logging.getLogger(__name__)
 
@@ -154,7 +155,7 @@ class AzureAIService:
             key_terms=analysis.get("key_terms", []),
             full_text=full_text,
             raw_response=raw_result,
-            analyzed_at=datetime.now(timezone.utc)
+            analyzed_at=utc_now()
         )
 
     async def _extract_with_doc_intelligence(

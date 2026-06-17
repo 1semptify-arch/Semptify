@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 from app.core.id_gen import make_id
+from app.core.utc import utc_now
 import logging
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ class TrainingExample:
     # Metadata
     user_id: str = ""
     county: str = "Dakota"
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: utc_now())
 
 
 class DocumentTrainingService:

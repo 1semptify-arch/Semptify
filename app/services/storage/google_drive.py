@@ -11,6 +11,7 @@ import secrets
 import httpx
 
 from app.core.path_utils import normalize_cloud_path
+from app.core.utc import utc_now
 from app.services.storage.base import StorageProvider, StorageFile
 import logging
 logger = logging.getLogger(__name__)
@@ -202,7 +203,7 @@ class GoogleDriveProvider(StorageProvider):
                             path=f"{destination_path}/{filename}",
                             size=len(file_content),
                             mime_type=mime_type,
-                            modified_at=datetime.now(timezone.utc),
+                            modified_at=utc_now(),
                         )
                 else:
                     # CREATE new file using multipart upload so name + parent are set
@@ -267,7 +268,7 @@ class GoogleDriveProvider(StorageProvider):
                             path=f"{destination_path}/{filename}",
                             size=len(file_content),
                             mime_type=mime_type,
-                            modified_at=datetime.now(timezone.utc),
+                            modified_at=utc_now(),
                         )
 
         raise Exception("Upload failed")
@@ -392,7 +393,7 @@ class GoogleDriveProvider(StorageProvider):
                         mime_type=item["mimeType"],
                         modified_at=datetime.fromisoformat(
                             item.get("modifiedTime", "").replace("Z", "+00:00")
-                        ) if item.get("modifiedTime") else datetime.now(timezone.utc),
+                        ) if item.get("modifiedTime") else utc_now(),
                         is_folder=is_folder,
                     ))
 

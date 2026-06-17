@@ -297,7 +297,7 @@ def get_client() -> httpx.AsyncClient:
 # UTILITIES
 # =============================================================================
 def now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return utc_now().isoformat()
 
 
 async def _get_json(url: str, params: Optional[Dict[str, Any]] = None, headers: Optional[Dict[str, str]] = None) -> Dict[str, Any]:

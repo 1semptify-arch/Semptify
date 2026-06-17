@@ -17,6 +17,7 @@ from app.core.database import get_db
 from app.core.config import get_settings, Settings
 from app.core.security import require_user, StorageUser, yellow_access
 from app.core.vault_paths import SEMPTIFY_ROOT, VAULT_DOCUMENTS, VAULT_CERTIFICATES, VAULT_ROOT
+from app.core.utc import utc_now
 from .service import (
     UserCloudSync,
     UserProfile,
@@ -211,7 +212,7 @@ async def get_sync_status(
         return SyncResponse(
             status=sync.status.value,
             user_id=user.user_id,
-            synced_at=datetime.now(timezone.utc).isoformat(),
+            synced_at=utc_now().isoformat(),
             **summary,
         )
     except HTTPException:
@@ -385,7 +386,7 @@ async def add_timeline_event(
         "description": event.description,
         "event_date": event.event_date,
         "is_evidence": event.is_evidence,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": utc_now().isoformat(),
     }
     
     await sync.add_timeline_event(event_data)
@@ -433,7 +434,7 @@ async def add_calendar_event(
         "end_datetime": event.end_datetime,
         "is_critical": event.is_critical,
         "reminder_days": event.reminder_days,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": utc_now().isoformat(),
     }
     
     events.append(event_data)
@@ -682,14 +683,14 @@ async def update_vault_document(
                     doc["document_type"] = document_type
                 if tags is not None:
                     doc["tags"] = [t.strip() for t in tags.split(",") if t.strip()]
-                doc["updated_at"] = datetime.now(timezone.utc).isoformat()
+                doc["updated_at"] = utc_now().isoformat()
                 updated = True
                 break
         
         if not updated:
             raise HTTPException(status_code=404, detail="Document not found in vault")
         
-        vault_index["last_updated"] = datetime.now(timezone.utc).isoformat()
+        vault_index["last_updated"] = utc_now().isoformat()
         
         await sync.storage.upload_file(
             f"{vault_folder}/index.json",
@@ -787,7 +788,7 @@ async def upload_document_to_cloud(
         )
     
     # Create certificate
-    certificate_id = f"cert_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{document_id[:8]}"
+    certificate_id = f"cert_{utc_now().strftime('%Y%m%d_%H%M%S')}_{document_id[:8]}"
     certificate = {
         "certificate_id": certificate_id,
         "document_id": document_id,
@@ -800,7 +801,7 @@ async def upload_document_to_cloud(
         "description": notes,
         "tags": tag_list,
         "folder": folder,
-        "certified_at": datetime.now(timezone.utc).isoformat(),
+        "certified_at": utc_now().isoformat(),
         "request_id": make_id("req"),
         "storage_path": storage_path,
         "storage_provider": user.provider,
@@ -838,11 +839,11 @@ async def upload_document_to_cloud(
             "folder": folder,
             "storage_path": storage_path,
             "certificate_id": certificate_id,
-            "uploaded_at": datetime.now(timezone.utc).isoformat(),
+            "uploaded_at": utc_now().isoformat(),
             "processed": False,
             "registered": False,
         })
-        vault_index["last_updated"] = datetime.now(timezone.utc).isoformat()
+        vault_index["last_updated"] = utc_now().isoformat()
         
         # Save updated index
         await sync.storage.upload_file(

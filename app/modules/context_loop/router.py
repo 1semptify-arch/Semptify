@@ -10,6 +10,7 @@ from typing import Optional
 from datetime import datetime, timezone
 
 from app.core.security import get_optional_user_id, sanitize_user_input
+from app.core.utc import utc_now
 from .service import (
     context_loop,
     EventType,
@@ -162,7 +163,7 @@ async def report_issue(
     issue_data = {
         "type": issue_type,
         "description": sanitize_user_input(description),
-        "reported_at": datetime.now(timezone.utc).isoformat(),
+        "reported_at": utc_now().isoformat(),
     }
 
     if deadline:
@@ -203,7 +204,7 @@ async def add_deadline(
         "date": date,
         "deadline": date,  # Also store as "deadline" for intensity calculation
         "description": sanitize_user_input(description),
-        "id": f"dl_{datetime.now(timezone.utc).timestamp()}",
+        "id": f"dl_{utc_now().timestamp()}",
     }
 
     event = context_loop.emit_event(

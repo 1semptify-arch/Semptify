@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 
 from app.core.security import require_user, StorageUser, red_access
 from app.core.data_export_import import (
+from app.core.utc import utc_now
     get_export_import_manager, ExportType, ExportFormat, ImportFormat,
     create_export_request, process_export_request, get_export_request,
     get_user_exports, cleanup_expired_exports, get_export_statistics
@@ -219,7 +220,7 @@ async def download_export_endpoint(
         if export_request.get("expires_at"):
             from datetime import datetime, timezone
             expires_at = datetime.fromisoformat(export_request["expires_at"])
-            if datetime.now(timezone.utc) > expires_at:
+            if utc_now() > expires_at:
                 raise HTTPException(status_code=410, detail="Export has expired")
         
         # Determine filename and media type

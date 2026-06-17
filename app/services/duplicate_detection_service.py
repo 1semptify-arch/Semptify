@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 from datetime import datetime, timezone
 
 from app.core.overlay_types import OverlayType
+from app.core.utc import utc_now
 from app.models.unified_overlay_models import CreateOverlayRequest
 
 logger = logging.getLogger(__name__)
@@ -60,7 +61,7 @@ async def detect_duplicates(
                         "sha256_hash": sha256_hash,
                         "filename": filename,
                         "duplicate_count": duplicate_count + 1,
-                        "detected_at": datetime.now(timezone.utc).isoformat(),
+                        "detected_at": utc_now().isoformat(),
                     },
                 )
                 
@@ -69,7 +70,7 @@ async def detect_duplicates(
                 # Update original overlay with new count
                 original_overlay_data = overlay.payload.copy()
                 original_overlay_data["duplicate_count"] = duplicate_count + 1
-                original_overlay_data["last_duplicate_detected"] = datetime.now(timezone.utc).isoformat()
+                original_overlay_data["last_duplicate_detected"] = utc_now().isoformat()
                 
                 # Note: In a real implementation, you'd update the existing overlay
                 # For now, we'll create a new overlay with updated info
@@ -103,7 +104,7 @@ async def detect_duplicates(
                 "sha256_hash": sha256_hash,
                 "filename": filename,
                 "duplicate_count": 1,
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": utc_now().isoformat(),
             },
         )
         

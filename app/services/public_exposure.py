@@ -10,6 +10,7 @@ Generates professional press releases and media kits for:
 """
 
 import logging
+from app.core.utc import utc_now
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
@@ -260,7 +261,7 @@ class PublicExposureService:
         cta = template["cta_template"].format(contact=contact_name)
         
         # Create release
-        release_id = f"pr_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+        release_id = f"pr_{utc_now().strftime('%Y%m%d%H%M%S')}"
         release = PressRelease(
             id=release_id,
             headline=headline,
@@ -272,7 +273,7 @@ class PublicExposureService:
             boilerplate=template["boilerplate"],
             contact_info=contact_info,
             bundle_link=bundle_link,
-            created_at=datetime.now(timezone.utc),
+            created_at=utc_now(),
             language=language,
         )
         
@@ -340,7 +341,7 @@ class PublicExposureService:
         ]
         
         # Create kit
-        kit_id = f"mk_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
+        kit_id = f"mk_{utc_now().strftime('%Y%m%d%H%M%S')}"
         kit = MediaKit(
             id=kit_id,
             press_release=press_release,
@@ -350,7 +351,7 @@ class PublicExposureService:
             suggested_angles=suggested_angles,
             media_targets=media_targets,
             social_media_posts=social_posts,
-            created_at=datetime.now(timezone.utc),
+            created_at=utc_now(),
         )
         
         self._kits[kit_id] = kit

@@ -45,6 +45,7 @@ from dataclasses import dataclass, asdict, field
 import base64
 
 from app.core.config import get_settings
+from app.core.utc import utc_now
 
 settings = get_settings()
 
@@ -250,7 +251,7 @@ class LegalIntegrity:
         """
         from app.services.storage.tsa import stamp_document_hash
 
-        now = datetime.now(timezone.utc)
+        now = utc_now()
         timestamp = now.isoformat()
         document_hash = hash_document(document_content)
 
@@ -346,7 +347,7 @@ class LegalIntegrity:
         Create tamper-evident audit log entry.
         Each entry chains to the previous for tamper detection.
         """
-        now = datetime.now(timezone.utc)
+        now = utc_now()
         
         # Get previous entry hash for chaining
         previous_hash = ""
@@ -421,7 +422,7 @@ class LegalIntegrity:
         audit_verification = self.verify_audit_chain(audit_entries)
         
         return {
-            "report_generated": datetime.now(timezone.utc).isoformat(),
+            "report_generated": utc_now().isoformat(),
             "report_type": "Document Integrity & Chain of Custody",
             
             "document_info": {
@@ -483,7 +484,7 @@ class TokenIntegrity:
         Wrap token with integrity hash.
         This is stored alongside encrypted token.
         """
-        now = datetime.now(timezone.utc).isoformat()
+        now = utc_now().isoformat()
         
         # Create integrity wrapper
         wrapped = {
@@ -564,7 +565,7 @@ async def create_notarized_timestamp(document_hash: str = "") -> Dict[str, str]:
     """
     from app.services.storage.tsa import stamp_document_hash
 
-    now = datetime.now(timezone.utc)
+    now = utc_now()
     timestamp = now.isoformat()
     hash_to_stamp = document_hash or hashlib.sha256(timestamp.encode()).hexdigest()
 

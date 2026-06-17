@@ -6,6 +6,7 @@ Provides consistent error responses and user feedback across the application.
 """
 
 import logging
+from app.core.utc import utc_now
 import traceback
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any
@@ -122,7 +123,7 @@ def create_error_response(
         "error": {
             "code": error.error_code,
             "message": error.user_message,
-            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            "timestamp": utc_now().isoformat().replace("+00:00", "Z")
         }
     }
     

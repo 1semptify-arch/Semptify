@@ -13,6 +13,7 @@ from typing import Optional, Dict, Any
 from dataclasses import dataclass, asdict
 
 from app.core.config import get_settings
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -31,13 +32,13 @@ class OAuthToken:
         if not self.expires_at:
             return False  # No expiration info, assume valid
         expiry_buffer = timedelta(minutes=buffer_minutes)
-        return datetime.now(timezone.utc) >= (self.expires_at - expiry_buffer)
+        return utc_now() >= (self.expires_at - expiry_buffer)
     
     def expires_in_seconds(self) -> int:
         """Get seconds until token expires."""
         if not self.expires_at:
             return 3600  # Default to 1 hour if no expiration
-        delta = self.expires_at - datetime.now(timezone.utc)
+        delta = self.expires_at - utc_now()
         return max(0, int(delta.total_seconds()))
 
 class OAuthTokenManager:
@@ -122,7 +123,7 @@ class OAuthTokenManager:
     def _parse_expires_at(self, expires_in: Optional[int]) -> Optional[datetime]:
         """Parse expires_in to datetime."""
         if expires_in:
-            return datetime.now(timezone.utc) + timedelta(seconds=expires_in)
+            return utc_now() + timedelta(seconds=expires_in)
         return None
     
     def get_valid_token(self, user_id: str) -> Optional[OAuthToken]:

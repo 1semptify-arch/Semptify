@@ -7,6 +7,7 @@ the Vault Installer for token backup creation.
 """
 
 import json
+from app.core.utc import utc_now
 import secrets
 import hashlib
 from dataclasses import dataclass, asdict
@@ -74,7 +75,7 @@ class MasterToken:
 
     def record_validation(self):
         """Record that token was validated."""
-        self.last_validated = datetime.now(timezone.utc).isoformat()
+        self.last_validated = utc_now().isoformat()
         self.validation_count += 1
 
 

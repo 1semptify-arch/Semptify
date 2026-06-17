@@ -10,6 +10,7 @@ Analyzes landlord fraud patterns including:
 """
 
 import logging
+from app.core.utc import utc_now
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
@@ -307,7 +308,7 @@ class FraudExposureService:
         recommendations = self._generate_recommendations(findings)
         
         # Create report
-        report_id = f"fr_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}_{landlord_id[:8]}"
+        report_id = f"fr_{utc_now().strftime('%Y%m%d%H%M%S')}_{landlord_id[:8]}"
         report = FraudReport(
             id=report_id,
             landlord_id=landlord_id,
@@ -315,7 +316,7 @@ class FraudExposureService:
             findings=findings,
             total_potential_damages=total_damages,
             risk_score=risk_score,
-            created_at=datetime.now(timezone.utc),
+            created_at=utc_now(),
             recommendations=recommendations,
         )
         

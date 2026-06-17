@@ -84,7 +84,7 @@ class ReportingLayer:
         report = LitigationReport(
             report_id=f"case_summary_{utc_now().timestamp()}",
             report_type=ReportType.CASE_SUMMARY,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=utc_now(),
             time_period=time_period,
             metrics=case_metrics,
             insights=insights,
@@ -117,7 +117,7 @@ class ReportingLayer:
         report = LitigationReport(
             report_id=f"entity_analysis_{entity_type}_{utc_now().timestamp()}",
             report_type=ReportType.ENTITY_ANALYSIS,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=utc_now(),
             time_period=time_period,
             metrics=entity_metrics,
             insights=insights,
@@ -149,7 +149,7 @@ class ReportingLayer:
         report = LitigationReport(
             report_id=f"pattern_trends_{utc_now().timestamp()}",
             report_type=ReportType.PATTERN_TRENDS,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=utc_now(),
             time_period=time_period,
             metrics=pattern_metrics,
             insights=insights,
@@ -181,7 +181,7 @@ class ReportingLayer:
         report = LitigationReport(
             report_id=f"success_metrics_{utc_now().timestamp()}",
             report_type=ReportType.SUCCESS_METRICS,
-            generated_at=datetime.now(timezone.utc),
+            generated_at=utc_now(),
             time_period=time_period,
             metrics=success_metrics,
             insights=insights,

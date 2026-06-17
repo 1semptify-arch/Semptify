@@ -83,7 +83,7 @@ class StatelessOAuthManager:
                 "access_token": access_token,
                 "refresh_token": refresh_token,
                 "expires_at": expires_at,
-                "stored_at": datetime.now(timezone.utc).isoformat(),
+                "stored_at": utc_now().isoformat(),
             }
             
             # Store in user's cloud storage
