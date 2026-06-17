@@ -109,6 +109,16 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-16 — Milestone 8b: Rent Ledger PUT Endpoint (COMPLETE)
+**Files: `app/modules/rent/router.py`, `tests/e2e/rent_ledger_smoke.spec.js`**
+
+### What Was Fixed
+- Added `PUT /api/rent/payments/:id` to complete full CRUD (Create, Read, Update, Delete)
+- `RentPaymentUpdate` model with all optional fields for partial updates
+- Added smoke test for PUT endpoint (7/7 rent ledger tests passing)
+
+---
+
 ## Session — 2026-06-16 — Milestone 8: Rent Ledger CRUD Router (COMPLETE)
 **Files: `app/modules/rent/router.py`, `app/core/product_manifest.py`, `tests/e2e/rent_ledger_smoke.spec.js`**
 
