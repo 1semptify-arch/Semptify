@@ -9,7 +9,7 @@ Extracts, analyzes, and visualizes legal data from Minnesota courts.
 from .court_scraper import CourtScraperPack
 from .entity_normalizer import EntityNormalizer
 from .intelligence_engine import LitigationIntelligenceEngine
-from .graph_engine import GraphEngine
+# from .graph_engine import GraphEngine  # TODO: graph_engine not implemented yet
 from .storage_layer import LitigationStorageLayer
 from .reporting_layer import ReportingLayer
 from .gui_butler import GUIButlerIntegration
@@ -19,9 +19,9 @@ logger = logging.getLogger(__name__)
 
 __all__ = [
     'CourtScraperPack',
-    'EntityNormalizer', 
+    'EntityNormalizer',
     'LitigationIntelligenceEngine',
-    'GraphEngine',
+    # 'GraphEngine',  # TODO: graph_engine not implemented yet
     'LitigationStorageLayer',
     'ReportingLayer',
     'GUIButlerIntegration',
