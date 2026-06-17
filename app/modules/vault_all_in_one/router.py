@@ -29,16 +29,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.core.security import get_user_id
 from .service import (
-    VaultIngestionService,
-    IngestionRequest,
-    VaultIngestionError,
-)
-from .service import (
     VaultSearchService,
     SearchCriteria,
     TimelineMode,
     SortOrder,
 )
+from app.services.vault_ingestion import VaultIngestionService, IngestionRequest, VaultIngestionError
 from app.models.models import VaultItem, Incident
 
 router = APIRouter(prefix="/vault", tags=["vault"])

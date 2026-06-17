@@ -15,14 +15,14 @@ from datetime import datetime, timezone
 import logging
 
 from app.core.security import get_current_user
-from ..modules.litigation_intelligence.court_scraper import create_court_scraper
-from ..modules.litigation_intelligence.entity_normalizer import create_entity_normalizer
-from ..modules.litigation_intelligence.intelligence_engine import create_intelligence_engine
-from ..modules.litigation_intelligence.graph_engine import create_graph_engine
-from ..modules.litigation_intelligence.storage_layer import create_storage_layer
-from ..modules.litigation_intelligence.reporting_layer import create_reporting_layer
-from ..modules.litigation_intelligence.gui_butler import create_gui_butler
-from ..modules.litigation_intelligence.scheduler import create_litigation_scheduler
+from .court_scraper import create_court_scraper
+from .entity_normalizer import create_entity_normalizer
+from .intelligence_engine import create_intelligence_engine
+# from .graph_engine import create_graph_engine  # TODO: graph_engine not implemented
+from .storage_layer import create_storage_layer
+from .reporting_layer import create_reporting_layer
+from .gui_butler import create_gui_butler
+from .scheduler import create_litigation_scheduler
 from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
@@ -73,7 +73,7 @@ class ScheduledTaskRequest(BaseModel):
 court_scraper = create_court_scraper()
 entity_normalizer = create_entity_normalizer()
 intelligence_engine = create_intelligence_engine()
-graph_engine = create_graph_engine()
+# graph_engine = create_graph_engine()  # TODO: graph_engine not implemented
 storage_layer = create_storage_layer("postgresql://user:password@localhost/semptify_lis")
 reporting_layer = create_reporting_layer()
 gui_butler = create_gui_butler()
@@ -215,27 +215,29 @@ async def build_entity_graph(request: GraphVisualizationRequest,
                            current_user = Depends(get_current_user)):
     """Build entity relationship graph."""
     try:
-        graph_engine.build_from_entities(request.entities)
+        # TODO: graph_engine not implemented
+        raise HTTPException(status_code=501, detail="Graph engine not implemented")
         
-        if request.relationship_data:
-            for rel in request.relationship_data:
-                graph_engine.add_relationship(
-                    rel.get("source"),
-                    rel.get("target"),
-                    rel.get("type", "related_to"),
-                    rel.get("weight", 1.0),
-                    rel.get("attributes", {})
-                )
+        # graph_engine.build_from_entities(request.entities)
+        # if request.relationship_data:
+        #     for rel in request.relationship_data:
+        #         graph_engine.add_relationship(
+        #             rel.get("source"),
+        #             rel.get("target"),
+        #             rel.get("type", "related_to"),
+        #             rel.get("weight", 1.0),
+        #             rel.get("attributes", {})
+        #         )
+        # analysis = graph_engine.analyze_graph()
+        # return JSONResponse(content={
+        #     "success": True,
+        #     "graph_data": graph_engine.export_graph_data(),
+        #     "analysis": analysis.to_dict(),
+        #     "built_at": utc_now().isoformat()
+        # })
         
-        analysis = graph_engine.analyze_graph()
-        
-        return JSONResponse(content={
-            "success": True,
-            "graph_data": graph_engine.export_graph_data(),
-            "analysis": analysis.to_dict(),
-            "built_at": utc_now().isoformat()
-        })
-        
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Graph building failed: {e}")
         raise HTTPException(status_code=500, detail=f"Graph building failed: {str(e)}")
@@ -245,19 +247,21 @@ async def generate_graph_visualization(request: GraphVisualizationRequest,
                                   current_user = Depends(get_current_user)):
     """Generate graph visualization."""
     try:
-        # Build graph first
-        graph_engine.build_from_entities(request.entities)
+        # TODO: graph_engine not implemented
+        raise HTTPException(status_code=501, detail="Graph engine not implemented")
         
-        visualization_data = graph_engine.generate_visualization(
-            request.visualization_options.get("format", "png")
-        )
+        # graph_engine.build_from_entities(request.entities)
+        # visualization_data = graph_engine.generate_visualization(
+        #     request.visualization_options.get("format", "png")
+        # )
+        # return JSONResponse(content={
+        #     "success": True,
+        #     "visualization": visualization_data,
+        #     "generated_at": utc_now().isoformat()
+        # })
         
-        return JSONResponse(content={
-            "success": True,
-            "visualization": visualization_data,
-            "generated_at": utc_now().isoformat()
-        })
-        
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Graph visualization failed: {e}")
         raise HTTPException(status_code=500, detail=f"Visualization failed: {str(e)}")
@@ -268,16 +272,20 @@ async def find_shortest_path(source_entity: str,
                              current_user = Depends(get_current_user)):
     """Find shortest path between entities."""
     try:
-        path = graph_engine.find_shortest_path(source_entity, target_entity)
+        # TODO: graph_engine not implemented
+        raise HTTPException(status_code=501, detail="Graph engine not implemented")
         
-        return JSONResponse(content={
-            "success": True,
-            "source_entity": source_entity,
-            "target_entity": target_entity,
-            "path": path,
-            "calculated_at": utc_now().isoformat()
-        })
+        # path = graph_engine.find_shortest_path(source_entity, target_entity)
+        # return JSONResponse(content={
+        #     "success": True,
+        #     "source_entity": source_entity,
+        #     "target_entity": target_entity,
+        #     "path": path,
+        #     "calculated_at": utc_now().isoformat()
+        # })
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Path finding failed: {e}")
         raise HTTPException(status_code=500, detail=f"Path finding failed: {str(e)}")
@@ -433,7 +441,7 @@ async def get_lis_statistics(current_user = Depends(get_current_user)):
         # Get statistics from all components
         storage_stats = await storage_layer.get_statistics()
         pattern_stats = intelligence_engine.get_pattern_statistics()
-        graph_stats = graph_engine.analyze_graph()
+        # graph_stats = graph_engine.analyze_graph()  # TODO: graph_engine not implemented
         report_stats = reporting_layer.get_available_reports()
         
         return JSONResponse(content={
@@ -441,7 +449,7 @@ async def get_lis_statistics(current_user = Depends(get_current_user)):
             "statistics": {
                 "storage": storage_stats,
                 "patterns": pattern_stats,
-                "graph": graph_stats.to_dict(),
+                "graph": {"status": "not_implemented"},  # TODO: graph_engine not implemented
                 "reports": {
                     "total_reports": len(report_stats),
                     "available_reports": report_stats

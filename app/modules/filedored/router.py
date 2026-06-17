@@ -8,7 +8,7 @@ from app.core.security import require_user, StorageUser
 from app.services.filedored_service import process_uploaded_document, ensure_filedored_folders
 from app.services.vault_upload_service import VaultUploadService
 from app.services.unified_overlay_manager import get_unified_overlay_manager
-from app.core.storage_factory import get_storage_provider
+from app.services.storage import get_provider
 
 logger = logging.getLogger(__name__)
 
@@ -117,7 +117,12 @@ async def check_folders(user: StorageUser = Depends(require_user)):
     """Check and ensure filedored folders exist in vault."""
     try:
         # Get storage provider
-        storage_provider = await get_storage_provider(user.user_id)
+        from app.core.oauth_token_manager import get_valid_token_for_user
+        token = await get_valid_token_for_user(user.user_id)
+        if not token:
+            raise HTTPException(status_code=400, detail="No storage token found")
+        
+        storage_provider = get_provider(user.provider.value, access_token=token)
         if not storage_provider:
             raise HTTPException(status_code=400, detail="No storage provider found")
         
@@ -153,8 +158,13 @@ async def browse_folder(
 ):
     """Browse documents in a filedored virtual folder."""
     try:
-        # Get overlay manager
-        storage_provider = await get_storage_provider(user.user_id)
+        # Get storage provider
+        from app.core.oauth_token_manager import get_valid_token_for_user
+        token = await get_valid_token_for_user(user.user_id)
+        if not token:
+            raise HTTPException(status_code=400, detail="No storage token found")
+        
+        storage_provider = get_provider(user.provider.value, access_token=token)
         if not storage_provider:
             raise HTTPException(status_code=400, detail="No storage provider found")
         
@@ -218,7 +228,12 @@ async def list_folders(user: StorageUser = Depends(require_user)):
         )
         
         # Get storage provider and overlay manager
-        storage_provider = await get_storage_provider(user.user_id)
+        from app.core.oauth_token_manager import get_valid_token_for_user
+        token = await get_valid_token_for_user(user.user_id)
+        if not token:
+            raise HTTPException(status_code=400, detail="No storage token found")
+        
+        storage_provider = get_provider(user.provider.value, access_token=token)
         if not storage_provider:
             raise HTTPException(status_code=400, detail="No storage provider found")
         
