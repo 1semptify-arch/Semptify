@@ -587,5 +587,5 @@ async def get_user_context(
         "role": UserRole.USER.value,
         "storage_provider": storage_provider,
         "gates": [],
-        "permissions": get_permissions_for_role(UserRole.USER),
+        "permissions": list(get_permissions(UserRole.USER)),
     }
