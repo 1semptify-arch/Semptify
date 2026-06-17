@@ -24,6 +24,7 @@ import logging
 from typing import Optional, Dict, Any
 from datetime import datetime, timezone
 
+from app.core.utc import utc_now
 from app.core.user_id import parse_user_id, generate_user_id
 from app.core.cookie_auth import sign_user_id, verify_user_id
 from app.core.vault_paths import AUTH_FOLDER, SEMPTIFY_ROOT
@@ -225,7 +226,7 @@ class StatelessOAuthManager:
         expires_at = token_data.get("expires_at")
         if expires_at:
             expires_datetime = datetime.fromtimestamp(expires_at, timezone.utc)
-            if datetime.now(timezone.utc) < expires_datetime:
+            if utc_now() < expires_datetime:
                 # Token still valid
                 return token_data.get("access_token")
         
