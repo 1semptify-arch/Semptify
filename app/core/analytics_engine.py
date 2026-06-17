@@ -22,6 +22,7 @@ from collections import defaultdict
 from enum import Enum
 import hashlib
 from app.core.id_gen import make_id
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +151,7 @@ class AnalyticsEngine:
         event = AnalyticsEvent(
             event_id=event_id,
             event_type=event_type,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             user_id=user_id,
             session_id=session_id,
             endpoint=endpoint,
@@ -248,7 +249,7 @@ class AnalyticsEngine:
         await self._flush_buffer()
         
         # Default time range
-        end_time = end_time or datetime.now(timezone.utc)
+        end_time = end_time or utc_now()
         if period == TimePeriod.HOUR:
             start_time = start_time or (end_time - timedelta(hours=1))
         elif period == TimePeriod.DAY:
@@ -342,7 +343,7 @@ class AnalyticsEngine:
             events = [e for e in events if e.timestamp <= end_time]
         
         data = {
-            "exported_at": datetime.now(timezone.utc).isoformat(),
+            "exported_at": utc_now().isoformat(),
             "total_events": len(events),
             "events": [e.to_dict() for e in events]
         }

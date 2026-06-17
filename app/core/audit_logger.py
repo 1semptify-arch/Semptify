@@ -7,7 +7,8 @@ Tracks all document access, modifications, and security events.
 
 import logging
 import json
-from datetime import datetime, timezone
+from datetime import datetime
+from app.core.utc import utc_now
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass, asdict
 from enum import Enum
@@ -125,7 +126,7 @@ class AuditLogger:
         event = AuditEvent(
             event_type=AuditEventType.DOCUMENT_UPLOAD,
             user_id=user_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             severity=AuditSeverity.MEDIUM,
             ip_address=ip_address,
             user_agent=user_agent,
@@ -148,7 +149,7 @@ class AuditLogger:
         event = AuditEvent(
             event_type=AuditEventType.DOCUMENT_DOWNLOAD,
             user_id=user_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             severity=AuditSeverity.MEDIUM,
             ip_address=ip_address,
             user_agent=user_agent,
@@ -169,7 +170,7 @@ class AuditLogger:
         event = AuditEvent(
             event_type=AuditEventType.DOCUMENT_VIEW,
             user_id=user_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             severity=AuditSeverity.LOW,
             ip_address=ip_address,
             user_agent=user_agent,
@@ -189,7 +190,7 @@ class AuditLogger:
         event = AuditEvent(
             event_type=AuditEventType.DOCUMENT_DELETE,
             user_id=user_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             severity=AuditSeverity.HIGH,
             ip_address=ip_address,
             user_agent=user_agent,
@@ -210,7 +211,7 @@ class AuditLogger:
         event = AuditEvent(
             event_type=AuditEventType.FILE_VALIDATION_FAILURE,
             user_id=user_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             severity=AuditSeverity.HIGH,
             ip_address=ip_address,
             user_agent=user_agent,
@@ -233,7 +234,7 @@ class AuditLogger:
         event = AuditEvent(
             event_type=AuditEventType.SECURITY_VIOLATION,
             user_id=user_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             severity=severity,
             ip_address=ip_address,
             user_agent=user_agent,
@@ -254,7 +255,7 @@ class AuditLogger:
         event = AuditEvent(
             event_type=AuditEventType.USER_LOGIN,
             user_id=user_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             severity=AuditSeverity.MEDIUM,
             ip_address=ip_address,
             user_agent=user_agent,
@@ -274,7 +275,7 @@ class AuditLogger:
         event = AuditEvent(
             event_type=AuditEventType.USER_LOGOUT,
             user_id=user_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             severity=AuditSeverity.LOW,
             ip_address=ip_address,
             user_agent=user_agent,
@@ -291,7 +292,7 @@ class AuditLogger:
         event = AuditEvent(
             event_type=AuditEventType.TOKEN_REFRESH,
             user_id=user_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             severity=AuditSeverity.MEDIUM,
             ip_address=None,
             user_agent=None,
@@ -311,7 +312,7 @@ class AuditLogger:
         event = AuditEvent(
             event_type=AuditEventType.SYSTEM_ERROR,
             user_id=user_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             severity=AuditSeverity.HIGH,
             ip_address=None,
             user_agent=None,

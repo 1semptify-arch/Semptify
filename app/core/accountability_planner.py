@@ -94,7 +94,7 @@ class AccountabilityPlanner:
             successful_events=0,
             failed_events=0,
             compliance_score=0.0,
-            last_audit=datetime.now(timezone.utc),
+            last_audit=utc_now(),
             open_issues=0,
             resolved_issues=0
         )
@@ -117,8 +117,8 @@ class AccountabilityPlanner:
                 ],
                 findings=[],
                 recommendations=[],
-                checked_at=datetime.now(timezone.utc),
-                next_review=datetime.now(timezone.utc).replace(year=utc_now().year + 1)
+                checked_at=utc_now(),
+                next_review=utc_now().replace(year=utc_now().year + 1)
             ),
             ComplianceType.CCPA: ComplianceCheck(
                 check_id="ccpa_001",
@@ -133,8 +133,8 @@ class AccountabilityPlanner:
                 ],
                 findings=[],
                 recommendations=[],
-                checked_at=datetime.now(timezone.utc),
-                next_review=datetime.now(timezone.utc).replace(year=utc_now().year + 1)
+                checked_at=utc_now(),
+                next_review=utc_now().replace(year=utc_now().year + 1)
             ),
             ComplianceType.HOUSING_LAW: ComplianceCheck(
                 check_id="housing_001",
@@ -149,8 +149,8 @@ class AccountabilityPlanner:
                 ],
                 findings=[],
                 recommendations=[],
-                checked_at=datetime.now(timezone.utc),
-                next_review=datetime.now(timezone.utc).replace(month=utc_now().month + 6)
+                checked_at=utc_now(),
+                next_review=utc_now().replace(month=utc_now().month + 6)
             ),
         }
         
@@ -168,7 +168,7 @@ class AccountabilityPlanner:
         
         event = AuditEvent(
             event_id=event_id,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             user_id=user_id,
             action=action,
             resource=resource,
@@ -235,13 +235,13 @@ class AccountabilityPlanner:
         # Update check
         check.findings = findings
         check.recommendations = recommendations
-        check.checked_at = datetime.now(timezone.utc)
+        check.checked_at = utc_now()
         check.status = ComplianceStatus.COMPLIANT if not findings else ComplianceStatus.NON_COMPLIANT
         
         self.compliance_checks[compliance_type] = check
         
         # Update metrics
-        self.metrics.last_audit = datetime.now(timezone.utc)
+        self.metrics.last_audit = utc_now()
         self.metrics.open_issues = len(findings)
         
         return check
