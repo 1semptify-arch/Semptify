@@ -21,6 +21,7 @@ from app.core.oauth_token_manager import token_manager, OAuthToken
 from app.core.user_id import parse_user_id, COOKIE_USER_ID
 from app.core.cookie_auth import verify_user_id
 from app.core.database import get_session_factory
+from app.core.utc import utc_now
 from app.models.models import Session as SessionModel
 
 logger = logging.getLogger(__name__)
@@ -166,7 +167,7 @@ async def _refresh_from_db(
             if new_token.refresh_token and new_token.refresh_token != refresh_token:
                 session_row.refresh_token_encrypted = _encrypt_string(new_token.refresh_token, user_id)
             session_row.expires_at = new_token.expires_at
-            session_row.last_activity = datetime.now(timezone.utc)
+            session_row.last_activity = utc_now()
             await db.commit()
             
             logger.info(f"Silent refresh succeeded for user {user_id[:6]}***")

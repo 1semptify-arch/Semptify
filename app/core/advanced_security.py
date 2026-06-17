@@ -463,7 +463,7 @@ class SessionManager:
     
     def cleanup_expired_sessions(self) -> int:
         """Clean up expired sessions."""
-        current_time = datetime.now(timezone.utc)
+        current_time = utc_now()
         expired_sessions = []
         
         for session_id, session in self.sessions.items():
@@ -508,7 +508,7 @@ class SessionManager:
             description=description,
             ip_address=ip_address,
             user_agent=user_agent,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=utc_now(),
             severity=severity,
             metadata=metadata or {}
         )
@@ -533,7 +533,7 @@ class SessionManager:
     
     def get_session_statistics(self) -> Dict[str, Any]:
         """Get session statistics."""
-        current_time = datetime.now(timezone.utc)
+        current_time = utc_now()
         
         active_sessions = len([
             s for s in self.sessions.values()
