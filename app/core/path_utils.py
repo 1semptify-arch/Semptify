@@ -46,17 +46,17 @@ def normalize_cloud_path(path: Union[str, Path]) -> str:
 
 
 def normalize_local_path(path: Union[str, Path]) -> str:
-    """
+    r"""
     Normalize path for local Windows file system.
-    
+
     Uses backslashes (\) as path separators for Windows compatibility.
-    
+
     Args:
         path: Path to normalize (string or Path object)
-        
+
     Returns:
         Normalized path with backslashes
-        
+
     Examples:
         >>> normalize_local_path("Semptify5.0/Vault/documents")
         'Semptify5.0\\Vault\\documents'
