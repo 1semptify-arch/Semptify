@@ -2088,91 +2088,10 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     
     #
     # ONBOARDING / REGISTRATION
+    # NOTE: /register redirects to /storage/providers (OAuth-based auth, no username/password)
+    # Register pages removed - Semptify uses storage-based OAuth authentication only
     #
-    PageManifestEntry(
-        page_id="register",
-        route="/register",
-        source_file="app/templates/pages/register.html",
-        page_type="template",
-        page_contract=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "PageContract registered"
-        ),
-        route_guards=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "Public access, rate limited"
-        ),
-        module_links=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "Registration module"
-        ),
-        action_map=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "User registration, validation"
-        ),
-        object_set_inputs=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "User data, validation rules"
-        ),
-        output_objects=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "Created user account"
-        ),
-        telemetry_hooks=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "Telemetry events defined in PageContract"
-        ),
-        mesh_binding=ObjectSetCoverage(
-            CoverageStatus.MISSING,
-            "No mesh binding"
-        ),
-        overall_coverage=CoverageStatus.COMPLETE,
-        missing_object_sets=[],
-        recommended_priority="medium"
-    ),
-    
-    PageManifestEntry(
-        page_id="register_success",
-        route="/register/success",
-        source_file="app/templates/pages/register_success.html",
-        page_type="template",
-        page_contract=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "PageContract registered"
-        ),
-        route_guards=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "Post-registration redirect"
-        ),
-        module_links=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Success module"
-        ),
-        action_map=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "Next steps navigation"
-        ),
-        object_set_inputs=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "Registration confirmation"
-        ),
-        output_objects=ObjectSetCoverage(
-            CoverageStatus.PARTIAL,
-            "User guidance"
-        ),
-        telemetry_hooks=ObjectSetCoverage(
-            CoverageStatus.COMPLETE,
-            "Telemetry events defined in PageContract"
-        ),
-        mesh_binding=ObjectSetCoverage(
-            CoverageStatus.MISSING,
-            "No mesh binding"
-        ),
-        overall_coverage=CoverageStatus.COMPLETE,
-        missing_object_sets=[],
-        recommended_priority="low"
-    ),
-    
+
     PageManifestEntry(
         page_id="home",
         route="/home",
