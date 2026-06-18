@@ -342,6 +342,8 @@ _register("app.modules.invite_codes.router", tags=("Invite Codes",), tier=Produc
 # ADMIN TIER — Dashboards, Analytics, Batch Ops (Disabled by Default)
 # =============================================================================
 
+_register("app.modules.admin_console.router", prefix="/admin-console", tags=("Admin Console",), tier=ProductTier.ADMIN,
+          log_message="Admin Console router connected - System maintenance and diagnostics active")
 _register("app.modules.analytics.router", prefix="/api/analytics", tags=("Analytics",), tier=ProductTier.ADMIN,
           log_message="Analytics router connected - Usage and performance tracking active")
 _register("app.modules.dashboard.router", tags=("Unified Dashboard",), tier=ProductTier.ADMIN)
