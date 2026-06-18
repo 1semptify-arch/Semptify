@@ -79,7 +79,9 @@ logs/
 *.log
 
 # Security files (never commit!)
-security/
+# Note: app/modules/security is legitimate code and should be committed
+# This pattern only ignores a top-level security/ directory for credentials
+/security/
 *.pem
 *.key
 *.crt
