@@ -12,6 +12,51 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-17 — OAuth Callback Error Fixes (COMPLETE)
+**Commit: `fe2cd0f` | Pushed: 2026-06-17**
+
+### What Was Shipped
+
+#### OAuth Callback Database Error Fixes (COMPLETE)
+- **`app/modules/storage/router.py`** — Fixed duplicate user error in `get_user_by_provider_subject()`
+  - Changed `scalar_one_or_none()` to `first()` to handle multiple user rows gracefully
+  - Root cause: Database had duplicate user entries for same provider/subject combination
+- **`app/modules/storage/router.py`** — Fixed StatelessOAuthManager write_file error
+  - Changed from `get_provider()` to `get_vault_manager()` for token storage
+  - Root cause: `GoogleDriveProvider` lacks `write_file()` method; `VaultManager` supports it
+- **`app/modules/storage/router.py`** — Fixed database transaction error
+  - Added nested transaction (`begin_nested()`) for capability seeding
+  - Root cause: Exception in `seed_capability_defaults()` left transaction in aborted state
+  - Nested transaction isolates errors without affecting main flow
+
+#### Reconnect Providers Page (COMPLETE)
+- **`static/onboarding/providers-reconnect.html`** — Added reconnect providers page
+  - Correct OAuth links for Google Drive, Dropbox, OneDrive
+  - Replaces missing reconnect UI for returning users
+
+### Known Working (Tested Live)
+- ✅ OAuth redirect URI mismatch fixed (user added correct URI to Google Cloud Console)
+- ✅ OAuth callback successfully exchanges authorization code for tokens
+- ✅ Tokens stored in database (cloud storage fallback)
+- ✅ Vault initialization completes: 7 folders created via SDK (~10s)
+- ✅ System files created (~11s)
+- ✅ Data files created (~11s)
+- ✅ Token backup and device keys created (~13s)
+- ✅ All core files compile clean
+- ✅ Commit pushed to main (`fe2cd0f`)
+
+### Known Pending
+- ⏳ Vault initialization takes 45+ seconds total, triggering Cloudflare 504 timeout
+- ⏳ This is Known Failure Registry #5 — vault initialization needs to be split into multiple steps to stay under Cloudflare's 30-second limit
+- ⏳ Live test: Verify OAuth flow completes successfully on production without timeout
+
+### Next Session Starts With
+- Test OAuth flow on production (https://semptify.org/storage/providers)
+- If timeout persists, implement step-by-step vault initialization (split into multiple API calls)
+- Return to ACTIVE_CONTEXT.md priority tasks
+
+---
+
 ## Session — 2026-06-16 — Admin Navigation Consistency + AI Portal Integration (COMPLETE)
 **Commit: `256f102` | Pushed: 2026-06-16**
 
