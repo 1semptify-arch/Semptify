@@ -444,6 +444,19 @@
     // Admin API Integration
     const ADMIN_API_BASE = '/admin-console';
 
+    // Get admin token from URL query parameter for authentication
+    const urlParams = new URLSearchParams(window.location.search);
+    const ADMIN_TOKEN = urlParams.get('admin_token');
+
+    // Helper function to add admin token to API URLs
+    function addAdminToken(url) {
+      if (ADMIN_TOKEN) {
+        const separator = url.includes('?') ? '&' : '?';
+        return url + separator + 'admin_token=' + encodeURIComponent(ADMIN_TOKEN);
+      }
+      return url;
+    }
+
     // Search users via API
     async function searchUsers() {
       const input = document.getElementById('user-search-input');
@@ -456,7 +469,7 @@
       resultsDiv.innerHTML = '';
 
       try {
-        const url = `${ADMIN_API_BASE}/api/users?limit=20${searchTerm ? '&search=' + encodeURIComponent(searchTerm) : ''}`;
+        const url = addAdminToken(`${ADMIN_API_BASE}/api/users?limit=20${searchTerm ? '&search=' + encodeURIComponent(searchTerm) : ''}`);
         const response = await fetch(url, {
           credentials: 'include', // Send cookies for auth
           headers: { 'Accept': 'application/json' }
@@ -517,7 +530,7 @@
       const resultsDiv = document.getElementById('user-search-results');
       
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/users/${userId}`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/users/${userId}`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -598,7 +611,7 @@
       }
 
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/users/${userId}/impersonate`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/users/${userId}/impersonate`), {
           method: 'POST',
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
@@ -647,7 +660,7 @@
       }
 
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/users/${userId}/reset-gates`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/users/${userId}/reset-gates`), {
           method: 'POST',
           credentials: 'include',
           headers: { 
@@ -671,7 +684,7 @@
     // View vault summary
     async function viewVaultSummary(userId) {
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/users/${userId}/vault-summary`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/users/${userId}/vault-summary`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -705,7 +718,7 @@
       auditDiv.innerHTML = '';
       
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/audit?limit=${limit}`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/audit?limit=${limit}`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -749,7 +762,7 @@
     // Load user breakdown from API
     async function loadUserBreakdown() {
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/users?limit=100`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/users?limit=100`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -799,7 +812,7 @@
     // Load recent activity from audit log
     async function loadRecentActivity() {
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/audit?limit=5`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/audit?limit=5`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -865,7 +878,7 @@
     // Load system status on page load
     async function loadSystemStatus() {
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/system/status`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/system/status`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -929,7 +942,7 @@
     async function loadSystemConfig() {
       try {
         // Load tiers
-        const tiersResponse = await fetch(`${ADMIN_API_BASE}/api/system/tiers`, {
+        const tiersResponse = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/system/tiers`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -940,7 +953,7 @@
         }
         
         // Load modules count
-        const modulesResponse = await fetch(`${ADMIN_API_BASE}/api/system/modules`, {
+        const modulesResponse = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/system/modules`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -952,7 +965,7 @@
         }
         
         // Load feature flags count
-        const flagsResponse = await fetch(`${ADMIN_API_BASE}/api/system/feature-flags`, {
+        const flagsResponse = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/system/feature-flags`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -970,7 +983,7 @@
     // Show module manager modal
     async function showModuleManager() {
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/system/modules`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/system/modules`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -1046,7 +1059,7 @@
       }
       
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/system/modules/${moduleName}/toggle`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/system/modules/${moduleName}/toggle`), {
           method: 'POST',
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
@@ -1069,7 +1082,7 @@
     async function loadAnalytics() {
       try {
         // Load retention metrics
-        const retentionResponse = await fetch(`${ADMIN_API_BASE}/api/analytics/retention`, {
+        const retentionResponse = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/analytics/retention`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -1092,9 +1105,9 @@
     async function showAnalyticsDetails() {
       try {
         const [overview, funnel, retention] = await Promise.all([
-          fetch(`${ADMIN_API_BASE}/api/analytics/overview?days=30`, { credentials: 'include', headers: { 'Accept': 'application/json' } }),
-          fetch(`${ADMIN_API_BASE}/api/analytics/signup-funnel?days=30`, { credentials: 'include', headers: { 'Accept': 'application/json' } }),
-          fetch(`${ADMIN_API_BASE}/api/analytics/retention`, { credentials: 'include', headers: { 'Accept': 'application/json' } })
+          fetch(addAdminToken(`${ADMIN_API_BASE}/api/analytics/overview?days=30`), { credentials: 'include', headers: { 'Accept': 'application/json' } }),
+          fetch(addAdminToken(`${ADMIN_API_BASE}/api/analytics/signup-funnel?days=30`), { credentials: 'include', headers: { 'Accept': 'application/json' } }),
+          fetch(addAdminToken(`${ADMIN_API_BASE}/api/analytics/retention`), { credentials: 'include', headers: { 'Accept': 'application/json' } })
         ]);
         
         const overviewData = overview.ok ? await overview.json() : null;
@@ -1176,7 +1189,7 @@
       document.getElementById('api-keys-filled').textContent = '…';
       document.getElementById('api-keys-missing').textContent = '…';
       try {
-        const r = await fetch(`${ADMIN_API_BASE}/api/env-status`, {credentials:'include'});
+        const r = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/env-status`), {credentials:'include'});
         if (!r.ok) { throw new Error('HTTP ' + r.status); }
         const d = await r.json();
         const missing = d.total - d.filled;
@@ -1271,7 +1284,7 @@
       if (!val) { if(msg) msg.textContent = 'Nothing entered — skipped.'; return; }
       if(msg) { msg.style.color='#64748b'; msg.textContent = 'Saving…'; }
       try {
-        const r = await fetch(`${ADMIN_API_BASE}/api/env-update`, {
+        const r = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/env-update`), {
           method: 'POST',
           credentials: 'include',
           headers: {'Content-Type':'application/json'},
@@ -1301,7 +1314,7 @@
       button.disabled = true;
 
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/system/status`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/system/status`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -1334,7 +1347,7 @@
       button.disabled = true;
 
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/users?limit=100`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/users?limit=100`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -1366,7 +1379,7 @@
       button.disabled = true;
 
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/audit?limit=5`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/audit?limit=5`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -1398,7 +1411,7 @@
       button.disabled = true;
 
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/system/status`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/system/status`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -1495,9 +1508,9 @@ Please fix this issue in the admin dashboard.
 
       try {
         const [tiers, modules, flags] = await Promise.all([
-          fetch(`${ADMIN_API_BASE}/api/system/tiers`, { credentials: 'include', headers: { 'Accept': 'application/json' } }),
-          fetch(`${ADMIN_API_BASE}/api/system/modules`, { credentials: 'include', headers: { 'Accept': 'application/json' } }),
-          fetch(`${ADMIN_API_BASE}/api/system/feature-flags`, { credentials: 'include', headers: { 'Accept': 'application/json' } })
+          fetch(addAdminToken(`${ADMIN_API_BASE}/api/system/tiers`), { credentials: 'include', headers: { 'Accept': 'application/json' } }),
+          fetch(addAdminToken(`${ADMIN_API_BASE}/api/system/modules`), { credentials: 'include', headers: { 'Accept': 'application/json' } }),
+          fetch(addAdminToken(`${ADMIN_API_BASE}/api/system/feature-flags`), { credentials: 'include', headers: { 'Accept': 'application/json' } })
         ]);
 
         if (!tiers.ok || !modules.ok || !flags.ok) {
@@ -1530,7 +1543,7 @@ Please fix this issue in the admin dashboard.
       button.disabled = true;
 
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/system/env`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/system/env`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
@@ -1565,8 +1578,8 @@ Please fix this issue in the admin dashboard.
 
       try {
         const [overview, retention] = await Promise.all([
-          fetch(`${ADMIN_API_BASE}/api/analytics/overview?days=30`, { credentials: 'include', headers: { 'Accept': 'application/json' } }),
-          fetch(`${ADMIN_API_BASE}/api/analytics/retention`, { credentials: 'include', headers: { 'Accept': 'application/json' } })
+          fetch(addAdminToken(`${ADMIN_API_BASE}/api/analytics/overview?days=30`), { credentials: 'include', headers: { 'Accept': 'application/json' } }),
+          fetch(addAdminToken(`${ADMIN_API_BASE}/api/analytics/retention`), { credentials: 'include', headers: { 'Accept': 'application/json' } })
         ]);
 
         if (!overview.ok || !retention.ok) {
@@ -1598,7 +1611,7 @@ Please fix this issue in the admin dashboard.
       button.disabled = true;
 
       try {
-        const response = await fetch(`${ADMIN_API_BASE}/api/audit?limit=10`, {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/api/audit?limit=10`), {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });
