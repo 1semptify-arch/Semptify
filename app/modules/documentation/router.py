@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 
-from app.core.security import require_user, StorageUser
+from app.core.security import require_user, StorageUser, require_admin
 from app.core.api_documentation import (
     get_documentation_generator,
     generate_openapi_spec, generate_postman_collection,
@@ -27,11 +27,12 @@ router = APIRouter()
 # =============================================================================
 
 @router.get("/openapi.json")
-async def get_openapi_spec():
+async def get_openapi_spec(admin: dict = Depends(require_admin)):
     """
     Get OpenAPI 3.0 specification.
     
     Returns the complete API specification in JSON format.
+    Admin access only.
     """
     try:
         spec = generate_openapi_spec()
@@ -49,11 +50,12 @@ async def get_openapi_spec():
         raise HTTPException(status_code=500, detail="Failed to generate OpenAPI specification")
 
 @router.get("/postman")
-async def get_postman_collection():
+async def get_postman_collection(admin: dict = Depends(require_admin)):
     """
     Get Postman collection.
     
     Returns a complete Postman collection for API testing.
+    Admin access only.
     """
     try:
         collection = generate_postman_collection()
@@ -71,11 +73,12 @@ async def get_postman_collection():
         raise HTTPException(status_code=500, detail="Failed to generate Postman collection")
 
 @router.get("/swagger", response_class=HTMLResponse)
-async def get_swagger_ui():
+async def get_swagger_ui(admin: dict = Depends(require_admin)):
     """
     Get Swagger UI documentation.
     
     Interactive API documentation with testing capabilities.
+    Admin access only.
     """
     try:
         swagger_html = generate_swagger_ui()
@@ -91,11 +94,12 @@ async def get_swagger_ui():
         raise HTTPException(status_code=500, detail="Failed to generate Swagger UI")
 
 @router.get("/redoc", response_class=HTMLResponse)
-async def get_redoc_ui():
+async def get_redoc_ui(admin: dict = Depends(require_admin)):
     """
     Get ReDoc documentation.
     
     Clean, modern API documentation interface.
+    Admin access only.
     """
     try:
         redoc_html = generate_redoc_html()
@@ -111,11 +115,12 @@ async def get_redoc_ui():
         raise HTTPException(status_code=500, detail="Failed to generate ReDoc UI")
 
 @router.get("/", response_class=HTMLResponse)
-async def get_developer_portal():
+async def get_developer_portal(admin: dict = Depends(require_admin)):
     """
     Get developer portal.
     
     Comprehensive developer portal with documentation, examples, and tools.
+    Admin access only.
     """
     try:
         portal_html = generate_developer_portal()
