@@ -1428,6 +1428,33 @@ class AdminAuditLog(Base):
     timestamp: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, index=True)
 
 
+class AdminErrorQueue(Base):
+    """
+    Error queue for admin dashboard errors reported to Cascade.
+    
+    Stores errors from the admin dashboard for automated tracking and fixing.
+    """
+    __tablename__ = "admin_error_queue"
+    
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    
+    # Error context
+    section: Mapped[str] = mapped_column(String(100))  # e.g., "Audit Log", "User Management"
+    endpoint: Mapped[str] = mapped_column(String(500))  # e.g., "/admin-console/api/audit"
+    error_message: Mapped[str] = mapped_column(Text)  # Full error message
+    
+    # Status tracking
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)  # pending, in_progress, completed, skipped
+    priority: Mapped[str] = mapped_column(String(10), default="medium", index=True)  # low, medium, high
+    
+    # Timestamps
+    timestamp: Mapped[datetime] = mapped_column(DateTimeTZ, default=utc_now, index=True)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTimeTZ, nullable=True)
+    
+    # Additional details (JSON)
+    details: Mapped[Optional[dict]] = mapped_column(JSON, nullable=True)
+
+
 # =============================================================================
 # Document Registry — Persistent Chain of Custody (PostgreSQL-backed)
 # =============================================================================

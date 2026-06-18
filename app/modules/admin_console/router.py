@@ -28,6 +28,8 @@ from app.core.semptify_internal_sdk import (
 )
 from app.core.database import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, update
+from app.models.models import AdminErrorQueue
 
 logger = logging.getLogger(__name__)
 
@@ -1623,3 +1625,118 @@ async def set_module_status(
     )
     logger.warning(f"MODULE_STATUS: Admin {user.user_id} set {module_name} status={status}")
     return {"module": module_name, "status": status}
+
+
+# =============================================================================
+# Error Queue - Admin Dashboard Error Reporting to Cascade
+# =============================================================================
+
+@router.post("/api/error-queue")
+async def add_to_error_queue(
+    section: str,
+    endpoint: str,
+    error_message: str,
+    priority: str = "medium",
+    details: Optional[Dict[str, Any]] = None,
+    user: UserContext = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Add an error from the admin dashboard to the error queue for Cascade to fix.
+    
+    This replaces the manual copy-paste workflow with automated tracking.
+    """
+    valid_priorities = {"low", "medium", "high"}
+    if priority not in valid_priorities:
+        raise HTTPException(status_code=400, detail=f"Invalid priority. Must be one of: {valid_priorities}")
+    
+    error = AdminErrorQueue(
+        section=section,
+        endpoint=endpoint,
+        error_message=error_message,
+        status="pending",
+        priority=priority,
+        details=details or {},
+    )
+    
+    db.add(error)
+    await db.commit()
+    await db.refresh(error)
+    
+    logger.info(f"Error queued: {section} - {endpoint} (ID: {error.id})")
+    return {"id": error.id, "status": "queued"}
+
+
+@router.get("/api/error-queue")
+async def get_error_queue(
+    status: Optional[str] = None,
+    limit: int = 50,
+    user: UserContext = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Retrieve errors from the error queue.
+    
+    Can filter by status (pending, in_progress, completed, skipped).
+    """
+    query = select(AdminErrorQueue)
+    
+    if status:
+        valid_statuses = {"pending", "in_progress", "completed", "skipped"}
+        if status not in valid_statuses:
+            raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
+        query = query.where(AdminErrorQueue.status == status)
+    
+    query = query.order_by(AdminErrorQueue.timestamp.desc()).limit(limit)
+    result = await db.execute(query)
+    errors = result.scalars().all()
+    
+    return {
+        "errors": [
+            {
+                "id": e.id,
+                "section": e.section,
+                "endpoint": e.endpoint,
+                "error_message": e.error_message,
+                "status": e.status,
+                "priority": e.priority,
+                "timestamp": e.timestamp.isoformat() if e.timestamp else None,
+                "updated_at": e.updated_at.isoformat() if e.updated_at else None,
+                "details": e.details,
+            }
+            for e in errors
+        ],
+        "count": len(errors),
+    }
+
+
+@router.put("/api/error-queue/{error_id}")
+async def update_error_status(
+    error_id: int,
+    status: str,
+    user: UserContext = Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """
+    Update the status of an error in the queue.
+    
+    Used by Cascade to mark errors as in_progress, completed, or skipped.
+    """
+    valid_statuses = {"pending", "in_progress", "completed", "skipped"}
+    if status not in valid_statuses:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of: {valid_statuses}")
+    
+    query = select(AdminErrorQueue).where(AdminErrorQueue.id == error_id)
+    result = await db.execute(query)
+    error = result.scalar_one_or_none()
+    
+    if not error:
+        raise HTTPException(status_code=404, detail=f"Error {error_id} not found")
+    
+    error.status = status
+    error.updated_at = utc_now()
+    
+    await db.commit()
+    
+    logger.info(f"Error {error_id} status updated to {status}")
+    return {"id": error_id, "status": status}

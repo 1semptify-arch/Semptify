@@ -1477,8 +1477,32 @@
         url: window.location.href
       };
 
-      // Copy error report to clipboard for manual sending to Cascade
-      const reportText = `
+      // POST to error queue API instead of clipboard
+      fetch(addAdminToken(`${ADMIN_API_BASE}/api/error-queue`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          section: errorReport.section,
+          endpoint: errorReport.endpoint,
+          error_message: errorReport.error,
+          priority: 'medium',
+          details: {
+            timestamp: errorReport.timestamp,
+            userAgent: errorReport.userAgent,
+            url: errorReport.url
+          }
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert(`Error queued for Cascade (ID: ${data.id})\n\n` +
+              `Section: ${errorReport.section}\n` +
+              `Endpoint: ${errorReport.endpoint}\n` +
+              `Error: ${errorReport.error}`);
+      })
+      .catch(err => {
+        // Fallback to clipboard if API fails
+        const reportText = `
 ADMIN DASHBOARD ERROR REPORT
 ============================
 Section: ${errorReport.section}
@@ -1489,14 +1513,15 @@ User Agent: ${errorReport.userAgent}
 URL: ${errorReport.url}
 
 Please fix this issue in the admin dashboard.
-      `.trim();
+        `.trim();
 
-      navigator.clipboard.writeText(reportText).then(() => {
-        alert('Error report copied to clipboard!\n\n' + 
-              'Please paste this in your chat with Cascade to request a fix:\n\n' + 
-              reportText);
-      }).catch(() => {
-        alert('Could not copy to clipboard. Here is the error report:\n\n' + reportText);
+        navigator.clipboard.writeText(reportText).then(() => {
+          alert('API failed - Error report copied to clipboard!\n\n' + 
+                'Please paste this in your chat with Cascade to request a fix:\n\n' + 
+                reportText);
+        }).catch(() => {
+          alert('Could not copy to clipboard. Here is the error report:\n\n' + reportText);
+        });
       });
     }
 
