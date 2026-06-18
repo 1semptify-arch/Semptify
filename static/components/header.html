@@ -26,7 +26,7 @@
   <!-- Actions: Vault Portal + Auth -->
   <div class="header-actions">
     <!-- Status Indicator -->
-    <div id="status-indicator" class="status-indicator" style="display: none;">
+    <div id="status-indicator" class="status-indicator" style="display: none;" ondblclick="handleStatusDoubleClick()" title="Double-click to verify connection">
       <span id="status-user-id"></span>
       <span id="status-dot" class="status-dot"></span>
       <span id="status-text"></span>
@@ -64,6 +64,36 @@
         }
       } catch (error) {
         console.error('Status check failed:', error);
+      }
+    }
+
+    // Double-click to verify connection and reconnect if needed
+    async function handleStatusDoubleClick() {
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+
+      // Show reconnecting state
+      dot.className = 'status-dot status-reconnecting';
+      text.textContent = 'Verifying...';
+
+      try {
+        const response = await fetch('/api/auth/me');
+        const data = await response.json();
+
+        if (data.authenticated) {
+          dot.className = 'status-dot status-connected';
+          text.textContent = 'Connected ✓';
+          setTimeout(() => { text.textContent = 'Connected'; }, 2000);
+        } else {
+          // Not authenticated - redirect to reconnect flow
+          dot.className = 'status-dot status-disconnected';
+          text.textContent = 'Reconnecting...';
+          window.location.href = '/storage/reconnect';
+        }
+      } catch (error) {
+        console.error('Verification failed:', error);
+        dot.className = 'status-dot status-disconnected';
+        text.textContent = 'Error - Click to retry';
       }
     }
 
