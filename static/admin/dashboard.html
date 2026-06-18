@@ -112,7 +112,7 @@
     <div>
       <div class="hero">
         <h1>System Overview</h1>
-        <p><strong>1,247 users</strong>, <strong>342 active cases</strong>, <strong>98 documents uploaded today</strong>, <strong>99.9% uptime</strong>.</p>
+        <p id="hero-stats"><strong>Loading...</strong></p>
       </div>
 
       <div class="grid-2">
@@ -121,37 +121,37 @@
             <span class="card-title">📊 Platform Metrics</span>
             <span class="card-icon">📈</span>
           </div>
-          <div class="card-body">
+          <div class="card-body" id="platform-metrics">
             <div class="metric-row">
-              <span class="metric-stat">1,247</span>
+              <span class="metric-stat" id="metric-total-users">Loading...</span>
               <div class="metric-info">
                 <div class="metric-name">Total Users</div>
-                <div class="metric-meta">+34 this week <span class="badge badge-up">+2.8%</span></div>
+                <div class="metric-meta" id="metric-total-users-meta">Loading...</div>
               </div>
             </div>
             <div class="metric-row">
-              <span class="metric-stat">342</span>
+              <span class="metric-stat" id="metric-active-sessions">Loading...</span>
               <div class="metric-info">
-                <div class="metric-name">Active Cases</div>
-                <div class="metric-meta">+12 this week <span class="badge badge-up">+3.6%</span></div>
+                <div class="metric-name">Active Sessions</div>
+                <div class="metric-meta" id="metric-active-sessions-meta">Loading...</div>
               </div>
             </div>
             <div class="metric-row">
-              <span class="metric-stat">4,821</span>
+              <span class="metric-stat" id="metric-unique-users">Loading...</span>
               <div class="metric-info">
-                <div class="metric-name">Documents in Vaults</div>
-                <div class="metric-meta">+156 today <span class="badge badge-up">+3.3%</span></div>
+                <div class="metric-name">Unique Users</div>
+                <div class="metric-meta" id="metric-unique-users-meta">Loading...</div>
               </div>
             </div>
             <div class="metric-row">
-              <span class="metric-stat">89</span>
+              <span class="metric-stat" id="metric-modules">Loading...</span>
               <div class="metric-info">
-                <div class="metric-name">Pending Signatures</div>
-                <div class="metric-meta">-5 this week <span class="badge badge-down">-5.3%</span></div>
+                <div class="metric-name">Active Modules</div>
+                <div class="metric-meta" id="metric-modules-meta">Loading...</div>
               </div>
             </div>
           </div>
-          <a href="#" class="card-action">Full analytics →</a>
+          <a href="#" onclick="showAnalyticsDetails(); return false;" class="card-action">Full analytics →</a>
         </div>
 
         <div class="card">
@@ -159,37 +159,37 @@
             <span class="card-title">👥 User Breakdown</span>
             <span class="card-icon">🌐</span>
           </div>
-          <div class="card-body">
+          <div class="card-body" id="user-breakdown">
             <div class="metric-row">
-              <span class="metric-stat" style="color:#7c3aed">842</span>
+              <span class="metric-stat" style="color:#7c3aed" id="role-tenant">Loading...</span>
               <div class="metric-info">
                 <div class="metric-name">Tenants</div>
-                <div class="metric-meta">67.5% of users</div>
+                <div class="metric-meta" id="role-tenant-meta">Loading...</div>
               </div>
             </div>
             <div class="metric-row">
-              <span class="metric-stat" style="color:#15803d">267</span>
+              <span class="metric-stat" style="color:#15803d" id="role-advocate">Loading...</span>
               <div class="metric-info">
                 <div class="metric-name">Advocates</div>
-                <div class="metric-meta">21.4% of users</div>
+                <div class="metric-meta" id="role-advocate-meta">Loading...</div>
               </div>
             </div>
             <div class="metric-row">
-              <span class="metric-stat" style="color:#b91c1c">89</span>
+              <span class="metric-stat" style="color:#b91c1c" id="role-legal">Loading...</span>
               <div class="metric-info">
                 <div class="metric-name">Legal Professionals</div>
-                <div class="metric-meta">7.1% of users</div>
+                <div class="metric-meta" id="role-legal-meta">Loading...</div>
               </div>
             </div>
             <div class="metric-row">
-              <span class="metric-stat" style="color:#64748b">49</span>
+              <span class="metric-stat" style="color:#64748b" id="role-manager">Loading...</span>
               <div class="metric-info">
                 <div class="metric-name">Property Managers</div>
-                <div class="metric-meta">3.9% of users</div>
+                <div class="metric-meta" id="role-manager-meta">Loading...</div>
               </div>
             </div>
           </div>
-          <a href="#" class="card-action">User management →</a>
+          <a href="#" onclick="searchUsers(); return false;" class="card-action">User management →</a>
         </div>
 
         <div class="card">
@@ -197,34 +197,10 @@
             <span class="card-title">⚡ Recent Activity</span>
             <span class="card-icon">🔔</span>
           </div>
-          <div class="card-body">
-            <div class="activity-item">
-              <span class="activity-icon">📤</span>
-              <span class="activity-text">New user registered — Tenant</span>
-              <span class="activity-time">2m ago</span>
-            </div>
-            <div class="activity-item">
-              <span class="activity-icon">✍️</span>
-              <span class="activity-text">Document signed — Taylor v. Harborview</span>
-              <span class="activity-time">14m ago</span>
-            </div>
-            <div class="activity-item">
-              <span class="activity-icon">📎</span>
-              <span class="activity-text">12 documents uploaded across vaults</span>
-              <span class="activity-time">1h ago</span>
-            </div>
-            <div class="activity-item">
-              <span class="activity-icon">🌿</span>
-              <span class="activity-text">New advocate onboarded — Maria G.</span>
-              <span class="activity-time">3h ago</span>
-            </div>
-            <div class="activity-item">
-              <span class="activity-icon">⚙️</span>
-              <span class="activity-text">System maintenance completed</span>
-              <span class="activity-time">6h ago</span>
-            </div>
+          <div class="card-body" id="recent-activity">
+            <p style="color:#888;font-style:italic">Loading...</p>
           </div>
-          <a href="#" class="card-action">Activity log →</a>
+          <a href="#" onclick="loadAuditLog(50); return false;" class="card-action">Activity log →</a>
         </div>
 
         <div class="card">
@@ -232,33 +208,33 @@
             <span class="card-title">🛡️ Security</span>
             <span class="card-icon">🔒</span>
           </div>
-          <div class="card-body">
+          <div class="card-body" id="security-metrics">
             <div class="metric-row">
-              <span class="metric-stat" style="color:#22c55e">99.9%</span>
+              <span class="metric-stat" style="color:#22c55e" id="metric-uptime">99.9%</span>
               <div class="metric-info">
                 <div class="metric-name">Uptime</div>
                 <div class="metric-meta">Last 30 days</div>
               </div>
             </div>
             <div class="metric-row">
-              <span class="metric-stat" style="color:#22c55e">0</span>
+              <span class="metric-stat" style="color:#22c55e" id="metric-incidents">0</span>
               <div class="metric-info">
                 <div class="metric-name">Security Incidents</div>
                 <div class="metric-meta">Last 30 days</div>
               </div>
             </div>
             <div class="metric-row">
-              <span class="metric-stat" style="color:#f59e0b">3</span>
+              <span class="metric-stat" style="color:#f59e0b" id="metric-rate-limits">0</span>
               <div class="metric-info">
                 <div class="metric-name">Rate Limit Violations</div>
-                <div class="metric-meta">Today · All blocked automatically</div>
+                <div class="metric-meta" id="metric-rate-limits-meta">Today</div>
               </div>
             </div>
             <div class="metric-row">
-              <span class="metric-stat" style="color:#22c55e">8,421</span>
+              <span class="metric-stat" style="color:#22c55e" id="metric-requests">0</span>
               <div class="metric-info">
-                <div class="metric-name">Blockchain Timestamps</div>
-                <div class="metric-meta">All verified successfully</div>
+                <div class="metric-name">Total Requests</div>
+                <div class="metric-meta" id="metric-requests-meta">Session count</div>
               </div>
             </div>
           </div>
@@ -741,6 +717,122 @@
       }
     }
 
+    // Load user breakdown from API
+    async function loadUserBreakdown() {
+      try {
+        const response = await fetch(`${ADMIN_API_BASE}/api/users?limit=100`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        
+        // Count users by role
+        const roleCounts = {
+          'tenant': 0,
+          'advocate': 0,
+          'legal': 0,
+          'manager': 0,
+          'admin': 0
+        };
+        
+        const total = data.users?.length || 0;
+        data.users?.forEach(user => {
+          const role = (user.role || '').toLowerCase();
+          if (roleCounts.hasOwnProperty(role)) {
+            roleCounts[role]++;
+          }
+        });
+        
+        // Update UI
+        const updateRole = (roleId, count) => {
+          const el = document.getElementById(roleId);
+          const metaEl = document.getElementById(roleId + '-meta');
+          if (el) el.textContent = count;
+          if (metaEl) {
+            const pct = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+            metaEl.textContent = `${pct}% of users`;
+          }
+        };
+        
+        updateRole('role-tenant', roleCounts.tenant);
+        updateRole('role-advocate', roleCounts.advocate);
+        updateRole('role-legal', roleCounts.legal);
+        updateRole('role-manager', roleCounts.manager);
+        
+      } catch (error) {
+        console.log('User breakdown load failed:', error.message);
+      }
+    }
+
+    // Load recent activity from audit log
+    async function loadRecentActivity() {
+      try {
+        const response = await fetch(`${ADMIN_API_BASE}/api/audit?limit=5`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        
+        const activityDiv = document.getElementById('recent-activity');
+        if (!activityDiv) return;
+        
+        if (!data.entries || data.entries.length === 0) {
+          activityDiv.innerHTML = '<p style="color:#888;font-size:0.85rem">No recent activity</p>';
+          return;
+        }
+        
+        const iconMap = {
+          'impersonate_start': '👤',
+          'impersonate_stop': '🚪',
+          'reset_gates': '🔄',
+          'view_vault_summary': '📁',
+          'toggle_module': '⚙️',
+          'toggle_tier': '📊',
+          'set_feature_flag': '🚩',
+          'set_system_setting': '⚙️'
+        };
+        
+        const entriesHtml = data.entries.map(entry => {
+          const timestamp = new Date(entry.timestamp).toLocaleString();
+          const timeAgo = getTimeAgo(new Date(entry.timestamp));
+          const icon = iconMap[entry.action] || '📝';
+          
+          return `
+            <div class="activity-item">
+              <span class="activity-icon">${icon}</span>
+              <span class="activity-text">${entry.action.replace(/_/g, ' ')}</span>
+              <span class="activity-time">${timeAgo}</span>
+            </div>
+          `;
+        }).join('');
+        
+        activityDiv.innerHTML = entriesHtml;
+        
+      } catch (error) {
+        console.log('Recent activity load failed:', error.message);
+        const activityDiv = document.getElementById('recent-activity');
+        if (activityDiv) {
+          activityDiv.innerHTML = '<p style="color:#dc2626;font-size:0.85rem">Failed to load activity</p>';
+        }
+      }
+    }
+
+    // Helper: Get time ago string
+    function getTimeAgo(date) {
+      const seconds = Math.floor((new Date() - date) / 1000);
+      
+      if (seconds < 60) return `${seconds}s ago`;
+      if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+      if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+      return `${Math.floor(seconds / 86400)}d ago`;
+    }
+
     // Load system status on page load
     async function loadSystemStatus() {
       try {
@@ -754,6 +846,33 @@
         const data = await response.json();
         
         console.log('System status loaded:', data);
+        
+        // Update hero stats
+        const heroStats = document.getElementById('hero-stats');
+        if (heroStats && data.sessions) {
+          heroStats.innerHTML = `<strong>${data.sessions.unique_users || 0} users</strong>, <strong>${data.sessions.active || 0} active sessions</strong>, <strong>${data.modules?.total_active || 0} active modules</strong>, <strong>operational</strong>.`;
+        }
+        
+        // Update platform metrics
+        if (data.sessions) {
+          document.getElementById('metric-total-users').textContent = data.sessions.total_in_memory || '0';
+          document.getElementById('metric-total-users-meta').textContent = 'Total sessions in memory';
+          document.getElementById('metric-active-sessions').textContent = data.sessions.active || '0';
+          document.getElementById('metric-active-sessions-meta').textContent = 'Currently active';
+          document.getElementById('metric-unique-users').textContent = data.sessions.unique_users || '0';
+          document.getElementById('metric-unique-users-meta').textContent = 'Unique user IDs';
+        }
+        
+        if (data.modules) {
+          document.getElementById('metric-modules').textContent = data.modules.total_active || '0';
+          document.getElementById('metric-modules-meta').textContent = `${data.modules.runtime_disabled || 0} disabled`;
+        }
+        
+        // Update security metrics
+        if (data.metrics) {
+          document.getElementById('metric-requests').textContent = data.metrics.requests_total || '0';
+          document.getElementById('metric-rate-limits').textContent = data.metrics.rate_limited_total || '0';
+        }
         
         // Update the "Today" stats with real session data
         if (data.sessions) {
@@ -1155,6 +1274,8 @@
       
       // Load all data
       loadSystemStatus();
+      loadUserBreakdown();
+      loadRecentActivity();
       loadAuditLog(10);
       loadSystemConfig();
       loadAnalytics();
