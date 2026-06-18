@@ -13,7 +13,7 @@ their legal rights—not tenants breaking the law.
 ---
 
 ## Session — 2026-06-18 AM — Registration Bug Fix (COMPLETE)
-**Commits: Pending | Status: Registration pages removed, OAuth redirect added, Playwright tests updated**
+**Commits: 73b7119 | Status: Registration pages removed, OAuth redirect added, Playwright tests updated, Deployed to Render**
 
 ### What Was Fixed
 
@@ -26,6 +26,7 @@ their legal rights—not tenants breaking the law.
   - Changed `GET /register` to redirect to `/storage/providers` (OAuth onboarding entry)
   - Updated `app/core/page_manifest.py` to remove register page entries
 - **SSOT compliance:** Redirect uses `navigation.get_stage("providers")` for proper routing
+- **Deployed:** Manual deploy to Render, now live at https://semptify.org
 
 #### Playwright Tests Updated ✅
 - **Issue:** Tests required SEMPTIFY_USERNAME/PASSWORD but Semptify uses OAuth
@@ -39,6 +40,17 @@ their legal rights—not tenants breaking the law.
   - `tests/e2e/live_case_persistence.spec.js`
   - `tests/e2e/live_capability_seeding.spec.js`
   - `tests/e2e/live_migration_verification.spec.js`
+
+### Pending Manual Verification
+
+#### Live Tests (OAuth not clickable in automated browsers) ⏳
+- **Task 1:** Verify `admin_audit_logs` table exists in production DB
+- **Task 2:** Upload document → check `/api/timeline/unified` for `document_uploaded` event
+- **Task 3:** Create case → restart Render → verify case persists
+- **Task 4:** Fresh login → check `user_capabilities` table has rows
+- **Task 5:** Set `DB_SSL_MODE=require` in Render dashboard
+
+**Note:** OAuth providers (especially Google) block automated browsers. These tests require manual verification in a regular browser.
 
 ### What Was Verified (from previous session)
 
