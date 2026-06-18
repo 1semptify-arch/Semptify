@@ -1,8 +1,45 @@
 # Semptify — SWE 1.6 Task List
-# Prepared: 2026-06-16 | For: SWE 1.6 (code-execution agent)
+# Updated: 2026-06-17 PM | For: SWE 1.6 (code-execution agent)
 # Stack: Python 3.11.9 / FastAPI / PostgreSQL / Redis / SQLAlchemy async
 # Repo: C:\Semptify\Semptify-FastAPI
-# HEAD: 6bb0fa3 (clean, pushed)
+# HEAD: 0aee35d (clean, pushed to main)
+
+---
+
+## PREFLIGHT STATUS — 2026-06-17 PM
+
+**Last Session:** 2026-06-17 PM — Deployment Warnings & Status Indicator + Returning User Auto-Reconnect
+
+**What Was Shipped:**
+- Fixed `app/modules/security/__init__.py` syntax error (import in docstring)
+- Fixed `.gitignore` to allow `app/modules/security` directory
+- Disabled litigation_intelligence router (missing graph_engine module)
+- Added persistent status indicator in header (shows user ID + storage status)
+- Added double-click verify/reconnect handler
+- Added returning user auto-reconnect in preamble router (auto-repairs storage_connected gate)
+- Updated BUILD_STATE.md with session summary
+
+**Known Working (Tested Live):**
+- ✅ Security module loads without import errors
+- ✅ Litigation intelligence router disabled (no warnings)
+- ✅ Status indicator displays and polls `/api/auth/me`
+- ✅ Double-click verify/reconnect functional
+- ✅ Preamble auto-repairs storage_connected gate for returning users
+- ✅ All core files compile clean
+- ✅ Deployed to Render successfully (https://semptify.org)
+
+**Known Pending (Priority Order):**
+1. ⚠️ **DB SSL mode** — Requires Render dashboard action (`DB_SSL_MODE=require`)
+2. ⏳ **OAuth flow live test** — Verify completes without timeout on production
+3. ⏳ **Upload → timeline** — Verify `document_uploaded` event creates timeline row
+4. ⏳ **Case builder restart test** — Verify PostgreSQL persistence survives Render restart
+5. ⏳ **Capability seeding** — Verify `user_capabilities` rows seeded on fresh login
+6. ⏳ **Migration verification** — Verify `admin_audit_logs` table exists on production
+7. ⏳ **Reconnect 3-step vault setup** — Returning users currently do synchronous vault creation (timeout risk). Should redirect to `/onboarding/vault-setup` instead of inline `init_vault()` call in `storage/router.py` lines 1996-2018.
+
+**CRITICAL:** Python 3.13.14 detected in environment — activate `venv311` before running: `.\venv311\Scripts\Activate.ps1`
+
+---
 
 ---
 
