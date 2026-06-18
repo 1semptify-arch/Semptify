@@ -36,20 +36,45 @@ async def _stealth_admin(request: Request) -> UserContext:
     """
     Security: Returns 404 Not Found instead of 403 Forbidden.
     This prevents attackers from discovering admin endpoints exist.
+
+    Accepts either:
+    1. Normal user session with UserRole.ADMIN (via OAuth)
+    2. Admin token via X-Admin-Token header or admin_token query param
     """
-    from app.core.security import get_current_user
-    
-    user = await get_current_user(request)
-    
+    from app.core.security import get_current_user, get_admin_token_from_request, get_admin_token_store
+
+    # Try admin token first (for testing/dev)
+    admin_token = get_admin_token_from_request(request)
+    if admin_token:
+        admin_store = get_admin_token_store()
+        admin = admin_store.validate_admin_token(admin_token)
+        if admin:
+            # Create a synthetic admin user context
+            return UserContext(
+                user_id=admin.get("id", "admin"),
+                role=UserRole.ADMIN,
+                storage_provider=StorageProvider.LOCAL,
+                email="admin@semptify.org",
+                display_name="Admin",
+            )
+
+    # Try normal user session
+    try:
+        user = await get_current_user(request)
+    except Exception as e:
+        logger.warning(f"Admin API auth failed: {e}")
+        raise HTTPException(status_code=404, detail="Not Found")
+
     # No user = 404 (looks like endpoint doesn't exist)
     if not user:
+        logger.warning("Admin API access: No user found")
         raise HTTPException(status_code=404, detail="Not Found")
-    
+
     # Not admin = 404 (looks like endpoint doesn't exist)
     if user.role != UserRole.ADMIN:
         logger.warning(f"Non-admin {user.user_id[:6]}... attempted admin API access to {request.url.path}")
         raise HTTPException(status_code=404, detail="Not Found")
-    
+
     return user
 
 # Admin role guard (legacy - returns 403)
@@ -1384,6 +1409,20 @@ async def env_status(user: UserContext = Depends(_stealth_admin)) -> dict:
     total = sum(len(keys) for _, keys in _MANAGED_KEYS)
     filled = sum(1 for k in _ALL_MANAGED_KEYS if os.environ.get(k, "").strip())
     return {"groups": groups, "total": total, "filled": filled}
+
+
+@router.get("/api/system/env")
+async def system_env(user: UserContext = Depends(_stealth_admin)) -> dict:
+    """
+    Alias for /api/env-status for compatibility with dashboard test functions.
+    Returns env variable status in a format compatible with the dashboard.
+    """
+    import os
+    env = {}
+    for group_name, keys in _MANAGED_KEYS:
+        for k in keys:
+            env[k] = os.environ.get(k, "")
+    return {"env": env}
 
 
 @router.post("/api/env-update")
