@@ -11,11 +11,11 @@ import json
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.module_contracts import FunctionGroupContract, register_function_group
-from app.models.models import Document, DocumentPipelineIndex
+from app.models.models import DocumentPipelineIndex
 from app.core.vault_paths import VAULT_TIMELINE_EVENTS_FILE
 import logging
 logger = logging.getLogger(__name__)
@@ -107,11 +107,15 @@ async def build_timeline_chronology(
     }
 
     if source_doc_ids:
+        # Query from documents table (plural, not Document model)
         docs = (
             await db.execute(
-                select(Document.id, Document.uploaded_at, Document.original_filename).where(
-                    Document.id.in_(source_doc_ids)
-                )
+                text("""
+                    SELECT id, uploaded_at, original_filename 
+                    FROM documents 
+                    WHERE id = ANY(:doc_ids)
+                """),
+                {"doc_ids": list(source_doc_ids)}
             )
         ).all()
         for doc_id, uploaded_at, original_filename in docs:
