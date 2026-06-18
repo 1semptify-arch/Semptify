@@ -15,15 +15,15 @@ jobs:
     
     - name: Check for datetime.now(timezone.utc) usage
       run: |
-        # Count violations
-        violations=$(grep -r "datetime\.now(timezone\.utc)" app/ --include="*.py" | wc -l)
+        # Count violations (exclude app/core/utc.py which is the implementation)
+        violations=$(grep -r "datetime\.now(timezone\.utc)" app/ --include="*.py" --exclude="app/core/utc.py" | wc -l)
         
         if [ $violations -gt 0 ]; then
           echo "❌ Found $violations instances of datetime.now(timezone.utc)"
           echo "Use utc_now() from app.core.utc instead"
           echo ""
           echo "Violations:"
-          grep -r "datetime\.now(timezone.utc)" app/ --include="*.py" | head -20
+          grep -r "datetime\.now(timezone\.utc)" app/ --include="*.py" --exclude="app/core/utc.py" | head -20
           exit 1
         else
           echo "✅ All datetime usage is consistent"
