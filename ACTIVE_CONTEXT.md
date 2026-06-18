@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-06-17 PM
+**Last Updated**: 2026-06-18 AM
 
 ---
 
@@ -12,7 +12,28 @@
 
 ---
 
-## ✅ COMPLETED THIS SESSION (2026-06-17 PM) — Deployment Warnings, Status Indicator, Reconnect Fix
+## ✅ COMPLETED THIS SESSION (2026-06-18 AM) — Registration Bug Fix
+
+| What | Status |
+|------|--------|
+| Fixed registration bug (unhashable type 'dict') | ✅ Commit `73b7119` |
+| Deleted register.html and register_success.html (PII collection violated SSOT) | ✅ Done |
+| Changed GET /register to redirect to OAuth onboarding flow | ✅ Done |
+| Updated Playwright tests to use OAuth flow instead of username/password | ✅ Done |
+| Deployed to Render (manual deploy) | ✅ Live |
+
+---
+
+## ✅ COMPLETED PREVIOUS SESSION (2026-06-18 AM) — Documentation Cleanup
+
+| What | Status |
+|------|--------|
+| Verified HAS_STORAGE guard bug does not exist (already fixed) | ✅ No code change needed |
+| Updated ACTIVE_CONTEXT.md — removed stale HAS_STORAGE entry, updated date | ✅ Done |
+
+---
+
+## ✅ COMPLETED PREVIOUS SESSION (2026-06-17 PM) — Deployment Warnings, Status Indicator, Reconnect Fix
 
 | What | Commit |
 |------|--------|
@@ -46,9 +67,9 @@
 
 ---
 
-## 🎯 IMMEDIATE NEXT: Live Tests (verify what was built)
+## 🎯 PENDING MANUAL VERIFICATION (OAuth not clickable in automated browsers)
 
-These are marked "pending live test" — need a real action on semptify.org:
+These require manual testing in a regular browser:
 
 1. **Upload → timeline** — Upload a document. Check `/api/timeline/unified` for
    `event_type: "document_uploaded"` row. See `HANDOFF_SWE1.6.md` Task 2.
@@ -60,7 +81,7 @@ These are marked "pending live test" — need a real action on semptify.org:
    See `HANDOFF_SWE1.6.md` Task 1.
 5. **DB SSL mode** — Set `DB_SSL_MODE=require` in Render dashboard (manual action).
 
-## 🎯 NEXT AFTER LIVE TESTS
+## 🎯 NEXT
 
 1. **Documentation cleanup** — Update stale docs, retire completed handoff items
 2. **Scan for remaining TODO/stub code** — No critical stubs in core paths (already completed)
@@ -122,12 +143,11 @@ Feature modules NEVER call sideways to other feature modules directly.
 
 ---
 
-## 🔴 ALSO PENDING (lower priority than capability system)
+## 🔴 ALSO PENDING (lower priority than live tests)
 
 - **Role hierarchy wiring** — `user_relationships` table exists but `can_access()` not wired
 - **`acting_as` session context** — admin impersonation of child roles
 - **Filedored/overlay folders** — on-demand creation not yet wired
-- **`HAS_STORAGE` bug** — both branches of try/except set `True` — meaningless guard
 
 ---
 
