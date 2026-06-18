@@ -3697,18 +3697,6 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         from app.core.utc import utc_now
         return {"status": "ok", "ts": utc_now().isoformat()}
 
-    # =========================================================================
-    # Register Admin Console Module
-    # =========================================================================
-    from app.modules.admin_console.module_admin_console import register_admin_console_module
-    register_admin_console_module(fastapi_app)
-
-    # =========================================================================
-    # Register Funding Management Module (Admin Only)
-    # =========================================================================
-    from app.modules.funding_mgmt import register_funding_module
-    register_funding_module(fastapi_app)
-
     return fastapi_app
 # Create the app instance
 app = create_app()
