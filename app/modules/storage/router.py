@@ -637,7 +637,9 @@ async def get_user_by_provider_subject(
             User.storage_user_id == provider_subject,
         )
     )
-    return result.scalar_one_or_none()
+    # Use first() instead of scalar_one_or_none() to handle duplicate users gracefully
+    # This can happen if the same Google account was used to create multiple users
+    return result.scalars().first()
 
 
 async def _mark_group_complete(db: AsyncSession, user_id: str, group_name: str) -> None:
@@ -987,6 +989,16 @@ async def list_providers(
     message: Optional[str] = Query(None),
     provider: Optional[str] = Query(None),
 ):
+    """Serve storage reconnect providers page with correct OAuth links."""
+    from pathlib import Path
+    
+    # Serve the reconnect-specific HTML file with /storage/auth/ links
+    # Navigate from router.py to repo root: app/modules/storage/router.py -> app/ -> repo root
+    base_dir = Path(__file__).parent.parent.parent.parent
+    reconnect_page = base_dir / "static" / "onboarding" / "providers-reconnect.html"
+    if reconnect_page.exists():
+        from fastapi.responses import FileResponse
+        return FileResponse(reconnect_page)
     """
     Show storage provider selection page.
     Returns HTML page for browsers, JSON for API clients.
@@ -1610,6 +1622,7 @@ async def initiate_oauth(
             base_url = settings.public_base_url.rstrip("/")
         else:
             base_url = str(request.base_url).rstrip("/")
+        # Use /storage/callback/{provider} to match Google Cloud Console registration
         callback_uri = f"{base_url}/storage/callback/{provider}"
         logger.debug(f"DEBUG: Callback URI: {callback_uri}")
 
@@ -1852,11 +1865,11 @@ async def oauth_callback(
         # STEP 1: Store OAuth tokens in user's cloud storage (stateless approach)
         # This keeps tokens private and removes server-side token storage
         try:
-            from app.services.storage import get_provider
-            storage = get_provider(provider, access_token=access_token)
+            from app.services.storage.vault_manager import get_vault_manager
+            vault_manager = get_vault_manager()
             
-            if storage:
-                oauth_manager = StatelessOAuthManager(storage)
+            if vault_manager:
+                oauth_manager = StatelessOAuthManager(vault_manager)
                 token_stored = await oauth_manager.store_oauth_tokens(
                     user_id=user_id,
                     provider=provider,
@@ -1951,11 +1964,16 @@ async def oauth_callback(
 
         # Seed capability defaults for this user if not already seeded.
         # Safe to call on every login — only inserts missing rows.
+        # Use a nested transaction to prevent permission errors from affecting the main flow.
         try:
             from app.core.capabilities import seed_capability_defaults
+            await db.begin_nested()
             await seed_capability_defaults(user_id, role, db)
+            await db.commit()
         except Exception as _cap_err:
             logger.warning("Capability seeding skipped for %s: %s", user_id[:6], _cap_err)
+            # Rollback the nested transaction only
+            await db.rollback()
 
         # Cache token in-memory so vault_init (called seconds later) can find it.
         # Without this, get_current_user falls back to DB lookup which may race.
