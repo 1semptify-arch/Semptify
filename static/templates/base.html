@@ -36,6 +36,14 @@
         </nav>
         
         <div class="header-actions">
+          <!-- Status Indicator -->
+          <div id="status-indicator" class="status-indicator" style="display: none;" ondblclick="handleStatusDoubleClick()" title="Double-click to verify connection">
+            <span id="status-user-id"></span>
+            <span id="status-dot" class="status-dot"></span>
+            <span id="status-text"></span>
+          </div>
+
+
           <a href="/signin.html" class="btn btn-ghost btn-sm">Sign In</a>
           <a href="/onboarding/welcome.html" class="btn btn-primary btn-sm">Get Started</a>
         </div>
@@ -158,8 +166,107 @@
   <!-- Scripts -->
   <script src="/js/core/app.js"></script>
   <script>
-    // Page-specific JavaScript
+    // Status indicator - polls /api/auth/me every 30 seconds
+    async function updateStatus() {
+      try {
+        const response = await fetch('/api/auth/me');
+        const data = await response.json();
+
+        const indicator = document.getElementById('status-indicator');
+        const userId = document.getElementById('status-user-id');
+        const dot = document.getElementById('status-dot');
+        const text = document.getElementById('status-text');
+
+        if (data.authenticated) {
+          indicator.style.display = 'flex';
+          userId.textContent = data.user_id || 'Unknown';
+          dot.className = 'status-dot status-connected';
+          text.textContent = 'Connected';
+        } else {
+          indicator.style.display = 'none';
+        }
+      } catch (error) {
+        console.error('Status check failed:', error);
+      }
+    }
+
+    // Double-click to verify connection and reconnect if needed
+    async function handleStatusDoubleClick() {
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+
+      // Show reconnecting state
+      dot.className = 'status-dot status-reconnecting';
+      text.textContent = 'Verifying...';
+
+      try {
+        const response = await fetch('/api/auth/me');
+        const data = await response.json();
+
+        if (data.authenticated) {
+          dot.className = 'status-dot status-connected';
+          text.textContent = 'Connected ✓';
+          setTimeout(() => { text.textContent = 'Connected'; }, 2000);
+        } else {
+          // Not authenticated - redirect to reconnect flow
+          dot.className = 'status-dot status-disconnected';
+          text.textContent = 'Reconnecting...';
+          window.location.href = '/storage/reconnect';
+        }
+      } catch (error) {
+        console.error('Verification failed:', error);
+        dot.className = 'status-dot status-disconnected';
+        text.textContent = 'Error - Click to retry';
+      }
+    }
+
+    // Initial check and poll every 30 seconds
+    updateStatus();
+    setInterval(updateStatus, 30000);
   </script>
+
+  <style>
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #64748b;
+      padding: 4px 10px;
+      background: #f8fafc;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .status-connected {
+      background: #22c55e;
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+    }
+
+    .status-disconnected {
+      background: #ef4444;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+    }
+
+    .status-reconnecting {
+      background: #f59e0b;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
   
 </body>
 </html>
