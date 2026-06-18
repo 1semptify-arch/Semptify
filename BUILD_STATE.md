@@ -12,6 +12,84 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-18 AM — Registration Bug Fix (COMPLETE)
+**Commits: Pending | Status: Registration pages removed, OAuth redirect added, Playwright tests updated**
+
+### What Was Fixed
+
+#### Registration Bug (unhashable type 'dict') ✅
+- **Root cause:** register.html form POSTed to /register but no POST endpoint existed
+- **Architecture violation:** Semptify uses OAuth-based auth (no username/password), but register.html collected PII
+- **Fix applied:**
+  - Deleted `app/templates/pages/register.html` (PII collection form)
+  - Deleted `app/templates/pages/register_success.html`
+  - Changed `GET /register` to redirect to `/storage/providers` (OAuth onboarding entry)
+  - Updated `app/core/page_manifest.py` to remove register page entries
+- **SSOT compliance:** Redirect uses `navigation.get_stage("providers")` for proper routing
+
+#### Playwright Tests Updated ✅
+- **Issue:** Tests required SEMPTIFY_USERNAME/PASSWORD but Semptify uses OAuth
+- **Fix applied:**
+  - Updated all 4 live tests to use OAuth flow instead of username/password
+  - Added manual OAuth sign-in step with console prompts
+  - Added graceful handling for Google OAuth blocking (suggests Dropbox/OneDrive)
+  - Updated migration test to manual verification (pg module not available)
+- **Files modified:**
+  - `tests/e2e/live_upload_timeline.spec.js`
+  - `tests/e2e/live_case_persistence.spec.js`
+  - `tests/e2e/live_capability_seeding.spec.js`
+  - `tests/e2e/live_migration_verification.spec.js`
+
+### What Was Verified (from previous session)
+
+#### Task 5: HAS_STORAGE Guard ✅
+- Searched `vault_upload_service.py` and all of `app/` — no `HAS_STORAGE` global variable found
+- Bug does not exist in current codebase — already fixed in previous session
+
+#### Task 6: Role Hierarchy Wiring ✅
+- `app/modules/user/router.py` — POST/DELETE `/api/user/act-as` endpoints exist
+- `can_access()` wired from `app/core/security.py`
+- `update_session_impersonation()` sets `acting_as`/`acting_as_role` on stored session
+- Smoke test: `tests/e2e/role_hierarchy_smoke.spec.js` (2 tests)
+
+#### Task 7: Rent Ledger CRUD ✅
+- `app/modules/rent/router.py` — Full CRUD implemented
+  - POST `/api/rent/payments` — create payment (amount in dollars, stored as cents)
+  - GET `/api/rent/payments` — list current user's payments
+  - GET `/api/rent/payments/:id` — get single payment
+  - PUT `/api/rent/payments/:id` — update payment
+  - DELETE `/api/rent/payments/:id` — delete payment
+- Smoke test: `tests/e2e/rent_ledger_smoke.spec.js` (5 tests)
+
+#### Task 8: Filedored On-Demand Folders ✅
+- `app/services/filedored_service.py` — `ensure_filedored_folder()` for lazy single-folder creation
+- AI subdirectories created on-demand when first AI-classified document arrives (line 136)
+- Base folders use Redis flag `semptify:filedored_ready:<user_id>` for idempotency (30-day TTL)
+
+#### Task 9: TODO/STUB Scan ✅
+- Found TODOs in non-core modules: `litigation_intelligence`, `plugins`, `state_laws`, `communication`
+- Core paths (upload, auth, timeline, case builder, vault) — no blocking stubs
+- Most TODOs are for future features (graph_engine, marketplace, real-time)
+- No action needed — these are intentional placeholders for future work
+
+### Known Working
+- ✅ All code tasks from HANDOFF_SWE1.6.md already complete
+- ✅ All core files compile clean
+- ✅ HEAD: `2dfbccc` — deployed to Render
+
+### Known Pending (Requires Production Access)
+- ⏳ Live test: Upload → timeline row creation (Task 2)
+- ⏳ Live test: Case builder PostgreSQL persistence (Task 3)
+- ⏳ Live test: Capability seeding on fresh login (Task 4)
+- ⏳ Live test: Migration verification — `admin_audit_logs` table (Task 1)
+- ⚠️ Manual action: Set `DB_SSL_MODE=require` in Render dashboard
+
+### Next Session Starts With
+- Run live tests on production (https://semptify.org) with authenticated user
+- Or proceed to next major system per ACTIVE_CONTEXT.md
+
+---
+
 ## Session — 2026-06-17 PM — Deployment Warnings, Status Indicator, Reconnect Fix (COMPLETE)
 **Commits: `c77b425`, `2f1f8c7`, `9701553`, `9302589`, `0aee35d`, `305aba9`, `7a808ea` | Pushed: 2026-06-17**
 
