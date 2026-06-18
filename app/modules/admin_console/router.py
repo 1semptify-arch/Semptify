@@ -1415,13 +1415,13 @@ async def env_status(user: UserContext = Depends(_stealth_admin)) -> dict:
 async def system_env(user: UserContext = Depends(_stealth_admin)) -> dict:
     """
     Alias for /api/env-status for compatibility with dashboard test functions.
-    Returns env variable status in a format compatible with the dashboard.
+    Returns env variable status (set/unset) only, not actual values for security.
     """
     import os
     env = {}
     for group_name, keys in _MANAGED_KEYS:
         for k in keys:
-            env[k] = os.environ.get(k, "")
+            env[k] = bool(os.environ.get(k, "").strip())
     return {"env": env}
 
 
