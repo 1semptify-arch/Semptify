@@ -106,7 +106,7 @@ async def _stealth_admin(request: Request) -> UserContext:
 # Admin role guard (legacy - returns 403)
 require_admin = require_role(UserRole.ADMIN)
 
-router = APIRouter(prefix="/admin-console", tags=["Admin Console"])
+router = APIRouter(tags=["Admin Console"])
 
 # =============================================================================
 # Phase 3: Runtime Configuration Store
