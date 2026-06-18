@@ -1672,28 +1672,14 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             # Fallback to OAuth if providers page doesn't exist
             return ssot_redirect("/onboarding/auth/google_drive?force_fresh=true", context="providers fallback")
 
-        # Register page - explicit route for template
+        # Register page redirect - Semptify uses OAuth-based auth, no username/password registration
         @fastapi_app.get("/register", response_class=HTMLResponse)
-        async def register_page(request: Request):
-            """Serve the registration page."""
-            from fastapi.templating import Jinja2Templates
-            templates = Jinja2Templates(directory=str(BASE_PATH / "app" / "templates"))
-            # Generate CSRF token
-            csrf_token = request.state.csrf_token if hasattr(request.state, 'csrf_token') else 'dummy-token'
-            return templates.TemplateResponse("pages/register.html", {
-                "request": request,
-                "csrf_token": csrf_token
-            })
-
-        # Register success page
-        @fastapi_app.get("/register/success", response_class=HTMLResponse)
-        async def register_success_page(request: Request):
-            """Serve the registration success page."""
-            from fastapi.templating import Jinja2Templates
-            templates = Jinja2Templates(directory=str(BASE_PATH / "app" / "templates"))
-            return templates.TemplateResponse("pages/register_success.html", {
-                "request": request
-            })
+        async def register_redirect(request: Request):
+            """Redirect to OAuth-based onboarding. Semptify has no username/password registration."""
+            from app.core.navigation import navigation
+            providers_stage = navigation.get_stage("providers")
+            providers_path = providers_stage.path if providers_stage else "/storage/providers"
+            return ssot_redirect(providers_path, context="register redirect to OAuth onboarding")
 
     # =========================================================================
     # Root endpoint - Serve SPA
