@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-06-16
+**Last Updated**: 2026-06-17 PM
 
 ---
 
@@ -12,17 +12,19 @@
 
 ---
 
-## ✅ COMPLETED THIS SESSION (2026-06-16 PM) — Admin Navigation + AI Portal
+## ✅ COMPLETED THIS SESSION (2026-06-17 PM) — Deployment Warnings, Status Indicator, Reconnect Fix
 
 | What | Commit |
 |------|--------|
-| Shared admin navigation (JS + CSS + Jinja macro) | `256f102` |
-| All 6 admin pages updated with consistent nav | `256f102` |
-| Interactive admin manual with search/TOC | `256f102` |
-| AI Fix button for failed tests | `256f102` |
-| Bug fix: AI Fix button selector + variable name | `33d4c78` |
+| Fixed security module syntax error (import in docstring) | `c77b425` |
+| Fixed .gitignore to allow security directory | `2f1f8c7` |
+| Disabled litigation_intelligence router (missing graph_engine) | `9701553` |
+| Added persistent status indicator in header (user ID + storage status) | `9302589` |
+| Added double-click verify/reconnect handler | `9302589` |
+| Added returning user auto-reconnect in preamble router | `0aee35d` |
+| Fixed reconnect callback to use 3-step vault setup (no timeout) | `7a808ea` |
 
-**HEAD: `33d4c78` — clean, pushed**
+**HEAD: `2dfbccc` — clean, pushed**
 
 ---
 
@@ -56,11 +58,12 @@ These are marked "pending live test" — need a real action on semptify.org:
    See `HANDOFF_SWE1.6.md` Task 4.
 4. **Migration ran** — Verify `admin_audit_logs` table exists on production DB.
    See `HANDOFF_SWE1.6.md` Task 1.
+5. **DB SSL mode** — Set `DB_SSL_MODE=require` in Render dashboard (manual action).
 
 ## 🎯 NEXT AFTER LIVE TESTS
 
-1. **Scan for remaining TODO/stub code** (Task 9) — scan completed, no critical stubs in core paths
-2. **Documentation cleanup** (Task 10) — update stale docs, retire completed handoff items
+1. **Documentation cleanup** — Update stale docs, retire completed handoff items
+2. **Scan for remaining TODO/stub code** — No critical stubs in core paths (already completed)
 
 ## 📋 FULL TASK LIST: See `HANDOFF_SWE1.6.md`
 ## 📋 FULL CONTEXT + INSTRUCTIONS: See `HANDOFF_KIMI2.6.md`
