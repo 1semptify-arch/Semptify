@@ -166,7 +166,9 @@
   <!-- Scripts -->
   <script src="/js/core/app.js"></script>
   <script>
-    // Status indicator - polls /api/auth/me every 30 seconds
+    // Status indicator - polls /api/auth/me every 30 seconds when page is visible
+    let pollingInterval = null;
+
     async function updateStatus() {
       try {
         const response = await fetch('/api/auth/me');
@@ -187,6 +189,14 @@
         }
       } catch (error) {
         console.error('Status check failed:', error);
+        // Show error state in UI
+        const indicator = document.getElementById('status-indicator');
+        const text = document.getElementById('status-text');
+        if (indicator && text) {
+          indicator.style.display = 'flex';
+          text.textContent = 'Status check failed';
+          text.style.color = '#ef4444';
+        }
       }
     }
 
@@ -198,6 +208,7 @@
       // Show reconnecting state
       dot.className = 'status-dot status-reconnecting';
       text.textContent = 'Verifying...';
+      text.style.color = '';
 
       try {
         const response = await fetch('/api/auth/me');
@@ -217,12 +228,34 @@
         console.error('Verification failed:', error);
         dot.className = 'status-dot status-disconnected';
         text.textContent = 'Error - Click to retry';
+        text.style.color = '#ef4444';
       }
     }
 
-    // Initial check and poll every 30 seconds
-    updateStatus();
-    setInterval(updateStatus, 30000);
+    // Visibility-based polling - only poll when page is visible
+    function startPolling() {
+      updateStatus();
+      pollingInterval = setInterval(updateStatus, 30000);
+    }
+
+    function stopPolling() {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+      }
+    }
+
+    // Handle visibility changes
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        startPolling();
+      }
+    });
+
+    // Initial check and start polling
+    startPolling();
   </script>
 
   <style>
