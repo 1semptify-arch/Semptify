@@ -1992,36 +1992,12 @@ async def oauth_callback(
         completed_groups.discard("")
         vault_initialized = "vault_initialized" in completed_groups
 
-        # Create vault folders server-side if not yet initialized.
-        if not vault_initialized:
-            try:
-                from app.modules.onboarding.vault import init_vault
-                from app.modules.onboarding.config import OnboardingConfig as _OBConfig
-                _ob_config = _OBConfig(
-                    product_name="Semptify Tenant Rights",
-                    allowed_roles=["tenant"],
-                    allowed_providers=["google_drive", "dropbox", "onedrive"],
-                    on_complete_redirect="/home",
-                )
-                vault_result = await init_vault(
-                    db=db,
-                    user_id=user_id,
-                    provider_name=provider,
-                    access_token=access_token,
-                    config=_ob_config,
-                )
-                if vault_result.get("ok"):
-                    vault_initialized = True
-                else:
-                    logger.warning("Vault creation failed for user %s: %s", user_id[:6] + "***", vault_result.get("message"))
-            except Exception as vault_exc:
-                logger.error("Vault creation crashed for user %s: %s", user_id[:6] + "***", vault_exc, exc_info=True)
-
         # Determine landing page.
         return_to = state_data.get("return_to")
 
         if not vault_initialized:
-            # Vault creation failed — send to vault-setup page as fallback
+            # Vault not initialized — redirect to 3-step vault setup pages
+            # This prevents Cloudflare 504 timeout from synchronous vault creation
             vault_setup_stage = navigation.get_stage("vault_setup")
             landing = vault_setup_stage.path if vault_setup_stage else "/onboarding/vault-setup"
             logger.info("Routing to vault-setup: vault_initialized=%s is_new=%s user=%s",
