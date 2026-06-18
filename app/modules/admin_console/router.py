@@ -42,10 +42,36 @@ async def _stealth_admin(request: Request) -> UserContext:
     2. Admin token via X-Admin-Token header or admin_token query param
     """
     from app.core.security import get_current_user, get_admin_token_from_request, get_admin_token_store
+    from app.core.rate_limit import limiter
+    from app.core.utc import utc_now
+    from datetime import timedelta
 
     # Try admin token first (for testing/dev)
     admin_token = get_admin_token_from_request(request)
     if admin_token:
+        # Rate limit admin token attempts to prevent brute force
+        # Use IP-based rate limiting (5 attempts per minute per IP)
+        client_ip = request.client.host if request.client else "unknown"
+        rate_limit_key = f"admin_token:{client_ip}"
+
+        # Simple in-memory rate limit check
+        if not hasattr(_stealth_admin, "_rate_limit_cache"):
+            _stealth_admin._rate_limit_cache = {}
+
+        now = utc_now()
+        cache = _stealth_admin._rate_limit_cache
+
+        # Clean old entries
+        cache[rate_limit_key] = [t for t in cache.get(rate_limit_key, []) if now - t < timedelta(minutes=1)]
+
+        # Check rate limit
+        if len(cache.get(rate_limit_key, [])) >= 5:
+            logger.warning(f"Admin token rate limit exceeded for IP {client_ip}")
+            raise HTTPException(status_code=404, detail="Not Found")
+
+        # Record this attempt
+        cache.setdefault(rate_limit_key, []).append(now)
+
         admin_store = get_admin_token_store()
         admin = admin_store.validate_admin_token(admin_token)
         if admin:
