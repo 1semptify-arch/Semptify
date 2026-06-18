@@ -12,8 +12,8 @@ their legal rights—not tenants breaking the law.
 
 ---
 
-## Session — 2026-06-17 PM — Deployment Warnings & Status Indicator (COMPLETE)
-**Commits: `c77b425`, `2f1f8c7`, `9701553`, `9302589` | Pushed: 2026-06-17**
+## Session — 2026-06-17 PM — Deployment Warnings, Status Indicator, Reconnect Fix (COMPLETE)
+**Commits: `c77b425`, `2f1f8c7`, `9701553`, `9302589`, `0aee35d`, `305aba9`, `7a808ea` | Pushed: 2026-06-17**
 
 ### What Was Shipped
 
@@ -49,6 +49,13 @@ their legal rights—not tenants breaking the law.
   - Prevents returning users from being sent through onboarding again
   - Root cause: Users with valid tokens but no gates in `User.completed_groups`
 
+#### Reconnect 3-Step Vault Setup (COMPLETE)
+- **`app/modules/storage/router.py`** — Removed synchronous vault creation from reconnect callback
+  - Returning users now redirect to `/onboarding/vault-setup` instead of inline `init_vault()`
+  - Prevents Cloudflare 504 timeout from blocking HTTP response
+  - Returning users now use same 3-step flow as new users (folders → security → inspect)
+  - Root cause: Synchronous vault creation exceeded Cloudflare's 30-second limit
+
 ### Known Working (Tested Live)
 - ✅ Security module loads without import errors
 - ✅ Litigation intelligence router disabled (no warnings)
@@ -56,8 +63,9 @@ their legal rights—not tenants breaking the law.
 - ✅ Status indicator polls `/api/auth/me` successfully
 - ✅ Double-click verify/reconnect handler functional
 - ✅ Preamble auto-repairs storage_connected gate for returning users
+- ✅ Reconnect callback redirects to 3-step vault setup (no timeout risk)
 - ✅ All core files compile clean
-- ✅ Commits pushed to main (`c77b425`, `2f1f8c7`, `9701553`, `9302589`)
+- ✅ Commits pushed to main (`c77b425`, `2f1f8c7`, `9701553`, `9302589`, `0aee35d`, `305aba9`, `7a808ea`)
 - ✅ Deployed to Render successfully
 
 ### Known Pending
