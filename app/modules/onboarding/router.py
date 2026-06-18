@@ -106,14 +106,9 @@ def create_router(config: OnboardingConfig) -> APIRouter:
     ):
         """Show storage provider selection. Config-driven provider list.
 
-        Returning users (have valid cookie) are redirected to reconnect flow
-        to skip role/provider selection and go straight to OAuth refresh.
+        This is the NEW USER onboarding flow. Returning users should use
+        /storage/providers for reconnect, not this endpoint.
         """
-        if semptify_uid:
-            raw_uid = verify_user_id(semptify_uid)
-            if raw_uid:
-                # Returning user detected — send to reconnect, skip new user flow
-                return ssot_redirect(navigation.get_reconnect_flow(), context="providers_page reconnect")
         return HTMLResponse(content=_render_providers_page(config))
 
     # ------------------------------------------------------------------
@@ -237,9 +232,9 @@ def create_router(config: OnboardingConfig) -> APIRouter:
             from app.core.ssot_guard import ssot_redirect
             response = ssot_redirect(landing, context="onboarding_oauth_callback")
             
-            logger.info("OAuth callback: about to set cookie for user=%s", user_id[:6] + "***")
+            logger.info("OAuth callback: about to set cookie for user=%s secure=%s", user_id[:6] + "***", request.url.scheme == "https")
             set_auth_cookie(response, user_id, secure=request.url.scheme == "https")
-            logger.info("OAuth callback: cookie set successfully")
+            logger.info("OAuth callback: cookie set successfully. Response headers: %s", dict(response.headers))
             
             return response
             

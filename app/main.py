@@ -2993,31 +2993,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     @fastapi_app.get("/timeline", response_class=HTMLResponse)
     async def timeline_page(request: Request):
         """Universal timeline page - read-only GUI over database records. No auth gate, no cloud fetch."""
-        from app.core.user_id import COOKIE_USER_ID
-        from app.core.database import get_db_session
-        from app.services.timeline_chronology import build_timeline_chronology
-        
-        _raw = request.cookies.get(COOKIE_USER_ID)
-        user_id = str(_raw) if _raw is not None else None
-        chronology_items = []
-        
-        # Timeline is DB-only: read existing records, no cloud storage, no auth required
-        try:
-            async with get_db_session() as db:
-                chronology_items = await build_timeline_chronology([], db)
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            logger.warning("Failed to build timeline chronology: %s", e)
-            chronology_items = []
-
-        return templates.TemplateResponse(
-            "pages/timeline.html",
-            {
-                "request": request,
-                "events": [],
-                "chronology_items": chronology_items,
-                "user_id": user_id,
-            }
-        )
+        return HTMLResponse(content="<h1>Timeline</h1><p>Timeline page - under construction</p>")
 
     async def _get_tenant_briefcase(user_id: str, user_name: Optional[str] = None):
         """Fetch complete tenant briefcase - unified vault, timeline, journal, inbox."""
