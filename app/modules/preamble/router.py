@@ -76,6 +76,19 @@ async def preamble(request: Request):
         factory = get_session_factory()
         async with factory() as db:
             state = await get_onboarding_state(raw_uid, db)
+
+            # ── Auto-repair: If user has valid OAuth but missing storage_connected gate ──
+            # This handles users who onboarded before the gate system was implemented
+            if not state.storage_connected:
+                from app.modules.storage.router import get_valid_session
+                session = await get_valid_session(db, raw_uid, auto_refresh=False)
+                if session and session.get("access_token"):
+                    # Valid tokens exist — auto-mark the gate to prevent repeated onboarding
+                    from app.modules.onboarding.gates import mark_gate
+                    await mark_gate(db, raw_uid, "storage_connected")
+                    logger.info("Preamble: auto-repaired storage_connected gate for user %s (valid tokens found)", raw_uid[:6] + "***")
+                    # Re-read state after auto-repair
+                    state = await get_onboarding_state(raw_uid, db)
     except Exception as exc:
         logger.error("Preamble: DB error for user %s: %s", raw_uid[:6] + "***", exc)
         return _db_error_response()
