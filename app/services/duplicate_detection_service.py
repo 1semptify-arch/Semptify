@@ -192,3 +192,52 @@ async def get_all_duplicates(user_id: str, overlay_manager=None) -> List[dict]:
     except Exception as e:
         logger.error("Failed to get duplicates for user %s: %s", user_id, e)
         return []
+
+
+# =============================================================================
+# Module Contracts — SSOT signatures, visible in admin contract browser
+# =============================================================================
+
+try:
+    from app.core.module_contracts import FunctionGroupContract, register_function_group
+
+    register_function_group(FunctionGroupContract(
+        module="duplicates",
+        group_name="detect",
+        title="Duplicate Detection (SSOT)",
+        description=(
+            "CANONICAL duplicate detection via detect_duplicates(). "
+            "Creates DUPLICATE_DETECTION overlay for each document. "
+            "Queries existing overlays via get_overlays(overlay_type=DUPLICATE_DETECTION). "
+            "NO get_overlays_by_type method exists. "
+            "FORBIDDEN: vault_id/user_id/overlay_path/overlay_data on CreateOverlayRequest."
+        ),
+        inputs=("user_id", "vault_id", "sha256_hash", "filename", "overlay_manager?"),
+        outputs=("is_duplicate", "original_vault_id", "duplicate_count"),
+        dependencies=(
+            "app.services.duplicate_detection_service.detect_duplicates",
+            "app.services.unified_overlay_manager.UnifiedOverlayManager",
+            "app.core.overlay_types.OverlayType.DUPLICATE_DETECTION",
+        ),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="duplicates",
+        group_name="list_all",
+        title="Duplicate Groups List (SSOT)",
+        description=(
+            "CANONICAL duplicate groups query via get_all_duplicates(). "
+            "Returns groups keyed by sha256_hash with original + duplicates list."
+        ),
+        inputs=("user_id", "overlay_manager?"),
+        outputs=("duplicate_groups",),
+        dependencies=(
+            "app.services.duplicate_detection_service.get_all_duplicates",
+            "app.services.unified_overlay_manager.UnifiedOverlayManager",
+        ),
+        deterministic=True,
+    ))
+
+except Exception:
+    pass

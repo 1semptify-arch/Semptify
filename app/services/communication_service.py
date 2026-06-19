@@ -623,3 +623,80 @@ class CommunicationService:
 async def get_communication_service(storage, user_id: str) -> CommunicationService:
     """Factory function to get communication service instance."""
     return CommunicationService(storage, user_id)
+
+
+# =============================================================================
+# Module Contracts — SSOT signatures, visible in admin contract browser
+# =============================================================================
+
+try:
+    from app.core.module_contracts import FunctionGroupContract, register_function_group
+
+    register_function_group(FunctionGroupContract(
+        module="communication",
+        group_name="conversation_create",
+        title="Conversation Creation (SSOT)",
+        description=(
+            "CANONICAL conversation creation via CommunicationService.create_conversation(). "
+            "Stores conversation as COMMUNICATION overlay in user's cloud storage. "
+            "No other service may create conversation overlays directly."
+        ),
+        inputs=("request", "creator_role", "user_id", "storage"),
+        outputs=("conversation_id", "success"),
+        dependencies=(
+            "app.services.communication_service.CommunicationService",
+            "app.models.communication_models.CreateConversationRequest",
+        ),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="communication",
+        group_name="message_send",
+        title="Message Send (SSOT)",
+        description=(
+            "CANONICAL message send via CommunicationService.send_message(). "
+            "Stores message as COMMUNICATION overlay. Appends to existing conversation thread."
+        ),
+        inputs=("request", "sender_role", "conversation_id", "user_id", "storage"),
+        outputs=("message_id", "success"),
+        dependencies=(
+            "app.services.communication_service.CommunicationService",
+            "app.models.communication_models.SendMessageRequest",
+        ),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="communication",
+        group_name="conversations_list",
+        title="Conversations List (SSOT)",
+        description=(
+            "CANONICAL conversation list via CommunicationService.get_conversations(). "
+            "Returns ConversationListResponse with summaries and unread counts."
+        ),
+        inputs=("user_id", "storage"),
+        outputs=("conversations", "total_count", "unread_total"),
+        dependencies=("app.services.communication_service.CommunicationService",),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="communication",
+        group_name="document_fill_sign",
+        title="Document Fill and Sign (SSOT)",
+        description=(
+            "CANONICAL document fill+sign via CommunicationService.fill_and_sign_document(). "
+            "Fills form fields, applies signature, stores result as overlay."
+        ),
+        inputs=("delivery_id", "field_values", "signature_data", "user_id", "storage"),
+        outputs=("signed_document_id", "success"),
+        dependencies=(
+            "app.services.communication_service.CommunicationService",
+            "app.services.document_delivery_service.DocumentDeliveryService",
+        ),
+        deterministic=True,
+    ))
+
+except Exception:
+    pass
