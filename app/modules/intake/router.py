@@ -698,7 +698,7 @@ async def process_document_from_vault(
     """
     import json
     
-    from app.routers.cloud_sync import get_sync_service
+    from app.modules.cloud_sync.router import get_sync_service
     from app.core.vault_paths import VAULT_DOCUMENTS
     
     sync = await get_sync_service(user, db, settings)
