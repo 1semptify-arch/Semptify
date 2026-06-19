@@ -12,6 +12,40 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-19 PM2 — End-to-End Document Pipeline Test + Bug Fixes
+**Commit: 4c1d48e | Status: 30-step e2e document test passes, 2 upstream bugs fixed, deployed to Render**
+
+### What Was Shipped
+
+#### New E2E Test ✅
+- `tests/integration/test_document_e2e.py`: 30-step end-to-end document pipeline test
+- Tests full flow: upload → certify → index → retrieve → content → dedup → 2nd upload → text extraction → classification → data extraction (dates/amounts/parties) → law linker citation detection → mark_processed → update_doc_type → certificate file verification
+- Uses local file storage (no cloud provider needed) + existing Neon DB with per-run unique user_id for isolation
+- All 30 steps pass
+
+#### Bug Fixes (root cause, upstream) ✅
+- `app/core/law_source_registry.py`: regex now recognizes `Sec.` and `Section` as section indicators (previously only matched `§`). Common in legal citations like "Minn. Stat. Sec. 504B.161". Also strip Sec./Section prefix in `_mn_stat_chapter_url` before extracting chapter number.
+- `app/services/document_intake.py`: `extract_parties` now handles "Landlord X and Tenant Y" format on a single line. Added ` and ` and `.` as terminators alongside newline/comma/EOL.
+
+### Known Working
+- All 30 e2e pipeline steps pass on local run
+- VaultUploadService local storage provider fully functional
+- Document certification + registry + integrity hash chain verified
+- Law linker citation detection works on extracted document text
+- All Python files compile clean under venv311 (Python 3.11.9)
+
+### Known Broken / Pending
+- Live test on production pending (no dev server running locally)
+- Live-feed verification engine deferred to post-funding
+- Test file is force-added (gitignored by `test_*.py` pattern) — consider narrowing .gitignore rule to `/*test_*.py` for root only
+
+### Next Session Should Start With
+- Run e2e test against Render deployment to verify production behavior
+- Consider running Playwright UI tests on documents page
+- Expand e2e test to cover overlay retrieval and document delivery to advocate/legal roles
+
+---
+
 ## Session — 2026-06-19 PM — Law Linker System (COMPLETE)
 **Commit: 2e6b643 | Status: Law linker system live, all 70 law/case/rule entries have official source URLs, Deployed to Render**
 
