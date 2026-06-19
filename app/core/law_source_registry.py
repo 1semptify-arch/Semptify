@@ -46,7 +46,7 @@ class LawSource:
 
 def _mn_stat_url(citation: str) -> str:
     """Build revisor.mn.gov URL from Minn. Stat. citation."""
-    # Extract the chapter.section, e.g. "504B.321" from "Minn. Stat. § 504B.321"
+    # Extract the chapter.section, e.g. "504B.321" from "Minn. Stat. § 504B.321" or "Minn. Stat. Sec. 504B.321"
     m = re.search(r"(\d+[A-Z]?\.\d+[\w.]*)", citation)
     if m:
         return f"https://www.revisor.mn.gov/statutes/cite/{m.group(1)}"
@@ -54,8 +54,10 @@ def _mn_stat_url(citation: str) -> str:
 
 
 def _mn_stat_chapter_url(citation: str) -> str:
-    """Build revisor.mn.gov URL for chapter-level citations (e.g. § 504B, § 580)."""
-    m = re.search(r"(\d+[A-Z]?)", citation)
+    """Build revisor.mn.gov URL for chapter-level citations (e.g. § 504B, § 580, Sec. 504)."""
+    # Strip any "Sec." or "Section" prefix, then look for chapter number
+    cleaned = re.sub(r"(?i)\bSec\.?\s*|\bSection\s*", "", citation)
+    m = re.search(r"(\d+[A-Z]?)", cleaned)
     if m:
         return f"https://www.revisor.mn.gov/statutes/cite/{m.group(1)}"
     return "https://www.revisor.mn.gov/statutes/"
@@ -142,11 +144,11 @@ def _ada_url(citation: str) -> str:
 # =============================================================================
 
 REGISTRY: list[tuple[re.Pattern, LawSource]] = [
-    # Minnesota Statutes — section level (e.g. § 504B.321)
-    (re.compile(r"Minn\.?\s*Stat\.?\s*§?\s*\d+[A-Z]?\.\d+", re.IGNORECASE),
+    # Minnesota Statutes — section level (e.g. § 504B.321, Sec. 504B.321, Section 504B.321)
+    (re.compile(r"Minn\.?\s*Stat\.?\s*(?:§|Sec\.?|Section)?\s*\d+[A-Z]?\.\d+", re.IGNORECASE),
      LawSource("Minnesota Revisor of Statutes", _mn_stat_url, "2026-01-15", "state")),
-    # Minnesota Statutes — chapter level (e.g. § 504B, § 580, § 176)
-    (re.compile(r"Minn\.?\s*Stat\.?\s*§?\s*\d+[A-Z]?(?:\s|$)", re.IGNORECASE),
+    # Minnesota Statutes — chapter level (e.g. § 504B, Sec. 504, Section 580)
+    (re.compile(r"Minn\.?\s*Stat\.?\s*(?:§|Sec\.?|Section)?\s*\d+[A-Z]?(?:\s|$)", re.IGNORECASE),
      LawSource("Minnesota Revisor of Statutes", _mn_stat_chapter_url, "2026-01-15", "state")),
     # US Code
     (re.compile(r"\d+\s*U\.?S\.?C\.?", re.IGNORECASE),
