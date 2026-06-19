@@ -1,6 +1,6 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-06-18 AM
+**Last Updated**: 2026-06-18 PM
 
 ---
 
@@ -12,7 +12,35 @@
 
 ---
 
-## ✅ COMPLETED THIS SESSION (2026-06-18 AM) — Registration Bug Fix
+## ✅ COMPLETED THIS SESSION (2026-06-18 PM) — Overlay System Mechanics + SSOT Contracts
+
+| What | Status |
+|------|--------|
+| Fixed `CreateOverlayRequest` signature in 3 files | ✅ Commit `6040200` |
+| Replaced phantom `app.core.storage_factory` in 3 files with real pattern | ✅ Commit `6040200` |
+| Retired 943-line dead `app/modules/overlays/router.py` | ✅ Commit `6040200` |
+| Registered 5 overlay FunctionGroupContracts | ✅ Commit `6040200` |
+| Updated AGENTS.md with Failure #16 + Module Contract Mandate | ✅ Commit `6040200` |
+| Registered 14 more contracts across 5 services | ✅ Commit `9d2c21c` |
+| Fixed 2 bugs from /review (overlay_path AttributeError, stale duplicate overlay) | ✅ Commit `1b556d9` |
+| Updated BUILD_STATE.md with session summary | ✅ Commit `3cce5a5` |
+| Cloudflare dev mode enabled + cache purged | ✅ Active 3hrs |
+
+**HEAD: `3cce5a5` — clean, pushed**
+
+### Contract Registry Status — 22 contracts across 8 services
+- vault (3): vault_upload, vault_folders, vault_init
+- overlays (5): overlay_create, overlay_query, overlay_update, overlay_delete, overlay_compose_view
+- communication (4): conversation_create, message_send, conversations_list, document_fill_sign
+- delivery (4): document_send, inbox_list, document_sign, document_reject
+- filedored (2): document_process, folders_ensure
+- duplicates (2): detect, list_all
+- court_forms (2): form_generate, form_autofill
+- timeline (1): timeline_chronology
+
+---
+
+## ✅ COMPLETED PREVIOUS SESSION (2026-06-18 AM) — Registration Bug Fix
 
 | What | Status |
 |------|--------|
@@ -24,30 +52,50 @@
 
 ---
 
-## ✅ COMPLETED PREVIOUS SESSION (2026-06-18 AM) — Documentation Cleanup
+## 🎯 NEXT
 
-| What | Status |
-|------|--------|
-| Verified HAS_STORAGE guard bug does not exist (already fixed) | ✅ No code change needed |
-| Updated ACTIVE_CONTEXT.md — removed stale HAS_STORAGE entry, updated date | ✅ Done |
+1. **GUI development for overlay system** — document viewer with annotation toolbar
+   - Mechanics are now solid; contracts are SSOT reference for any AI
+   - Start with minimal viewer: load vault doc + list overlays (prove render path)
+   - Then add annotation toolbar (highlight, note)
+2. **Register contracts for remaining services when touched** — rent, user, admin_console
+3. **Live verification** (manual, OAuth blocks automated browsers):
+   - Filedored browse_folder endpoint
+   - Duplicate detection flow on real upload
+   - Court forms FORM_FILL overlay creation
+   - Contract browser visibility in admin dashboard
 
----
-
-## ✅ COMPLETED PREVIOUS SESSION (2026-06-17 PM) — Deployment Warnings, Status Indicator, Reconnect Fix
-
-| What | Commit |
-|------|--------|
-| Fixed security module syntax error (import in docstring) | `c77b425` |
-| Fixed .gitignore to allow security directory | `2f1f8c7` |
-| Disabled litigation_intelligence router (missing graph_engine) | `9701553` |
-| Added persistent status indicator in header (user ID + storage status) | `9302589` |
-| Added double-click verify/reconnect handler | `9302589` |
-| Added returning user auto-reconnect in preamble router | `0aee35d` |
-| Fixed reconnect callback to use 3-step vault setup (no timeout) | `7a808ea` |
-
-**HEAD: `2dfbccc` — clean, pushed**
+## 📋 FULL TASK LIST: See `HANDOFF_SWE1.6.md`
+## 📋 FULL CONTEXT + INSTRUCTIONS: See `HANDOFF_KIMI2.6.md`
 
 ---
+
+## 🔵 Capability System (Milestone 3 — COMPLETE)
+
+### Architecture Decision — LOCKED (2026-06-16)
+
+The following decisions are final. Do not re-litigate them. Build to these specs.
+
+| # | Decision | Answer |
+|---|----------|--------|
+| 1 | Module types | **Pipeline Module** (always-on engine) + **Feature Module** (user-loadable capability) |
+| 2 | Capability store | **New `user_capabilities` DB table** + Redis cache per session |
+| 3 | Role defaults | **Defined in `product_manifest.py`** — small set per role, everything else opt-in |
+| 4 | Overlay boundary | **Add-only**. Overlays can never replace existing routes. Pipeline modules cannot be overlaid. |
+| 5 | Relationships vs capabilities | **Separate tables**. `user_relationships` = who sees who. `user_capabilities` = what features are on. |
+| 6 | Load trigger | **Role defaults on login** (preloaded, no friction). **Everything else lazy** — loads on first navigation, stays for session. |
+
+### Data Flow Rule — NEVER VIOLATE
+```
+USER
+  ↓
+Feature Module  (case_builder, fems, timeline, court_forms...)
+  ↓
+Pipeline Module (registry, certification, extraction, context_loop...)
+  ↓
+Database / Storage / External APIs
+```
+Feature modules call DOWN to pipeline modules.
 
 ## ✅ COMPLETED PREVIOUS SESSION (2026-06-16 AM) — Milestones 1–9 ALL DONE
 
