@@ -168,7 +168,7 @@ async def browse_folder(
         if not storage_provider:
             raise HTTPException(status_code=400, detail="No storage provider found")
         
-        overlay_manager = get_unified_overlay_manager(storage_provider, user.user_id)
+        overlay_manager = await get_unified_overlay_manager(storage_provider, user.user_id)
         
         # Query overlays for this folder
         from app.core.overlay_types import OverlayType
@@ -180,11 +180,14 @@ async def browse_folder(
         else:
             folder_path = folder
         
-        # Get overlays in this folder
-        overlays = await overlay_manager.get_overlays_by_path(
-            overlay_type=OverlayType.FILEDORED,
-            path_prefix=folder_path,
+        # Get FILEDORED overlays and filter by path in payload (no get_overlays_by_path method exists)
+        overlays_response = await overlay_manager.get_overlays(
+            overlay_type=OverlayType.FILEDORED
         )
+        overlays = [
+            o for o in overlays_response.overlays
+            if o.payload.get("filedored_path", "").startswith(folder_path)
+        ] if overlays_response.success else []
         
         # Build response with document details
         documents = []
@@ -237,7 +240,7 @@ async def list_folders(user: StorageUser = Depends(require_user)):
         if not storage_provider:
             raise HTTPException(status_code=400, detail="No storage provider found")
         
-        overlay_manager = get_unified_overlay_manager(storage_provider, user.user_id)
+        overlay_manager = await get_unified_overlay_manager(storage_provider, user.user_id)
         
         # Define folders to check
         folders = {
@@ -252,16 +255,20 @@ async def list_folders(user: StorageUser = Depends(require_user)):
             "__AI_CLASSIFIED__": VAULT_FILEDORED_AI,
         }
         
-        # Count documents in each folder
+        # Count documents in each folder — single fetch, filter in memory
+        overlays_response = await overlay_manager.get_overlays(
+            overlay_type=OverlayType.FILEDORED
+        )
+        all_overlays = overlays_response.overlays if overlays_response.success else []
         folder_counts = {}
         for name, path in folders.items():
-            overlays = await overlay_manager.get_overlays_by_path(
-                overlay_type=OverlayType.FILEDORED,
-                path_prefix=path,
+            count = sum(
+                1 for o in all_overlays
+                if o.payload.get("filedored_path", "").startswith(path)
             )
             folder_counts[name] = {
                 "path": path,
-                "count": len(overlays),
+                "count": count,
             }
         
         return {

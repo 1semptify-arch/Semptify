@@ -450,3 +450,99 @@ class UnifiedOverlayManager:
 async def get_unified_overlay_manager(storage_provider, user_id: str) -> UnifiedOverlayManager:
     """Factory function to create overlay manager."""
     return UnifiedOverlayManager(storage_provider, user_id)
+
+
+# =============================================================================
+# Module Contracts — SSOT signatures, visible in admin contract browser
+# Any service that creates/reads/updates/deletes overlays MUST match these.
+# =============================================================================
+
+try:
+    from app.core.module_contracts import FunctionGroupContract, register_function_group
+
+    register_function_group(FunctionGroupContract(
+        module="overlays",
+        group_name="overlay_create",
+        title="Overlay Creation (SSOT)",
+        description=(
+            "CANONICAL overlay creation. All overlays created via UnifiedOverlayManager.create_overlay(). "
+            "Originals in vault are IMMUTABLE. Overlays stored in user's cloud storage. "
+            "No other service may write overlay JSON to cloud storage directly. "
+            "Required CreateOverlayRequest fields: overlay_type, document_id, vault_path, payload, metadata, ephemeral. "
+            "FORBIDDEN fields: vault_id, user_id, overlay_path, overlay_data (these do not exist on the model)."
+        ),
+        inputs=("overlay_type", "document_id", "vault_path", "payload", "metadata", "ephemeral", "user_id", "storage_provider"),
+        outputs=("overlay_id", "overlay_hash", "prev_overlay_hash"),
+        dependencies=(
+            "app.services.unified_overlay_manager.UnifiedOverlayManager",
+            "app.core.overlay_types.OverlayType",
+            "app.models.unified_overlay_models.CreateOverlayRequest",
+        ),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="overlays",
+        group_name="overlay_query",
+        title="Overlay Query (SSOT)",
+        description=(
+            "CANONICAL overlay query. All overlay reads via UnifiedOverlayManager.get_overlays(). "
+            "NO get_overlays_by_type or get_overlays_by_path methods exist — these are hallucinations. "
+            "Filter by passing overlay_type, category, document_id, created_by, include_ephemeral as kwargs. "
+            "Returns GetOverlaysResponse with .overlays list and .success bool."
+        ),
+        inputs=("user_id", "storage_provider", "overlay_type?", "category?", "document_id?", "created_by?", "include_ephemeral?"),
+        outputs=("overlays", "count", "filters_applied", "success"),
+        dependencies=("app.services.unified_overlay_manager.UnifiedOverlayManager",),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="overlays",
+        group_name="overlay_update",
+        title="Overlay Update (SSOT)",
+        description=(
+            "CANONICAL overlay update. Only payload and metadata are mutable. "
+            "overlay_id, document_id, vault_path, created_by are IMMUTABLE. "
+            "Ownership check enforced: only creator can update. "
+            "Method signature: update_overlay(overlay_id, payload=None, metadata=None)."
+        ),
+        inputs=("overlay_id", "payload?", "metadata?", "user_id"),
+        outputs=("success",),
+        dependencies=("app.services.unified_overlay_manager.UnifiedOverlayManager",),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="overlays",
+        group_name="overlay_delete",
+        title="Overlay Delete (SSOT)",
+        description=(
+            "CANONICAL overlay deletion. Removes overlay file and registry entry. "
+            "Original vault document is NEVER touched. Ownership check enforced. "
+            "Method signature: delete_overlay(overlay_id) -> bool."
+        ),
+        inputs=("overlay_id", "user_id"),
+        outputs=("success",),
+        dependencies=("app.services.unified_overlay_manager.UnifiedOverlayManager",),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="overlays",
+        group_name="overlay_compose_view",
+        title="Document View Composition (SSOT)",
+        description=(
+            "CANONICAL document view composer. Applies overlays to produce a render spec. "
+            "No file is created. Redactions applied last. Watermarks ephemeral. "
+            "Method signature: compose_document_view(document_id, overlay_ids, apply_redactions)."
+        ),
+        inputs=("document_id", "overlay_ids", "apply_redactions", "user_id"),
+        outputs=("view_spec", "applied_overlays", "success"),
+        dependencies=("app.services.unified_overlay_manager.UnifiedOverlayManager",),
+        deterministic=True,
+    ))
+
+except Exception:
+    # Contract registration is best-effort — never break the module if registry is unavailable
+    pass
