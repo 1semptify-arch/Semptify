@@ -497,3 +497,80 @@ class DocumentDeliveryService:
 async def get_delivery_service(storage_provider, user_id: str) -> DocumentDeliveryService:
     """Factory function to create delivery service."""
     return DocumentDeliveryService(storage_provider, user_id)
+
+
+# =============================================================================
+# Module Contracts — SSOT signatures, visible in admin contract browser
+# =============================================================================
+
+try:
+    from app.core.module_contracts import FunctionGroupContract, register_function_group
+
+    register_function_group(FunctionGroupContract(
+        module="delivery",
+        group_name="document_send",
+        title="Document Send (SSOT)",
+        description=(
+            "CANONICAL document send via DocumentDeliveryService.send_document(). "
+            "Creates IDENTITY_ADAPTER overlay in recipient's cloud storage. "
+            "Sender must be advocate/manager/legal/admin role."
+        ),
+        inputs=("request", "sender_name", "sender_user_id", "storage"),
+        outputs=("delivery_id", "success"),
+        dependencies=(
+            "app.services.document_delivery_service.DocumentDeliveryService",
+            "app.models.document_delivery_models.SendDocumentRequest",
+        ),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="delivery",
+        group_name="inbox_list",
+        title="Delivery Inbox List (SSOT)",
+        description=(
+            "CANONICAL inbox via DocumentDeliveryService.get_inbox(). "
+            "Returns DeliveryListResponse with all deliveries for current user."
+        ),
+        inputs=("user_id", "storage"),
+        outputs=("deliveries", "count"),
+        dependencies=("app.services.document_delivery_service.DocumentDeliveryService",),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="delivery",
+        group_name="document_sign",
+        title="Document Sign (SSOT)",
+        description=(
+            "CANONICAL document sign via DocumentDeliveryService.sign_document(). "
+            "Updates delivery overlay with signature, marks as SIGNED."
+        ),
+        inputs=("delivery_id", "request", "user_id", "storage"),
+        outputs=("signed_document_id", "success"),
+        dependencies=(
+            "app.services.document_delivery_service.DocumentDeliveryService",
+            "app.models.document_delivery_models.SignDocumentRequest",
+        ),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="delivery",
+        group_name="document_reject",
+        title="Document Reject (SSOT)",
+        description=(
+            "CANONICAL document reject via DocumentDeliveryService.reject_document(). "
+            "Updates delivery overlay with rejection reason, marks as REJECTED."
+        ),
+        inputs=("delivery_id", "request", "user_id", "storage"),
+        outputs=("success",),
+        dependencies=(
+            "app.services.document_delivery_service.DocumentDeliveryService",
+            "app.models.document_delivery_models.RejectDocumentRequest",
+        ),
+        deterministic=True,
+    ))
+
+except Exception:
+    pass

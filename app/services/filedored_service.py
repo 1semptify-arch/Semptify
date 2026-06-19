@@ -268,3 +268,54 @@ async def ensure_filedored_folder(storage_provider, folder_path: str) -> bool:
     except Exception as exc:
         logger.error("Failed to create filedored folder %s: %s", folder_path, exc)
         return False
+
+
+# =============================================================================
+# Module Contracts — SSOT signatures, visible in admin contract browser
+# =============================================================================
+
+try:
+    from app.core.module_contracts import FunctionGroupContract, register_function_group
+
+    register_function_group(FunctionGroupContract(
+        module="filedored",
+        group_name="document_process",
+        title="Filedored Document Processing (SSOT)",
+        description=(
+            "CANONICAL document sorting/classification via process_uploaded_document(). "
+            "Creates FILEDORED overlay with filedored_path in payload. "
+            "Caller MUST pass a constructed UnifiedOverlayManager (no lazy init). "
+            "AI classification is optional (enable_ai flag). "
+            "FORBIDDEN: vault_id/user_id/overlay_path/overlay_data on CreateOverlayRequest."
+        ),
+        inputs=("vault_id", "user_id", "filename", "content", "sha256_hash", "enable_ai", "overlay_manager"),
+        outputs=("status", "overlay_path", "ai_label?"),
+        dependencies=(
+            "app.services.filedored_service.process_uploaded_document",
+            "app.services.unified_overlay_manager.UnifiedOverlayManager",
+            "app.core.overlay_types.OverlayType.FILEDORED",
+        ),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="filedored",
+        group_name="folders_ensure",
+        title="Filedored Folders Ensure (SSOT)",
+        description=(
+            "CANONICAL folder creation via ensure_filedored_folders() and ensure_filedored_folder(). "
+            "Base folders created upfront; AI subdirectories lazy-created on demand. "
+            "Redis flag (30-day TTL) prevents redundant API calls."
+        ),
+        inputs=("vault_client", "storage_provider", "folder_path?"),
+        outputs=("status", "folders_created", "folders_failed"),
+        dependencies=(
+            "app.services.filedored_service.ensure_filedored_folders",
+            "app.services.filedored_service.ensure_filedored_folder",
+            "app.core.vault_paths.VAULT_FILEDORED",
+        ),
+        deterministic=True,
+    ))
+
+except Exception:
+    pass

@@ -747,3 +747,52 @@ async def preview_document_data(
         "action_items_count": len(case_data.action_items),
         "urgent_actions_count": len(case_data.urgent_actions),
     }
+
+
+# =============================================================================
+# Module Contracts — SSOT signatures, visible in admin contract browser
+# =============================================================================
+
+try:
+    from app.core.module_contracts import FunctionGroupContract, register_function_group
+
+    register_function_group(FunctionGroupContract(
+        module="court_forms",
+        group_name="form_generate",
+        title="Court Form Generation (SSOT)",
+        description=(
+            "CANONICAL form generation via POST /api/court-forms/generate. "
+            "Creates FORM_FILL overlay in user's vault with filled form data. "
+            "Uses oauth_token_manager + services.storage.get_provider pattern (NOT storage_factory). "
+            "Required CreateOverlayRequest fields: overlay_type, document_id, vault_path, payload, metadata."
+        ),
+        inputs=("form_type", "case_data", "defenses", "output_format", "user_id"),
+        outputs=("content", "form_type", "fields_used", "overlay_id"),
+        dependencies=(
+            "app.modules.court_forms.router",
+            "app.services.unified_overlay_manager.UnifiedOverlayManager",
+            "app.core.overlay_types.OverlayType.FORM_FILL",
+        ),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="court_forms",
+        group_name="form_autofill",
+        title="Form Auto-fill from Documents (SSOT)",
+        description=(
+            "CANONICAL auto-fill via GET /api/court-forms/autofill/{form_type}. "
+            "Extracts data from uploaded documents to pre-fill court forms. "
+            "Returns field mappings for form pre-population."
+        ),
+        inputs=("form_type", "user_id"),
+        outputs=("form_autofills", "case_data"),
+        dependencies=(
+            "app.modules.court_forms.router",
+            "app.services.document_intake",
+        ),
+        deterministic=True,
+    ))
+
+except Exception:
+    pass
