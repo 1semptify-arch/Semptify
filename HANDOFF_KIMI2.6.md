@@ -1,5 +1,5 @@
-# Semptify — Kimi 2.6 Handoff Instructions
-# Prepared: 2026-06-16 | For: Next AI session (Kimi 2.6)
+# Semptify — SWE 1.6 Handoff Instructions
+# Updated: 2026-06-18 PM | For: Next AI session (SWE 1.6)
 
 ---
 
@@ -53,8 +53,10 @@ c:\Semptify\Semptify-FastAPI\        ← repo root (cwd for all commands)
       database.py                    ← get_db_session() async context manager
       id_gen.py                      ← make_id("prefix") for all new IDs
       onboarding_state.py            ← 2-gate SSOT: storage_connected + vault_initialized
+      module_contracts.py            ← FunctionGroupContract registry (SSOT for APIs)
     models/
       models.py                      ← ALL SQLAlchemy models (38 tables)
+      unified_overlay_models.py      ← CreateOverlayRequest, UnifiedOverlay, etc.
     modules/
       vault/router.py                ← SSOT upload entry point (all uploads go here)
       onboarding/router.py           ← Onboarding flow (3 internal gates)
@@ -62,9 +64,21 @@ c:\Semptify\Semptify-FastAPI\        ← repo root (cwd for all commands)
       capabilities/router.py         ← Admin CRUD for user capabilities
       timeline/router.py             ← /api/timeline/unified
       case_builder/router.py         ← DB-backed case management (incidents table)
+      unified_overlays/router.py     ← SSOT overlay API (create/list/get/update/delete/compose)
+      filedored/router.py            ← Browse + list folders
+      rent/router.py                 ← Rent payment CRUD
+      user/router.py                 ← Role impersonation act-as endpoints
+      court_forms/router.py          ← Court form generation + autofill
+      admin_console/router.py        ← Admin dashboard API
     services/
       vault_upload_service.py        ← VaultUploadService — the one upload pipeline
+      unified_overlay_manager.py     ← SSOT overlay CRUD + 5 overlay contracts
       timeline_extraction.py         ← NLP date/event extraction from documents
+      communication_service.py       ← Conversations + messages (overlay-backed)
+      document_delivery_service.py   ← Send/sign/reject documents (overlay-backed)
+      filedored_service.py           ← Document sorting + folder creation
+      duplicate_detection_service.py ← Duplicate detection across uploads
+      timeline_chronology.py         ← Timeline ordering logic
   alembic/
     versions/                        ← ALL database migrations (must chain correctly)
   tests/
@@ -72,65 +86,70 @@ c:\Semptify\Semptify-FastAPI\        ← repo root (cwd for all commands)
   BUILD_STATE.md                     ← Session log + what is known working/broken
   ACTIVE_CONTEXT.md                  ← What is in progress RIGHT NOW
   AGENTS.md                          ← Rules + Known Failure Registry (READ THIS)
-  AGENTS.md Known Failure Registry   ← 15 documented recurring bugs — DO NOT REPEAT THEM
 ```
 
 ---
 
-## WHAT WAS DONE THIS SESSION (2026-06-16)
+## WHAT WAS DONE THIS SESSION (2026-06-18 PM)
 
-All 6 milestones shipped and pushed to `origin/main`. Current HEAD: `6bb0fa3`
+**HEAD: `8fd6333` — clean, pushed to origin/main**
 
-### Milestone 1 — Case Builder + Vault Foundation
-- Case builder storage moved from local JSON files → PostgreSQL `incidents.incident_metadata`
-- Cases now survive Render restarts
-- Filedored idempotency: Redis flag skips 17 API calls on repeat uploads
-- Playwright smoke tests wired up (8 tests, `tests/e2e/onboarding_smoke.spec.js`)
+### Overlay System Mechanics Alignment
+- Fixed `CreateOverlayRequest` signature in 3 files:
+  - `app/services/filedored_service.py`
+  - `app/services/duplicate_detection_service.py`
+  - `app/modules/filedored/router.py`
+  - Replaced `vault_id/user_id/overlay_path/overlay_data` with `document_id/vault_path/payload/metadata`
+- Replaced phantom `app.core.storage_factory` import in 3 files with real pattern:
+  - `oauth_token_manager.get_valid_token_for_user()` + `services.storage.get_provider()` + `user_id.get_provider_from_user_id()`
+- Replaced non-existent `get_overlays_by_type` / `get_overlays_by_path` with `get_overlays()` + in-memory filtering
+- Retired 943-line dead `app/modules/overlays/router.py` (deleted entire directory)
+- `app/modules/unified_overlays/router.py` is now the sole SSOT overlay API
 
-### Milestone 2 — Timeline End-to-End
-- `_cloud_event_to_item()` Pydantic field names fixed (would have crashed timeline for all users)
-- Upload → timeline wired: `event_subscribers.py` `_on_document_added()` writes `TimelineEvent` row on upload
-- Timeline smoke tests (4 tests, `tests/e2e/timeline_smoke.spec.js`)
+### FunctionGroupContract Registry — 34 contracts across 11 services
+- **vault** (3): `vault_upload`, `vault_folders`, `vault_init`
+- **overlays** (5): `overlay_create`, `overlay_query`, `overlay_update`, `overlay_delete`, `overlay_compose_view`
+- **communication** (4): `conversation_create`, `message_send`, `conversations_list`, `document_fill_sign`
+- **delivery** (4): `document_send`, `inbox_list`, `document_sign`, `document_reject`
+- **filedored** (2): `document_process`, `folders_ensure`
+- **duplicates** (2): `detect`, `list_all`
+- **court_forms** (2): `form_generate`, `form_autofill`
+- **timeline** (1): `timeline_chronology`
+- **rent** (5): `payment_create`, `payment_list`, `payment_get`, `payment_update`, `payment_delete`
+- **user** (2): `act_as_start`, `act_as_stop`
+- **admin_console** (5): `user_list`, `user_detail`, `impersonate_start`, `impersonate_stop`, `system_status`
 
-### Milestone 3 — Capability System Audit
-- Full audit confirmed Capability System already built and wired
-- `user_capabilities` table, Redis cache, `seed_capability_defaults` on every login
-- Capability smoke tests (7 tests, `tests/e2e/capabilities_smoke.spec.js`)
+All contracts registered at import time and visible in the admin contract browser.
 
-### Milestone 4 — datetime.now() Purge
-- 13 occurrences of naive `datetime.now()` found across 8 files — ALL replaced with `utc_now()`
-- Files: `inventory/router.py`, `vault_installer/routes.py`, `document_converter/converter.py`,
-  `ai_tool_crib.py`, `contracts_framework.py`, `accountability_planner.py`,
-  `inventory_manager.py`, `timeline_extraction.py`
-- `grep datetime.now()` across `app/` → **0 results**
+### AGENTS.md Updated
+- Added **Failure #16: Hallucinated Overlay API Signatures** to Known Failure Registry
+- Added **Module Contract Mandate** section
+- Rule: "Before writing code that calls another service's API, check the contract registry first."
 
-### Milestone 5 — Event Bus Fixes
-- `Event.timestamp` in `event_bus.py` used `datetime.now` as default factory — fixed to `utc_now`
-- `notify_document_added()` existed but was NEVER called — wired it in `vault/router.py`
-  after the audit log, fire-and-forget `asyncio.create_task`
-- Full upload → timeline chain now live end-to-end
+### /review Bugs Fixed
+- `filedored/router.py:198`: `overlay.overlay_path` → `overlay.vault_path` (AttributeError)
+- `filedored_service.py`: added `original_filename` to payload (router was showing "Unknown")
+- `duplicate_detection_service.py:79-88`: replaced stale `create_overlay` with `update_overlay()` per contract
 
-### Milestone 6 — Missing Alembic Migrations
-- Scanned all 38 tables in `Base.metadata` vs all migration files
-- Found 2 tables with ZERO migration coverage:
-  - `admin_audit_logs` (AdminAuditLog) — admin action audit trail
-  - `document_annotations` (DocumentAnnotation) — footnote/highlight indexing
-- Created migration: `alembic/versions/20260616_add_admin_audit_logs_and_document_annotations.py`
-- New Alembic head: `20260616_add_missing_tables`
+### Previous Session (2026-06-18 AM)
+- Fixed registration bug (unhashable type 'dict')
+- Deleted PII-collecting register forms, redirected to OAuth onboarding
+- Updated Playwright tests to use OAuth flow
+- Deployed to Render
+
+### Earlier Sessions (2026-06-16)
+- Milestones 1–9 completed: case builder DB, timeline end-to-end, capability system, datetime.now() purge, event bus fixes, missing migrations
 
 ---
 
 ## CURRENT STATE — WHAT IS KNOWN WORKING
 
 - ✅ All core files compile clean (verified at end of session)
-- ✅ Git working tree clean, HEAD = `6bb0fa3` pushed to origin/main
-- ✅ Alembic single clean head: `20260616_add_missing_tables`
-- ✅ `grep datetime.now()` across `app/` → 0 results
-- ✅ Event bus chain: upload → DOCUMENT_ADDED → TimelineEvent row
-- ✅ Capability system: model + migration + Redis cache + seeding on login
-- ✅ Case builder: DB-backed, survives restarts
+- ✅ Git working tree clean, HEAD = `8fd6333` pushed to origin/main
+- ✅ `grep datetime.now()` across `app/` → 0 results (regression-free)
+- ✅ Overlay system contracts are SSOT for all overlay APIs
 - ✅ Cloudflare dev mode ON (purged at end of session — 3hr window)
-- ✅ Playwright: 21/60 pass offline; all 39 failures are ERR_CONNECTION_REFUSED (server off)
+- ✅ Render auto-deploying main
 
 ---
 
@@ -138,43 +157,34 @@ All 6 milestones shipped and pushed to `origin/main`. Current HEAD: `6bb0fa3`
 
 Pick up in this order:
 
-### Priority 1 — Live Tests (Verify What Was Built Actually Works)
-These are all marked "pending live test" — need a real user action on semptify.org:
+### Priority 1 — GUI Development for Overlay System
+The overlay **mechanics** are now solid. Next is the user-facing surface.
 
-1. **Upload → timeline**: Upload a document as a tenant. Check `/api/timeline/unified` —
-   should show `event_type: "document_uploaded"` row for that document.
+1. **Minimal document viewer** — load a vault document and list its overlays
+2. **Annotation toolbar** — add highlight + note overlays
+3. **Redaction / watermark compose view** — use `overlay_compose_view` contract
 
-2. **Case builder DB**: Create a case, note the case ID (now a PostgreSQL integer).
-   Trigger a Render restart (or wait for next deploy). Reload the case — it must still exist.
+Files to touch:
+- `static/` (new or existing page)
+- `app/modules/unified_overlays/router.py` (already has endpoints)
+- `app/services/unified_overlay_manager.py` (contracts at bottom are SSOT)
 
-3. **Capability seeding**: Log in as a fresh tenant. Check PostgreSQL:
-   `SELECT * FROM user_capabilities WHERE user_id = '<uid>'` — should have 5+ rows seeded
-   by `seed_capability_defaults()`.
+### Priority 2 — Live Verification (Manual)
+These require real OAuth login in a browser:
 
-4. **admin_audit_logs table**: After deploy runs migrations, verify:
-   `SELECT COUNT(*) FROM admin_audit_logs` — must not throw "relation does not exist".
+1. **Filedored browse folder**: `GET /api/filedored/browse/{folder}` should list documents
+2. **Duplicate detection**: upload same file twice, check second returns `is_duplicate: true`
+3. **Court forms**: generate form creates a `FORM_FILL` overlay
+4. **Contract browser**: admin dashboard shows 34 contracts
 
-### Priority 2 — Role Hierarchy Wiring
-`user_relationships` table EXISTS in DB (migration applied). `can_access()` in `security.py`
-EXISTS. But it is NOT wired into any actual permission check yet.
-
-Files to wire:
-- `app/core/security.py` — `can_access(requester_id, target_id)` async function
-- `app/core/user_context.py` — `acting_as` / `acting_as_role` fields on UserContext
-- Use case: Advocate needs to act on behalf of tenant. Admin needs to impersonate any role.
-
-### Priority 3 — Pending Items from BUILD_STATE
-From the 2026-06-15 session (still open):
-- `vault_upload_service.py` line 744: debug error message should be clean user-facing text
-  (says "Document certification failed for {vault_id}. Please retry or contact support.")
-  — already clean actually. Check it.
-- `HAS_STORAGE` bug: in `vault_upload_service.py`, both branches of a try/except set it True
-  — meaningless guard. Trace and fix.
-- Filedored/overlay on-demand folder creation — not yet wired
-
-### Priority 4 — Rent Ledger Live Test
-`RentPayment` model exists. `/api/rent/payments` endpoint exists (check `modules/rent/` or
-`routers/`). Verify it creates a row and returns correct data.
+### Priority 3 — Remaining Contracts (When Those Services Are Touched)
+- `case_builder`
+- `fems`
+- `timeline_events`
+- `onboarding`
+- `documents`
+- `preamble`
+- `cloud_sync`
 
 ---
 
@@ -255,6 +265,26 @@ python -m alembic heads
 If a file needs a rewrite, ask the user to rename the original to `_old.py` first.
 Then write the new version into the original filename. Never create `_v2`, `_new`, `_fixed`.
 
+### 9. Module Contracts — SSOT for API Signatures
+Every reusable service API must register a `FunctionGroupContract` in `app/core/module_contracts.py`.
+Before writing code that calls another service, read the contract.
+
+Pattern:
+```python
+from app.core.module_contracts import FunctionGroupContract, register_function_group
+
+register_function_group(FunctionGroupContract(
+    module="<module>",
+    group_name="<group>",
+    title="<Title> (SSOT)",
+    description="CANONICAL ... What it does. What it does NOT do.",
+    inputs=("<required>", "<optional>?"),
+    outputs=("<output>",),
+    dependencies=("app.services.<module>",),
+    deterministic=True,
+))
+```
+
 ---
 
 ## KNOWN FAILURE REGISTRY SUMMARY (from AGENTS.md)
@@ -269,7 +299,7 @@ Short summary:
 5. **Cloudflare 504** — single endpoint must not do >20s of work. Split into steps.
 6. **Import injection** — NEVER inject imports mid-file. Always at top.
 7. **Bare except** — NEVER use bare `except:`. Always specific type.
-8. **datetime.now()** — NEVER use without timezone. Always `utc_now()`. ← FIXED THIS SESSION
+8. **datetime.now()** — NEVER use without timezone. Always `utc_now()`.
 9. **SSOT navigation** — NEVER hardcode URL strings in redirects. Always `navigation.get_stage()`.
 10. **VaultResult missing from exports** — any new class used outside its module needs `__init__.py` export.
 11. **Duplicate exception handlers** — check for duplicates before adding new ones in `main.py`.
@@ -277,6 +307,7 @@ Short summary:
 13. **File rewrite cascading** — never create `_v2` files. Ask user to rename original first.
 14. **Wrong Python version** — always use `venv311`. Python 3.11.9 only. Never 3.12+.
 15. **Workaround instead of root cause** — fix the source, not the symptom. Band-aids compound.
+16. **Hallucinated overlay API signatures** — read the contracts in `unified_overlay_manager.py` before touching overlays. No `vault_id/user_id/overlay_path/overlay_data` on `CreateOverlayRequest`. No `get_overlays_by_type/path` methods.
 
 ---
 
@@ -335,6 +366,9 @@ grep -rn "except:" app/ --include="*.py"
 # Check for mutable defaults
 grep -rn "def .*=\[\]" app/ --include="*.py"
 grep -rn "def .*={}" app/ --include="*.py"
+
+# Check contract registry count (from a running Python shell)
+python -c "from app.core.module_contracts import registry; print(len(registry.groups))"
 ```
 
 ---
@@ -347,5 +381,6 @@ grep -rn "def .*={}" app/ --include="*.py"
 
 ---
 
-*This file was written at end of session 2026-06-16 for handoff to the next AI agent.*
+*This file was written at end of session 2026-06-18 PM for handoff to the next AI agent.*
 *Ground truth is always BUILD_STATE.md + ACTIVE_CONTEXT.md. Read those first.*
+
