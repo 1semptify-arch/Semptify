@@ -186,10 +186,14 @@ async def generate_form(
         from app.core.overlay_types import OverlayType
         from app.models.unified_overlay_models import CreateOverlayRequest
         from app.services.unified_overlay_manager import UnifiedOverlayManager
-        from app.core.storage_factory import get_storage_provider
+        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.services.storage import get_provider
+        from app.core.user_id import get_provider_from_user_id
 
-        storage_provider = await get_storage_provider(user.user_id)
-        if storage_provider:
+        provider_code = get_provider_from_user_id(user.user_id) or "google_drive"
+        token = await get_valid_token_for_user(user.user_id)
+        if token:
+            storage_provider = get_provider(provider_code, access_token=token)
             overlay_manager = UnifiedOverlayManager(storage_provider, user.user_id)
 
             # Build checklist from form fields
