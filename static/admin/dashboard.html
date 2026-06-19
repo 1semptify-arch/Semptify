@@ -184,13 +184,6 @@
                 <div class="metric-meta" id="role-legal-meta">Loading...</div>
               </div>
             </div>
-            <div class="metric-row">
-              <span class="metric-stat" style="color:#64748b" id="role-manager">Loading...</span>
-              <div class="metric-info">
-                <div class="metric-name">Property Managers</div>
-                <div class="metric-meta" id="role-manager-meta">Loading...</div>
-              </div>
-            </div>
           </div>
           <div style="display:flex;gap:0.5rem;margin-top:0.75rem">
             <a href="#" onclick="searchUsers(); return false;" class="card-action" style="flex:1;text-align:center">User management →</a>
@@ -280,8 +273,8 @@
         <a href="/docs/component-inventory.html" class="btn-block">📦 Component Inventory</a>
         <a href="/docs/navigation-structure.html" class="btn-block">🧭 Navigation Structure</a>
         <a href="/mndes/compliance-guide?role=admin" class="btn-block">🏛️ MNDES Compliance</a>
-        <a href="/api/docs/swagger" class="btn-block" target="_blank">📘 API Docs (Swagger)</a>
-        <a href="/api/docs/redoc" class="btn-block" target="_blank">📗 API Docs (ReDoc)</a>
+        <a href="/api/docs" class="btn-block" target="_blank">📘 API Docs (Swagger)</a>
+        <a href="/api/redoc" class="btn-block" target="_blank">📗 API Docs (ReDoc)</a>
       </div>
 
       <!-- User Search Widget -->
@@ -457,6 +450,27 @@
         return url + separator + 'admin_token=' + encodeURIComponent(ADMIN_TOKEN);
       }
       return url;
+    }
+
+    // Early auth check — pings /admin-console/health before loading any data.
+    // If admin elevation cookie is missing/expired, redirects to /admin/login
+    // instead of flooding the console with 404 "Not Found" errors from _stealth_admin.
+    async function checkAdminAuth() {
+      try {
+        const response = await fetch(addAdminToken(`${ADMIN_API_BASE}/health`), {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (response.status === 404) {
+          console.warn('Admin auth check failed — redirecting to /admin/login');
+          window.location.href = '/admin/login';
+          return false;
+        }
+        return response.ok;
+      } catch (err) {
+        console.error('Admin auth check error:', err);
+        return false;
+      }
     }
 
     // Search users via API
@@ -778,7 +792,6 @@
           'tenant': 0,
           'advocate': 0,
           'legal': 0,
-          'manager': 0,
           'admin': 0
         };
         
@@ -804,7 +817,6 @@
         updateRole('role-tenant', roleCounts.tenant);
         updateRole('role-advocate', roleCounts.advocate);
         updateRole('role-legal', roleCounts.legal);
-        updateRole('role-manager', roleCounts.manager);
         
       } catch (error) {
         console.log('User breakdown load failed:', error.message);
@@ -1675,14 +1687,17 @@ Please fix this issue in the admin dashboard.
         });
       }
       
-      // Load all data
-      loadSystemStatus();
-      loadUserBreakdown();
-      loadRecentActivity();
-      loadAuditLog(10);
-      loadSystemConfig();
-      loadAnalytics();
-      loadEnvStatus();
+      // Auth check first — if it fails, redirect to login and skip all data loads
+      checkAdminAuth().then(authed => {
+        if (!authed) return;
+        loadSystemStatus();
+        loadUserBreakdown();
+        loadRecentActivity();
+        loadAuditLog(10);
+        loadSystemConfig();
+        loadAnalytics();
+        loadEnvStatus();
+      });
     });
   </script>
   <script src="/js/admin-nav.js"></script>

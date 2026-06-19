@@ -2117,6 +2117,39 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(str(page_path))
         return HTMLResponse(content="<h1>Review Checklist not found</h1>", status_code=404)
 
+    @fastapi_app.get("/admin/manual.html", response_class=HTMLResponse)
+    async def admin_manual(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve admin manual - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "admin" / "manual.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Admin Manual not found</h1>", status_code=404)
+
+    @fastapi_app.get("/docs/component-inventory.html", response_class=HTMLResponse)
+    async def docs_component_inventory(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve component inventory docs - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "docs" / "component-inventory.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Component Inventory not found</h1>", status_code=404)
+
+    @fastapi_app.get("/docs/navigation-structure.html", response_class=HTMLResponse)
+    async def docs_navigation_structure(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve navigation structure docs - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "docs" / "navigation-structure.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Navigation Structure not found</h1>", status_code=404)
+
     @fastapi_app.get("/admin", response_class=HTMLResponse)
     async def admin_root_redirect(
         request: Request,
