@@ -27,19 +27,24 @@ async def detect_duplicates(
     """
     if overlay_manager is None:
         from app.services.unified_overlay_manager import get_unified_overlay_manager
-        from app.core.storage_factory import get_storage_provider
+        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.services.storage import get_provider
+        from app.core.user_id import get_provider_from_user_id
         
-        storage_provider = await get_storage_provider(user_id)
-        if not storage_provider:
-            return {"is_duplicate": False, "error": "No storage provider"}
+        provider_code = get_provider_from_user_id(user_id) or "google_drive"
+        token = await get_valid_token_for_user(user_id)
+        if not token:
+            return {"is_duplicate": False, "error": "No storage token found"}
         
-        overlay_manager = get_unified_overlay_manager(storage_provider, user_id)
-    
+        storage_provider = get_provider(provider_code, access_token=token)
+        overlay_manager = await get_unified_overlay_manager(storage_provider, user_id)
+
     try:
         # Query for existing duplicate detection overlays with same hash
-        existing_overlays = await overlay_manager.get_overlays_by_type(
+        existing_response = await overlay_manager.get_overlays(
             overlay_type=OverlayType.DUPLICATE_DETECTION
         )
+        existing_overlays = existing_response.overlays if existing_response.success else []
         
         # Check if any overlay has the same hash
         for overlay in existing_overlays:
@@ -50,11 +55,10 @@ async def detect_duplicates(
                 
                 # Create new duplicate overlay linking to original
                 duplicate_overlay = CreateOverlayRequest(
-                    vault_id=vault_id,
-                    user_id=user_id,
                     overlay_type=OverlayType.DUPLICATE_DETECTION,
-                    overlay_path="duplicates",
-                    overlay_data={
+                    document_id=vault_id,
+                    vault_path="duplicates",
+                    payload={
                         "is_duplicate": True,
                         "original_vault_id": original_vault_id,
                         "duplicate_vault_id": vault_id,
@@ -75,11 +79,10 @@ async def detect_duplicates(
                 # Note: In a real implementation, you'd update the existing overlay
                 # For now, we'll create a new overlay with updated info
                 update_overlay = CreateOverlayRequest(
-                    vault_id=original_vault_id,
-                    user_id=user_id,
                     overlay_type=OverlayType.DUPLICATE_DETECTION,
-                    overlay_path="duplicates/original",
-                    overlay_data=original_overlay_data,
+                    document_id=original_vault_id,
+                    vault_path="duplicates/original",
+                    payload=original_overlay_data,
                 )
                 
                 await overlay_manager.create_overlay(update_overlay)
@@ -94,11 +97,10 @@ async def detect_duplicates(
         
         # No duplicate found - create original record
         original_overlay = CreateOverlayRequest(
-            vault_id=vault_id,
-            user_id=user_id,
             overlay_type=OverlayType.DUPLICATE_DETECTION,
-            overlay_path="duplicates/original",
-            overlay_data={
+            document_id=vault_id,
+            vault_path="duplicates/original",
+            payload={
                 "is_duplicate": False,
                 "original_vault_id": vault_id,
                 "sha256_hash": sha256_hash,
@@ -136,19 +138,24 @@ async def get_all_duplicates(user_id: str, overlay_manager=None) -> List[dict]:
     """
     if overlay_manager is None:
         from app.services.unified_overlay_manager import get_unified_overlay_manager
-        from app.core.storage_factory import get_storage_provider
+        from app.core.oauth_token_manager import get_valid_token_for_user
+        from app.services.storage import get_provider
+        from app.core.user_id import get_provider_from_user_id
         
-        storage_provider = await get_storage_provider(user_id)
-        if not storage_provider:
+        provider_code = get_provider_from_user_id(user_id) or "google_drive"
+        token = await get_valid_token_for_user(user_id)
+        if not token:
             return []
         
-        overlay_manager = get_unified_overlay_manager(storage_provider, user_id)
+        storage_provider = get_provider(provider_code, access_token=token)
+        overlay_manager = await get_unified_overlay_manager(storage_provider, user_id)
     
     try:
         # Get all duplicate detection overlays
-        overlays = await overlay_manager.get_overlays_by_type(
+        overlays_response = await overlay_manager.get_overlays(
             overlay_type=OverlayType.DUPLICATE_DETECTION
         )
+        overlays = overlays_response.overlays if overlays_response.success else []
         
         # Group by hash
         hash_groups: Dict[str, List[dict]] = {}
@@ -159,7 +166,7 @@ async def get_all_duplicates(user_id: str, overlay_manager=None) -> List[dict]:
                 if hash_val not in hash_groups:
                     hash_groups[hash_val] = []
                 hash_groups[hash_val].append({
-                    "vault_id": overlay.vault_id,
+                    "vault_id": overlay.document_id,
                     "filename": overlay.payload.get("filename"),
                     "is_duplicate": overlay.payload.get("is_duplicate", False),
                     "created_at": overlay.payload.get("created_at"),

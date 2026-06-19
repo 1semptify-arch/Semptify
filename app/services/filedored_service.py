@@ -121,9 +121,11 @@ async def process_uploaded_document(
         - ai_label: if AI classification was used
     """
     if overlay_manager is None:
-        from app.services.unified_overlay_manager import get_unified_overlay_manager
-        overlay_manager = get_unified_overlay_manager()
-    
+        raise RuntimeError(
+            "overlay_manager is required by process_uploaded_document; "
+            "caller must pass a constructed UnifiedOverlayManager"
+        )
+
     try:
         # AI classification (optional)
         if enable_ai:
@@ -132,53 +134,55 @@ async def process_uploaded_document(
                 target_path = AI_CLASSIFICATION_MAP.get(label, VAULT_FILEDORED_AI_UNKNOWN)
 
                 # Lazy-create the AI subdirectory on first use
-                if overlay_manager and hasattr(overlay_manager, "storage"):
+                if hasattr(overlay_manager, "storage"):
                     await ensure_filedored_folder(overlay_manager.storage, target_path)
 
-                overlay_data = {
+                overlay_payload = {
                     "original_vault_id": vault_id,
                     "filedored_category": label,
+                    "filedored_path": target_path,
                     "classification_method": "ai",
                     "classified_at": utc_now().isoformat(),
                 }
 
                 overlay_req = CreateOverlayRequest(
-                    vault_id=vault_id,
-                    user_id=user_id,
                     overlay_type=OverlayType.FILEDORED,
-                    overlay_path=target_path,
-                    overlay_data=overlay_data,
+                    document_id=vault_id,
+                    vault_path=target_path,
+                    payload=overlay_payload,
+                    metadata={"stage": "ai_classification", "filename": filename},
                 )
 
                 await overlay_manager.create_overlay(overlay_req)
-                
+
                 return {
                     "status": "ai_classified",
                     "overlay_path": target_path,
                     "ai_label": label,
                 }
-        
+
         # Extension-based routing
         ext = filename.split(".")[-1].lower() if "." in filename else ""
         target_path = DOCUMENT_EXTENSIONS.get(ext, VAULT_FILEDORED_OTHER)
-        
-        overlay_data = {
+
+        overlay_payload = {
             "original_vault_id": vault_id,
             "filedored_category": "extension_based",
+            "filedored_path": target_path,
             "file_extension": ext,
             "sorted_at": utc_now().isoformat(),
         }
-        
+
         overlay_req = CreateOverlayRequest(
-            vault_id=vault_id,
-            user_id=user_id,
             overlay_type=OverlayType.FILEDORED,
-            overlay_path=target_path,
-            overlay_data=overlay_data,
+            document_id=vault_id,
+            vault_path=target_path,
+            payload=overlay_payload,
+            metadata={"stage": "extension_sort", "filename": filename},
         )
-        
+
         await overlay_manager.create_overlay(overlay_req)
-        
+
         return {
             "status": "sorted",
             "overlay_path": target_path,

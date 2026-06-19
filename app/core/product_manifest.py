@@ -365,9 +365,10 @@ _register("app.modules.extraction.router", tags=("Form Field Extraction",), tier
 _register("app.modules.crawler.router", tags=("Crawler",), tier=ProductTier.RESEARCH)
 _register("app.modules.research.router", tags=("Research Module",), tier=ProductTier.RESEARCH)
 _register("app.modules.form_data.router", prefix="/api/form-data", tags=("Form Data Hub",), tier=ProductTier.RESEARCH)
-_register("app.modules.overlays.router", tags=("Document Overlays",), tier=ProductTier.RESEARCH,
-          log_message="Document Overlays router connected - Non-destructive annotation system active")
-_register("app.modules.unified_overlays.router", tags=("Unified Overlays",), tier=ProductTier.RESEARCH)
+# Old app.modules.overlays.router retired 2026-06-18 — superseded by unified_overlays.router (SSOT).
+# 943-line legacy router removed from registration; no callers used /api/overlays/ paths.
+_register("app.modules.unified_overlays.router", tags=("Unified Overlays",), tier=ProductTier.RESEARCH,
+          log_message="Unified Overlays router connected - Non-destructive annotation system active")
 _register("app.modules.vault_all_in_one.router", tags=("ALL-IN-ONE Vault",), tier=ProductTier.RESEARCH,
           log_message="ALL-IN-ONE Vault router connected - Unified evidence vault with three-timestamp model active")
 _register("app.modules.cloud_sync.router", tags=("Cloud Sync",), tier=ProductTier.RESEARCH,

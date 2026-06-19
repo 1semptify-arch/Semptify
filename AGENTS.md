@@ -116,6 +116,42 @@ These failures have each cost multiple sessions to fix. Read them. Do not cause 
 - **Rule: NEVER add workarounds downstream when the root cause is upstream. Fix the root. Band-aids compound over time.**
 - **File:** `app/services/storage/google_drive.py` — fixed `_get_folder_id()` to search before create with retry logic.
 
+### 16. Hallucinated Overlay API Signatures
+- **What happened:** Three services (`filedored_service.py`, `duplicate_detection_service.py`, `court_forms/router.py`) invented their own `CreateOverlayRequest` fields (`vault_id`, `user_id`, `overlay_path`, `overlay_data`) that do not exist on the Pydantic model. They also called non-existent methods `get_overlays_by_type()` and `get_overlays_by_path()` on `UnifiedOverlayManager`. And they imported from `app.core.storage_factory` — a module that never existed. All of this crashed at runtime.
+- **Fix:** Aligned all callers to the real signature (`overlay_type`, `document_id`, `vault_path`, `payload`, `metadata`, `ephemeral`) and real methods (`get_overlays()`, `create_overlay()`, `update_overlay()`, `delete_overlay()`). Replaced `storage_factory` with the real pattern: `oauth_token_manager.get_valid_token_for_user()` + `services.storage.get_provider()` + `user_id.get_provider_from_user_id()`.
+- **Rule: BEFORE writing any code that touches the overlay system, READ THE CONTRACTS in `app/services/unified_overlay_manager.py` (bottom of file).** The `FunctionGroupContract` registrations are the SSOT for method names, field names, and signatures. If a field or method is not in the contract, it does not exist. Do not invent it.
+- **Contracts registered:** `overlays::overlay_create`, `overlays::overlay_query`, `overlays::overlay_update`, `overlays::overlay_delete`, `overlays::overlay_compose_view`.
+- **Files:** `app/services/filedored_service.py`, `app/services/duplicate_detection_service.py`, `app/modules/filedored/router.py`, `app/modules/court_forms/router.py`.
+
+---
+
+## 📋 Module Contract Mandate
+
+**Every service that exposes a reusable API MUST register a `FunctionGroupContract` in `app/core/module_contracts.py`.**
+
+This is non-negotiable. The contract is the SSOT for:
+- Method names (no hallucinated methods)
+- Input/output field names (no wrong signatures)
+- Dependencies (no phantom imports like `app.core.storage_factory`)
+
+**Pattern:**
+```python
+from app.core.module_contracts import FunctionGroupContract, register_function_group
+
+register_function_group(FunctionGroupContract(
+    module="<module_name>",
+    group_name="<function_name>",
+    title="<Human Title> (SSOT)",
+    description="CANONICAL ... What it does. What it does NOT do.",
+    inputs=("<required>", "<optional>?"),
+    outputs=("<output>",),
+    dependencies=("app.services.<module>",),
+    deterministic=True,
+))
+```
+
+**Before writing code that calls another service's API, check the contract registry first.** If no contract exists, ask the user — do not invent the API.
+
 ---
 
 ## 📋 Agent Session Checklist
