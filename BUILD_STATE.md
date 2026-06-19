@@ -12,6 +12,64 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-19 AM — Overlay Viewer GUI + Render Path Verification (COMPLETE)
+**Commits: 3c12b17, 53aa460, e5f5678, 36a5294, 423129c | Status: Overlay viewer GUI live, full render path verified end-to-end, 3 blocking bugs fixed, Deployed to Render**
+
+### What Was Shipped
+
+#### Overlay Viewer GUI ✅
+- `static/overlays/viewer.html`: minimal GUI with document ID input, load/refresh, add highlight/note, compose view, delete overlay
+- `app/main.py`: GET `/overlays/viewer` route with storage-user auth + SSOT redirect for unauthenticated users
+- Full render path verified end-to-end on production: list ✓, create highlight ✓, compose view ✓, delete ✓
+
+#### Bug Fix #1 — Documents page empty (COOKIE_NAME ImportError) ✅
+- **Root cause:** `app/main.py:2750` imported `COOKIE_NAME` from `app.core.cookie_auth`, but that symbol is not defined there. The ImportError was silently swallowed by a broad `except` clause, so `documents_data` stayed `[]` and the page always showed "No documents yet" even after successful uploads.
+- **Fix:** Use `COOKIE_USER_ID` from `app.core.user_id` (the actual SSOT cookie name) and `verify_user_id` from `app.core.cookie_auth`. Matches pattern used by `get_current_user()` and `is_valid_storage_user()`.
+- **Commit:** `53aa460`
+
+#### Bug Fix #2 — HTTP 500 on /api/unified-overlays/list (circular import) ✅
+- **Root cause:** `app/modules/unified_overlays/router.py:90` imported `get_storage_client` from `app.routers.cloud_sync`, but `cloud_sync` lives in `app.modules.cloud_sync.router`. The `app.routers.__init__.py` triggered a circular import in production: `cannot import name 'vault' from partially initialized module 'app.routers'`. Same broken import existed in 4 modules.
+- **Fix:** Changed all 4 modules to import from `app.modules.cloud_sync.router`:
+  - `app/modules/unified_overlays/router.py`
+  - `app/modules/document_delivery/router.py`
+  - `app/modules/communication/router.py`
+  - `app/modules/intake/router.py`
+- **Commit:** `e5f5678`
+
+#### Bug Fix #3 — get_overlays TypeError (registry not a dict) ✅
+- **Root cause:** `_load_registry()` returned whatever `json.loads()` gave. When `registry.json` in user's Google Drive contained a JSON string instead of a dict mapping, `registry.values()` iterated over string characters. `UnifiedOverlay(**"x")` raised `TypeError: argument after ** must be a mapping, not str`. This caused `get_overlays` to catch the exception and return `success=false`, displayed as "Request failed".
+- **Fix:**
+  - `_load_registry()` validates parsed JSON is a dict; resets to `{}` with warning if not.
+  - `get_overlays()` skips invalid/malformed entries instead of failing the entire list.
+- **Commit:** `423129c`
+
+### What Is Known Working
+- All 12 core files compile clean on Python 3.11.9
+- Cloudflare dev mode enabled (3hrs from 06:18 UTC), cache purged
+- Overlay viewer live at https://semptify.org/overlays/viewer
+- Documents page now displays uploaded documents at https://semptify.org/documents
+- Overlay render path verified end-to-end on production:
+  - List overlays (empty + populated states) ✓
+  - Add highlight (creates overlay, persists to Google Drive) ✓
+  - Compose view (applies overlays to document) ✓
+  - Delete overlay (removes from cloud storage) ✓
+- Render deploy `423129c` live
+
+### What Is Pending Live Verification
+- Add note overlay (not explicitly tested, uses same code path as highlight)
+- Compose view with multiple overlays applied simultaneously
+- Overlay viewer with documents from other storage providers (Dropbox, OneDrive)
+- Registry.json corruption root cause — why did it contain a string instead of dict? May be related to an older code path that wrote a string. The fix is defensive; root cause not traced.
+
+### What Next Session Should Start With
+- **Replace placeholder highlight range {0,0} with real text selection** — current GUI uses hardcoded range, needs real DOM selection from document preview
+- **Add document preview pane** — viewer currently only shows overlay metadata, not the actual document content
+- **Trace registry.json corruption root cause** — why was a string written instead of a dict? Check older commits for bad `_save_registry` calls
+- **Register FunctionGroupContract for cloud_sync.get_storage_client** — 4 modules now depend on it; should be in the contract registry
+- Consider adding Playwright regression tests for the 3 bugs fixed this session
+
+---
+
 ## Session — 2026-06-18 PM — Overlay System Mechanics + SSOT Contracts (COMPLETE)
 **Commits: 6040200, 9d2c21c, 1b556d9 | Status: Overlay bugs fixed, 22 contracts registered, 2 review bugs fixed, Deployed to Render**
 
