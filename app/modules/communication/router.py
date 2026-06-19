@@ -32,7 +32,7 @@ router = APIRouter(prefix="/api/communications", tags=["Communications"])
 
 async def get_storage_client(user: StorageUser, db: AsyncSession, settings: Settings):
     """Get cloud storage client."""
-    from app.routers.cloud_sync import get_storage_client as get_cloud_storage
+    from app.modules.cloud_sync.router import get_storage_client as get_cloud_storage
     return await get_cloud_storage(user, db, settings)
 
 
