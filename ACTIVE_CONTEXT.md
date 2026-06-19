@@ -25,10 +25,11 @@
 | Fixed 2 bugs from /review (overlay_path AttributeError, stale duplicate overlay) | ✅ Commit `1b556d9` |
 | Updated BUILD_STATE.md with session summary | ✅ Commit `3cce5a5` |
 | Cloudflare dev mode enabled + cache purged | ✅ Active 3hrs |
+| Registered 12 more contracts across rent/user/admin_console | ✅ Commit `d6c527e` |
 
-**HEAD: `3cce5a5` — clean, pushed**
+**HEAD: `d6c527e` — clean, pushed**
 
-### Contract Registry Status — 22 contracts across 8 services
+### Contract Registry Status — 34 contracts across 11 services
 - vault (3): vault_upload, vault_folders, vault_init
 - overlays (5): overlay_create, overlay_query, overlay_update, overlay_delete, overlay_compose_view
 - communication (4): conversation_create, message_send, conversations_list, document_fill_sign
@@ -37,6 +38,9 @@
 - duplicates (2): detect, list_all
 - court_forms (2): form_generate, form_autofill
 - timeline (1): timeline_chronology
+- rent (5): payment_create, payment_list, payment_get, payment_update, payment_delete
+- user (2): act_as_start, act_as_stop
+- admin_console (5): user_list, user_detail, impersonate_start, impersonate_stop, system_status
 
 ---
 
@@ -58,12 +62,12 @@
    - Mechanics are now solid; contracts are SSOT reference for any AI
    - Start with minimal viewer: load vault doc + list overlays (prove render path)
    - Then add annotation toolbar (highlight, note)
-2. **Register contracts for remaining services when touched** — rent, user, admin_console
-3. **Live verification** (manual, OAuth blocks automated browsers):
+2. **Live verification** (manual, OAuth blocks automated browsers):
    - Filedored browse_folder endpoint
    - Duplicate detection flow on real upload
    - Court forms FORM_FILL overlay creation
    - Contract browser visibility in admin dashboard
+3. **Register contracts for remaining services when touched** — case_builder, fems, timeline_events, onboarding, documents, preamble, cloud_sync
 
 ## 📋 FULL TASK LIST: See `HANDOFF_SWE1.6.md`
 ## 📋 FULL CONTEXT + INSTRUCTIONS: See `HANDOFF_KIMI2.6.md`

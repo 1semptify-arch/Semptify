@@ -62,7 +62,7 @@ their legal rights—not tenants breaking the law.
 ### What Next Session Should Start With
 - **GUI development for overlay system** — document viewer with annotation toolbar
 - Mechanics are now solid; contracts are SSOT for any AI to reference
-- Consider registering contracts for remaining services (rent, user, admin_console) when touched
+- Consider registering contracts for remaining services (case_builder, fems, onboarding, documents, preamble, cloud_sync) when touched
 
 ---
 
