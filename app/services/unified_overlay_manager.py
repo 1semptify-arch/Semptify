@@ -207,7 +207,10 @@ class UnifiedOverlayManager:
             )
             
         except Exception as e:
-            logger.error(f"Failed to get overlays: {e}", exc_info=True)
+            import traceback, sys
+            tb = traceback.format_exc()
+            logger.error(f"Failed to get overlays: {e}\n{tb}")
+            print(f"[OVERLAY DEBUG] get_overlays failed: {type(e).__name__}: {e}\n{tb}", file=sys.stderr, flush=True)
             return GetOverlaysResponse(
                 success=False,
                 overlays=[],
