@@ -194,8 +194,8 @@ async def browse_folder(
         for overlay in overlays:
             documents.append({
                 "vault_id": overlay.document_id,
-                "filename": overlay.payload.get("original_filename", "Unknown"),
-                "overlay_path": overlay.overlay_path,
+                "filename": overlay.payload.get("original_filename", overlay.payload.get("filename", "Unknown")),
+                "overlay_path": overlay.vault_path,
                 "filedored_category": overlay.payload.get("filedored_category"),
                 "ai_label": overlay.payload.get("ai_label"),
                 "extension": overlay.payload.get("extension"),

@@ -139,6 +139,7 @@ async def process_uploaded_document(
 
                 overlay_payload = {
                     "original_vault_id": vault_id,
+                    "original_filename": filename,
                     "filedored_category": label,
                     "filedored_path": target_path,
                     "classification_method": "ai",
@@ -167,6 +168,7 @@ async def process_uploaded_document(
 
         overlay_payload = {
             "original_vault_id": vault_id,
+            "original_filename": filename,
             "filedored_category": "extension_based",
             "filedored_path": target_path,
             "file_extension": ext,
