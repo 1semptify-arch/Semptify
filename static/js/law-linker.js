@@ -555,9 +555,16 @@
     window.LawLinker = {
         init: function(selector) {
             initStyles();
-            const elements = selector ?
-                document.querySelectorAll(selector) :
-                document.querySelectorAll('[data-law-linker]');
+            let elements;
+            if (selector) {
+                elements = document.querySelectorAll(selector);
+            } else {
+                // Prefer explicitly-marked elements, fall back to main content
+                elements = document.querySelectorAll('[data-law-linker]');
+                if (elements.length === 0) {
+                    elements = document.querySelectorAll('main, article, .law-summary, .law-card, .modal-section, .content, .document-body, .analysis-text');
+                }
+            }
             elements.forEach(el => processElement(el));
         },
         process: processElement,

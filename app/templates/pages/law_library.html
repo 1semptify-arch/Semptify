@@ -840,8 +840,9 @@ async function loadStatutes() {
 }
 
 function renderStatuteCard(s) {
-  const badgeClass = (s.category || '').includes('federal') ? 'federal' : 'mn';
-  const badgeLabel = (s.category || '').includes('federal') ? 'Federal' : 'MN';
+  const isFederal = (s.jurisdiction === 'federal') || (s.category || '').includes('federal');
+  const badgeClass = isFederal ? 'federal' : 'mn';
+  const badgeLabel = isFederal ? 'Federal' : 'MN';
   const officialLink = s.official_url
     ? '<a href="' + s.official_url + '" target="_blank" rel="noopener noreferrer" class="card-official-link" onclick="event.stopPropagation()">View Official Source →</a>'
     : '';
