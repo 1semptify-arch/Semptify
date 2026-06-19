@@ -1527,18 +1527,6 @@ async def env_update(
 # Module Registry / Overlay System Endpoints
 # =============================================================================
 
-@router.get("/api/system/modules")
-async def list_modules(user: UserContext = Depends(require_admin)) -> dict:
-    """List all modules in the registry with their status."""
-    from app.core.module_overlay import module_overlay
-    modules = await module_overlay.list_modules()
-    return {
-        "modules": modules,
-        "count": len(modules),
-        "timestamp": utc_now().isoformat(),
-    }
-
-
 @router.get("/api/system/modules/{module_name}")
 async def get_module_status(
     module_name: str,
@@ -1550,30 +1538,6 @@ async def get_module_status(
     if not info:
         raise HTTPException(status_code=404, detail=f"Module {module_name} not found")
     return info
-
-
-@router.post("/api/system/modules/{module_name}/toggle")
-async def toggle_module(
-    module_name: str,
-    user: UserContext = Depends(require_admin),
-    db: AsyncSession = Depends(get_db),
-) -> dict:
-    """Toggle a module on/off. Creates registry entry if missing."""
-    from app.core.module_overlay import module_overlay
-    info = await module_overlay.get_module_status(module_name)
-    if not info:
-        raise HTTPException(status_code=404, detail=f"Module {module_name} not found in registry")
-    new_state = not info["is_enabled"]
-    success = await module_overlay.set_module_enabled(module_name, new_state, updated_by=user.user_id)
-    await _log_admin_action(
-        admin_user=user,
-        action="toggle_module",
-        target_user=module_name,
-        details={"enabled": new_state},
-        db=db,
-    )
-    logger.warning(f"MODULE_TOGGLE: Admin {user.user_id} set {module_name} enabled={new_state}")
-    return {"module": module_name, "enabled": new_state, "previous": info["is_enabled"]}
 
 
 @router.post("/api/system/modules/{module_name}/dev-mode")
@@ -1740,3 +1704,79 @@ async def update_error_status(
     
     logger.info(f"Error {error_id} status updated to {status}")
     return {"id": error_id, "status": status}
+
+
+# =============================================================================
+# Module Contracts — SSOT signatures, visible in admin contract browser
+# =============================================================================
+
+try:
+    from app.core.module_contracts import FunctionGroupContract, register_function_group
+
+    register_function_group(FunctionGroupContract(
+        module="admin_console",
+        group_name="user_list",
+        title="Admin User List (SSOT)",
+        description=(
+            "CANONICAL admin user listing via GET /api/users. "
+            "Stealth admin guard returns 404 (not 403) to hide endpoint existence. "
+            "Supports pagination (limit, offset) and search."
+        ),
+        inputs=("limit", "offset", "search", "admin_user_id"),
+        outputs=("users", "total", "limit", "offset"),
+        dependencies=("app.modules.admin_console.router", "app.core.security.require_admin"),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="admin_console",
+        group_name="user_detail",
+        title="Admin User Detail (SSOT)",
+        description="CANONICAL admin user detail via GET /api/users/{user_id}. Stealth guard enforced.",
+        inputs=("user_id", "admin_user_id"),
+        outputs=("user", "vault", "gates", "capabilities"),
+        dependencies=("app.modules.admin_console.router",),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="admin_console",
+        group_name="impersonate_start",
+        title="Admin Impersonate Start (SSOT)",
+        description=(
+            "CANONICAL admin impersonation via POST /api/users/{user_id}/impersonate. "
+            "Admin becomes user for testing. Audit logged."
+        ),
+        inputs=("user_id", "admin_user_id"),
+        outputs=("status", "impersonating"),
+        dependencies=("app.modules.admin_console.router", "app.core.security.require_admin"),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="admin_console",
+        group_name="impersonate_stop",
+        title="Admin Impersonate Stop (SSOT)",
+        description="CANONICAL stop impersonation via POST /api/users/{user_id}/stop-impersonation. Audit logged.",
+        inputs=("user_id", "admin_user_id"),
+        outputs=("status",),
+        dependencies=("app.modules.admin_console.router",),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="admin_console",
+        group_name="system_status",
+        title="Admin System Status (SSOT)",
+        description=(
+            "CANONICAL system status via GET /api/system/status. "
+            "Returns active sessions, metrics, modules, tiers, navigation info."
+        ),
+        inputs=("admin_user_id",),
+        outputs=("status", "sessions", "modules", "tiers", "navigation"),
+        dependencies=("app.modules.admin_console.router",),
+        deterministic=True,
+    ))
+
+except Exception:
+    pass
