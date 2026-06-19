@@ -71,21 +71,15 @@ async def detect_duplicates(
                 
                 await overlay_manager.create_overlay(duplicate_overlay)
                 
-                # Update original overlay with new count
+                # Update original overlay with new count via real update_overlay method
                 original_overlay_data = overlay.payload.copy()
                 original_overlay_data["duplicate_count"] = duplicate_count + 1
                 original_overlay_data["last_duplicate_detected"] = utc_now().isoformat()
                 
-                # Note: In a real implementation, you'd update the existing overlay
-                # For now, we'll create a new overlay with updated info
-                update_overlay = CreateOverlayRequest(
-                    overlay_type=OverlayType.DUPLICATE_DETECTION,
-                    document_id=original_vault_id,
-                    vault_path="duplicates/original",
+                await overlay_manager.update_overlay(
+                    overlay_id=overlay.overlay_id,
                     payload=original_overlay_data,
                 )
-                
-                await overlay_manager.create_overlay(update_overlay)
                 
                 logger.info(f"Duplicate detected: {vault_id} matches {original_vault_id}")
                 
