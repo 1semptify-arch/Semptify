@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overlay Viewer — Semptify</title>
+    <link rel="stylesheet" href="/static/css/semptify.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f8fafc; color: #0f172a; min-height: 100vh; padding: 1.5rem;
+        }
+        header { border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+        h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+        .subtitle { color: #64748b; font-size: 0.9rem; }
+        .card {
+            background: white; border: 1px solid #e2e8f0; border-radius: 8px;
+            padding: 1.25rem; margin-bottom: 1rem;
+        }
+        .row { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+        input[type=text], textarea {
+            border: 1px solid #cbd5e1; border-radius: 6px; padding: 0.5rem 0.75rem;
+            font-size: 0.9rem; font-family: inherit;
+        }
+        input[type=text] { flex: 1; min-width: 240px; }
+        textarea { width: 100%; min-height: 60px; resize: vertical; }
+        button {
+            background: #1e40af; color: white; border: none; border-radius: 6px;
+            padding: 0.5rem 1rem; font-size: 0.9rem; cursor: pointer;
+        }
+        button:hover { background: #1d4ed8; }
+        button.secondary { background: #475569; }
+        button.secondary:hover { background: #334155; }
+        button.danger { background: #b91c1c; }
+        button.danger:hover { background: #991b1b; }
+        .muted { color: #64748b; font-size: 0.85rem; }
+        .error { color: #b91c1c; font-size: 0.85rem; min-height: 1.2rem; }
+        .success { color: #15803d; font-size: 0.85rem; min-height: 1.2rem; }
+        ul { list-style: none; }
+        li.overlay-item {
+            border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem; display: flex; justify-content: space-between; gap: 1rem;
+            align-items: flex-start;
+        }
+        .overlay-meta { font-size: 0.8rem; color: #64748b; }
+        .overlay-type {
+            display: inline-block; background: #e0e7ff; color: #3730a3;
+            padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem;
+            font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .payload-preview {
+            font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.8rem;
+            background: #f1f5f9; padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem;
+            white-space: pre-wrap; word-break: break-all; max-height: 120px; overflow: auto;
+        }
+        .empty { text-align: center; color: #94a3b8; padding: 2rem; }
+        details summary { cursor: pointer; font-size: 0.85rem; color: #475569; }
+        .toolbar { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+        .status-line { margin: 0.5rem 0; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Overlay Viewer</h1>
+        <p class="subtitle">Minimal GUI proving the overlay render path end-to-end.</p>
+    </header>
+
+    <section class="card">
+        <label for="doc-id">Document ID</label>
+        <div class="row" style="margin-top:0.5rem">
+            <input id="doc-id" type="text" placeholder="e.g. doc_abc123">
+            <button id="load-btn">Load overlays</button>
+            <button id="refresh-btn" class="secondary">Refresh</button>
+        </div>
+        <p class="muted" style="margin-top:0.5rem">
+            Tip: open <a href="/filedored">Filedored</a> to find a document ID.
+        </p>
+    </section>
+
+    <section class="card">
+        <h2 style="font-size:1.1rem; margin-bottom:0.5rem">Annotation toolbar</h2>
+        <div class="toolbar">
+            <button id="add-highlight-btn">Add highlight</button>
+            <button id="add-note-btn" class="secondary">Add note</button>
+            <button id="compose-view-btn" class="secondary">Compose view</button>
+        </div>
+        <div id="annotation-form" style="display:none; margin-top:0.5rem">
+            <label id="note-label" for="note-content" style="display:none">Note text</label>
+            <textarea id="note-content" placeholder="Note text..."></textarea>
+            <div class="row" style="margin-top:0.5rem">
+                <input id="vault-path" type="text" placeholder="vault_path (e.g. /VAULT_DOCUMENTS/doc_abc.pdf)">
+                <button id="submit-annotation">Submit</button>
+                <button id="cancel-annotation" class="secondary">Cancel</button>
+            </div>
+        </div>
+        <p class="muted">Highlight uses range {0,0}. Replace with real selection when GUI matures.</p>
+    </section>
+
+    <section class="card">
+        <h2 style="font-size:1.1rem; margin-bottom:0.75rem">Overlays</h2>
+        <div id="status" class="status-line muted">Enter a document ID and click Load.</div>
+        <ul id="overlay-list"></ul>
+    </section>
+
+<script>
+(function () {
+    const API = '/api/unified-overlays';
+    const docInput = document.getElementById('doc-id');
+    const loadBtn = document.getElementById('load-btn');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const list = document.getElementById('overlay-list');
+    const status = document.getElementById('status');
+    const addHighlightBtn = document.getElementById('add-highlight-btn');
+    const addNoteBtn = document.getElementById('add-note-btn');
+    const composeViewBtn = document.getElementById('compose-view-btn');
+    const annotationForm = document.getElementById('annotation-form');
+    const noteLabel = document.getElementById('note-label');
+    const noteContent = document.getElementById('note-content');
+    const vaultPathInput = document.getElementById('vault-path');
+    const submitAnnotation = document.getElementById('submit-annotation');
+    const cancelAnnotation = document.getElementById('cancel-annotation');
+    let pendingAction = null;
+
+    function setStatus(msg, isError) {
+        status.textContent = msg;
+        status.className = 'status-line ' + (isError ? 'error' : 'muted');
+    }
+
+    function clearList() {
+        list.innerHTML = '';
+    }
+
+    function renderOverlay(overlay) {
+        const li = document.createElement('li');
+        li.className = 'overlay-item';
+        const left = document.createElement('div');
+        left.style.flex = '1';
+
+        const typeSpan = document.createElement('span');
+        typeSpan.className = 'overlay-type';
+        typeSpan.textContent = overlay.overlay_type;
+        left.appendChild(typeSpan);
+
+        const meta = document.createElement('div');
+        meta.className = 'overlay-meta';
+        meta.textContent = `id: ${overlay.overlay_id} · by: ${overlay.created_by} · at: ${overlay.created_at}`;
+        left.appendChild(meta);
+
+        const payload = document.createElement('div');
+        payload.className = 'payload-preview';
+        payload.textContent = JSON.stringify(overlay.payload, null, 2);
+        left.appendChild(payload);
+
+        const right = document.createElement('div');
+        const delBtn = document.createElement('button');
+        delBtn.className = 'danger';
+        delBtn.textContent = 'Delete';
+        delBtn.addEventListener('click', () => deleteOverlay(overlay.overlay_id));
+        right.appendChild(delBtn);
+
+        li.appendChild(left);
+        li.appendChild(right);
+        list.appendChild(li);
+    }
+
+    async function loadOverlays() {
+        const docId = docInput.value.trim();
+        if (!docId) {
+            setStatus('Please enter a document ID.', true);
+            return;
+        }
+        setStatus('Loading...');
+        clearList();
+        try {
+            const res = await fetch(`${API}/list?document_id=${encodeURIComponent(docId)}`, {
+                credentials: 'include'
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.detail || `HTTP ${res.status}`);
+            }
+            const data = await res.json();
+            if (!data.success) {
+                throw new Error(data.message || 'Request failed');
+            }
+            if (data.count === 0) {
+                setStatus('No overlays found for this document.');
+                const empty = document.createElement('li');
+                empty.className = 'empty';
+                empty.textContent = 'No overlays yet. Add one with the toolbar above.';
+                list.appendChild(empty);
+                return;
+            }
+            setStatus(`Loaded ${data.count} overlay(s).`);
+            data.overlays.forEach(renderOverlay);
+        } catch (e) {
+            setStatus(`Error: ${e.message}`, true);
+        }
+    }
+
+    async function deleteOverlay(overlayId) {
+        if (!confirm(`Delete overlay ${overlayId}?`)) return;
+        try {
+            const res = await fetch(`${API}/${encodeURIComponent(overlayId)}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            await loadOverlays();
+        } catch (e) {
+            setStatus(`Delete failed: ${e.message}`, true);
+        }
+    }
+
+    function showAnnotationForm(action) {
+        pendingAction = action;
+        annotationForm.style.display = 'block';
+        if (action === 'note') {
+            noteLabel.style.display = 'block';
+            noteContent.style.display = 'block';
+        } else {
+            noteLabel.style.display = 'none';
+            noteContent.style.display = 'none';
+        }
+    }
+
+    function hideAnnotationForm() {
+        annotationForm.style.display = 'none';
+        pendingAction = null;
+        noteContent.value = '';
+        vaultPathInput.value = '';
+    }
+
+    async function submitAnnotationAction() {
+        const docId = docInput.value.trim();
+        const vaultPath = vaultPathInput.value.trim();
+        if (!docId || !vaultPath) {
+            setStatus('document_id and vault_path are required.', true);
+            return;
+        }
+        try {
+            let url, body;
+            if (pendingAction === 'highlight') {
+                url = `${API}/annotations/highlight?document_id=${encodeURIComponent(docId)}&vault_path=${encodeURIComponent(vaultPath)}&color=yellow`;
+                body = JSON.stringify({ start_offset: 0, end_offset: 0 });
+                const res = await fetch(url, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            } else if (pendingAction === 'note') {
+                const text = noteContent.value.trim();
+                if (!text) { setStatus('Note text required.', true); return; }
+                url = `${API}/annotations/note?document_id=${encodeURIComponent(docId)}&vault_path=${encodeURIComponent(vaultPath)}&content=${encodeURIComponent(text)}`;
+                const res = await fetch(url, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            }
+            hideAnnotationForm();
+            await loadOverlays();
+        } catch (e) {
+            setStatus(`Submit failed: ${e.message}`, true);
+        }
+    }
+
+    async function composeView() {
+        const docId = docInput.value.trim();
+        if (!docId) { setStatus('Enter a document ID first.', true); return; }
+        try {
+            const listRes = await fetch(`${API}/list?document_id=${encodeURIComponent(docId)}`, { credentials: 'include' });
+            if (!listRes.ok) throw new Error(`list HTTP ${listRes.status}`);
+            const listData = await listRes.json();
+            if (!listData.success || listData.count === 0) {
+                setStatus('No overlays to compose.', true);
+                return;
+            }
+            const overlayIds = listData.overlays.map(o => o.overlay_id);
+            const url = `${API}/compose-view?document_id=${encodeURIComponent(docId)}&apply_redactions=true`;
+            const res = await fetch(url, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(overlayIds)
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message || 'compose failed');
+            setStatus(`Composed view: ${data.applied_overlays.length} overlay(s) applied.`);
+        } catch (e) {
+            setStatus(`Compose failed: ${e.message}`, true);
+        }
+    }
+
+    loadBtn.addEventListener('click', loadOverlays);
+    refreshBtn.addEventListener('click', loadOverlays);
+    addHighlightBtn.addEventListener('click', () => showAnnotationForm('highlight'));
+    addNoteBtn.addEventListener('click', () => showAnnotationForm('note'));
+    composeViewBtn.addEventListener('click', composeView);
+    submitAnnotation.addEventListener('click', submitAnnotationAction);
+    cancelAnnotation.addEventListener('click', hideAnnotationForm);
+})();
+</script>
+</body>
+</html>

@@ -2150,6 +2150,24 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(str(page_path))
         return HTMLResponse(content="<h1>Navigation Structure not found</h1>", status_code=404)
 
+    @fastapi_app.get("/overlays/viewer", response_class=HTMLResponse)
+    async def overlay_viewer_page(request: Request):
+        """Serve the overlay viewer page — storage-user auth required."""
+        from app.core.storage_middleware import is_valid_storage_user
+        from app.core.user_id import COOKIE_USER_ID
+
+        _raw = request.cookies.get(COOKIE_USER_ID)
+        user_id = str(_raw) if _raw is not None else None
+        if not is_valid_storage_user(user_id):
+            providers_stage = navigation.get_stage("providers")
+            providers_path = providers_stage.path if providers_stage else "/storage/providers"
+            return ssot_redirect(providers_path, context="overlay_viewer unauthenticated")
+
+        page_path = BASE_PATH / "static" / "overlays" / "viewer.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Overlay Viewer not found</h1>", status_code=404)
+
     @fastapi_app.get("/admin", response_class=HTMLResponse)
     async def admin_root_redirect(
         request: Request,
