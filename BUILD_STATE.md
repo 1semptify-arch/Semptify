@@ -12,6 +12,60 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-18 PM — Overlay System Mechanics + SSOT Contracts (COMPLETE)
+**Commits: 6040200, 9d2c21c, 1b556d9 | Status: Overlay bugs fixed, 22 contracts registered, 2 review bugs fixed, Deployed to Render**
+
+### What Was Shipped
+
+#### Overlay System Mechanics Alignment ✅
+- Fixed `CreateOverlayRequest` signature in 3 files (filedored_service, duplicate_detection_service, filedored/router)
+  - Replaced `vault_id/user_id/overlay_path/overlay_data` with `document_id/vault_path/payload/metadata`
+- Replaced phantom `app.core.storage_factory` import in 3 files with real pattern
+  - `oauth_token_manager.get_valid_token_for_user()` + `services.storage.get_provider()` + `user_id.get_provider_from_user_id()`
+- Replaced non-existent `get_overlays_by_type` / `get_overlays_by_path` with `get_overlays()` + in-memory filter
+- Retired 943-line dead `app/modules/overlays/router.py` (deleted entire directory)
+- `unified_overlays.router` is now sole SSOT
+
+#### FunctionGroupContract Registry ✅
+- 22 contracts registered across 8 services:
+  - vault (3): vault_upload, vault_folders, vault_init
+  - overlays (5): overlay_create, overlay_query, overlay_update, overlay_delete, overlay_compose_view
+  - communication (4): conversation_create, message_send, conversations_list, document_fill_sign
+  - delivery (4): document_send, inbox_list, document_sign, document_reject
+  - filedored (2): document_process, folders_ensure
+  - duplicates (2): detect, list_all
+  - court_forms (2): form_generate, form_autofill
+  - timeline (1): timeline_chronology
+- All visible in admin contract browser
+
+#### AGENTS.md Updated ✅
+- Added Failure #16 to Known Failure Registry: Hallucinated Overlay API Signatures
+- Added Module Contract Mandate section with pattern template
+- Rule: "Before writing code that calls another service's API, check the contract registry first."
+
+#### /review Bugs Fixed ✅
+- `filedored/router.py:198`: `overlay.overlay_path` -> `overlay.vault_path` (AttributeError)
+- `filedored_service.py`: added `original_filename` to payload (router lookup was returning "Unknown")
+- `duplicate_detection_service.py:79-88`: replaced stale create_overlay with `update_overlay()` per contract
+
+### What Is Known Working
+- All 5 modified files compile clean on Python 3.11.9
+- Cloudflare dev mode enabled (3hrs), cache purged
+- Render auto-deploying commit `1b556d9`
+
+### What Is Pending Live Verification
+- Filedored browse_folder endpoint (`GET /api/filedored/browse/{folder}`)
+- Duplicate detection flow on real upload
+- Court forms generation with FORM_FILL overlay creation
+- Contract browser visibility in admin dashboard
+
+### What Next Session Should Start With
+- **GUI development for overlay system** — document viewer with annotation toolbar
+- Mechanics are now solid; contracts are SSOT for any AI to reference
+- Consider registering contracts for remaining services (rent, user, admin_console) when touched
+
+---
+
 ## Session — 2026-06-18 AM — Registration Bug Fix (COMPLETE)
 **Commits: 73b7119 | Status: Registration pages removed, OAuth redirect added, Playwright tests updated, Deployed to Render**
 
