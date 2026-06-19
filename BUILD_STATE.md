@@ -12,6 +12,53 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-19 PM — Law Linker System (COMPLETE)
+**Commit: 2e6b643 | Status: Law linker system live, all 70 law/case/rule entries have official source URLs, Deployed to Render**
+
+### What Was Shipped
+
+#### Law Source Registry (SSOT) ✅
+- `app/core/law_source_registry.py`: new SSOT mapping every citation type to its official source URL builder
+- Covers: MN Statutes, US Code, CFR, IRS Pubs, Minneapolis/St. Paul Code, Hennepin County, SCOTUS, federal appellate/district, MN case law
+- Provides `resolve_source()`, `build_official_url()`, `enrich_law_entry()` functions
+- TODO noted for post-funding live-feed verification engine
+
+#### Law Data Enrichment ✅
+- `app/modules/law_library/router.py`: added `official_url`, `source_name`, `last_verified`, `jurisdiction` fields to `LawReference`, `CaseReference`, `CourtRule` models
+- Post-processes ALL 56 laws, 11 cases, 3 court rules → 100% have official URLs
+- New `/api/law-library/links` endpoint returns full card link index
+
+#### Law Linker JS ✅
+- `static/js/law-linker.js`: rewritten to recognize 11 citation patterns (local → state → federal)
+- Each citation becomes clickable span: hover shows popup with title/summary/full text/last-verified, click opens official source in new tab
+- Bug fix: made Minn. Stat. prefix required in regex to prevent false-positive matches on arbitrary decimal numbers
+
+#### Law Library UI ✅
+- `app/templates/pages/law_library.html`: cards now show "View Official Source →" link + "Verified: YYYY-MM-DD" date in footer
+- Modal uses `renderOfficialSourceSection()` to display official link from API instead of hardcoded revisor.mn.gov URLs
+- New CSS classes: `.card-link-index`, `.card-official-link`, `.card-verified`, `.modal-verified`
+
+### Code Review Fixes (pre-ship)
+- **Bug:** `minnesota_statute` regex had optional prefix, would match any decimal number as a statute once text contains "Minn. Stat." anywhere → made prefix required
+- **Bug:** `enrich_law_entry` and router post-processing called `source.url_builder()` directly without try/except, could crash module import → switched to `build_official_url()` which has exception handling
+
+### Known Working
+- All Python files compile clean under venv311 (Python 3.11.9)
+- All 70 law entries (56 statutes + 11 cases + 3 rules) have official_url injected
+- Cloudflare dev mode enabled + cache purged — changes visible immediately at semptify.org
+
+### Known Broken / Pending
+- Live test on production pending (no dev server running locally)
+- Live-feed verification engine deferred to post-funding (TODO in law_source_registry.py + law-linker.js)
+
+### Next Session Should Start With
+- Live verification: visit https://semptify.org/library, confirm cards show "View Official Source →" links + verified dates
+- Test law-linker hover popups on a page with legal citations (e.g. tenant dashboard, legal analysis)
+- Test `/api/law-library/links` endpoint returns full index
+- Consider expanding registry with more local ordinances (St. Paul, Hennepin specific ordinances)
+
+---
+
 ## Session — 2026-06-19 AM — Overlay Viewer GUI + Render Path Verification (COMPLETE)
 **Commits: 3c12b17, 53aa460, e5f5678, 36a5294, 423129c | Status: Overlay viewer GUI live, full render path verified end-to-end, 3 blocking bugs fixed, Deployed to Render**
 
