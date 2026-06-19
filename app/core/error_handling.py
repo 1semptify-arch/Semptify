@@ -142,6 +142,9 @@ async def semptify_exception_handler(request: Request, exc: Exception) -> JSONRe
     
     # Log the error
     logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    # DEBUG: print full traceback to stderr for Render log capture
+    import traceback as _tb, sys as _sys
+    print(f"[EXCEPTION DEBUG] {request.url.path}: {type(exc).__name__}: {exc}\n{_tb.format_exc()}", file=_sys.stderr, flush=True)
     
     # Handle different exception types
     if isinstance(exc, SemptifyError):
