@@ -600,12 +600,14 @@ class DataExtractor:
         parties = []
         
         # Look for labeled parties
+        # Terminator: newline, comma, end-of-string, period, or ' and ' (for
+        # 'Landlord John Smith and Tenant Jane Doe' format on a single line).
         party_patterns = [
-            (r"(?:landlord|lessor|property owner)[:\s]+([A-Z][a-zA-Z\s]+?)(?:\n|,|$)", "landlord"),
-            (r"(?:tenant|lessee|renter)[:\s]+([A-Z][a-zA-Z\s]+?)(?:\n|,|$)", "tenant"),
-            (r"(?:property manager|manager|agent)[:\s]+([A-Z][a-zA-Z\s]+?)(?:\n|,|$)", "property_manager"),
-            (r"(?:plaintiff)[:\s]+([A-Z][a-zA-Z\s]+?)(?:\n|,|$)", "plaintiff"),
-            (r"(?:defendant)[:\s]+([A-Z][a-zA-Z\s]+?)(?:\n|,|$)", "defendant"),
+            (r"(?:landlord|lessor|property owner)[:\s]+([A-Z][a-zA-Z\s]+?)(?:\n|,|$|\.|\s+and\s+)", "landlord"),
+            (r"(?:tenant|lessee|renter)[:\s]+([A-Z][a-zA-Z\s]+?)(?:\n|,|$|\.|\s+and\s+)", "tenant"),
+            (r"(?:property manager|manager|agent)[:\s]+([A-Z][a-zA-Z\s]+?)(?:\n|,|$|\.|\s+and\s+)", "property_manager"),
+            (r"(?:plaintiff)[:\s]+([A-Z][a-zA-Z\s]+?)(?:\n|,|$|\.|\s+and\s+)", "plaintiff"),
+            (r"(?:defendant)[:\s]+([A-Z][a-zA-Z\s]+?)(?:\n|,|$|\.|\s+and\s+)", "defendant"),
         ]
         
         for pattern, role in party_patterns:
