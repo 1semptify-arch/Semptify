@@ -235,3 +235,76 @@ async def delete_payment(
         await db.commit()
 
     return {"success": True, "deleted": payment_id}
+
+
+# =============================================================================
+# Module Contracts — SSOT signatures, visible in admin contract browser
+# =============================================================================
+
+try:
+    from app.core.module_contracts import FunctionGroupContract, register_function_group
+
+    register_function_group(FunctionGroupContract(
+        module="rent",
+        group_name="payment_create",
+        title="Rent Payment Create (SSOT)",
+        description=(
+            "CANONICAL rent payment creation via POST /api/rent/payments. "
+            "Amount is in dollars (input), stored as cents (DB). "
+            "User can only create payments for themselves."
+        ),
+        inputs=("body", "user_id"),
+        outputs=("payment_id", "payment"),
+        dependencies=(
+            "app.modules.rent.router",
+            "app.models.models.RentPayment",
+        ),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="rent",
+        group_name="payment_list",
+        title="Rent Payment List (SSOT)",
+        description="CANONICAL rent payment list via GET /api/rent/payments. Returns current user's payments only.",
+        inputs=("user_id",),
+        outputs=("payments",),
+        dependencies=("app.modules.rent.router",),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="rent",
+        group_name="payment_get",
+        title="Rent Payment Get (SSOT)",
+        description="CANONICAL single payment fetch via GET /api/rent/payments/{payment_id}. Ownership enforced.",
+        inputs=("payment_id", "user_id"),
+        outputs=("payment",),
+        dependencies=("app.modules.rent.router",),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="rent",
+        group_name="payment_update",
+        title="Rent Payment Update (SSOT)",
+        description="CANONICAL payment update via PUT /api/rent/payments/{payment_id}. Ownership enforced.",
+        inputs=("payment_id", "body", "user_id"),
+        outputs=("payment",),
+        dependencies=("app.modules.rent.router",),
+        deterministic=True,
+    ))
+
+    register_function_group(FunctionGroupContract(
+        module="rent",
+        group_name="payment_delete",
+        title="Rent Payment Delete (SSOT)",
+        description="CANONICAL payment deletion via DELETE /api/rent/payments/{payment_id}. Ownership enforced.",
+        inputs=("payment_id", "user_id"),
+        outputs=("deleted",),
+        dependencies=("app.modules.rent.router",),
+        deterministic=True,
+    ))
+
+except Exception:
+    pass
