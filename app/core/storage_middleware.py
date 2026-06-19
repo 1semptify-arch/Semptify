@@ -121,6 +121,7 @@ PUBLIC_PREFIXES = (
     "/onboarding/",  # All onboarding sub-routes public — new users have no cookie yet
     "/onboarding-assets/",  # Onboarding static files
     "/api/vault-installer/",  # Vault installer — auth checked by route
+    "/api/law-library/",  # Law library — public education content (page is already public)
     "/debug/",  # TEMPORARY: diagnostic endpoints
 )
 
