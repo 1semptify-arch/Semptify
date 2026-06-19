@@ -174,7 +174,17 @@ class UnifiedOverlayManager:
             overlays = []
             
             for overlay_data in registry.values():
-                overlay = UnifiedOverlay(**overlay_data)
+                if not isinstance(overlay_data, dict):
+                    logger.warning(
+                        "Skipping invalid registry entry (type=%s); expected dict",
+                        type(overlay_data).__name__,
+                    )
+                    continue
+                try:
+                    overlay = UnifiedOverlay(**overlay_data)
+                except Exception as entry_err:
+                    logger.warning("Skipping malformed registry entry: %s", entry_err)
+                    continue
                 
                 # Apply filters
                 if document_id and overlay.document_id != document_id:
@@ -207,10 +217,7 @@ class UnifiedOverlayManager:
             )
             
         except Exception as e:
-            import traceback, sys
-            tb = traceback.format_exc()
-            logger.error(f"Failed to get overlays: {e}\n{tb}")
-            print(f"[OVERLAY DEBUG] get_overlays failed: {type(e).__name__}: {e}\n{tb}", file=sys.stderr, flush=True)
+            logger.error(f"Failed to get overlays: {e}", exc_info=True)
             return GetOverlaysResponse(
                 success=False,
                 overlays=[],
@@ -377,7 +384,14 @@ class UnifiedOverlayManager:
             content = await self.storage.download_file(VAULT_OVERLAY_REGISTRY)
             if not content:
                 return {}
-            return json.loads(content.decode("utf-8"))
+            data = json.loads(content.decode("utf-8"))
+            if not isinstance(data, dict):
+                logger.warning(
+                    "Registry file is not a JSON object (type=%s); resetting to empty",
+                    type(data).__name__,
+                )
+                return {}
+            return data
         except Exception as e:
             logger.debug(f"Registry load failed (creating new): {e}")
             return {}
