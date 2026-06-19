@@ -2747,9 +2747,10 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     documents_data = []
                     try:
                         from app.services.vault_upload_service import get_vault_service
-                        from app.core.cookie_auth import verify_user_id, COOKIE_NAME
-                        
-                        cookie_value = request.cookies.get(COOKIE_NAME)
+                        from app.core.cookie_auth import verify_user_id
+                        from app.core.user_id import COOKIE_USER_ID
+
+                        cookie_value = request.cookies.get(COOKIE_USER_ID)
                         if cookie_value:
                             raw_uid = verify_user_id(cookie_value)
                             if raw_uid:
