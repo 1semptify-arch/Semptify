@@ -51,6 +51,11 @@ class LawReference(BaseModel):
     related_forms: List[str] = []
     effective_date: Optional[str] = None
     last_updated: Optional[str] = None
+    # Official source link (injected from law_source_registry)
+    official_url: Optional[str] = None
+    source_name: Optional[str] = None
+    last_verified: Optional[str] = None
+    jurisdiction: Optional[str] = None
 
 
 class CaseReference(BaseModel):
@@ -64,6 +69,11 @@ class CaseReference(BaseModel):
     holding: str
     relevance: str
     key_quotes: List[str] = []
+    # Official source link (injected from law_source_registry)
+    official_url: Optional[str] = None
+    source_name: Optional[str] = None
+    last_verified: Optional[str] = None
+    jurisdiction: Optional[str] = None
 
 
 class CourtRule(BaseModel):
@@ -75,6 +85,11 @@ class CourtRule(BaseModel):
     full_text: str
     summary: str
     practical_tips: List[str] = []
+    # Official source link (injected from law_source_registry)
+    official_url: Optional[str] = None
+    source_name: Optional[str] = None
+    last_verified: Optional[str] = None
+    jurisdiction: Optional[str] = None
 
 
 class LibrarianResponse(BaseModel):
@@ -1496,6 +1511,29 @@ CASE_LAW_DATABASE = [
 
 
 # =============================================================================
+# Inject official source URLs from the law_source_registry (SSOT)
+# =============================================================================
+from app.core.law_source_registry import enrich_law_entry, resolve_source, build_official_url
+
+for _law_id, _law_entry in ALL_LAWS.items():
+    enrich_law_entry(_law_entry)
+
+for _case in CASE_LAW_DATABASE:
+    _src = resolve_source(_case.get("citation", ""))
+    if _src is not None:
+        _case.setdefault("official_url", build_official_url(_case["citation"]) or "")
+        _case.setdefault("source_name", _src.source_name)
+        _case.setdefault("last_verified", _src.last_verified)
+        _case.setdefault("jurisdiction", _src.jurisdiction)
+
+for _rule_id, _rule_entry in DAKOTA_COUNTY_RULES.items():
+    _rule_entry.setdefault("official_url", "https://www.mncourts.gov/Find-Courts/Dakota-County.aspx")
+    _rule_entry.setdefault("source_name", "Minnesota Judicial Branch - Dakota County")
+    _rule_entry.setdefault("last_verified", "2026-01-15")
+    _rule_entry.setdefault("jurisdiction", "state")
+
+
+# =============================================================================
 # Endpoints
 # =============================================================================
 
@@ -1601,6 +1639,68 @@ async def get_case(
             }
     
     raise HTTPException(status_code=404, detail="Case not found")
+
+
+@router.get("/links")
+async def list_all_links():
+    """
+    Card Link Index — returns every law, case, and court rule with its
+    official source URL, source name, last-verified date, and jurisdiction.
+    Used by the UI to render clickable direct links on every card and by
+    the link-health verification system.
+    """
+    statute_links = []
+    for law_id, entry in ALL_LAWS.items():
+        statute_links.append({
+            "id": law_id,
+            "title": entry.get("title", ""),
+            "citation": entry.get("citation", ""),
+            "category": entry.get("category", ""),
+            "official_url": entry.get("official_url"),
+            "source_name": entry.get("source_name"),
+            "last_verified": entry.get("last_verified"),
+            "jurisdiction": entry.get("jurisdiction"),
+        })
+
+    case_links = []
+    for case in CASE_LAW_DATABASE:
+        case_links.append({
+            "id": case["id"],
+            "case_name": case.get("case_name", ""),
+            "citation": case.get("citation", ""),
+            "official_url": case.get("official_url"),
+            "source_name": case.get("source_name"),
+            "last_verified": case.get("last_verified"),
+            "jurisdiction": case.get("jurisdiction"),
+        })
+
+    rule_links = []
+    for rule_id, entry in DAKOTA_COUNTY_RULES.items():
+        rule_links.append({
+            "id": rule_id,
+            "title": entry.get("title", ""),
+            "rule_number": entry.get("rule_number", ""),
+            "official_url": entry.get("official_url"),
+            "source_name": entry.get("source_name"),
+            "last_verified": entry.get("last_verified"),
+            "jurisdiction": entry.get("jurisdiction"),
+        })
+
+    return {
+        "disclaimer": LEGAL_DISCLAIMER,
+        "last_verified": LAST_VERIFIED_DATE,
+        "statutes": statute_links,
+        "cases": case_links,
+        "court_rules": rule_links,
+        "totals": {
+            "statutes": len(statute_links),
+            "cases": len(case_links),
+            "court_rules": len(rule_links),
+            "with_official_url": sum(1 for s in statute_links if s["official_url"])
+                                  + sum(1 for c in case_links if c["official_url"])
+                                  + sum(1 for r in rule_links if r["official_url"]),
+        },
+    }
 
 
 @router.get("/categories")

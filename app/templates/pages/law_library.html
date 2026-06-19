@@ -104,6 +104,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg-dark);color
 .law-badge.federal{background:rgba(239,68,68,.15);color:var(--danger);}
 .law-badge.case{background:rgba(139,92,246,.15);color:var(--purple);}
 .law-summary{font-size:.88rem;color:var(--text-muted);line-height:1.5;margin-bottom:.75rem;}
+.card-link-index{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);font-size:.75rem;}
+.card-official-link{color:var(--primary);text-decoration:none;font-weight:600;white-space:nowrap;}
+.card-official-link:hover{color:var(--accent);text-decoration:underline;}
+.card-verified{color:#64748b;font-style:italic;font-size:.7rem;white-space:nowrap;}
+.modal-verified{margin-top:.5rem;font-size:.75rem;color:#64748b;font-style:italic;}
 .law-popout{display:none;position:absolute;top:100%;left:0;right:0;background:var(--bg-card);border:2px solid var(--primary);border-radius:0 0 .75rem .75rem;border-top:none;padding:1rem;z-index:100;box-shadow:0 10px 30px rgba(0,0,0,.5);max-height:300px;overflow-y:auto;}
 .popout-header{color:var(--primary);font-size:.9rem;font-weight:600;margin-bottom:.5rem;}
 .popout-list{margin-left:1rem;font-size:.85rem;color:var(--text-muted);}
@@ -826,20 +831,33 @@ async function loadStatutes() {
     const res = await fetch('/api/law-library/statutes', {credentials: 'include'});
     const data = await res.json();
     const statutes = (data.statutes || data).slice(0, 6);
-    container.innerHTML = statutes.map(s => '<div class="law-card" onclick="showLaw(\'' + s.id + '\')">'
-      + '<div class="law-card-header"><div><div class="law-title">' + s.title + '</div><div class="law-citation">' + s.citation + '</div></div>'
-      + '<span class="law-badge ' + (s.category === 'federal' ? 'federal' : 'mn') + '">' + (s.category === 'federal' ? 'Federal' : 'MN') + '</span></div>'
-      + '<div class="law-summary">' + s.summary + '</div>'
-      + '<div class="law-popout"><div class="popout-header">Key Points</div><ul class="popout-list">'
-      + (s.key_points || ['View details for more information']).slice(0,3).map(p => '<li>' + p + '</li>').join('')
-      + '</ul><div class="popout-actions"><button class="popout-btn primary" onclick="event.stopPropagation();showLaw(\'' + s.id + '\')">Full Details</button>'
-      + '<button class="popout-btn secondary" onclick="event.stopPropagation();askAbout(\'' + s.id + '\',\'' + s.title.replace(/'/g,'') + '\')">Ask AI</button></div></div>'
-      + '</div>').join('');
+    container.innerHTML = statutes.map(s => renderStatuteCard(s)).join('');
   } catch(e) {
     container.innerHTML = '<div class="law-card"><div class="law-card-header"><div><div class="law-title">Eviction Procedure</div><div class="law-citation">Minn. Stat. § 504B.321</div></div><span class="law-badge mn">MN</span></div><div class="law-summary">Complaint and summons requirements. 7-day answer deadline.</div></div>'
       + '<div class="law-card"><div class="law-card-header"><div><div class="law-title">Security Deposits</div><div class="law-citation">Minn. Stat. § 504B.178</div></div><span class="law-badge mn">MN</span></div><div class="law-summary">21-day return requirement, interest rules, $500 penalty for wrongful withholding.</div></div>'
       + '<div class="law-card"><div class="law-card-header"><div><div class="law-title">Habitability Warranty</div><div class="law-citation">Minn. Stat. § 504B.161</div></div><span class="law-badge mn">MN</span></div><div class="law-summary">Landlord\'s duty to maintain fit and habitable premises. Cannot be waived.</div></div>';
   }
+}
+
+function renderStatuteCard(s) {
+  const badgeClass = (s.category || '').includes('federal') ? 'federal' : 'mn';
+  const badgeLabel = (s.category || '').includes('federal') ? 'Federal' : 'MN';
+  const officialLink = s.official_url
+    ? '<a href="' + s.official_url + '" target="_blank" rel="noopener noreferrer" class="card-official-link" onclick="event.stopPropagation()">View Official Source →</a>'
+    : '';
+  const verified = s.last_verified
+    ? '<span class="card-verified">Verified: ' + s.last_verified + '</span>'
+    : '';
+  return '<div class="law-card" onclick="showLaw(\'' + s.id + '\')">'
+    + '<div class="law-card-header"><div><div class="law-title">' + s.title + '</div><div class="law-citation">' + s.citation + '</div></div>'
+    + '<span class="law-badge ' + badgeClass + '">' + badgeLabel + '</span></div>'
+    + '<div class="law-summary">' + s.summary + '</div>'
+    + '<div class="card-link-index">' + officialLink + verified + '</div>'
+    + '<div class="law-popout"><div class="popout-header">Key Points</div><ul class="popout-list">'
+    + (s.key_points || ['View details for more information']).slice(0,3).map(p => '<li>' + p + '</li>').join('')
+    + '</ul><div class="popout-actions"><button class="popout-btn primary" onclick="event.stopPropagation();showLaw(\'' + s.id + '\')">Full Details</button>'
+    + '<button class="popout-btn secondary" onclick="event.stopPropagation();askAbout(\'' + s.id + '\',\'' + s.title.replace(/'/g,'') + '\')">Ask AI</button></div></div>'
+    + '</div>';
 }
 
 async function loadCases() {
@@ -848,14 +866,25 @@ async function loadCases() {
     const res = await fetch('/api/law-library/case-law', {credentials: 'include'});
     const data = await res.json();
     const cases = (data.cases || data).slice(0, 4);
-    container.innerHTML = cases.map(c => '<div class="law-card" onclick="showLaw(\'' + c.id + '\')">'
-      + '<div class="law-card-header"><div><div class="law-title">' + c.case_name + '</div><div class="law-citation">' + c.citation + '</div></div>'
-      + '<span class="law-badge case">Case</span></div>'
-      + '<div class="law-summary">' + c.summary + '</div>'
-      + '</div>').join('');
+    container.innerHTML = cases.map(c => renderCaseCard(c)).join('');
   } catch(e) {
     container.innerHTML = '<div class="law-card"><div class="law-card-header"><div><div class="law-title">Fritz v. Warthen</div><div class="law-citation">298 Minn. 54, 213 N.W.2d 339 (1973)</div></div><span class="law-badge case">Case</span></div><div class="law-summary">Established implied warranty of habitability in Minnesota residential leases.</div></div>';
   }
+}
+
+function renderCaseCard(c) {
+  const officialLink = c.official_url
+    ? '<a href="' + c.official_url + '" target="_blank" rel="noopener noreferrer" class="card-official-link" onclick="event.stopPropagation()">View Official Source →</a>'
+    : '';
+  const verified = c.last_verified
+    ? '<span class="card-verified">Verified: ' + c.last_verified + '</span>'
+    : '';
+  return '<div class="law-card" onclick="showLaw(\'' + c.id + '\')">'
+    + '<div class="law-card-header"><div><div class="law-title">' + c.case_name + '</div><div class="law-citation">' + c.citation + '</div></div>'
+    + '<span class="law-badge case">Case</span></div>'
+    + '<div class="law-summary">' + c.summary + '</div>'
+    + '<div class="card-link-index">' + officialLink + verified + '</div>'
+    + '</div>';
 }
 
 // ── Statute Modal ──
@@ -878,7 +907,7 @@ async function showLaw(id) {
       body.innerHTML = '<div class="modal-section"><h3>Summary</h3><p>' + s.summary + '</p></div>'
         + (s.key_points ? '<div class="modal-section"><h3>Key Points</h3>' + s.key_points.map(p => '<div class="key-point">' + p + '</div>').join('') + '</div>' : '')
         + (s.full_text ? '<div class="modal-section"><h3>Full Text</h3><p style="font-family:monospace;font-size:.85rem;white-space:pre-wrap;background:var(--bg-dark);padding:1rem;border-radius:.5rem;">' + s.full_text + '</p></div>' : '')
-        + '<div class="modal-section"><h3>Official Source</h3><a href="https://www.revisor.mn.gov/statutes/cite/' + (s.citation || '').replace('Minn. Stat. § ', '') + '" target="_blank" style="color:var(--primary);">View on revisor.mn.gov &rarr;</a></div>';
+        + renderOfficialSourceSection(s);
     } else {
       title.textContent = id;
       body.innerHTML = '<div class="modal-section"><p>View the official text at:</p><a href="https://www.revisor.mn.gov/statutes/cite/' + id + '" target="_blank" style="color:var(--primary);">revisor.mn.gov/statutes/cite/' + id + ' &rarr;</a></div>';
@@ -887,6 +916,23 @@ async function showLaw(id) {
     title.textContent = id;
     body.innerHTML = '<div class="modal-section"><a href="https://www.revisor.mn.gov/statutes/cite/' + id + '" target="_blank" style="color:var(--primary);">View on revisor.mn.gov &rarr;</a></div>';
   }
+}
+
+function renderOfficialSourceSection(s) {
+  if (s.official_url) {
+    const sourceName = s.source_name || 'Official Source';
+    const verified = s.last_verified ? '<div class="modal-verified">Last verified: ' + s.last_verified + '</div>' : '';
+    return '<div class="modal-section"><h3>Official Source</h3>'
+      + '<a href="' + s.official_url + '" target="_blank" rel="noopener noreferrer" style="color:var(--primary);font-weight:600;">View on ' + sourceName + ' &rarr;</a>'
+      + verified + '</div>';
+  }
+  // Fallback: build URL from citation if it's a MN statute
+  const citation = s.citation || '';
+  const mnMatch = citation.match(/(\d+[A-Z]?\.\d+(?:\.\d+)?)/);
+  if (mnMatch) {
+    return '<div class="modal-section"><h3>Official Source</h3><a href="https://www.revisor.mn.gov/statutes/cite/' + mnMatch[1] + '" target="_blank" rel="noopener noreferrer" style="color:var(--primary);">View on revisor.mn.gov &rarr;</a></div>';
+  }
+  return '<div class="modal-section"><h3>Official Source</h3><p>Direct link not available. Search the citation on the official government website.</p></div>';
 }
 
 function askAbout(id, title) {
