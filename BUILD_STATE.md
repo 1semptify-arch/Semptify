@@ -44,6 +44,25 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## ⚠️ URGENT KNOWN ISSUES
+
+### Cloudflare Production Caching (URGENT — fix before full production)
+**Status:** Dev Mode bypasses cache for 3h (temporary). After expiry, Cloudflare resumes caching dynamic pages.
+
+**User impact if not fixed:**
+- Stale vault file lists (user uploads, sees old list)
+- Timeline events don't appear after creation
+- Onboarding gate state stale (OAuth redirect loops)
+- API responses cached incorrectly
+
+**Fix needed:** Cloudflare page rules:
+- Bypass cache: `/api/*`, `/vault*`, `/timeline*`, `/documents*`, `/onboarding*`, `/storage*`
+- Cache everything: `/static/*`, `/css/*`, `/js/*`
+
+**Note:** Render is set to manual deploy (free-tier minutes constraint). Commits pushed but not live until manually deployed.
+
+---
+
 ## Session — 2026-06-19 PM2 — End-to-End Document Pipeline Test + Bug Fixes
 **Commit: 4c1d48e | Status: 30-step e2e document test passes, 2 upstream bugs fixed, deployed to Render**
 
