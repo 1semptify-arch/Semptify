@@ -778,9 +778,6 @@ async def get_component_config(
 ):
     """Get role-specific component configuration"""
     try:
-        # TODO: Get role-specific configuration from user context
-        # This would integrate with existing role_ui system
-        
         role_configs = {
             "tenant": {
                 "theme": "blue",

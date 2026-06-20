@@ -363,20 +363,39 @@ def generate_signed_url(object_key: str, expires_in: Optional[int] = None) -> st
 
 async def upload_to_cloud_storage(object_key: str, data: bytes) -> bool:
     """
-    Upload data to cloud storage (S3-compatible).
-    
-    Production implementation:
-        import boto3
-        s3 = boto3.client('s3', endpoint_url=CFG["STORAGE_ENDPOINT"], ...)
-        s3.put_object(Bucket=CFG["STORAGE_BUCKET"], Key=object_key, Body=data)
+    Upload data to cloud storage (S3-compatible via aioboto3).
+
+    Used for research evidence ZIPs when STORAGE_MODE=cloud.
+    For memory mode (default), returns False and the ZIP is streamed directly.
     """
     if CFG["STORAGE_MODE"] != "cloud":
         return False
-    
-    # Placeholder for actual cloud upload
-    # In production, use boto3, aioboto3, or httpx to upload
-    logger.info(f"Would upload {len(data)} bytes to {CFG['STORAGE_BUCKET']}/{object_key}")
-    return True
+
+    try:
+        import aioboto3
+    except ImportError:
+        logger.error("aioboto3 not installed — cannot upload to cloud storage. Run: pip install aioboto3")
+        return False
+
+    endpoint = CFG["STORAGE_ENDPOINT"] or f"https://{CFG['STORAGE_BUCKET']}.s3.{CFG['STORAGE_REGION']}.amazonaws.com"
+    session = aioboto3.Session(
+        aws_access_key_id=CFG["STORAGE_ACCESS_KEY"],
+        aws_secret_access_key=CFG["STORAGE_SECRET_KEY"],
+        region_name=CFG["STORAGE_REGION"],
+    )
+    try:
+        async with session.client("s3", endpoint_url=endpoint) as client:
+            await client.put_object(
+                Bucket=CFG["STORAGE_BUCKET"],
+                Key=object_key,
+                Body=data,
+                ContentType="application/zip",
+            )
+        logger.info(f"Uploaded {len(data)} bytes to {CFG['STORAGE_BUCKET']}/{object_key}")
+        return True
+    except Exception as e:
+        logger.error(f"Cloud upload failed for {object_key}: {type(e).__name__}: {e}")
+        return False
 
 
 def _safe(data: Optional[Dict[str, Any]], key: str, default: Any = None) -> Any:
