@@ -81,21 +81,23 @@ class PerformanceMonitor:
     """Monitors and tracks application performance."""
     
     def __init__(self):
-        self.metrics: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
-        self.request_metrics: deque = deque(maxlen=10000)
-        self.system_metrics: deque = deque(maxlen=1000)
-        self.slow_queries: deque = deque(maxlen=1000)
-        self.error_rates: Dict[str, deque] = defaultdict(lambda: deque(maxlen=100))
-        
+        # Bounded deques — smaller to keep memory footprint low on Render free tier
+        self.metrics: Dict[str, deque] = defaultdict(lambda: deque(maxlen=200))
+        self.request_metrics: deque = deque(maxlen=500)
+        self.system_metrics: deque = deque(maxlen=200)
+        self.slow_queries: deque = deque(maxlen=200)
+        self.error_rates: Dict[str, deque] = defaultdict(lambda: deque(maxlen=50))
+
         # Performance thresholds
         self.slow_request_threshold = 1000  # ms
         self.high_cpu_threshold = 80.0  # percent
         self.high_memory_threshold = 85.0  # percent
         self.high_error_rate_threshold = 5.0  # percent
-        
+
         # Background monitoring
         self.monitoring_active = False
         self.monitoring_thread = None
+        self.sample_interval = 60  # seconds (was 30 — halve frequency to cut overhead)
         
     def start_monitoring(self):
         """Start background performance monitoring."""
@@ -120,34 +122,36 @@ class PerformanceMonitor:
             try:
                 # Collect system metrics
                 self._collect_system_metrics()
-                
+
                 # Check for performance issues
                 self._check_performance_issues()
-                
-                # Sleep for 30 seconds
-                time.sleep(30)
-                
+
+                # Sleep for sample_interval seconds
+                time.sleep(self.sample_interval)
+
             except Exception as e:
                 logger.error(f"Error in monitoring loop: {e}")
-                time.sleep(30)
+                time.sleep(self.sample_interval)
     
     def _collect_system_metrics(self):
         """Collect system resource metrics."""
         try:
             # CPU usage
             cpu_percent = psutil.cpu_percent(interval=1)
-            
+
             # Memory usage
             memory = psutil.virtual_memory()
             memory_percent = memory.percent
-            
+
             # Disk usage
             disk = psutil.disk_usage('/')
             disk_usage_percent = disk.percent
-            
-            # Network connections
-            connections = len(psutil.net_connections())
-            
+
+            # Skip net_connections() — very expensive on Render shared infra.
+            # Allocates large lists of socket descriptors every sample. Was the
+            # primary cause of the 85%+ memory usage that forced this monitor off.
+            connections = -1  # sentinel: not collected
+
             metrics = SystemMetrics(
                 cpu_percent=cpu_percent,
                 memory_percent=memory_percent,
@@ -155,15 +159,15 @@ class PerformanceMonitor:
                 active_connections=connections,
                 timestamp=utc_now()
             )
-            
+
             self.system_metrics.append(metrics)
-            
+
             # Store individual metrics for time series
             self._store_metric("system.cpu_percent", cpu_percent, "percent")
             self._store_metric("system.memory_percent", memory_percent, "percent")
             self._store_metric("system.disk_usage_percent", disk_usage_percent, "percent")
             self._store_metric("system.active_connections", connections, "count")
-            
+
         except Exception as e:
             logger.error(f"Error collecting system metrics: {e}")
     
