@@ -12,6 +12,38 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-19 PM3 — Tier 1 Stubs Implemented
+**Commit: 8b318e9 | Status: 5 Tier 1 stubs fixed, 45/45 local tests pass, deployed to Render**
+
+### What Was Shipped
+
+#### Tier 1 Stub Fixes (5 items from STUB_AUDIT.md) ✅
+- `static/js/core/app.js`: `uploadToVault()` now POSTs `FormData` to `/api/vault/upload` with loading state + error handling (replaces `alert()` stub)
+- `app/modules/timeline/router.py`: new `POST /api/timeline/events` endpoint with `TimelineEventCreateRequest`/`TimelineEventResponse` Pydantic models + `_parse_event_date` helper
+- `app/templates/pages/timeline.html`: `addManualEvent()` replaced with inline modal form (date, title, description, type, urgency, deadline, evidence) that POSTs JSON to new endpoint
+- `app/core/stateless_oauth.py`: implemented `_refresh_with_provider()` for Google Drive, Dropbox, OneDrive using `httpx.AsyncClient` + client credentials from `Settings`
+- `app/core/storage_middleware.py`: replaced stale TODO with documentation of already-implemented ice-cube token model (in-memory cache → DB refresh token → provider call)
+- `static/js/workspace-stage-model.js`: full workflow API integration (GET `/api/workflow/case-state`, POST `/api/workflow/next-step`) with fallback path exposing `next_action: 'connect_storage'`
+- `scripts/run_all_tests.py`: un-skipped 5 workspace JS tests now that stub is implemented
+- `STUB_AUDIT.md`: new prioritized audit of stubs/TODOs across codebase (5 tiers)
+
+### Known Working
+- All 45 local tests pass (14 SSOT + 5 WSJS + 30 E2E + vault_local)
+- All modified Python files compile clean under venv311 (Python 3.11.9)
+- Cloudflare Development Mode enabled (3h) + cache purged
+
+### Known Broken / Pending
+- Live test on Render pending (no local dev server was running for Playwright)
+- P2 review findings deferred to follow-up: (1) `store_oauth_tokens` failure loses in-memory token, (2) `renderStageCards` XSS hardening (values currently server-controlled static strings, low risk), (3) no concurrent refresh protection, (4) `event_date_end` not validated against `event_date`
+- Tier 2-5 stubs from STUB_AUDIT.md still pending
+
+### Next Session Should Start With
+- Live test on Render: verify vault upload, timeline event creation, token refresh flow
+- Address P2 review findings (especially token persistence failure path)
+- Pick next tier from STUB_AUDIT.md (Tier 2: research_module cloud upload, housing_accountability detect_repeated_fees)
+
+---
+
 ## Session — 2026-06-19 PM2 — End-to-End Document Pipeline Test + Bug Fixes
 **Commit: 4c1d48e | Status: 30-step e2e document test passes, 2 upstream bugs fixed, deployed to Render**
 
