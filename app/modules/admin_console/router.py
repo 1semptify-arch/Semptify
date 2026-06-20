@@ -1646,8 +1646,18 @@ async def add_to_error_queue(
     db.add(error)
     await db.commit()
     await db.refresh(error)
-    
-    logger.info(f"Error queued: {section} - {endpoint} (ID: {error.id})")
+
+    # Distinctive one-line marker so Cascade can pull these from Render logs
+    # via MCP list_logs filtered to "FIXIT_REPORT". Avoids needing DB access
+    # from chat. Format is pipe-delimited for easy parsing.
+    logger.info(
+        "FIXIT_REPORT|id=%s|section=%s|endpoint=%s|priority=%s|error=%s",
+        error.id,
+        section.replace("|", "/"),
+        endpoint.replace("|", "/"),
+        priority,
+        error_message.replace("|", "/").replace("\n", " ")[:500],
+    )
     return {"id": error.id, "status": "queued"}
 
 
