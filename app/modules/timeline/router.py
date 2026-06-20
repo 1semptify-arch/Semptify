@@ -898,6 +898,11 @@ async def create_timeline_event(
     end_dt: Optional[datetime] = None
     if body.event_date_end:
         end_dt = _parse_event_date(body.event_date_end)
+        if end_dt < event_dt:
+            raise HTTPException(
+                status_code=422,
+                detail="event_date_end must be on or after event_date",
+            )
 
     event_id = make_id("evt")
     now = utc_now()
