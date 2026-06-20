@@ -91,6 +91,26 @@ async def _stealth_admin(request: Request) -> UserContext:
         user = await get_current_user(request)
     except Exception as e:
         logger.warning(f"Admin API auth failed: {e}")
+        user = None
+
+    # No OAuth session — try admin elevation cookie as fallback.
+    # The elevation cookie is issued after OAuth + TOTP verification and is
+    # valid for 2 hours. It allows admin API access even if the OAuth session
+    # has expired, preventing the /admin/dashboard ↔ /admin/login redirect loop.
+    if not user:
+        from app.core.admin_elevation import ELEVATION_COOKIE_NAME, verify_elevation_cookie
+        elev_cookie = request.cookies.get(ELEVATION_COOKIE_NAME)
+        payload = verify_elevation_cookie(str(elev_cookie) if elev_cookie else None)
+        if payload:
+            logger.info(f"Admin API auth via elevation cookie for uid={payload.get('uid', '?')[:6]}...")
+            return UserContext(
+                user_id=payload.get("uid", "admin"),
+                role=UserRole.ADMIN,
+                storage_provider=StorageProvider.LOCAL,
+                email="admin@semptify.org",
+                display_name="Admin",
+            )
+        logger.warning("Admin API access: No user found and no valid elevation cookie")
         raise HTTPException(status_code=404, detail="Not Found")
 
     # No user = 404 (looks like endpoint doesn't exist)
