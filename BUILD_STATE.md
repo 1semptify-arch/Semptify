@@ -12,6 +12,44 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-19 PM5 — P2 Review Findings + Tier 3.4 + Cloudflare Page Rules Attempt
+**Commits: dc09015, 72764ab | Status: All P2 findings fixed, Tier 3.4 re-enabled, Cloudflare page rules blocked on token perms, 45/45 tests pass**
+
+### What Was Shipped
+
+#### P2 Review Findings (4 fixes) ✅
+- `app/core/stateless_oauth.py`: `refresh_token_if_needed` now (1) checks `store_oauth_tokens` return value — if cloud storage fails, still returns new access token so current request succeeds, logs warning; (2) uses per-user+provider `asyncio.Lock` to prevent concurrent refresh races where two requests both try the same refresh_token and one fails because providers invalidate it after first use; (3) re-reads token under lock to skip refresh if another request already refreshed it
+- `static/js/workspace-stage-model.js`: `renderStageCards` now uses DOM API (`createElement` + `textContent`) instead of `innerHTML` string concatenation — defense-in-depth XSS hardening
+- `app/modules/timeline/router.py`: `create_timeline_event` now validates `event_date_end >= event_date`, returns 422 if end date is before start date
+
+#### Tier 3.4 — OAuth State Cleanup Re-enabled ✅
+- `app/modules/storage/router.py:1590`: re-enabled `_cleanup_expired_states()` call in `initiate_oauth`. The Neon DELETE permission issue was already resolved — the OAuth callback at line 1690 calls this function without errors. Stale comment removed.
+
+#### Cloudflare Page Rules — BLOCKED ⚠️
+- API call failed with error 9109: "Unauthorized to access requested resource"
+- Root cause: Cloudflare API token lacks "Page Rules: Edit" permission
+- Fix: User must either (A) add "Zone > Page Rules > Edit" permission to API token, or (B) configure 6 page rules manually in Cloudflare dashboard (see URGENT KNOWN ISSUES section)
+
+### Known Working
+- All 45 local tests pass (14 SSOT + 5 WSJS + 30 E2E + vault_local)
+- All modified Python files compile clean under venv311 (Python 3.11.9)
+- Cloudflare Development Mode enabled (3h from 2026-06-20 03:52 UTC) + cache purged
+
+### Known Broken / Pending
+- Live test on Render pending (manual deploy — user must click Deploy in Render dashboard)
+- Cloudflare page rules blocked on API token permissions (see URGENT KNOWN ISSUES)
+- Tier 3.1-3.3 (Positronic Brain, mesh network, perf monitoring) — deferred until memory optimization (re-enabling would OOM Render free tier)
+- Tier 4 (data stubs) — by design, fill in as states are needed
+- Tier 5 (post-funding) — deferred indefinitely
+- MNDES NotImplementedError (3) — external dependency, MN courts hasn't released API
+
+### Next Session Should Start With
+- Deploy on Render (manual) and live-verify: admin dashboard no longer loops, vault upload, timeline event creation, token refresh flow, event_date_end validation
+- Fix Cloudflare page rules (Option A: add permission to token, or Option B: manual config)
+- If both done and verified: start memory optimization for Tier 3.1-3.3
+
+---
+
 ## Session — 2026-06-19 PM4 — Tier 2 Stubs + Admin Dashboard Refresh Loop Fix
 **Commits: 11ebd2a, 22d8899 | Status: Tier 2 stubs done, admin dashboard loop fixed, 45/45 tests pass, pushed to Render**
 
