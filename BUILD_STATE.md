@@ -12,6 +12,43 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-19 PM4 — Tier 2 Stubs + Admin Dashboard Refresh Loop Fix
+**Commits: 11ebd2a, 22d8899 | Status: Tier 2 stubs done, admin dashboard loop fixed, 45/45 tests pass, pushed to Render**
+
+### What Was Shipped
+
+#### Tier 2 Stub Fixes (3 items from STUB_AUDIT.md) ✅
+- `app/modules/research_module.py:364`: replaced "would upload" placeholder with real `aioboto3` S3-compatible upload (uses existing aioboto3 dep, follows `r2.py` pattern, handles ImportError + exceptions)
+- `app/modules/litigation_intelligence/router.py`: removed 3 dead 501 endpoints (`/graph/build`, `/graph/visualize`, `/graph/path/{src}/{tgt}`) — no callers in codebase, `graph_engine` was never built
+- `app/modules/components/router.py:781`: removed stale TODO comment — code already returns role-specific config from `role_configs` dict
+
+#### Admin Dashboard Refresh Loop Fix ✅
+- `app/modules/admin_console/router.py:89-114`: `_stealth_admin` now accepts admin elevation cookie as fallback auth when OAuth session is missing
+- Root cause: two separate auth systems (elevation cookie for pages, OAuth session for APIs) caused `/admin/dashboard` ↔ `/admin/login` infinite loop when OAuth expired but elevation cookie was still valid
+- Fix: aligns page auth model with API auth model — elevation cookie (issued after OAuth + TOTP, valid 2h) now works for both
+
+#### Skipped/Deferred
+- Tier 2.3 (housing_accountability): EXEMPT — advanced module, exempt from SSOT/BUILD_BIBLE per user
+- Tier 2.5 (filedored SWE 1.6): DEFERRED — external dependency doesn't exist yet, `return "unknown"` fallback is correct
+
+### Known Working
+- All 45 local tests pass (14 SSOT + 5 WSJS + 30 E2E + vault_local)
+- All modified Python files compile clean under venv311 (Python 3.11.9)
+- Cloudflare Development Mode enabled (3h from 2026-06-20 03:52 UTC) + cache purged
+
+### Known Broken / Pending
+- Live test on Render pending (manual deploy — user must click Deploy in Render dashboard)
+- P2 review findings deferred: (1) `store_oauth_tokens` failure loses in-memory token, (2) `renderStageCards` XSS hardening, (3) no concurrent refresh protection, (4) `event_date_end` not validated against `event_date`
+- Tier 3-5 stubs from STUB_AUDIT.md deferred (disabled infra, data stubs, post-funding)
+- **URGENT**: Cloudflare production caching page rules needed before full production (see URGENT KNOWN ISSUES section below)
+
+### Next Session Should Start With
+- Deploy on Render (manual) and live-verify: admin dashboard no longer loops, vault upload, timeline event creation, token refresh flow
+- Address P2 review findings (especially token persistence failure path)
+- Configure Cloudflare page rules for production (bypass cache on /api/*, /vault*, /timeline*, /documents*, /onboarding*, /storage*; keep cache on /static/*, /css/*, /js/*)
+
+---
+
 ## Session — 2026-06-19 PM3 — Tier 1 Stubs Implemented
 **Commit: 8b318e9 | Status: 5 Tier 1 stubs fixed, 45/45 local tests pass, deployed to Render**
 
