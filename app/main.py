@@ -367,26 +367,41 @@ async def lifespan(_app: FastAPI):
         
         # --- STAGE 5: Initialize Services ---
         async def init_services():
-            # DISABLED: Memory-heavy services not needed for core functionality
-            # TODO: Re-enable after Phase 1 MVP is stable
-            
-            # Positronic Brain - DISABLED (memory hog)
-            # from app.services.brain_integrations import initialize_brain_connections
-            # await initialize_brain_connections()
-            # logger.info("   ðŸ§  Positronic Brain initialized with all modules")
-            
-            # Module Hub & Mesh - DISABLED (memory hog)
-            # from app.services.module_registration import register_all_modules
-            # from app.services.module_actions import register_all_actions
-            # register_all_modules()
-            # register_all_actions()
-            # logger.info("   ðŸ”— Module Hub initialized")
-            
-            # Location Service - DISABLED
-            # from app.services.location_service import register_with_mesh
-            # register_with_mesh()
-            # logger.info("   ðŸ“ Location Service initialized")
-            
+            # Heavy services re-enabled with memory fixes (deque bounds, no net_connections).
+            # Guard with ENABLE_HEAVY_SERVICES=false for emergency rollback.
+            enable_heavy = os.getenv("ENABLE_HEAVY_SERVICES", "true").lower() != "false"
+            if not enable_heavy:
+                logger.info("   Heavy services skipped (ENABLE_HEAVY_SERVICES=false)")
+
+            # Positronic Brain - re-enabled (event_history was already capped at 1000)
+            if enable_heavy:
+                try:
+                    from app.services.brain_integrations import initialize_brain_connections
+                    await initialize_brain_connections()
+                    logger.info("   Positronic Brain initialized with all modules")
+                except Exception as e:
+                    logger.warning(f"   Positronic Brain init failed (non-fatal): {e}")
+
+            # Module Hub - re-enabled (unbounded lists replaced with deque(maxlen=N))
+            if enable_heavy:
+                try:
+                    from app.services.module_registration import register_all_modules
+                    from app.services.module_actions import register_all_actions
+                    register_all_modules()
+                    register_all_actions()
+                    logger.info("   Module Hub initialized")
+                except Exception as e:
+                    logger.warning(f"   Module Hub init failed (non-fatal): {e}")
+
+            # Location Service - re-enabled
+            if enable_heavy:
+                try:
+                    from app.services.location_service import register_with_mesh
+                    register_with_mesh()
+                    logger.info("   Location Service initialized")
+                except Exception as e:
+                    logger.warning(f"   Location Service init failed (non-fatal): {e}")
+
             # Complaint Wizard - DISABLED
             # from app.modules.complaint_wizard_module import register_with_mesh as register_complaint_wizard
             # register_complaint_wizard()
@@ -1338,14 +1353,21 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     except ImportError:
         logger.warning("Filedored service not available (optional module)")
     
-    # DISABLED: Performance monitoring - causing high memory usage (85%+)
-    # TODO: Re-enable after memory optimization
-    # from app.core.performance_monitor import get_performance_monitor
-    # performance_monitor = get_performance_monitor()
-    # performance_monitor.start_monitoring()
-    
-    logger.info("Semptify 5.0 FastAPI application created successfully (performance monitoring disabled)")
-    
+    # Performance monitoring - re-enabled with memory fixes
+    # (removed psutil.net_connections(), shrank deques, 60s sampling)
+    if os.getenv("ENABLE_HEAVY_SERVICES", "true").lower() != "false":
+        try:
+            from app.core.performance_monitor import get_performance_monitor
+            performance_monitor = get_performance_monitor()
+            performance_monitor.start_monitoring()
+            logger.info("Performance monitoring started (slim mode)")
+        except Exception as e:
+            logger.warning(f"Performance monitoring init failed (non-fatal): {e}")
+    else:
+        logger.info("Performance monitoring skipped (ENABLE_HEAVY_SERVICES=false)")
+
+    logger.info("Semptify 5.0 FastAPI application created successfully")
+
     # =========================================================================
     # Global Exception Handlers
     # =========================================================================

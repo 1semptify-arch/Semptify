@@ -31,6 +31,7 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set, Type, Union
+from collections import deque
 from app.core.id_gen import make_id
 import json
 
@@ -403,12 +404,12 @@ class ModuleHub:
         # Info pack storage
         self._info_packs: Dict[str, InfoPack] = {}
         
-        # Request/update history
-        self._requests: List[DataRequest] = []
-        self._updates: List[ModuleUpdate] = []
-        
-        # Communication log
-        self._comm_log: List[Dict] = []
+        # Request/update history (bounded to prevent memory growth)
+        self._requests: deque = deque(maxlen=500)
+        self._updates: deque = deque(maxlen=500)
+
+        # Communication log (bounded)
+        self._comm_log: deque = deque(maxlen=1000)
         
         logger.info("🔄 Module Hub initialized")
     
@@ -1050,10 +1051,8 @@ class ModuleHub:
             "user_id": user_id,
         }
         self._comm_log.append(entry)
-        
-        # Keep last 1000 entries
-        if len(self._comm_log) > 1000:
-            self._comm_log = self._comm_log[-1000:]
+
+        # deque(maxlen=1000) auto-trims — no manual slicing needed
     
     def get_comm_log(
         self,

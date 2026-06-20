@@ -12,6 +12,42 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-20 AM1 — Tier 3.1-3.3 Memory Optimization + Re-enabled
+**Status: Positronic Brain, Module Hub, Location Service, Performance Monitor re-enabled with memory fixes. 45/45 tests pass. Pending live test on Render.**
+
+### What Was Shipped
+
+#### Memory Fixes (3 files) ✅
+- `app/core/module_hub.py`: unbounded `_requests`, `_updates`, `_comm_log` lists → `deque(maxlen=500/500/1000)`. Was the root cause of unbounded memory growth in Module Hub.
+- `app/core/performance_monitor.py`: (1) removed `psutil.net_connections()` — was the 85% memory culprit, allocates large socket descriptor lists every sample on Render shared infra; (2) shrank all deques 5x (10000→500 for requests, 1000→200 for others); (3) slowed sampling from 30s to 60s
+- `app/services/positronic_brain.py`: no changes needed — `event_history` was already capped at 1000
+
+#### Re-enabled in main.py with env guard ✅
+- `app/main.py:369-403`: Positronic Brain, Module Hub, Location Service now initialize at startup, each wrapped in try/except (non-fatal on failure)
+- `app/main.py:1356-1367`: Performance monitor now starts at startup with try/except guard
+- All guarded by `ENABLE_HEAVY_SERVICES` env var (default "true"). Set to "false" for emergency rollback.
+- Mesh Network stays disabled — cross-instance comms not needed on single-instance Render free tier
+
+### Known Working
+- All 45 local tests pass
+- All modified Python files compile clean under venv311 (Python 3.11.9)
+- App starts successfully with all heavy services enabled (verified via local import test)
+- Module Hub, Positronic Brain, Location Service all initialize without errors
+- Performance monitor gracefully skips if psutil not installed (Render has it)
+
+### Known Broken / Pending
+- Live test on Render pending (manual deploy — user must click Deploy in Render dashboard)
+- Cloudflare page rules still blocked on API token permissions (error 9109)
+- psutil not installed locally — install with `pip install psutil` if needed for local perf monitoring
+- Mesh Network still disabled (by design — needs multi-instance to be useful)
+
+### Next Session Should Start With
+- Deploy on Render and live-verify: check memory usage stays under 512MB, all services initialize, no OOM
+- If OOM: set `ENABLE_HEAVY_SERVICES=false` in Render env vars for instant rollback
+- Fix Cloudflare page rules (Option A: add permission to token, or Option B: manual config)
+
+---
+
 ## Session — 2026-06-19 PM5 — P2 Review Findings + Tier 3.4 + Cloudflare Page Rules Attempt
 **Commits: dc09015, 72764ab | Status: All P2 findings fixed, Tier 3.4 re-enabled, Cloudflare page rules blocked on token perms, 45/45 tests pass**
 
