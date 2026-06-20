@@ -113,7 +113,7 @@ def set_elevation_cookie(response, user_id: str) -> None:
         key=ELEVATION_COOKIE_NAME,
         value=value,
         max_age=ELEVATION_TTL_SECONDS,
-        path="/admin",
+        path="/",
         httponly=True,
         secure=True,
         samesite="strict",
@@ -125,7 +125,7 @@ def clear_elevation_cookie(response) -> None:
     """Clear the admin elevation cookie."""
     response.delete_cookie(
         key=ELEVATION_COOKIE_NAME,
-        path="/admin",
+        path="/",
         httponly=True,
         secure=True,
         samesite="strict",
