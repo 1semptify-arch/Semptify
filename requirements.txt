@@ -39,6 +39,7 @@ redis>=5.0.0                # Redis client for sessions (production)
 aioboto3>=13.0.0            # Async S3/R2 client (Cloudflare R2 system storage)
 python-dotenv>=1.0.0        # Environment variable loading
 pyotp>=2.9.0                # 2FA/TOTP for admin login (Google Authenticator compatible)
+psutil>=5.9.0               # System metrics for performance_monitor.py (re-enabled Tier 3.3)
 
 # =============================================================================
 # File Processing
