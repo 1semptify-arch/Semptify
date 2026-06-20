@@ -37,11 +37,21 @@
             var el = document.createElement('div');
             el.className = 'workspace-stage__card';
             el.setAttribute('data-card-id', card.card_id || '');
-            el.innerHTML =
-                '<h4>' + (card.title || '') + '</h4>' +
-                '<p>' + (card.description || '') + '</p>' +
-                '<a class="btn btn--' + (card.button_variant || 'primary') + '" href="' + (card.route || '#') + '">' +
-                (card.button_label || 'Open') + '</a>';
+
+            var h4 = document.createElement('h4');
+            h4.textContent = card.title || '';
+            el.appendChild(h4);
+
+            var p = document.createElement('p');
+            p.textContent = card.description || '';
+            el.appendChild(p);
+
+            var a = document.createElement('a');
+            a.className = 'btn btn--' + (card.button_variant || 'primary');
+            a.setAttribute('href', card.route || '#');
+            a.textContent = card.button_label || 'Open';
+            el.appendChild(a);
+
             container.appendChild(el);
         });
     }

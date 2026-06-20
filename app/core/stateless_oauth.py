@@ -19,9 +19,10 @@ MULTI-ROLE SUPPORT:
 - OAuth flow includes role parameter
 """
 
+import asyncio
 import json
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple
 from datetime import datetime, timezone
 
 from app.core.utc import utc_now
@@ -48,6 +49,22 @@ class StatelessOAuthManager:
             vault_service: Service to access user's cloud storage
         """
         self.vault = vault_service
+        # Per-user+provider locks to prevent concurrent token refresh races.
+        # Without this, two concurrent requests could both try to refresh with
+        # the same refresh_token, and one would fail because providers
+        # invalidate the old refresh_token after issuing a new one.
+        self._refresh_locks: Dict[Tuple[str, str], asyncio.Lock] = {}
+        self._locks_guard = asyncio.Lock()
+
+    async def _get_refresh_lock(self, user_id: str, provider: str) -> asyncio.Lock:
+        """Get or create a per-user+provider lock for serialized token refresh."""
+        key = (user_id, provider)
+        async with self._locks_guard:
+            lock = self._refresh_locks.get(key)
+            if lock is None:
+                lock = asyncio.Lock()
+                self._refresh_locks[key] = lock
+            return lock
     
     async def store_oauth_tokens(
         self,
@@ -236,26 +253,49 @@ class StatelessOAuthManager:
             logger.warning(f"No refresh token available for user={user_id[:4]}... provider={provider}")
             return None
 
-        new_tokens = await self._refresh_with_provider(provider, refresh_token)
-        if not new_tokens:
-            logger.warning(f"Token refresh failed for user={user_id[:4]}... provider={provider}")
-            return None
+        # Serialize refresh per (user_id, provider) to prevent concurrent
+        # refresh races where two requests both try the same refresh_token
+        # and one fails because providers invalidate it after first use.
+        refresh_lock = await self._get_refresh_lock(user_id, provider)
+        async with refresh_lock:
+            # Re-read token under lock — another request may have refreshed it
+            token_data = await self.get_oauth_tokens(user_id, provider)
+            if token_data:
+                expires_at = token_data.get("expires_at")
+                if expires_at:
+                    expires_datetime = datetime.fromtimestamp(expires_at, timezone.utc)
+                    if utc_now() < expires_datetime:
+                        return token_data.get("access_token")
+                refresh_token = token_data.get("refresh_token") or refresh_token
 
-        new_access = new_tokens.get("access_token")
-        new_refresh = new_tokens.get("refresh_token", refresh_token)
-        expires_in = new_tokens.get("expires_in", 3600)
-        new_expires_at = int(datetime.now(timezone.utc).timestamp()) + int(expires_in)
+            new_tokens = await self._refresh_with_provider(provider, refresh_token)
+            if not new_tokens:
+                logger.warning(f"Token refresh failed for user={user_id[:4]}... provider={provider}")
+                return None
 
-        # Persist refreshed tokens back to user's cloud storage
-        await self.store_oauth_tokens(
-            user_id=user_id,
-            provider=provider,
-            access_token=new_access,
-            refresh_token=new_refresh,
-            expires_at=new_expires_at,
-        )
-        logger.info(f"Token refreshed and stored for user={user_id[:4]}... provider={provider}")
-        return new_access
+            new_access = new_tokens.get("access_token")
+            new_refresh = new_tokens.get("refresh_token", refresh_token)
+            expires_in = new_tokens.get("expires_in", 3600)
+            new_expires_at = int(datetime.now(timezone.utc).timestamp()) + int(expires_in)
+
+            # Persist refreshed tokens back to user's cloud storage.
+            # If storage fails, still return the new access token so the
+            # current request succeeds — the next request will re-refresh.
+            stored = await self.store_oauth_tokens(
+                user_id=user_id,
+                provider=provider,
+                access_token=new_access,
+                refresh_token=new_refresh,
+                expires_at=new_expires_at,
+            )
+            if not stored:
+                logger.warning(
+                    f"Token refreshed but cloud storage failed for user={user_id[:4]}... "
+                    f"provider={provider} — next request may need to re-authenticate"
+                )
+            else:
+                logger.info(f"Token refreshed and stored for user={user_id[:4]}... provider={provider}")
+            return new_access
 
     async def _refresh_with_provider(
         self,
