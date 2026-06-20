@@ -221,17 +221,104 @@
 
 <script>
 function addManualEvent() {
-    const date = prompt('Date (YYYY-MM-DD):');
-    if (!date) return;
-    
-    const title = prompt('Event title:');
-    if (!title) return;
-    
-    const description = prompt('Description (optional):') || '';
-    
-    // TODO: Submit to API
-    alert('Event added: ' + title + ' on ' + date);
-    window.location.reload();
+  // Build a simple inline form modal
+  const existing = document.getElementById('manual-event-modal');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'manual-event-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9999;padding:1rem;';
+  modal.innerHTML = `
+    <div style="background:var(--bg-card,#1f2937);border-radius:.75rem;padding:1.5rem;max-width:480px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.3);">
+      <h3 style="margin:0 0 1rem;font-size:1.1rem;">Add Timeline Event</h3>
+      <div style="display:grid;gap:.75rem;">
+        <div>
+          <label style="font-size:.85rem;display:block;margin-bottom:.25rem;">Date (YYYY-MM-DD) *</label>
+          <input id="me-date" type="date" style="width:100%;padding:.6rem;background:var(--bg-dark,#111827);border:1px solid var(--border,#374151);border-radius:.4rem;color:var(--text,#f9fafb);font-size:.9rem;" required>
+        </div>
+        <div>
+          <label style="font-size:.85rem;display:block;margin-bottom:.25rem;">Title *</label>
+          <input id="me-title" type="text" placeholder="e.g., Landlord called about rent" style="width:100%;padding:.6rem;background:var(--bg-dark,#111827);border:1px solid var(--border,#374151);border-radius:.4rem;color:var(--text,#f9fafb);font-size:.9rem;" required>
+        </div>
+        <div>
+          <label style="font-size:.85rem;display:block;margin-bottom:.25rem;">Description (optional)</label>
+          <textarea id="me-desc" rows="3" placeholder="Additional details..." style="width:100%;padding:.6rem;background:var(--bg-dark,#111827);border:1px solid var(--border,#374151);border-radius:.4rem;color:var(--text,#f9fafb);font-size:.9rem;resize:vertical;"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+          <div>
+            <label style="font-size:.85rem;display:block;margin-bottom:.25rem;">Type</label>
+            <select id="me-type" style="width:100%;padding:.6rem;background:var(--bg-dark,#111827);border:1px solid var(--border,#374151);border-radius:.4rem;color:var(--text,#f9fafb);font-size:.9rem;">
+              <option value="manual">Manual</option>
+              <option value="notice">Notice</option>
+              <option value="payment">Payment</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="communication">Communication</option>
+              <option value="court">Court</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:.85rem;display:block;margin-bottom:.25rem;">Urgency</label>
+            <select id="me-urgency" style="width:100%;padding:.6rem;background:var(--bg-dark,#111827);border:1px solid var(--border,#374151);border-radius:.4rem;color:var(--text,#f9fafb);font-size:.9rem;">
+              <option value="normal">Normal</option>
+              <option value="low">Low</option>
+              <option value="high">High</option>
+              <option value="critical">Critical</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:1rem;align-items:center;font-size:.85rem;">
+          <label><input id="me-deadline" type="checkbox"> Deadline</label>
+          <label><input id="me-evidence" type="checkbox"> Evidence</label>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.25rem;">
+        <button id="me-cancel" style="padding:.6rem 1.2rem;background:transparent;border:1px solid var(--border,#374151);border-radius:.5rem;color:var(--text,#f9fafb);cursor:pointer;">Cancel</button>
+        <button id="me-save" style="padding:.6rem 1.2rem;background:var(--primary,#3b82f6);color:#fff;border:none;border-radius:.5rem;font-weight:600;cursor:pointer;">Save Event</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+
+  const close = () => { modal.remove(); document.body.style.overflow = ''; };
+  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+  document.getElementById('me-cancel').addEventListener('click', close);
+
+  document.getElementById('me-save').addEventListener('click', async () => {
+    const date = document.getElementById('me-date').value;
+    const title = document.getElementById('me-title').value.trim();
+    const description = document.getElementById('me-desc').value.trim() || null;
+    const event_type = document.getElementById('me-type').value;
+    const urgency = document.getElementById('me-urgency').value;
+    const is_deadline = document.getElementById('me-deadline').checked;
+    const is_evidence = document.getElementById('me-evidence').checked;
+
+    if (!date || !title) {
+      alert('Date and title are required');
+      return;
+    }
+
+    const btn = document.getElementById('me-save');
+    btn.disabled = true; btn.textContent = 'Saving...';
+
+    try {
+      const r = await fetch('/api/timeline/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event_type, title, description, event_date: date, urgency, is_deadline, is_evidence }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.detail || `HTTP ${r.status_code}`);
+      close();
+      window.location.reload();
+    } catch (err) {
+      alert('Failed to save event: ' + err.message);
+      btn.disabled = false; btn.textContent = 'Save Event';
+    }
+  });
+
+  // Focus the date input
+  setTimeout(() => document.getElementById('me-date').focus(), 50);
 }
 </script>
 {% endblock %}

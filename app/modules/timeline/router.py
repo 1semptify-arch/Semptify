@@ -85,6 +85,32 @@ class Urgency(str, Enum):
 # Request/Response Models
 # =============================================================================
 
+class TimelineEventCreateRequest(BaseModel):
+    """Request body for creating a manual timeline event."""
+    event_type: str = Field("manual", description="Event type (notice, payment, maintenance, communication, court, manual)")
+    title: str = Field(..., min_length=1, max_length=255, description="Event title")
+    description: Optional[str] = Field(None, description="Optional long-form description")
+    event_date: str = Field(..., description="ISO date (YYYY-MM-DD) or datetime")
+    event_date_end: Optional[str] = Field(None, description="Optional end date for date ranges")
+    urgency: str = Field("normal", description="Urgency: critical, high, normal, low")
+    is_deadline: bool = Field(False, description="Whether this event is a deadline")
+    is_evidence: bool = Field(False, description="Whether this event is evidence")
+
+
+class TimelineEventResponse(BaseModel):
+    """Response model for a created timeline event."""
+    id: str
+    event_type: str
+    title: str
+    description: Optional[str]
+    event_date: str
+    event_date_end: Optional[str]
+    urgency: str
+    is_deadline: bool
+    is_evidence: bool
+    created_at: str
+
+
 class TimelineViewRequest(BaseModel):
     """Request parameters for timeline view."""
     date_axis: DateAxis = Field(
@@ -836,3 +862,73 @@ async def get_date_range_info(
             earliest_entry=_format_date(min(valid_entry)) if valid_entry else None,
             latest_entry=_format_date(max(valid_entry)) if valid_entry else None,
         )
+
+
+# =============================================================================
+# Manual Event Creation
+# =============================================================================
+
+def _parse_event_date(raw: str) -> datetime:
+    """Parse YYYY-MM-DD or ISO datetime string into a timezone-aware datetime."""
+    # Try ISO 8601 first (handles "2026-01-15", "2026-01-15T14:30:00", etc.)
+    try:
+        dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except ValueError:
+        pass
+    # Fallback: YYYY-MM-DD
+    return datetime.strptime(raw, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+
+
+@router.post("/events", response_model=TimelineEventResponse, status_code=201)
+async def create_timeline_event(
+    body: TimelineEventCreateRequest,
+    user: StorageUser = Depends(green_access),
+) -> TimelineEventResponse:
+    """
+    Create a manual timeline event.
+
+    Tenants can add events they remember (e.g., "Landlord called about rent on Jan 5")
+    that aren't tied to an uploaded document. Events created here are stored in the
+    database and appear on the unified timeline.
+    """
+    event_dt = _parse_event_date(body.event_date)
+    end_dt: Optional[datetime] = None
+    if body.event_date_end:
+        end_dt = _parse_event_date(body.event_date_end)
+
+    event_id = make_id("evt")
+    now = utc_now()
+
+    event = TimelineEventModel(
+        id=event_id,
+        user_id=user.user_id,
+        event_type=body.event_type,
+        title=body.title,
+        description=body.description,
+        event_date=event_dt,
+        event_date_end=end_dt,
+        urgency=body.urgency,
+        is_deadline=body.is_deadline,
+        is_evidence=body.is_evidence,
+        created_at=now,
+    )
+
+    async with get_db_session() as session:
+        session.add(event)
+        await session.commit()
+
+    return TimelineEventResponse(
+        id=event_id,
+        event_type=body.event_type,
+        title=body.title,
+        description=body.description,
+        event_date=event_dt.isoformat(),
+        event_date_end=end_dt.isoformat() if end_dt else None,
+        urgency=body.urgency,
+        is_deadline=body.is_deadline,
+        is_evidence=body.is_evidence,
+        created_at=now.isoformat(),
+    )

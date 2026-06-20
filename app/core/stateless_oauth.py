@@ -235,11 +235,94 @@ class StatelessOAuthManager:
         if not refresh_token:
             logger.warning(f"No refresh token available for user={user_id[:4]}... provider={provider}")
             return None
-        
-        # TODO: Implement provider-specific token refresh
-        # This requires OAuth client credentials and provider-specific logic
-        logger.info(f"Token refresh needed for user={user_id[:4]}... provider={provider} (not yet implemented)")
-        return None
+
+        new_tokens = await self._refresh_with_provider(provider, refresh_token)
+        if not new_tokens:
+            logger.warning(f"Token refresh failed for user={user_id[:4]}... provider={provider}")
+            return None
+
+        new_access = new_tokens.get("access_token")
+        new_refresh = new_tokens.get("refresh_token", refresh_token)
+        expires_in = new_tokens.get("expires_in", 3600)
+        new_expires_at = int(datetime.now(timezone.utc).timestamp()) + int(expires_in)
+
+        # Persist refreshed tokens back to user's cloud storage
+        await self.store_oauth_tokens(
+            user_id=user_id,
+            provider=provider,
+            access_token=new_access,
+            refresh_token=new_refresh,
+            expires_at=new_expires_at,
+        )
+        logger.info(f"Token refreshed and stored for user={user_id[:4]}... provider={provider}")
+        return new_access
+
+    async def _refresh_with_provider(
+        self,
+        provider: str,
+        refresh_token: str,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Provider-specific OAuth token refresh.
+
+        Posts refresh_token to the provider's token endpoint with client
+        credentials from settings. Returns the new token JSON on success,
+        None on failure.
+        """
+        try:
+            from app.core.config import get_settings
+            import httpx
+
+            settings = get_settings()
+
+            if provider == "google_drive":
+                if not settings.google_drive_client_id:
+                    return None
+                token_url = "https://oauth2.googleapis.com/token"
+                data = {
+                    "client_id": settings.google_drive_client_id,
+                    "client_secret": settings.google_drive_client_secret,
+                    "refresh_token": refresh_token,
+                    "grant_type": "refresh_token",
+                }
+            elif provider == "dropbox":
+                if not settings.dropbox_app_key:
+                    return None
+                token_url = "https://api.dropboxapi.com/oauth2/token"
+                data = {
+                    "client_id": settings.dropbox_app_key,
+                    "client_secret": settings.dropbox_app_secret,
+                    "refresh_token": refresh_token,
+                    "grant_type": "refresh_token",
+                }
+            elif provider == "onedrive":
+                if not settings.onedrive_client_id:
+                    return None
+                token_url = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+                data = {
+                    "client_id": settings.onedrive_client_id,
+                    "client_secret": settings.onedrive_client_secret,
+                    "refresh_token": refresh_token,
+                    "grant_type": "refresh_token",
+                    "scope": "Files.ReadWrite.AppFolder User.Read offline_access",
+                }
+            else:
+                logger.warning(f"Unknown provider for token refresh: {provider}")
+                return None
+
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(token_url, data=data)
+                if response.status_code != 200:
+                    logger.error(
+                        f"Token refresh failed for provider={provider}: "
+                        f"HTTP {response.status_code} - {response.text}"
+                    )
+                    return None
+                return response.json()
+
+        except Exception as e:
+            logger.exception(f"Token refresh error for provider={provider}: {e}")
+            return None
     
     async def store_session(
         self,
