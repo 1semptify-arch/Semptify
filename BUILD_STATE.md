@@ -12,8 +12,47 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-20 AM2 — Cloudflare Cache Rules + Fix-It Log Marker + Admin Redirect Loop Fix
+**Status: Cloudflare caching fully resolved. Fix-It button errors now visible in preflight. Admin dashboard redirect loop fixed.**
+
+### What Was Shipped
+
+#### Cloudflare Cache Rules ✅ (commit: API-only, no code)
+- Created 6 Cache Rules via Cloudflare Rulesets API to bypass cache for dynamic paths: `/api/*`, `/vault*`, `/timeline*`, `/documents*`, `/onboarding*`, `/storage*`
+- Deleted 3 old Page Rules (replaced by Cache Rules — no 3-rule limit on free plan)
+- Required adding 'Cache Rules: Edit' permission to Cloudflare API token
+- Static assets (`/static/*`, `/css/*`, `/js/*`) remain cached for performance
+
+#### Fix-It Button Error Logging ✅ (commit `ae8079e`)
+- `app/modules/admin_console/router.py:1653-1660`: `add_to_error_queue` now logs a distinctive `FIXIT_REPORT|id=N|section=...|endpoint=...|priority=...|error=...` line to Render logs
+- `.devin/workflows/preflight.md`: added Step 2 — Check pending Fix-It reports via Render MCP `list_logs` filtered to `FIXIT_REPORT`
+- Workflow: user clicks Fix-It on admin dashboard → error queued to Postgres + logged with FIXIT_REPORT marker → next session preflight pulls them → Cascade shows them in chat
+
+#### Admin Dashboard Redirect Loop Fix ✅ (commit `1339b59`)
+- `app/core/admin_elevation.py:116,128`: changed elevation cookie `path` from `"/admin"` to `"/"`
+- Root cause: cookie scoped to `/admin` but admin API at `/admin-console/*` (different path). Browser didn't send cookie to `/admin-console/health` → `_stealth_admin` returned 404 → dashboard JS redirected to `/admin/login` → login route saw valid cookie (path matched) → redirected back to dashboard → infinite loop
+- Fix: cookie path `/` so browser sends it to both `/admin` and `/admin-console/`
+- **User action required:** log out of admin and log back in to get new cookie with `path="/"`
+
+### Known Working
+- All 6 Cache Rules active on Cloudflare (verified via API)
+- Fix-It log marker deployed (commit `ae8079e` live on Render)
+- Admin redirect loop fix compiled clean, pushed
+
+### Known Broken / Pending
+- Admin redirect loop fix (`1339b59`) needs Render deploy + user must re-login to get new cookie
+- Rate limit (1000/hour) still too low for admin dashboard — 7 API calls per page load. Pending fix.
+- Cloudflare Speculation-Rules header may still cause page flickering (Cloudflare-side feature, not ours)
+
+### Next Session Should Start With
+- Deploy `1339b59` on Render and verify admin dashboard no longer loops
+- User must log out of admin and back in to get new cookie scoped to `/`
+- Consider raising rate limit default from 1000/hour to 5000/hour
+
+---
+
 ## Session — 2026-06-20 AM1 — Tier 3.1-3.3 Memory Optimization + Re-enabled
-**Status: Positronic Brain, Module Hub, Location Service, Performance Monitor re-enabled with memory fixes. 45/45 tests pass. Pending live test on Render.**
+**Status: Positronic Brain, Module Hub, Location Service, Performance Monitor re-enabled with memory fixes. 45/45 tests pass. Verified live on Render — 242MB/512MB, no OOM.**
 
 ### What Was Shipped
 
