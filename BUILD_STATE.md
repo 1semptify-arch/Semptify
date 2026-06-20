@@ -84,7 +84,7 @@ their legal rights—not tenants breaking the law.
 ## ⚠️ URGENT KNOWN ISSUES
 
 ### Cloudflare Production Caching (URGENT — fix before full production)
-**Status:** Dev Mode bypasses cache for 3h (temporary). After expiry, Cloudflare resumes caching dynamic pages.
+**Status:** Dev Mode bypasses cache for 3h (temporary). Page rules API call failed — token lacks "Page Rules: Edit" permission (error 9109).
 
 **User impact if not fixed:**
 - Stale vault file lists (user uploads, sees old list)
@@ -92,9 +92,15 @@ their legal rights—not tenants breaking the law.
 - Onboarding gate state stale (OAuth redirect loops)
 - API responses cached incorrectly
 
-**Fix needed:** Cloudflare page rules:
-- Bypass cache: `/api/*`, `/vault*`, `/timeline*`, `/documents*`, `/onboarding*`, `/storage*`
-- Cache everything: `/static/*`, `/css/*`, `/js/*`
+**Fix needed (two options):**
+- **Option A:** Edit Cloudflare API token to add "Zone > Page Rules > Edit" permission, then re-run /cloudflare-dev-mode workflow with page rules
+- **Option B:** Configure manually in Cloudflare dashboard (Rules > Page Rules):
+  - `semptify.org/api/*` → Cache Level: Bypass
+  - `semptify.org/vault*` → Cache Level: Bypass
+  - `semptify.org/timeline*` → Cache Level: Bypass
+  - `semptify.org/documents*` → Cache Level: Bypass
+  - `semptify.org/onboarding*` → Cache Level: Bypass
+  - `semptify.org/storage*` → Cache Level: Bypass
 
 **Note:** Render is set to manual deploy (free-tier minutes constraint). Commits pushed but not live until manually deployed.
 

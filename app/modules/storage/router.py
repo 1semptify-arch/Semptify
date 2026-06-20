@@ -1588,8 +1588,8 @@ async def initiate_oauth(
         config = OAUTH_CONFIGS[provider]
 
         # Housekeeping: remove expired states from the database.
-        # DISABLED: Neon permission issue - cleanup requires DELETE on oauth_states
-        # await _cleanup_expired_states(db)
+        # Safe to call — DELETE permission confirmed working (callback calls this too).
+        await _cleanup_expired_states(db)
 
         # Generate state for CSRF and persist to DB.
         state = secrets.token_urlsafe(32)
