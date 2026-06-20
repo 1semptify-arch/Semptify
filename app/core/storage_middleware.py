@@ -280,21 +280,19 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
         if not raw_user_id:
             raw_user_id = user_id  # fallback
         
-        # ── TEMPORARY: DB-based token pre-check ──────────────────────────────
-        # TODO: Replace this entire block with the "ice cube" model:
-        #
-        #   1. Have token in memory (ice cube)? Use it — no check needed.
-        #   2. No token / melted? Knock on provider door directly (their freezer).
+        # ── Ice-cube token model (implemented) ───────────────────────────────
+        # Flow (delegated to app.core.auto_refresh):
+        #   1. Have token in memory (ice cube)? Use it — no DB, no provider call.
+        #   2. No token / melted? Load refresh_token from DB (our freezer) and
+        #      knock on provider door directly (their freezer) to get a new token.
         #   3. Provider says 401? THEN and ONLY THEN redirect to reconnect.
         #
-        # Current problem: this block checks Semptify's DB, not the provider.
-        # DB goes stale → user gets kicked to reconnect unnecessarily.
-        # The provider (Google/Dropbox) is the real bouncer — we should let them
-        # decide, not pre-empt them with our own stale DB copy.
+        # The provider (Google/Dropbox/OneDrive) is the real bouncer — we let
+        # them decide, not our own stale DB copy. The DB only stores the
+        # refresh_token so we can ask the provider for a new access_token.
         #
-        # This block must stay in place until the ice-cube token model is fully
-        # tested end-to-end across Google Drive, Dropbox, and OneDrive.
-        # Tracking: TEMP-TOKEN-CHECK-001
+        # See: app.core.auto_refresh.ensure_valid_token()
+        # Tracking: ICE-CUBE-TOKEN-001 (resolved)
         # ─────────────────────────────────────────────────────────────────────
         from app.core.auto_refresh import get_valid_token_or_redirect
         from app.core.database import get_session_factory
@@ -320,8 +318,8 @@ class StorageRequirementMiddleware(BaseHTTPMiddleware):
                     )
                 return RedirectResponse(url=reconnect_url, status_code=302)
 
-            logger.debug("TEMP-TOKEN-CHECK-001: DB token valid for user %s***", raw_user_id[:6])
-        # ── END TEMPORARY ────────────────────────────────────────────────────
+            logger.debug("ICE-CUBE-TOKEN-001: token valid for user %s***", raw_user_id[:6])
+        # ── END ice-cube token model ─────────────────────────────────────────
         
         # Valid user — check onboarding gate state via the canonical single reader.
         # All gate decisions flow through get_onboarding_state(); nothing else reads

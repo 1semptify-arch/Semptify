@@ -37,31 +37,49 @@ function resetVaultForm() {
 }
 
 function uploadToVault() {
-  // TODO: Implement actual upload to backend
-  // This will send to user's connected cloud storage
-  console.log('Vault upload initiated...');
-  
   const files = document.getElementById('vault-file-input')?.files;
   const docType = document.getElementById('vault-doc-type')?.value;
   const description = document.getElementById('vault-description')?.value;
   const addTimestamp = document.getElementById('vault-timestamp')?.checked;
-  
+
   if (!files || files.length === 0) {
     alert('Please select files to upload');
     return;
   }
-  
-  // Simulate upload
+
   const formData = new FormData();
   Array.from(files).forEach(file => formData.append('files', file));
-  if (docType) formData.append('documentType', docType);
+  if (docType) formData.append('document_type', docType);
   if (description) formData.append('description', description);
-  if (addTimestamp) formData.append('timestamp', 'true');
-  
-  // TODO: fetch('/api/vault/upload', { method: 'POST', body: formData })
-  
-  alert(`${files.length} file(s) queued for upload to your vault`);
-  closeVaultPortal();
+  if (addTimestamp) formData.append('tags', 'timestamped');
+
+  const btn = document.querySelector('#vault-portal .btn--primary');
+  const originalText = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = 'Uploading...'; }
+
+  fetch('/api/vault/upload', { method: 'POST', body: formData })
+    .then(async r => {
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        const msg = data.detail || data.message || `Upload failed (HTTP ${r.status_code})`;
+        throw new Error(msg);
+      }
+      const uploaded = data.uploaded_files || data.files || [];
+      const errors = data.errors || [];
+      let msg = `${uploaded.length} file(s) uploaded successfully.`;
+      if (errors.length > 0) msg += ` ${errors.length} error(s).`;
+      alert(msg);
+      closeVaultPortal();
+      if (typeof refreshVaultFileList === 'function') refreshVaultFileList();
+      window.location.reload();
+    })
+    .catch(err => {
+      console.error('Vault upload failed:', err);
+      alert('Upload failed: ' + err.message);
+    })
+    .finally(() => {
+      if (btn) { btn.disabled = false; btn.textContent = originalText; }
+    });
 }
 
 // ========================================

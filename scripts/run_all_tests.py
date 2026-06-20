@@ -76,11 +76,9 @@ def run_static_tests():
         traceback.print_exc()
 
     # --- Workspace Stage Model JS Tests ---
-    # NOTE: workspace-stage-model.js is currently a stub. These tests check for
-    # workflow API integration (fetch('/api/workflow/case-state'), etc.) that
-    # has not been built into the JS file yet. This is a feature gap, not a
-    # regression -- skipping until the workspace stage model is implemented.
-    print("\n--- Workspace Stage Model JS (SKIPPED: stub file, feature gap) ---")
+    # workspace-stage-model.js now implements /api/workflow/case-state and
+    # /api/workflow/next-step integration with fallback path.
+    print("\n--- Workspace Stage Model JS ---")
     try:
         m = importlib.import_module("tests.test_workspace_stage_model_js")
         test_fns = [
@@ -91,7 +89,12 @@ def run_static_tests():
             ("test_workspace_stage_model_builds_safe_next_step_request_defaults", m.test_workspace_stage_model_builds_safe_next_step_request_defaults),
         ]
         for name, fn in test_fns:
-            record("WSJS", name, "SKIP", "workspace-stage-model.js is a stub -- feature not implemented")
+            try:
+                fn()
+                record("WSJS", name, "PASS", "")
+            except Exception as e:
+                record("WSJS", name, "FAIL", f"{type(e).__name__}: {e}")
+                traceback.print_exc()
     except Exception as e:
         record("WSJS", "import", "FAIL", f"{type(e).__name__}: {e}")
         traceback.print_exc()
