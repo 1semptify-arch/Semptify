@@ -2153,6 +2153,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(str(page_path))
         return HTMLResponse(content="<h1>Admin Manual not found</h1>", status_code=404)
 
+    @fastapi_app.get("/admin/api-workbook.html", response_class=HTMLResponse)
+    async def admin_api_workbook(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve API workbook - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "admin" / "api_workbook.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>API Workbook not found</h1>", status_code=404)
+
     @fastapi_app.get("/docs/component-inventory.html", response_class=HTMLResponse)
     async def docs_component_inventory(
         request: Request,

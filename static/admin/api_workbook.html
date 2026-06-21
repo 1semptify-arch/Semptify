@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Semptify — API Workbook</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root{
+    --bg:#0f1620; --panel:#16202c; --panel2:#1e2a38; --ink:#e6edf3;
+    --muted:#8b9aa7; --accent:#4f9cf9; --good:#3fb950; --warn:#d29922;
+    --bad:#f85149; --line:#2a3a4a; --free:#3fb950; --granted:#4f9cf9; --paid:#d29922;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  header{padding:18px 24px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#0c1118,#0f1620);position:sticky;top:0;z-index:10}
+  h1{margin:0;font-size:20px;font-weight:600;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:12px;margin-top:4px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+  input[type=search],input[type=text]{background:#0b1119;border:1px solid var(--line);
+    color:var(--ink);padding:8px 10px;border-radius:6px;font-size:13px;outline:none}
+  input[type=search]{width:280px}
+  input[type=text]{width:100%}
+  select{background:#0b1119;border:1px solid var(--line);color:var(--ink);
+    padding:8px 10px;border-radius:6px;font-size:13px;cursor:pointer}
+  button{background:var(--accent);color:#fff;border:0;padding:8px 14px;border-radius:6px;
+    font-size:13px;cursor:pointer;font-weight:500}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+  button:hover{filter:brightness(1.1)}
+  main{max-width:1280px;margin:0 auto;padding:24px}
+  .cat{margin:28px 0 8px;font-size:13px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:1px;font-weight:600;
+    border-bottom:1px solid var(--line);padding-bottom:6px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+    padding:14px;display:flex;flex-direction:column;gap:8px}
+  .card.hidden{display:none}
+  .name{font-size:15px;font-weight:600;color:#fff}
+  .desc{color:var(--muted);font-size:12.5px;line-height:1.55}
+  .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:11px}
+  .badge{padding:2px 8px;border-radius:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .b-free{background:rgba(63,185,80,.15);color:var(--free);border:1px solid rgba(63,185,80,.4)}
+  .b-granted{background:rgba(79,156,249,.15);color:var(--granted);border:1px solid rgba(79,156,249,.4)}
+  .b-paid{background:rgba(210,153,34,.15);color:var(--warn);border:1px solid rgba(210,153,34,.4)}
+  .b-tier{background:rgba(139,154,167,.12);color:var(--muted);border:1px solid var(--line)}
+  a.link{color:var(--accent);text-decoration:none;font-size:12px;font-weight:500}
+  a.link:hover{text-decoration:underline}
+  .keyrow{display:flex;gap:6px;align-items:center;margin-top:4px}
+  .keyrow input{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+  .status{font-size:11px;font-weight:600}
+  .st-ok{color:var(--good)} .st-no{color:var(--muted)}
+  .obtain{display:flex;gap:6px;flex-wrap:wrap}
+  .obtain a{flex:1;text-align:center;padding:7px;border-radius:6px;
+    background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+    text-decoration:none;font-size:12px;font-weight:500}
+  .obtain a:hover{border-color:var(--accent);color:var(--accent)}
+  .notes{width:100%;background:#0b1119;border:1px solid var(--line);color:var(--ink);
+    padding:6px 8px;border-radius:6px;font-size:11.5px;resize:vertical;min-height:34px;font-family:inherit}
+  footer{padding:24px;color:var(--muted);font-size:11px;text-align:center;border-top:1px solid var(--line);margin-top:40px}
+  .count{color:var(--muted);font-size:12px;margin-left:auto}
+  .empty{padding:40px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Semptify API Workbook</h1>
+  <div class="sub">Housing-rights &amp; tenant-support data sources. Keys are stored locally in your browser only — nothing is sent anywhere.</div>
+  <div class="toolbar">
+    <input type="search" id="q" placeholder="Search name, description, category…" autocomplete="off">
+    <select id="filter" title="Filter by access type">
+      <option value="">All access types</option>
+      <option value="free">Free</option>
+      <option value="granted">Granted (free w/ registration)</option>
+      <option value="paid">Paid / tiered</option>
+    </select>
+    <select id="cat" title="Filter by category">
+      <option value="">All categories</option>
+    </select>
+    <button class="ghost" id="export">Export keys (JSON)</button>
+    <button class="ghost" id="import">Import keys (JSON)</button>
+    <button class="ghost" id="clear">Clear all keys</button>
+    <span class="count" id="count"></span>
+  </div>
+</header>
+
+<main id="root"></main>
+<footer>Semptify · API Workbook · Keys persist in localStorage on this machine only. Export to back up.</footer>
+
+<input type="file" id="file" accept="application/json" style="display:none">
+
+<script>
+const APIS = [
+  // ---------- HOUSING / HUD ----------
+  {id:"hud_opendata", cat:"Housing & HUD", name:"HUD Open Data (ArcGIS Hub)",
+    access:"free", tier:"Unlimited",
+    desc:"Shapefiles, REST services, and datasets for HUD programs: LIHTC, public housing, multifamily properties, fair-market rents, homeless assistance, CDBG, HOME, HCV. Direct download or ArcGIS REST.",
+    obtain:[{label:"Open Data Portal",url:"https://hudgis-hud.opendata.arcgis.com/"},
+            {label:"Data.Hud.Gov",url:"https://data.hud.gov/open_data"}]},
+  {id:"data_gov", cat:"Government", name:"Data.gov API (api.data.gov)",
+    access:"granted", tier:"1,000 req/hr (free key)",
+    desc:"Unified key gateway for ~200 federal APIs (HUD, CFPB, Census, FTC, EPA, SBA, etc.). One key works across agencies. Required for most federal data calls.",
+    obtain:[{label:"Request a key",url:"https://api.data.gov/"},
+            {label:"API docs",url:"https://api.data.gov/docs/"}]},
+  {id:"hud_data_division", cat:"Housing & HUD", name:"HUD Open Data Division",
+    access:"free", tier:"Public",
+    desc:"Curated HUD datasets: fair market rents, income limits, picture of subsidized households, FHA data, building permits. CSV/Excel downloads + REST endpoints.",
+    obtain:[{label:"Open Data Division",url:"https://data.hud.gov/open_data"}]},
+  {id:"census_acs", cat:"Demographics", name:"U.S. Census Bureau API (ACS)",
+    access:"granted", tier:"500 req/IP/min",
+    desc:"American Community Survey 5-year estimates: poverty, rent burden, tenure, overcrowding, race, age. Critical for proving disparate impact & neighborhood context in fair-housing work.",
+    obtain:[{label:"Request key",url:"https://api.census.gov/data/key_signup.html"},
+            {label:"ACS API docs",url:"https://www.census.gov/data/developers/data-sets/acs-5year.html"}]},
+  {id:"cfpb_complaints", cat:"Consumer Protection", name:"CFPB Consumer Complaint Database",
+    access:"free", tier:"Public (no key)",
+    desc:"Consumer complaints about mortgages, credit reporting, debt collection, predatory lending. Filter by state, ZIP, company, product. Hugely useful for tenant evidence of lender/landlord patterns.",
+    obtain:[{label:"Dataset / API",url:"https://www.consumerfinance.gov/data-research/consumer-complaints/"},
+            {label:"API docs",url:"https://cfpb.github.io/api/ccdb/"}]},
+  {id:"ftc_complaints", cat:"Consumer Protection", name:"FTC Sentinel Network (public)",
+    access:"free", tier:"Public aggregates",
+    desc:"Fraud and consumer complaint trends by state/region. Public aggregated views; full Sentinel requires law-enforcement access.",
+    obtain:[{label:"Sentinel reports",url:"https://www.ftc.gov/legal-library/browse/data-reports/data-sets"}]},
+  {id:"epa_envirofacts", cat:"Environment / Health", name:"EPA EnviroFacts & EJScreen",
+    access:"free", tier:"Public",
+    desc:"Environmental hazards, lead, mold risk, Superfund sites, air quality by address. Supports habitability complaints and health-based tenant defenses.",
+    obtain:[{label:"EnviroFacts API",url:"https://www.epa.gov/enviro/envirofacts-data-service-api"},
+            {label:"EJScreen",url:"https://www.epa.gov/ejscreen"}]},
+  {id:"fcc_broadband", cat:"Utilities / Housing", name:"FCC Broadband Availability",
+    access:"free", tier:"Public",
+    desc:"Fixed broadband availability by address/block. Useful for documenting utility/habitability gaps in subsidized housing.",
+    obtain:[{label:"Broadband Map API",url:"https://broadbandmap.fcc.gov/data-download/api-overview"}]},
+
+  // ---------- LEGAL ----------
+  {id:"courtlistener", cat:"Legal", name:"CourtListener (Free Law Project)",
+    access:"granted", tier:"5,000 req/day (free key)",
+    desc:"PACER mirror + RECAP archive: federal dockets, opinions, judges, oral arguments. Free API key. The single best free U.S. legal-data source.",
+    obtain:[{label:"Request key",url:"https://www.courtlistener.com/api/"},
+            {label:"Datasets",url:"https://free.law/datasets/"}]},
+  {id:"free_law_datasets", cat:"Legal", name:"Free Law Project Datasets",
+    access:"free", tier:"Public bulk",
+    desc:"Bulk downloads: Supreme Court Database, SCDB, judge bios, citation network. No key needed for bulk data.",
+    obtain:[{label:"Datasets page",url:"https://free.law/datasets/"}]},
+  {id:"lii_wex", cat:"Legal", name:"Legal Information Institute (LII)",
+    access:"free", tier:"Public",
+    desc:"Cornell LII: Wex legal encyclopedia, U.S. Code, CFR, Supreme Court. Educational tenant-rights content + statute lookup.",
+    obtain:[{label:"LII home",url:"https://www.law.cornell.edu/"},
+            {label:"Wex",url:"https://www.law.cornell.edu/wex"}]},
+  {id:"cap_us", cat:"Legal", name:"Caselaw Access Project",
+    access:"granted", tier:"Free w/ registration",
+    desc:"Full text of ~6.7M U.S. state and federal cases (1658–2018) from Harvard. API + bulk. Excellent for housing-case precedent research.",
+    obtain:[{label:"Request access",url:"https://case.law/api/"},
+            {label:"Bulk download",url:"https://case.law/bulk/"}]},
+  {id:"govinfo", cat:"Legal", name:"GovInfo (GPO)",
+    access:"free", tier:"Public",
+    desc:"Federal Register, U.S. Code, CFR, congressional records, court opinions. No key needed; sitemap + API.",
+    obtain:[{label:"GovInfo API",url:"https://www.govinfo.gov/api"}]},
+
+  // ---------- PROPERTY / PARCEL ----------
+  {id:"propertyapi_co", cat:"Property Data", name:"PropertyAPI.co",
+    access:"paid", tier:"Free trial, then paid",
+    desc:"158M+ U.S. properties: ownership, deeds, valuations, building characteristics, mortgage records. Strong for chain-of-title and landlord-identity research.",
+    obtain:[{label:"Pricing / signup",url:"https://propertyapi.co/"},
+            {label:"Docs",url:"https://docs.propertyapi.co/"}]},
+  {id:"batchdata", cat:"Property Data", name:"BatchData",
+    access:"paid", tier:"Free credits on signup",
+    desc:"155M U.S. properties: skip-tracing, ownership, deeds, pre-foreclosures. Useful for locating absentee landlords.",
+    obtain:[{label:"Signup",url:"https://batchdata.io/"},
+            {label:"Docs",url:"https://batchdata.io/uncategorized/the-complete-guide-to-property-data-apis"}]},
+  {id:"pubrec_propmix", cat:"Property Data", name:"PropMix PubRec",
+    access:"paid", tier:"Free eval credits",
+    desc:"Nationwide public-record API: deeds, mortgages, assessments, foreclosures, document images. County-level coverage varies.",
+    obtain:[{label:"PubRec API",url:"https://pubrec.propmix.io/"}]},
+  {id:"realtor_api", cat:"Property Data", name:"Realtor.com / RapidAPI",
+    access:"paid", tier:"Freemium via RapidAPI",
+    desc:"Active listings, sale history, rent estimates. Useful for comparable-rent evidence in rent-dispute cases.",
+    obtain:[{label:"RapidAPI listing",url:"https://rapidapi.com/bestapis/api/realtor-com-api"}]},
+
+  // ---------- GEO / MAPS ----------
+  {id:"usps_address", cat:"Geocoding / Address", name:"USPS Address Validation API",
+    access:"granted", tier:"Free w/ registration",
+    desc:"Official USPS address standardization + ZIP+4. Required for clean address matching across HUD/Census/property datasets.",
+    obtain:[{label:"USPS APIs",url:"https://www.usps.com/business/web-tools-apis/"}]},
+  {id:"census_geocoder", cat:"Geocoding / Address", name:"Census Geocoder",
+    access:"free", tier:"Public (no key)",
+    desc:"Convert address → Census tract/block. Essential for joining addresses to ACS demographics and HUD data.",
+    obtain:[{label:"Geocoder docs",url:"https://geocoding.geo.census.gov/geocoder/"}]},
+  {id:"nominatim", cat:"Geocoding / Address", name:"OpenStreetMap Nominatim",
+    access:"free", tier:"1 req/sec (no key)",
+    desc:"Free global geocoding. Good fallback when USPS/Census rate-limits. Self-hostable for higher volume.",
+    obtain:[{label:"Nominatim policy",url:"https://operations.osmfoundation.org/policies/nominatim/"}]},
+  {id:"google_maps", cat:"Geocoding / Address", name:"Google Maps Platform",
+    access:"granted", tier:"$200/mo free credit",
+    desc:"Geocoding, Places, Street View, distance matrix. Free credit covers most small-project use; requires billing setup.",
+    obtain:[{label:"Get API key",url:"https://developers.google.com/maps/documentation/javascript/get-api-key"}]},
+
+  // ---------- GENERAL OPEN DATA ----------
+  {id:"gsa_open", cat:"Government", name:"GSA Open Technology",
+    access:"free", tier:"Public",
+    desc:"GSA datasets + APIs: SAM.gov (entity registration), USAJOBS, login.gov, dap. SAM.gov is the SSOT for finding landlord/management-company federal registration.",
+    obtain:[{label:"GSA Open Tech",url:"https://open.gsa.gov/"},
+            {label:"SAM.gov API",url:"https://open.gsa.gov/api/sam-api/"}]},
+  {id:"publicapis_dir", cat:"Reference", name:"Public APIs Directory",
+    access:"free", tier:"Reference",
+    desc:"Curated catalog of 1,400+ free public APIs across categories. Use to discover additional data sources as Semptify grows.",
+    obtain:[{label:"publicapis.io",url:"https://publicapis.io/"},
+            {label:"GitHub list",url:"https://github.com/public-api-lists/public-api-lists"}]},
+  {id:"real_estate_gist", cat:"Reference", name:"Real Estate APIs Gist",
+    access:"free", tier:"Reference",
+    desc:"Community-maintained list of real-estate APIs by category (MLS, AVM, deeds, rentals). Useful for evaluating paid options.",
+    obtain:[{label:"GitHub Gist",url:"https://gist.github.com/patpohler/36c731113fd113418c0806f62cbb9e30"}]},
+  {id:"socrata", cat:"Government", name:"Socrata Open Data Portals",
+    access:"free", tier:"Public (per-portal)",
+    desc:"Many cities/counties (NYC, LA, Chicago, King County) publish housing code violations, evictions, permits, 311 complaints via Socrata. SODA API.",
+    obtain:[{label:"SODA API docs",url:"https://dev.socrata.com/"},
+            {label:"Find a portal",url:"https://opendata.socrata.com/"}]},
+  {id:"local_open_data", cat:"Government", name:"City/County Open Data Portals",
+    access:"free", tier:"Public",
+    desc:"Local housing-court filings, code-violation records, eviction datasets. Varies by jurisdiction. Often the highest-signal source for tenant cases.",
+    obtain:[{label:"Data.gov local",url:"https://www.data.gov/local/"},
+            {label:"OpenDataNetwork",url:"https://www.opendatanetwork.com/"}]},
+
+  // ---------- TENANT-SPECIFIC ----------
+  {id:"eviction_lab", cat:"Tenant / Eviction", name:"Eviction Lab (Princeton)",
+    access:"free", tier:"Public",
+    desc:"National eviction estimates by state/county/city, 2000–present. Methodology and raw data downloads. Critical for context in eviction defense.",
+    obtain:[{label:"Eviction Lab data",url:"https://evictionlab.org/get-the-data/"}]},
+  {id:"nlihc", cat:"Tenant / Eviction", name:"NLIHC Housing Needs Data",
+    access:"free", tier:"Public",
+    desc:"National Low Income Housing Coalition: gap reports, Out of Reach, Housing Priority Map. Advocacy-grade housing-cost data.",
+    obtain:[{label:"NLIHC data",url:"https://nlihc.org/housing-needs-by-state"}]},
+  {id:"fair_housing", cat:"Tenant / Eviction", name:"HUD Fair Housing Complaints",
+    access:"free", tier:"Public datasets",
+    desc:"FHEO complaint data: basis (race, disability, familial status), outcome, location. Pattern evidence for discrimination claims.",
+    obtain:[{label:"FHEO data",url:"https://www.hud.gov/program_offices/fair_housing_equal_opp"}]},
+  {id:":usps_change", cat:"Tenant / Eviction", name:"USPS Change-of-Address (NCOA)",
+    access:"paid", tier:"Paid (ACR-licensed)",
+    desc:"Forwarding-address lookup for tenants who have moved. Requires NCOA licensing — note for future, not for current build.",
+    obtain:[{label:"USPS NCOALink",url:"https://www.usps.com/business/ncoalink.htm"}]},
+];
+
+const LS_KEY = "semptify_api_workbook_v1";
+const state = JSON.parse(localStorage.getItem(LS_KEY) || "{}");
+
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+
+function status(id){
+  const v = state[id]?.key?.trim();
+  return v ? `<span class="status st-ok">● key saved</span>` : `<span class="status st-no">○ no key</span>`;
+}
+
+function render(){
+  const root = document.getElementById("root");
+  const q = document.getElementById("q").value.toLowerCase().trim();
+  const acc = document.getElementById("filter").value;
+  const cat = document.getElementById("cat").value;
+  const cats = [...new Set(APIS.map(a=>a.cat))].sort();
+  const catSel = document.getElementById("cat");
+  if(catSel.options.length === 1){
+    cats.forEach(c=>{const o=document.createElement("option");o.value=c;o.textContent=c;catSel.appendChild(o);});
+  }
+
+  let visible = 0;
+  const byCat = {};
+  APIS.forEach(a=>{
+    if(acc && a.access !== acc) return;
+    if(cat && a.cat !== cat) return;
+    if(q && !(a.name+" "+a.desc+" "+a.cat+" "+a.id).toLowerCase().includes(q)) return;
+    (byCat[a.cat] ||= []).push(a);
+    visible++;
+  });
+
+  document.getElementById("count").textContent = `${visible} of ${APIS.length} APIs`;
+
+  if(visible === 0){ root.innerHTML = `<div class="empty">No APIs match your filters.</div>`; return; }
+
+  root.innerHTML = Object.keys(byCat).sort().map(catName=>{
+    const cards = byCat[catName].map(a=>{
+      const accLabel = {free:"Free",granted:"Granted",paid:"Paid / Tiered"}[a.access];
+      const accClass = "b-"+a.access;
+      const obtainLinks = a.obtain.map(o=>`<a href="${o.url}" target="_blank" rel="noopener">${o.label}</a>`).join("");
+      const savedKey = (state[a.id]?.key || "").replace(/</g,"&lt;");
+      const savedNotes = (state[a.id]?.notes || "").replace(/</g,"&lt;");
+      return `<div class="card" data-id="${a.id}">
+        <div class="name">${a.name}</div>
+        <div class="meta">
+          <span class="badge ${accClass}">${accLabel}</span>
+          <span class="badge b-tier">${a.tier}</span>
+          ${status(a.id)}
+        </div>
+        <div class="desc">${a.desc}</div>
+        <div class="obtain">${obtainLinks}</div>
+        <div class="keyrow">
+          <input type="text" placeholder="Paste obtained API key / token here…" data-field="key" value="${savedKey}">
+        </div>
+        <textarea class="notes" placeholder="Notes: account email, rate limit, expiry date, where it's used…" data-field="notes">${savedNotes}</textarea>
+      </div>`;
+    }).join("");
+    return `<div class="cat">${catName}</div><div class="grid">${cards}</div>`;
+  }).join("");
+
+  root.querySelectorAll(".card").forEach(card=>{
+    const id = card.dataset.id;
+    card.querySelectorAll("[data-field]").forEach(el=>{
+      el.addEventListener("input", ()=>{
+        state[id] = state[id] || {};
+        state[id][el.dataset.field] = el.value;
+        save();
+        if(el.dataset.field === "key"){
+          const st = card.querySelector(".status");
+          st.className = "status " + (el.value.trim() ? "st-ok" : "st-no");
+          st.textContent = el.value.trim() ? "● key saved" : "○ no key";
+        }
+      });
+    });
+  });
+}
+
+document.getElementById("q").addEventListener("input", render);
+document.getElementById("filter").addEventListener("change", render);
+document.getElementById("cat").addEventListener("change", render);
+
+document.getElementById("export").addEventListener("click", ()=>{
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "semptify_api_keys.json"; a.click();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById("import").addEventListener("click", ()=>{
+  document.getElementById("file").click();
+});
+document.getElementById("file").addEventListener("change", e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const data = JSON.parse(r.result);
+      Object.assign(state, data);
+      save(); render();
+      alert("Imported "+Object.keys(data).length+" key records.");
+    }catch(err){ alert("Invalid JSON file: "+err.message); }
+  };
+  r.readAsText(f);
+  e.target.value = "";
+});
+
+document.getElementById("clear").addEventListener("click", ()=>{
+  if(!confirm("Clear ALL saved keys and notes from this browser? This cannot be undone.")) return;
+  Object.keys(state).forEach(k=>delete state[k]);
+  save(); render();
+});
+
+render();
+</script>
+</body>
+</html>

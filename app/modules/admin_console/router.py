@@ -80,10 +80,10 @@ async def _stealth_admin(request: Request) -> UserContext:
             # Create a synthetic admin user context
             return UserContext(
                 user_id=admin.get("id", "admin"),
+                provider=StorageProvider.LOCAL,
+                storage_user_id=admin.get("id", "admin"),
+                access_token="",
                 role=UserRole.ADMIN,
-                storage_provider=StorageProvider.LOCAL,
-                email="admin@semptify.org",
-                display_name="Admin",
             )
 
     # Try normal user session
@@ -105,10 +105,10 @@ async def _stealth_admin(request: Request) -> UserContext:
             logger.info(f"Admin API auth via elevation cookie for uid={payload.get('uid', '?')[:6]}...")
             return UserContext(
                 user_id=payload.get("uid", "admin"),
+                provider=StorageProvider.LOCAL,
+                storage_user_id=payload.get("uid", "admin"),
+                access_token="",
                 role=UserRole.ADMIN,
-                storage_provider=StorageProvider.LOCAL,
-                email="admin@semptify.org",
-                display_name="Admin",
             )
         logger.warning("Admin API access: No user found and no valid elevation cookie")
         raise HTTPException(status_code=404, detail="Not Found")
