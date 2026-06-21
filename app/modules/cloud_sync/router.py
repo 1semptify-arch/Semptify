@@ -591,7 +591,8 @@ async def get_vault_document(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to read vault: {str(e)}")
+        logger.exception("Failed to read vault")
+        raise HTTPException(status_code=500, detail="Failed to read vault")
 
 
 @router.get("/vault/document/{document_id}/content")
@@ -644,7 +645,8 @@ async def get_vault_document_content(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to download: {str(e)}")
+        logger.exception("Failed to download")
+        raise HTTPException(status_code=500, detail="Failed to download")
 
 
 @router.patch("/vault/document/{document_id}")
@@ -702,7 +704,8 @@ async def update_vault_document(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to update: {str(e)}")
+        logger.exception("Failed to update")
+        raise HTTPException(status_code=500, detail="Failed to update")
 
 
 @router.post("/documents/upload")

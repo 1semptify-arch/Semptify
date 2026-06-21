@@ -193,10 +193,13 @@ async def skip_setup():
 
 
 @router.post("/reset")
-async def reset_setup():
+async def reset_setup(
+    user: StorageUser = Depends(yellow_access),
+):
     """
     Reset setup wizard (for development/testing).
     Removes the setup_complete marker to re-trigger the wizard.
+    Requires authentication.
     """
     import os
     

@@ -727,14 +727,16 @@ async def process_document_from_vault(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to read vault index: {str(e)}") from e
+        logger.exception("Failed to read vault index")
+        raise HTTPException(status_code=500, detail="Failed to read vault index") from e
     
     # Download document content
     try:
         storage_path = doc_info.get("storage_path", f"{VAULT_DOCUMENTS}/{doc_id}")
         content = await sync.storage.download_file(storage_path)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to download document: {str(e)}") from e
+        logger.exception("Failed to download document")
+        raise HTTPException(status_code=500, detail="Failed to download document") from e
     
     # Process with intake engine
     engine = get_intake_engine()
@@ -809,7 +811,8 @@ async def process_document_from_vault(
         
     except Exception as e:
         logger.error(f"Vault document processing failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}")
+        logger.exception("Processing failed")
+        raise HTTPException(status_code=500, detail="Processing failed")
 
 
 @router.post("/process/{doc_id}", response_model=IntakeDocumentResponse)
@@ -868,7 +871,8 @@ async def process_document(doc_id: str, user_id: str = Depends(get_user_id)):
         
         return _doc_to_response(doc)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Processing failed: {str(e)}") from e
+        logger.exception("Processing failed")
+        raise HTTPException(status_code=500, detail="Processing failed") from e
 
 
 @router.get("/status/{doc_id}", response_model=IntakeStatusResponse)

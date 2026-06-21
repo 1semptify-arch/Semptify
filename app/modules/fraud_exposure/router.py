@@ -9,11 +9,15 @@ from fastapi import APIRouter, HTTPException, Query, Body, Depends
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
+import logging
+
 from app.core.security import require_user, StorageUser, yellow_access
 from .service import (
     get_fraud_service,
     FraudReport,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/fraud", tags=["Fraud Exposure"])
 
@@ -116,7 +120,8 @@ async def analyze_fraud(
             result["whistleblower_info"] = service.get_whistleblower_protections(None)
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Fraud analysis failed: {str(e)}")
+        logger.exception("Fraud analysis failed")
+        raise HTTPException(status_code=500, detail="Fraud analysis failed")
 @router.get("/report/{report_id}")
 async def get_fraud_report(
     report_id: str,
@@ -174,7 +179,8 @@ async def check_fraud_pattern(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Pattern check failed: {str(e)}")
+        logger.exception("Pattern check failed")
+        raise HTTPException(status_code=500, detail="Pattern check failed")
 
 
 @router.get("/statute-of-limitations")
