@@ -1,5 +1,6 @@
 
 from fastapi import APIRouter, HTTPException, Request
+from app.core.request_utils import get_request_user_id
 from app.core.user_id import get_role_from_user_id
 from app.models.legal_filing_models import LegalCase, EvidenceItem
 from .service import (
@@ -25,10 +26,8 @@ def _resolve_overlay_context(evidence: EvidenceItem) -> EvidenceItem:
 
 
 def _get_user_role(request: Request) -> str:
-    _raw = request.cookies.get("semptify_uid", "anonymous")
-    user_id = str(_raw) if _raw is not None else "anonymous"
+    user_id = get_request_user_id(request)
     role = get_role_from_user_id(user_id)
-    # Default to "user" role if parsing fails (e.g., "anonymous" or malformed)
     if not role:
         role = "user"
     return role
