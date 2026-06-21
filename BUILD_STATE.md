@@ -12,6 +12,49 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-21 AM2 — GitHub Catch-Up + 5 PR Merges
+**Status: All 5 open PRs merged into main. GitHub fully synced.**
+
+### What Was Shipped
+
+#### Local Work Committed (4 commits) ✅
+- `3d1eea9` — Module Flag Overlay System (Phase 2.1-2.3 + 2.5)
+- `dc9e56a` — API workbook page, UserContext field refactor, help page rewrite
+- `7342df6` — data registry, vault index, route list, test certs
+- `3c4993a` — mobile AI host (reuse old phones as on-device AI inference servers)
+
+#### 5 PRs Merged via Squash ✅
+- `f6c76f9` — **PR #1** security: harden auth on 7 endpoints, CORS, path traversal, 71 info leakage fixes
+- `0cb2436` — **PR #4** fix: reconnect session persistence (DB-first save, role extraction, OAuth loop fix)
+- `63282ed` — **PR #2** refactor: extract shared request_utils.py (17+ inline cookie extractions replaced)
+- `535ac3e` — **PR #3** fix: add logging to 30+ silently swallowed exceptions across 13 files
+- `455de24` — **PR #5** test: 327 unit tests for 12 core modules (utc, validation, errors, file_validator, sessions, cache_manager, action_maps, module_contracts, overlay_types, onboarding_state, telemetry_hooks, features)
+
+### Conflict Resolution Notes
+- PR #4: 6 conflicts in storage/router.py — kept DB default_role (HEAD) over parse_user_id, kept no-email-lookup (HEAD) per privacy design, took PR #4 vault creation logic and get_provider() usage
+- PR #1: 3 conflicts — combined HEAD task_id/health with PR #1 user.user_id, took PR #1 auth on vault_installer debug endpoint, took PR #1 3 new graph endpoints with security hardening
+- PR #2: 7 conflicts — took PR #2 get_request_user_id() refactor for all
+- PR #3: 7 conflicts — took PR #2 logging additions for all
+- PR #5: no conflicts (clean rebase)
+
+### Verification
+- All modified files compile clean: `python -m py_compile`
+- main pushed to origin (commits 3c4993a..455de24)
+- GitHub MCP token lacks merge/comment permissions — PRs merged locally and pushed
+
+### Known Working
+- main is up to date with origin/main
+- All 5 PR branches rebased on current main before merge
+- Squash merges preserve all PR content with co-author attribution
+
+### Pending
+- GitHub PRs need manual closure (MCP token can't close them)
+- Render deploy of latest main (9 new commits since last deploy)
+- Phase 2.4: Admin UI for module flags
+- Phase 3: Dev system for internal + external ideas
+
+---
+
 ## Session — 2026-06-21 AM — Module Flag Overlay System (Phase 2.1-2.3 + 2.5)
 **Status: Module Flag Overlay system built. 92 modules tagged with lifecycle/origin. Resolver + middleware integrated.**
 
