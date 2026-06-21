@@ -1,0 +1,14 @@
+# ai_host.rc — Android init service definition for the AI host
+# This is installed as a system overlay via Magisk.
+# It runs the service.sh script late in the boot process.
+
+service ai_host /data/adb/modules/ai_host_service_stripper/service.sh
+    class late_start
+    user root
+    group root
+    oneshot
+    disabled
+    seclabel u:r:su:s0
+
+on property:sys.boot_completed=1
+    start ai_host
