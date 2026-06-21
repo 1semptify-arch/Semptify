@@ -61,6 +61,11 @@ class ReportGenerationRequest(BaseModel):
     filters: Optional[Dict[str, Any]] = Field(None, description="Filters for report")
     export_format: str = Field("json", description="Export format (json, csv, pdf)")
 
+class NormalizeEntitiesRequest(BaseModel):
+    """Request for normalizing multiple entities."""
+    entities: List[Any] = Field(..., description="List of entities to normalize")
+    context: str = Field("general", description="Context for normalization")
+
 class ScheduledTaskRequest(BaseModel):
     """Request for scheduled task management."""
     task_name: str = Field(..., description="Task name")
@@ -151,17 +156,13 @@ async def normalize_entity(request: EntityNormalizationRequest,
         raise HTTPException(status_code=500, detail="Normalization failed")
 
 @lis_router.post("/normalize/entities")
-async def normalize_entities(request: Dict[str, Any],
+async def normalize_entities(request: NormalizeEntitiesRequest,
                            current_user = Depends(get_current_user)):
     """Normalize multiple entities."""
     try:
-        entities = request.get("entities", [])
-        if not isinstance(entities, list):
-            raise HTTPException(status_code=400, detail="entities must be a list")
-        
         resolutions = entity_normalizer.resolve_entities(
-            entities,
-            request.get("context", "general")
+            request.entities,
+            request.context
         )
         
         return JSONResponse(content={

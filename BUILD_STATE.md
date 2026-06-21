@@ -12,6 +12,59 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-21 PM — Phase 2.4 Module Flag Overlay Admin UI
+**Status: Phase 2.4 complete. Admin UI for runtime module overrides shipped.**
+
+### What Was Shipped
+
+#### New Files ✅
+- `app/core/module_overrides.py` — Runtime override store (DB-backed with in-process cache)
+  - `module_overrides` PostgreSQL table (module_path PK, lifecycle, feature_flag, disabled, notes, updated_at)
+  - Functions: `set_override`, `delete_override`, `list_overrides`, `load_overrides`, `get_override`
+  - `effective_entry(entry)` — pure function returning ModuleEntry with overrides applied
+  - `ensure_schema(db)` — CREATE TABLE IF NOT EXISTS for startup
+- `app/modules/admin_console/module_flags.py` — Admin router with 5 endpoints
+  - `GET /admin/api/module-flags` — list all modules with declared flags + overrides
+  - `POST /admin/api/module-flags/{module_path}` — set/update override
+  - `DELETE /admin/api/module-flags/{module_path}` — remove override
+  - `POST /admin/api/module-flags/reload` — force reload from DB
+  - `POST /admin/api/module-flags/preview` — test-as-user module visibility preview
+  - 4 FunctionGroupContract registrations
+- `static/admin/module_flags.html` — Dark-themed admin UI
+  - Filterable table (search, tier, lifecycle, origin, override status)
+  - Summary chips (total/stable/beta/experimental/dev/override counts)
+  - Modal editor for setting overrides (lifecycle, feature_flag, disabled, notes)
+  - Test-as-user preview panel with role/jurisdiction/gates inputs
+
+#### Modified Files ✅
+- `app/core/module_resolver.py` — `_check_entry()` now calls `effective_entry()` to apply runtime overrides before all checks
+- `app/core/product_manifest.py` — Registered `app.modules.admin_console.module_flags` in ADMIN tier
+- `app/main.py` — Added `/admin/module-flags.html` route (stealth admin guard)
+- `static/admin/dashboard.html` — Added Module Flags link to sidebar + quick actions
+- `ROADMAP_TO_PUBLIC_RELEASE.md` — Marked Phase 2.4 complete
+- `BUILD_STATE.md` — This entry
+
+### Verification
+- All new/modified files compile clean: `python -m py_compile`
+- Resolver applies overrides correctly (effective_entry wraps frozen dataclass via `dataclasses.replace`)
+- Cache invalidation on every override change via `invalidate_all_caches()`
+- DB upsert with rollback on error — no silent failures
+- Stealth admin guard reused from admin_console.router (returns 404 to non-admins)
+
+### Architecture Notes
+- Overrides are the SSOT for runtime module visibility — MANIFEST remains SSOT for static declarations
+- `effective_entry()` is a pure function — safe to call in resolver hot path (no DB I/O, reads in-process cache)
+- Cache loaded lazily on first access, or explicitly via `load_overrides(db)` at startup
+- Disabled modules forced to `lifecycle='dev_only'` so only admins see them
+
+### Pending
+- Call `ensure_schema(db)` at app startup to create table on first run
+- Call `load_overrides(db)` at app startup to warm cache
+- Render deploy of latest main
+- Phase 3: Dev system for internal + external ideas
+
+---
+
 ## Session — 2026-06-21 AM2 — GitHub Catch-Up + 5 PR Merges
 **Status: All 5 open PRs merged into main. GitHub fully synced.**
 

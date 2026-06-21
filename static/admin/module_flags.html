@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module Flag Overlay — Semptify Admin</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --border: #2a2d3a;
+    --text: #e4e6eb;
+    --muted: #8b8e98;
+    --accent: #4f8cff;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --purple: #a855f7;
+    --orange: #f97316;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 1.5rem;
+  }
+  h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .summary-bar {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .summary-chip {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+  .summary-chip strong { color: var(--accent); }
+  .filters {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .filters input, .filters select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.4rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+  }
+  .filters input { flex: 1; min-width: 200px; }
+  .btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-secondary {
+    background: var(--border);
+  }
+  .btn-danger { background: var(--red); }
+  .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  tr:hover { background: rgba(79, 140, 255, 0.05); }
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-stable { background: rgba(34, 197, 94, 0.2); color: var(--green); }
+  .badge-beta { background: rgba(234, 179, 8, 0.2); color: var(--yellow); }
+  .badge-experimental { background: rgba(168, 85, 247, 0.2); color: var(--purple); }
+  .badge-dev_only { background: rgba(249, 115, 22, 0.2); color: var(--orange); }
+  .badge-preview { background: rgba(139, 142, 152, 0.2); color: var(--muted); }
+  .badge-internal { background: rgba(79, 140, 255, 0.2); color: var(--accent); }
+  .badge-external { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+  .badge-override { background: rgba(234, 179, 8, 0.15); border: 1px dashed var(--yellow); color: var(--yellow); }
+  .badge-disabled { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+  .module-path { font-family: 'SF Mono', Monaco, monospace; font-size: 0.8rem; color: var(--accent); }
+  .tier-badge { font-size: 0.7rem; padding: 0.1rem 0.3rem; border-radius: 3px; background: var(--border); color: var(--muted); }
+  .dev-notes { color: var(--muted); font-size: 0.8rem; font-style: italic; }
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    max-width: 500px;
+    width: 90%;
+  }
+  .modal h2 { font-size: 1.1rem; margin-bottom: 1rem; }
+  .modal label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.25rem; margin-top: 0.75rem; }
+  .modal input, .modal select, .modal textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.4rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+  }
+  .modal textarea { min-height: 60px; resize: vertical; }
+  .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.5rem; }
+  .preview-section { margin-top: 1rem; }
+  .preview-section h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+  .preview-results { max-height: 400px; overflow-y: auto; }
+  .loading { color: var(--muted); font-style: italic; }
+  .error { color: var(--red); }
+  .success { color: var(--green); }
+</style>
+</head>
+<body>
+
+<h1>🚩 Module Flag Overlay</h1>
+<p class="subtitle">Runtime lifecycle, feature flag, and visibility management for all registered modules.</p>
+
+<!-- Summary -->
+<div class="summary-bar" id="summary-bar">
+  <div class="summary-chip">Total: <strong id="sum-total">—</strong></div>
+  <div class="summary-chip">Stable: <strong id="sum-stable">—</strong></div>
+  <div class="summary-chip">Beta: <strong id="sum-beta">—</strong></div>
+  <div class="summary-chip">Experimental: <strong id="sum-experimental">—</strong></div>
+  <div class="summary-chip">Dev Only: <strong id="sum-dev">—</strong></div>
+  <div class="summary-chip">Overrides: <strong id="sum-overrides">—</strong></div>
+</div>
+
+<!-- Filters -->
+<div class="card">
+  <div class="filters">
+    <input type="text" id="search" placeholder="Search module path, tags, notes..." oninput="renderTable()">
+    <select id="filter-tier" onchange="renderTable()">
+      <option value="">All Tiers</option>
+      <option value="core">Core</option>
+      <option value="extended">Extended</option>
+      <option value="advocate">Advocate</option>
+      <option value="admin">Admin</option>
+      <option value="research">Research</option>
+      <option value="dev">Dev</option>
+    </select>
+    <select id="filter-lifecycle" onchange="renderTable()">
+      <option value="">All Lifecycles</option>
+      <option value="stable">Stable</option>
+      <option value="beta">Beta</option>
+      <option value="experimental">Experimental</option>
+      <option value="dev_only">Dev Only</option>
+      <option value="preview">Preview</option>
+      <option value="internal">Internal</option>
+    </select>
+    <select id="filter-origin" onchange="renderTable()">
+      <option value="">All Origins</option>
+      <option value="internal">Internal</option>
+      <option value="external">External</option>
+    </select>
+    <select id="filter-override" onchange="renderTable()">
+      <option value="">All Modules</option>
+      <option value="overridden">Only Overridden</option>
+      <option value="not-overridden">Not Overridden</option>
+    </select>
+    <button class="btn btn-secondary" onclick="loadData()">↻ Reload</button>
+  </div>
+</div>
+
+<!-- Module Table -->
+<div class="card">
+  <table id="module-table">
+    <thead>
+      <tr>
+        <th>Module</th>
+        <th>Tier</th>
+        <th>Lifecycle</th>
+        <th>Origin</th>
+        <th>Role Gate</th>
+        <th>Jurisdiction</th>
+        <th>Gate</th>
+        <th>Feature Flag</th>
+        <th>Override</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="module-tbody">
+      <tr><td colspan="10" class="loading">Loading modules...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Test as User -->
+<div class="card">
+  <h3 style="font-size:1rem;margin-bottom:0.75rem">🧪 Test as User — Preview Module Visibility</h3>
+  <div class="filters">
+    <select id="preview-role">
+      <option value="tenant">Tenant</option>
+      <option value="advocate">Advocate</option>
+      <option value="admin">Admin</option>
+      <option value="manager">Manager</option>
+      <option value="legal">Legal</option>
+      <option value="judge">Judge</option>
+      <option value="research">Research</option>
+      <option value="dev">Dev</option>
+    </select>
+    <input type="text" id="preview-jurisdiction" placeholder="Jurisdiction (e.g. MN)" style="max-width:120px">
+    <input type="text" id="preview-gates" placeholder="Gates (comma-sep: vault_initialized,storage_connected)" style="flex:1;min-width:250px">
+    <button class="btn" onclick="runPreview()">Preview</button>
+  </div>
+  <div id="preview-results" class="preview-results"></div>
+</div>
+
+<!-- Edit Override Modal -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <h2 id="modal-title">Set Override</h2>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:0.5rem">
+      Module: <span id="modal-module-path" class="module-path"></span>
+    </p>
+    <p style="font-size:0.8rem;color:var(--muted);margin-bottom:0.5rem">
+      Declared lifecycle: <span id="modal-declared-lifecycle"></span>
+    </p>
+
+    <label for="modal-lifecycle">Override Lifecycle (empty = use declared)</label>
+    <select id="modal-lifecycle">
+      <option value="">— Use Declared —</option>
+      <option value="stable">stable</option>
+      <option value="beta">beta</option>
+      <option value="experimental">experimental</option>
+      <option value="dev_only">dev_only</option>
+      <option value="preview">preview</option>
+      <option value="internal">internal</option>
+    </select>
+
+    <label for="modal-feature-flag">Override Feature Flag (empty = use declared)</label>
+    <input type="text" id="modal-feature-flag" placeholder="e.g. experimental_ui or leave empty">
+
+    <label for="modal-disabled">Disabled (hide from all non-admin users)</label>
+    <select id="modal-disabled">
+      <option value="">— No change —</option>
+      <option value="false">Not disabled</option>
+      <option value="true">Disabled (admin only)</option>
+    </select>
+
+    <label for="modal-notes">Admin Notes</label>
+    <textarea id="modal-notes" placeholder="Why is this override set?"></textarea>
+
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-sm" id="modal-delete-btn" onclick="deleteOverride()" style="margin-right:auto;display:none">Remove Override</button>
+      <button class="btn btn-secondary btn-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-sm" onclick="saveOverride()">Save Override</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let allModules = [];
+let currentEditPath = null;
+
+async function loadData() {
+  try {
+    const resp = await fetch('/admin/api/module-flags');
+    if (!resp.ok) throw new Error('Failed to load: ' + resp.status);
+    const data = await resp.json();
+    allModules = data.modules;
+    updateSummary(data);
+    renderTable();
+  } catch (e) {
+    document.getElementById('module-tbody').innerHTML = '<tr><td colspan="10" class="error">' + e.message + '</td></tr>';
+  }
+}
+
+function updateSummary(data) {
+  const s = data.summary || {};
+  const lc = s.by_lifecycle || {};
+  document.getElementById('sum-total').textContent = s.total || '—';
+  document.getElementById('sum-stable').textContent = (lc.stable || 0) + (lc.internal || 0);
+  document.getElementById('sum-beta').textContent = lc.beta || 0;
+  document.getElementById('sum-experimental').textContent = lc.experimental || 0;
+  document.getElementById('sum-dev').textContent = (lc.dev_only || 0) + (lc.preview || 0);
+  document.getElementById('sum-overrides').textContent = data.override_count || 0;
+}
+
+function renderTable() {
+  const search = document.getElementById('search').value.toLowerCase();
+  const fTier = document.getElementById('filter-tier').value;
+  const fLc = document.getElementById('filter-lifecycle').value;
+  const fOrigin = document.getElementById('filter-origin').value;
+  fOverride = document.getElementById('filter-override').value;
+
+  let filtered = allModules.filter(m => {
+    if (search) {
+      const haystack = (m.module_path + ' ' + m.tags.join(' ') + ' ' + m.dev_notes + ' ' + (m.override?.notes || '')).toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+    if (fTier && m.tier !== fTier) return false;
+    if (fLc && m.lifecycle !== fLc) return false;
+    if (fOrigin && m.origin !== fOrigin) return false;
+    if (fOverride === 'overridden' && !m.override) return false;
+    if (fOverride === 'not-overridden' && m.override) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    document.getElementById('module-tbody').innerHTML = '<tr><td colspan="10" class="loading">No modules match filters.</td></tr>';
+    return;
+  }
+
+  let html = '';
+  for (const m of filtered) {
+    const hasOverride = !!m.override;
+    const lcClass = 'badge-' + m.lifecycle;
+    const effectiveLc = hasOverride && m.override.lifecycle ? m.override.lifecycle : m.lifecycle;
+    const isDisabled = hasOverride && m.override.disabled;
+
+    html += `<tr>
+      <td>
+        <div class="module-path">${m.module_path}</div>
+        ${m.dev_notes ? `<div class="dev-notes">${escapeHtml(m.dev_notes)}</div>` : ''}
+        ${hasOverride && m.override.notes ? `<div class="dev-notes" style="color:var(--yellow)">⚠ ${escapeHtml(m.override.notes)}</div>` : ''}
+      </td>
+      <td><span class="tier-badge">${m.tier}</span></td>
+      <td>
+        <span class="badge ${lcClass}">${m.lifecycle}</span>
+        ${hasOverride && m.override.lifecycle ? `<br><span class="badge badge-override">→ ${m.override.lifecycle}</span>` : ''}
+      </td>
+      <td><span class="badge badge-${m.origin}">${m.origin}</span></td>
+      <td>${m.requires_role.length ? m.requires_role.join(', ') : '<span style="color:var(--muted)">all</span>'}</td>
+      <td>${m.requires_jurisdiction.length ? m.requires_jurisdiction.join(', ') : '<span style="color:var(--muted)">all</span>'}</td>
+      <td>${m.requires_gate || '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${m.feature_flag || '<span style="color:var(--muted)">—</span>'}</td>
+      <td>
+        ${isDisabled ? '<span class="badge badge-disabled">DISABLED</span>' : ''}
+        ${hasOverride && !isDisabled ? '<span class="badge badge-override">override</span>' : ''}
+        ${!hasOverride ? '<span style="color:var(--muted)">—</span>' : ''}
+      </td>
+      <td>
+        <button class="btn btn-sm" onclick="openModal('${m.module_path}')">${hasOverride ? 'Edit' : 'Override'}</button>
+      </td>
+    </tr>`;
+  }
+  document.getElementById('module-tbody').innerHTML = html;
+}
+
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+function openModal(modulePath) {
+  const m = allModules.find(x => x.module_path === modulePath);
+  if (!m) return;
+  currentEditPath = modulePath;
+  document.getElementById('modal-module-path').textContent = modulePath;
+  document.getElementById('modal-declared-lifecycle').textContent = m.lifecycle;
+  document.getElementById('modal-lifecycle').value = m.override?.lifecycle || '';
+  document.getElementById('modal-feature-flag').value = m.override?.feature_flag || '';
+  document.getElementById('modal-disabled').value = m.override ? String(m.override.disabled) : '';
+  document.getElementById('modal-notes').value = m.override?.notes || '';
+  document.getElementById('modal-delete-btn').style.display = m.override ? 'inline-block' : 'none';
+  document.getElementById('edit-modal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('edit-modal').classList.remove('active');
+  currentEditPath = null;
+}
+
+async function saveOverride() {
+  if (!currentEditPath) return;
+  const body = {
+    lifecycle: document.getElementById('modal-lifecycle').value || null,
+    feature_flag: document.getElementById('modal-feature-flag').value || null,
+    disabled: document.getElementById('modal-disabled').value ? document.getElementById('modal-disabled').value === 'true' : null,
+    notes: document.getElementById('modal-notes').value,
+  };
+  try {
+    const resp = await fetch('/admin/api/module-flags/' + encodeURIComponent(currentEditPath), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.detail || resp.statusText);
+    }
+    closeModal();
+    await loadData();
+  } catch (e) {
+    alert('Failed to save override: ' + e.message);
+  }
+}
+
+async function deleteOverride() {
+  if (!currentEditPath) return;
+  if (!confirm('Remove override and revert to declared values?')) return;
+  try {
+    const resp = await fetch('/admin/api/module-flags/' + encodeURIComponent(currentEditPath), {
+      method: 'DELETE',
+    });
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.detail || resp.statusText);
+    }
+    closeModal();
+    await loadData();
+  } catch (e) {
+    alert('Failed to remove override: ' + e.message);
+  }
+}
+
+async function runPreview() {
+  const role = document.getElementById('preview-role').value;
+  const jurisdiction = document.getElementById('preview-jurisdiction').value || null;
+  const gatesStr = document.getElementById('preview-gates').value;
+  const gates = gatesStr ? gatesStr.split(',').map(s => s.trim()).filter(s => s) : [];
+
+  const resultsDiv = document.getElementById('preview-results');
+  resultsDiv.innerHTML = '<p class="loading">Resolving modules...</p>';
+
+  try {
+    const resp = await fetch('/admin/api/module-flags/preview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role, jurisdiction, gates }),
+    });
+    if (!resp.ok) throw new Error('Preview failed: ' + resp.status);
+    const data = await resp.json();
+
+    let html = `<p style="margin-bottom:0.5rem">
+      <strong>${data.total_modules}</strong> modules total,
+      <strong>${Object.values(data.by_tier).flat().filter(m => m.allowed).length}</strong> visible to <strong>${role}</strong>
+      ${jurisdiction ? 'in ' + jurisdiction : ''} ${gates.length ? 'with gates: ' + gates.join(', ') : ''}
+    </p>`;
+
+    for (const [tier, modules] of Object.entries(data.by_tier)) {
+      const visible = modules.filter(m => m.allowed);
+      const hidden = modules.filter(m => !m.allowed);
+      if (visible.length === 0 && hidden.length === 0) continue;
+
+      html += `<h4 style="margin-top:0.75rem;font-size:0.9rem;color:var(--muted)">${tier.toUpperCase()} (${visible.length} visible, ${hidden.length} hidden)</h4>`;
+      html += '<ul style="list-style:none;font-size:0.85rem">';
+      for (const m of modules) {
+        const icon = m.allowed ? '✅' : '⛔';
+        const lcBadge = `<span class="badge badge-${m.lifecycle}" style="font-size:0.7rem">${m.lifecycle}</span>`;
+        html += `<li>${icon} ${lcBadge} <span class="module-path">${m.module_path}</span></li>`;
+      }
+      html += '</ul>';
+    }
+    resultsDiv.innerHTML = html;
+  } catch (e) {
+    resultsDiv.innerHTML = '<p class="error">' + e.message + '</p>';
+  }
+}
+
+// Init
+loadData();
+</script>
+</body>
+</html>
