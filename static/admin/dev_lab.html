@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dev Lab — Semptify Admin</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --card: #1a1d27;
+    --border: #2a2d3a;
+    --text: #e4e6eb;
+    --muted: #8b8e98;
+    --accent: #4f8cff;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --purple: #a855f7;
+    --orange: #f97316;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 1.5rem;
+  }
+  h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.1rem; margin: 1.5rem 0 0.75rem; }
+  .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
+  .tab {
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover { color: var(--text); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  th, td { text-align: left; padding: 0.5rem; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  tr:hover { background: rgba(79, 140, 255, 0.05); }
+  .badge {
+    display: inline-block;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .badge-dev_only { background: rgba(249, 115, 22, 0.2); color: var(--orange); }
+  .badge-experimental { background: rgba(168, 85, 247, 0.2); color: var(--purple); }
+  .badge-beta { background: rgba(234, 179, 8, 0.2); color: var(--yellow); }
+  .badge-stable { background: rgba(34, 197, 94, 0.2); color: var(--green); }
+  .badge-internal { background: rgba(79, 140, 255, 0.2); color: var(--accent); }
+  .badge-external { background: rgba(239, 68, 68, 0.2); color: var(--red); }
+  .badge-submitted { background: rgba(139, 142, 152, 0.2); color: var(--muted); }
+  .badge-promoted { background: rgba(34, 197, 94, 0.2); color: var(--green); }
+  .module-path { font-family: 'SF Mono', Monaco, monospace; font-size: 0.8rem; color: var(--accent); }
+  .btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-secondary { background: var(--border); }
+  .btn-danger { background: var(--red); }
+  .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
+  .form-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.75rem; align-items: center; }
+  .form-row label { font-size: 0.85rem; color: var(--muted); min-width: 120px; }
+  .form-row input, .form-row select, .form-row textarea {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.4rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    flex: 1;
+    min-width: 200px;
+  }
+  .form-row textarea { min-height: 80px; resize: vertical; }
+  .checklist { list-style: none; padding-left: 0; }
+  .checklist li { padding: 0.25rem 0; font-size: 0.85rem; }
+  .checklist li::before { content: "☐ "; color: var(--muted); }
+  .checklist li.passed::before { content: "✅ "; }
+  .checklist li.current::before { content: "→ "; color: var(--accent); }
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal h2 { margin-top: 0; }
+  .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
+  .loading { color: var(--muted); font-style: italic; }
+  .error { color: var(--red); }
+</style>
+</head>
+<body>
+
+<h1>🧪 Dev Lab</h1>
+<p class="subtitle">Incubator for internal + external dev modules. Admin only.</p>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('modules')">Modules</div>
+  <div class="tab" onclick="switchTab('ideas')">Ideas</div>
+  <div class="tab" onclick="switchTab('external')">External</div>
+</div>
+
+<!-- Modules Tab -->
+<div class="tab-content active" id="tab-modules">
+  <div class="card">
+    <h2>Dev Modules</h2>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:0.75rem">
+      Modules in dev_only, preview, or experimental lifecycle. Click a module to view its maturity checklist and promote it.
+    </p>
+    <table id="modules-table">
+      <thead>
+        <tr>
+          <th>Module</th>
+          <th>Tier</th>
+          <th>Lifecycle</th>
+          <th>Origin</th>
+          <th>Tests</th>
+          <th>Next Stage</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="modules-tbody">
+        <tr><td colspan="7" class="loading">Loading modules...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Ideas Tab -->
+<div class="tab-content" id="tab-ideas">
+  <div class="card">
+    <h2>Submit New Idea</h2>
+    <div class="form-row">
+      <label>Name</label>
+      <input type="text" id="idea-name" placeholder="e.g. Court Forms NY">
+    </div>
+    <div class="form-row">
+      <label>Description</label>
+      <textarea id="idea-description" placeholder="What does this idea do?"></textarea>
+    </div>
+    <div class="form-row">
+      <label>Target Role</label>
+      <select id="idea-target-role">
+        <option value="tenant">Tenant</option>
+        <option value="advocate">Advocate</option>
+        <option value="admin">Admin</option>
+        <option value="manager">Manager</option>
+        <option value="legal">Legal</option>
+        <option value="research">Research</option>
+        <option value="dev">Dev</option>
+      </select>
+      <label>Target Tier</label>
+      <select id="idea-target-tier">
+        <option value="core">Core</option>
+        <option value="extended">Extended</option>
+        <option value="advocate">Advocate</option>
+        <option value="admin">Admin</option>
+        <option value="research">Research</option>
+        <option value="dev">Dev</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Origin</label>
+      <select id="idea-origin">
+        <option value="internal">Internal (first-party)</option>
+        <option value="external">External (third-party)</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label>Dependencies</label>
+      <input type="text" id="idea-dependencies" placeholder="e.g. app.sdk.vault, app.sdk.timeline">
+    </div>
+    <div class="form-row">
+      <label>Success Criteria</label>
+      <input type="text" id="idea-success" placeholder="How do we know this is done?">
+    </div>
+    <div class="form-row">
+      <label>Submitted By</label>
+      <input type="text" id="idea-submitted-by" placeholder="Your name">
+    </div>
+    <button class="btn" onclick="submitIdea()">Submit Idea</button>
+  </div>
+
+  <div class="card">
+    <h2>Submitted Ideas</h2>
+    <table id="ideas-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Origin</th>
+          <th>Target</th>
+          <th>Status</th>
+          <th>Submitted</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="ideas-tbody">
+        <tr><td colspan="7" class="loading">Loading ideas...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- External Tab -->
+<div class="tab-content" id="tab-external">
+  <div class="card">
+    <h2>External Modules</h2>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:0.75rem">
+      Third-party modules loaded via the external loader. Each module is sandboxed and permission-checked.
+    </p>
+    <div id="external-modules"></div>
+  </div>
+</div>
+
+<!-- Module Detail Modal -->
+<div class="modal-overlay" id="module-modal">
+  <div class="modal">
+    <h2 id="modal-module-name"></h2>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:0.5rem">
+      <span class="module-path" id="modal-module-path"></span>
+    </p>
+    <div id="modal-module-content"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal()">Close</button>
+      <button class="btn btn-sm" id="modal-promote-btn" onclick="promoteModule()">Promote</button>
+      <button class="btn btn-sm" id="modal-test-btn" onclick="runTests()">Run Tests</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let allModules = [];
+let currentModulePath = null;
+
+function switchTab(tabName) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tab-' + tabName).classList.add('active');
+  if (tabName === 'ideas') loadIdeas();
+  if (tabName === 'external') loadExternal();
+}
+
+async function loadModules() {
+  try {
+    const resp = await fetch('/dev/lab');
+    if (!resp.ok) throw new Error('Failed to load: ' + resp.status);
+    const data = await resp.json();
+    allModules = data.modules;
+    renderModules();
+  } catch (e) {
+    document.getElementById('modules-tbody').innerHTML = '<tr><td colspan="7" class="error">' + e.message + '</td></tr>';
+  }
+}
+
+function renderModules() {
+  if (allModules.length === 0) {
+    document.getElementById('modules-tbody').innerHTML = '<tr><td colspan="7" class="loading">No dev modules found.</td></tr>';
+    return;
+  }
+  let html = '';
+  for (const m of allModules) {
+    html += `<tr>
+      <td>
+        <div class="module-path">${m.module_path}</div>
+        ${m.dev_notes ? `<div style="color:var(--muted);font-size:0.8rem">${escapeHtml(m.dev_notes)}</div>` : ''}
+      </td>
+      <td><span class="badge badge-internal">${m.tier}</span></td>
+      <td><span class="badge badge-${m.lifecycle}">${m.lifecycle}</span></td>
+      <td><span class="badge badge-${m.origin}">${m.origin}</span></td>
+      <td>${m.has_tests ? '✅' : '⛔'}</td>
+      <td>${m.next_lifecycle ? `<span class="badge badge-${m.next_lifecycle}">${m.next_lifecycle}</span>` : '—'}</td>
+      <td><button class="btn btn-sm" onclick="openModuleModal('${m.module_path}')">View</button></td>
+    </tr>`;
+  }
+  document.getElementById('modules-tbody').innerHTML = html;
+}
+
+async function openModuleModal(modulePath) {
+  currentModulePath = modulePath;
+  try {
+    const resp = await fetch('/dev/lab/' + encodeURIComponent(modulePath));
+    if (!resp.ok) throw new Error('Failed to load module: ' + resp.status);
+    const m = await resp.json();
+
+    document.getElementById('modal-module-name').textContent = m.module_path.split('.').pop();
+    document.getElementById('modal-module-path').textContent = m.module_path;
+
+    let html = `
+      <p><strong>Lifecycle:</strong> <span class="badge badge-${m.lifecycle}">${m.lifecycle}</span>
+         → Next: <span class="badge badge-${m.next_lifecycle}">${m.next_lifecycle || '—'}</span></p>
+      <p><strong>Tier:</strong> ${m.tier} | <strong>Origin:</strong> ${m.origin}</p>
+      <p><strong>Has tests:</strong> ${m.has_tests ? '✅ Yes' : '⛔ No'}</p>
+      ${m.dev_notes ? `<p><strong>Notes:</strong> ${escapeHtml(m.dev_notes)}</p>` : ''}
+      <h3 style="margin-top:1rem;font-size:0.95rem">Current Stage Checklist (${m.lifecycle})</h3>
+      <ul class="checklist">
+        ${m.current_checklist.map(item => `<li class="current">${escapeHtml(item)}</li>`).join('')}
+      </ul>
+      ${m.next_checklist.length > 0 ? `
+        <h3 style="margin-top:1rem;font-size:0.95rem">Next Stage Checklist (${m.next_lifecycle})</h3>
+        <ul class="checklist">
+          ${m.next_checklist.map(item => `<li>${escapeHtml(item)}</li>`).join('')}
+        </ul>
+      ` : ''}
+    `;
+    document.getElementById('modal-module-content').innerHTML = html;
+
+    document.getElementById('modal-promote-btn').style.display = m.next_lifecycle ? 'inline-block' : 'none';
+    document.getElementById('modal-test-btn').style.display = m.has_tests ? 'inline-block' : 'none';
+
+    document.getElementById('module-modal').classList.add('active');
+  } catch (e) {
+    alert('Failed to load module: ' + e.message);
+  }
+}
+
+function closeModal() {
+  document.getElementById('module-modal').classList.remove('active');
+  currentModulePath = null;
+}
+
+async function promoteModule() {
+  if (!currentModulePath) return;
+  const m = allModules.find(x => x.module_path === currentModulePath);
+  if (!m || !m.next_lifecycle) return;
+  if (!confirm(`Promote ${currentModulePath} from ${m.lifecycle} to ${m.next_lifecycle}?`)) return;
+
+  try {
+    const resp = await fetch('/dev/lab/' + encodeURIComponent(currentModulePath) + '/promote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_lifecycle: m.next_lifecycle, notes: 'Promoted via Dev Lab UI' }),
+    });
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.detail || resp.statusText);
+    }
+    closeModal();
+    await loadModules();
+    alert('Module promoted successfully');
+  } catch (e) {
+    alert('Promotion failed: ' + e.message);
+  }
+}
+
+async function runTests() {
+  if (!currentModulePath) return;
+  alert('Running tests... this may take up to 2 minutes.');
+  try {
+    const resp = await fetch('/dev/lab/' + encodeURIComponent(currentModulePath) + '/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.detail || resp.statusText);
+    }
+    const result = await resp.json();
+    alert(`Tests complete: ${result.passed} passed, ${result.failed} failed, ${result.errors} errors, ${result.skipped} skipped`);
+  } catch (e) {
+    alert('Test run failed: ' + e.message);
+  }
+}
+
+async function loadIdeas() {
+  try {
+    const resp = await fetch('/dev/lab/ideas');
+    if (!resp.ok) throw new Error('Failed to load ideas: ' + resp.status);
+    const data = await resp.json();
+    renderIdeas(data.ideas);
+  } catch (e) {
+    document.getElementById('ideas-tbody').innerHTML = '<tr><td colspan="7" class="error">' + e.message + '</td></tr>';
+  }
+}
+
+function renderIdeas(ideas) {
+  if (ideas.length === 0) {
+    document.getElementById('ideas-tbody').innerHTML = '<tr><td colspan="7" class="loading">No ideas submitted yet.</td></tr>';
+    return;
+  }
+  let html = '';
+  for (const idea of ideas) {
+    html += `<tr>
+      <td>${idea.id}</td>
+      <td><strong>${escapeHtml(idea.name)}</strong><br><span style="color:var(--muted);font-size:0.8rem">${escapeHtml(idea.description.substring(0, 80))}</span></td>
+      <td><span class="badge badge-${idea.origin}">${idea.origin}</span></td>
+      <td>${idea.target_role} / ${idea.target_tier}</td>
+      <td><span class="badge badge-${idea.status}">${idea.status}</span></td>
+      <td>${idea.created_at ? new Date(idea.created_at).toLocaleDateString() : '—'}</td>
+      <td>
+        ${idea.status === 'submitted' ? `<button class="btn btn-sm" onclick="promoteIdea(${idea.id}, '${escapeHtml(idea.name)}')">Promote</button>` : ''}
+      </td>
+    </tr>`;
+  }
+  document.getElementById('ideas-tbody').innerHTML = html;
+}
+
+async function submitIdea() {
+  const body = {
+    name: document.getElementById('idea-name').value,
+    description: document.getElementById('idea-description').value,
+    target_role: document.getElementById('idea-target-role').value,
+    target_tier: document.getElementById('idea-target-tier').value,
+    origin: document.getElementById('idea-origin').value,
+    dependencies: document.getElementById('idea-dependencies').value,
+    success_criteria: document.getElementById('idea-success').value,
+    submitted_by: document.getElementById('idea-submitted-by').value || 'admin',
+  };
+  if (!body.name || !body.description) {
+    alert('Name and description are required');
+    return;
+  }
+  try {
+    const resp = await fetch('/dev/lab/ideas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.detail || resp.statusText);
+    }
+    document.getElementById('idea-name').value = '';
+    document.getElementById('idea-description').value = '';
+    document.getElementById('idea-dependencies').value = '';
+    document.getElementById('idea-success').value = '';
+    await loadIdeas();
+    alert('Idea submitted successfully');
+  } catch (e) {
+    alert('Submission failed: ' + e.message);
+  }
+}
+
+async function promoteIdea(ideaId, ideaName) {
+  const moduleName = prompt(`Enter module name for idea "${ideaName}":`, ideaName.toLowerCase().replace(/\s+/g, '_'));
+  if (!moduleName) return;
+  const action = confirm('Click OK to scaffold internal module, Cancel to generate external SDK template') ? 'scaffold' : 'sdk_template';
+  try {
+    const resp = await fetch(`/dev/lab/ideas/${ideaId}/promote`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ module_name: moduleName, action: action }),
+    });
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.detail || resp.statusText);
+    }
+    const result = await resp.json();
+    alert(`Idea promoted!\n\nNext steps:\n${result.next_steps}`);
+    await loadIdeas();
+  } catch (e) {
+    alert('Promotion failed: ' + e.message);
+  }
+}
+
+async function loadExternal() {
+  document.getElementById('external-modules').innerHTML = '<p class="loading">Loading external modules...</p>';
+  // TODO: Add endpoint to list external modules
+  document.getElementById('external-modules').innerHTML = '<p style="color:var(--muted)">External module listing endpoint not yet wired. See app/core/external_loader.py for the loader.</p>';
+}
+
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+// Init
+loadModules();
+</script>
+</body>
+</html>

@@ -2190,6 +2190,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(str(page_path))
         return HTMLResponse(content="<h1>Module Flags not found</h1>", status_code=404)
 
+    @fastapi_app.get("/admin/dev-lab.html", response_class=HTMLResponse)
+    async def admin_dev_lab_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve Dev Lab admin page - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "admin" / "dev_lab.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Dev Lab not found</h1>", status_code=404)
+
     @fastapi_app.get("/docs/component-inventory.html", response_class=HTMLResponse)
     async def docs_component_inventory(
         request: Request,
