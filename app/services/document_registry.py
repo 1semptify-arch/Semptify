@@ -19,20 +19,20 @@ Every document gets:
 6. Integrity verification on every access
 """
 
+import base64
 import hashlib
 import hmac
 import json
+import logging
 import re
-from dataclasses import dataclass, field, asdict
+import secrets
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Any
-import secrets
-import base64
 
 from app.core.config import get_settings
-import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,28 +40,32 @@ logger = logging.getLogger(__name__)
 # ENUMS
 # =============================================================================
 
+
 class DocumentStatus(str, Enum):
     """Document registry status."""
-    ORIGINAL = "original"           # First instance of this document
-    COPY = "copy"                   # Duplicate of existing document
-    MODIFIED_COPY = "modified_copy" # Copy with detected modifications
-    SUPERSEDED = "superseded"       # Replaced by newer version
-    ARCHIVED = "archived"           # No longer active but preserved
-    FLAGGED = "flagged"             # Flagged for review
-    QUARANTINED = "quarantined"     # Suspected tampering/forgery
+
+    ORIGINAL = "original"  # First instance of this document
+    COPY = "copy"  # Duplicate of existing document
+    MODIFIED_COPY = "modified_copy"  # Copy with detected modifications
+    SUPERSEDED = "superseded"  # Replaced by newer version
+    ARCHIVED = "archived"  # No longer active but preserved
+    FLAGGED = "flagged"  # Flagged for review
+    QUARANTINED = "quarantined"  # Suspected tampering/forgery
 
 
 class IntegrityStatus(str, Enum):
     """Document integrity verification status."""
-    VERIFIED = "verified"           # Hash matches, no tampering detected
-    TAMPERED = "tampered"           # Content hash mismatch - file modified
+
+    VERIFIED = "verified"  # Hash matches, no tampering detected
+    TAMPERED = "tampered"  # Content hash mismatch - file modified
     METADATA_CHANGED = "metadata_changed"  # Metadata altered
-    CORRUPTED = "corrupted"         # File corrupted or unreadable
-    UNVERIFIED = "unverified"       # Not yet verified
+    CORRUPTED = "corrupted"  # File corrupted or unreadable
+    UNVERIFIED = "unverified"  # Not yet verified
 
 
 class ForgeryIndicator(str, Enum):
     """Types of forgery/alteration indicators."""
+
     NONE = "none"
     DATE_INCONSISTENCY = "date_inconsistency"
     SIGNATURE_ANOMALY = "signature_anomaly"
@@ -78,6 +82,7 @@ class ForgeryIndicator(str, Enum):
 
 class CustodyAction(str, Enum):
     """Chain of custody actions."""
+
     RECEIVED = "received"
     VERIFIED = "verified"
     PROCESSED = "processed"
@@ -94,16 +99,18 @@ class CustodyAction(str, Enum):
 # DATA CLASSES
 # =============================================================================
 
+
 @dataclass
 class CustodyRecord:
     """Single entry in chain of custody."""
+
     timestamp: datetime
     action: CustodyAction
     actor: str  # user_id or "system"
     details: str = ""
-    ip_address: Optional[str] = None
-    device_info: Optional[str] = None
-    integrity_hash: Optional[str] = None  # Hash at time of action
+    ip_address: str | None = None
+    device_info: str | None = None
+    integrity_hash: str | None = None  # Hash at time of action
 
     def to_dict(self) -> dict:
         return {
@@ -120,12 +127,13 @@ class CustodyRecord:
 @dataclass
 class ForgeryAlert:
     """Alert for suspected forgery or alteration."""
+
     indicator: ForgeryIndicator
     severity: str  # critical, high, medium, low
     description: str
-    affected_area: Optional[str] = None  # e.g., "page 2, signature block"
-    evidence: Optional[str] = None  # Supporting evidence for the alert
-    detected_at: datetime = field(default_factory=lambda: utc_now())
+    affected_area: str | None = None  # e.g., "page 2, signature block"
+    evidence: str | None = None  # Supporting evidence for the alert
+    detected_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def to_dict(self) -> dict:
         return {
@@ -141,6 +149,7 @@ class ForgeryAlert:
 @dataclass
 class DocumentVersion:
     """Version record for document changes."""
+
     version: int
     timestamp: datetime
     content_hash: str
@@ -160,54 +169,54 @@ class DocumentVersion:
 @dataclass
 class RegisteredDocument:
     """A document in the registry with full tracking."""
-    
+
     # Core identifiers
-    document_id: str          # SEM-YYYY-NNNNNN-XXXX format
+    document_id: str  # SEM-YYYY-NNNNNN-XXXX format
     user_id: str
-    case_number: Optional[str] = None
-    
+    case_number: str | None = None
+
     # Original file info
     original_filename: str = ""
     file_size: int = 0
     mime_type: str = ""
-    
+
     # Hashes for tamper-proofing
-    content_hash: str = ""        # SHA-256 of file content
-    metadata_hash: str = ""       # SHA-256 of metadata
-    combined_hash: str = ""       # Combined verification hash
-    
+    content_hash: str = ""  # SHA-256 of file content
+    metadata_hash: str = ""  # SHA-256 of metadata
+    combined_hash: str = ""  # Combined verification hash
+
     # Status tracking
     status: DocumentStatus = DocumentStatus.ORIGINAL
     integrity_status: IntegrityStatus = IntegrityStatus.UNVERIFIED
-    
+
     # Duplicate tracking
     is_duplicate: bool = False
-    original_document_id: Optional[str] = None  # If this is a copy
+    original_document_id: str | None = None  # If this is a copy
     duplicate_ids: list[str] = field(default_factory=list)  # IDs of copies
     duplicate_count: int = 0
-    
+
     # Forgery detection
     forgery_alerts: list[ForgeryAlert] = field(default_factory=list)
     forgery_score: float = 0.0  # 0.0 = clean, 1.0 = definitely forged
     requires_review: bool = False
-    
+
     # Timestamps
-    registered_at: datetime = field(default_factory=lambda: utc_now())
-    last_verified_at: Optional[datetime] = None
-    last_accessed_at: Optional[datetime] = None
-    
+    registered_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_verified_at: datetime | None = None
+    last_accessed_at: datetime | None = None
+
     # Chain of custody
     custody_chain: list[CustodyRecord] = field(default_factory=list)
-    
+
     # Version history
     versions: list[DocumentVersion] = field(default_factory=list)
     current_version: int = 1
-    
+
     # Storage
-    storage_path: Optional[str] = None
-    
+    storage_path: str | None = None
+
     # Linked intake document
-    intake_document_id: Optional[str] = None
+    intake_document_id: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -244,39 +253,40 @@ class RegisteredDocument:
 # DOCUMENT ID GENERATOR
 # =============================================================================
 
+
 class DocumentIDGenerator:
     """Generate unique, timestamped document IDs."""
-    
+
     _counter = 0
     _last_date = ""
-    
+
     @classmethod
     def generate(cls) -> str:
         """
         Generate a unique document ID in format: SEM-YYYY-NNNNNN-XXXX
-        
+
         SEM = Semptify prefix
         YYYY = Year
         NNNNNN = Sequential counter (resets yearly)
         XXXX = Random suffix for uniqueness
         """
-        now = utc_now()
+        now = datetime.now(timezone.utc)
         date_part = now.strftime("%Y")
-        
+
         # Reset counter for new year
         if date_part != cls._last_date:
             cls._counter = 0
             cls._last_date = date_part
-        
+
         cls._counter += 1
-        
+
         # Random suffix for additional uniqueness
         random_suffix = secrets.token_hex(2).upper()
-        
+
         return f"SEM-{date_part}-{cls._counter:06d}-{random_suffix}"
-    
+
     @classmethod
-    def parse(cls, doc_id: str) -> Optional[dict]:
+    def parse(cls, doc_id: str) -> dict | None:
         """Parse a document ID to extract components."""
         pattern = r"^SEM-(\d{4})-(\d{6})-([A-Z0-9]{4})$"
         match = re.match(pattern, doc_id)
@@ -287,7 +297,7 @@ class DocumentIDGenerator:
                 "suffix": match.group(3),
             }
         return None
-    
+
     @classmethod
     def is_valid(cls, doc_id: str) -> bool:
         """Check if a document ID is valid format."""
@@ -297,6 +307,7 @@ class DocumentIDGenerator:
 # =============================================================================
 # HASH GENERATOR
 # =============================================================================
+
 
 class HashGenerator:
     """Generate and verify tamper-proof hashes."""
@@ -309,43 +320,33 @@ class HashGenerator:
         if not secret:
             raise ValueError("SECRET_KEY must be configured for document registry integrity.")
         return secret.encode()
-    
+
     @classmethod
     def content_hash(cls, content: bytes) -> str:
         """Generate SHA-256 hash of file content."""
         return hashlib.sha256(content).hexdigest()
-    
+
     @classmethod
     def metadata_hash(cls, metadata: dict) -> str:
         """Generate hash of document metadata."""
         # Sort keys for consistent hashing
         serialized = json.dumps(metadata, sort_keys=True, default=str)
         return hashlib.sha256(serialized.encode()).hexdigest()
-    
+
     @classmethod
     def combined_hash(cls, content_hash: str, metadata_hash: str, doc_id: str) -> str:
         """Generate HMAC-based combined hash for tamper detection."""
         message = f"{doc_id}:{content_hash}:{metadata_hash}".encode()
         return hmac.new(cls._get_secret_key(), message, hashlib.sha256).hexdigest()
-    
+
     @classmethod
-    def verify_integrity(
-        cls, 
-        content: bytes, 
-        metadata: dict, 
-        doc_id: str,
-        stored_combined_hash: str
-    ) -> bool:
+    def verify_integrity(cls, content: bytes, metadata: dict, doc_id: str, stored_combined_hash: str) -> bool:
         """Verify document hasn't been tampered with."""
         current_content_hash = cls.content_hash(content)
         current_metadata_hash = cls.metadata_hash(metadata)
-        current_combined = cls.combined_hash(
-            current_content_hash, 
-            current_metadata_hash, 
-            doc_id
-        )
+        current_combined = cls.combined_hash(current_content_hash, current_metadata_hash, doc_id)
         return hmac.compare_digest(current_combined, stored_combined_hash)
-    
+
     @classmethod
     def generate_verification_token(cls, doc_id: str, timestamp: datetime) -> str:
         """Generate a verification token for document access."""
@@ -358,68 +359,64 @@ class HashGenerator:
 # FORGERY DETECTOR
 # =============================================================================
 
+
 class ForgeryDetector:
     """Detect potential forgery or document alterations."""
-    
+
     @classmethod
     def analyze(
-        cls, 
-        content: bytes, 
-        text: str, 
-        metadata: dict,
-        filename: str,
-        existing_docs: list[RegisteredDocument]
+        cls, content: bytes, text: str, metadata: dict, filename: str, existing_docs: list[RegisteredDocument]
     ) -> tuple[list[ForgeryAlert], float]:
         """
         Analyze document for forgery indicators.
-        
+
         Returns:
             tuple: (list of alerts, forgery score 0.0-1.0)
         """
         alerts = []
         score = 0.0
-        
+
         # Check for date inconsistencies
         date_alerts = cls._check_date_inconsistencies(text, metadata)
         alerts.extend(date_alerts)
         score += len(date_alerts) * 0.15
-        
+
         # Check for metadata tampering signs
         metadata_alerts = cls._check_metadata_tampering(metadata, filename)
         alerts.extend(metadata_alerts)
         score += len(metadata_alerts) * 0.2
-        
+
         # Check for duplicate with changes
         dup_alerts = cls._check_duplicate_changes(content, text, existing_docs)
         alerts.extend(dup_alerts)
         score += len(dup_alerts) * 0.25
-        
+
         # Check for timeline impossibilities
         timeline_alerts = cls._check_timeline_impossibilities(text, metadata)
         alerts.extend(timeline_alerts)
         score += len(timeline_alerts) * 0.3
-        
+
         # Check for suspicious text patterns
         pattern_alerts = cls._check_suspicious_patterns(text)
         alerts.extend(pattern_alerts)
         score += len(pattern_alerts) * 0.1
-        
+
         # Cap score at 1.0
         score = min(score, 1.0)
-        
+
         return alerts, score
-    
+
     @classmethod
     def _check_date_inconsistencies(cls, text: str, metadata: dict) -> list[ForgeryAlert]:
         """Check for inconsistent dates in document."""
         alerts = []
-        
+
         # Find all dates in text
         date_patterns = [
-            r'\b(\d{1,2})[/-](\d{1,2})[/-](\d{4})\b',
-            r'\b(\d{1,2})[/-](\d{1,2})[/-](\d{2})\b',
+            r"\b(\d{1,2})[/-](\d{1,2})[/-](\d{4})\b",
+            r"\b(\d{1,2})[/-](\d{1,2})[/-](\d{2})\b",
         ]
-        
+
         dates_found = []
         for pattern in date_patterns:
             for match in re.finditer(pattern, text):
@@ -431,147 +428,155 @@ class ForgeryDetector:
                         dates_found.append(datetime(year, month, day))
                 except ValueError:
                     continue
-        
+
         # Check for future dates (suspicious for historical documents)
         now = utc_now()
         for d in dates_found:
             if d > now + timedelta(days=365):  # More than a year in future
-                alerts.append(ForgeryAlert(
-                    indicator=ForgeryIndicator.DATE_INCONSISTENCY,
-                    severity="high",
-                    description=f"Future date detected: {d.strftime('%Y-%m-%d')}",
-                    evidence=f"Date {d.strftime('%m/%d/%Y')} is suspiciously far in the future",
-                ))
-        
+                alerts.append(
+                    ForgeryAlert(
+                        indicator=ForgeryIndicator.DATE_INCONSISTENCY,
+                        severity="high",
+                        description=f"Future date detected: {d.strftime('%Y-%m-%d')}",
+                        evidence=f"Date {d.strftime('%m/%d/%Y')} is suspiciously far in the future",
+                    )
+                )
+
         # Check for very old dates in recent documents
         # (e.g., a 2020 eviction notice created in 2025)
-        
+
         return alerts
-    
+
     @classmethod
     def _check_metadata_tampering(cls, metadata: dict, filename: str) -> list[ForgeryAlert]:
         """Check for signs of metadata tampering."""
         alerts = []
-        
+
         # Check for suspicious file properties
         if metadata.get("creation_date") and metadata.get("modification_date"):
             created = metadata.get("creation_date")
             modified = metadata.get("modification_date")
-            
+
             if isinstance(created, str):
                 try:
                     created = datetime.fromisoformat(created.replace("Z", "+00:00"))
                 except ValueError:
                     created = None
-            
+
             if isinstance(modified, str):
                 try:
                     modified = datetime.fromisoformat(modified.replace("Z", "+00:00"))
                 except ValueError:
                     modified = None
-            
+
             if created and modified and modified < created:
-                alerts.append(ForgeryAlert(
-                    indicator=ForgeryIndicator.METADATA_TAMPERING,
-                    severity="high",
-                    description="Modification date is before creation date",
-                    evidence=f"Created: {created}, Modified: {modified}",
-                ))
-        
+                alerts.append(
+                    ForgeryAlert(
+                        indicator=ForgeryIndicator.METADATA_TAMPERING,
+                        severity="high",
+                        description="Modification date is before creation date",
+                        evidence=f"Created: {created}, Modified: {modified}",
+                    )
+                )
+
         # Check for generic/suspicious software signatures
         producer = metadata.get("producer", "").lower()
         suspicious_tools = ["photoshop", "acrobat editor", "pdf editor", "nitro"]
         for tool in suspicious_tools:
             if tool in producer:
-                alerts.append(ForgeryAlert(
-                    indicator=ForgeryIndicator.DIGITAL_ALTERATION,
-                    severity="medium",
-                    description=f"Document may have been edited with {tool}",
-                    evidence=f"Producer: {metadata.get('producer')}",
-                ))
-        
+                alerts.append(
+                    ForgeryAlert(
+                        indicator=ForgeryIndicator.DIGITAL_ALTERATION,
+                        severity="medium",
+                        description=f"Document may have been edited with {tool}",
+                        evidence=f"Producer: {metadata.get('producer')}",
+                    )
+                )
+
         return alerts
-    
+
     @classmethod
     def _check_duplicate_changes(
-        cls, 
-        content: bytes, 
-        text: str, 
-        existing_docs: list[RegisteredDocument]
+        cls, content: bytes, text: str, existing_docs: list[RegisteredDocument]
     ) -> list[ForgeryAlert]:
         """Check if document is a modified copy of existing document."""
         alerts = []
         content_hash = hashlib.sha256(content).hexdigest()
-        
+
         for doc in existing_docs:
             if doc.content_hash == content_hash:
                 # Exact duplicate - handled elsewhere
                 continue
-            
+
             # Check for similar but not identical (potential modification)
             # This would need more sophisticated comparison in production
             # For now, flag if filename suggests it's related
-            
+
         return alerts
-    
+
     @classmethod
     def _check_timeline_impossibilities(cls, text: str, metadata: dict) -> list[ForgeryAlert]:
         """Check for timeline impossibilities in document."""
         alerts = []
-        
+
         # Example: Eviction notice dated before lease start
         # Example: Court filing dated on a weekend/holiday
-        
+
         # Check for dates that are impossible (Feb 30, etc.)
         impossible_dates = [
-            r'\b(02|2)[/-](30|31)[/-]\d{4}\b',  # Feb 30/31
-            r'\b(04|4|06|6|09|9|11)[/-]31[/-]\d{4}\b',  # Apr/Jun/Sep/Nov 31
+            r"\b(02|2)[/-](30|31)[/-]\d{4}\b",  # Feb 30/31
+            r"\b(04|4|06|6|09|9|11)[/-]31[/-]\d{4}\b",  # Apr/Jun/Sep/Nov 31
         ]
-        
+
         for pattern in impossible_dates:
             if re.search(pattern, text):
-                alerts.append(ForgeryAlert(
-                    indicator=ForgeryIndicator.TIMELINE_IMPOSSIBILITY,
-                    severity="critical",
-                    description="Document contains an impossible date",
-                    evidence=f"Pattern matched: {pattern}",
-                ))
-        
+                alerts.append(
+                    ForgeryAlert(
+                        indicator=ForgeryIndicator.TIMELINE_IMPOSSIBILITY,
+                        severity="critical",
+                        description="Document contains an impossible date",
+                        evidence=f"Pattern matched: {pattern}",
+                    )
+                )
+
         return alerts
-    
+
     @classmethod
     def _check_suspicious_patterns(cls, text: str) -> list[ForgeryAlert]:
         """Check for suspicious text patterns indicating manipulation."""
         alerts = []
         text_lower = text.lower()
-        
+
         # Check for obviously altered amounts (crossed out, changed)
-        if re.search(r'\$\d+.*(?:crossed out|changed to|was \$)', text_lower):
-            alerts.append(ForgeryAlert(
-                indicator=ForgeryIndicator.TEXT_OVERLAY,
-                severity="high",
-                description="Document shows signs of amount alteration",
-            ))
-        
+        if re.search(r"\$\d+.*(?:crossed out|changed to|was \$)", text_lower):
+            alerts.append(
+                ForgeryAlert(
+                    indicator=ForgeryIndicator.TEXT_OVERLAY,
+                    severity="high",
+                    description="Document shows signs of amount alteration",
+                )
+            )
+
         # Check for inconsistent formatting (different fonts mentioned or visible)
         # In production, this would analyze actual font metadata
-        
+
         return alerts
 
 
 # Import timedelta for use in ForgeryDetector
-from datetime import timedelta
-from app.core.utc import utc_now
+from datetime import UTC, timedelta
 
+from app.core.utc import utc_now
 
 # =============================================================================
 # DOCUMENT REGISTRY
 # =============================================================================
 
+
 class DocumentRegistry:
     """
     Central registry for all documents with full tracking.
-    
+
     Features:
     - Unique document ID generation
     - Tamper-proof hashing
@@ -580,31 +585,31 @@ class DocumentRegistry:
     - Forgery detection
     - Complete audit trail
     """
-    
+
     _instance = None
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
-    
+
     def __init__(self, storage_dir: str = "data/registry"):
         if self._initialized:
             return
-        
+
         self.storage_dir = Path(storage_dir)
         self.storage_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # In-memory registries (in production, use database)
         self._documents: dict[str, RegisteredDocument] = {}
         self._hash_index: dict[str, str] = {}  # content_hash -> document_id
         self._case_index: dict[str, list[str]] = {}  # case_number -> document_ids
         self._user_index: dict[str, list[str]] = {}  # user_id -> document_ids
-        
+
         self._load_registry()
         self._initialized = True
-    
+
     def _load_registry(self):
         """Load registry from storage."""
         registry_file = self.storage_dir / "registry.json"
@@ -621,14 +626,14 @@ class DocumentRegistry:
                             doc_data["last_verified_at"] = datetime.fromisoformat(doc_data["last_verified_at"])
                         if doc_data.get("last_accessed_at"):
                             doc_data["last_accessed_at"] = datetime.fromisoformat(doc_data["last_accessed_at"])
-                        
+
                         # Reconstruct nested objects
                         doc_data["forgery_alerts"] = []
                         doc_data["custody_chain"] = []
                         doc_data["versions"] = []
-                        
+
                         self._documents[doc_id] = RegisteredDocument(**doc_data)
-                        
+
                         # Rebuild indexes
                         self._hash_index[doc_data["content_hash"]] = doc_id
                         if doc_data.get("case_number"):
@@ -638,30 +643,30 @@ class DocumentRegistry:
                         if doc_data["user_id"] not in self._user_index:
                             self._user_index[doc_data["user_id"]] = []
                         self._user_index[doc_data["user_id"]].append(doc_id)
-            except Exception:
-                pass
-    
+            except (json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+                logger.error("Failed to load document registry from disk: %s", exc)
+
     def _save_registry(self):
         """Save registry to storage."""
         registry_file = self.storage_dir / "registry.json"
         data = {doc_id: doc.to_dict() for doc_id, doc in self._documents.items()}
         with open(registry_file, "w") as f:
             json.dump(data, f, indent=2, default=str)
-    
+
     def register_document(
         self,
         user_id: str,
         content: bytes,
         filename: str,
         mime_type: str,
-        case_number: Optional[str] = None,
-        intake_document_id: Optional[str] = None,
-        ip_address: Optional[str] = None,
-        device_info: Optional[str] = None,
+        case_number: str | None = None,
+        intake_document_id: str | None = None,
+        ip_address: str | None = None,
+        device_info: str | None = None,
     ) -> RegisteredDocument:
         """
         Register a new document in the system.
-        
+
         Returns RegisteredDocument with:
         - Unique document ID
         - Tamper-proof hashes
@@ -671,25 +676,25 @@ class DocumentRegistry:
         """
         # Generate hashes
         content_hash = HashGenerator.content_hash(content)
-        
+
         # Check for duplicate
         is_duplicate = False
         original_doc_id = None
         status = DocumentStatus.ORIGINAL
-        
+
         if content_hash in self._hash_index:
             is_duplicate = True
             original_doc_id = self._hash_index[content_hash]
             status = DocumentStatus.COPY
-            
+
             # Update original's duplicate tracking
             if original_doc_id in self._documents:
                 original = self._documents[original_doc_id]
                 original.duplicate_count += 1
-        
+
         # Generate document ID
         doc_id = DocumentIDGenerator.generate()
-        
+
         # Build metadata for hashing
         metadata = {
             "document_id": doc_id,
@@ -698,12 +703,12 @@ class DocumentRegistry:
             "mime_type": mime_type,
             "user_id": user_id,
             "case_number": case_number,
-            "registered_at": utc_now().isoformat(),
+            "registered_at": datetime.now(UTC).isoformat(),
         }
-        
+
         metadata_hash = HashGenerator.metadata_hash(metadata)
         combined_hash = HashGenerator.combined_hash(content_hash, metadata_hash, doc_id)
-        
+
         # Run forgery detection
         existing_docs = list(self._documents.values())
         forgery_alerts, forgery_score = ForgeryDetector.analyze(
@@ -713,16 +718,16 @@ class DocumentRegistry:
             filename=filename,
             existing_docs=existing_docs,
         )
-        
+
         # Determine if review is required
         requires_review = forgery_score > 0.3 or len(forgery_alerts) > 0
-        
+
         # If significant forgery detected, quarantine
         if forgery_score > 0.7:
             status = DocumentStatus.QUARANTINED
         elif forgery_score > 0.4:
             status = DocumentStatus.FLAGGED
-        
+
         # Create registered document
         doc = RegisteredDocument(
             document_id=doc_id,
@@ -743,71 +748,77 @@ class DocumentRegistry:
             requires_review=requires_review,
             intake_document_id=intake_document_id,
         )
-        
+
         # Add initial custody record
-        doc.custody_chain.append(CustodyRecord(
-            timestamp=utc_now(),
-            action=CustodyAction.RECEIVED,
-            actor=user_id,
-            details=f"Document registered: {filename}",
-            ip_address=ip_address,
-            device_info=device_info,
-            integrity_hash=combined_hash,
-        ))
-        
+        doc.custody_chain.append(
+            CustodyRecord(
+                timestamp=datetime.now(UTC),
+                action=CustodyAction.RECEIVED,
+                actor=user_id,
+                details=f"Document registered: {filename}",
+                ip_address=ip_address,
+                device_info=device_info,
+                integrity_hash=combined_hash,
+            )
+        )
+
         # Add initial version
-        doc.versions.append(DocumentVersion(
-            version=1,
-            timestamp=utc_now(),
-            content_hash=content_hash,
-            changes="Initial registration",
-            changed_by=user_id,
-        ))
-        
+        doc.versions.append(
+            DocumentVersion(
+                version=1,
+                timestamp=datetime.now(UTC),
+                content_hash=content_hash,
+                changes="Initial registration",
+                changed_by=user_id,
+            )
+        )
+
         # Store
         self._documents[doc_id] = doc
         self._hash_index[content_hash] = doc_id
-        
+
         if case_number:
             if case_number not in self._case_index:
                 self._case_index[case_number] = []
             self._case_index[case_number].append(doc_id)
-        
+
         if user_id not in self._user_index:
             self._user_index[user_id] = []
         self._user_index[user_id].append(doc_id)
-        
+
         # Update original if this is a duplicate
         if is_duplicate and original_doc_id:
             original = self._documents.get(original_doc_id)
             if original:
                 original.duplicate_ids.append(doc_id)
-        
+
         self._save_registry()
-        
+
         return doc
-    
+
     def verify_integrity(self, doc_id: str, content: bytes) -> IntegrityStatus:
         """Verify document hasn't been tampered with."""
         doc = self._documents.get(doc_id)
         if not doc:
             return IntegrityStatus.UNVERIFIED
-        
+
         # Verify content hash
         current_hash = HashGenerator.content_hash(content)
-        
+
         if current_hash != doc.content_hash:
             doc.integrity_status = IntegrityStatus.TAMPERED
-            doc.custody_chain.append(CustodyRecord(
-                timestamp=utc_now(),
-                action=CustodyAction.INTEGRITY_CHECK,
-                actor="system",
-                details=f"TAMPER DETECTED: Content hash mismatch",
-                integrity_hash=current_hash,
-            ))
+            doc.custody_chain.append(
+                CustodyRecord(
+                    timestamp=datetime.now(UTC),
+                    action=CustodyAction.INTEGRITY_CHECK,
+                    actor="system",
+                    details="TAMPER DETECTED: Content hash mismatch",
+                    integrity_hash=current_hash,
+                )
+            )
             self._save_registry()
             return IntegrityStatus.TAMPERED
-        
+
         # Verify combined hash
         metadata = {
             "document_id": doc.document_id,
@@ -818,7 +829,7 @@ class DocumentRegistry:
             "case_number": doc.case_number,
             "registered_at": doc.registered_at.isoformat(),
         }
-        
+
         current_metadata_hash = HashGenerator.metadata_hash(metadata)
         if current_metadata_hash != doc.metadata_hash:
             doc.integrity_status = IntegrityStatus.METADATA_CHANGED
@@ -828,152 +839,157 @@ class DocumentRegistry:
         # Verify combined HMAC-based integrity hash
         if not HashGenerator.verify_integrity(content, metadata, doc.document_id, doc.combined_hash):
             doc.integrity_status = IntegrityStatus.CORRUPTED
-            doc.custody_chain.append(CustodyRecord(
-                timestamp=utc_now(),
-                action=CustodyAction.INTEGRITY_CHECK,
-                actor="system",
-                details="Integrity hash mismatch: Stored combined hash invalid",
-                integrity_hash=doc.combined_hash,
-            ))
+            doc.custody_chain.append(
+                CustodyRecord(
+                    timestamp=datetime.now(UTC),
+                    action=CustodyAction.INTEGRITY_CHECK,
+                    actor="system",
+                    details="Integrity hash mismatch: Stored combined hash invalid",
+                    integrity_hash=doc.combined_hash,
+                )
+            )
             self._save_registry()
             return IntegrityStatus.CORRUPTED
-        
+
         # All checks passed
         doc.integrity_status = IntegrityStatus.VERIFIED
-        doc.last_verified_at = utc_now()
-        doc.custody_chain.append(CustodyRecord(
-            timestamp=utc_now(),
-            action=CustodyAction.INTEGRITY_CHECK,
-            actor="system",
-            details="Integrity verified: All hashes match",
-            integrity_hash=doc.combined_hash,
-        ))
+        doc.last_verified_at = datetime.now(UTC)
+        doc.custody_chain.append(
+            CustodyRecord(
+                timestamp=datetime.now(UTC),
+                action=CustodyAction.INTEGRITY_CHECK,
+                actor="system",
+                details="Integrity verified: All hashes match",
+                integrity_hash=doc.combined_hash,
+            )
+        )
         self._save_registry()
-        
+
         return IntegrityStatus.VERIFIED
-    
-    def get_document(self, doc_id: str) -> Optional[RegisteredDocument]:
+
+    def get_document(self, doc_id: str) -> RegisteredDocument | None:
         """Get a document by ID."""
         doc = self._documents.get(doc_id)
         if doc:
-            doc.last_accessed_at = utc_now()
+            doc.last_accessed_at = datetime.now(UTC)
         return doc
-    
+
     def get_documents_by_case(self, case_number: str) -> list[RegisteredDocument]:
         """Get all documents for a case."""
         doc_ids = self._case_index.get(case_number, [])
         return [self._documents[did] for did in doc_ids if did in self._documents]
-    
+
     def get_documents_by_user(self, user_id: str) -> list[RegisteredDocument]:
         """Get all documents for a user."""
         doc_ids = self._user_index.get(user_id, [])
         return [self._documents[did] for did in doc_ids if did in self._documents]
-    
+
     def get_duplicates(self, doc_id: str) -> list[RegisteredDocument]:
         """Get all duplicates of a document."""
         doc = self._documents.get(doc_id)
         if not doc:
             return []
         return [self._documents[did] for did in doc.duplicate_ids if did in self._documents]
-    
+
     def get_flagged_documents(self) -> list[RegisteredDocument]:
         """Get all documents flagged for review."""
-        return [doc for doc in self._documents.values() if doc.requires_review]
-    
+        return [
+            doc
+            for doc in self._documents.values()
+            if doc.requires_review or doc.status in [DocumentStatus.FLAGGED, DocumentStatus.QUARANTINED]
+        ]
+
     def associate_case(self, doc_id: str, case_number: str, actor: str) -> bool:
         """Associate a document with a case number."""
         doc = self._documents.get(doc_id)
         if not doc:
             return False
-        
+
         old_case = doc.case_number
         doc.case_number = case_number
-        
+
         # Update indexes
         if old_case and old_case in self._case_index:
-            self._case_index[old_case] = [
-                did for did in self._case_index[old_case] if did != doc_id
-            ]
-        
+            self._case_index[old_case] = [did for did in self._case_index[old_case] if did != doc_id]
+
         if case_number not in self._case_index:
             self._case_index[case_number] = []
         self._case_index[case_number].append(doc_id)
-        
+
         # Record in custody chain
-        doc.custody_chain.append(CustodyRecord(
-            timestamp=utc_now(),
-            action=CustodyAction.MODIFIED,
-            actor=actor,
-            details=f"Case association changed: {old_case} -> {case_number}",
-        ))
-        
+        doc.custody_chain.append(
+            CustodyRecord(
+                timestamp=datetime.now(UTC),
+                action=CustodyAction.MODIFIED,
+                actor=actor,
+                details=f"Case association changed: {old_case} -> {case_number}",
+            )
+        )
+
         self._save_registry()
         return True
-    
+
     def flag_document(
-        self, 
-        doc_id: str, 
-        reason: str, 
-        actor: str,
-        indicator: ForgeryIndicator = ForgeryIndicator.NONE
+        self, doc_id: str, reason: str, actor: str, indicator: ForgeryIndicator = ForgeryIndicator.NONE
     ) -> bool:
         """Flag a document for review."""
         doc = self._documents.get(doc_id)
         if not doc:
             return False
-        
+
         doc.status = DocumentStatus.FLAGGED
         doc.requires_review = True
-        
+
         if indicator != ForgeryIndicator.NONE:
-            doc.forgery_alerts.append(ForgeryAlert(
-                indicator=indicator,
-                severity="high",
-                description=reason,
-            ))
-        
-        doc.custody_chain.append(CustodyRecord(
-            timestamp=utc_now(),
-            action=CustodyAction.FLAGGED,
-            actor=actor,
-            details=f"Flagged: {reason}",
-        ))
-        
+            doc.forgery_alerts.append(
+                ForgeryAlert(
+                    indicator=indicator,
+                    severity="high",
+                    description=reason,
+                )
+            )
+
+        doc.custody_chain.append(
+            CustodyRecord(
+                timestamp=datetime.now(UTC),
+                action=CustodyAction.FLAGGED,
+                actor=actor,
+                details=f"Flagged: {reason}",
+            )
+        )
+
         self._save_registry()
         return True
-    
+
     def record_access(
-        self, 
-        doc_id: str, 
-        actor: str, 
-        action: CustodyAction,
-        details: str = "",
-        ip_address: Optional[str] = None
+        self, doc_id: str, actor: str, action: CustodyAction, details: str = "", ip_address: str | None = None
     ):
         """Record document access in custody chain."""
         doc = self._documents.get(doc_id)
         if not doc:
             return
-        
-        doc.last_accessed_at = utc_now()
-        doc.custody_chain.append(CustodyRecord(
-            timestamp=utc_now(),
-            action=action,
-            actor=actor,
-            details=details,
-            ip_address=ip_address,
-            integrity_hash=doc.combined_hash,
-        ))
-        
+
+        doc.last_accessed_at = datetime.now(UTC)
+        doc.custody_chain.append(
+            CustodyRecord(
+                timestamp=datetime.now(UTC),
+                action=action,
+                actor=actor,
+                details=details,
+                ip_address=ip_address,
+                integrity_hash=doc.combined_hash,
+            )
+        )
+
         self._save_registry()
-    
+
     def get_custody_chain(self, doc_id: str) -> list[CustodyRecord]:
         """Get full custody chain for a document."""
         doc = self._documents.get(doc_id)
         if not doc:
             return []
         return doc.custody_chain
-    
+
     def get_statistics(self) -> dict:
         """Get registry statistics."""
         total = len(self._documents)
@@ -981,7 +997,7 @@ class DocumentRegistry:
         for doc in self._documents.values():
             status = doc.status.value
             statuses[status] = statuses.get(status, 0) + 1
-        
+
         return {
             "total_documents": total,
             "total_cases": len(self._case_index),
@@ -996,7 +1012,7 @@ class DocumentRegistry:
 # SINGLETON ACCESS
 # =============================================================================
 
-_registry_instance: Optional[DocumentRegistry] = None
+_registry_instance: DocumentRegistry | None = None
 
 
 def get_document_registry() -> DocumentRegistry:
