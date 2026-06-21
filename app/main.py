@@ -1541,9 +1541,12 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
     )
 
     # Root route â€” serve the welcome page. User clicks "Get Started" â†’ /preamble (routing logic).
-    @fastapi_app.get("/", response_class=HTMLResponse)
-    async def root_welcome():
+    @fastapi_app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
+    async def root_welcome(request: Request):
         """Serve the welcome page at /. Preamble is the routing decision, not the entry."""
+        # HEAD probes from uptime monitors (Render/Cloudflare/UptimeRobot) — return empty 200.
+        if request.method == "HEAD":
+            return Response(status_code=200)
         welcome_path = BASE_PATH / "static" / "public" / "welcome.html"
         if welcome_path.exists():
             return FileResponse(str(welcome_path))
