@@ -12,6 +12,89 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-21 PM2 — Phase 3 Dev System (Internal + External)
+**Status: Phase 3 core shipped. Dev Lab + External SDK + Idea Pipeline live.**
+
+### What Was Shipped
+
+#### New Modules ✅
+- `app/modules/_template/` — Internal dev module scaffold (Phase 3.4)
+  - `router.py`, `service.py`, `models.py`, `register.py`, `README.md`
+  - `tests/test_template.py` with unit test stubs
+  - Health check + CRUD endpoints skeleton
+- `app/modules/dev_lab/` — Dev Lab incubator hub (Phase 3.1a)
+  - `router.py` — 5 endpoints: list, get, status, promote, run_tests
+  - `ideas.py` — 5 endpoints: list, submit, get, promote, delete (Phase 3.1b/3.6)
+  - `maturity.py` — Maturity checklist for each lifecycle stage (Phase 3.3)
+  - `module_dev_lab.py` — Module registration helper
+  - 7 FunctionGroupContract registrations
+
+#### New External SDK ✅ (Phase 3.2a)
+- `app/sdk/external/` — Public SDK for third-party developers
+  - `permissions.py` — `Permission` enum (11 permissions), `PermissionSet`, `PermissionDeniedError`
+  - `context.py` — `ExternalModuleContext` immutable context object
+  - `vault_client.py` — Vault access (vault.read/write)
+  - `timeline_client.py` — Timeline event read/create
+  - `overlay_client.py` — Overlay system access
+  - `document_client.py` — Document read/upload
+  - `notification_client.py` — Send notifications
+- `app/sdk/external/_template/` — External module scaffold (Phase 3.5)
+  - `router.py`, `models.py`, `semptify.module.json`, `README.md`
+
+#### New Core Service ✅
+- `app/core/external_loader.py` — External module loader (Phase 3.2a)
+  - `ExternalModuleManifest` dataclass + `parse_manifest()`
+  - `compute_module_hash()` / `verify_module_hash()` — SHA-256 content verification
+  - `_ImportGuard` — Meta path finder blocking forbidden imports
+  - `load_external_module()` — Full load + verify + sandbox
+  - `list_external_modules()` — Discover external modules on disk
+  - `ExternalModuleSecurityError` / `ExternalModuleManifestError`
+
+#### New Admin UI ✅
+- `static/admin/dev_lab.html` — Dev Lab admin page
+  - 3 tabs: Modules / Ideas / External
+  - Modules tab: filterable table of dev_only/preview/experimental modules
+  - Module detail modal with maturity checklist + promote + run tests
+  - Ideas tab: submission form + ideas list + promote-to-module
+  - External tab: placeholder for external module listing
+
+#### Modified Files ✅
+- `app/core/product_manifest.py` — Registered dev_lab + dev_lab.ideas routers in DEV tier
+- `app/main.py` — Added `/admin/dev-lab.html` route (stealth admin guard)
+- `static/admin/dashboard.html` — Added Dev Lab links to sidebar + quick actions
+- `ROADMAP_TO_PUBLIC_RELEASE.md` — Marked Phase 3 sections complete
+- `BUILD_STATE.md` — This entry
+
+### Verification
+- All 21 new/modified Python files compile clean: `python -m py_compile`
+- All routers use stealth admin guard (404 to non-admins)
+- External SDK clients enforce permissions via `PermissionSet.require()`
+- External loader enforces import boundaries via `_ImportGuard` meta path finder
+- Content hash verification prevents tampered module loading
+- Idea submission uses parameterized SQL (no injection risk)
+- `dev_ideas` table created lazily via `ensure_ideas_schema()`
+
+### Architecture Notes
+- **Dev Lab** is the SSOT for dev module visibility — lists all dev_only/preview/experimental modules
+- **Maturity checklist** is data-driven in `maturity.py` — easy to extend
+- **External SDK** is the only sanctioned API surface for third-party code
+- **External loader** enforces least privilege via import guard + content hash + permission set
+- **Idea pipeline** stores ideas in `dev_ideas` table with origin field (internal/external)
+- **Promotion flow**: idea → scaffold → dev_only module → tests → promote via Dev Lab → Module Flag Overlay
+
+### Deferred
+- 3.1a `dev_sandbox/` — Isolated execution environment (DB schema prefix, resource limits)
+- 3.7 Marketplace — Browse/install/review external modules (post-release)
+- Public idea board — Users upvote ideas (future)
+- External module listing endpoint — Wire `list_external_modules()` to a route
+- Auto-scaffolding — Currently promote returns instructions, manual copy required
+
+### Pending
+- Render deploy of latest main
+- Phase 4+: see ROADMAP_TO_PUBLIC_RELEASE.md
+
+---
+
 ## Session — 2026-06-21 PM — Phase 2.4 Module Flag Overlay Admin UI
 **Status: Phase 2.4 complete. Admin UI for runtime module overrides shipped.**
 

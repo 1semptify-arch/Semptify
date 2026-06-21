@@ -173,28 +173,30 @@ INACTIVE modules remain commented out (plugins, components, auto_mode, litigatio
 
 ---
 
-## Phase 3 — Dev System for Internal + External Ideas (Week 2-3)
+## Phase 3 — Dev System for Internal + External Ideas (Week 2-3) ✅
 
 **Goal:** A structured workflow for developing new ideas — both **internal** (first-party) and **external** (third-party) — without breaking production. New ideas start as `dev_only`, progress through `experimental` → `beta` → `stable` as they mature.
 
+**Status:** Core Phase 3 shipped (3.1a, 3.1b, 3.2a-e, 3.3, 3.4, 3.5, 3.6). Deferred: 3.1a dev_sandbox (isolated execution env), 3.7 marketplace (post-release), public idea board (future).
+
 ### 3.1 Internal Ideas (First-Party, Built by Us)
 
-#### 3.1a Dev Tier Expansion — Incubator
+#### 3.1a Dev Tier Expansion — Incubator ✅
 
 Expand the DEV tier to be the **incubator** for new internal ideas:
-- [ ] **`app/modules/dev_lab/`** — Dev experiments hub
+- [x] **`app/modules/dev_lab/`** — Dev experiments hub
   - `/dev/lab` — List of all `dev_only` modules (internal + external)
   - `/dev/lab/{module}` — Sandbox page for a specific dev module
   - `/dev/lab/{module}/test` — Run module's test suite
   - `/dev/lab/{module}/status` — Show module's maturity checklist
   - `/dev/lab/{module}/promote` — Request promotion to next lifecycle stage
-- [ ] **`app/modules/dev_sandbox/`** — Isolated execution environment
+- [ ] **`app/modules/dev_sandbox/`** — Isolated execution environment (deferred)
   - Each dev module gets its own DB schema prefix (`dev_<module>_`)
   - Errors in dev modules don't affect production modules
   - Automatic cleanup of dev data after 24h
   - Resource limits: 50MB DB, 10MB RAM, 30s request timeout
 
-#### 3.1b Internal Idea Pipeline
+#### 3.1b Internal Idea Pipeline ✅
 
 Idea → Spec → Dev Module → Experimental → Beta → Stable
 
@@ -208,25 +210,25 @@ Idea → Spec → Dev Module → Experimental → Beta → Stable
 
 ### 3.2 External Ideas (Third-Party, Community-Built)
 
-#### 3.2a External Module Architecture
+#### 3.2a External Module Architecture ✅
 
 External modules let third parties extend Semptify without touching core:
 
-- [ ] **`app/modules/external/<vendor>/<name>/`** — External module storage
-- [ ] **`app/sdk/external/`** — Public SDK for external developers
+- [x] **`app/modules/external/<vendor>/<name>/`** — External module storage (convention)
+- [x] **`app/sdk/external/`** — Public SDK for external developers
   - `vault_client` — Vault access via SDK contract
   - `timeline_client` — Timeline event creation
   - `overlay_client` — Overlay system access
   - `document_client` — Document access (read-only by default)
   - `notification_client` — Send notifications to users
   - **No access** to: DB directly, Redis directly, other modules' internals, user PII
-- [ ] **`app/core/external_loader.py`** — External module loader
+- [x] **`app/core/external_loader.py`** — External module loader
   - Verifies module signature (content hash)
   - Loads module in sandboxed execution context
-  - Enforces permission boundaries
+  - Enforces permission boundaries via import guard
   - Reports permission violations to admin console
 
-#### 3.2b External Module Manifest
+#### 3.2b External Module Manifest ✅
 
 Each external module ships a `semptify.module.json` manifest:
 ```json
@@ -249,9 +251,9 @@ Each external module ships a `semptify.module.json` manifest:
 }
 ```
 
-#### 3.2c External Permission System
+#### 3.2c External Permission System ✅
 
-External modules run with **least privilege**. Permissions must be declared in manifest and approved by admin:
+External modules run with **least privilege**. Permissions validated via `PermissionSet` in `app/sdk/external/permissions.py`.
 
 | Permission | Description |
 |------------|-------------|
@@ -275,62 +277,44 @@ External modules run with **least privilege**. Permissions must be declared in m
 - Network calls to non-declared domains
 - File system access outside sandbox
 
-#### 3.2d External Module Lifecycle
+#### 3.2d External Module Lifecycle ✅
 
-1. **Submitted** — Developer submits module via `/dev/external/submit`
+1. **Submitted** — Developer submits module (convention: place under `app/modules/external/<vendor>/<name>/`)
 2. **Reviewed** — Admin reviews manifest, permissions, code
 3. **Sandboxed** — Module runs in `dev_only` mode, admin only
-4. **Tested** — Admin runs module's test suite, verifies permissions
-5. **Approved** — Module promoted to `experimental`, visible to admin + opt-in users
-6. **Beta** — Module promoted to `beta`, visible to users with `beta_dashboard` flag
+4. **Tested** — Admin runs module's test suite via `/dev/lab/{module}/test`, verifies permissions
+5. **Approved** — Module promoted to `experimental` via `/dev/lab/{module}/promote`, visible to admin + opt-in users
+6. **Beta** — Module promoted to `beta` via Module Flag Overlay, visible to users with `beta_dashboard` flag
 7. **Stable** — Module promoted to `stable`, visible to all applicable roles
 8. **Revoked** — Admin can revoke at any time (signature mismatch, permission violation, user reports)
 
-### 3.3 Module Maturity Checklist (Internal + External)
+### 3.3 Module Maturity Checklist (Internal + External) ✅
 
-Each module must pass this checklist to progress from `dev_only` → `experimental` → `beta` → `stable`:
+Implemented in `app/modules/dev_lab/maturity.py`. Each stage has explicit requirements — `/dev/lab/{module}/status` endpoint reports progress.
 
-- [ ] **dev_only** — Just code, no tests, no docs. Admin-only visibility.
-- [ ] **experimental** — Has unit tests, has basic docs, works in isolation. Admin + opt-in.
-- [ ] **beta** — Has integration tests, has user docs, works with other modules, registered in `FunctionGroupContract`. Admin + beta-flag users.
-- [ ] **stable** — Has E2E tests, has admin docs, used by real users, monitored for errors. All applicable roles.
+- dev_only — Just code, no tests, no docs. Admin-only visibility.
+- experimental — Has unit tests, has basic docs, works in isolation. Admin + opt-in.
+- beta — Has integration tests, has user docs, works with other modules, registered in `FunctionGroupContract`. Admin + beta-flag users.
+- stable — Has E2E tests, has admin docs, used by real users, monitored for errors. All applicable roles.
 
-### 3.4 Dev Module Template (Internal)
+### 3.4 Dev Module Template (Internal) ✅
 
-Create `app/modules/_template/` as a starting point for new internal ideas:
-- `router.py` — Skeleton with health check + CRUD endpoints
-- `__init__.py` — Exports
-- `models.py` — Pydantic models
-- `service.py` — Business logic
-- `tests/` — Unit + integration test stubs
-- `README.md` — Module description, maturity checklist
-- `register.py` — `register_module()` function
+`app/modules/_template/` created with `router.py`, `__init__.py`, `models.py`, `service.py`, `tests/test_template.py`, `README.md`, `register.py`.
 
-### 3.5 External Module Template (External)
+### 3.5 External Module Template (External) ✅
 
-Create `app/sdk/external/_template/` as a starting point for external developers:
-- `router.py` — Skeleton using only `app.sdk.*` imports
-- `semptify.module.json` — Manifest template
-- `models.py` — Pydantic models (no DB models)
-- `tests/` — Test stubs
-- `README.md` — Developer guide, permission reference
-- `examples/` — Example integrations
+`app/sdk/external/_template/` created with `router.py`, `semptify.module.json`, `models.py`, `README.md` (developer guide + permission reference).
 
-### 3.6 Idea Submission Workflow (Internal + External)
+### 3.6 Idea Submission Workflow (Internal + External) ✅
 
-- [ ] **`/dev/ideas`** — Page where anyone can submit a new idea
-- [ ] **Idea form fields:**
-  - Name, description, target role, target tier
-  - Internal or external
-  - Dependencies (which SDK clients, which modules)
-  - Success criteria
-  - Mockups/screenshots (optional)
-- [ ] **Idea stored in `dev_ideas` table** with `origin` field (`internal` or `external`)
-- [ ] **Admin can promote idea:**
-  - Internal → scaffold from `_template/`, assign developer
-  - External → generate SDK template package for developer
-- [ ] **Module starts at `dev_only` lifecycle**
-- [ ] **Progress tracked through maturity checklist**
+- [x] **`/dev/lab/ideas`** — POST endpoint to submit a new idea (admin-only via stealth guard)
+- [x] **Idea form fields:** name, description, target role, target tier, origin, dependencies, success criteria, submitted_by
+- [x] **Idea stored in `dev_ideas` table** with `origin` field (`internal` or `external`)
+- [x] **Admin can promote idea:** POST `/dev/lab/ideas/{id}/promote`
+  - Internal → scaffold from `_template/` (manual step, instructions returned)
+  - External → generate SDK template package (manual step, instructions returned)
+- [x] **Module starts at `dev_only` lifecycle** (set via Module Flag Overlay)
+- [x] **Progress tracked through maturity checklist** — `/dev/lab/{module}/status`
 - [ ] **Public idea board** — Users can upvote ideas they want (future)
 
 ### 3.7 External Marketplace (Future, Post-Release)
