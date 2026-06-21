@@ -114,6 +114,27 @@ class ModuleEntry:
         optional: If True, import failure is logged and skipped. If False, app startup fails.
         tier: Which product tier this module belongs to
         log_message: Optional message logged on successful registration
+
+        --- Module Flag Overlay (Phase 2.1) ---
+        lifecycle: Maturity stage. One of:
+            "stable"        — production-ready, all roles per requires_role
+            "beta"          — admin + users with beta_dashboard flag
+            "experimental"  — admin + users with experimental_ui flag
+            "dev_only"      — admin only, in active development
+            "preview"       — admin only, not for active use (demo/placeholder)
+            "internal"      — first-party, trusted (alias for stable + origin=internal)
+        origin: "internal" (first-party) or "external" (third-party, sandboxed)
+        requires_role: Tuple of roles allowed to use this module (empty = all roles)
+        requires_jurisdiction: Tuple of jurisdictions (e.g. ("MN",)) (empty = all)
+        requires_gate: Gate that must be set before module is usable (e.g. "vault_initialized")
+        feature_flag: Optional Feature enum value that gates this module at runtime
+        dev_notes: Developer notes for unfinished work, stubs, or pending decisions
+
+        --- External Module Fields (ignored for internal modules) ---
+        external_repo: Git URL for external module source
+        external_version: Pinned version string
+        external_signature: Content hash (sha256:...) for integrity verification
+        external_sandbox: If True, run in isolated sandbox with restricted permissions
     """
 
     module_path: str
@@ -124,11 +145,45 @@ class ModuleEntry:
     tier: ProductTier = ProductTier.CORE
     log_message: str = ""
 
+    # Module Flag Overlay (Phase 2.1)
+    lifecycle: str = "stable"
+    origin: str = "internal"
+    requires_role: tuple[str, ...] = ()
+    requires_jurisdiction: tuple[str, ...] = ()
+    requires_gate: str = ""
+    feature_flag: str = ""
+    dev_notes: str = ""
+
+    # External module fields (ignored for internal)
+    external_repo: str = ""
+    external_version: str = ""
+    external_signature: str = ""
+    external_sandbox: bool = True
+
     def __post_init__(self) -> None:
         # Tags must be non-empty for OpenAPI discoverability
         if not self.tags:
             object.__setattr__(
                 self, "tags", (self._default_tag(),)
+            )
+        # Validate lifecycle against allowed values
+        allowed_lifecycles = ("stable", "beta", "experimental", "dev_only", "preview", "internal")
+        if self.lifecycle not in allowed_lifecycles:
+            raise ValueError(
+                f"ModuleEntry {self.module_path}: lifecycle '{self.lifecycle}' "
+                f"is invalid. Must be one of {allowed_lifecycles}"
+            )
+        # Validate origin
+        if self.origin not in ("internal", "external"):
+            raise ValueError(
+                f"ModuleEntry {self.module_path}: origin '{self.origin}' "
+                f"is invalid. Must be 'internal' or 'external'"
+            )
+        # External modules must have external_repo
+        if self.origin == "external" and not self.external_repo:
+            raise ValueError(
+                f"ModuleEntry {self.module_path}: origin='external' requires "
+                f"external_repo to be set"
             )
 
     def _default_tag(self) -> str:
@@ -141,6 +196,36 @@ class ModuleEntry:
     def qualified_name(self) -> str:
         """Fully-qualified reference for debugging."""
         return f"{self.module_path}:{self.router_attr}"
+
+    @property
+    def is_external(self) -> bool:
+        """True if this is a third-party module requiring sandboxed execution."""
+        return self.origin == "external"
+
+    @property
+    def is_dev_only(self) -> bool:
+        """True if this module is in active development and admin-only."""
+        return self.lifecycle == "dev_only"
+
+    @property
+    def is_preview(self) -> bool:
+        """True if this module is a placeholder/demo not for active use."""
+        return self.lifecycle == "preview"
+
+    @property
+    def visibility_label(self) -> str:
+        """Human-readable visibility for admin UI."""
+        if self.lifecycle == "dev_only":
+            return "Admin only (in development)"
+        if self.lifecycle == "preview":
+            return "Admin only (preview/placeholder)"
+        if self.lifecycle == "experimental":
+            return "Admin + experimental_ui flag"
+        if self.lifecycle == "beta":
+            return "Admin + beta_dashboard flag"
+        if self.lifecycle in ("stable", "internal"):
+            return "All roles per requires_role"
+        return self.lifecycle
 
 
 # =============================================================================
@@ -165,6 +250,34 @@ class _ManifestRegistry:
         tier_set = set(tiers)
         return [e for e in self._entries if e.tier in tier_set]
 
+    def by_lifecycle(self, *lifecycles: str) -> list[ModuleEntry]:
+        """Return entries matching the requested lifecycle stages."""
+        lc_set = set(lifecycles)
+        return [e for e in self._entries if e.lifecycle in lc_set]
+
+    def by_origin(self, origin: str) -> list[ModuleEntry]:
+        """Return entries matching the requested origin ('internal' or 'external')."""
+        return [e for e in self._entries if e.origin == origin]
+
+    def external(self) -> list[ModuleEntry]:
+        """Return all external (third-party) entries."""
+        return [e for e in self._entries if e.origin == "external"]
+
+    def dev_only(self) -> list[ModuleEntry]:
+        """Return all dev_only entries (admin-only, in active development)."""
+        return [e for e in self._entries if e.lifecycle == "dev_only"]
+
+    def preview(self) -> list[ModuleEntry]:
+        """Return all preview entries (admin-only, placeholder/demo)."""
+        return [e for e in self._entries if e.lifecycle == "preview"]
+
+    def find(self, module_path: str) -> ModuleEntry | None:
+        """Find an entry by module_path. Returns None if not found."""
+        for e in self._entries:
+            if e.module_path == module_path:
+                return e
+        return None
+
     def all(self) -> list[ModuleEntry]:
         return list(self._entries)
 
@@ -183,6 +296,22 @@ class _ManifestRegistry:
             "valid": len(duplicates) == 0,
         }
 
+    def summary(self) -> dict:
+        """Return a summary dict of the manifest for admin UI / diagnostics."""
+        by_tier_count: dict[str, int] = {}
+        by_lifecycle_count: dict[str, int] = {}
+        by_origin_count: dict[str, int] = {}
+        for e in self._entries:
+            by_tier_count[e.tier.value] = by_tier_count.get(e.tier.value, 0) + 1
+            by_lifecycle_count[e.lifecycle] = by_lifecycle_count.get(e.lifecycle, 0) + 1
+            by_origin_count[e.origin] = by_origin_count.get(e.origin, 0) + 1
+        return {
+            "total": len(self._entries),
+            "by_tier": by_tier_count,
+            "by_lifecycle": by_lifecycle_count,
+            "by_origin": by_origin_count,
+        }
+
 
 # =============================================================================
 # Global Manifest Instance
@@ -199,8 +328,26 @@ def _register(
     optional: bool = True,
     tier: ProductTier = ProductTier.CORE,
     log_message: str = "",
+    # Module Flag Overlay (Phase 2.1)
+    lifecycle: str = "stable",
+    origin: str = "internal",
+    requires_role: tuple[str, ...] = (),
+    requires_jurisdiction: tuple[str, ...] = (),
+    requires_gate: str = "",
+    feature_flag: str = "",
+    dev_notes: str = "",
+    # External module fields
+    external_repo: str = "",
+    external_version: str = "",
+    external_signature: str = "",
+    external_sandbox: bool = True,
 ) -> ModuleEntry:
-    """Convenience helper to create and register a ModuleEntry in one call."""
+    """Convenience helper to create and register a ModuleEntry in one call.
+
+    Accepts all Module Flag Overlay fields (Phase 2.1) in addition to the
+    original registration fields. Existing callers do not need to change —
+    new fields default to safe values (lifecycle='stable', origin='internal').
+    """
     entry = ModuleEntry(
         module_path=module_path,
         router_attr=router_attr,
@@ -209,6 +356,17 @@ def _register(
         optional=optional,
         tier=tier,
         log_message=log_message,
+        lifecycle=lifecycle,
+        origin=origin,
+        requires_role=requires_role,
+        requires_jurisdiction=requires_jurisdiction,
+        requires_gate=requires_gate,
+        feature_flag=feature_flag,
+        dev_notes=dev_notes,
+        external_repo=external_repo,
+        external_version=external_version,
+        external_signature=external_signature,
+        external_sandbox=external_sandbox,
     )
     MANIFEST.add(entry)
     return entry
@@ -248,7 +406,8 @@ _register("app.modules.workflow.router", tags=("Workflow",), tier=ProductTier.CO
 _register("app.modules.workflow_validator.router", tags=("Admin",), tier=ProductTier.CORE)
 
 # Rights & education
-_register("app.modules.state_laws.router", tags=("State Laws",), tier=ProductTier.CORE)
+_register("app.modules.state_laws.router", tags=("State Laws",), tier=ProductTier.CORE,
+          lifecycle="beta", dev_notes="Only MN complete. Need NY, CA, TX, FL, IL data.")
 _register("app.modules.law_library.router", tags=("Law Library",), tier=ProductTier.CORE)
 _register("app.modules.law_library.router", router_attr="page_router", tags=("Law Library",), tier=ProductTier.CORE,
           log_message="Law Library page route active at /law-library")
@@ -281,6 +440,8 @@ _register("app.modules.security.router", prefix="/api/security", tags=("Advanced
 
 # MNDES — Court Exhibit System (MN Supreme Court Order ADM09-8010 compliance)
 _register("app.modules.mndes.router", tags=("MNDES",), optional=False, tier=ProductTier.CORE,
+          lifecycle="beta",
+          dev_notes="3 NotImplementedError pending external MN Supreme Court API. Contact EAST team.",
           log_message="MNDES router loaded — Court Exhibit System active")
 
 
@@ -321,9 +482,11 @@ _register("app.modules.tools_api.router", tags=("Tools",), tier=ProductTier.EXTE
 _register("app.modules.complaints.router", tags=("Complaint Wizard",), tier=ProductTier.EXTENDED,
           log_message="Complaint Filing Wizard loaded - Regulatory accountability tools active")
 _register("app.modules.housing_accountability.router", router_attr="accountability_router",
-          tags=("Housing Accountability",), tier=ProductTier.EXTENDED)
+          tags=("Housing Accountability",), tier=ProductTier.EXTENDED,
+          lifecycle="beta", dev_notes="detect_repeated_fees() at router.py:83 is a stub.")
 _register("app.modules.housing_accountability.pattern_history", router_attr="pattern_history_router",
-          tags=("Pattern History",), tier=ProductTier.EXTENDED)
+          tags=("Pattern History",), tier=ProductTier.EXTENDED,
+          lifecycle="beta", dev_notes="Depends on housing_accountability pattern matching.")
 
 # Role management
 _register("app.modules.role_upgrade.router", tags=("Role Management",), tier=ProductTier.EXTENDED)
@@ -376,13 +539,23 @@ _register("app.modules.cloud_sync.router", tags=("Cloud Sync",), tier=ProductTie
 
 # AI infrastructure
 _register("app.modules.brain.router", prefix="/brain", tags=("Positronic Brain",), tier=ProductTier.RESEARCH,
+          lifecycle="experimental", feature_flag="experimental_ai_model",
+          dev_notes="Heavy service. Memory-optimized load. Guarded by ENABLE_HEAVY_SERVICES.",
           log_message="Positronic Brain connected - Central intelligence hub active")
 # _register("app.modules.auto_mode.router", tags=("Auto Mode",), tier=ProductTier.RESEARCH)  # INACTIVE: Not production-ready
-_register("app.modules.emotion.router", tags=("Emotion Engine",), tier=ProductTier.RESEARCH)
-_register("app.modules.positronic_mesh.router", prefix="/api", tags=("Positronic Mesh",), tier=ProductTier.RESEARCH)
-_register("app.modules.mesh_network.router", prefix="/api", tags=("Mesh Network",), tier=ProductTier.RESEARCH)
-_register("app.modules.module_hub.router", prefix="/api", tags=("Module Hub",), tier=ProductTier.RESEARCH)
-_register("app.modules.functionx.router", tags=("FunctionX",), tier=ProductTier.RESEARCH)
+# Tagged as preview in roadmap — not registered until production-ready
+_register("app.modules.emotion.router", tags=("Emotion Engine",), tier=ProductTier.RESEARCH,
+          lifecycle="experimental")
+_register("app.modules.positronic_mesh.router", prefix="/api", tags=("Positronic Mesh",), tier=ProductTier.RESEARCH,
+          lifecycle="experimental", feature_flag="experimental_ai_model",
+          dev_notes="Heavy service. Guarded by ENABLE_HEAVY_SERVICES.")
+_register("app.modules.mesh_network.router", prefix="/api", tags=("Mesh Network",), tier=ProductTier.RESEARCH,
+          lifecycle="experimental", feature_flag="beta_mesh_network")
+_register("app.modules.module_hub.router", prefix="/api", tags=("Module Hub",), tier=ProductTier.RESEARCH,
+          lifecycle="experimental", feature_flag="experimental_ui",
+          dev_notes="Heavy service. Memory-optimized load.")
+_register("app.modules.functionx.router", tags=("FunctionX",), tier=ProductTier.RESEARCH,
+          lifecycle="dev_only", dev_notes="FunctionX concept — not yet defined.")
 
 # Funding / location
 _register("app.modules.funding_search.router", tags=("Funding & Tax Credit Search",), tier=ProductTier.RESEARCH)

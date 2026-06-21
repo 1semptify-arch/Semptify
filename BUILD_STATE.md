@@ -12,6 +12,75 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-21 AM — Module Flag Overlay System (Phase 2.1-2.3 + 2.5)
+**Status: Module Flag Overlay system built. 92 modules tagged with lifecycle/origin. Resolver + middleware integrated.**
+
+### What Was Shipped
+
+#### Phase 2.1 — Extended `ModuleEntry` with Flag Overlay ✅
+- `app/core/product_manifest.py:105-228`: `ModuleEntry` dataclass extended with 11 new fields:
+  - `lifecycle` (stable|beta|experimental|dev_only|preview|internal)
+  - `origin` (internal|external)
+  - `requires_role`, `requires_jurisdiction`, `requires_gate`
+  - `feature_flag`, `dev_notes`
+  - `external_repo`, `external_version`, `external_signature`, `external_sandbox`
+- Validation in `__post_init__` enforces allowed values
+- Helper properties: `is_external`, `is_dev_only`, `is_preview`, `visibility_label`
+- `_register()` helper accepts all new fields (backward-compatible — existing callers unaffected)
+- `_ManifestRegistry` extended with: `by_lifecycle()`, `by_origin()`, `external()`, `dev_only()`, `preview()`, `find()`, `summary()`
+
+#### Phase 2.5 — Tagged 92 Existing Modules ✅
+- 82 stable, 4 beta, 5 experimental, 1 dev_only
+- Beta: `state_laws` (only MN), `mndes` (3 NotImplementedError), `housing_accountability` (2 routers)
+- Experimental: `brain`, `emotion`, `positronic_mesh`, `mesh_network`, `module_hub` (heavy AI, feature-flagged)
+- Dev_only: `functionx` (concept not defined)
+- All tagged with `dev_notes` explaining what's pending
+
+#### Phase 2.2 — Built `module_resolver.py` ✅
+- New file: `app/core/module_resolver.py` (260 lines)
+- `resolve_modules(role, jurisdiction, gates, device)` — pure resolution
+- `resolve_modules_for_user(user_id, ...)` — Redis-cached (5 min TTL)
+- `is_module_allowed(module_path, ...)` — fast path for middleware
+- `invalidate_user_cache(user_id)`, `invalidate_all_caches()` — cache invalidation
+- `get_user_module_summary(role, ...)` — admin UI / debugging
+- Resolution order: lifecycle → role → jurisdiction → gate → feature_flag
+- Fails open if Redis unavailable
+
+#### Phase 2.3 — Integrated `ModuleGateMiddleware` ✅
+- `app/core/module_gate.py`:
+  - `ModuleAccess` extended with `resolved_module_paths: Set[str]`
+  - New method: `can_use_module_path(module_path)` — checks against resolver
+  - `dispatch()` now calls `resolve_modules()` and populates `resolved_module_paths`
+  - Extracts gates from `request.state.onboarding_state`
+  - Fails open on resolver error (legacy behavior preserved)
+  - `get_module_access()` fallback populates from MANIFEST
+
+### Verification
+- All 3 files compile clean: `python -m py_compile`
+- End-to-end test passed:
+  - Tenant in MN with both gates: sees 87 modules (vault ✓, functionx ✗, brain ✗)
+  - Admin with no gates: sees 88 modules (functionx ✓)
+- Backward compatibility preserved — existing callers of `_register()` work unchanged
+
+### Known Working
+- Module Flag Overlay fields accepted by all 92 existing `_register()` calls
+- Resolver correctly filters by lifecycle (dev_only admin-only)
+- Resolver correctly filters by feature_flag (experimental_ai_model, beta_mesh_network, experimental_ui)
+- Middleware fails open on resolver error
+
+### Pending
+- Phase 2.4: Admin UI for module flags (`/admin/module-flags`)
+- Phase 3: Dev system for internal + external ideas (dev_lab, dev_sandbox, external SDK, marketplace)
+- Phase 4: Role development completion (MANAGER, LEGAL, JUDGE stubs)
+- Deploy `1339b59` on Render (admin redirect loop fix) — still pending from prior session
+
+### Next Session Should Start With
+- Deploy `1339b59` on Render and verify admin dashboard
+- Begin Phase 3.1a: `app/modules/dev_lab/` incubator
+- OR begin Phase 2.4: Admin UI for module flags
+
+---
+
 ## Session — 2026-06-20 AM2 — Cloudflare Cache Rules + Fix-It Log Marker + Admin Redirect Loop Fix
 **Status: Cloudflare caching fully resolved. Fix-It button errors now visible in preflight. Admin dashboard redirect loop fixed.**
 
@@ -41,13 +110,12 @@ their legal rights—not tenants breaking the law.
 
 ### Known Broken / Pending
 - Admin redirect loop fix (`1339b59`) needs Render deploy + user must re-login to get new cookie
-- Rate limit (1000/hour) still too low for admin dashboard — 7 API calls per page load. Pending fix.
 - Cloudflare Speculation-Rules header may still cause page flickering (Cloudflare-side feature, not ours)
+- Note: The 429 rate-limit errors previously observed were a *symptom* of the redirect loop (each cycle hit 10+ endpoints every second), not a separate rate-limit problem. The loop fix in `1339b59` resolves both. Default 1000/hour is adequate for normal use.
 
 ### Next Session Should Start With
 - Deploy `1339b59` on Render and verify admin dashboard no longer loops
 - User must log out of admin and back in to get new cookie scoped to `/`
-- Consider raising rate limit default from 1000/hour to 5000/hour
 
 ---
 
