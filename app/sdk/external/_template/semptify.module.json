@@ -1,0 +1,17 @@
+{
+  "name": "example-external-module",
+  "vendor": "example-vendor",
+  "version": "0.1.0",
+  "description": "Example external module template — replace with your module",
+  "lifecycle": "dev_only",
+  "requires_role": ["tenant", "advocate"],
+  "requires_jurisdiction": [],
+  "requires_gate": "vault_initialized",
+  "permissions": ["vault.read", "timeline.write"],
+  "dependencies": ["app.sdk.external", "app.sdk.vault"],
+  "entry_point": "router.py:router",
+  "content_hash": "sha256:REPLACE_WITH_ACTUAL_HASH",
+  "homepage": "https://github.com/example-vendor/example-external-module",
+  "support": "support@example-vendor.org",
+  "license": "MIT"
+}

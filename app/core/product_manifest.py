@@ -587,6 +587,14 @@ _register("app.modules.page_index.router", tags=("Page Index",), tier=ProductTie
 _register("app.modules.page_editor.router", tags=("Page Editor",), tier=ProductTier.DEV,
           log_message="Page Editor router connected - Interactive editor for static & Jinja2 templates")
 _register("app.modules.development.router", tags=("Development Tools",), tier=ProductTier.DEV)
+_register("app.modules.dev_lab.router", prefix="/dev/lab", tags=("Dev Lab",), tier=ProductTier.DEV,
+          lifecycle="dev_only", requires_role=("admin",),
+          dev_notes="Phase 3.1a — Incubator hub for dev modules. Lists dev_only modules, runs tests, promotes lifecycle stages.",
+          log_message="Dev Lab router active — /dev/lab (admin-only)")
+_register("app.modules.dev_lab.ideas", prefix="/dev/lab/ideas", tags=("Dev Ideas",), tier=ProductTier.DEV,
+          lifecycle="dev_only", requires_role=("admin",),
+          dev_notes="Phase 3.1b/3.6 — Idea submission pipeline. Submit/list/promote ideas to dev modules.",
+          log_message="Dev Ideas router active — /dev/lab/ideas (admin-only)")
 _register("app.modules.filedored.router", tags=("Filedored",), tier=ProductTier.DEV,
           log_message="Filedored router connected - Virtual document organization active")
 _register("app.modules.data_freshness.router", tags=("Data Freshness",), tier=ProductTier.DEV,
