@@ -15,24 +15,24 @@ All imports remain absolute since storage is a CORE module that depends
 on shared infrastructure (database, security, navigation, user_id, etc.).
 """
 
-from datetime import datetime, timedelta
-import logging
-
-from app.core.utc import utc_now
-from typing import Optional
-import secrets
 import hashlib
 import json
+import logging
+import secrets
+from datetime import UTC, datetime, timedelta
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, HTTPException, Query, Request, Response, Cookie, Depends
-from fastapi.responses import RedirectResponse, HTMLResponse
-from pydantic import BaseModel
 import httpx
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Query, Request, Response
+from fastapi.responses import HTMLResponse, RedirectResponse
+from pydantic import BaseModel
+
+from app.core.utc import utc_now
 
 try:
-    from sqlalchemy.ext.asyncio import AsyncSession
     from sqlalchemy import select
+    from sqlalchemy.ext.asyncio import AsyncSession
+
     SQLALCHEMY_AVAILABLE = True
 except ImportError:
     AsyncSession = object
@@ -40,33 +40,31 @@ except ImportError:
     SQLALCHEMY_AVAILABLE = False
 
 from app.core.config import get_settings
-from app.core.database import get_db
-from app.core.storage_middleware import is_valid_storage_user
-from app.core.workflow_engine import route_user as _route_user
-from app.core.user_id import (
-    generate_user_id,
-    parse_user_id,
-    update_user_id_role,
-    get_provider_from_user_id,
-    get_role_from_user_id,
-    COOKIE_USER_ID,
-    COOKIE_MAX_AGE,
-)
-from app.core.stateless_oauth import StatelessOAuthManager
-from app.core.navigation import navigation
-from app.core.ssot_guard import ssot_redirect
 from app.core.cookie_auth import set_auth_cookie
+from app.core.database import get_db
+from app.core.navigation import navigation
 from app.core.security import (
+    invalidate_function_access_tokens,
     issue_function_access_token,
     verify_function_access_token,
-    invalidate_function_access_tokens,
 )
-
-from app.models.models import User, Session as SessionModel, StorageConfig, OAuthState
-
+from app.core.ssot_guard import ssot_redirect
+from app.core.stateless_oauth import StatelessOAuthManager
+from app.core.storage_middleware import is_valid_storage_user
+from app.core.user_id import (
+    COOKIE_USER_ID,
+    generate_user_id,
+    get_provider_from_user_id,
+    get_role_from_user_id,
+    parse_user_id,
+    update_user_id_role,
+)
+from app.core.workflow_engine import route_user as _route_user
+from app.models.models import OAuthState, Session as SessionModel, StorageConfig, User
 
 router = APIRouter(prefix="/storage", tags=["storage"])
 logger = logging.getLogger(__name__)
+
 
 def _get_settings():
     """Lazy settings getter to avoid import-time validation issues."""
@@ -109,65 +107,66 @@ ALLOWED_ROLES = {"user", "tenant", "manager", "advocate", "legal", "judge", "adm
 # Session Status Endpoint - For Returning User Auto-Reconnect (SSOT)
 # ============================================================================
 
+
 class SessionStatusResponse(BaseModel):
     """Session status for returning user auto-reconnect flow."""
+
     has_session: bool
     is_valid: bool
-    user_id: Optional[str] = None
-    role: Optional[str] = None
-    provider: Optional[str] = None
+    user_id: str | None = None
+    role: str | None = None
+    provider: str | None = None
     has_storage: bool = False
 
 
 @router.get("/session/status", response_model=SessionStatusResponse)
 async def get_session_status(
     request: Request,
-    semptify_session: Optional[str] = Cookie(None),
+    semptify_session: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
 ) -> SessionStatusResponse:
     """
     Check session status for returning users.
-    
+
     Returns role and provider from existing session cookie so frontend
     can auto-redirect to OAuth without asking user to choose provider again.
     """
     # No session cookie present
     if not semptify_session:
         return SessionStatusResponse(has_session=False, is_valid=False)
-    
+
     # Validate session token and get user info
     try:
         from app.core.security import verify_session_token
+
         session_data = await verify_session_token(semptify_session, db)
-        
+
         if not session_data or not session_data.get("user_id"):
             return SessionStatusResponse(has_session=True, is_valid=False)
-        
+
         user_id = session_data["user_id"]
-        
+
         # Check if user ID is valid format
         if not is_valid_storage_user(user_id):
             return SessionStatusResponse(has_session=True, is_valid=False, user_id=user_id)
-        
+
         # CRITICAL: Verify session actually exists in database and has valid token
         session = await get_session_from_db(db, user_id)
         if not session or not session.get("access_token"):
             return SessionStatusResponse(has_session=True, is_valid=False, user_id=user_id)
-        
+
         # Check if user has storage configured in database
-        storage_config = await db.execute(
-            select(StorageConfig).where(StorageConfig.user_id == user_id)
-        )
+        storage_config = await db.execute(select(StorageConfig).where(StorageConfig.user_id == user_id))
         has_storage = storage_config.scalar_one_or_none() is not None
-        
+
         # Only report valid session if user actually has storage configured
         if not has_storage:
             return SessionStatusResponse(has_session=True, is_valid=False, user_id=user_id)
-        
+
         # Extract role and provider from user ID
         role = get_role_from_user_id(user_id)
         provider = get_provider_from_user_id(user_id)
-        
+
         return SessionStatusResponse(
             has_session=True,
             is_valid=True,
@@ -176,7 +175,7 @@ async def get_session_status(
             provider=provider,
             has_storage=has_storage,
         )
-        
+
     except Exception as e:
         logger.warning(f"Session status check failed: {e}")
         return SessionStatusResponse(has_session=True, is_valid=False)
@@ -188,12 +187,12 @@ async def get_session_status(
 SESSIONS: dict[str, dict] = {}
 OAUTH_STATES: dict[str, dict] = {}
 
+
 async def _cleanup_expired_states(db: AsyncSession) -> None:
     """Remove expired OAuth states from the database."""
     from sqlalchemy import delete as sa_delete
-    result = await db.execute(
-        sa_delete(OAuthState).where(OAuthState.expires_at < utc_now())
-    )
+
+    result = await db.execute(sa_delete(OAuthState).where(OAuthState.expires_at < utc_now()))
     if result.rowcount:
         logger.info(f"🧹 Cleaned up {result.rowcount} expired OAuth states")
 
@@ -211,8 +210,7 @@ async def _cleanup_expired_states(db: AsyncSession) -> None:
             expires_at = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
 
         if expires_at and expires_at.tzinfo is None:
-            from datetime import timezone as _tz
-            expires_at = expires_at.replace(tzinfo=_tz.utc)
+            expires_at = expires_at.replace(tzinfo=UTC)
 
         if expires_at and now > expires_at:
             stale_keys.append(state_id)
@@ -222,6 +220,7 @@ async def _cleanup_expired_states(db: AsyncSession) -> None:
 
     await db.commit()
 
+
 # Token expiry buffer (refresh 5 minutes before actual expiry)
 TOKEN_EXPIRY_BUFFER = timedelta(minutes=5)
 
@@ -230,42 +229,42 @@ TOKEN_EXPIRY_BUFFER = timedelta(minutes=5)
 # Token Validation & Refresh
 # ============================================================================
 
+
 async def validate_token_with_provider(provider: str, access_token: str) -> bool:
     """
     Validate token by making a test API call to the provider.
     Returns True if token is valid, False otherwise.
     """
     import os
+
     # Skip validation in test mode - mock tokens are always valid
     if os.environ.get("TESTING") == "true":
         return True
-    
+
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
             if provider == "google_drive":
                 # Check token info endpoint
                 response = await client.get(
-                    "https://www.googleapis.com/oauth2/v1/tokeninfo",
-                    params={"access_token": access_token}
+                    "https://www.googleapis.com/oauth2/v1/tokeninfo", params={"access_token": access_token}
                 )
                 return response.status_code == 200
-            
+
             elif provider == "dropbox":
                 # Check current account endpoint
                 response = await client.post(
                     "https://api.dropboxapi.com/2/users/get_current_account",
-                    headers={"Authorization": f"Bearer {access_token}"}
+                    headers={"Authorization": f"Bearer {access_token}"},
                 )
                 return response.status_code == 200
-            
+
             elif provider == "onedrive":
                 # Check user profile endpoint
                 response = await client.get(
-                    "https://graph.microsoft.com/v1.0/me",
-                    headers={"Authorization": f"Bearer {access_token}"}
+                    "https://graph.microsoft.com/v1.0/me", headers={"Authorization": f"Bearer {access_token}"}
                 )
                 return response.status_code == 200
-            
+
             return False
     except Exception:
         return False
@@ -276,52 +275,61 @@ async def refresh_access_token(
     user_id: str,
     provider: str,
     refresh_token: str,
-) -> Optional[dict]:
+) -> dict | None:
     """
     Refresh access token using the refresh token.
     Returns new token data if successful, None otherwise.
     """
     if not refresh_token:
         return None
-    
+
     config = OAUTH_CONFIGS.get(provider)
     if not config:
         return None
-    
+
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             if provider == "google_drive":
-                response = await client.post(config["token_url"], data={
-                    "client_id": _get_settings().google_drive_client_id,
-                    "client_secret": _get_settings().google_drive_client_secret,
-                    "refresh_token": refresh_token,
-                    "grant_type": "refresh_token",
-                })
-            
+                response = await client.post(
+                    config["token_url"],
+                    data={
+                        "client_id": _get_settings().google_drive_client_id,
+                        "client_secret": _get_settings().google_drive_client_secret,
+                        "refresh_token": refresh_token,
+                        "grant_type": "refresh_token",
+                    },
+                )
+
             elif provider == "dropbox":
                 # Dropbox uses long-lived tokens, but let's handle refresh anyway
-                response = await client.post(config["token_url"], data={
-                    "client_id": _get_settings().dropbox_app_key,
-                    "client_secret": _get_settings().dropbox_app_secret,
-                    "refresh_token": refresh_token,
-                    "grant_type": "refresh_token",
-                })
-            
+                response = await client.post(
+                    config["token_url"],
+                    data={
+                        "client_id": _get_settings().dropbox_app_key,
+                        "client_secret": _get_settings().dropbox_app_secret,
+                        "refresh_token": refresh_token,
+                        "grant_type": "refresh_token",
+                    },
+                )
+
             elif provider == "onedrive":
-                response = await client.post(config["token_url"], data={
-                    "client_id": _get_settings().onedrive_client_id,
-                    "client_secret": _get_settings().onedrive_client_secret,
-                    "refresh_token": refresh_token,
-                    "grant_type": "refresh_token",
-                    "scope": " ".join(config["scopes"]),
-                })
+                response = await client.post(
+                    config["token_url"],
+                    data={
+                        "client_id": _get_settings().onedrive_client_id,
+                        "client_secret": _get_settings().onedrive_client_secret,
+                        "refresh_token": refresh_token,
+                        "grant_type": "refresh_token",
+                        "scope": " ".join(config["scopes"]),
+                    },
+                )
             else:
                 return None
-            
+
             if response.status_code != 200:
                 logger.error(f"Token refresh failed for {provider}: {response.status_code} - {response.text}")
                 return None
-            
+
             token_data = response.json()
             new_access_token = token_data.get("access_token")
             # Some providers return a new refresh token, some don't
@@ -338,15 +346,15 @@ async def refresh_access_token(
                 refresh_token=new_refresh_token,
                 expires_at=expires_at,
             )
-            
+
             logger.info(f"Token refreshed successfully for user {user_id[:4]}*** ({provider})")
-            
+
             return {
                 "access_token": new_access_token,
                 "refresh_token": new_refresh_token,
                 "expires_at": expires_at,
             }
-    
+
     except Exception as e:
         logger.error(f"Token refresh error for {provider}: {e}")
         return None
@@ -356,13 +364,13 @@ async def get_valid_session(
     db: AsyncSession,
     user_id: str,
     auto_refresh: bool = True,
-) -> Optional[dict]:
+) -> dict | None:
     """
     Get a session with a valid (non-expired) access token.
     Will automatically refresh if token is expired and auto_refresh=True.
-    
+
     STEP 2: Check cloud storage first, then fall back to database.
-    
+
     Returns session dict with valid token, or None if session invalid/refresh failed.
     """
     # STEP 2: Try cloud storage first (stateless approach)
@@ -370,17 +378,17 @@ async def get_valid_session(
     # try:
     #     from app.services.storage import get_provider
     #     from app.core.user_id import parse_user_id
-    #     
+    #
     #     parsed = parse_user_id(user_id)
     #     storage = get_provider(parsed.provider, access_token=None)
-    #     
+    #
     #     if storage:
     #         oauth_manager = StatelessOAuthManager(storage)
     #         session = await oauth_manager.get_session(user_id)
-    #         
+    #
     #         if session:
     #             logger.info(f"✅ Session retrieved from cloud storage for user={user_id[:4]}...")
-    #             
+    #
     #             # Check if session is still valid
     #             expires_at = session.get("expires_at")
     #             if expires_at:
@@ -403,39 +411,38 @@ async def get_valid_session(
     #                         logger.info(f"Session from cloud storage invalid for user={user_id[:4]}..., checking DB")
     # except Exception as e:
     #     logger.exception(f"Error checking cloud storage for session: {e}")
-    
+
     # Fallback to database only for now
     session = await get_session_from_db(db, user_id)
     if not session:
         return None
-    
+
     # Check if token needs refresh
     access_token = session.get("access_token")
     refresh_token = session.get("refresh_token")
     expires_at = session.get("expires_at")
     provider = session.get("provider")
-    
+
     needs_refresh = False
-    
+
     # Check expiry time if we have it
     if expires_at:
         if isinstance(expires_at, str):
             expires_at = datetime.fromisoformat(expires_at.replace("Z", "+00:00"))
         # Ensure expires_at is timezone-aware (assume UTC if naive)
         if expires_at.tzinfo is None:
-            from datetime import timezone
-            expires_at = expires_at.replace(tzinfo=timezone.utc)
+            expires_at = expires_at.replace(tzinfo=UTC)
         if utc_now() >= (expires_at - TOKEN_EXPIRY_BUFFER):
             needs_refresh = True
             logger.info(f"Token expired for user {user_id[:4]}*** - attempting refresh")
-    
+
     # If no expiry info, validate with provider
     if not needs_refresh and not expires_at:
         is_valid = await validate_token_with_provider(provider, access_token)
         if not is_valid:
             needs_refresh = True
             logger.info(f"Token invalid for user {user_id[:4]}*** - attempting refresh")
-    
+
     # Attempt refresh if needed
     if needs_refresh and auto_refresh and refresh_token:
         new_token_data = await refresh_access_token(db, user_id, provider, refresh_token)
@@ -450,11 +457,11 @@ async def get_valid_session(
     if needs_refresh and not auto_refresh:
         # Caller requested a read-only validity check. Do not treat stale session as valid.
         return None
-    
+
     if needs_refresh and not refresh_token:
         logger.info(f"Token expired and no refresh token for user {user_id[:4]}***")
         return None
-    
+
     return session
 
 
@@ -462,26 +469,27 @@ async def get_valid_session(
 # Database Session Helpers
 # ============================================================================
 
+
 def _encrypt_string(value: str, user_id: str) -> str:
     """Encrypt a single string value. Returns base64 encoded string."""
     import base64
+
     encrypted_bytes = _encrypt_token({"v": value}, user_id)
-    return base64.b64encode(encrypted_bytes).decode('utf-8')
+    return base64.b64encode(encrypted_bytes).decode("utf-8")
 
 
 def _decrypt_string(encrypted: str, user_id: str) -> str:
     """Decrypt a base64 encoded encrypted string."""
     import base64
-    encrypted_bytes = base64.b64decode(encrypted.encode('utf-8'))
+
+    encrypted_bytes = base64.b64decode(encrypted.encode("utf-8"))
     data = _decrypt_token(encrypted_bytes, user_id)
     return data["v"]
 
 
-async def get_session_from_db(db: AsyncSession, user_id: str) -> Optional[dict]:
+async def get_session_from_db(db: AsyncSession, user_id: str) -> dict | None:
     """Load session from the database."""
-    result = await db.execute(
-        select(SessionModel).where(SessionModel.user_id == user_id)
-    )
+    result = await db.execute(select(SessionModel).where(SessionModel.user_id == user_id))
     session_row = result.scalar_one_or_none()
 
     if session_row:
@@ -491,7 +499,9 @@ async def get_session_from_db(db: AsyncSession, user_id: str) -> Optional[dict]:
                 "user_id": session_row.user_id,
                 "provider": session_row.provider,
                 "access_token": _decrypt_string(session_row.access_token_encrypted, user_id),
-                "refresh_token": _decrypt_string(session_row.refresh_token_encrypted, user_id) if session_row.refresh_token_encrypted else None,
+                "refresh_token": _decrypt_string(session_row.refresh_token_encrypted, user_id)
+                if session_row.refresh_token_encrypted
+                else None,
                 "authenticated_at": session_row.authenticated_at.isoformat() if session_row.authenticated_at else None,
                 "expires_at": session_row.expires_at.isoformat() if session_row.expires_at else None,
             }
@@ -515,14 +525,12 @@ async def save_session_to_db(
     user_id: str,
     provider: str,
     access_token: str,
-    refresh_token: Optional[str] = None,
-    expires_at: Optional[datetime] = None,
+    refresh_token: str | None = None,
+    expires_at: datetime | None = None,
 ) -> None:
     """Save session to database."""
     # Check if session exists
-    result = await db.execute(
-        select(SessionModel).where(SessionModel.user_id == user_id)
-    )
+    result = await db.execute(select(SessionModel).where(SessionModel.user_id == user_id))
     session_row = result.scalar_one_or_none()
 
     now = utc_now()
@@ -565,7 +573,7 @@ async def recover_session_from_storage(
     db: AsyncSession,
     user_id: str,
     base_url: str,
-) -> Optional[dict]:
+) -> dict | None:
     """
     Attempt to recover a session for a user whose DB session is missing.
 
@@ -599,11 +607,9 @@ async def get_or_create_storage_config(
     provider: str,
 ) -> StorageConfig:
     """Get existing storage config or create a new one."""
-    result = await db.execute(
-        select(StorageConfig).where(StorageConfig.user_id == user_id)
-    )
+    result = await db.execute(select(StorageConfig).where(StorageConfig.user_id == user_id))
     config = result.scalar_one_or_none()
-    
+
     if not config:
         config = StorageConfig(
             user_id=user_id,
@@ -613,15 +619,13 @@ async def get_or_create_storage_config(
         db.add(config)
         await db.commit()
         await db.refresh(config)
-    
+
     return config
 
 
-async def get_user_from_db(db: AsyncSession, user_id: str) -> Optional[User]:
+async def get_user_from_db(db: AsyncSession, user_id: str) -> User | None:
     """Get user from database."""
-    result = await db.execute(
-        select(User).where(User.id == user_id)
-    )
+    result = await db.execute(select(User).where(User.id == user_id))
     return result.scalar_one_or_none()
 
 
@@ -629,7 +633,7 @@ async def get_user_by_provider_subject(
     db: AsyncSession,
     provider: str,
     provider_subject: str,
-) -> Optional[User]:
+) -> User | None:
     """Find user by OAuth provider and provider-asserted subject/account id."""
     result = await db.execute(
         select(User).where(
@@ -663,7 +667,7 @@ async def create_or_update_user(
     db: AsyncSession,
     user_id: str,
     provider: str,
-    storage_user_id: Optional[str] = None,
+    storage_user_id: str | None = None,
 ) -> User:
     """Create new user or update existing one.
 
@@ -671,7 +675,7 @@ async def create_or_update_user(
     User identity is provider + storage_user_id only.
     """
     # Strip HMAC signature for database operations (User.id is VARCHAR(24))
-    db_user_id = user_id.split('.')[0] if '.' in user_id else user_id
+    db_user_id = user_id.split(".")[0] if "." in user_id else user_id
     user = await get_user_from_db(db, db_user_id)
 
     _, role, _ = parse_user_id(user_id)
@@ -701,16 +705,18 @@ async def create_or_update_user(
 # Models
 # ============================================================================
 
+
 class RoleSwitchRequest(BaseModel):
     role: str  # user, manager, advocate, legal, admin
-    pin: Optional[str] = None  # Required for admin role
-    invite_code: Optional[str] = None  # Required for advocate/legal
-    household_members: Optional[int] = None  # Required for manager (>1 on lease)
+    pin: str | None = None  # Required for admin role
+    invite_code: str | None = None  # Required for advocate/legal
+    household_members: int | None = None  # Required for manager (>1 on lease)
 
 
 # Valid invite codes for advocate/legal roles - loaded from environment
 # Set INVITE_CODES in .env as comma-separated values
 import os as _os
+
 VALID_INVITE_CODES = set(_os.getenv("INVITE_CODES", "CHANGE-ME-1,CHANGE-ME-2").split(","))
 
 # Admin PIN - loaded from environment
@@ -721,6 +727,7 @@ ADMIN_PIN = _os.getenv("ADMIN_PIN", "CHANGE-ME")
 # Encryption Helpers
 # ============================================================================
 
+
 def _derive_key(user_id: str) -> bytes:
     settings = _get_settings()
     secret_key = getattr(settings, "secret_key", None) or getattr(settings, "SECRET_KEY", "")
@@ -730,6 +737,7 @@ def _derive_key(user_id: str) -> bytes:
 
 def _encrypt_token(token_data: dict, user_id: str) -> bytes:
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
     key = _derive_key(user_id)
     nonce = secrets.token_bytes(12)
     plaintext = json.dumps(token_data).encode()
@@ -740,6 +748,7 @@ def _encrypt_token(token_data: dict, user_id: str) -> bytes:
 
 def _decrypt_token(encrypted: bytes, user_id: str) -> dict:
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
     key = _derive_key(user_id)
     nonce = encrypted[:12]
     ciphertext = encrypted[12:]
@@ -752,11 +761,12 @@ def _decrypt_token(encrypted: bytes, user_id: str) -> dict:
 # Main Entry Point - Check Cookie & Auto-Route
 # ============================================================================
 
+
 @router.get("/entry")
 async def storage_entry(
     request: Request,
-    semptify_uid: Optional[str] = Cookie(None),
-    return_to: Optional[str] = None,
+    semptify_uid: str | None = Cookie(None),
+    return_to: str | None = None,
 ):
     """
     Entry point for returning users ONLY.
@@ -771,7 +781,7 @@ async def storage_entry(
         if return_to:
             reconnect_url = f"/storage/reconnect?return_to={return_to}"
         return ssot_redirect(reconnect_url, context="storage_entry reconnect")
-    
+
     # No cookie - send to onboarding start (NOT provider selection)
     start_path = navigation.get_onboarding_start()
     return ssot_redirect(start_path, context="storage_entry no cookie")
@@ -785,18 +795,18 @@ async def storage_connect(
     """
     Entry point for NEW users only.
     Shows provider selection for users who have selected a role.
-    
+
     Args:
         role: The role selected by the user (tenant, manager, advocate, etc.)
     """
     # Validate role
     if role not in ALLOWED_ROLES:
         role = "tenant"
-    
+
     # Store role in session/temp storage for OAuth flow
     # This will be retrieved in OAuth callback
     from app.core.checkpoint_middleware import set_checkpoint_cookie
-    
+
     response = HTMLResponse(content=_generate_connect_page(role=role))
     set_checkpoint_cookie(response)
     return response
@@ -805,7 +815,7 @@ async def storage_connect(
 @router.get("/")
 async def storage_home(
     request: Request,
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -818,7 +828,7 @@ async def storage_home(
     """
     providers_stage = navigation.get_stage("providers")
     providers_path = providers_stage.path if providers_stage else "/storage/providers"
-    
+
     if not semptify_uid or not is_valid_storage_user(semptify_uid):
         # New user - show provider selection
         return ssot_redirect(providers_path, context="storage_home providers")
@@ -853,16 +863,16 @@ async def storage_home(
 def _generate_connect_page(role: str) -> str:
     """Generate the provider selection page for NEW users."""
     settings = _get_settings()
-    
+
     # Provider button configurations
     PROVIDER_CONFIG = {
         "google_drive": ("📁", "Google Drive", settings.google_drive_client_id),
         "dropbox": ("☁️", "Dropbox", settings.dropbox_app_key),
         "onedrive": ("🔵", "OneDrive", settings.onedrive_client_id),
     }
-    
+
     # Generate HTML
-    html = f'''
+    html = f"""
 <!DOCTYPE html>
 <html>
 <head>
@@ -938,14 +948,14 @@ def _generate_connect_page(role: str) -> str:
         <h1>Connect Your Storage</h1>
         <div class="role-badge">Role: {role.title()}</div>
         <p class="subtitle">Choose where to store your documents. Your data stays private and under your control.</p>
-        
+
         <div class="provider-buttons">
-    '''
-    
+    """
+
     # Add provider buttons
     for pid, (icon, name, enabled) in PROVIDER_CONFIG.items():
         if enabled:
-            html += f'''
+            html += f"""
             <a href="/storage/auth/{pid}?role={role}" class="provider-btn">
                 <span class="provider-icon">{icon}</span>
                 <div class="provider-info">
@@ -953,9 +963,9 @@ def _generate_connect_page(role: str) -> str:
                     <div class="provider-desc">Secure cloud storage</div>
                 </div>
             </a>
-            '''
+            """
         else:
-            html += f'''
+            html += f"""
             <button class="provider-btn" disabled>
                 <span class="provider-icon">{icon}</span>
                 <div class="provider-info">
@@ -963,15 +973,15 @@ def _generate_connect_page(role: str) -> str:
                     <div class="provider-desc">Coming soon</div>
                 </div>
             </button>
-            '''
-    
-    html += '''
+            """
+
+    html += """
         </div>
     </div>
 </body>
 </html>
-    '''
-    
+    """
+
     return html
 
 
@@ -981,13 +991,13 @@ def _generate_connect_page(role: str) -> str:
 @router.get("/providers")
 async def list_providers(
     request: Request,
-    semptify_uid: Optional[str] = Cookie(None),
-    role: Optional[str] = Query(None),
-    from_source: Optional[str] = Query(None, alias="from"),
-    return_to: Optional[str] = Query(None),
-    error: Optional[str] = Query(None),
-    message: Optional[str] = Query(None),
-    provider: Optional[str] = Query(None),
+    semptify_uid: str | None = Cookie(None),
+    role: str | None = Query(None),
+    from_source: str | None = Query(None, alias="from"),
+    return_to: str | None = Query(None),
+    error: str | None = Query(None),
+    message: str | None = Query(None),
+    provider: str | None = Query(None),
 ):
     """Serve storage reconnect providers page with correct OAuth links."""
     from pathlib import Path
@@ -1002,7 +1012,7 @@ async def list_providers(
     """
     Show storage provider selection page.
     Returns HTML page for browsers, JSON for API clients.
-    
+
     Query params from OAuth callback errors:
     - error: Error code (e.g., "oauth_callback_failed")
     - message: Human-readable error message
@@ -1012,25 +1022,25 @@ async def list_providers(
     accept = request.headers.get("accept", "")
     if "application/json" in accept and "text/html" not in accept:
         return await _providers_json(semptify_uid)
-    
+
     # Build error info for display
     error_info = None
     if error:
         error_info = {
             "code": error,
             "message": message or "Authentication failed. Please try again.",
-            "provider": provider or "unknown"
+            "provider": provider or "unknown",
         }
         logger.warning(f"OAuth error displayed: {error} - {message} (provider: {provider})")
-    
+
     # Return HTML page
     return HTMLResponse(content=_generate_providers_html(semptify_uid, role, from_source, return_to, error_info))
 
 
-async def _providers_json(semptify_uid: Optional[str] = None):
+async def _providers_json(semptify_uid: str | None = None):
     """Return providers as JSON for API clients."""
     providers = []
-    
+
     # Check if returning user
     current_provider = None
     current_role = None
@@ -1039,31 +1049,37 @@ async def _providers_json(semptify_uid: Optional[str] = None):
         current_role = get_role_from_user_id(semptify_uid)
 
     if _get_settings().google_drive_client_id:
-        providers.append({
-            "id": "google_drive",
-            "name": "Google Drive",
-            "icon": "google",
-            "enabled": True,
-            "connected": current_provider == "google_drive",
-        })
+        providers.append(
+            {
+                "id": "google_drive",
+                "name": "Google Drive",
+                "icon": "google",
+                "enabled": True,
+                "connected": current_provider == "google_drive",
+            }
+        )
 
     if _get_settings().dropbox_app_key:
-        providers.append({
-            "id": "dropbox",
-            "name": "Dropbox",
-            "icon": "dropbox",
-            "enabled": True,
-            "connected": current_provider == "dropbox",
-        })
+        providers.append(
+            {
+                "id": "dropbox",
+                "name": "Dropbox",
+                "icon": "dropbox",
+                "enabled": True,
+                "connected": current_provider == "dropbox",
+            }
+        )
 
     if _get_settings().onedrive_client_id:
-        providers.append({
-            "id": "onedrive",
-            "name": "OneDrive",
-            "icon": "microsoft",
-            "enabled": True,
-            "connected": current_provider == "onedrive",
-        })
+        providers.append(
+            {
+                "id": "onedrive",
+                "name": "OneDrive",
+                "icon": "microsoft",
+                "enabled": True,
+                "connected": current_provider == "onedrive",
+            }
+        )
 
     return {
         "providers": providers,
@@ -1074,21 +1090,21 @@ async def _providers_json(semptify_uid: Optional[str] = None):
 
 
 def _generate_providers_html(
-    semptify_uid: Optional[str] = None,
-    role: Optional[str] = None,
-    from_source: Optional[str] = None,
-    return_to: Optional[str] = None,
-    error_info: Optional[dict] = None,
+    semptify_uid: str | None = None,
+    role: str | None = None,
+    from_source: str | None = None,
+    return_to: str | None = None,
+    error_info: dict | None = None,
 ) -> str:
     """Generate the storage provider selection HTML page."""
     current_provider = None
     if semptify_uid:
         current_provider = get_provider_from_user_id(semptify_uid)
-    
+
     # Build error display HTML if there was an OAuth error
     error_html = ""
     if error_info:
-        error_html = f'''
+        error_html = f"""
         <div class="error-banner" id="error-banner">
             <div class="error-icon">⚠️</div>
             <div class="error-content">
@@ -1098,7 +1114,7 @@ def _generate_providers_html(
             </div>
             <button class="error-close" onclick="document.getElementById('error-banner').style.display='none'">×</button>
         </div>
-        '''
+        """
 
     auth_params: dict[str, str] = {}
     if role in ALLOWED_ROLES:
@@ -1108,13 +1124,13 @@ def _generate_providers_html(
     if return_to and return_to.startswith("/") and not return_to.startswith("//"):
         auth_params["return_to"] = return_to
     auth_suffix = f"?{urlencode(auth_params)}" if auth_params else ""
-    
+
     # Build provider cards
     provider_cards = ""
-    
+
     if _get_settings().google_drive_client_id:
         connected = "connected" if current_provider == "google_drive" else ""
-        provider_cards += f'''
+        provider_cards += f"""
         <a href="/storage/auth/google_drive{auth_suffix}" class="provider-card {connected}">
             <div class="provider-icon">
                 <svg viewBox="0 0 24 24" width="48" height="48">
@@ -1127,11 +1143,11 @@ def _generate_providers_html(
             <div class="provider-name">Google Drive</div>
             <div class="provider-status">{" ✓ Connected" if connected else "Click to connect"}</div>
         </a>
-        '''
-    
+        """
+
     if _get_settings().dropbox_app_key:
         connected = "connected" if current_provider == "dropbox" else ""
-        provider_cards += f'''
+        provider_cards += f"""
         <a href="/storage/auth/dropbox{auth_suffix}" class="provider-card {connected}">
             <div class="provider-icon">
                 <svg viewBox="0 0 24 24" width="48" height="48">
@@ -1141,11 +1157,11 @@ def _generate_providers_html(
             <div class="provider-name">Dropbox</div>
             <div class="provider-status">{" ✓ Connected" if connected else "Click to connect"}</div>
         </a>
-        '''
-    
+        """
+
     if _get_settings().onedrive_client_id:
         connected = "connected" if current_provider == "onedrive" else ""
-        provider_cards += f'''
+        provider_cards += f"""
         <a href="/storage/auth/onedrive{auth_suffix}" class="provider-card {connected}">
             <div class="provider-icon">
                 <svg viewBox="0 0 24 24" width="48" height="48">
@@ -1155,17 +1171,17 @@ def _generate_providers_html(
             <div class="provider-name">OneDrive</div>
             <div class="provider-status">{" ✓ Connected" if connected else "Click to connect"}</div>
         </a>
-        '''
-    
+        """
+
     if not provider_cards:
-        provider_cards = '''
+        provider_cards = """
         <div class="no-providers">
             <p>⚠️ No storage providers configured.</p>
             <p>Please contact support to set up cloud storage integration.</p>
         </div>
-        '''
-    
-    return f'''<!DOCTYPE html>
+        """
+
+    return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -1373,20 +1389,20 @@ def _generate_providers_html(
         {"<div class='step-indicator'>Step 2 of 3</div>" if from_source == "onboarding" and role == "user" else "<div class='step-indicator'>Step 3 of 3</div>" if from_source == "onboarding" else ""}
         <h1>Connect Your Storage</h1>
         <p class="subtitle">Your documents stay in YOUR cloud storage. We never store your files.</p>
-        
+
         <div class="security-badge">
             🔒 Your data, your storage, your control
         </div>
-        
+
         <div class="alert-box">
             <strong>⚠️ IMPORTANT:</strong> Semptify requires a cloud storage provider.<br>
             <span style="font-size: 0.95rem; color: #cbd5e1;">Local storage is NOT supported. Please select one of the providers below.</span>
         </div>
-        
+
         <div class="providers">
             {provider_cards}
         </div>
-        
+
         <div class="info-box">
             <h3>🛡️ Why connect storage?</h3>
             <ul>
@@ -1396,7 +1412,7 @@ def _generate_providers_html(
                 <li><strong>Backup:</strong> Your cloud provider handles backup and sync</li>
             </ul>
         </div>
-        
+
         <footer>
             <p>Semptify &copy; 2025 · <a href="/privacy.html">Privacy</a> · <a href="/help.html">Help</a></p>
         </footer>
@@ -1457,16 +1473,16 @@ def _generate_providers_html(
         }});
     </script>
 </body>
-</html>'''
+</html>"""
 
 
 @router.get("/providers/json")
 async def list_providers_json(
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """List available storage providers as JSON (explicit endpoint)."""
     providers = []
-    
+
     # Check if returning user
     current_provider = None
     current_role = None
@@ -1475,31 +1491,37 @@ async def list_providers_json(
         current_role = get_role_from_user_id(semptify_uid)
 
     if _get_settings().google_drive_client_id:
-        providers.append({
-            "id": "google_drive",
-            "name": "Google Drive",
-            "icon": "google",
-            "enabled": True,
-            "connected": current_provider == "google_drive",
-        })
+        providers.append(
+            {
+                "id": "google_drive",
+                "name": "Google Drive",
+                "icon": "google",
+                "enabled": True,
+                "connected": current_provider == "google_drive",
+            }
+        )
 
     if _get_settings().dropbox_app_key:
-        providers.append({
-            "id": "dropbox",
-            "name": "Dropbox",
-            "icon": "dropbox",
-            "enabled": True,
-            "connected": current_provider == "dropbox",
-        })
+        providers.append(
+            {
+                "id": "dropbox",
+                "name": "Dropbox",
+                "icon": "dropbox",
+                "enabled": True,
+                "connected": current_provider == "dropbox",
+            }
+        )
 
     if _get_settings().onedrive_client_id:
-        providers.append({
-            "id": "onedrive",
-            "name": "OneDrive",
-            "icon": "microsoft",
-            "enabled": True,
-            "connected": current_provider == "onedrive",
-        })
+        providers.append(
+            {
+                "id": "onedrive",
+                "name": "OneDrive",
+                "icon": "microsoft",
+                "enabled": True,
+                "connected": current_provider == "onedrive",
+            }
+        )
 
     return {
         "providers": providers,
@@ -1513,14 +1535,15 @@ async def list_providers_json(
 # OAuth Flow
 # ============================================================================
 
+
 @router.get("/auth/{provider}")
 async def initiate_oauth(
     provider: str,
     request: Request,
     db: AsyncSession = Depends(get_db),
-    role: Optional[str] = None,
-    existing_uid: Optional[str] = None,
-    return_to: Optional[str] = None,
+    role: str | None = None,
+    existing_uid: str | None = None,
+    return_to: str | None = None,
 ):
     """
     Start OAuth flow.
@@ -1535,25 +1558,29 @@ async def initiate_oauth(
             logger.debug(f"DEBUG: Unknown provider: {provider}")
             raise HTTPException(status_code=400, detail=f"Unknown provider: {provider}")
 
-        # For returning users, extract role from their existing user ID
-        # New users default to 'tenant' role
-        _raw_uid = request.cookies.get(COOKIE_USER_ID)
-        cookie_uid = str(_raw_uid) if _raw_uid is not None else None
-        effective_uid = existing_uid or cookie_uid
+        # For returning users, extract role from their existing user ID.
+        # existing_uid may be a plain UID (HMAC already stripped by reconnect),
+        # so use parse_user_id which handles both signed and plain formats.
+        if existing_uid:
+            _, extracted_role, _ = parse_user_id(existing_uid)
+            if extracted_role:
+                role = extracted_role
+                logger.debug("Returning user (existing_uid) - extracted role '%s'", role)
 
-        if effective_uid and is_valid_storage_user(effective_uid):
-            # Returning user: role is encoded in their user ID, ignore param
-            _, extracted_role, _ = parse_user_id(effective_uid)
-            role = extracted_role or "tenant"
-            logger.debug(f"DEBUG: Returning user - extracted role '{role}' from user ID")
-        else:
-            # New user: validate the requested role
-            role = (role or "tenant").strip().lower()
-            if role not in ALLOWED_ROLES:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Invalid role '{role}'. Allowed roles: {sorted(ALLOWED_ROLES)}",
-                )
+        if not role:
+            # Try extracting from signed cookie
+            cookie_uid = request.cookies.get(COOKIE_USER_ID)
+            if cookie_uid and is_valid_storage_user(cookie_uid):
+                _, extracted_role, _ = parse_user_id(cookie_uid)
+                role = extracted_role or "tenant"
+                logger.debug("Returning user (cookie) - extracted role '%s'", role)
+            else:
+                role = (role or "tenant").strip().lower()
+                if role not in ALLOWED_ROLES:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"Invalid role '{role}'. Allowed roles: {sorted(ALLOWED_ROLES)}",
+                    )
 
         # Keep returning-user reauth bound to the current browser cookie.
         # cookie_uid is the raw signed value (user_id.hmac); existing_uid from the URL
@@ -1562,6 +1589,7 @@ async def initiate_oauth(
         _rc = request.cookies.get(COOKIE_USER_ID)
         raw_cookie = str(_rc) if _rc is not None else None
         from app.core.cookie_auth import verify_user_id as _verify_uid
+
         cookie_uid = _verify_uid(raw_cookie) if raw_cookie else None
         if existing_uid and cookie_uid and existing_uid != cookie_uid:
             # Ignore mismatched query input to prevent UID swapping attempts.
@@ -1662,6 +1690,7 @@ async def initiate_oauth(
     except Exception as e:
         logger.error(f"DEBUG: Exception in initiate_oauth: {e}")
         import traceback
+
         traceback.print_exc()
         raise
 
@@ -1690,9 +1719,7 @@ async def oauth_callback(
         await _cleanup_expired_states(db)
 
         # Load and validate the CSRF state token from the database.
-        result = await db.execute(
-            select(OAuthState).where(OAuthState.id == state)
-        )
+        result = await db.execute(select(OAuthState).where(OAuthState.id == state))
         state_row = result.scalar_one_or_none()
 
         # Transitional fallback for legacy in-memory state injection (tests/tools).
@@ -1720,10 +1747,9 @@ async def oauth_callback(
                 raise HTTPException(status_code=400, detail="Provider mismatch")
 
             # SQLite returns naive datetimes even for timezone=True columns; normalise to UTC.
-            from datetime import timezone as _tz
             state_expires = state_row.expires_at
             if state_expires.tzinfo is None:
-                state_expires = state_expires.replace(tzinfo=_tz.utc)
+                state_expires = state_expires.replace(tzinfo=UTC)
 
             if utc_now() > state_expires:
                 providers_stage = navigation.get_stage("providers")
@@ -1756,8 +1782,7 @@ async def oauth_callback(
                 state_expires = datetime.fromisoformat(state_expires.replace("Z", "+00:00"))
 
             if state_expires and state_expires.tzinfo is None:
-                from datetime import timezone as _tz
-                state_expires = state_expires.replace(tzinfo=_tz.utc)
+                state_expires = state_expires.replace(tzinfo=UTC)
 
             if state_expires and utc_now() > state_expires:
                 providers_stage = navigation.get_stage("providers")
@@ -1805,9 +1830,9 @@ async def oauth_callback(
             existing_provider, _, _ = parse_user_id(existing_uid)
             if existing_provider != provider:
                 raise HTTPException(status_code=400, detail="existing_uid/provider mismatch in callback")
-            
+
             bound_user = await get_user_from_db(db, existing_uid)
-            
+
             # Only reuse existing_uid if the user exists AND OAuth subject matches
             if bound_user and bound_user.storage_user_id == provider_subject:
                 user_id = existing_uid
@@ -1860,16 +1885,29 @@ async def oauth_callback(
 
         refresh_token = token_data.get("refresh_token", "")
         expires_in = token_data.get("expires_in", 3600)
-        token_expires_at = (utc_now() + timedelta(seconds=expires_in)).isoformat() + "Z"
 
-        # STEP 1: Store OAuth tokens in user's cloud storage (stateless approach)
-        # This keeps tokens private and removes server-side token storage
+        # STEP 1: Always persist session to the database.
+        # get_valid_session reads from DB (cloud check is disabled), so the DB
+        # must always have the latest tokens. Without this, reconnect finds
+        # stale tokens in the DB and triggers OAuth again in a loop.
+        expires_at = utc_now() + timedelta(seconds=expires_in)
+        await save_session_to_db(
+            db=db,
+            user_id=user_id,
+            provider=provider,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_at=expires_at,
+        )
+
+        # STEP 2: Also store in cloud storage (supplementary, for stateless access)
         try:
-            from app.services.storage.vault_manager import get_vault_manager
-            vault_manager = get_vault_manager()
-            
-            if vault_manager:
-                oauth_manager = StatelessOAuthManager(vault_manager)
+            from app.services.storage import get_provider
+
+            storage = get_provider(provider, access_token=access_token)
+
+            if storage:
+                oauth_manager = StatelessOAuthManager(storage)
                 token_stored = await oauth_manager.store_oauth_tokens(
                     user_id=user_id,
                     provider=provider,
@@ -1877,76 +1915,33 @@ async def oauth_callback(
                     refresh_token=refresh_token,
                     expires_at=int(utc_now().timestamp() + expires_in),
                 )
-                
+
                 if token_stored:
-                    logger.info(f"✅ OAuth tokens stored in cloud storage for user={user_id[:4]}... provider={provider}")
-                    
-                    # STEP 2: Store session in cloud storage (stateless approach)
+                    logger.info(
+                        "OAuth tokens stored in cloud storage for user=%s*** provider=%s", user_id[:4], provider
+                    )
                     session_data = {
                         "user_id": user_id,
                         "provider": provider,
-                        "access_token": access_token,  # Reference only, actual token in OAuth storage
+                        "access_token": access_token,
                         "expires_at": int(utc_now().timestamp() + expires_in),
                         "created_at": utc_now().isoformat() + "Z",
                     }
                     session_stored = await oauth_manager.store_session(user_id, session_data)
-                    
                     if session_stored:
-                        logger.info(f"✅ Session stored in cloud storage for user={user_id[:4]}...")
+                        logger.info("Session stored in cloud storage for user=%s***", user_id[:4])
                     else:
-                        logger.warning(f"⚠️ Failed to store session in cloud storage, using DB fallback")
-                        # Fallback to database storage for session
-                        expires_at = utc_now() + timedelta(seconds=token_data.get("expires_in", 3600))
-                        await save_session_to_db(
-                            db=db,
-                            user_id=user_id,
-                            provider=provider,
-                            access_token=access_token,
-                            refresh_token=refresh_token,
-                            expires_at=expires_at,
-                        )
+                        logger.warning("Cloud session store failed for user=%s*** (DB already saved)", user_id[:4])
                 else:
-                    logger.warning(f"⚠️ Failed to store OAuth tokens in cloud storage, using DB fallback")
-                    # Fallback to database storage if cloud storage fails
-                    expires_at = utc_now() + timedelta(seconds=token_data.get("expires_in", 3600))
-                    await save_session_to_db(
-                        db=db,
-                        user_id=user_id,
-                        provider=provider,
-                        access_token=access_token,
-                        refresh_token=refresh_token,
-                        expires_at=expires_at,
-                    )
-            else:
-                # Vault not available, use database fallback
-                logger.warning(f"Vault not available for user={user_id[:4]}..., using DB fallback")
-                expires_at = utc_now() + timedelta(seconds=token_data.get("expires_in", 3600))
-                await save_session_to_db(
-                    db=db,
-                    user_id=user_id,
-                    provider=provider,
-                    access_token=access_token,
-                    refresh_token=refresh_token,
-                    expires_at=expires_at,
-                )
+                    logger.warning("Cloud token store failed for user=%s*** (DB already saved)", user_id[:4])
         except Exception as e:
-            logger.exception(f"Error storing OAuth tokens/sessions in cloud storage: {e}")
-            # Fallback to database storage on error
-            expires_at = utc_now() + timedelta(seconds=token_data.get("expires_in", 3600))
-            await save_session_to_db(
-                db=db,
-                user_id=user_id,
-                provider=provider,
-                access_token=access_token,
-                refresh_token=refresh_token,
-                expires_at=expires_at,
-            )
+            logger.warning("Cloud storage save failed for user=%s***: %s (DB already saved)", user_id[:4], e)
         # NOTE: Semptify does NOT store user PII (email, name) in its database.
         # User data lives only in their cloud storage vault.
         # A user is "new" only if they had no existing_uid in state AND were not
         # matched to an existing DB account by provider subject during this callback.
         is_new_user = not state_data.get("existing_uid") and not matched_user
-        
+
         # CRITICAL: Create User record in database before marking gate complete
         # The middleware checks for user existence and gate completion
         await create_or_update_user(
@@ -1955,7 +1950,7 @@ async def oauth_callback(
             provider=provider,
             storage_user_id=provider_subject,
         )
-        
+
         await get_or_create_storage_config(db, user_id, provider)
 
         # Permanently record that storage authentication is complete.
@@ -1977,13 +1972,17 @@ async def oauth_callback(
 
         # Cache token in-memory so vault_init (called seconds later) can find it.
         # Without this, get_current_user falls back to DB lookup which may race.
-        from app.core.oauth_token_manager import token_manager, OAuthToken
-        token_manager.store_token(user_id, OAuthToken(
-            access_token=access_token,
-            refresh_token=refresh_token or None,
-            expires_at=utc_now() + timedelta(seconds=expires_in),
-            provider=provider,
-        ))
+        from app.core.oauth_token_manager import OAuthToken, token_manager
+
+        token_manager.store_token(
+            user_id,
+            OAuthToken(
+                access_token=access_token,
+                refresh_token=refresh_token or None,
+                expires_at=utc_now() + timedelta(seconds=expires_in),
+                provider=provider,
+            ),
+        )
 
         # Check if vault has been initialized by reading completed_groups from DB.
         # This is the ONLY reliable way to know — not new/returning status.
@@ -1991,6 +1990,34 @@ async def oauth_callback(
         completed_groups = set((db_user.completed_groups or "").split(",")) if db_user else set()
         completed_groups.discard("")
         vault_initialized = "vault_initialized" in completed_groups
+
+        # Create vault folders server-side if not yet initialized.
+        if not vault_initialized:
+            try:
+                from app.modules.onboarding.config import OnboardingConfig as _OBConfig
+                from app.modules.onboarding.vault import init_vault
+
+                _ob_config = _OBConfig(
+                    product_name="Semptify Tenant Rights",
+                    allowed_roles=["tenant"],
+                    allowed_providers=["google_drive", "dropbox", "onedrive"],
+                    on_complete_redirect="/home",
+                )
+                vault_result = await init_vault(
+                    db=db,
+                    user_id=user_id,
+                    provider_name=provider,
+                    access_token=access_token,
+                    config=_ob_config,
+                )
+                if vault_result.get("ok"):
+                    vault_initialized = True
+                else:
+                    logger.warning(
+                        "Vault creation failed for user %s: %s", user_id[:6] + "***", vault_result.get("message")
+                    )
+            except Exception as vault_exc:
+                logger.error("Vault creation crashed for user %s: %s", user_id[:6] + "***", vault_exc, exc_info=True)
 
         # Determine landing page.
         return_to = state_data.get("return_to")
@@ -2000,15 +2027,24 @@ async def oauth_callback(
             # This prevents Cloudflare 504 timeout from synchronous vault creation
             vault_setup_stage = navigation.get_stage("vault_setup")
             landing = vault_setup_stage.path if vault_setup_stage else "/onboarding/vault-setup"
-            logger.info("Routing to vault-setup: vault_initialized=%s is_new=%s user=%s",
-                        vault_initialized, is_new_user, user_id[:6] + "***")
+            logger.info(
+                "Routing to vault-setup: vault_initialized=%s is_new=%s user=%s",
+                vault_initialized,
+                is_new_user,
+                user_id[:6] + "***",
+            )
         elif return_to:
             landing = return_to
         else:
             landing = await _route_user(user_id)
 
-        logger.info("OAuth callback complete: user=%s new=%s vault_initialized=%s landing=%s",
-                    user_id[:6] + "***" if user_id else "EMPTY", is_new_user, vault_initialized, landing)
+        logger.info(
+            "OAuth callback complete: user=%s new=%s vault_initialized=%s landing=%s",
+            user_id[:6] + "***" if user_id else "EMPTY",
+            is_new_user,
+            vault_initialized,
+            landing,
+        )
 
         # DEBUG: Verify user_id before setting cookie
         if not user_id:
@@ -2025,10 +2061,10 @@ async def oauth_callback(
 
         response = HTMLResponse(content=html_content)
         set_auth_cookie(response, user_id, secure=request.url.scheme == "https")
-        
+
         # NOTE: semdrive_provider cookie removed - provider is encoded in user_id
         # This simplifies to single cookie architecture (stateless)
-        
+
         logger.info("Auth cookie set for user: %s, redirecting to %s", user_id[:6] + "***", landing)
         response.delete_cookie("semptify_redirect_loop_count")
 
@@ -2048,11 +2084,17 @@ async def oauth_callback(
         )
         providers_stage = navigation.get_stage("providers")
         providers_path = providers_stage.path if providers_stage else "/storage/providers"
-        error_url = providers_path + "?" + urlencode({
-            "error": "oauth_callback_failed",
-            "provider": provider,
-            "message": message,
-        })
+        error_url = (
+            providers_path
+            + "?"
+            + urlencode(
+                {
+                    "error": "oauth_callback_failed",
+                    "provider": provider,
+                    "message": message,
+                }
+            )
+        )
 
         # Use JavaScript redirect to avoid cross-origin blocking
         html_content = f"""
@@ -2086,11 +2128,17 @@ async def oauth_callback(
         )
         providers_stage = navigation.get_stage("providers")
         providers_path = providers_stage.path if providers_stage else "/storage/providers"
-        error_url = providers_path + "?" + urlencode({
-            "error": "oauth_callback_failed",
-            "provider": provider,
-            "message": f"Error: {error_msg}",
-        })
+        error_url = (
+            providers_path
+            + "?"
+            + urlencode(
+                {
+                    "error": "oauth_callback_failed",
+                    "provider": provider,
+                    "message": f"Error: {error_msg}",
+                }
+            )
+        )
 
         # Use JavaScript redirect to avoid cross-origin blocking
         html_content = f"""
@@ -2113,37 +2161,50 @@ async def oauth_callback(
         </html>
         """
         return HTMLResponse(content=html_content)
+
+
 # ============================================================================
 # Token Exchange
 # ============================================================================
 
+
 async def _exchange_code(provider: str, code: str, redirect_uri: str) -> dict:
     """Exchange OAuth code for tokens."""
     config = OAUTH_CONFIGS[provider]
-    
+
     async with httpx.AsyncClient() as client:
         if provider == "google_drive":
-            response = await client.post(config["token_url"], data={
-                "code": code,
-                "client_id": _get_settings().google_drive_client_id,
-                "client_secret": _get_settings().google_drive_client_secret,
-                "redirect_uri": redirect_uri,
-                "grant_type": "authorization_code",
-            })
+            response = await client.post(
+                config["token_url"],
+                data={
+                    "code": code,
+                    "client_id": _get_settings().google_drive_client_id,
+                    "client_secret": _get_settings().google_drive_client_secret,
+                    "redirect_uri": redirect_uri,
+                    "grant_type": "authorization_code",
+                },
+            )
         elif provider == "dropbox":
-            response = await client.post(config["token_url"], data={
-                "code": code,
-                "grant_type": "authorization_code",
-                "redirect_uri": redirect_uri,
-            }, auth=(_get_settings().dropbox_app_key, _get_settings().dropbox_app_secret))
+            response = await client.post(
+                config["token_url"],
+                data={
+                    "code": code,
+                    "grant_type": "authorization_code",
+                    "redirect_uri": redirect_uri,
+                },
+                auth=(_get_settings().dropbox_app_key, _get_settings().dropbox_app_secret),
+            )
         elif provider == "onedrive":
-            response = await client.post(config["token_url"], data={
-                "code": code,
-                "client_id": _get_settings().onedrive_client_id,
-                "client_secret": _get_settings().onedrive_client_secret,
-                "redirect_uri": redirect_uri,
-                "grant_type": "authorization_code",
-            })
+            response = await client.post(
+                config["token_url"],
+                data={
+                    "code": code,
+                    "client_id": _get_settings().onedrive_client_id,
+                    "client_secret": _get_settings().onedrive_client_secret,
+                    "redirect_uri": redirect_uri,
+                    "grant_type": "authorization_code",
+                },
+            )
         else:
             raise HTTPException(status_code=400, detail="Provider not implemented")
 
@@ -2249,9 +2310,9 @@ async def _vault_access_ready(
     base_url: str,
 ) -> tuple[bool, str]:
     """Check whether vault is ready for function-token access (created + enabled)."""
+    from app.core.vault_paths import PROVISIONING_FILE
     from app.services.storage import get_provider
     from app.services.storage.vault_manager import get_vault_manager
-    from app.core.vault_paths import PROVISIONING_FILE
 
     try:
         storage = get_provider(provider, access_token=access_token)
@@ -2273,9 +2334,11 @@ async def _vault_access_ready(
     except Exception:
         return False, "vault_verification_failed"
 
+
 # ============================================================================
 # Session & Status Endpoints
 # ============================================================================
+
 
 @router.get("/rehome/{user_id}")
 async def rehome_device(
@@ -2287,7 +2350,7 @@ async def rehome_device(
     """
     Rehome endpoint - called from Rehome.html in user's cloud storage.
     Verifies token exists in storage, then sets cookie on new device.
-    
+
     This is the reconnection flow:
     1. User lost cookie / new device / new browser
     2. User opens Rehome.html from their cloud storage
@@ -2297,44 +2360,50 @@ async def rehome_device(
     6. Mark storage_connected gate
     7. Set cookie and redirect to app
     """
-    from app.services.storage.vault_manager import get_vault_manager
     from app.core.cookie_auth import set_auth_cookie
     from app.modules.onboarding.gates import mark_gate
-    
+    from app.services.storage.vault_manager import get_vault_manager
+
     # Validate user ID format
     provider, role, unique = parse_user_id(user_id)
     if not provider or not unique:
-        return HTMLResponse(content=_error_html("Invalid Account", "The account ID is invalid. Please try again from your cloud storage."), status_code=400)
-    
-    provider_names = {
-        "google_drive": "Google Drive",
-        "dropbox": "Dropbox",
-        "onedrive": "OneDrive"
-    }
+        return HTMLResponse(
+            content=_error_html(
+                "Invalid Account", "The account ID is invalid. Please try again from your cloud storage."
+            ),
+            status_code=400,
+        )
+
+    provider_names = {"google_drive": "Google Drive", "dropbox": "Dropbox", "onedrive": "OneDrive"}
     provider_display = provider_names.get(provider, provider)
-    
+
     # Try to load existing session from database to get access token
     session = await get_session_from_db(db, user_id)
-    
+
     if not session:
         # No session in DB - need full OAuth re-authentication
         logger.warning("Rehome failed: no DB session for user=%s***", user_id[:4])
-        return HTMLResponse(content=_error_html(
-            "Session Not Found",
-            f"No active session found. Please reconnect your {provider_display} account to restore access."
-        ), status_code=401)
-    
+        return HTMLResponse(
+            content=_error_html(
+                "Session Not Found",
+                f"No active session found. Please reconnect your {provider_display} account to restore access.",
+            ),
+            status_code=401,
+        )
+
     # Verify session token is still valid with provider
     access_token = session.get("access_token")
     refresh_token = session.get("refresh_token")
-    
+
     if not access_token:
         logger.error("Rehome failed: no access token in session for user=%s***", user_id[:4])
-        return HTMLResponse(content=_error_html(
-            "Invalid Session",
-            "Session exists but has no access token. Please reconnect your storage."
-        ), status_code=401)
-    
+        return HTMLResponse(
+            content=_error_html(
+                "Invalid Session", "Session exists but has no access token. Please reconnect your storage."
+            ),
+            status_code=401,
+        )
+
     # Validate token with provider
     is_valid = await validate_token_with_provider(provider, access_token)
     if not is_valid:
@@ -2347,64 +2416,75 @@ async def rehome_device(
                 is_valid = True
             else:
                 logger.error("Rehome failed: token refresh failed for user=%s***", user_id[:4])
-                return HTMLResponse(content=_error_html(
-                    "Token Expired",
-                    f"Your {provider_display} session has expired and could not be refreshed. Please reconnect."
-                ), status_code=401)
+                return HTMLResponse(
+                    content=_error_html(
+                        "Token Expired",
+                        f"Your {provider_display} session has expired and could not be refreshed. Please reconnect.",
+                    ),
+                    status_code=401,
+                )
         else:
             logger.error("Rehome failed: token invalid and no refresh token for user=%s***", user_id[:4])
-            return HTMLResponse(content=_error_html(
-                "Token Expired",
-                f"Your {provider_display} session has expired. Please reconnect."
-            ), status_code=401)
-    
+            return HTMLResponse(
+                content=_error_html("Token Expired", f"Your {provider_display} session has expired. Please reconnect."),
+                status_code=401,
+            )
+
     # Verify token exists in cloud storage (proof of ownership)
     try:
         from app.services.storage import get_provider
+
         storage = get_provider(provider, access_token=access_token)
         vault = get_vault_manager(storage, user_id, str(request.base_url).rstrip("/"))
-        
+
         if not await vault.validate_token():
             logger.error("Rehome failed: token not found in cloud storage for user=%s***", user_id[:4])
-            return HTMLResponse(content=_error_html(
-                "Vault Not Found",
-                "Your vault could not be found in cloud storage. Please complete initial setup."
-            ), status_code=404)
-        
+            return HTMLResponse(
+                content=_error_html(
+                    "Vault Not Found", "Your vault could not be found in cloud storage. Please complete initial setup."
+                ),
+                status_code=404,
+            )
+
         # Token valid! Register this device
         device_id = secrets.token_urlsafe(16)
         user_agent = request.headers.get("User-Agent", "Unknown")
         await vault.register_device(device_id, "Rehomed Device", user_agent)
         logger.info("Rehome: device registered for user=%s*** device_id=%s", user_id[:4], device_id[:8])
-        
+
     except Exception as e:
         logger.exception("Rehome failed: vault verification error for user=%s***: %s", user_id[:4], e)
-        return HTMLResponse(content=_error_html(
-            "Verification Failed",
-            f"Could not verify your vault in {provider_display}. Please try again or reconnect."
-        ), status_code=500)
-    
+        return HTMLResponse(
+            content=_error_html(
+                "Verification Failed",
+                f"Could not verify your vault in {provider_display}. Please try again or reconnect.",
+            ),
+            status_code=500,
+        )
+
     # Mark storage_connected gate as complete
     try:
         await mark_gate(db, user_id, "storage_connected")
         logger.info("Rehome: storage_connected gate marked for user=%s***", user_id[:4])
     except Exception as e:
         logger.warning("Rehome: failed to mark storage_connected gate for user=%s***: %s", user_id[:4], e)
-    
+
     # Set the auth cookie
     import os
+
     is_localhost = os.environ.get("ENVIRONMENT", "development") == "development"
     is_secure = False if is_localhost else True
     set_auth_cookie(response, user_id, secure=is_secure)
-    
+
     # Show success page
-    response = HTMLResponse(content=f'''<!DOCTYPE html>
+    response = HTMLResponse(
+        content=f"""<!DOCTYPE html>
 <html>
 <head>
     <title>Reconnected!</title>
     <meta http-equiv="refresh" content="2;url=/static/welcome.html">
     <style>
-        body {{ 
+        body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: #f8fafc;
@@ -2414,7 +2494,7 @@ async def rehome_device(
             min-height: 100vh;
             margin: 0;
         }}
-        .box {{ 
+        .box {{
             background: #1e293b;
             padding: 50px;
             border-radius: 20px;
@@ -2424,14 +2504,14 @@ async def rehome_device(
         }}
         .success-icon {{ font-size: 4rem; margin-bottom: 20px; }}
         h1 {{ color: #10b981; margin-bottom: 15px; }}
-        .info {{ 
+        .info {{
             background: #334155;
             padding: 20px;
             border-radius: 12px;
             margin: 25px 0;
             text-align: left;
         }}
-        .row {{ 
+        .row {{
             display: flex;
             justify-content: space-between;
             padding: 10px 0;
@@ -2476,16 +2556,17 @@ async def rehome_device(
         <p class="redirect"><span class="spinner"></span> Taking you to your dashboard...</p>
     </div>
 </body>
-</html>''')
-    
+</html>"""
+    )
+
     set_auth_cookie(response, user_id)
-    
+
     return response
 
 
 def _error_html(title: str, message: str) -> str:
     """Generate error HTML page."""
-    return f'''<!DOCTYPE html>
+    return f"""<!DOCTYPE html>
 <html>
 <head><title>Error - {title}</title>
 <style>
@@ -2505,7 +2586,7 @@ def _error_html(title: str, message: str) -> str:
         <p style="margin-top: 20px;"><a href="/storage/providers">← Try again</a></p>
     </div>
 </body>
-</html>'''
+</html>"""
 
 
 @router.get("/sync/{user_id}")
@@ -2515,9 +2596,11 @@ async def sync_device_legacy(user_id: str, request: Request, response: Response,
     Kept for backwards compatibility with old Semptify_Sync.html files.
     """
     return await rehome_device(user_id, request, response, db)
+
+
 @router.get("/status")
 async def get_status(
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -2527,13 +2610,13 @@ async def get_status(
     """
     logger.info(f"📊 /storage/status called - cookie semptify_uid: {semptify_uid[:10] if semptify_uid else 'None'}...")
     if not semptify_uid:
-        logger.info(f"❌ No semptify_uid cookie found")
+        logger.info("❌ No semptify_uid cookie found")
         return {"authenticated": False}
 
     # Use get_valid_session which handles token refresh automatically
     session = await get_valid_session(db, semptify_uid, auto_refresh=True)
     logger.info(f"📊 Session lookup result: {bool(session)}")
-    
+
     if not session:
         # Have cookie but no active/valid session - need to re-auth
         provider, role, _ = parse_user_id(semptify_uid)
@@ -2559,7 +2642,7 @@ async def get_status(
 
 @router.get("/session")
 async def get_session_info(
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get session info (without sensitive access token)."""
@@ -2591,6 +2674,7 @@ async def get_session_info(
 # Returning User Reconnect API
 # ============================================================================
 
+
 @router.post("/api/user/lookup")
 async def lookup_user(
     request: Request,
@@ -2619,9 +2703,9 @@ async def lookup_user(
                 "provider": data["provider"],
                 "message": "Please authenticate with your storage provider",
             }
-        
+
         return {"found": False}
-        
+
     except Exception as e:
         logger.error(f"❌ Error in lookup_user: {e}")
         return {"found": False, "error": "Lookup failed"}
@@ -2635,7 +2719,7 @@ async def restore_session(
 ):
     """
     Restore user session after reconnect.
-    
+
     Request body: {"user_id": "usr_..."}
     Response: {"success": true, "redirect_url": "/tenant/dashboard"} OR
               {"oauth_required": true, "oauth_url": "/storage/providers?..."}
@@ -2643,32 +2727,35 @@ async def restore_session(
     try:
         data = await request.json()
         user_id = data.get("user_id")
-        
+
         if not user_id:
             return {"success": False, "error": "No user_id provided"}
-        
+
         # Parse user_id to get provider and role
         from app.core.user_id import parse_user_id
+
         provider, role, provider_account_id = parse_user_id(user_id)
-        
+
         # Check for existing valid session in DB
         from app.services.storage import get_valid_session
+
         session = await get_valid_session(db, user_id, auto_refresh=True)
-        
+
         if session:
             # Valid session exists - restore cookie and redirect
             # Set secure cookie - secure=False for localhost HTTP, True for HTTPS production
             set_auth_cookie(response, user_id)
-            
+
             # Route to role-appropriate dashboard
             from app.core.workflow_engine import route_user
+
             redirect_url = await route_user(user_id, documents_present=True, has_active_case=True)
-            
+
             return {
                 "success": True,
                 "redirect_url": redirect_url,
             }
-        
+
         # No valid session - need OAuth re-authentication
         # NOTE: Do NOT set return_to here - let OAuth callback use route_user() to determine landing
         return {
@@ -2677,7 +2764,7 @@ async def restore_session(
             "oauth_url": f"/storage/providers?user_id={user_id}",
             "message": "Storage connection needs renewal",
         }
-        
+
     except Exception as e:
         logger.error(f"❌ Error in restore_session: {e}")
         return {"success": False, "error": "Session restoration failed"}
@@ -2685,7 +2772,7 @@ async def restore_session(
 
 @router.post("/prepare-reconnect")
 async def prepare_reconnect(
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -2755,7 +2842,7 @@ async def prepare_reconnect(
 @router.post("/function-token/issue")
 async def issue_function_token(
     request: Request,
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Issue short-lived function access token after verifying cookie + vault readiness."""
@@ -2807,7 +2894,7 @@ async def issue_function_token(
 async def verify_function_token_endpoint(
     request: Request,
     refresh: bool = Query(True),
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Verify (and optionally refresh) short-lived function access token validity."""
@@ -2830,7 +2917,7 @@ async def verify_function_token_endpoint(
 
 @router.post("/validate")
 async def validate_and_refresh_token(
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -2867,8 +2954,7 @@ async def validate_and_refresh_token(
             expires_at_dt = expires_at
         # Ensure expires_at_dt is timezone-aware (assume UTC if naive)
         if expires_at_dt.tzinfo is None:
-            from datetime import timezone
-            expires_at_dt = expires_at_dt.replace(tzinfo=timezone.utc)
+            expires_at_dt = expires_at_dt.replace(tzinfo=UTC)
         token_expired = utc_now() >= expires_at_dt
 
     # Validate with provider
@@ -2908,11 +2994,12 @@ async def validate_and_refresh_token(
 # Role Management
 # ============================================================================
 
+
 @router.post("/role")
 async def switch_role(
     request: RoleSwitchRequest,
     response: Response,
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -2938,26 +3025,19 @@ async def switch_role(
     if request.role == "admin":
         # Admin requires PIN
         if not request.pin or request.pin != ADMIN_PIN:
-            raise HTTPException(
-                status_code=403,
-                detail="Admin access requires valid PIN"
-            )
+            raise HTTPException(status_code=403, detail="Admin access requires valid PIN")
 
     elif request.role in ["advocate", "legal"]:
         # Advocate/Legal require invite code
         if not request.invite_code or request.invite_code not in VALID_INVITE_CODES:
             raise HTTPException(
-                status_code=403,
-                detail=f"{request.role.capitalize()} access requires valid invite code"
+                status_code=403, detail=f"{request.role.capitalize()} access requires valid invite code"
             )
 
     elif request.role == "manager":
         # Manager requires multiple people on lease
         if not request.household_members or request.household_members < 2:
-            raise HTTPException(
-                status_code=403,
-                detail="Manager access requires more than one person on lease"
-            )
+            raise HTTPException(status_code=403, detail="Manager access requires more than one person on lease")
 
     # Generate new user ID with new role
     new_uid = update_user_id_role(semptify_uid, request.role)
@@ -2994,9 +3074,12 @@ async def switch_role(
         "role": request.role,
         "authorized": True,
     }
+
+
 # ============================================================================
 # Logout
 # ============================================================================
+
 
 @router.get("/logout-reset", response_class=HTMLResponse)
 async def logout_reset(response: Response):
@@ -3015,7 +3098,7 @@ async def logout_reset(response: Response):
 @router.post("/logout")
 async def logout(
     response: Response,
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Clear session and cookie."""
@@ -3023,9 +3106,7 @@ async def logout(
         invalidate_function_access_tokens(semptify_uid)
         SESSIONS.pop(semptify_uid, None)
         # Remove from database
-        result = await db.execute(
-            select(SessionModel).where(SessionModel.user_id == semptify_uid)
-        )
+        result = await db.execute(select(SessionModel).where(SessionModel.user_id == semptify_uid))
         session_row = result.scalar_one_or_none()
         if session_row:
             await db.delete(session_row)
@@ -3038,7 +3119,7 @@ async def logout(
 @router.post("/regenerate-rehome")
 async def regenerate_rehome(
     request: Request,
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -3047,69 +3128,64 @@ async def regenerate_rehome(
     """
     if not semptify_uid:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     session = await get_valid_session(db, semptify_uid, auto_refresh=True)
     if not session:
         raise HTTPException(status_code=401, detail="Session expired")
-    
+
     provider = session.get("provider")
     access_token = session.get("access_token")
     base_url = str(request.base_url).rstrip("/")
-    
+
     try:
         from app.services.storage import get_provider
         from app.services.storage.vault_manager import get_vault_manager
-        
+
         storage = get_provider(provider, access_token=access_token)
         vault = get_vault_manager(storage, semptify_uid, base_url)
-        
+
         success = await vault.regenerate_rehome_file()
-        
+
         if success:
-            return {
-                "success": True,
-                "message": "Rehome.html file regenerated successfully in your cloud storage"
-            }
+            return {"success": True, "message": "Rehome.html file regenerated successfully in your cloud storage"}
         else:
             return {
                 "success": False,
-                "message": "Failed to regenerate rehome file. Check that your vault is properly initialized."
+                "message": "Failed to regenerate rehome file. Check that your vault is properly initialized.",
             }
     except Exception as e:
-        return {
-            "success": False,
-            "message": f"Error regenerating rehome file: {str(e)}"
-        }
+        return {"success": False, "message": f"Error regenerating rehome file: {str(e)}"}
 
 
 # ============================================================================
 # Legal Integrity Endpoints
 # ============================================================================
 
+
 @router.post("/integrity/hash")
 async def hash_document_content(
     content: bytes = b"",
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """
     Create SHA-256 hash of document content.
     This hash can be used to verify document hasn't been tampered with.
     Returns court-admissible cryptographic fingerprint.
     """
-    from app.services.storage.legal_integrity import hash_document, create_notarized_timestamp
-    
+    from app.services.storage.legal_integrity import create_notarized_timestamp, hash_document
+
     if not content:
         raise HTTPException(status_code=400, detail="No content provided")
-    
+
     doc_hash = hash_document(content)
     timestamp = await create_notarized_timestamp()
-    
+
     return {
         "hash": doc_hash,
         "algorithm": "SHA-256",
         "timestamp": timestamp,
         "user_id": semptify_uid,
-        "legal_note": "This hash is a cryptographic fingerprint that uniquely identifies this document. Any modification to the document will produce a different hash."
+        "legal_note": "This hash is a cryptographic fingerprint that uniquely identifies this document. Any modification to the document will produce a different hash.",
     }
 
 
@@ -3117,27 +3193,27 @@ async def hash_document_content(
 async def create_document_proof(
     content: bytes = b"",
     action: str = "upload",
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """
     Create complete cryptographic proof for a document.
     Includes hash, timestamp, and signature suitable for court submission.
     """
     from app.services.storage.legal_integrity import get_legal_integrity
-    
+
     if not semptify_uid:
         raise HTTPException(status_code=401, detail="Authentication required")
-    
+
     if not content:
         raise HTTPException(status_code=400, detail="No content provided")
-    
+
     integrity = get_legal_integrity(semptify_uid)
     proof = await integrity.create_document_proof(content, action)
-    
+
     return {
         "proof": proof.to_dict(),
         "verification_url": f"/storage/integrity/verify/{proof.proof_id}",
-        "legal_note": "This proof provides court-admissible evidence of document authenticity and timestamp."
+        "legal_note": "This proof provides court-admissible evidence of document authenticity and timestamp.",
     }
 
 
@@ -3145,28 +3221,28 @@ async def create_document_proof(
 async def verify_document_integrity(
     content: bytes = b"",
     proof_data: dict = {},
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """
     Verify document against its proof.
     Returns detailed verification report suitable for court presentation.
     """
-    from app.services.storage.legal_integrity import get_legal_integrity, DocumentProof
-    
+    from app.services.storage.legal_integrity import DocumentProof, get_legal_integrity
+
     if not semptify_uid:
         raise HTTPException(status_code=401, detail="Authentication required")
-    
+
     if not content or not proof_data:
         raise HTTPException(status_code=400, detail="Content and proof required")
-    
+
     try:
         proof = DocumentProof.from_dict(proof_data)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid proof format: {e}")
-    
+
     integrity = get_legal_integrity(semptify_uid)
     verification = integrity.verify_document(content, proof)
-    
+
     return verification
 
 
@@ -3185,9 +3261,10 @@ async def get_legal_timestamp():
 # Function Access Token Endpoints
 # ============================================================================
 
+
 @router.post("/function-token/issue")
 async def issue_function_token_endpoint(
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
     db: AsyncSession = Depends(get_db),
 ):
     """
@@ -3196,15 +3273,15 @@ async def issue_function_token_endpoint(
     """
     if not semptify_uid:
         raise HTTPException(status_code=401, detail="Authentication required")
-    
+
     # Verify user has valid session
     session = await get_valid_session(db, semptify_uid, auto_refresh=True)
     if not session:
         raise HTTPException(status_code=401, detail="Session expired")
-    
+
     # Issue function access token
     token = issue_function_access_token(semptify_uid)
-    
+
     return {
         "token": token,
         "user_id": semptify_uid,
@@ -3215,23 +3292,23 @@ async def issue_function_token_endpoint(
 @router.post("/function-token/verify")
 async def verify_function_token_endpoint(
     request: Request,
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """
     Verify a function access token.
     """
     if not semptify_uid:
         raise HTTPException(status_code=401, detail="Authentication required")
-    
+
     # Get token from request body
     body = await request.json()
     token = body.get("token")
-    
+
     if not token:
         raise HTTPException(status_code=400, detail="Token required")
-    
+
     is_valid = verify_function_access_token(token, semptify_uid)
-    
+
     return {
         "valid": is_valid,
         "user_id": semptify_uid,
@@ -3242,42 +3319,43 @@ async def verify_function_token_endpoint(
 # Certificate Generation Endpoints
 # ============================================================================
 
+
 @router.post("/certificate/generate")
 async def generate_certificate(
     request: Request,
     document_name: str = "Uploaded Document",
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """
     Generate a legal verification certificate for a document.
-    
+
     Upload a document and receive:
     - Certificate data (JSON)
     - Printable HTML certificate
     - Plain text certificate
     - Cryptographic proof
-    
+
     The certificate can be printed and attached to court filings.
     """
     from app.services.storage.certificate_generator import quick_certificate
-    
+
     if not semptify_uid:
         raise HTTPException(status_code=401, detail="Authentication required")
-    
+
     # Read document from request body
     content = await request.body()
     if not content:
         raise HTTPException(status_code=400, detail="No document content provided")
-    
+
     base_url = str(request.base_url).rstrip("/")
-    
+
     result = await quick_certificate(
         document_content=content,
         document_name=document_name,
         user_id=semptify_uid,
         base_url=base_url,
     )
-    
+
     return {
         "success": True,
         "certificate_id": result["certificate"]["certificate_id"],
@@ -3291,37 +3369,37 @@ async def generate_certificate(
 async def generate_certificate_html_endpoint(
     request: Request,
     document_name: str = "Uploaded Document",
-    semptify_uid: Optional[str] = Cookie(None),
+    semptify_uid: str | None = Cookie(None),
 ):
     """
     Generate printable HTML certificate.
     Returns HTML that can be printed or saved as PDF.
     """
     from app.services.storage.certificate_generator import quick_certificate
-    
+
     if not semptify_uid:
         raise HTTPException(status_code=401, detail="Authentication required")
-    
+
     content = await request.body()
     if not content:
         raise HTTPException(status_code=400, detail="No document content provided")
-    
+
     base_url = str(request.base_url).rstrip("/")
-    
+
     result = await quick_certificate(
         document_content=content,
         document_name=document_name,
         user_id=semptify_uid,
         base_url=base_url,
     )
-    
+
     return HTMLResponse(content=result["html"])
 
 
 @router.get("/certificate/verify/{certificate_id}")
 async def verify_certificate(
     certificate_id: str,
-    code: Optional[str] = None,
+    code: str | None = None,
 ):
     """
     Verify a certificate by ID.
@@ -3329,8 +3407,9 @@ async def verify_certificate(
     """
     # In a full implementation, we would look up the certificate from storage
     # For now, return verification instructions
-    
-    return HTMLResponse(content=f'''<!DOCTYPE html>
+
+    return HTMLResponse(
+        content=f"""<!DOCTYPE html>
 <html>
 <head>
     <title>Certificate Verification - {certificate_id}</title>
@@ -3395,11 +3474,12 @@ async def verify_certificate(
             ✅ Certificate format is valid
         </div>
         <div class="info">
-            To fully verify this certificate, the original document must be 
+            To fully verify this certificate, the original document must be
             re-hashed and compared against the stored cryptographic fingerprint.
             <br><br>
             Contact the document owner to obtain the original file for verification.
         </div>
     </div>
 </body>
-</html>''')
+</html>"""
+    )

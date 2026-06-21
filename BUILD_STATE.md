@@ -2010,6 +2010,32 @@ All three issues were architectural gaps, not test bugs:
 
 ---
 
+## Session — 2026-06-04 (UTC) — Fix reconnect session persistence + role extraction
+
+### What Was Shipped
+
+**Fix: reconnect OAuth loop caused by session not persisted to DB**
+
+1. **`app/modules/storage/router.py`** — Three fixes:
+   - Storage OAuth callback now ALWAYS saves session to DB first, then stores to cloud as supplementary. Previously, when cloud storage succeeded, the DB was NOT updated — but `get_valid_session` only reads from DB, so reconnect would find stale tokens and trigger OAuth again in a loop.
+   - Role extraction in `initiate_oauth` now uses `parse_user_id(existing_uid)` directly instead of `is_valid_storage_user()`. The latter expects a signed cookie (uid.hmac) but reconnect passes a plain UID (HMAC already stripped), causing role extraction to fail and default to "tenant".
+
+2. **`app/modules/onboarding/reconnect.py`** — Passes `role` query parameter in the OAuth redirect URL so the correct role is preserved through the OAuth state.
+
+### What Is Known Working
+
+- All modified files compile clean (`python -m py_compile`)
+- SSOT architecture tests pass
+- App loads successfully with all modules registered
+
+### What Is Pending
+
+- Live test: full reconnect flow (expire token → reconnect → verify landing on correct role home)
+- Live test: cross-provider reconnect (Google Drive, Dropbox, OneDrive)
+- Items carried from prior sessions: ContextDataLoop, `/api/analytics/pageview` 404, generic module page template
+
+---
+
 ## Shipped — 2026-05-29 (9:40 PM UTC-05) — Commit `a503d8f`
 
 ### What Was Shipped
