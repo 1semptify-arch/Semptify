@@ -353,7 +353,22 @@ async def lifespan(_app: FastAPI):
             return True
         
         await run_stage(3, TOTAL_STAGES, "Database Migrations", run_migrations, verify_migrations)
-        
+
+        # --- STAGE 3b: Initialize module_overrides schema + warm cache ---
+        async def init_module_overrides():
+            from app.core.database import get_session_factory
+            from app.core.module_overrides import ensure_schema, load_overrides
+            factory = get_session_factory()
+            async with factory() as db:
+                await ensure_schema(db)
+                await load_overrides(db)
+            lifespan_logger.info("   Module overrides schema ensured and cache warmed")
+
+        def verify_module_overrides():
+            return True
+
+        await run_stage(3, TOTAL_STAGES, "Module Overrides Init", init_module_overrides, verify_module_overrides)
+
         # --- STAGE 4: Load Configuration ---
         async def load_config():
             # Verify settings are accessible
@@ -2163,6 +2178,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         if page_path.exists():
             return FileResponse(str(page_path))
         return HTMLResponse(content="<h1>API Workbook not found</h1>", status_code=404)
+
+    @fastapi_app.get("/admin/module-flags.html", response_class=HTMLResponse)
+    async def admin_module_flags_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve Module Flag Overlay admin page - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "admin" / "module_flags.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Module Flags not found</h1>", status_code=404)
 
     @fastapi_app.get("/docs/component-inventory.html", response_class=HTMLResponse)
     async def docs_component_inventory(

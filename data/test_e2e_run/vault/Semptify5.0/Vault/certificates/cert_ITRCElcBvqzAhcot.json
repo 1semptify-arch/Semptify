@@ -1,0 +1,16 @@
+{
+  "certificate_id": "cert_ITRCElcBvqzAhcot",
+  "vault_id": "doc_5BXXy816wwvL2bhp",
+  "sha256": "c9bdf77cda0b736499596141ecb84d7211ee9adb0677f3cc1caaf8fdad9ed159",
+  "original_filename": "lease_agreement.txt",
+  "file_size": 573,
+  "mime_type": "text/plain",
+  "document_type": "lease",
+  "certified_at": "2026-06-20T06:17:03.013452+00:00",
+  "storage_path": "Semptify5.0/Vault/documents/doc_5BXXy816wwvL2bhp.txt",
+  "storage_provider": "local",
+  "provider_file_id": null,
+  "user_id": "e2e_test_1781936221",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

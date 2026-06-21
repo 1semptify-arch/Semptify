@@ -507,6 +507,11 @@ _register("app.modules.invite_codes.router", tags=("Invite Codes",), tier=Produc
 
 _register("app.modules.admin_console.router", prefix="/admin-console", tags=("Admin Console",), tier=ProductTier.ADMIN,
           log_message="Admin Console router connected - System maintenance and diagnostics active")
+_register("app.modules.admin_console.module_flags", tier=ProductTier.ADMIN,
+          lifecycle="internal",
+          requires_role=("admin",),
+          dev_notes="Phase 2.4 — Module Flag Overlay admin UI. Provides /admin/api/module-flags endpoints for runtime lifecycle/feature_flag overrides.",
+          log_message="Module Flag Overlay admin router active — /admin/api/module-flags")
 _register("app.modules.analytics.router", prefix="/api/analytics", tags=("Analytics",), tier=ProductTier.ADMIN,
           log_message="Analytics router connected - Usage and performance tracking active")
 _register("app.modules.dashboard.router", tags=("Unified Dashboard",), tier=ProductTier.ADMIN)

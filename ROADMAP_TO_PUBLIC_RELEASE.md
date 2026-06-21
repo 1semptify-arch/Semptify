@@ -146,13 +146,20 @@ Integrated with existing `app/core/module_gate.py`:
 - Fails open on resolver error (legacy behavior preserved)
 - `get_module_access()` fallback populates `resolved_module_paths` from MANIFEST
 
-### 2.4 Build `ModuleFlagOverlay` Admin UI
+### 2.4 Build `ModuleFlagOverlay` Admin UI ✅
 
-- New admin page: `/admin/module-flags`
-- Lists every module with its lifecycle, role requirements, gate, feature flag
-- Admin can toggle lifecycle, feature flags, role requirements
-- Shows which users currently have access to each module
-- "Test as user" button — preview what a specific user sees
+- New admin page: `/admin/module-flags.html` — dark-themed module flag overlay dashboard
+- Lists every module with its lifecycle, role requirements, gate, feature flag, origin
+- Admin can toggle lifecycle, feature flags, disabled state via modal editor
+- Shows active overrides (yellow dashed badge) and disabled modules (red badge)
+- "Test as user" preview — POST /admin/api/module-flags/preview with role/jurisdiction/gates
+- Runtime overrides persist in `module_overrides` PostgreSQL table
+- `app/core/module_overrides.py` — override store with in-process cache + DB upsert
+- `app/modules/admin_console/module_flags.py` — 5 endpoints (list, set, delete, reload, preview)
+- Resolver applies overrides via `effective_entry()` before lifecycle/role/gate checks
+- Cache invalidation on every override change — `invalidate_all_caches()`
+- 4 FunctionGroupContract registrations for SSOT endpoint signatures
+- Sidebar + quick actions links added to admin dashboard
 
 ### 2.5 Tag All Existing Modules with Lifecycle ✅
 
