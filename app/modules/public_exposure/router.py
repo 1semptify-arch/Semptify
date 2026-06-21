@@ -9,12 +9,16 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
+import logging
+
 from app.core.security import require_user, StorageUser, green_access
 from .service import (
     get_public_exposure_service,
     MediaOutlet,
     ReleaseType,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/exposure", tags=["Public Exposure"])
 
@@ -107,7 +111,8 @@ async def generate_press_release(
         )
         return release.to_dict()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Press release generation failed: {str(e)}")
+        logger.exception("Press release generation failed")
+        raise HTTPException(status_code=500, detail="Press release generation failed")
 
 
 @router.get("/press-release/{release_id}")
@@ -173,7 +178,8 @@ async def generate_media_kit(
         )
         return kit.to_dict()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Media kit generation failed: {str(e)}")
+        logger.exception("Media kit generation failed")
+        raise HTTPException(status_code=500, detail="Media kit generation failed")
 
 
 @router.get("/media-kit/{kit_id}")
