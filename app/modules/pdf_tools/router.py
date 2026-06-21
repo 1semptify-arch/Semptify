@@ -69,7 +69,8 @@ async def upload_pdf(file: UploadFile = File(...)):
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid PDF file: {str(e)}")
+        logger.exception("Invalid PDF file")
+        raise HTTPException(status_code=400, detail="Invalid PDF file")
 
 
 @router.get("/info/{pdf_id}")

@@ -107,7 +107,8 @@ async def scrape_court_system(request: CourtScrapingRequest,
         
     except Exception as e:
         logger.error(f"Court scraping failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Scraping failed: {str(e)}")
+        logger.exception("Scraping failed")
+        raise HTTPException(status_code=500, detail="Scraping failed")
 
 @lis_router.post("/scrape/filings/{case_number}")
 async def scrape_case_filings(case_number: str,
@@ -125,7 +126,8 @@ async def scrape_case_filings(case_number: str,
         
     except Exception as e:
         logger.error(f"Filing scraping failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Scraping failed: {str(e)}")
+        logger.exception("Scraping failed")
+        raise HTTPException(status_code=500, detail="Scraping failed")
 
 @lis_router.post("/normalize/entity")
 async def normalize_entity(request: EntityNormalizationRequest,
@@ -145,7 +147,8 @@ async def normalize_entity(request: EntityNormalizationRequest,
         
     except Exception as e:
         logger.error(f"Entity normalization failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Normalization failed: {str(e)}")
+        logger.exception("Normalization failed")
+        raise HTTPException(status_code=500, detail="Normalization failed")
 
 @lis_router.post("/normalize/entities")
 async def normalize_entities(request: Dict[str, Any],
@@ -169,7 +172,8 @@ async def normalize_entities(request: Dict[str, Any],
         
     except Exception as e:
         logger.error(f"Entity normalization failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Normalization failed: {str(e)}")
+        logger.exception("Normalization failed")
+        raise HTTPException(status_code=500, detail="Normalization failed")
 
 @lis_router.post("/analyze/case")
 async def analyze_case_intelligence(request: CaseAnalysisRequest,
@@ -186,7 +190,8 @@ async def analyze_case_intelligence(request: CaseAnalysisRequest,
         
     except Exception as e:
         logger.error(f"Case analysis failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+        logger.exception("Analysis failed")
+        raise HTTPException(status_code=500, detail="Analysis failed")
 
 @lis_router.get("/intelligence/{case_id}")
 async def get_case_intelligence(case_id: str,
@@ -208,7 +213,83 @@ async def get_case_intelligence(case_id: str,
         
     except Exception as e:
         logger.error(f"Intelligence retrieval failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Retrieval failed: {str(e)}")
+        logger.exception("Retrieval failed")
+        raise HTTPException(status_code=500, detail="Retrieval failed")
+
+@lis_router.post("/graph/build")
+async def build_entity_graph(request: GraphVisualizationRequest,
+                           current_user = Depends(get_current_user)):
+    """Build entity relationship graph."""
+    try:
+        graph_engine.build_from_entities(request.entities)
+
+        if request.relationship_data:
+            for rel in request.relationship_data:
+                graph_engine.add_relationship(
+                    rel.get("source"),
+                    rel.get("target"),
+                    rel.get("type", "related_to"),
+                    rel.get("weight", 1.0),
+                    rel.get("attributes", {})
+                )
+
+        analysis = graph_engine.analyze_graph()
+
+        return JSONResponse(content={
+            "success": True,
+            "graph_data": graph_engine.export_graph_data(),
+            "analysis": analysis.to_dict(),
+            "built_at": datetime.now(timezone.utc).isoformat()
+        })
+
+    except Exception as e:
+        logger.error(f"Graph building failed: {e}")
+        logger.exception("Graph building failed")
+        raise HTTPException(status_code=500, detail="Graph building failed")
+
+@lis_router.post("/graph/visualize")
+async def generate_graph_visualization(request: GraphVisualizationRequest,
+                                  current_user = Depends(get_current_user)):
+    """Generate graph visualization."""
+    try:
+        # Build graph first
+        graph_engine.build_from_entities(request.entities)
+
+        visualization_data = graph_engine.generate_visualization(
+            request.visualization_options.get("format", "png")
+        )
+
+        return JSONResponse(content={
+            "success": True,
+            "visualization": visualization_data,
+            "generated_at": datetime.now(timezone.utc).isoformat()
+        })
+
+    except Exception as e:
+        logger.error(f"Graph visualization failed: {e}")
+        logger.exception("Visualization failed")
+        raise HTTPException(status_code=500, detail="Visualization failed")
+
+@lis_router.post("/graph/path/{source_entity}/{target_entity}")
+async def find_shortest_path(source_entity: str,
+                             target_entity: str,
+                             current_user = Depends(get_current_user)):
+    """Find shortest path between entities."""
+    try:
+        path = graph_engine.find_shortest_path(source_entity, target_entity)
+
+        return JSONResponse(content={
+            "success": True,
+            "source_entity": source_entity,
+            "target_entity": target_entity,
+            "path": path,
+            "calculated_at": datetime.now(timezone.utc).isoformat()
+        })
+
+    except Exception as e:
+        logger.error(f"Path finding failed: {e}")
+        logger.exception("Path finding failed")
+        raise HTTPException(status_code=500, detail="Path finding failed")
 
 @lis_router.post("/report/generate")
 async def generate_report(request: ReportGenerationRequest,
@@ -240,7 +321,8 @@ async def generate_report(request: ReportGenerationRequest,
         
     except Exception as e:
         logger.error(f"Report generation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Report generation failed: {str(e)}")
+        logger.exception("Report generation failed")
+        raise HTTPException(status_code=500, detail="Report generation failed")
 
 @lis_router.get("/report/{report_id}")
 async def get_report(report_id: str,
@@ -262,7 +344,8 @@ async def get_report(report_id: str,
         
     except Exception as e:
         logger.error(f"Report retrieval failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Report retrieval failed: {str(e)}")
+        logger.exception("Report retrieval failed")
+        raise HTTPException(status_code=500, detail="Report retrieval failed")
 
 @lis_router.get("/report/{report_id}/export")
 async def export_report(report_id: str,
@@ -287,7 +370,8 @@ async def export_report(report_id: str,
         
     except Exception as e:
         logger.error(f"Report export failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+        logger.exception("Export failed")
+        raise HTTPException(status_code=500, detail="Export failed")
 
 @lis_router.post("/task/schedule")
 async def schedule_task(request: ScheduledTaskRequest,
@@ -318,7 +402,8 @@ async def schedule_task(request: ScheduledTaskRequest,
         
     except Exception as e:
         logger.error(f"Task scheduling failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Scheduling failed: {str(e)}")
+        logger.exception("Scheduling failed")
+        raise HTTPException(status_code=500, detail="Scheduling failed")
 
 @lis_router.get("/tasks")
 async def get_scheduled_tasks(current_user = Depends(get_current_user)):
@@ -334,7 +419,8 @@ async def get_scheduled_tasks(current_user = Depends(get_current_user)):
         
     except Exception as e:
         logger.error(f"Task retrieval failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Retrieval failed: {str(e)}")
+        logger.exception("Retrieval failed")
+        raise HTTPException(status_code=500, detail="Retrieval failed")
 
 @lis_router.delete("/task/{task_id}")
 async def remove_scheduled_task(task_id: str,
@@ -352,7 +438,8 @@ async def remove_scheduled_task(task_id: str,
         
     except Exception as e:
         logger.error(f"Task removal failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Removal failed: {str(e)}")
+        logger.exception("Removal failed")
+        raise HTTPException(status_code=500, detail="Removal failed")
 
 @lis_router.get("/statistics")
 async def get_lis_statistics(current_user = Depends(get_current_user)):
@@ -380,7 +467,8 @@ async def get_lis_statistics(current_user = Depends(get_current_user)):
         
     except Exception as e:
         logger.error(f"Statistics retrieval failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Statistics failed: {str(e)}")
+        logger.exception("Statistics failed")
+        raise HTTPException(status_code=500, detail="Statistics failed")
 
 @lis_router.get("/health")
 async def health_check():

@@ -93,7 +93,8 @@ async def research_property(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Research failed: {str(e)}")
+        logger.exception("Research failed")
+        raise HTTPException(status_code=500, detail="Research failed")
 
 
 @router.get("/property/{property_id}")
