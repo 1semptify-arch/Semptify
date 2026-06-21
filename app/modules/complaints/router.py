@@ -13,6 +13,7 @@ from app.core.utc import utc_now
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
+from app.core.request_utils import get_request_user_id
 from app.core.security import get_optional_user_id, sanitize_user_input
 
 from app.services.complaint_wizard import (
@@ -87,32 +88,10 @@ class AgencyResponse(BaseModel):
 # =============================================================================
 
 def get_user_id_from_request(request: Request, user_id: Optional[str] = None) -> str:
-    """
-    Get user ID from request (session, cookie, or temp).
-    
-    Now accepts an optional authenticated user_id from the secure dependency.
-    """
-    # Use authenticated user_id if provided
+    """Get user ID from authenticated context or the canonical cookie."""
     if user_id:
         return user_id
-    
-    # Try session first (if SessionMiddleware is installed)
-    try:
-        if "session" in request.scope:
-            uid = request.session.get("user_id")
-            if uid:
-                return uid
-    except (AssertionError, KeyError):
-        pass  # SessionMiddleware not installed
-    
-    # Try cookie
-    uid = request.cookies.get("semptify_user_id")
-    if uid:
-        return uid
-    
-    # Fall back to IP-based temp ID
-    client_ip = request.client.host if request.client else "unknown"
-    return f"temp_{hash(client_ip) % 100000:05d}"
+    return get_request_user_id(request)
 
 
 # =============================================================================

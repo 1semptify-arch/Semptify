@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Request
 
 from app.core.audit import AuditAction, audit_log
 from app.core.event_bus import EventType, event_bus
+from app.core.request_utils import get_request_user_id
 from app.core.user_id import get_role_from_user_id
 from app.models.functionx_models import (
     FunctionXActionSetCreate,
@@ -19,17 +20,11 @@ logger = logging.getLogger(__name__)
 
 
 def _get_user_role(request: Request) -> str:
-    _raw = request.cookies.get("semptify_uid", "anonymous")
-    user_id = str(_raw) if _raw is not None else "anonymous"
+    user_id = get_request_user_id(request)
     role = get_role_from_user_id(user_id)
     if not role:
         role = "user"
     return role
-
-
-def _get_user_id(request: Request) -> str:
-    _raw = request.cookies.get("semptify_uid", "anonymous")
-    return str(_raw) if _raw is not None else "anonymous"
 
 
 def _require_roles(request: Request, allowed_roles: list[str]) -> str:
@@ -45,7 +40,7 @@ async def _emit_functionx_telemetry(
     set_id: str,
     details: dict,
 ) -> None:
-    user_id = _get_user_id(request)
+    user_id = get_request_user_id(request)
 
     try:
         event_bus.publish_sync(
