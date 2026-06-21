@@ -1,0 +1,8 @@
+id=ai_host_service_stripper
+name=AI Host Service Stripper
+version=v1.0.0
+versionCode=100
+author=mobile_ai_host
+description=Strips Google services, SystemUI, launcher, and bloat on boot to free RAM for on-device AI inference. Sets CPU governor to performance, enables zram, drops caches. Configurable via /data/ai_host.env. Reversible — disable in Magisk Manager or boot to safe mode.
+support=https://github.com/ggerganov/llama.cpp
+donate=
