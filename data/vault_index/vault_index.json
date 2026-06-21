@@ -1,49 +1,86 @@
 {
   "documents": {
-    "doc_xU2zRhtJIoFxD6F3": {
-      "vault_id": "doc_xU2zRhtJIoFxD6F3",
-      "user_id": "GUWkjgVHe2",
-      "filename": "Gmail - Request for Written Rationale Regarding Non-Renewal and Assertion of Anti-Retaliation Right1s - Copy_ocred.pdf",
-      "safe_filename": "doc_xU2zRhtJIoFxD6F3.pdf",
-      "sha256_hash": "cdd50c0b4e001031203370fd71184ba12047b82bfe4a3e07616a5db93e84a18e",
-      "file_size": 96168,
-      "mime_type": "application/pdf",
-      "document_type": "evidence",
-      "description": null,
-      "tags": [],
-      "storage_path": "Semptify5.0/Vault/documents/doc_xU2zRhtJIoFxD6F3.pdf",
-      "storage_provider": "google_drive",
-      "provider_file_id": "1uadlXz69LsEYRf2P0bCHaka8yUg7gsQS",
-      "certificate_id": "cert_l8Kgj6y0gR9P6chv",
-      "uploaded_at": "2026-06-06T12:41:12.784727+00:00",
-      "registry_id": "SEM-2026-000001-AAFE",
+    "doc_5BXXy816wwvL2bhp": {
+      "vault_id": "doc_5BXXy816wwvL2bhp",
+      "user_id": "e2e_test_1781936221",
+      "filename": "lease_agreement.txt",
+      "safe_filename": "doc_5BXXy816wwvL2bhp.txt",
+      "sha256_hash": "c9bdf77cda0b736499596141ecb84d7211ee9adb0677f3cc1caaf8fdad9ed159",
+      "file_size": 573,
+      "mime_type": "text/plain",
+      "document_type": "lease",
+      "description": "Residential lease for 123 Main St",
+      "tags": [
+        "lease",
+        "minneapolis"
+      ],
+      "storage_path": "Semptify5.0/Vault/documents/doc_5BXXy816wwvL2bhp.txt",
+      "storage_provider": "local",
+      "provider_file_id": null,
+      "certificate_id": "cert_ITRCElcBvqzAhcot",
+      "uploaded_at": "2026-06-20T06:17:03.010101+00:00",
+      "registry_id": "SEM-2026-000001-9589",
       "integrity_status": "verified",
-      "processed": false,
-      "extracted_data": null,
-      "source_module": "documents_page"
+      "processed": true,
+      "extracted_data": {
+        "dates": [
+          "2025-01-15",
+          "2025-02-01"
+        ],
+        "parties": [
+          "John Smith",
+          "Jane Doe"
+        ]
+      },
+      "source_module": "e2e_test"
     },
-    "doc_zJBqywTPz7RZMlo3": {
-      "vault_id": "doc_zJBqywTPz7RZMlo3",
-      "user_id": "GUWkjgVHe2",
-      "filename": "notice of the lease violation _ocred.pdf",
-      "safe_filename": "doc_zJBqywTPz7RZMlo3.pdf",
-      "sha256_hash": "4099610a41f1e8ae3be79ce46319bd45d995a05b7a1f151ca6d452d3ba365586",
-      "file_size": 4948345,
-      "mime_type": "application/pdf",
-      "document_type": "evidence",
-      "description": null,
-      "tags": [],
-      "storage_path": "Semptify5.0/Vault/documents/doc_zJBqywTPz7RZMlo3.pdf",
-      "storage_provider": "google_drive",
-      "provider_file_id": "1xib4L9np8_cmvGtLTC6SdTrW_XCmq0yT",
-      "certificate_id": "cert_rdAV6sW2nmjDEP5f",
-      "uploaded_at": "2026-06-06T12:43:11.405945+00:00",
-      "registry_id": "SEM-2026-000002-9A81",
+    "doc_G1FmrOVHfHV73Ju8": {
+      "vault_id": "doc_G1FmrOVHfHV73Ju8",
+      "user_id": "e2e_test_1781936221",
+      "filename": "eviction_notice.txt",
+      "safe_filename": "doc_G1FmrOVHfHV73Ju8.txt",
+      "sha256_hash": "04f59a318c9ed28bf1e320a0dcede87ddb33b624c3f050e74b2d4ed9894fbb95",
+      "file_size": 399,
+      "mime_type": "text/plain",
+      "document_type": "notice",
+      "description": "Eviction notice for non-payment",
+      "tags": [
+        "eviction",
+        "notice"
+      ],
+      "storage_path": "Semptify5.0/Vault/documents/doc_G1FmrOVHfHV73Ju8.txt",
+      "storage_provider": "local",
+      "provider_file_id": null,
+      "certificate_id": "cert_OuM2Dpe9JbAKFZXz",
+      "uploaded_at": "2026-06-20T06:17:05.670719+00:00",
+      "registry_id": "SEM-2026-000002-9719",
       "integrity_status": "verified",
       "processed": false,
       "extracted_data": null,
-      "source_module": "documents_page"
+      "source_module": "e2e_test"
+    },
+    "doc_keR60y13LuNeowaA": {
+      "vault_id": "doc_keR60y13LuNeowaA",
+      "user_id": "testuser",
+      "filename": "greeting.txt",
+      "safe_filename": "doc_keR60y13LuNeowaA.txt",
+      "sha256_hash": "38dea95d30d280b987f0630ccc774bda163cdc2ee266234b1fb903c86007a863",
+      "file_size": 14,
+      "mime_type": "text/plain",
+      "document_type": null,
+      "description": null,
+      "tags": [],
+      "storage_path": "Semptify5.0/Vault/documents/doc_keR60y13LuNeowaA.txt",
+      "storage_provider": "local",
+      "provider_file_id": null,
+      "certificate_id": "cert_I0oeSqCXGxKREFwg",
+      "uploaded_at": "2026-06-20T06:17:12.987233+00:00",
+      "registry_id": "SEM-2026-000003-4506",
+      "integrity_status": "verified",
+      "processed": false,
+      "extracted_data": null,
+      "source_module": "direct"
     }
   },
-  "updated_at": "2026-06-06T12:43:27.681336+00:00"
+  "updated_at": "2026-06-20T06:17:14.150209+00:00"
 }
