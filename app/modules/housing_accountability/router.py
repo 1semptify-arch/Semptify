@@ -71,6 +71,27 @@ class PressBuilderRequest(BaseModel):
     media_targets: List[str] = Field(..., description="Target media outlets")
     urgency: str = Field("standard", description="Story urgency level")
 
+def _parse_date_safe(date_str: str) -> Optional[datetime]:
+    """Parse ISO date string safely, returning None on failure."""
+    if not date_str or not isinstance(date_str, str):
+        return None
+    try:
+        return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+    except (ValueError, TypeError):
+        return None
+
+
+# Legal basis by jurisdiction for repeated-fee / harassment patterns
+_REPEATED_FEES_LEGAL_BASIS = {
+    "MN": "Minnesota Statutes 504B.215 - Prohibited landlord practices",
+    "NY": "NY Real Property Law §236 - Unconscionable rent increases; NYC Admin Code §27-2004 (harassment)",
+    "CA": "California Civil Code §1940.2 - Landlord harassment prohibited",
+    "TX": "Texas Property Code §92.061 - Retaliation prohibited",
+    "FL": "Florida Statutes §83.64 - Retaliation prohibited",
+    "IL": "735 ILCS 5/9-212 - Retaliatory eviction prohibited; Chicago RLTO §5-12-030",
+}
+
+
 # Housing Accountability Services
 class PatternDetectionService:
     """Pattern detection service for housing violations."""
@@ -79,38 +100,84 @@ class PatternDetectionService:
         self.pattern_cache = {}
     
     def detect_repeated_fees(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """Detect repeated fee patterns."""
-        # Placeholder implementation
-        patterns = []
-        
-        # Analyze fee patterns
+        """Detect repeated fee patterns that may indicate unlawful landlord practices.
+
+        Groups fees by type/description, counts frequency within rolling 35-day
+        windows, and flags patterns that exceed thresholds. Jurisdiction-aware
+        legal basis. Confidence scales with amount of evidence found.
+        """
+        patterns: List[Dict[str, Any]] = []
         fee_history = data.get("fee_history", [])
-        if len(fee_history) > 3:
-            # Look for recurring fees
-            recurring_fees = []
-            for i in range(len(fee_history) - 1):
-                current_fee = fee_history[i]
-                next_fee = fee_history[i + 1]
-                
-                # Check for similar fee amounts and timing
-                current_date = current_fee.get("date", "")
-                next_date = next_fee.get("date", "")
-                if (abs(current_fee.get("amount", 0) - next_fee.get("amount", 0)) < 5 and
-                    current_date and next_date and
-                    abs((datetime.fromisoformat(current_date) -
-                         datetime.fromisoformat(next_date)).days) <= 35):
-                    recurring_fees.append(current_fee)
-            
-            if recurring_fees:
-                patterns.append({
-                    "type": "repeated_fees",
-                    "severity": "medium",
-                    "description": f"Detected {len(recurring_fees)} potentially recurring fees",
-                    "evidence": recurring_fees,
-                    "legal_basis": "Minnesota Statutes 504B.215 - Prohibited landlord practices"
-                })
-        
-        return {"patterns": patterns, "confidence": 0.7}
+        jurisdiction = str(data.get("jurisdiction", "MN")).upper()
+
+        if len(fee_history) < 2:
+            return {"patterns": patterns, "confidence": 0.3, "reason": "insufficient_data"}
+
+        # Group fees by type or description (case-insensitive)
+        fee_groups: Dict[str, List[Dict[str, Any]]] = {}
+        for fee in fee_history:
+            fee_type = str(fee.get("type") or fee.get("description") or "unknown").strip().lower()
+            fee_groups.setdefault(fee_type, []).append(fee)
+
+        legal_basis = _REPEATED_FEES_LEGAL_BASIS.get(
+            jurisdiction,
+            f"State landlord-tenant act ({jurisdiction}) — prohibited practices",
+        )
+
+        recurring_evidence: List[Dict[str, Any]] = []
+        for fee_type, fees in fee_groups.items():
+            if len(fees) < 2:
+                continue
+            # Sort by parsed date (fees with unparseable dates sort to end)
+            sorted_fees = sorted(fees, key=lambda f: _parse_date_safe(f.get("date", "")) or datetime.min.replace(tzinfo=timezone.utc))
+            # Check all pairs within each fee type (not just adjacent)
+            for i in range(len(sorted_fees)):
+                for j in range(i + 1, len(sorted_fees)):
+                    current_fee = sorted_fees[i]
+                    compare_fee = sorted_fees[j]
+                    current_date = _parse_date_safe(current_fee.get("date", ""))
+                    compare_date = _parse_date_safe(compare_fee.get("date", ""))
+                    if current_date is None or compare_date is None:
+                        continue
+                    days_apart = abs((compare_date - current_date).days)
+                    amount_diff = abs(
+                        float(current_fee.get("amount", 0) or 0)
+                        - float(compare_fee.get("amount", 0) or 0)
+                    )
+                    # Same type, similar amount (within $5), within 35 days
+                    if days_apart <= 35 and amount_diff < 5:
+                        recurring_evidence.append({
+                            "fee_type": fee_type,
+                            "fee_1": current_fee,
+                            "fee_2": compare_fee,
+                            "days_apart": days_apart,
+                            "amount_diff": amount_diff,
+                        })
+
+        if recurring_evidence:
+            affected_types = sorted({e["fee_type"] for e in recurring_evidence})
+            if len(affected_types) >= 3:
+                severity = "high"
+            elif len(affected_types) >= 2:
+                severity = "medium"
+            else:
+                severity = "low"
+            confidence = min(0.95, 0.5 + 0.1 * len(recurring_evidence))
+            patterns.append({
+                "type": "repeated_fees",
+                "severity": severity,
+                "description": (
+                    f"Detected {len(recurring_evidence)} potentially recurring fee "
+                    f"instances across {len(affected_types)} fee type(s)"
+                ),
+                "evidence": recurring_evidence,
+                "legal_basis": legal_basis,
+                "affected_fee_types": affected_types,
+                "jurisdiction": jurisdiction,
+            })
+            return {"patterns": patterns, "confidence": confidence}
+
+        return {"patterns": patterns, "confidence": 0.4, "reason": "no_recurring_patterns_detected"}
     
     def detect_eviction_patterns(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Detect eviction-related patterns."""

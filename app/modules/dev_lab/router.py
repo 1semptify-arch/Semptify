@@ -27,7 +27,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.product_manifest import MANIFEST, ModuleEntry
-from app.core.module_overrides import set_override, invalidate_all_caches
+from app.core.module_overrides import set_override
+from app.core.module_resolver import invalidate_all_caches
 from app.core.utc import utc_now
 from app.modules.dev_lab.maturity import (
     MATURITY_CHECKLIST,
@@ -39,7 +40,7 @@ from app.modules.dev_lab.maturity import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/dev/lab", tags=["Dev Lab"])
+router = APIRouter(tags=["Dev Lab"])
 
 
 # =============================================================================
