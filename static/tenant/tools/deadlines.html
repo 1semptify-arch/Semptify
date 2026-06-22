@@ -337,7 +337,14 @@
       const title = document.getElementById('new-title').value.trim();
       const date = document.getElementById('new-date').value;
       const category = document.getElementById('new-category').value;
-      if (!title || !date) { alert('Please enter a description and due date.'); return; }
+      if (!title || !date) {
+        if (window.SemptifyFeedback) {
+          SemptifyFeedback.error('Please enter a description and due date.');
+        } else {
+          alert('Please enter a description and due date.');
+        }
+        return;
+      }
       const items = loadDeadlines();
       items.push({ id: Date.now().toString(), title, date, category });
       saveDeadlines(items);
@@ -403,5 +410,6 @@
   </div>
 </footer>
 
+<script src="/static/components/feedback.js"></script>
 </body>
 </html>
