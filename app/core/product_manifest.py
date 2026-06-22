@@ -606,6 +606,10 @@ _register("app.modules.data_freshness.router", tags=("Data Freshness",), tier=Pr
           log_message="Data Freshness router connected - Automated data staleness prevention active")
 _register("app.modules.inventory.router", tags=("Inventory Management",), tier=ProductTier.DEV,
           log_message="Inventory Management router connected - File rotation and dating system active")
+_register("app.modules.judge.router", tags=("Judge", "Dev Only", "Placeholder"), tier=ProductTier.DEV,
+          lifecycle="dev_only", requires_role=("admin",),
+          dev_notes="Phase 4.6 — Judge role is dev_only. Placeholder module, not built out. Read-only role by design.",
+          log_message="Judge module registered as dev_only placeholder — not for active use")
 
 # Phase 2 / internal utilities
 _register("app.modules.export_import.router", prefix="/api/export-import", tags=("Data Export/Import",), tier=ProductTier.DEV,
