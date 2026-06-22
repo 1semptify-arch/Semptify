@@ -28,7 +28,7 @@
                 '<div class="ctx-claim">' + escHtml(f.claim) + '</div>' +
                 '<div class="ctx-meta">' +
                     '<span class="ctx-jurisdiction">' + escHtml(f.jurisdiction || 'MN') + '</span>' +
-                    (f.verified ? '<span class="ctx-verified">✓ Verified</span>' : '<span class="ctx-unverified">Unverified</span>') +
+                    (f.is_verified ? '<span class="ctx-verified">✓ Verified</span>' : '<span class="ctx-unverified">Unverified</span>') +
                     source +
                 '</div>' +
             '</div>';
@@ -47,7 +47,7 @@
             return '<div class="ctx-story">' +
                 '<div class="ctx-story-body">' + escHtml(body) + '</div>' +
                 outcome +
-                (s.avoided_court ? '<div class="ctx-story-tag">✓ Avoided court</div>' : '') +
+                (s.outcome === 'avoided_court' ? '<div class="ctx-story-tag">✓ Avoided court</div>' : '') +
             '</div>';
         }).join('');
         container.innerHTML = html;
