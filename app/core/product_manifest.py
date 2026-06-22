@@ -499,6 +499,7 @@ _register("app.modules.role_upgrade.router", tags=("Role Management",), tier=Pro
 _register("app.modules.document_delivery.router", tags=("Document Delivery",), tier=ProductTier.ADVOCATE)
 _register("app.modules.communication.router", tags=("Communications",), tier=ProductTier.ADVOCATE)
 _register("app.modules.invite_codes.router", tags=("Invite Codes",), tier=ProductTier.ADVOCATE)
+_register("app.modules.advocate.router", tags=("Advocate", "Clients", "Case Management"), tier=ProductTier.ADVOCATE)
 
 
 # =============================================================================
@@ -659,6 +660,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.document_delivery.router",
         "app.modules.communication.router",
         "app.modules.invite_codes.router",
+        "app.modules.advocate.router",
     ],
     "manager": [
         "app.modules.documents.router",

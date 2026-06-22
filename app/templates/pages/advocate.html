@@ -5,46 +5,46 @@
 {% block styles %}
 <link rel="stylesheet" href="/static/css/workspace-stage-model.css">
 <style>
-.role-container {
-    max-width: 1150px;
-    margin: 2rem auto;
-    padding: 1rem;
-}
+.role-container { max-width: 1200px; margin: 1.5rem auto; padding: 1rem; }
+.role-links { margin-top: 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; }
+.role-links a { display: block; padding: 0.9rem 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text-primary); text-decoration: none; }
+.role-links a:hover { background: var(--color-bg-hover); border-color: var(--color-border-hover); }
+.role-links a.active { background: #dcfce7; border-color: #15803d; }
 
-.role-links {
-    margin-top: 1rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 0.75rem;
-}
+.dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }
+@media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } }
 
-.role-links a {
-    display: block;
-    padding: 0.9rem 1rem;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    color: var(--color-text-primary);
-}
+.card { background: var(--color-bg-card); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+.card h3 { margin: 0 0 0.75rem 0; font-size: 1rem; font-weight: 700; }
 
-.role-links a:hover {
-    background: var(--color-bg-hover);
-    border-color: var(--color-border-hover);
-}
+.stat-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--color-border); font-size: 0.88rem; }
+.stat-row:last-child { border-bottom: none; }
+.stat-val { font-weight: 700; color: #15803d; }
 
-.quick-input {
-    margin-top: 1.5rem;
-    padding: 1rem;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    background: var(--color-bg-card);
-}
+.client-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0; border-bottom: 1px solid var(--color-border); font-size: 0.88rem; }
+.client-row:last-child { border-bottom: none; }
+.client-avatar { width: 32px; height: 32px; border-radius: 50%; background: #15803d; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
+.client-info { flex: 1; }
+.client-name { font-weight: 600; }
+.client-meta { font-size: 0.75rem; color: #888; }
+.badge { font-size: 0.68rem; font-weight: 600; padding: 0.12rem 0.4rem; border-radius: 6px; white-space: nowrap; }
+.badge-urgent { background: #fee2e2; color: #dc2626; }
+.badge-active { background: #dcfce7; color: #15803d; }
 
-.chip-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
-}
+.queue-item { padding: 0.65rem 0; border-bottom: 1px solid var(--color-border); font-size: 0.85rem; }
+.queue-item:last-child { border-bottom: none; }
+.queue-title { font-weight: 600; }
+.queue-meta { font-size: 0.72rem; color: #888; margin-top: 0.2rem; }
+
+.empty-state { text-align: center; padding: 2rem; color: #888; font-size: 0.9rem; }
+
+.quick-input { margin-top: 1.5rem; padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-bg-card); }
+.quick-input textarea { width: 100%; min-height: 80px; margin-top: 0.5rem; padding: 0.5rem; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-family: inherit; font-size: 0.9rem; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+.btn { display: inline-block; padding: 0.45rem 1rem; border-radius: 8px; font-weight: 600; font-size: 0.85rem; text-decoration: none; cursor: pointer; border: 1px solid transparent; }
+.btn--primary { background: #15803d; color: #fff; }
+.btn--secondary { background: var(--color-bg-card); color: var(--color-text-primary); border-color: var(--color-border); }
+.btn--sm { padding: 0.3rem 0.7rem; font-size: 0.8rem; }
 </style>
 {% endblock %}
 
@@ -54,7 +54,7 @@
     <p>Case support workflow without dead ends.</p>
 
     <div class="role-links">
-        <a href="/advocate">Overview</a>
+        <a href="/advocate" class="active">Overview</a>
         <a href="/advocate/clients">Clients</a>
         <a href="/advocate/queue">Case Queue</a>
         <a href="/advocate/intake">New Intake</a>
@@ -63,10 +63,44 @@
         <a href="/law-library">Law Library</a>
     </div>
 
+    <div class="dash-grid">
+        <div>
+            <div class="card">
+                <h3>👥 Active Clients</h3>
+                <div id="clients-list">
+                    <div class="empty-state">Loading clients...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📋 Case Queue</h3>
+                <div id="queue-list">
+                    <div class="empty-state">Loading queue...</div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="card">
+                <h3>📊 Stats</h3>
+                <div class="stat-row"><span>Active Clients</span><span class="stat-val" id="stat-clients">—</span></div>
+                <div class="stat-row"><span>Urgent Cases</span><span class="stat-val" id="stat-urgent">—</span></div>
+                <div class="stat-row"><span>Total Events</span><span class="stat-val" id="stat-events">—</span></div>
+            </div>
+
+            <div class="card">
+                <h3>📨 Recent Activity</h3>
+                <div id="activity-list">
+                    <div class="empty-state">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="quick-input">
-        <h3>Quick Intake Prompt</h3>
+        <h3>Quick Intake</h3>
         <p>Paste what your client said and jump to intake or queue.</p>
-        <textarea class="form-textarea" id="advocate-intake" placeholder="Example: Tenant received hearing notice and needs filing checklist"></textarea>
+        <textarea id="advocate-intake" placeholder="Example: Tenant received hearing notice and needs filing checklist"></textarea>
         <div class="chip-row">
             <button class="btn btn--secondary btn--sm" type="button" data-advocate-suggest="Urgent filing deadline in 48 hours.">Urgent Filing</button>
             <button class="btn btn--secondary btn--sm" type="button" data-advocate-suggest="New tenant needs full intake.">New Tenant</button>
@@ -75,7 +109,75 @@
         </div>
     </div>
 </div>
+
 <script>
+async function fetchJSON(url) {
+    try {
+        const resp = await fetch(url);
+        if (!resp.ok) return null;
+        return await resp.json();
+    } catch (e) { return null; }
+}
+
+function avatarInitials(id) {
+    return (id || '?').substring(0, 2).toUpperCase();
+}
+
+async function loadDashboard() {
+    const [clientsRes, queueRes, timelineRes] = await Promise.all([
+        fetchJSON('/api/advocate/clients'),
+        fetchJSON('/api/advocate/queue'),
+        fetchJSON('/api/advocate/timeline'),
+    ]);
+
+    const clientsEl = document.getElementById('clients-list');
+    if (clientsRes && clientsRes.clients && clientsRes.clients.length > 0) {
+        clientsEl.innerHTML = clientsRes.clients.map(c => `
+            <div class="client-row">
+                <div class="client-avatar">${avatarInitials(c.user_id)}</div>
+                <div class="client-info">
+                    <div class="client-name">${c.user_id.substring(0, 16)}...</div>
+                    <div class="client-meta">${c.doc_count} docs · ${c.event_count} events · ${c.primary_provider}</div>
+                </div>
+                <span class="badge badge-active">Active</span>
+            </div>
+        `).join('');
+        document.getElementById('stat-clients').textContent = clientsRes.count;
+    } else {
+        clientsEl.innerHTML = '<div class="empty-state">No clients linked yet. Use Quick Intake to add your first client.</div>';
+        document.getElementById('stat-clients').textContent = '0';
+    }
+
+    const queueEl = document.getElementById('queue-list');
+    if (queueRes && queueRes.queue && queueRes.queue.length > 0) {
+        const urgent = queueRes.queue.filter(q => q.urgent);
+        document.getElementById('stat-urgent').textContent = urgent.length;
+        queueEl.innerHTML = queueRes.queue.slice(0, 10).map(q => `
+            <div class="queue-item">
+                <div class="queue-title">${q.urgent ? '<span class="badge badge-urgent">URGENT</span> ' : ''}${q.title || 'Untitled event'}</div>
+                <div class="queue-meta">Client: ${q.client_id.substring(0, 12)}... · ${q.created_at ? new Date(q.created_at).toLocaleDateString() : ''}</div>
+            </div>
+        `).join('');
+    } else {
+        queueEl.innerHTML = '<div class="empty-state">No cases in queue.</div>';
+        document.getElementById('stat-urgent').textContent = '0';
+    }
+
+    const activityEl = document.getElementById('activity-list');
+    if (timelineRes && timelineRes.events && timelineRes.events.length > 0) {
+        document.getElementById('stat-events').textContent = timelineRes.count;
+        activityEl.innerHTML = timelineRes.events.slice(0, 8).map(e => `
+            <div class="queue-item">
+                <div class="queue-title">${e.title || 'Untitled'}</div>
+                <div class="queue-meta">${e.client_id.substring(0, 12)}... · ${e.created_at ? new Date(e.created_at).toLocaleDateString() : ''}</div>
+            </div>
+        `).join('');
+    } else {
+        activityEl.innerHTML = '<div class="empty-state">No recent activity.</div>';
+        document.getElementById('stat-events').textContent = '0';
+    }
+}
+
 document.querySelectorAll('[data-advocate-suggest]').forEach((chip) => {
     chip.addEventListener('click', () => {
         const target = document.getElementById('advocate-intake');
@@ -83,6 +185,8 @@ document.querySelectorAll('[data-advocate-suggest]').forEach((chip) => {
         target.focus();
     });
 });
+
+loadDashboard();
 </script>
 <script src="/static/js/workspace-stage-model.js"></script>
 {% endblock %}
