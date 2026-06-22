@@ -466,6 +466,8 @@ _register("app.modules.court_forms.router", tags=("Court Forms",), tier=ProductT
 _register("app.modules.court_packet.router", tags=("Court Packet",), tier=ProductTier.EXTENDED)
 # _register("app.modules.legal_filing.router", tags=("Legal Filing",), tier=ProductTier.EXTENDED)  # INACTIVE: Not integrated with mesh/network
 _register("app.modules.legal_trails.router", tags=("Legal Trails",), tier=ProductTier.EXTENDED)
+_register("app.modules.legal.router", tags=("Legal", "Court Filing", "Discovery", "Exhibits", "Workspace"), tier=ProductTier.EXTENDED,
+          log_message="Legal workspace router connected — matters, filings, discovery, exhibits active")
 _register("app.modules.tenant_defense", tags=("Tenant Defense",), tier=ProductTier.EXTENDED,
           log_message="Tenant Defense module loaded - Evidence, petitions, and screening disputes")
 
@@ -655,6 +657,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.eviction_defense.router",
         "app.modules.court_forms.router",
         "app.modules.legal_trails.router",
+        "app.modules.legal.router",
         "app.modules.intake.router",
         "app.modules.guided_intake.router",
         "app.modules.plan_maker.router",
