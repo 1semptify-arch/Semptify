@@ -2023,6 +2023,28 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 
 ---
 
+## Session — 2026-06-22 (Early Morning) — SQLite Compatibility Fix
+**Commit: `093079c` | Pushed: 2026-06-22**
+
+### What Was Shipped
+- `app/models/models.py` — Changed `module_registry.depends_on` from ARRAY(String) to JSON for SQLite compatibility
+- `tests/test_product_manifest.py` — Fixed test to use correct module path format (restored from .gitignore)
+
+### Issues Fixed
+- **SQLite ARRAY type error:** SQLite doesn't support ARRAY type, causing 24 test failures
+- **Test file in .gitignore:** test_product_manifest.py was ignored, needed to be added with -f flag
+
+### What Is Known Working
+- ✅ All 24 product_manifest and action_router_gates tests now pass
+- ✅ JSON type works with SQLite for storing list data
+- ✅ Render deployment live (commit 76f3881)
+
+### Next Session Should Start With
+- Verify SQLite compatibility fix on Render
+- Continue with remaining integration test failures
+
+---
+
 ## Session — 2026-06-06 (Evening) — Root Cause Test Fixes
 
 ### What Was Done — Root Cause Fixes (No Band-Aids)
