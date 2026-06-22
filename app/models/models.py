@@ -1700,8 +1700,8 @@ class ModuleRegistry(Base):
     version: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
     route_prefix: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
 
-    # Array of module names this module depends on
-    depends_on: Mapped[Optional[list[str]]] = mapped_column(ARRAY(String), nullable=True)
+    # Array of module names this module depends on (JSON for SQLite compatibility)
+    depends_on: Mapped[Optional[list[str]]] = mapped_column(JSON, nullable=True)
 
     # Admin notes for tracking issues, rollout status, etc.
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
