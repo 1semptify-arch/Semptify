@@ -12,6 +12,62 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-21 PM3 — Phase 4.1 Tenant + Free API Pack v2.0 + Phase 4.5 Admin
+**Status: Phase 4.1 Tenant complete. Free API Pack v2.0 shipped (11/11 endpoints live). Phase 4.5 Admin verified.**
+
+### What Was Shipped
+
+#### Phase 4.1 Tenant ✅
+- `state_laws.json`: Added complete data for NY, CA, TX, FL, IL (6 states now complete, 43 stub)
+- `housing_accountability/router.py`: `detect_repeated_fees` fully implemented with jurisdiction-aware legal basis (MN/NY/CA/TX/FL/IL), safe date parsing, all-pairs detection, severity scaling
+- Endpoint verification: 1162 routes, 95 modules, 0 skipped, 0 errors
+
+#### Bug Fixes Found During Endpoint Verification ✅
+- `dev_lab/router.py`: `invalidate_all_caches` imported from wrong module (was `module_overrides`, should be `module_resolver`) — caused router to skip
+- `rent/router.py`: Route decorators had literal `/api/rent/payments` paths but manifest adds `prefix=/api/rent`, producing doubled `/api/rent/api/rent/payments`
+- `dev_lab/router.py` + `dev_lab/ideas.py`: APIRouter had `prefix=/dev/lab` while manifest also adds `/dev/lab`, producing `/dev/lab/dev/lab`
+
+#### Free API Pack v2.0 ✅ (commit `7cff5e6`)
+- All 11 endpoints at `/freeapi/*` now have real async implementations
+- `PropertyLookup`: Dakota/Ramsey/Hennepin county parcel + address search
+- `LandlordLookup`: MN SOS business search + HUD property owner lookup
+- `CourtScraper`: MN courts eviction search + CourtListener federal cases
+- `Violations`: Minneapolis/St.Paul city inspections + EPA ECHO + MPCA fallback
+- `Inspections`: HUD REAC scores + local inspection delegation
+- `Statutes`: MN Revisor of Statutes with 24h in-memory cache
+- api.data.gov integration via `DATA_GOV_API_KEY` env var (optional, enhances EPA ECHO rate limits)
+- All methods return structured dicts with `status: ok/no_results/error`
+- httpx + BeautifulSoup4, 10s timeout, Semptify user-agent
+- Verified live: CourtListener returns 485k+ federal cases, MN Revisor returns full statute text (504B.321 = 8376 chars)
+
+#### Phase 4.5 Admin ✅
+- Redirect loop fix verified (commit `1339b59` — cookie `path="/"` in `admin_elevation.py`)
+- All 43 admin GET endpoints verified: 0 errors, 0 server failures
+  - 11 return 200 (public pages)
+  - 32 return 302 (redirect to login — correct stealth admin guard)
+- Module flag overlay UI verified: `/admin/module-flags.html` → 200, `/admin/api/module-flags` → 302 (stealth guard)
+
+### Known Working
+- All 95 modules load, 0 skipped, 0 errors
+- 1162 routes registered
+- Free API Pack: 11 endpoints live with real data
+- Admin console: 43 GET endpoints, 0 server failures
+- CourtListener API: verified 485k+ federal cases searchable
+- MN Revisor API: verified statute 504B.321 returns full text
+
+### Known Broken / Pending
+- Render deploy needed: commit `7cff5e6` pushed to main but auto-deploy is OFF. User must trigger manual deploy on Render dashboard.
+- After deploy: user must log out of admin and back in to get new elevation cookie scoped to `/` (fixes redirect loop)
+- `state_laws.json`: 43 states still stubbed (only 6 complete: MN, NY, CA, TX, FL, IL)
+
+### Next Session Should Start With
+- Phase 4.2 ADVOCATE: Dashboard, client list, case sharing, doc review, invite flow, multi-tenant view
+- Phase 4.3 MANAGER: Dashboard, staff mgmt, case assignment, reporting, bulk ops, permissions
+- Phase 4.4 LEGAL: Workspace, court filing, discovery, case files, exhibits, overlays
+- Phase 4.6 JUDGE: Mark `dev_only` in module flags, do not build
+
+---
+
 ## Session — 2026-06-21 PM2 — Phase 3 Dev System (Internal + External)
 **Status: Phase 3 core shipped. Dev Lab + External SDK + Idea Pipeline live.**
 
