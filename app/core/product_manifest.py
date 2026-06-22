@@ -523,6 +523,8 @@ _register("app.modules.registry.router", tags=("Document Registry",), tier=Produ
 _register("app.modules.tenancy_hub.router", tags=("Tenancy Hub",), tier=ProductTier.ADMIN)
 _register("app.modules.capabilities.router", prefix="", tags=("Capabilities",), tier=ProductTier.ADMIN,
           log_message="Capabilities router active — user capability and overlay management enabled")
+_register("app.modules.manager.router", tags=("Manager", "Case Assignment", "Reporting", "Bulk Ops"), tier=ProductTier.ADMIN,
+          log_message="Manager router connected — case assignment, reporting, bulk ops active")
 
 
 # =============================================================================
@@ -668,6 +670,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.contacts.router",
         "app.modules.state_laws.router",
         "app.modules.search.router",
+        "app.modules.manager.router",
     ],
     "admin": [
         # Admin gets all tiers — resolved at runtime from MANIFEST
