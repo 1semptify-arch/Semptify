@@ -807,7 +807,7 @@ function startVoice() {
   const input = document.getElementById('searchInput');
   if (voiceRec && btn.classList.contains('listening')) { voiceRec.stop(); btn.classList.remove('listening'); return; }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert('Voice search not supported in this browser. Try Chrome or Edge.'); return; }
+  if (!SR) { if (window.SemptifyFeedback) { SemptifyFeedback.error('Voice search not supported in this browser. Try Chrome or Edge.'); } else { alert('Voice search not supported in this browser. Try Chrome or Edge.'); } return; }
   voiceRec = new SR();
   voiceRec.continuous = false;
   voiceRec.interimResults = true;
@@ -1074,12 +1074,12 @@ function eaNext(from) {
   if (from === 1) {
     const t = v => document.getElementById(v).value.trim();
     if (!t('ea-tenant')||!t('ea-landlord')||!t('ea-served')||!t('ea-address'))
-      { alert('Please fill all required fields.'); return; }
+      { if (window.SemptifyFeedback) { SemptifyFeedback.error('Please fill all required fields.'); } else { alert('Please fill all required fields.'); } return; }
     eaData.tenant = t('ea-tenant'); eaData.landlord = t('ea-landlord');
     eaData.case_num = t('ea-case'); eaData.served = t('ea-served'); eaData.address = t('ea-address');
   } else if (from === 2) {
     const sel = [...document.querySelectorAll('#ea-defenses-list input:checked')].map(x=>x.value);
-    if (!sel.length) { alert('Select at least one defense.'); return; }
+    if (!sel.length) { if (window.SemptifyFeedback) { SemptifyFeedback.error('Select at least one defense.'); } else { alert('Select at least one defense.'); } return; }
     eaData.defenses = sel;
   } else if (from === 3) {
     eaData.statement = document.getElementById('ea-statement').value.trim();
@@ -1128,7 +1128,7 @@ em{font-size:10pt;color:#666;}</style></head><body>
 }
 
 function eaDownload() {
-  if (!eaBlob) { alert('Generate document first.'); return; }
+  if (!eaBlob) { if (window.SemptifyFeedback) { SemptifyFeedback.error('Generate document first.'); } else { alert('Generate document first.'); } return; }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(eaBlob);
   a.download = `Answer_${(eaData.tenant||'Tenant').replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.html`;
@@ -1137,7 +1137,7 @@ function eaDownload() {
 
 function eaPrint() {
   const html = localStorage.getItem('semptify_answer_html');
-  if (!html) { alert('Generate document first.'); return; }
+  if (!html) { if (window.SemptifyFeedback) { SemptifyFeedback.error('Generate document first.'); } else { alert('Generate document first.'); } return; }
   const w = window.open('','_blank');
   w.document.write(html); w.document.close();
   setTimeout(()=>w.print(), 400);
