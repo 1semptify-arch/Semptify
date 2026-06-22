@@ -1175,9 +1175,9 @@ Please investigate and fix this issue. The test is failing and needs correction.
       } catch (e) {
         // Fallback: copy to clipboard and show alert
         navigator.clipboard.writeText(issueText).then(() => {
-          alert('Issue copied to clipboard. Open your AI editor (VS Code/Windsurf) to fix this issue.');
+          if (window.SemptifyFeedback) { SemptifyFeedback.success('Issue copied to clipboard. Open your AI editor (VS Code/Windsurf) to fix this issue.'); } else { alert('Issue copied to clipboard. Open your AI editor (VS Code/Windsurf) to fix this issue.'); }
         }).catch(() => {
-          alert('Could not open AI portal. Please manually report this issue:\n\n' + issueText);
+          if (window.SemptifyFeedback) { SemptifyFeedback.error('Could not open AI portal. See detail for issue text.', { detail: issueText }); } else { alert('Could not open AI portal. Please manually report this issue:\n\n' + issueText); }
         });
       }
     }
@@ -1210,5 +1210,6 @@ Please investigate and fix this issue. The test is failing and needs correction.
     }
   </script>
   <script src="/js/admin-nav.js"></script>
+<script src="/static/components/feedback.js"></script>
 </body>
 </html>
