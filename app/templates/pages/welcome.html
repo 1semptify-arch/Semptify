@@ -510,7 +510,7 @@
             .then((payload) => {
                 if (payload.status === "blocked") {
                     const missing = (payload.missing_requirements || []).join(", ");
-                    alert("Please complete welcome setup before continuing: " + missing);
+                    if (window.SemptifyFeedback) { SemptifyFeedback.error("Please complete welcome setup before continuing: " + missing); } else { alert("Please complete welcome setup before continuing: " + missing); }
                     return;
                 }
 
