@@ -421,6 +421,8 @@ _register("app.modules.preview.router", prefix="/api/preview", tags=("Document P
           log_message="Document Preview router connected - Multi-format preview generation active")
 _register("app.modules.document_converter.router", tags=("Document Converter",), tier=ProductTier.CORE)
 _register("app.modules.legal_analysis.router", tags=("Legal Analysis",), tier=ProductTier.CORE)
+_register("app.modules.context_engine.router", tags=("Context Engine", "Facts", "Stories"), tier=ProductTier.CORE,
+          log_message="Context Engine router connected — verified facts + tenant stories active")
 
 # Real-time
 _register("app.modules.websocket.router", prefix="/ws", tags=("WebSocket Events",), tier=ProductTier.CORE)
