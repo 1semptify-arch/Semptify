@@ -2023,6 +2023,49 @@ If admin uses same Google account as an existing tenant account, OAuth callback 
 
 ---
 
+## Session — 2026-06-22 (Early Morning) — Action Feedback Retrofit + Context Engine Wiring
+**Commit: `8dd6a0d` | Pushed: 2026-06-22**
+
+### What Was Shipped
+
+#### Action Feedback Retrofit — 78 alert() replaced across 16 pages
+- **Tier 1 tenant pages** (5 pages, 8 alerts): dashboard, journal, documents, deadlines, letters
+- **Tier 2 admin pages** (4 pages, 37 alerts): dashboard (22), dev_lab (11), module_flags (2), review-checklist (2)
+- **Tier 3 office + tools** (7 pages, 33 alerts): inbox (12), signer (3), delivery (5), vault (1), generators (5), checklists (3), calculators (4)
+- **Tier 4**: advocate/manager/legal/onboarding — already clean, no alert() found
+- All replacements use `SemptifyFeedback` helper with graceful `else { alert() }` fallback
+- All 16 pages now load `feedback.js`
+
+#### Context Engine Panels Wired
+- New component: `static/components/context-panel.js` — fetches verified facts + published stories
+- Tenant dashboard: 1 panel (eviction) after hero
+- Library page: "Know Your Rights" section with 3 panels (eviction, repair, deposit)
+
+#### Code Review Fixes (3 API contract bugs)
+- `context-panel.js`: `f.verified` -> `f.is_verified` (API returns `is_verified`)
+- `context-panel.js`: `s.avoided_court` -> `s.outcome === 'avoided_court'` (no such field)
+- Stories API exposes `outcome` field, not `avoided_court` boolean
+
+### What Is Known Working
+- ✅ All 16 retrofitted pages load `feedback.js` and use `SemptifyFeedback`
+- ✅ Context Engine API endpoints live (`/api/context/facts`, `/api/context/stories`)
+- ✅ Context panels render on tenant dashboard + library page
+- ✅ All Python files compile clean
+- ✅ Render deployment live
+
+### What Is Known Broken / Pending
+- Context Engine facts cache is empty until admin runs `/api/context/facts/refresh`
+- Tenant stories table empty until users submit + admin moderates
+- `templates/journal-refactored.html` has 1 raw alert() but is a dead template (not referenced)
+
+### Next Session Should Start With
+- Admin should run fact refresh for eviction/repair/deposit subjects (MN jurisdiction)
+- Verify Context Engine panels render with real data on Render
+- Consider wiring context panels into more pages (office, tools, advocate dashboard)
+- Continue with any remaining integration test failures
+
+---
+
 ## Session — 2026-06-22 (Early Morning) — SQLite Compatibility Fix
 **Commit: `093079c` | Pushed: 2026-06-22**
 
