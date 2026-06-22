@@ -483,7 +483,7 @@ _register("app.modules.complaints.router", tags=("Complaint Wizard",), tier=Prod
           log_message="Complaint Filing Wizard loaded - Regulatory accountability tools active")
 _register("app.modules.housing_accountability.router", router_attr="accountability_router",
           tags=("Housing Accountability",), tier=ProductTier.EXTENDED,
-          lifecycle="beta", dev_notes="detect_repeated_fees() at router.py:83 is a stub.")
+          lifecycle="beta", dev_notes="detect_repeated_fees() fully implemented — groups by fee type, jurisdiction-aware legal basis, safe date parsing.")
 _register("app.modules.housing_accountability.pattern_history", router_attr="pattern_history_router",
           tags=("Pattern History",), tier=ProductTier.EXTENDED,
           lifecycle="beta", dev_notes="Depends on housing_accountability pattern matching.")

@@ -25,7 +25,7 @@ from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/dev/lab/ideas", tags=["Dev Ideas"])
+router = APIRouter(tags=["Dev Ideas"])
 
 
 # =============================================================================

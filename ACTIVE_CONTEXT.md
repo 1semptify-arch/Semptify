@@ -1,154 +1,96 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-06-04
+**Last Updated**: 2026-06-21
 
 ---
 
-## 🔧 Latest: Reconnect Session Persistence Fix (2026-06-04)
+## 🔧 Latest: Audit + Design Docs (2026-06-21)
 
-| Fix | File | Status |
+| Output | File | Status |
 |-----|------|--------|
-| **DB-first session save in storage callback** | `app/modules/storage/router.py` | ✅ Shipped (pending live test) |
-| **Role extraction for plain UIDs** | `app/modules/storage/router.py` | ✅ Shipped (pending live test) |
-| **Role passed in reconnect redirect** | `app/modules/onboarding/reconnect.py` | ✅ Shipped (pending live test) |
+| **Module/function/contract audit** | `STATUS_AUDIT.md` | ✅ Complete |
+| **Context Engine design** | (captured in todo, write-up pending) | ✅ Designed |
+| **Action Feedback audit** | `ACTION_FEEDBACK_AUDIT.md` | ✅ Complete |
+
+### Audit Headlines
+- **95** active module registrations, **6** INACTIVE
+- **49** `FunctionGroupContract` registrations across **12** modules — **70+ modules have zero contracts** (biggest hole)
+- **6** `NotImplementedError`, **11** `"not_implemented"` stubs (all in `free_api_pack.py`)
+- **53** TODO markers, **60** pass-only bodies, **148** HTML placeholders
+- **124** fetch() calls in HTML, **76 (62%) silent failures**, **82** alert() calls, **0** toast helpers
+
+### Context Engine — Key Decisions
+- Cache: **PostgreSQL `context_facts` table** (not Redis — already running, no new infra)
+- Stories surface **after task completion** (not page load) — saved to user's journal
+- Story frame: **`avoided_court` is the hero**, not "I won" — documentation is the win
+- 13 subjects: eviction, repair, rent, lease, deposit, discrimination, safety, habitability, retaliation, small_claims, court_prep, evidence, timeline
+- Sources: MN Revisor, HUD, EPA ECHO, MPCA, CourtListener, MN Courts, county parcel APIs, Eviction Lab, Census/ACS, Homeline MN, tenant stories (moderated)
+- Guardrails: no hallucination (every fact cited), no legal advice, stories anonymized + moderated, calm tone, jurisdiction-aware
+- Module: `app/modules/context_engine/` with router, gatherer, verifier, cache, stories, taxonomy, distributor, models
+- Contracts: `context_query`, `context_refresh`, `story_submit`, `story_moderate`
+- Repurposes `free_api_pack.py` stubs as real fetchers
+- Fills 148 HTML placeholders with context panels
+
+### Action Feedback — Key Decisions
+- Build `static/components/feedback.html` — unified `SemptifyFeedback` helper
+- API: `start(button, text)`, `success(msg)`, `error(msg, {detail})`, `info(msg)`, `story({...})`
+- Reuses existing `loading-overlay.html` spinner + `btn--loading` class
+- Toast: bottom-right, 4 variants, accessible, stackable, calm tone
+- Retrofit priority: Tier 1 tenant pages → Tier 2 admin → Tier 3 office → Tier 4 tools → Tier 5 remaining
+- `SemptifyFeedback.story()` is the bridge to Context Engine
 
 ---
 
-## 🎯 Current Priority: Select Next Major System
+## 🎯 Current Priority: Phase 4 — Role Development Completion
 
-### ✅ COMPLETED: Unified Overlay System (2026-04-21)
+### Phase 4 Scope (from ROADMAP_TO_PUBLIC_RELEASE.md)
 
-| Component | File | Status |
-|-----------|------|--------|
-| **Core Types** | `app/core/overlay_types.py` | ✅ Complete |
-| **Data Models** | `app/models/unified_overlay_models.py` | ✅ Complete |
-| **Cloud Manager** | `app/services/unified_overlay_manager.py` | ✅ Complete |
-| **API Router** | `app/routers/unified_overlays.py` | ✅ Complete |
-| **Vault Integration** | `app/services/vault_upload_service.py` | ✅ Complete |
-| **Router Integration** | `app/main.py` | ✅ Complete |
-| **Old System Deprecated** | `document_overlay.py`, `document_overlay_service.py` | ✅ Marked |
+| Role | Status | Work Needed |
+|------|--------|-------------|
+| **4.1 TENANT** | ✅ Mostly done | `state_laws` +5 states, `housing_accountability.detect_repeated_fees()`, verify endpoints |
+| **4.2 ADVOCATE** | ⚠️ Partial | Dashboard, client list, case sharing, doc review, invite flow, multi-tenant view |
+| **4.3 MANAGER** | ⚠️ Stub | Dashboard, staff mgmt, case assignment, reporting, bulk ops, permissions |
+| **4.4 LEGAL** | ⚠️ Stub | Workspace, court filing, discovery, case files, exhibits, overlays |
+| **4.5 ADMIN** | ✅ Developed | Deploy redirect fix, verify 41 endpoints, module flag UI |
+| **4.6 JUDGE** | 🚫 Not built | Future — mark `dev_only`, don't build until courts request |
 
-**API Available**: `/api/unified-overlays/*`
-**Storage**: `Semptify5.0/Vault/overlays/` (cloud-only, stateless)
+### Phase 4 Execution Order
+1. **4.1 TENANT** — smallest gap, finish first
+2. **4.5 ADMIN** — mostly verification + small fixes
+3. **4.2 ADVOCATE** — next in roadmap order, real feature work
+4. **4.3 MANAGER** — stub buildout
+5. **4.4 LEGAL** — stub buildout
+6. **4.6 JUDGE** — mark `dev_only` in module flags, do not build
 
-### ✅ COMPLETED: Core Mechanics (2026-04-20)
+---
 
-| Area | Task | Status | Notes |
-|------|------|--------|-------|
-| **Routing** | Single source of truth for OAuth routing | ✅ Complete | `route_user()` in `workflow_engine.py` |
-| **Workflow** | Stateless behavior, deterministic routing | ✅ Complete | Removing stateful fallbacks |
-| **Vault** | Cloud storage patterns finalized | ✅ Complete | Path constants in `vault_paths.py` |
-
-### 🅿️ PARKED (Awaiting Decision)
+## 🅿️ PARKED (Awaiting Build)
 
 | Project | Design Doc | Status | Blocked By |
 |---------|------------|--------|------------|
-| **rehome.html / Identity Recovery** | Research encrypted alternative | 🅿️ PARKED | User researching encrypted format vs plain HTML |
-
-### ✅ COMPLETED: Document Delivery System
-
-| Component | File | Status |
-|-----------|------|--------|
-| **Page Contracts** | `app/core/page_contracts.py` | ✅ Complete (inbox, send, signature flows) |
-| **Data Models** | `app/models/document_delivery_models.py` | ✅ Complete |
-| **Service Layer** | `app/services/document_delivery_service.py` | ✅ Complete |
-| **API Router** | `app/routers/document_delivery.py` | ✅ Complete |
-| **Send HTML** | `static/delivery_send.html` | ✅ Complete (w/ communication integration) |
-| **Inbox HTML** | `static/delivery_inbox.html` | ✅ Complete |
-| **Signer HTML** | `static/document_signer.html` | ✅ Complete (fill, sign, chat, reject) |
-| **Main Integration** | `app/main.py` | ✅ Complete |
-
-**API Available**: `/api/delivery/*`
-**Delivery Types**: REVIEW_REQUIRED, SIGNATURE_REQUIRED, PROCESS_SERVER (future)
-**Who Can Send**: Advocate, Manager, Legal, Admin
-**Storage**: Cloud overlays in recipient vault
-
-### ✅ COMPLETED: Communication System (2026-04-21)
-
-| Component | File | Status |
-|-----------|------|--------|
-| **Data Models** | `app/models/communication_models.py` | ✅ Complete |
-| **Service Layer** | `app/services/communication_service.py` | ✅ Complete |
-| **API Router** | `app/routers/communication.py` | ✅ Complete |
-| **Browser UI** | `static/document_signer.html` | ✅ Complete |
-| **Overlay Type** | `app/core/overlay_types.py` | ✅ Added COMMUNICATION |
-| **Main Integration** | `app/main.py` | ✅ Complete |
-
-**API Available**: `/api/communications/*`
-**Features**:
-- Direct messaging between tenant and all roles
-- Document collaboration threads
-- In-browser document filling and signing
-- Signed documents saved to user's vault
-- Real-time chat interface
-
-**Storage**: Cloud overlays (COMMUNICATION type) in `Semptify5.0/Vault/communications/`
-
-### ✅ COMPLETED: EXTENDED Tier Enabled (2026-05-29)
-
-- 50 modules registered (was 35)
-- All 5 import errors fixed (progress, actions, document_converter, tenant_defense, pattern_history)
-- `pattern_records` table excluded from `create_all` (needs Alembic migration when ready)
-- Tenant navigation menu updated with new tools
-- `preview` module skipped — `libmagic` already installed, likely a Windows DLL path issue
-
----
-
-## 🎯 NEXT MOVE
-
-### Step 1 — Ship tonight's changes
-```
-/ship
-```
-
-### Step 2 — Build the generic module page template
-
-One Jinja2 template + one route that renders ANY module page from its contract.
-- `app/templates/module_page.html` — generic tool page
-- Route: `GET /tool/{module_name}` in `role_ui/router.py`
-- Wire 3 modules as proof: `eviction_defense`, `complaints`, `plan_maker`
-- Every future module gets a page for free
-
-### Step 3 — Live test with a real tenant scenario
-- New user → onboarding → vault → upload a lease → check eviction defense page
-- Confirm the full path works end to end
-
----
-
-## 🚫 NOT YET (documented, not building)
-- Role + jurisdiction module activation (`ModuleGateMiddleware`) — onramp in `product_manifest.py`
-- Feature flags DB table
-- Event bus wire-up for `context_loop`
-- `pattern_records` Alembic migration
-
----
-
-## ✅ UNPARKED (Recently Completed)
-
-| Project | Design Doc | Status |
-|---------|------------|--------|
-| **Unified Overlay System** | `docs/OVERLAY_SYSTEM_DESIGN.md` | ✅ Complete and deployed |
+| **Context Engine MVP** | (todo, needs write-up) | 🅿️ Ready to build | Phase 4 in progress |
+| **Action Feedback helper** | `ACTION_FEEDBACK_AUDIT.md` | 🅿️ Ready to build | Phase 4 in progress |
 
 ---
 
 ## 🚫 Anti-Priorities (Don't Start These)
 
-Things that might seem important but should NOT be worked on now:
-
-1. **New features** that aren't core mechanics
-2. **Refactoring** unrelated to statelessness
+1. **New features** that aren't Phase 4 role completion
+2. **Refactoring** unrelated to role stubs
 3. **Documentation** that isn't critical path
 4. **Testing** of non-core systems
+5. **Context Engine / Action Feedback build** — parked until Phase 4 done
 
 ---
 
-## ✅ Definition of "Core Mechanics Stable"
+## ✅ Definition of "Phase 4 Complete"
 
-- [ ] `route_user()` is single source of truth for all routing
-- [ ] No hardcoded redirect tables anywhere
-- [ ] No local file storage for user data (all cloud)
-- [ ] Deterministic behavior: same input = same output
-- [ ] Stateless: no server-side session state
+- [ ] 4.1 Tenant: all stubs fixed, all tenant-visible endpoints return 200
+- [ ] 4.2 Advocate: dashboard, client list, case sharing, doc review, invite flow, multi-tenant view
+- [ ] 4.3 Manager: dashboard, staff mgmt, case assignment, reporting, bulk ops, permissions
+- [ ] 4.4 Legal: workspace, court filing (when MNDES ready), discovery, case files, exhibits, overlays
+- [ ] 4.5 Admin: deploy redirect fix, all 41 endpoints verified, module flag UI
+- [ ] 4.6 Judge: marked `dev_only` in module flags, not built
 
 ---
 
@@ -156,20 +98,22 @@ Things that might seem important but should NOT be worked on now:
 
 | Date | Decision | Reason |
 |------|----------|--------|
-| 2026-04-21 | ✅ Document Send uses Communication System | Send creates conversation thread + delivery record |
-| 2026-04-21 | ✅ Document Rejection saves to vault | Rejection records stored as COMMUNICATION overlays with watermark |
-| 2026-04-21 | ✅ Completed Communication System | Document fill/sign + messaging + vault storage |
-| 2026-04-21 | ✅ Completed Unified Overlay System | All components integrated, vault upload migrated |
-| 2026-04-21 | Ready for next major system | Core mechanics + overlays stable |
-| 2026-04-20 | Parked Unified Overlay System | Core mechanics must stabilize first |
-| 2026-04-20 | Prioritized stateless routing | Foundation for all other work |
+| 2026-06-21 | ✅ Completed audit + design docs | STATUS_AUDIT.md, ACTION_FEEDBACK_AUDIT.md written |
+| 2026-06-21 | ✅ Context Engine design captured | PostgreSQL cache, stories after task, avoided_court hero |
+| 2026-06-21 | ✅ Action Feedback design captured | SemptifyFeedback helper, 5-tier retrofit |
+| 2026-06-21 | Start Phase 4 — Role Development | Audit complete, ready to fix stubs |
+| 2026-06-04 | Reconnect session persistence fix | DB-first session save |
+| 2026-04-21 | Completed Communication System | Document fill/sign + messaging + vault storage |
+| 2026-04-21 | Completed Unified Overlay System | All components integrated |
 
 ---
 
 ## 🔗 Quick Links
 
-- **Parked Design**: `docs/OVERLAY_SYSTEM_DESIGN.md`
-- **Build Status**: `docs/BUILD_OUT_STATUS.md`
+- **Status Audit**: `STATUS_AUDIT.md`
+- **Action Feedback Audit**: `ACTION_FEEDBACK_AUDIT.md`
+- **Build Status**: `BUILD_STATE.md`
+- **Roadmap**: `ROADMAP_TO_PUBLIC_RELEASE.md`
 - **Blueprint**: `BLUEPRINT.md`
 - **Vault Paths**: `app/core/vault_paths.py`
 

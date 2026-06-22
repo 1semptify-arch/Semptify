@@ -2,7 +2,9 @@
   "metadata": {
     "version": "1.0",
     "last_updated": "2025-04-23",
-    "complete_states": ["MN"],
+    "complete_states": [
+      "MN"
+    ],
     "stub_states": 49
   },
   "states": {
@@ -30,7 +32,11 @@
         "return_deadline": "21 days after lease ends (3 weeks)",
         "itemized_required": true,
         "interest_required": false,
-        "withholding_allowed": ["Unpaid rent", "Damage beyond normal wear", "Other lease violations"],
+        "withholding_allowed": [
+          "Unpaid rent",
+          "Damage beyond normal wear",
+          "Other lease violations"
+        ],
         "notes": "Landlord must provide written statement of reasons for withholding any deposit."
       },
       "rent_control": {
@@ -39,7 +45,13 @@
         "notes": "State law preempts local rent control. Tenant can challenge unreasonable rent increases in court under 'unconscionable' standard."
       },
       "repairs": {
-        "landlord_duties": ["Maintain electrical/plumbing/heating", "Provide garbage removal", "Provide running water/hot water", "Keep unit weatherproof", "Exterminate pests in multi-unit buildings"],
+        "landlord_duties": [
+          "Maintain electrical/plumbing/heating",
+          "Provide garbage removal",
+          "Provide running water/hot water",
+          "Keep unit weatherproof",
+          "Exterminate pests in multi-unit buildings"
+        ],
         "tenant_remedies": {
           "repair_deduct": true,
           "rent_withholding": true,
@@ -52,20 +64,42 @@
       "landlord_entry": {
         "notice_required": true,
         "notice_period": "24 hours",
-        "allowed_reasons": ["Emergency", "Inspection (limited frequency)", "Repairs/maintenance", "Showing unit to prospective tenants/buyers"],
+        "allowed_reasons": [
+          "Emergency",
+          "Inspection (limited frequency)",
+          "Repairs/maintenance",
+          "Showing unit to prospective tenants/buyers"
+        ],
         "tenant_rights": "Tenant can refuse entry without proper notice. Repeated unauthorized entry = landlord harassment."
       },
       "eviction": {
         "court": "Housing Court (Hennepin/Ramsey) or County Court",
         "timeline": "Typically 2-6 weeks from filing to hearing",
-        "tenant_defenses": ["Retaliation", "Discrimination", "Landlord failed to maintain unit", "Improper notice", "Rent paid but not credited"],
+        "tenant_defenses": [
+          "Retaliation",
+          "Discrimination",
+          "Landlord failed to maintain unit",
+          "Improper notice",
+          "Rent paid but not credited"
+        ],
         "expungement": "Eviction records can be expunged in certain circumstances",
         "self_help_illegal": true,
         "lockout_prohibited": true,
         "utility_shutoff_prohibited": true
       },
       "discrimination": {
-        "protected_classes": ["Race", "Color", "Creed", "Religion", "National origin", "Sex", "Marital status", "Status with regard to public assistance", "Disability", "Familial status"],
+        "protected_classes": [
+          "Race",
+          "Color",
+          "Creed",
+          "Religion",
+          "National origin",
+          "Sex",
+          "Marital status",
+          "Status with regard to public assistance",
+          "Disability",
+          "Familial status"
+        ],
         "familial_status": "Cannot refuse to rent to families with children",
         "disability_accommodations": "Reasonable accommodations/modifications required",
         "complaint_agency": "Minnesota Department of Human Rights",
@@ -157,37 +191,854 @@
     "CA": {
       "code": "CA",
       "name": "California",
-      "status": "stub",
-      "stub_url": "https://www.lawhelpca.org/issues/housing",
-      "notes": "California housing laws vary by city. Check local rent control ordinances."
+      "nickname": "Golden State",
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "California Civil Code §§1940-1954.05; Code of Civil Procedure §1161-1179a (unlawful detainer)",
+        "statute_url": "https://leginfo.legislature.ca.gov/faces/codes_displayText.xhtml?division=3.&part=2.&lawCode=CIV&title=5.",
+        "summary": "California has strong tenant protections including the implied warranty of habitability, AB 1482 rent cap (2019), and just-cause eviction requirements for most rentals."
+      },
+      "notice_requirements": {
+        "nonpayment": "3 days to pay or vacate (CCP §1161(2))",
+        "lease_violation": "3 days to cure or vacate (CCP §1161(1))",
+        "termination_month_to_month": "30 days if tenant <1 year; 60 days if 1+ years (CC §1946.1)",
+        "termination_lease_end": "No notice required if lease specifies end date",
+        "illegal_activity": "3 days notice (CCP §1161(4))",
+        "notes": "Written notice required. AB 1482 requires just cause for eviction after 12 months of tenancy."
+      },
+      "security_deposit": {
+        "limit": "1 month rent (AB 12, effective July 1, 2024 — previously 2 months unfurnished, 3 months furnished)",
+        "return_deadline": "21 days after lease ends (CC §1950.5)",
+        "itemized_required": true,
+        "interest_required": false,
+        "withholding_allowed": [
+          "Unpaid rent",
+          "Cleaning unit",
+          "Damage beyond normal wear",
+          "Cost of restoration if allowed by lease"
+        ],
+        "notes": "Landlord must provide itemized statement with receipts for amounts >$126. AB 12 (2024) reduced deposit limit to 1 month for most rentals."
+      },
+      "rent_control": {
+        "statewide": true,
+        "local_programs": "Local rent control in Los Angeles, San Francisco, Oakland, Berkeley, San Jose, West Hollywood, and others; Costa-Hawkins Rental Housing Act (1995) limits local control on single-family homes and post-1995 construction",
+        "notes": "AB 1482 (2019) caps rent increases at 5% + CPI, max 10% annually. Exempts single-family homes (with specific notice) and properties <15 years old."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Provide running water/hot water",
+          "Keep unit weatherproof",
+          "Comply with building/housing codes",
+          "Provide deadbolt locks, smoke detectors"
+        ],
+        "emergency_repairs": "Reasonable time — typically 24-72 hours depending on severity",
+        "warranty_of_habitability": "CC §1941.1 — implied warranty that premises are fit for human habitation",
+        "tenant_remedies": {
+          "rent_withholding": true,
+          "repair_deduct": true,
+          "termination": true,
+          "notes": "Tenant must give landlord reasonable notice (typically 30 days) before deducting. Repair-and-deduct limited to 1 month's rent."
+        }
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "24 hours reasonable notice (CC §1954); 48 hours for move-out inspection",
+        "allowed_reasons": [
+          "Emergency",
+          "Inspection",
+          "Repairs/maintenance",
+          "Showing unit to prospective tenants/buyers",
+          "Tenant requested repair"
+        ],
+        "tenant_rights": "Tenant can refuse entry without proper notice. Repeated unauthorized entry = landlord harassment (CC §1940.2)."
+      },
+      "eviction": {
+        "self_help_illegal": true,
+        "lockout_prohibited": true,
+        "utility_shutoff_prohibited": true,
+        "court": "Superior Court (unlawful detainer)",
+        "timeline": "Typically 4-8 weeks from notice to lockout; faster in some counties",
+        "tenant_defenses": [
+          "Retaliation",
+          "Discrimination",
+          "Breach of warranty of habitability",
+          "Improper notice",
+          "Rent paid but not credited",
+          "No just cause (AB 1482)"
+        ],
+        "expungement": "Eviction records can be sealed if case dismissed or tenant wins (CCP §1161.2)"
+      },
+      "discrimination": {
+        "protected_classes": [
+          "Race",
+          "Color",
+          "Religion",
+          "National origin",
+          "Ancestry",
+          "Sex",
+          "Familial status",
+          "Disability",
+          "Marital status",
+          "Military status",
+          "Sexual orientation",
+          "Gender identity",
+          "Source of income (Section 8)",
+          "Immigration status",
+          "Age"
+        ],
+        "statute": "California Fair Employment and Housing Act (Gov Code §12955); Unruh Civil Rights Act",
+        "enforcement_agency": "CA Department of Fair Employment and Housing (DFEH)",
+        "complaint_deadline": "1 year (DFEH); 2 years (federal HUD)"
+      },
+      "legal_aid": [
+        {
+          "name": "Legal Aid Foundation of Los Angeles",
+          "counties": "Los Angeles",
+          "phone": "213-808-7000",
+          "url": "https://www.lafla.org"
+        },
+        {
+          "name": "Bay Area Legal Aid",
+          "counties": "Alameda, Contra Costa, Marin, Napa, San Francisco, San Mateo, Santa Clara",
+          "phone": "510-663-4755",
+          "url": "https://www.baylegal.org"
+        },
+        {
+          "name": "Legal Aid Society of San Diego",
+          "counties": "San Diego",
+          "phone": "877-534-2524",
+          "url": "https://www.lassd.org"
+        },
+        {
+          "name": "OneJustice",
+          "counties": "Statewide",
+          "url": "https://www.onejustice.org",
+          "services": "Supports civil legal aid organizations statewide"
+        },
+        {
+          "name": "California Rural Legal Assistance",
+          "counties": "Rural California",
+          "phone": "831-757-5221",
+          "url": "https://www.crla.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "CA Department of Consumer Affairs - Tenant Guide",
+          "url": "https://www.courts.ca.gov/documents/California-Tenants-Guide.pdf"
+        },
+        {
+          "name": "CA Department of Fair Employment and Housing",
+          "url": "https://www.dfeh.ca.gov/",
+          "phone": "800-884-1684",
+          "services": "Discrimination complaints"
+        },
+        {
+          "name": "CA Courts - Self-Help Eviction",
+          "url": "https://www.courts.ca.gov/selfhelp-eviction.htm"
+        }
+      ],
+      "forms_templates": [
+        {
+          "name": "Repair Request Letter (CA)",
+          "description": "CA-specific repair request citing Civil Code §1941.1",
+          "url": "/library/forms/repair-request-ca.html"
+        },
+        {
+          "name": "Security Deposit Demand Letter (CA)",
+          "url": "/library/forms/deposit-demand-ca.html"
+        },
+        {
+          "name": "AB 1482 Just Cause Notice",
+          "url": "/library/forms/ab1482-notice-ca.html"
+        }
+      ],
+      "special_programs": {
+        "ab1482_protection": "Statewide rent cap (5%+CPI, max 10%) and just-cause eviction after 12 months",
+        "section_8_protection": "Source of income discrimination prohibited — landlords cannot refuse Section 8 vouchers",
+        "erap": "Emergency Rental Assistance (when funded by state/county)"
+      }
     },
     "NY": {
       "code": "NY",
       "name": "New York",
-      "status": "stub",
-      "stub_url": "https://www.lawhelpny.org/housing",
-      "notes": "NYC has rent stabilization and rent control. Upstate NY varies by locality."
+      "nickname": "Empire State",
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "NY Real Property Law (RPL) Article 7; RPAPL Article 7; Multiple Dwelling Law; NYC Housing Maintenance Code",
+        "statute_url": "https://www.nysenate.gov/legislation/laws/RPP",
+        "summary": "New York has strong tenant protections including the Warranty of Habitability, rent stabilization for ~1M NYC apartments, and the Housing Stability and Tenant Protection Act (HSTPA) of 2019."
+      },
+      "notice_requirements": {
+        "nonpayment": "14 days to pay or vacate (RPAPL §711(2); HSTPA 2019)",
+        "lease_violation": "10 days to cure, then 30 days to vacate (RPAPL §711(1))",
+        "termination_month_to_month": "30 days notice if tenant <1 year; 60 days if 1-2 years; 90 days if 2+ years (RPL §232-a, §232-b)",
+        "termination_lease_end": "No notice required if lease specifies end date",
+        "illegal_activity": "10 days notice (RPAPL §711(1)(d))",
+        "notes": "Written notice required. HSTPA 2019 eliminated the ability to use rent demand without 14-day notice."
+      },
+      "security_deposit": {
+        "limit": "1 month rent (HSTPA 2019, RPL §7-103)",
+        "return_deadline": "14 days after lease ends (RPL §7-108(1-a))",
+        "itemized_required": true,
+        "interest_required": true,
+        "interest_rate": "Annual interest on deposits in buildings with 6+ units (RPL §7-106); tenant entitled to 1% of deposit annually",
+        "withholding_allowed": [
+          "Unpaid rent",
+          "Damage beyond normal wear",
+          "Other lease violations"
+        ],
+        "notes": "Landlord must provide itemized statement of any withholding within 14 days or forfeit right to withhold."
+      },
+      "rent_control": {
+        "statewide": false,
+        "local_programs": "NYC Rent Stabilization (~1M apartments), NYC Rent Control (~22K apartments), ETPA (Emergency Tenant Protection Act) adopted by some downstate municipalities",
+        "notes": "HSTPA 2019 removed vacancy deregulation and high-rent deregulation. Rent stabilization now continues with each new tenancy. Upstate NY generally has no rent control."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain plumbing, heating, electrical",
+          "Provide running water/hot water",
+          "Keep unit weatherproof",
+          "Exterminate pests in multi-unit buildings",
+          "Comply with housing maintenance codes"
+        ],
+        "emergency_repairs": "24 hours for conditions threatening health/safety",
+        "warranty_of_habitability": "RPL §235-b — implied warranty that premises are fit for human habitation",
+        "tenant_remedies": {
+          "rent_withholding": true,
+          "repair_deduct": false,
+          "termination": true,
+          "hp_action": "Tenant can file HP Action in Housing Court for repairs (CPLR Article 7-A)"
+        }
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "Reasonable notice — typically 24 hours (no specific statutory period statewide; NYC Housing Maintenance Code implies reasonable)",
+        "allowed_reasons": [
+          "Emergency",
+          "Inspection",
+          "Repairs/maintenance",
+          "Showing unit to prospective tenants/buyers"
+        ],
+        "tenant_rights": "Tenant can refuse entry without reasonable notice. Repeated unauthorized entry may constitute harassment under NYC Admin Code §27-2004."
+      },
+      "eviction": {
+        "self_help_illegal": true,
+        "lockout_prohibited": true,
+        "utility_shutoff_prohibited": true,
+        "court": "Housing Court (NYC) or Local Justice Court / City Court (upstate)",
+        "timeline": "Typically 3-6 months from notice to warrant of eviction; NYC longer due to backlog",
+        "tenant_defenses": [
+          "Retaliation",
+          "Discrimination",
+          "Breach of warranty of habitability",
+          "Improper notice",
+          "Rent paid but not credited",
+          "Failure to register (rent stabilized)"
+        ],
+        "expungement": "Eviction records can be sealed if case dismissed or tenant wins (RPAPL §749(3); HSTPA 2019)"
+      },
+      "discrimination": {
+        "protected_classes": [
+          "Race",
+          "Color",
+          "Religion",
+          "National origin",
+          "Sex",
+          "Familial status",
+          "Disability",
+          "Age",
+          "Marital status",
+          "Military status",
+          "Sexual orientation",
+          "Gender identity",
+          "Source of income (lawful)"
+        ],
+        "statute": "NY State Human Rights Law (Executive Law §296); NYC Human Rights Law (Admin Code §8-107)",
+        "enforcement_agency": "NY Division of Human Rights; NYC Commission on Human Rights",
+        "complaint_deadline": "1 year (3 years for NYC)"
+      },
+      "legal_aid": [
+        {
+          "name": "The Legal Aid Society",
+          "counties": "NYC (all 5 boroughs)",
+          "phone": "212-577-3300",
+          "url": "https://www.legalaidnyc.org",
+          "services": "Largest civil legal services provider in NYC; housing, eviction defense"
+        },
+        {
+          "name": "Legal Services NYC",
+          "counties": "NYC",
+          "phone": "212-431-7200",
+          "url": "https://www.legal-services.org",
+          "services": "Free civil legal services to low-income NYC residents"
+        },
+        {
+          "name": "Empire Justice Center",
+          "counties": "Statewide",
+          "phone": "585-295-5710",
+          "url": "https://www.empirejustice.org",
+          "services": "Housing, public benefits, consumer law"
+        },
+        {
+          "name": "Legal Aid Society of Northeastern New York",
+          "counties": "Capital Region, North Country, Mohawk Valley",
+          "phone": "518-462-6765",
+          "toll_free": "800-514-4454",
+          "url": "https://www.lasnny.org"
+        },
+        {
+          "name": "Legal Aid Bureau of Buffalo",
+          "counties": "Erie County",
+          "phone": "716-853-3087",
+          "url": "https://www.legalaidbuffalo.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "NY Attorney General - Tenant Rights",
+          "url": "https://ag.ny.gov/resources/tenants",
+          "phone": "800-771-7755"
+        },
+        {
+          "name": "NY Homes and Community Renewal - Rent Stabilization",
+          "url": "https://hcr.ny.gov/",
+          "services": "Rent stabilization administration, tenant complaints"
+        },
+        {
+          "name": "NY Division of Human Rights",
+          "url": "https://dhr.ny.gov/",
+          "phone": "718-741-8400",
+          "services": "Discrimination complaints"
+        }
+      ],
+      "forms_templates": [
+        {
+          "name": "Repair Request Letter (NY)",
+          "description": "NY-specific repair request citing warranty of habitability",
+          "url": "/library/forms/repair-request-ny.html"
+        },
+        {
+          "name": "Security Deposit Demand Letter (NY)",
+          "url": "/library/forms/deposit-demand-ny.html"
+        },
+        {
+          "name": "Rent Stabilization Lease Renewal Request",
+          "url": "/library/forms/lease-renewal-ny.html"
+        }
+      ],
+      "special_programs": {
+        "rent_stabilization": "NYC Rent Guidelines Board sets annual increases for stabilized apartments",
+        "one_shot_deal": "Emergency rental assistance through NY HRA for NYC residents facing eviction",
+        "erap": "Emergency Rental Assistance Program (statewide, when funded)"
+      }
     },
     "TX": {
       "code": "TX",
       "name": "Texas",
-      "status": "stub",
-      "stub_url": "https://texaslawhelp.org/housing",
-      "notes": "Texas has limited tenant protections. Most cities have no rent control."
+      "nickname": "Lone Star State",
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Texas Property Code Chapter 92 (Residential Tenancies)",
+        "statute_url": "https://statutes.capitol.texas.gov/Docs/PR/htm/PR.92.htm",
+        "summary": "Texas has limited tenant protections compared to most states. No statewide rent control, minimal notice requirements, and landlord-friendly eviction process."
+      },
+      "notice_requirements": {
+        "nonpayment": "3 days to pay or vacate (unless lease specifies different period; TPC §92.206)",
+        "lease_violation": "Reasonable time per lease terms; no specific statutory cure period",
+        "termination_month_to_month": "1 month notice (TPC §91.001)",
+        "termination_lease_end": "No notice required if lease specifies end date",
+        "illegal_activity": "Per lease terms; no specific statutory period",
+        "notes": "Written notice required for nonpayment. Many leases waive the 3-day period — read your lease carefully."
+      },
+      "security_deposit": {
+        "limit": "No statutory limit",
+        "return_deadline": "30 days after lease ends (TPC §92.103)",
+        "itemized_required": true,
+        "interest_required": false,
+        "withholding_allowed": [
+          "Unpaid rent",
+          "Damage beyond normal wear",
+          "Other lease violations"
+        ],
+        "notes": "Landlord must provide itemized description of damages within 30 days. Tenant must provide forwarding address in writing or landlord has no obligation to return."
+      },
+      "rent_control": {
+        "statewide": false,
+        "local_programs": "None — rent control prohibited by state law (TPC §92.021)",
+        "notes": "Texas expressly prohibits cities and counties from enacting rent control. Only the governor can authorize rent control during a disaster, and it expires when the disaster declaration ends."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Maintain electrical, plumbing, heating (TPC §92.052)",
+          "Provide smoke detectors (TPC §92.257)",
+          "Comply with building/housing codes",
+          "Provide running water/hot water"
+        ],
+        "emergency_repairs": "7 days to remedy after written notice (TPC §92.056)",
+        "warranty_of_habitability": "TPC §92.052 — landlord must make repairs to conditions that affect health or safety",
+        "tenant_remedies": {
+          "rent_withholding": false,
+          "repair_deduct": true,
+          "termination": true,
+          "notes": "Tenant must give landlord written notice and reasonable time (7 days). If landlord fails to repair, tenant can: repair-and-deduct (limited to 1 month's rent or $500, whichever is greater), terminate lease, or sue for damages (TPC §92.056)."
+        }
+      },
+      "landlord_entry": {
+        "notice_required": false,
+        "notice_period": "No specific statutory notice period (TPC §92.025)",
+        "allowed_reasons": [
+          "Emergency",
+          "Inspection",
+          "Repairs/maintenance",
+          "Showing unit to prospective tenants/buyers"
+        ],
+        "tenant_rights": "No statutory right to notice. Tenant can negotiate notice in lease. Repeated unreasonable entry may constitute harassment but hard to prove without lease provision."
+      },
+      "eviction": {
+        "self_help_illegal": true,
+        "lockout_prohibited": true,
+        "utility_shutoff_prohibited": true,
+        "court": "Justice Court (forcible detainer); County Court for appeal",
+        "timeline": "Typically 2-4 weeks from notice to writ of possession; fastest in the country",
+        "tenant_defenses": [
+          "Retaliation (TPC §92.061)",
+          "Discrimination",
+          "Landlord failed to repair",
+          "Improper notice",
+          "Rent paid but not credited"
+        ],
+        "expungement": "Eviction records generally public for 7 years; limited sealing available"
+      },
+      "discrimination": {
+        "protected_classes": [
+          "Race",
+          "Color",
+          "Religion",
+          "National origin",
+          "Sex",
+          "Familial status",
+          "Disability"
+        ],
+        "statute": "Texas Fair Housing Act (Gov Code §301); Federal Fair Housing Act",
+        "enforcement_agency": "Texas Workforce Commission - Civil Rights Division; HUD",
+        "complaint_deadline": "1 year (state); 1 year (federal HUD)"
+      },
+      "legal_aid": [
+        {
+          "name": "Texas Legal Services Center",
+          "counties": "Statewide",
+          "phone": "512-477-1255",
+          "toll_free": "800-733-9513",
+          "url": "https://www.tlsc.org",
+          "services": "Free civil legal services to low-income Texans"
+        },
+        {
+          "name": "Lone Star Legal Aid",
+          "counties": "72 counties in East, Southeast, and Gulf Coast Texas",
+          "phone": "713-652-0077",
+          "toll_free": "800-733-9513",
+          "url": "https://www.lonestarlegal.org"
+        },
+        {
+          "name": "Legal Aid of NorthWest Texas",
+          "counties": "North and West Texas",
+          "phone": "817-336-8451",
+          "toll_free": "800-877-7767",
+          "url": "https://www.lanwt.org"
+        },
+        {
+          "name": "Texas RioGrande Legal Aid",
+          "counties": "South and West Texas",
+          "phone": "512-374-2700",
+          "toll_free": "888-977-4375",
+          "url": "https://www.trla.org"
+        },
+        {
+          "name": "Bexar County Legal Aid",
+          "counties": "Bexar County (San Antonio)",
+          "phone": "210-227-8835",
+          "url": "https://www.bexarcountylegalaid.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Texas Attorney General - Tenant Rights",
+          "url": "https://www.texasattorneygeneral.gov/consumer-protection/housing-tenant-rights"
+        },
+        {
+          "name": "Texas Workforce Commission - Civil Rights Division",
+          "url": "https://www.twc.texas.gov/programs/civil-rights",
+          "phone": "512-463-2642",
+          "services": "Discrimination complaints"
+        },
+        {
+          "name": "Texas Department of Housing and Community Affairs",
+          "url": "https://www.tdhca.texas.gov/",
+          "services": "Affordable housing programs, tenant counseling"
+        }
+      ],
+      "forms_templates": [
+        {
+          "name": "Repair Request Letter (TX)",
+          "description": "TX-specific repair request citing TPC §92.052",
+          "url": "/library/forms/repair-request-tx.html"
+        },
+        {
+          "name": "Security Deposit Demand Letter (TX)",
+          "url": "/library/forms/deposit-demand-tx.html"
+        },
+        {
+          "name": "Notice to Vacate Response (TX)",
+          "url": "/library/forms/notice-response-tx.html"
+        }
+      ],
+      "special_programs": {
+        "tdhca_rental_help": "Texas Department of Housing and Community Affairs offers rental assistance programs",
+        "tenant_counseling": "TDHCA provides tenant counseling services"
+      }
     },
     "FL": {
       "code": "FL",
       "name": "Florida",
-      "status": "stub",
-      "stub_url": "https://www.floridalawhelp.org/find-legal-info/housing",
-      "notes": "Florida landlord-tenant law is landlord-friendly. No rent control statewide."
+      "nickname": "Sunshine State",
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "Florida Statutes Chapter 83, Part II (Residential Tenancies)",
+        "statute_url": "http://www.leg.state.fl.us/statutes/index.cfm?App=display_statute&URL=0000-0999/0083/PartII/",
+        "summary": "Florida is landlord-friendly. No rent control, 3-day notice for nonpayment, and limited tenant remedies for repairs."
+      },
+      "notice_requirements": {
+        "nonpayment": "3 days to pay or vacate (excluding weekends and legal holidays; FL Stat §83.56(3))",
+        "lease_violation": "7 days to cure or vacate (FL Stat §83.56(2)(b))",
+        "termination_month_to_month": "15 days notice (FL Stat §83.57)",
+        "termination_lease_end": "No notice required if lease specifies end date",
+        "illegal_activity": "Per lease terms; 7 days notice for non-curable violations (FL Stat §83.56(2)(a))",
+        "notes": "Written notice required. 3-day notice excludes weekends and legal holidays — count carefully."
+      },
+      "security_deposit": {
+        "limit": "No statutory limit",
+        "return_deadline": "15 days (no claim) or 30 days (with claim) after lease ends and tenant provides forwarding address (FL Stat §83.49(3))",
+        "itemized_required": true,
+        "interest_required": true,
+        "interest_rate": "Landlord must pay 5% interest or 75% of passbook rate on deposits held (FL Stat §83.49(3))",
+        "withholding_allowed": [
+          "Unpaid rent",
+          "Damage beyond normal wear",
+          "Other lease violations"
+        ],
+        "notes": "Landlord must give 30 days' written notice by certified mail of intent to impose claim. Tenant must object within 15 days or claim is forfeited."
+      },
+      "rent_control": {
+        "statewide": false,
+        "local_programs": "None — rent control prohibited by state law (FL Stat §125.01055, §166.0431)",
+        "notes": "Florida expressly prohibits local rent control. Only the governor can authorize temporary rent control during a declared housing emergency."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Comply with building/housing codes (FL Stat §83.51)",
+          "Maintain structural components (roof, walls, foundation)",
+          "Keep plumbing, heating, electrical in working order",
+          "Provide running water/hot water",
+          "Exterminate pests in multi-unit buildings"
+        ],
+        "emergency_repairs": "7 days to remedy after written notice (FL Stat §83.56(1))",
+        "warranty_of_habitability": "FL Stat §83.51 — landlord must comply with applicable building/housing codes",
+        "tenant_remedies": {
+          "rent_withholding": true,
+          "repair_deduct": false,
+          "termination": true,
+          "notes": "Tenant must give landlord 7 days' written notice. If landlord fails to repair, tenant can: withhold rent (FL Stat §83.60), terminate lease, or sue for damages. Tenant must allow landlord access for repairs."
+        }
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "12 hours reasonable notice (FL Stat §83.53(2))",
+        "allowed_reasons": [
+          "Emergency",
+          "Inspection",
+          "Repairs/maintenance",
+          "Showing unit to prospective tenants/buyers"
+        ],
+        "tenant_rights": "Tenant can refuse entry without proper notice. Landlord cannot abuse right of access or use it to harass tenant (FL Stat §83.53(5))."
+      },
+      "eviction": {
+        "self_help_illegal": true,
+        "lockout_prohibited": true,
+        "utility_shutoff_prohibited": true,
+        "court": "County Court (eviction action)",
+        "timeline": "Typically 2-4 weeks from 3-day notice to writ of possession",
+        "tenant_defenses": [
+          "Retaliation (FL Stat §83.64)",
+          "Discrimination",
+          "Landlord failed to maintain premises",
+          "Improper notice",
+          "Rent paid but not credited"
+        ],
+        "expungement": "Eviction records generally public; limited sealing available if case dismissed"
+      },
+      "discrimination": {
+        "protected_classes": [
+          "Race",
+          "Color",
+          "Religion",
+          "National origin",
+          "Sex",
+          "Familial status",
+          "Disability"
+        ],
+        "statute": "Florida Fair Housing Act (FL Stat §760.23); Federal Fair Housing Act",
+        "enforcement_agency": "Florida Commission on Human Relations; HUD",
+        "complaint_deadline": "1 year (state); 1 year (federal HUD)"
+      },
+      "legal_aid": [
+        {
+          "name": "Florida Legal Services",
+          "counties": "Statewide",
+          "phone": "850-385-7900",
+          "url": "https://www.floridalegal.org",
+          "services": "Coordinates civil legal aid statewide"
+        },
+        {
+          "name": "Legal Services of Greater Miami",
+          "counties": "Miami-Dade, Monroe",
+          "phone": "305-576-0080",
+          "url": "https://www.lsgmi.org"
+        },
+        {
+          "name": "Bay Area Legal Services",
+          "counties": "Hillsborough, Manatee, Pasco, Pinellas",
+          "phone": "813-232-2533",
+          "url": "https://www.baylegal.org"
+        },
+        {
+          "name": "Community Legal Services of Mid-Florida",
+          "counties": "Central Florida",
+          "phone": "386-255-6573",
+          "url": "https://www.clsmf.org"
+        },
+        {
+          "name": "Legal Aid Society of Palm Beach County",
+          "counties": "Palm Beach County",
+          "phone": "561-655-8944",
+          "url": "https://www.legalaidpbc.org"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Florida Attorney General - Landlord/Tenant",
+          "url": "https://myfloridalegal.com/pages.nsf/Main/5D6D5F4D2BDCB6F085257AB600578DF2"
+        },
+        {
+          "name": "Florida Commission on Human Relations",
+          "url": "https://fchr.state.fl.us/",
+          "phone": "850-488-7082",
+          "services": "Discrimination complaints"
+        },
+        {
+          "name": "Florida Housing Finance Corporation",
+          "url": "https://www.floridahousing.org/",
+          "services": "Affordable housing programs"
+        }
+      ],
+      "forms_templates": [
+        {
+          "name": "Repair Request Letter (FL)",
+          "description": "FL-specific repair request citing FL Stat §83.51",
+          "url": "/library/forms/repair-request-fl.html"
+        },
+        {
+          "name": "Security Deposit Demand Letter (FL)",
+          "url": "/library/forms/deposit-demand-fl.html"
+        },
+        {
+          "name": "3-Day Notice Response (FL)",
+          "url": "/library/forms/3day-response-fl.html"
+        }
+      ],
+      "special_programs": {
+        "our_florida": "Statewide rental and utility assistance program (when funded)",
+        "ship": "State Housing Initiatives Partnership — local affordable housing programs"
+      }
     },
     "IL": {
       "code": "IL",
       "name": "Illinois",
-      "status": "stub",
-      "stub_url": "https://www.illinoislegalaid.org/legal-information/housing",
-      "notes": "Cook County and Chicago have additional tenant protections."
+      "nickname": "Prairie State",
+      "status": "complete",
+      "housing_laws": {
+        "landlord_tenant_act": "765 ILCS 705 (Mobile Home Landlord-Tenant), 740 ILCS 700 (Security Deposit Return Act); Chicago Residential Landlord and Tenant Ordinance (RLTO) for Chicago",
+        "statute_url": "https://www.ilga.gov/legislation/ilcs/ilcs.asp?ChapterID=15",
+        "summary": "Illinois has moderate tenant protections statewide with stronger protections in Chicago (RLTO), Cook County, and Evanston. No statewide rent control."
+      },
+      "notice_requirements": {
+        "nonpayment": "5 days to pay or vacate (735 ILCS 5/9-209)",
+        "lease_violation": "10 days to remedy or vacate (735 ILCS 5/9-210)",
+        "termination_month_to_month": "30 days notice (735 ILCS 5/9-207)",
+        "termination_lease_end": "No notice required if lease specifies end date",
+        "illegal_activity": "10 days notice (735 ILCS 5/9-210)",
+        "notes": "Written notice required. Chicago RLTO may require longer notice periods for some terminations."
+      },
+      "security_deposit": {
+        "limit": "No statewide limit; Chicago RLTO limits to 1.5 months for some units",
+        "return_deadline": "30 days (itemized list of damages) or 45 days (full refund) after lease ends and tenant provides forwarding address (765 ILCS 710/1)",
+        "itemized_required": true,
+        "interest_required": true,
+        "interest_rate": "Landlord must pay interest on deposits held 6+ months in buildings with 25+ units (Chicago RLTO requires interest on all deposits in covered units)",
+        "withholding_allowed": [
+          "Unpaid rent",
+          "Damage beyond normal wear",
+          "Other lease violations"
+        ],
+        "notes": "Chicago RLTO requires landlord to provide receipts for all deductions. Failure to comply = damages equal to deposit amount + attorney fees."
+      },
+      "rent_control": {
+        "statewide": false,
+        "local_programs": "None — rent control prohibited by state law (IL Rent Control Preemption Act, 50 ILCS 825)",
+        "notes": "Illinois expressly prohibits local rent control. Only the General Assembly can authorize rent control, and it has not done so despite repeated attempts."
+      },
+      "repairs": {
+        "landlord_duties": [
+          "Comply with building/housing codes",
+          "Maintain plumbing, heating, electrical",
+          "Provide running water/hot water",
+          "Keep unit weatherproof",
+          "Exterminate pests in multi-unit buildings"
+        ],
+        "emergency_repairs": "14 days to remedy after written notice (765 ILCS 755/2 — Residential Tenant's Right to Repair Act)",
+        "warranty_of_habitability": "Implied warranty under Illinois common law (case law: Glasoe v. Trinkle, 2008); Chicago RLTO §5-12-070",
+        "tenant_remedies": {
+          "rent_withholding": true,
+          "repair_deduct": true,
+          "termination": true,
+          "notes": "Tenant must give landlord 14 days' written notice. If landlord fails to repair, tenant can: repair-and-deduct (up to $500 or half month's rent, whichever is greater), terminate lease, or sue for damages. Chicago RLTO provides additional remedies."
+        }
+      },
+      "landlord_entry": {
+        "notice_required": true,
+        "notice_period": "2 days notice (Chicago RLTO §5-12-030); no specific statewide statutory period",
+        "allowed_reasons": [
+          "Emergency",
+          "Inspection",
+          "Repairs/maintenance",
+          "Showing unit to prospective tenants/buyers"
+        ],
+        "tenant_rights": "Tenant can refuse entry without proper notice. Chicago RLTO requires 2 days notice. Repeated unauthorized entry may constitute harassment."
+      },
+      "eviction": {
+        "self_help_illegal": true,
+        "lockout_prohibited": true,
+        "utility_shutoff_prohibited": true,
+        "court": "Circuit Court (forcible entry and detainer)",
+        "timeline": "Typically 3-6 weeks from notice to eviction; Chicago longer due to backlog",
+        "tenant_defenses": [
+          "Retaliation (735 ILCS 5/9-212)",
+          "Discrimination",
+          "Breach of warranty of habitability",
+          "Improper notice",
+          "Rent paid but not credited"
+        ],
+        "expungement": "Eviction records can be sealed if case dismissed or tenant wins (735 ILCS 5/9-121.9; effective 2021)"
+      },
+      "discrimination": {
+        "protected_classes": [
+          "Race",
+          "Color",
+          "Religion",
+          "National origin",
+          "Ancestry",
+          "Sex",
+          "Familial status",
+          "Disability",
+          "Marital status",
+          "Military status",
+          "Sexual orientation",
+          "Gender identity",
+          "Age (40+)",
+          "Arrest record",
+          "Order of protection status"
+        ],
+        "statute": "Illinois Human Rights Act (775 ILCS 5/3); Chicago Fair Housing Ordinance",
+        "enforcement_agency": "Illinois Department of Human Rights; Chicago Commission on Human Relations",
+        "complaint_deadline": "1 year (state); 1 year (Chicago)"
+      },
+      "legal_aid": [
+        {
+          "name": "Legal Aid Society of Metropolitan Family Services",
+          "counties": "Cook County (Chicago)",
+          "phone": "312-986-4105",
+          "url": "https://www.las-mfs.org",
+          "services": "Free civil legal services to low-income Chicago residents"
+        },
+        {
+          "name": "Prairie State Legal Services",
+          "counties": "36 counties in Northern and Central Illinois (excluding Cook)",
+          "phone": "815-965-2134",
+          "toll_free": "800-531-7057",
+          "url": "https://www.pslegal.org"
+        },
+        {
+          "name": "Land of Lincoln Legal Aid",
+          "counties": "65 counties in Southern and Central Illinois",
+          "phone": "618-462-0029",
+          "toll_free": "800-927-4071",
+          "url": "https://www.lollhc.org"
+        },
+        {
+          "name": "Chicago Volunteer Legal Services",
+          "counties": "Cook County",
+          "phone": "312-332-1624",
+          "url": "https://www.cvls.org",
+          "services": "Pro bono legal services for low-income Chicagoans"
+        },
+        {
+          "name": "Equip for Equality",
+          "counties": "Statewide",
+          "phone": "800-522-7629",
+          "url": "https://www.equipforequality.org",
+          "services": "Disability rights, including housing accommodations"
+        }
+      ],
+      "government_resources": [
+        {
+          "name": "Illinois Attorney General - Tenant Rights",
+          "url": "https://illinoisattorneygeneral.gov/consumers/landlordtenant.html",
+          "phone": "800-243-0618"
+        },
+        {
+          "name": "Illinois Department of Human Rights",
+          "url": "https://www2.illinois.gov/dhr/",
+          "phone": "312-814-6200",
+          "services": "Discrimination complaints"
+        },
+        {
+          "name": "Chicago Commission on Human Relations",
+          "url": "https://www.chicago.gov/city/en/depts/cchr.html",
+          "phone": "312-744-4111",
+          "services": "Chicago Fair Housing Ordinance enforcement"
+        }
+      ],
+      "forms_templates": [
+        {
+          "name": "Repair Request Letter (IL)",
+          "description": "IL-specific repair request citing Residential Tenant's Right to Repair Act",
+          "url": "/library/forms/repair-request-il.html"
+        },
+        {
+          "name": "Security Deposit Demand Letter (IL)",
+          "url": "/library/forms/deposit-demand-il.html"
+        },
+        {
+          "name": "5-Day Notice Response (IL)",
+          "url": "/library/forms/5day-response-il.html"
+        }
+      ],
+      "special_programs": {
+        "il_rental_assistance": "Illinois Rental Payment Program (when funded)",
+        "court_based_rental_assistance": "Cook County and some circuits offer court-based rental assistance for eviction prevention"
+      }
     },
     "PA": {
       "code": "PA",
