@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 function runAnalysis() {
-    alert('📊 Analysis started. This may take a few moments...\n\nIn a full implementation, this would process all your documents and extract key information.');
+    if (window.SemptifyFeedback) { SemptifyFeedback.info('Analysis started. This may take a few moments.'); } else { alert('📊 Analysis started. This may take a few moments...'); }
 }
 
 function filterResults(type) {
