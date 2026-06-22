@@ -339,6 +339,9 @@
       } catch (err) {
         console.error('Dashboard load error:', err);
         document.getElementById('hero-summary').innerHTML = 'Sign in to see your case dashboard.';
+        if (window.SemptifyFeedback) {
+          SemptifyFeedback.error('Could not load your dashboard. Sign in or try again.', { detail: err.message });
+        }
       }
     }
 
@@ -382,5 +385,6 @@
   </div>
 </footer>
 
+<script src="/static/components/feedback.js"></script>
 </body>
 </html>
