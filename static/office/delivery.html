@@ -502,8 +502,8 @@
       const selectedRecipient = document.querySelector('.recipient-card.selected');
       const selectedType = document.querySelector('.delivery-type-card.selected');
 
-      if (!selectedDoc) { alert('Please select a document'); return; }
-      if (!selectedRecipient) { alert('Please select a recipient'); return; }
+      if (!selectedDoc) { if (window.SemptifyFeedback) { SemptifyFeedback.error('Please select a document.'); } else { alert('Please select a document'); } return; }
+      if (!selectedRecipient) { if (window.SemptifyFeedback) { SemptifyFeedback.error('Please select a recipient.'); } else { alert('Please select a recipient'); } return; }
 
       const documentId = selectedDoc.value;
       const recipientId = selectedRecipient.dataset.recipient;
@@ -535,15 +535,15 @@
 
         if (resp.ok) {
           const result = await resp.json();
-          alert(`📤 Document sent successfully!\n\nDelivery ID: ${result.delivery_id}\nTo: ${recipientName}\nType: ${deliveryType === 'signature' ? 'Signature Required' : 'Review Required'}\n\nA delivery receipt has been added to your vault.`);
+          if (window.SemptifyFeedback) { SemptifyFeedback.success(`Document sent to ${recipientName}. Delivery ID: ${result.delivery_id}. Receipt added to vault.`); } else { alert(`📤 Document sent successfully!\n\nDelivery ID: ${result.delivery_id}\nTo: ${recipientName}\nType: ${deliveryType === 'signature' ? 'Signature Required' : 'Review Required'}\n\nA delivery receipt has been added to your vault.`); }
           clearForm();
           loadOutbox();
         } else {
           const err = await resp.json();
-          alert('Send failed: ' + (err.detail || resp.statusText));
+          if (window.SemptifyFeedback) { SemptifyFeedback.error('Send failed.', { detail: err.detail || resp.statusText }); } else { alert('Send failed: ' + (err.detail || resp.statusText)); }
         }
       } catch (e) {
-        alert('Send failed: ' + e.message);
+        if (window.SemptifyFeedback) { SemptifyFeedback.error('Send failed.', { detail: e.message }); } else { alert('Send failed: ' + e.message); }
       } finally {
         const btn = document.querySelector('.btn-send');
         btn.disabled = false;
@@ -583,5 +583,6 @@
     loadRecipients();
     loadOutbox();
   </script>
+<script src="/static/components/feedback.js"></script>
 </body>
 </html>
