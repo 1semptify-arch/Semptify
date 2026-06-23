@@ -54,27 +54,27 @@ $toolsJson = @"
 {
   "version": "1.0.0",
   "tools": {
-    "semtify-build-backend": {
+    "semptify-build-backend": {
       "command": "pwsh ./scripts/build_backend.ps1",
       "description": "Builds the Semptify FastAPI backend."
     },
-    "semtify-build-frontend": {
+    "semptify-build-frontend": {
       "command": "pwsh ./scripts/build_frontend.ps1",
       "description": "Builds the Semptify frontend UI."
     },
-    "semtify-zip-bundle": {
+    "semptify-zip-bundle": {
       "command": "pwsh ./scripts/zip_bundle.ps1",
       "description": "Creates a clean ZIP export of the Semptify bundle."
     },
-    "semtify-deploy-local": {
+    "semptify-deploy-local": {
       "command": "pwsh ./scripts/deploy_local.ps1",
       "description": "Starts backend + frontend locally."
     },
-    "semtify-test-suite": {
+    "semptify-test-suite": {
       "command": "pwsh ./scripts/run_tests.ps1",
       "description": "Runs Semptify automated tests."
     },
-    "semtify-clean": {
+    "semptify-clean": {
       "command": "pwsh ./scripts/clean_workspace.ps1",
       "description": "Cleans build artifacts and resets workspace."
     }

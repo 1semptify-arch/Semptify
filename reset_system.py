@@ -98,7 +98,7 @@ def full_reset():
     print("=" * 60)
     print("\nNext steps:")
     print("1. Restart your local AI backend")
-    print("2. Run launch_semtify.bat")
+    print("2. Run launch_semptify.bat")
     print("3. Connect to Semptify admin panel")
     print()
 

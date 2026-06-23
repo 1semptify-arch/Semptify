@@ -2596,12 +2596,12 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - FastAPI app running locally on localhost:8000
    - Connected to Neon PostgreSQL database
    - Connected to Cloudflare R2 storage
-   - OAuth callback URLs configured for dev.semtify.org
+   - OAuth callback URLs configured for dev.semptify.org
 
 3. **Cloudflare Tunnel setup**
    - Installed cloudflared
    - Created tunnel `semptify-dev` (ID: 8872fa01-f3bc-44ef-857e-16850a0751cb)
-   - Configured DNS CNAME for dev.semtify.org
+   - Configured DNS CNAME for dev.semptify.org
    - Tunnel running and connected to localhost:8000
 
 ### What Is Known Working
@@ -2615,7 +2615,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
 
 ### What Is Pending
 
-- DNS propagation for dev.semtify.org (may take up to 24 hours)
+- DNS propagation for dev.semptify.org (may take up to 24 hours)
 - Test user flows locally (onboarding, document upload, timeline)
 - Fix timeline event addition API connection
 - Fix vault portal upload API connection
@@ -2657,7 +2657,7 @@ Enable any tier by adding it to this one line — no other code changes needed.
    - Cloudflare R2 storage enabled (`STORAGE_MODE=cloud`)
    - Enforced security mode (`SECURITY_MODE=enforced`)
    - CORS origins set to semptify.org domains
-   - PUBLIC_BASE_URL set to `https://dev.semtify.org` for Cloudflared tunnel
+   - PUBLIC_BASE_URL set to `https://dev.semptify.org` for Cloudflared tunnel
 
 6. **Updated OAuth callback documentation** (`DEPLOYMENT_APIS.md`, `.env.example`)
    - Added Cloudflared tunnel callback URLs for all providers
@@ -2676,9 +2676,9 @@ Enable any tier by adding it to this one line — no other code changes needed.
 ### What Is Pending
 
 - Add OAuth callback URLs to provider dashboards:
-  - Google: `https://dev.semtify.org/storage/callback/google_drive` and `https://dev.semtify.org/onboarding/callback/google_drive`
-  - Dropbox: `https://dev.semtify.org/storage/callback/dropbox` and `https://dev.semtify.org/onboarding/callback/dropbox`
-  - OneDrive: `https://dev.semtify.org/storage/callback/onedrive` and `https://dev.semtify.org/onboarding/callback/onedrive`
+  - Google: `https://dev.semptify.org/storage/callback/google_drive` and `https://dev.semptify.org/onboarding/callback/google_drive`
+  - Dropbox: `https://dev.semptify.org/storage/callback/dropbox` and `https://dev.semptify.org/onboarding/callback/dropbox`
+  - OneDrive: `https://dev.semptify.org/storage/callback/onedrive` and `https://dev.semptify.org/onboarding/callback/onedrive`
 - Update CORS_ORIGINS in .env if production domain differs from semptify.org
 - Generate and set a secure ADMIN_PIN in .env
 - Consider activating the new onboarding module (`app/modules/onboarding/`) per BUILD_GUIDE_SSOT.md activation steps
