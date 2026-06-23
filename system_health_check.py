@@ -21,7 +21,7 @@ class SystemHealthCheck:
     async def run_all_checks(self):
         """Run all system health checks."""
         print("=" * 70)
-        print("SEMPIFY SYSTEM HEALTH CHECK")
+        print("SEMPTIFY SYSTEM HEALTH CHECK")
         print("Backend Verification Before Frontend Integration")
         print("=" * 70)
         
