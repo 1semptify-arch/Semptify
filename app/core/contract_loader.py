@@ -26,6 +26,9 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.modules.documents.register",
     "app.modules.timeline.register",
     "app.modules.intake.register",
+    "app.modules.contacts.register",
+    "app.modules.calendar.register",
+    "app.modules.search.register",
     # KNOW pillar
     "app.modules.state_laws.register",
     "app.modules.location.register",
@@ -34,6 +37,18 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     "app.modules.eviction_defense.register",
     "app.modules.complaints.register",
     "app.modules.context_engine.register",
+    # Infrastructure
+    "app.modules.onboarding.register_contracts",
+    "app.modules.auth.register",
+    "app.modules.storage.register",
+    "app.modules.communication.register",
+    "app.modules.health.register",
+    "app.modules.security.register",
+    "app.modules.dashboard.register",
+    "app.modules.role_ui.register",
+    "app.modules.analytics.register",
+    "app.modules.documentation.register",
+    "app.modules.page_editor.register",
     # Secondary (already had contracts)
     "app.modules.advocate.register",
     "app.modules.manager.register",
