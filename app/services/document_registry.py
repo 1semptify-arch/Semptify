@@ -27,11 +27,12 @@ import logging
 import re
 import secrets
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from enum import Enum
 from pathlib import Path
 
 from app.core.config import get_settings
+from app.core.utc import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -562,11 +563,6 @@ class ForgeryDetector:
 
         return alerts
 
-
-# Import timedelta for use in ForgeryDetector
-from datetime import UTC, timedelta
-
-from app.core.utc import utc_now
 
 # =============================================================================
 # DOCUMENT REGISTRY
