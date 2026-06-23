@@ -167,7 +167,7 @@ class ModuleEntry:
                 self, "tags", (self._default_tag(),)
             )
         # Validate lifecycle against allowed values
-        allowed_lifecycles = ("stable", "beta", "experimental", "dev_only", "preview", "internal")
+        allowed_lifecycles = ("stable", "beta", "experimental", "dev_only", "preview", "internal", "deprecated")
         if self.lifecycle not in allowed_lifecycles:
             raise ValueError(
                 f"ModuleEntry {self.module_path}: lifecycle '{self.lifecycle}' "
