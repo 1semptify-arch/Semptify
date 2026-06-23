@@ -133,7 +133,7 @@ class ForgeryAlert:
     description: str
     affected_area: str | None = None  # e.g., "page 2, signature block"
     evidence: str | None = None  # Supporting evidence for the alert
-    detected_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    detected_at: datetime = field(default_factory=utc_now)
 
     def to_dict(self) -> dict:
         return {
@@ -201,7 +201,7 @@ class RegisteredDocument:
     requires_review: bool = False
 
     # Timestamps
-    registered_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    registered_at: datetime = field(default_factory=utc_now)
     last_verified_at: datetime | None = None
     last_accessed_at: datetime | None = None
 
@@ -270,7 +270,7 @@ class DocumentIDGenerator:
         NNNNNN = Sequential counter (resets yearly)
         XXXX = Random suffix for uniqueness
         """
-        now = datetime.now(timezone.utc)
+        now = utc_now()
         date_part = now.strftime("%Y")
 
         # Reset counter for new year
