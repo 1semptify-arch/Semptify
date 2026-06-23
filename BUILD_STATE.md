@@ -12,6 +12,57 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-23 PM — Spelling Fixes + Judge→Legal Ship + Lifecycle Bug Fix
+**Status: Shipped 3 commits. App compiles and starts clean. Playwright 17/18 pass (1 pre-existing).**
+
+### What Was Shipped
+
+#### Commit 1: db08c1e — Judge→Legal + Advocate + Forge + Static Cleanup (pre-existing work)
+- Judge role merged into Legal as sub-role (attorney/judge/clerk/paralegal)
+- `app/core/user_context.py`: LEGAL permissions refined, LEGAL_SUB_ROLES added
+- `app/models/models.py`: legal_sub_role + bar_license_number fields
+- `app/modules/judge/`: deprecated, router accepts legacy + new sub-role
+- `app/modules/advocate/`: register.py +126 lines, router.py +468 lines
+- `static/admin/dev_lab.html`: Forge rebrand (⚒️ Semptify Forge)
+- Deleted legacy static HTML: help, help_old, home, office, tools, welcome (-2997 lines)
+- `.devin/workflows/forge.md`: New Forge workflow
+- New templates: advocate_client_detail, advocate_invite, tenant_my_advocate
+
+#### Commit 2: 27f9c04 — Spelling Fixes
+- `system_health_check.py:24`: SEMPIFY → SEMPTIFY
+- Renamed SEMPtIFY_DISSERTATION.{md,html,pdf} → SEMPTIFY_*
+- Renamed SEMTIFY_NAVIGATION_MAP.md → SEMPTIFY_NAVIGATION_MAP.md
+- Renamed SEMTIFY_CRITICAL_ASSESSMENT.md → SEMPTIFY_CRITICAL_ASSESSMENT.md
+- Renamed SEMPtIFY_INVENTORY.md → SEMPTIFY_INVENTORY.md
+- Renamed SEMPtIFY_CURRENT_MAP.md → SEMPTIFY_CURRENT_MAP.md
+
+#### Commit 3: 8bf8989 — Lifecycle Bug Fix
+- `app/core/product_manifest.py:170`: Added 'deprecated' to allowed_lifecycles
+- Root cause: Judge module registers with lifecycle='deprecated' but validation rejected it
+- Without this fix, app/main.py failed to import — server wouldn't start
+- Forge UI already supported deprecated badges; validation was the only gap
+
+### Known Working
+- App compiles clean: `python -m py_compile app/main.py` ✅
+- Dev server starts clean on port 8000 ✅
+- Playwright tests against semptify.org: 17/18 pass ✅
+- Cloudflare Development Mode enabled (3h) + cache purged
+- Pushed to main, Render deploying commit 8bf8989
+
+### Known Broken / Pending
+- Playwright: "Register page content not found" — pre-existing, not caused by this session
+- ~25 modules still missing FunctionGroupContracts (per audit)
+- GUI plan deferred until contracts complete (see ~/.windsurf/plans/semptify-gui-full-vision-synthesis-c48dd4.md)
+- Page Composer not yet built
+- Context Engine built but not wired into Page Composer
+
+### Next Session
+- Complete FunctionGroupContracts for all ~25 missing modules (with GUI requirements)
+- Then rewrite GUI plan based on contracts
+- Then build Page Composer + three-layer page architecture
+
+---
+
 ## Session — 2026-06-21 PM3 — Phase 4.1 Tenant + Free API Pack v2.0 + Phase 4.5 Admin
 **Status: Phase 4.1 Tenant complete. Free API Pack v2.0 shipped (11/11 endpoints live). Phase 4.5 Admin verified.**
 
