@@ -85,7 +85,7 @@ pause >nul
 taskkill /FI "WINDOWTITLE eq Local AI Backend" /F >nul 2>&1
 echo Services stopped.
 '''
-    launcher_path = os.path.join(SEMPtIFY_PATH, "launch_semtify.bat")
+    launcher_path = os.path.join(SEMPtIFY_PATH, "launch_semptify.bat")
     with open(launcher_path, 'w') as f:
         f.write(launcher_content)
     print(f"✓ Launcher created: {launcher_path}")
@@ -108,13 +108,13 @@ def create_readme():
    - File operations, AI chat, maintenance
    - Connects/disconnects cleanly
 
-3. **Launcher** (`launch_semtify.bat`)
+3. **Launcher** (`launch_semptify.bat`)
    - Starts Ollama, pulls models, launches backend
    - One-click operation
 
 ## Quick Start
 
-1. Double-click `launch_semtify.bat`
+1. Double-click `launch_semptify.bat`
 2. Open http://127.0.0.1:8001 for local AI chat
 3. Access Semptify admin panel for remote operations
 
@@ -157,7 +157,7 @@ def main():
     print("Installation Complete!")
     print("=" * 60)
     print(f"\nNext steps:")
-    print(f"1. Run: {SEMPtIFY_PATH}\\launch_semtify.bat")
+    print(f"1. Run: {SEMPtIFY_PATH}\\launch_semptify.bat")
     print(f"2. Open: http://127.0.0.1:8001")
     print(f"3. Read: {SEMPtIFY_PATH}\\SETUP_COMPLETE.md")
     print()

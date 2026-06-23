@@ -1,8 +1,11 @@
-"""Judge module — placeholder, dev_only. Not for active use.
+"""Judge module — DEPRECATED. Merged into Legal role as sub_role='judge'.
 
-Phase 4.6: Judge role is marked dev_only in module flags. This stub exists
-so the admin module-flags UI displays it correctly as 'in development'.
-Do NOT build out judge endpoints without explicit approval.
+As of 2026-06-23, Judge is no longer a standalone role. It is a sub-role
+of Legal (legal_sub_role='judge' on User model). This stub remains for
+backward compatibility with services that reference UserRole.JUDGE.
+
+New judge functionality should be added to the Legal module with
+is_legal_sub_role(user_id, 'judge') checks.
 """
 
 from .router import router

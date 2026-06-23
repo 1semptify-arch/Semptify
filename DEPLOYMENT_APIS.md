@@ -13,7 +13,7 @@
 **OAuth Callback URLs:**
 ```
 # Local Development (Cloudflared Tunnel)
-https://dev.semtify.org/storage/callback/google_drive
+https://dev.semptify.org/storage/callback/google_drive
 
 # Local Development (Direct localhost)
 http://localhost:8000/storage/callback/google_drive
@@ -45,7 +45,7 @@ https://yourdomain.com/storage/callback/google_drive
 **OAuth Callback URLs:**
 ```
 # Local Development (Cloudflared Tunnel)
-https://dev.semtify.org/storage/callback/dropbox
+https://dev.semptify.org/storage/callback/dropbox
 
 # Local Development (Direct localhost)
 http://localhost:8000/storage/callback/dropbox
@@ -76,7 +76,7 @@ https://yourdomain.com/storage/callback/dropbox
 **OAuth Callback URLs:**
 ```
 # Local Development (Cloudflared Tunnel)
-https://dev.semtify.org/storage/callback/onedrive
+https://dev.semptify.org/storage/callback/onedrive
 
 # Local Development (Direct localhost)
 http://localhost:8000/storage/callback/onedrive

@@ -2190,16 +2190,28 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(str(page_path))
         return HTMLResponse(content="<h1>Module Flags not found</h1>", status_code=404)
 
+    @fastapi_app.get("/admin/forge.html", response_class=HTMLResponse)
+    async def admin_forge_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve Semptify Forge admin page - ADMIN role required.
+
+        The Forge is the canonical module development system. Alias /admin/dev-lab.html
+        kept for backward compatibility.
+        """
+        page_path = BASE_PATH / "static" / "admin" / "dev_lab.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Semptify Forge not found</h1>", status_code=404)
+
     @fastapi_app.get("/admin/dev-lab.html", response_class=HTMLResponse)
     async def admin_dev_lab_page(
         request: Request,
         admin_uid: str = Depends(require_admin),
     ):
-        """Serve Dev Lab admin page - ADMIN role required."""
-        page_path = BASE_PATH / "static" / "admin" / "dev_lab.html"
-        if page_path.exists():
-            return FileResponse(str(page_path))
-        return HTMLResponse(content="<h1>Dev Lab not found</h1>", status_code=404)
+        """Serve Dev Lab admin page (alias for /admin/forge.html)."""
+        return await admin_forge_page(request, admin_uid)
 
     @fastapi_app.get("/docs/component-inventory.html", response_class=HTMLResponse)
     async def docs_component_inventory(
@@ -3491,6 +3503,23 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             "timestamp": utc_now().isoformat(),
         }
 
+    @fastapi_app.get("/tenant/my-advocate", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/my-advocate/", response_class=HTMLResponse)
+    async def tenant_my_advocate_page(request: Request):
+        """Serve the tenant's advocate management page (case sharing)."""
+        guard_redirect = await _guard_role_page(request, {"tenant", "user"})
+        if guard_redirect:
+            return guard_redirect
+
+        my_advocate_template_path = BASE_PATH / "app" / "templates" / "pages" / "tenant_my_advocate.html"
+        if my_advocate_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/tenant_my_advocate.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Tenant my-advocate template error: %s", e)
+
+        return HTMLResponse(content="<h1>My Advocate page not found</h1>", status_code=404)
+
     @fastapi_app.get("/tenant/{subpage}", response_class=HTMLResponse)
     async def tenant_subpage(subpage: str, request: Request):
         """Catch-all for tenant sub-pages not matched by explicit routes above."""
@@ -3543,6 +3572,42 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return advocate_fallback
 
         return HTMLResponse(content="<h1>Advocate page not found</h1>", status_code=404)
+
+    @fastapi_app.get("/advocate/clients/{client_id}", response_class=HTMLResponse)
+    async def advocate_client_detail_page(client_id: str, request: Request):
+        """Serve the advocate client detail page for a specific client."""
+        guard_redirect = await _guard_role_page(request, {"advocate"})
+        if guard_redirect:
+            return guard_redirect
+
+        client_template_path = BASE_PATH / "app" / "templates" / "pages" / "advocate_client_detail.html"
+        if client_template_path.exists():
+            try:
+                return templates.TemplateResponse(
+                    request,
+                    "pages/advocate_client_detail.html",
+                    {"client_id": client_id},
+                )
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Advocate client detail template error: %s", e)
+
+        return HTMLResponse(content="<h1>Client detail page not found</h1>", status_code=404)
+
+    @fastapi_app.get("/advocate/invite", response_class=HTMLResponse)
+    async def advocate_invite_page(request: Request):
+        """Serve the advocate invite codes page."""
+        guard_redirect = await _guard_role_page(request, {"advocate"})
+        if guard_redirect:
+            return guard_redirect
+
+        invite_template_path = BASE_PATH / "app" / "templates" / "pages" / "advocate_invite.html"
+        if invite_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/advocate_invite.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Advocate invite template error: %s", e)
+
+        return HTMLResponse(content="<h1>Invite page not found</h1>", status_code=404)
 
     @fastapi_app.get("/advocate/{subpage}", response_class=HTMLResponse)
     async def advocate_subpage(subpage: str, request: Request):

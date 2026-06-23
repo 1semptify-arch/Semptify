@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dev Lab — Semptify Admin</title>
+<title>Semptify Forge — Module Development System</title>
 <style>
   :root {
     --bg: #0f1117;
@@ -17,6 +17,7 @@
     --red: #ef4444;
     --purple: #a855f7;
     --orange: #f97316;
+    --forge: #f59e0b;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -25,9 +26,31 @@
     color: var(--text);
     padding: 1.5rem;
   }
-  h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  .forge-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.25rem;
+  }
+  .forge-logo {
+    font-size: 1.75rem;
+    color: var(--forge);
+  }
+  h1 { font-size: 1.5rem; margin: 0; }
   h2 { font-size: 1.1rem; margin: 1.5rem 0 0.75rem; }
   .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .forge-tagline {
+    display: inline-block;
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--forge);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
   .card {
     background: var(--card);
     border: 1px solid var(--border);
@@ -62,10 +85,12 @@
   .badge-experimental { background: rgba(168, 85, 247, 0.2); color: var(--purple); }
   .badge-beta { background: rgba(234, 179, 8, 0.2); color: var(--yellow); }
   .badge-stable { background: rgba(34, 197, 94, 0.2); color: var(--green); }
+  .badge-deprecated { background: rgba(239, 68, 68, 0.2); color: var(--red); }
   .badge-internal { background: rgba(79, 140, 255, 0.2); color: var(--accent); }
   .badge-external { background: rgba(239, 68, 68, 0.2); color: var(--red); }
   .badge-submitted { background: rgba(139, 142, 152, 0.2); color: var(--muted); }
   .badge-promoted { background: rgba(34, 197, 94, 0.2); color: var(--green); }
+  .badge-preview { background: rgba(245, 158, 11, 0.2); color: var(--forge); }
   .module-path { font-family: 'SF Mono', Monaco, monospace; font-size: 0.8rem; color: var(--accent); }
   .btn {
     background: var(--accent);
@@ -122,12 +147,118 @@
   .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem; }
   .loading { color: var(--muted); font-style: italic; }
   .error { color: var(--red); }
+
+  /* Forge enhancements */
+  .forge-pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.78rem;
+  }
+  .pipeline-stage {
+    padding: 0.25rem 0.6rem;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+  .pipeline-arrow { color: var(--muted); }
+  .pipeline-dev_only { background: rgba(249, 115, 22, 0.2); color: var(--orange); }
+  .pipeline-preview { background: rgba(245, 158, 11, 0.2); color: var(--forge); }
+  .pipeline-experimental { background: rgba(168, 85, 247, 0.2); color: var(--purple); }
+  .pipeline-beta { background: rgba(234, 179, 8, 0.2); color: var(--yellow); }
+  .pipeline-stable { background: rgba(34, 197, 94, 0.2); color: var(--green); }
+  .forge-info-banner {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(79, 140, 255, 0.08));
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--forge);
+    border-radius: 6px;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .forge-info-banner strong { color: var(--forge); }
+  .forge-info-banner code {
+    background: var(--bg);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    color: var(--accent);
+  }
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .quick-action {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    text-decoration: none;
+    color: var(--text);
+    display: block;
+  }
+  .quick-action:hover { border-color: var(--forge); }
+  .quick-action-title { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.2rem; }
+  .quick-action-desc { font-size: 0.75rem; color: var(--muted); }
 </style>
 </head>
 <body>
 
-<h1>🧪 Dev Lab</h1>
-<p class="subtitle">Incubator for internal + external dev modules. Admin only.</p>
+<div class="forge-header">
+  <span class="forge-logo">⚒️</span>
+  <h1>Semptify Forge</h1>
+  <span class="forge-tagline">Canonical Dev System</span>
+</div>
+<p class="subtitle">Module incubator & lifecycle system. Build, test, and promote modules from dev_only → stable. Admin only.</p>
+
+<div class="forge-info-banner">
+  <strong>The Forge</strong> is the canonical module development system for Semptify. All new modules start as
+  <code>dev_only</code> (admin-visible only) and progress through the lifecycle pipeline. Only admins see Forge modules;
+  production users see <code>stable</code> and <code>beta</code> only. Promotions persist in PostgreSQL via runtime overrides.
+</div>
+
+<div class="forge-pipeline">
+  <span style="color:var(--muted);font-weight:600">Lifecycle Pipeline:</span>
+  <span class="pipeline-stage pipeline-dev_only">dev_only</span>
+  <span class="pipeline-arrow">→</span>
+  <span class="pipeline-stage pipeline-preview">preview</span>
+  <span class="pipeline-arrow">→</span>
+  <span class="pipeline-stage pipeline-experimental">experimental</span>
+  <span class="pipeline-arrow">→</span>
+  <span class="pipeline-stage pipeline-beta">beta</span>
+  <span class="pipeline-arrow">→</span>
+  <span class="pipeline-stage pipeline-stable">stable</span>
+</div>
+
+<div class="quick-actions">
+  <a href="#tab-modules" class="quick-action" onclick="switchTab('modules')">
+    <div class="quick-action-title">📦 Module Lifecycle</div>
+    <div class="quick-action-desc">View & promote dev modules</div>
+  </a>
+  <a href="#tab-ideas" class="quick-action" onclick="switchTab('ideas')">
+    <div class="quick-action-title">💡 Idea Intake</div>
+    <div class="quick-action-desc">Submit & promote new ideas</div>
+  </a>
+  <a href="#tab-external" class="quick-action" onclick="switchTab('external')">
+    <div class="quick-action-title">🔌 External Modules</div>
+    <div class="quick-action-desc">Third-party module loader</div>
+  </a>
+  <a href="/admin/module-flags.html" class="quick-action">
+    <div class="quick-action-title">🚩 Module Flags</div>
+    <div class="quick-action-desc">Runtime override controls</div>
+  </a>
+</div>
 
 <div class="tabs">
   <div class="tab active" onclick="switchTab('modules')">Modules</div>
@@ -138,9 +269,9 @@
 <!-- Modules Tab -->
 <div class="tab-content active" id="tab-modules">
   <div class="card">
-    <h2>Dev Modules</h2>
+    <h2>Forge Modules</h2>
     <p style="color:var(--muted);font-size:0.85rem;margin-bottom:0.75rem">
-      Modules in dev_only, preview, or experimental lifecycle. Click a module to view its maturity checklist and promote it.
+      Modules in dev_only, preview, experimental, or deprecated lifecycle. Click a module to view its maturity checklist, run tests, and promote it to the next stage.
     </p>
     <table id="modules-table">
       <thead>
@@ -291,17 +422,18 @@ async function loadModules() {
 
 function renderModules() {
   if (allModules.length === 0) {
-    document.getElementById('modules-tbody').innerHTML = '<tr><td colspan="7" class="loading">No dev modules found.</td></tr>';
+    document.getElementById('modules-tbody').innerHTML = '<tr><td colspan="7" class="loading">No Forge modules found.</td></tr>';
     return;
   }
   let html = '';
   for (const m of allModules) {
+    const tierBadge = m.tier === 'dev' ? 'badge-internal' : 'badge-internal';
     html += `<tr>
       <td>
         <div class="module-path">${m.module_path}</div>
         ${m.dev_notes ? `<div style="color:var(--muted);font-size:0.8rem">${escapeHtml(m.dev_notes)}</div>` : ''}
       </td>
-      <td><span class="badge badge-internal">${m.tier}</span></td>
+      <td><span class="badge ${tierBadge}">${m.tier}</span></td>
       <td><span class="badge badge-${m.lifecycle}">${m.lifecycle}</span></td>
       <td><span class="badge badge-${m.origin}">${m.origin}</span></td>
       <td>${m.has_tests ? '✅' : '⛔'}</td>
@@ -492,8 +624,28 @@ async function promoteIdea(ideaId, ideaName) {
 
 async function loadExternal() {
   document.getElementById('external-modules').innerHTML = '<p class="loading">Loading external modules...</p>';
-  // TODO: Add endpoint to list external modules
-  document.getElementById('external-modules').innerHTML = '<p style="color:var(--muted)">External module listing endpoint not yet wired. See app/core/external_loader.py for the loader.</p>';
+  try {
+    const resp = await fetch('/dev/lab/external');
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.modules && data.modules.length > 0) {
+        let html = '';
+        for (const m of data.modules) {
+          html += `<div style="padding:0.5rem 0;border-bottom:1px solid var(--border)">
+            <div class="module-path">${escapeHtml(m.module_path)}</div>
+            <div style="color:var(--muted);font-size:0.8rem">${escapeHtml(m.dev_notes || '')}</div>
+          </div>`;
+        }
+        document.getElementById('external-modules').innerHTML = html;
+      } else {
+        document.getElementById('external-modules').innerHTML = '<p style="color:var(--muted)">No external modules loaded. See app/core/external_loader.py for the loader.</p>';
+      }
+    } else {
+      document.getElementById('external-modules').innerHTML = '<p style="color:var(--muted)">External module listing endpoint not yet wired. See app/core/external_loader.py for the loader.</p>';
+    }
+  } catch (e) {
+    document.getElementById('external-modules').innerHTML = '<p style="color:var(--muted)">External module listing endpoint not yet wired. See app/core/external_loader.py for the loader.</p>';
+  }
 }
 
 function escapeHtml(s) {

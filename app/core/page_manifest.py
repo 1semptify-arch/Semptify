@@ -1495,8 +1495,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="help",
         route="/help",
-        source_file="static/help.html",
-        page_type="static",
+        source_file="app/templates/pages/help.html",
+        page_type="jinja",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"
@@ -2095,8 +2095,8 @@ PAGE_MANIFEST: List[PageManifestEntry] = [
     PageManifestEntry(
         page_id="home",
         route="/home",
-        source_file="static/home.html",
-        page_type="static",
+        source_file="app/templates/pages/semptify_hub.html",
+        page_type="jinja",
         page_contract=ObjectSetCoverage(
             CoverageStatus.COMPLETE,
             "PageContract registered"

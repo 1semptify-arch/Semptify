@@ -245,7 +245,7 @@ Each external module ships a `semptify.module.json` manifest:
   "dependencies": ["app.sdk.vault", "app.sdk.timeline"],
   "entry_point": "router.py:router",
   "content_hash": "sha256:...",
-  "homepage": "https://github.com/legalaid-ny/semtify-court-forms-ny",
+  "homepage": "https://github.com/legalaid-ny/semptify-court-forms-ny",
   "support": "support@legalaid-ny.org",
   "license": "MIT"
 }
