@@ -372,7 +372,7 @@ register()
     print("   app.include_router(admin_router)")
     print()
     print("2. Access admin panel at:")
-    print("   http://your-semtify-server/admin/")
+    print("   http://your-semptify-server/admin/")
     print()
 
 if __name__ == "__main__":

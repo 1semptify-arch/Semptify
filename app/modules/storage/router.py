@@ -2482,7 +2482,7 @@ async def rehome_device(
 <html>
 <head>
     <title>Reconnected!</title>
-    <meta http-equiv="refresh" content="2;url=/static/welcome.html">
+    <meta http-equiv="refresh" content="2;url=/welcome">
     <style>
         body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
