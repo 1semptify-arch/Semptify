@@ -240,7 +240,7 @@ async def build_entity_graph(request: GraphVisualizationRequest,
             "success": True,
             "graph_data": graph_engine.export_graph_data(),
             "analysis": analysis.to_dict(),
-            "built_at": datetime.now(timezone.utc).isoformat()
+            "built_at": utc_now().isoformat()
         })
 
     except Exception as e:
@@ -263,7 +263,7 @@ async def generate_graph_visualization(request: GraphVisualizationRequest,
         return JSONResponse(content={
             "success": True,
             "visualization": visualization_data,
-            "generated_at": datetime.now(timezone.utc).isoformat()
+            "generated_at": utc_now().isoformat()
         })
 
     except Exception as e:
@@ -284,7 +284,7 @@ async def find_shortest_path(source_entity: str,
             "source_entity": source_entity,
             "target_entity": target_entity,
             "path": path,
-            "calculated_at": datetime.now(timezone.utc).isoformat()
+            "calculated_at": utc_now().isoformat()
         })
 
     except Exception as e:
