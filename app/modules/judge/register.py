@@ -1,12 +1,12 @@
 """Judge module registration helper. Deprecated — merged into Legal sub-role."""
 
-from app.core.product_manifest import ModuleEntry, ProductTier, ModuleOrigin
+from app.core.product_manifest import ModuleEntry, ProductTier
 
 
 MODULE = ModuleEntry(
     module_path="app.modules.judge.router",
     tier=ProductTier.DEV,
-    origin=ModuleOrigin.INTERNAL,
+    origin="internal",
     lifecycle="deprecated",
     requires_role=("admin",),
     tags=("Judge", "Deprecated", "Merged Into Legal"),

@@ -1,14 +1,14 @@
 """Legal module registration helper."""
 
-from app.core.product_manifest import ModuleEntry, ProductTier, ModuleOrigin, LifecycleStage
+from app.core.product_manifest import ModuleEntry, ProductTier
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
 
 MODULE = ModuleEntry(
     module_path="app.modules.legal.router",
-    tier=ProductTier.LEGAL,
-    origin=ModuleOrigin.INTERNAL,
-    lifecycle=LifecycleStage.BETA,
+    tier=ProductTier.EXTENDED,
+    origin="internal",
+    lifecycle="beta",
     tags=("Legal", "Court Filing", "Discovery", "Exhibits", "Workspace"),
 )
 
