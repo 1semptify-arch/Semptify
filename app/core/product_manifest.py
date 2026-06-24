@@ -580,9 +580,9 @@ _register("app.modules.public_exposure.router", tags=("Public Exposure",), tier=
 _register("app.modules.fraud_exposure.router", tags=("Fraud Exposure",), tier=ProductTier.RESEARCH)
 
 # Litigation intelligence
-# _register("app.modules.litigation_intelligence.router", router_attr="lis_router",
-#           tags=("Litigation Intelligence",), tier=ProductTier.RESEARCH,
-#           log_message="Litigation Intelligence System router connected - Justice-grade legal intelligence active")  # INACTIVE: graph_engine not implemented, dataclass errors
+_register("app.modules.litigation_intelligence.router", router_attr="lis_router",
+          tags=("Litigation Intelligence",), tier=ProductTier.RESEARCH,
+          log_message="Litigation Intelligence System router connected - Justice-grade legal intelligence active")
 
 
 # =============================================================================
