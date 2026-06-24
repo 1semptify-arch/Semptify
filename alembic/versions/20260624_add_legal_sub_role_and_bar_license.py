@@ -24,10 +24,7 @@ import sqlalchemy as sa
 
 
 revision: str = '20260624_add_legal_sub_role'
-down_revision: Union[str, Sequence[str], None] = (
-    '20260618_add_admin_error_queue',
-    '20260615_add_module_registry',
-)
+down_revision: Union[str, Sequence[str], None] = '20260618_add_admin_error_queue'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
