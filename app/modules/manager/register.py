@@ -1,14 +1,14 @@
 """Manager module registration helper."""
 
-from app.core.product_manifest import ModuleEntry, ProductTier, ModuleOrigin, LifecycleStage
+from app.core.product_manifest import ModuleEntry, ProductTier
 from app.core.module_contracts import FunctionGroupContract, register_function_group
 
 
 MODULE = ModuleEntry(
     module_path="app.modules.manager.router",
     tier=ProductTier.ADMIN,
-    origin=ModuleOrigin.INTERNAL,
-    lifecycle=LifecycleStage.BETA,
+    origin="internal",
+    lifecycle="beta",
     tags=("Manager", "Case Assignment", "Reporting", "Bulk Ops"),
 )
 
