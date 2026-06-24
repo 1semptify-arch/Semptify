@@ -3,6 +3,7 @@ Advocate API Router
 ===================
 
 Endpoints for advocate case management:
+- GET  /api/advocate/dashboard — aggregate stats across all clients
 - GET  /api/advocate/clients — list clients linked to current advocate
 - GET  /api/advocate/clients/{client_id} — client detail + stats
 - GET  /api/advocate/queue — case queue across all clients
@@ -102,6 +103,71 @@ class ReviewRequest(BaseModel):
 # =============================================================================
 # Endpoints
 # =============================================================================
+
+@router.get("/dashboard")
+async def advocate_dashboard(request: Request):
+    """Aggregate dashboard across all linked clients.
+
+    Returns counts, recent activity, urgent cases, and workload summary
+    for the advocate's home screen.
+    """
+    user_id = require_request_user_id(request)
+    _require_advocate(user_id)
+
+    with get_db_session() as db:
+        rels = _get_clients_for_advocate(db, user_id)
+        total_clients = len(rels)
+        total_docs = 0
+        total_events = 0
+        pending_reviews = 0
+        flagged_docs = 0
+        recent_clients = []
+
+        for rel in rels:
+            tenant = db.query(User).filter_by(id=rel.to_user_id).first()
+            if not tenant:
+                continue
+            doc_count = db.query(Document).filter_by(user_id=tenant.id).count()
+            event_count = db.query(TimelineEvent).filter_by(user_id=tenant.id).count()
+            total_docs += doc_count
+            total_events += event_count
+
+            # Count pending reviews and flagged docs from relationship context
+            ctx = dict(rel.context) if rel.context else {}
+            reviews = ctx.get("document_reviews", {})
+            for r in reviews.values():
+                if r.get("status") == "flagged":
+                    flagged_docs += 1
+                elif r.get("status") == "reviewed":
+                    pass
+                else:
+                    pending_reviews += 1
+
+            recent_clients.append({
+                "user_id": tenant.id,
+                "primary_provider": tenant.primary_provider,
+                "doc_count": doc_count,
+                "event_count": event_count,
+                "linked_at": rel.created_at.isoformat() if rel.created_at else None,
+            })
+
+        # Sort by linked_at desc, take 5
+        recent_clients.sort(key=lambda c: c.get("linked_at") or "", reverse=True)
+        recent_clients = recent_clients[:5]
+
+        return {
+            "advocate_id": user_id,
+            "summary": {
+                "total_clients": total_clients,
+                "total_documents": total_docs,
+                "total_timeline_events": total_events,
+                "pending_reviews": pending_reviews,
+                "flagged_documents": flagged_docs,
+            },
+            "recent_clients": recent_clients,
+            "generated_at": utc_now().isoformat(),
+        }
+
 
 @router.get("/clients")
 async def list_clients(request: Request):

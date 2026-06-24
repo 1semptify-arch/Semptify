@@ -9,7 +9,7 @@ Handles case data, entity relationships, and intelligence reports.
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 import json
 import asyncio
 from app.core.utc import utc_now
@@ -36,8 +36,8 @@ class LitigationCase:
     parties: Dict[str, Any]
     documents: List[Dict[str, Any]]
     intelligence_report: Optional[Dict[str, Any]] = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)
 
 @dataclass
 class EntityRecord:
@@ -50,8 +50,8 @@ class EntityRecord:
     attributes: Dict[str, Any]
     relationships: List[str]
     confidence: float
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)
 
 class LitigationStorageLayer:
     """PostgreSQL storage layer for litigation intelligence."""
