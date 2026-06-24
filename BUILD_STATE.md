@@ -12,6 +12,51 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-24 AM — Free API Endpoints Fixed + Role Definitions Updated
+**Status: Shipped commit 6d59a26. All 9 free API endpoints return ok. Cloudflare dev mode enabled.**
+
+### What Was Shipped
+
+#### Commit 6d59a26 — fix(free_api): restore data access for 4 broken endpoints + update role definitions
+- `app/modules/free_api_pack.py`: Fixed 4 broken data source URLs
+  - EPA ECHO (`echotool.epa.gov` — dead DNS) → EPA FRS (`ofmpub.epa.gov/frs_public2/frs_rest_services.get_facilities`) + JSON repair for invalid escapes
+  - MN Courts (`pa.courts.state.mn.us` — dead DNS) → `publicaccess.courts.state.mn.us` + graceful fallback (Volterra WAF blocks POSTs)
+  - MN SOS (`mblsportal.sos.state.mn.us` — dead DNS) → `mblsportal.sos.mn.gov` + graceful fallback (JS-rendered SPA)
+  - Dakota County (`gis.co.dakota.mn.us` — HTTP 406) → ArcGIS MapServer at `gis2.co.dakota.mn.us`
+  - Ramsey County: graceful fallback (Cloudflare 403 blocks all automated access)
+- `SEMPTIFY_DICTIONARY.md`: Updated role definitions
+  - `advocate` = helps one tenant (not multiple)
+  - `manager` = professional counselor/worker with multiple clients (NOT a property manager)
+  - Added `legal` role with 4 sub-roles (attorney, judge, clerk, paralegal) — all require bar license number
+
+### Known Working
+- App compiles clean: `python -m py_compile app/main.py` ✅
+- All 9 free API endpoints return `status: "ok"` ✅
+  - Federal cases (CourtListener): 10 cases
+  - MN Statutes (MN Revisor): 3,366 chars
+  - Environmental violations (EPA FRS): 10 facilities
+  - Business lookup (MN SOS): graceful fallback with deep-link
+  - Eviction search (MN Courts): graceful fallback with deep-link
+  - Dakota parcel lookup: 55 parcel attributes
+  - Dakota address lookup: 10 results
+  - Ramsey parcel/address: graceful fallback with deep-link
+  - Hennepin parcel/address: ArcGIS query (no test data)
+- Cloudflare Development Mode enabled (3h) + cache purged ✅
+- Pushed to main, Render deploying commit 6d59a26
+
+### Known Broken / Pending
+- MN SOS, MN Courts, Ramsey County GIS: require JavaScript/browser — graceful fallback returns deep-link, not actual data
+- `litigation_intelligence` module excluded (INACTIVE in manifest, pre-existing SyntaxError)
+- Playwright: "Register page content not found" — pre-existing
+- Context Engine built but not wired into Page Composer
+
+### Next Session
+- Continue Phase 4: Role Development (TENANT → ADMIN → ADVOCATE → MANAGER → LEGAL)
+- Or wire Context Engine into Page Composer
+- Or fix litigation_intelligence router.py SyntaxError
+
+---
+
 ## Session — 2026-06-23 PM2 — Contract Coverage Audit Complete (1045 contracts)
 **Status: Shipped 4 commits. 103 modules contracted. 0 failures, 0 violations. App compiles clean.**
 
