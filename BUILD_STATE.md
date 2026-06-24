@@ -12,6 +12,39 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-24 AM2 — OAuth Callback Crash Fixed (missing DB columns)
+**Status: Shipped commit 469a161. Migration for users.legal_sub_role + bar_license_number pushed. Render deploying.**
+
+### What Was Shipped
+
+#### Commit 469a161 — fix(db): add migration for users.legal_sub_role and bar_license_number
+- `alembic/versions/20260624_add_legal_sub_role_and_bar_license.py`: new migration
+  - Merges two existing heads (`20260618_add_admin_error_queue`, `20260615_add_module_registry`)
+  - Adds `users.legal_sub_role VARCHAR(20)` (nullable, indexed)
+  - Adds `users.bar_license_number VARCHAR(50)` (nullable, indexed)
+- Root cause: `User` model in `app/models/models.py:149,153` declared both columns but no migration was ever created. Production DB was missing them, so every `SELECT users.*` query failed — including the OAuth callback lookup at `app/modules/onboarding/oauth.py:341` (`find_or_create_user`).
+- Error reported: `column users.legal_sub_role does not exist` during Google Drive OAuth callback for user `117720824533939197243`.
+- Migration runs automatically on Render via `build.sh:22` (`alembic upgrade head`).
+
+### Known Working
+- `python -m py_compile` clean on migration + `app/models/models.py` + `app/main.py`
+- Migration file syntactically valid, merges both heads cleanly
+- Pushed to main, Render deploying commit 469a161
+
+### Known Broken / Pending
+- OAuth callback will fail until Render deploy completes and `alembic upgrade head` runs
+- MN SOS, MN Courts, Ramsey County GIS: require JavaScript/browser — graceful fallback (from prior session)
+- `litigation_intelligence` module excluded (INACTIVE in manifest, pre-existing SyntaxError)
+- Playwright: "Register page content not found" — pre-existing
+- Context Engine built but not wired into Page Composer
+
+### Next Session
+- Verify OAuth login works end-to-end after deploy
+- Continue Phase 4: Role Development (TENANT → ADMIN → ADVOCATE → MANAGER → LEGAL)
+- Or wire Context Engine into Page Composer
+
+---
+
 ## Session — 2026-06-24 AM — Free API Endpoints Fixed + Role Definitions Updated
 **Status: Shipped commit 6d59a26. All 9 free API endpoints return ok. Cloudflare dev mode enabled.**
 
