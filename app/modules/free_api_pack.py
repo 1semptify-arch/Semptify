@@ -124,7 +124,11 @@ async def _fetch_json(
     params: Optional[Dict[str, Any]] = None,
     headers: Optional[Dict[str, str]] = None,
 ) -> Optional[Any]:
-    """Fetch URL and return parsed JSON, or None on failure."""
+    """Fetch URL and return parsed JSON, or None on failure.
+
+    Some upstream APIs (EPA FRS) return JSON with invalid escape sequences.
+    We try strict parsing first, then fall back to a tolerant repair pass.
+    """
     merged = {**_HEADERS, "Accept": "application/json"}
     if headers:
         merged.update(headers)
@@ -133,12 +137,19 @@ async def _fetch_json(
         if resp.status_code >= 400:
             logger.warning("FreeAPI: GET %s -> HTTP %s", url, resp.status_code)
             return None
-        return resp.json()
+        try:
+            return resp.json()
+        except ValueError:
+            text = resp.text
+            repaired = re.sub(r'\\(?!["\\/bfnrtu])', r'\\\\', text)
+            try:
+                import json as _json
+                return _json.loads(repaired)
+            except ValueError as exc:
+                logger.warning("FreeAPI: GET %s -> JSON repair failed: %s", url, exc)
+                return None
     except (httpx.TimeoutException, httpx.ConnectError, httpx.HTTPError) as exc:
         logger.warning("FreeAPI: GET %s -> %s: %s", url, type(exc).__name__, exc)
-        return None
-    except ValueError as exc:
-        logger.warning("FreeAPI: GET %s -> JSON parse error: %s", url, exc)
         return None
     except Exception as exc:
         logger.warning("FreeAPI: GET %s -> unexpected %s: %s", url, type(exc).__name__, exc)
@@ -150,10 +161,15 @@ async def _fetch_json(
 # =============================================================================
 
 _COUNTY_PARCEL_URLS = {
-    "dakota": "https://gis.co.dakota.mn.us/property/rest/parcels/{parcel_id}",
+    "dakota": "http://gis2.co.dakota.mn.us/arcgis/rest/services/DCGIS_OL_PropertyInformation/MapServer/0/query",
     "ramsey": "https://maps.co.ramsey.mn.us/arcgis/rest/services/PropertyTax/MapServer/0/query",
     "hennepin": "https://gis.hennepin.us/arcgis/rest/services/HennepinData/Maps/PropertyTax/MapServer/0/query",
 }
+
+# Counties where the GIS endpoint is blocked by Cloudflare/WAF and requires
+# manual browser lookup. We return a graceful fallback with a deep-link instead
+# of an error.
+_BLOCKED_COUNTIES = {"ramsey"}
 
 
 class PropertyLookup:
@@ -168,21 +184,19 @@ class PropertyLookup:
                 f"County '{county}' not supported. Supported: Dakota, Ramsey, Hennepin.",
                 source="property_lookup",
             )
+        if county_lower in _BLOCKED_COUNTIES:
+            portal_map = {
+                "ramsey": "https://maps.co.ramsey.mn.us/property/",
+            }
+            return _ok(
+                county=county.title(),
+                parcel_id=parcel_id,
+                source=f"{county.title()} County GIS (manual lookup)",
+                source_url=portal_map.get(county_lower, ""),
+                parcel={},
+                note=f"{county.title()} County GIS blocks automated access. Click the source_url to search in your browser.",
+            )
         async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
-            if county_lower == "dakota":
-                url = _COUNTY_PARCEL_URLS["dakota"].format(parcel_id=quote_plus(parcel_id))
-                data = await _fetch_json(client, url)
-                if data is None:
-                    return _error(f"{county}/{parcel_id}", "Dakota county parcel lookup failed.", source="dakota_gis")
-                if not data:
-                    return _no_results(f"{county}/{parcel_id}", "No parcel found with that ID.")
-                return _ok(
-                    county="Dakota",
-                    parcel_id=parcel_id,
-                    source="Dakota County GIS",
-                    source_url=url,
-                    parcel=data,
-                )
             url = _COUNTY_PARCEL_URLS[county_lower]
             params = {
                 "where": f"PIN = '{parcel_id}'",
@@ -190,7 +204,10 @@ class PropertyLookup:
                 "f": "json",
                 "returnGeometry": "false",
             }
-            data = await _fetch_json(client, url, params=params)
+            extra_headers = {}
+            if county_lower == "ramsey":
+                extra_headers["Referer"] = "https://maps.co.ramsey.mn.us/"
+            data = await _fetch_json(client, url, params=params, headers=extra_headers)
             if data is None:
                 return _error(f"{county}/{parcel_id}", f"{county.title()} county parcel lookup failed.", source=f"{county_lower}_gis")
             features = data.get("features", []) if isinstance(data, dict) else []
@@ -214,23 +231,19 @@ class PropertyLookup:
                 f"County '{county}' not supported. Supported: Dakota, Ramsey, Hennepin.",
                 source="property_lookup",
             )
+        if county_lower in _BLOCKED_COUNTIES:
+            portal_map = {
+                "ramsey": "https://maps.co.ramsey.mn.us/property/",
+            }
+            return _ok(
+                county=county.title(),
+                address=address,
+                source=f"{county.title()} County GIS (manual lookup)",
+                source_url=portal_map.get(county_lower, ""),
+                results=[],
+                note=f"{county.title()} County GIS blocks automated access. Click the source_url to search in your browser.",
+            )
         async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
-            if county_lower == "dakota":
-                url = "https://gis.co.dakota.mn.us/property/rest/parcels/search"
-                params = {"query": address, "f": "json"}
-                data = await _fetch_json(client, url, params=params)
-                if data is None:
-                    return _error(f"{county}/{address}", "Dakota address search failed.", source="dakota_gis")
-                results = data if isinstance(data, list) else data.get("parcels", []) if isinstance(data, dict) else []
-                if not results:
-                    return _no_results(f"{county}/{address}", "No parcels match that address.")
-                return _ok(
-                    county="Dakota",
-                    address=address,
-                    source="Dakota County GIS",
-                    source_url=url,
-                    results=results[:10],
-                )
             url = _COUNTY_PARCEL_URLS[county_lower]
             safe_addr = address.replace("'", "''")
             params = {
@@ -239,7 +252,10 @@ class PropertyLookup:
                 "f": "json",
                 "returnGeometry": "false",
             }
-            data = await _fetch_json(client, url, params=params)
+            extra_headers = {}
+            if county_lower == "ramsey":
+                extra_headers["Referer"] = "https://maps.co.ramsey.mn.us/"
+            data = await _fetch_json(client, url, params=params, headers=extra_headers)
             if data is None:
                 return _error(f"{county}/{address}", f"{county.title()} address search failed.", source=f"{county_lower}_gis")
             features = data.get("features", []) if isinstance(data, dict) else []
@@ -259,40 +275,23 @@ class LandlordLookup:
     """MN Secretary of State business search + HUD property lookup."""
 
     async def lookup_business(self, name: str) -> Dict[str, Any]:
-        """Search for business entity in MN Secretary of State records."""
+        """Search for business entity in MN Secretary of State records.
+
+        The MN SOS portal is a JavaScript-rendered SPA that does not return
+        usable HTML to httpx. We provide a deep-link to the portal for manual
+        lookup instead of returning an error.
+        """
         if not name or not name.strip():
             return _error(name or "", "Business name required.", source="mn_sos")
-        url = "https://mblsportal.sos.state.mn.us/Business/Search"
-        params = {"SearchType": "Contains", "SearchValue": name, "SearchCriteria": "Name"}
-        async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
-            html = await _fetch_text(client, url, params=params)
-            if html is None:
-                return _error(name, "MN SOS business search failed.", source="mn_sos")
-            soup = BeautifulSoup(html, "lxml")
-            results: List[Dict[str, str]] = []
-            table = soup.find("table", {"id": "searchResultsTable"}) or soup.find("table", class_="table")
-            if table:
-                rows = table.find_all("tr")[1:]
-                for row in rows[:20]:
-                    cells = row.find_all("td")
-                    if len(cells) >= 3:
-                        results.append({
-                            "name": cells[0].get_text(strip=True),
-                            "filing_number": cells[1].get_text(strip=True) if len(cells) > 1 else "",
-                            "status": cells[2].get_text(strip=True) if len(cells) > 2 else "",
-                            "type": cells[3].get_text(strip=True) if len(cells) > 3 else "",
-                        })
-            if not results:
-                for div in soup.find_all("div", class_="search-result")[:10]:
-                    results.append({"name": div.get_text(strip=True)})
-            if not results:
-                return _no_results(name, "No businesses match that name in MN SOS records.")
-            return _ok(
-                query=name,
-                source="Minnesota Secretary of State",
-                source_url=f"{url}?{urlencode(params)}",
-                results=results,
-            )
+        portal_url = "https://mblsportal.sos.mn.gov/Business/Search"
+        search_url = f"{portal_url}?SearchType=Contains&SearchValue={quote_plus(name)}&SearchCriteria=Name"
+        return _ok(
+            query=name,
+            source="Minnesota Secretary of State (manual lookup)",
+            source_url=search_url,
+            results=[],
+            note="MN SOS portal requires JavaScript. Click the source_url to search in your browser.",
+        )
 
     async def lookup_owner(self, property_id: str) -> Dict[str, Any]:
         """Lookup property owner via HUD or county records."""
@@ -322,44 +321,23 @@ class CourtScraper:
     """MN Court Records (public) + CourtListener federal docket API."""
 
     async def search_evictions(self, name: str) -> Dict[str, Any]:
-        """Search for eviction cases by party name in MN courts."""
+        """Search for eviction cases by party name in MN courts.
+
+        The MN Courts MCRO portal is protected by a Volterra WAF that blocks
+        automated POST requests. We provide a deep-link to the portal for
+        manual lookup instead of returning an error.
+        """
         if not name or not name.strip():
             return _error(name or "", "Party name required.", source="mn_courts")
-        url = "https://pa.courts.state.mn.us/CaseSearch"
-        form_data = {"SearchType": "PartyName", "PartyName": name, "CaseType": "Eviction"}
-        async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
-            html = await _fetch_text(client, url, method="POST", data=form_data)
-            if html is None:
-                return _error(name, "MN courts case search failed.", source="mn_courts")
-            soup = BeautifulSoup(html, "lxml")
-            cases: List[Dict[str, str]] = []
-            table = soup.find("table", {"id": "caseResults"}) or soup.find("table", class_="results")
-            if table:
-                rows = table.find_all("tr")[1:]
-                for row in rows[:20]:
-                    cells = row.find_all("td")
-                    if len(cells) >= 4:
-                        cases.append({
-                            "case_number": cells[0].get_text(strip=True),
-                            "case_title": cells[1].get_text(strip=True) if len(cells) > 1 else "",
-                            "court": cells[2].get_text(strip=True) if len(cells) > 2 else "",
-                            "filing_date": cells[3].get_text(strip=True) if len(cells) > 3 else "",
-                        })
-            if not cases:
-                for div in soup.find_all("div", class_="case-result")[:10]:
-                    cases.append({"case_number": div.get_text(strip=True)})
-            if not cases:
-                return _no_results(
-                    name,
-                    "No eviction cases found for that party name. Try a different spelling or check the full case search.",
-                )
-            return _ok(
-                query=name,
-                case_type="eviction",
-                source="Minnesota Judicial Branch — Case Search",
-                source_url=f"{url}?{urlencode(form_data)}",
-                cases=cases,
-            )
+        portal_url = "https://publicaccess.courts.state.mn.us/CaseSearch"
+        return _ok(
+            query=name,
+            case_type="eviction",
+            source="Minnesota Judicial Branch — MCRO (manual lookup)",
+            source_url=portal_url,
+            cases=[],
+            note="MN Courts MCRO portal blocks automated access. Click the source_url to search in your browser.",
+        )
 
     async def fetch_federal_cases(self, query: str) -> Dict[str, Any]:
         """Search federal court cases via CourtListener API (Free Law Project)."""
@@ -458,44 +436,55 @@ class Violations:
             )
 
     async def environmental_violations(self, facility: str) -> Dict[str, Any]:
-        """Lookup environmental violations via EPA ECHO or MPCA.
+        """Lookup environmental violations via EPA FRS or MPCA.
 
-        Uses EPA ECHO public API. If DATA_GOV_API_KEY is set, uses the
-        api.data.gov enhanced endpoint with higher rate limits.
+        Uses EPA FRS (Facility Registry Service) public API. If
+        DATA_GOV_API_KEY is set, uses the api.data.gov enhanced endpoint
+        with higher rate limits.
         """
         if not facility or not facility.strip():
-            return _error(facility or "", "Facility name or ID required.", source="epa_echo")
+            return _error(facility or "", "Facility name or ID required.", source="epa_frs")
         key = _data_gov_key()
-        # EPA ECHO facility search — free, no key required (key unlocks higher rate limits)
-        url = "https://echotool.epa.gov/echo/rest/facility_search"
-        params = {"q": facility, "output": "json", "pg_num": 1, "results_per_page": 10}
+        # EPA FRS facility search — free, no key required
+        url = "https://ofmpub.epa.gov/frs_public2/frs_rest_services.get_facilities"
+        params = {
+            "facility_name": facility,
+            "state_abbr": "MN",
+            "output": "JSON",
+            "program_output": "yes",
+        }
         if key:
             params["api_key"] = key
         async with httpx.AsyncClient(timeout=_DEFAULT_TIMEOUT) as client:
             data = await _fetch_json(client, url, params=params)
             if data is None:
-                return _error(facility, "EPA ECHO search failed.", source="epa_echo")
+                return _error(facility, "EPA FRS search failed.", source="epa_frs")
             facilities = (
-                data.get("Results", {}).get("Facilities", []) if isinstance(data, dict) else []
+                data.get("Results", {}).get("FRSFacility", []) if isinstance(data, dict) else []
             )
             if not facilities:
                 return await self._mpca_lookup(client, facility)
             trimmed = []
             for f in facilities[:10]:
+                pf = f.get("ProgramFacilities", [])
+                if isinstance(pf, dict):
+                    programs = pf.get("ProgramFacility", [])
+                elif isinstance(pf, list):
+                    programs = pf
+                else:
+                    programs = []
                 trimmed.append({
-                    "name": f.get("FacilityName") or f.get("SOURCE_NAME", ""),
+                    "name": f.get("FacilityName", ""),
                     "registry_id": f.get("RegistryId", ""),
-                    "city": f.get("FacilityCity") or f.get("FAC_CITY", ""),
-                    "state": f.get("FacilityState") or f.get("FAC_STATE", ""),
-                    "zip": f.get("FacilityZip") or f.get("FAC_ZIP", ""),
-                    "cwa_compliance": f.get("CWACompliance", ""),
-                    "air_compliance": f.get("AirCompliance", ""),
-                    "rcra_compliance": f.get("RCRACompliance", ""),
-                    "echo_url": f.get("EchoURL", ""),
+                    "city": f.get("CityName", ""),
+                    "state": f.get("StateAbbr", ""),
+                    "zip": f.get("ZipCode", ""),
+                    "county": f.get("CountyName", ""),
+                    "programs": [p.get("PgmSysAcrnm", "") for p in programs] if isinstance(programs, list) else [],
                 })
             return _ok(
                 query=facility,
-                source="EPA ECHO (Enforcement and Compliance History Online)",
+                source="EPA FRS (Facility Registry Service)",
                 source_url=f"https://echo.epa.gov/facility-search?search_value={quote_plus(facility)}",
                 facilities=trimmed,
                 used_api_data_gov=bool(key),
