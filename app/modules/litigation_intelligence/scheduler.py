@@ -9,7 +9,7 @@ Handles periodic tasks, watchdog alerts, and background processing.
 import logging
 from typing import Dict, Any, List, Optional, Callable
 from datetime import datetime, timezone, timedelta
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import asyncio
 import json
 from app.core.utc import utc_now
@@ -28,7 +28,7 @@ class ScheduledTask:
     enabled: bool
     last_run: Optional[datetime] = None
     next_run: Optional[datetime] = None
-    created_at: datetime
+    created_at: datetime = field(default_factory=datetime.now)
 
 @dataclass
 class WatchdogAlert:
@@ -39,7 +39,7 @@ class WatchdogAlert:
     message: str
     source: str
     data: Dict[str, Any]
-    created_at: datetime
+    created_at: datetime = field(default_factory=datetime.now)
     acknowledged: bool = False
 
 class LitigationScheduler:
