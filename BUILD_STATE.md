@@ -45,6 +45,53 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-24 AM2 — Litigation Intelligence Activated + Advocate Dashboard
+**Status: Shipped commit ca536d3. LIS module live with 17 endpoints. Advocate dashboard added. Phase 4 role coverage complete.**
+
+### What Was Shipped
+
+#### Commit ca536d3 — fix(litigation_intelligence): activate module + add advocate dashboard endpoint
+- `app/modules/litigation_intelligence/storage_layer.py`: Fixed dataclass field ordering bug (non-default argument 'created_at' follows default argument 'intelligence_report'). Gave created_at/updated_at `field(default_factory=datetime.now)`.
+- `app/modules/litigation_intelligence/scheduler.py`: Same fix for ScheduledTask and WatchdogAlert dataclasses.
+- `app/core/product_manifest.py`: Activated litigation_intelligence module (was INACTIVE since 2026-06-23 due to dataclass errors). 17 LIS endpoints now live at `/api/litigation-intelligence/*`. Module count: 100 → 101.
+- `app/modules/advocate/router.py`: Added `GET /api/advocate/dashboard` endpoint — aggregate stats across all linked clients (total clients, docs, events, pending reviews, flagged docs, recent clients). Completes Phase 4.2 Advocate.
+
+### Known Working
+- App compiles clean: `python -m py_compile app/main.py` ✅
+- Litigation Intelligence module loads: 17 endpoints registered ✅
+- Advocate dashboard endpoint live ✅
+- All role modules registered and serving endpoints:
+  - Tenant: 41 endpoints (tenant_defense, state_laws, housing_accountability, free_api_pack, etc.)
+  - Advocate: 14 endpoints (dashboard, clients, queue, intake, timeline, documents, review, annotate, overlays, invite-codes, link-request, my-advocates)
+  - Manager: 10 endpoints (dashboard-stats, cases, staff, activity, assign, status, bulk/export, reports/cases, reports/staff, staff/role)
+  - Legal: 27 endpoints (matters, filings, discovery, exhibits, overlays)
+  - Admin: 41+ endpoints (admin console, module flags, analytics, batch ops, capabilities)
+  - LIS: 17 endpoints (scrape, normalize, analyze, graph, report, task, statistics, health)
+- Total routes: 1220 ✅
+- Pushed to main, Render deploying commit ca536d3
+
+### Known Broken / Pending
+- MN SOS, MN Courts, Ramsey County GIS: require JavaScript/browser — graceful fallback returns deep-link (from prior session)
+- `litigation_intelligence` graph_engine still not implemented (statistics endpoint returns `{"status": "not_implemented"}` for graph section)
+- Playwright: "Register page content not found" — pre-existing
+- Context Engine built but not wired into Page Composer
+
+### Phase 4 Role Development Status
+- [x] 4.1 Tenant: all stubs fixed, all tenant-visible endpoints return 200
+- [x] 4.2 Advocate: dashboard, client list, case sharing, doc review, invite flow, multi-tenant view
+- [x] 4.3 Manager: dashboard, staff mgmt, case assignment, reporting, bulk ops, permissions
+- [x] 4.4 Legal: workspace, court filing, discovery, case files, exhibits, overlays
+- [x] 4.5 Admin: developed (from prior sessions)
+- [x] 4.6 Judge: merged into Legal as sub-role (judge sub-role via is_legal_sub_role())
+
+### Next Session
+- Phase 4 role development is COMPLETE
+- Next: wire Context Engine into Page Composer
+- Or: build Action Feedback helper (SemptifyFeedback)
+- Or: GUI Phase 1 — Tenant Journal restructuring
+
+---
+
 ## Session — 2026-06-24 AM — Free API Endpoints Fixed + Role Definitions Updated
 **Status: Shipped commit 6d59a26. All 9 free API endpoints return ok. Cloudflare dev mode enabled.**
 
