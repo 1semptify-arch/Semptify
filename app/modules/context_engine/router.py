@@ -103,7 +103,7 @@ async def get_facts(
     _require_authenticated(user_id)
     if subject not in ALL_SUBJECTS:
         raise HTTPException(status_code=400, detail=f"Unknown subject: {subject}")
-    facts = ctx_cache.get_facts(subject, jurisdiction, limit)
+    facts = await ctx_cache.get_facts(subject, jurisdiction, limit)
     return {
         "subject": subject,
         "jurisdiction": jurisdiction,
@@ -156,7 +156,7 @@ async def get_stories(
     _require_authenticated(user_id)
     if subject and subject not in ALL_SUBJECTS:
         raise HTTPException(status_code=400, detail=f"Unknown subject: {subject}")
-    stories = ctx_stories.get_published_stories(
+    stories = await ctx_stories.get_published_stories(
         subject=subject,
         jurisdiction=jurisdiction,
         limit=limit,
@@ -186,7 +186,7 @@ async def submit_story(body: StorySubmitRequest, request: Request):
     if body.subject not in ALL_SUBJECTS:
         raise HTTPException(status_code=400, detail=f"Unknown subject: {body.subject}")
     try:
-        story = ctx_stories.submit_story(
+        story = await ctx_stories.submit_story(
             subject=body.subject,
             title=body.title,
             body=body.body,
@@ -209,7 +209,7 @@ async def list_pending_stories(request: Request):
     """Admin: list stories pending moderation."""
     user_id = require_request_user_id(request)
     _require_admin(user_id)
-    pending = ctx_stories.get_pending_stories()
+    pending = await ctx_stories.get_pending_stories()
     return {
         "count": len(pending),
         "stories": [
@@ -233,7 +233,7 @@ async def moderate_story(story_id: int, body: ModerateStoryRequest, request: Req
     user_id = require_request_user_id(request)
     _require_admin(user_id)
     try:
-        story = ctx_stories.moderate_story(
+        story = await ctx_stories.moderate_story(
             story_id=story_id,
             moderated_by=user_id,
             publish=body.publish,
@@ -266,7 +266,7 @@ async def overview(request: Request):
     """Admin: overview of all subjects with fact counts."""
     user_id = require_request_user_id(request)
     _require_admin(user_id)
-    counts = ctx_cache.list_subjects_with_counts()
+    counts = await ctx_cache.list_subjects_with_counts()
     return {
         "subjects": [
             {"value": s, "label": SUBJECT_LABELS.get(s, s), "fact_count": counts.get(s, 0)}

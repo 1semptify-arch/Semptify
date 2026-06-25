@@ -194,7 +194,11 @@ async def create_complaint(
     params: Dict[str, Any],
     context: Dict[str, Any],
 ) -> Dict[str, Any]:
-    """Create a complaint draft, optionally auto-populating from context."""
+    """Create a complaint draft, optionally auto-populating from context.
+
+    When a subject is provided, verified facts from the Context Engine are
+    attached so the complaint can cite relevant statutes with source URLs.
+    """
     agency_id = params["agency_id"]
     subject = params.get("subject", "")
     auto_populate = params.get("auto_populate", True)
@@ -232,9 +236,16 @@ async def create_complaint(
         if updates:
             draft = complaint_wizard.update_draft(draft.id, **updates)
     
+    # Pull verified facts from Context Engine for the subject (best-effort)
+    context_facts: List[Dict[str, Any]] = []
+    if subject:
+        context_facts = await _get_complaint_context_facts(subject)
+
     return {
         "draft_id": draft.id,
         "draft": draft.model_dump(),
+        "context_facts": context_facts,
+        "context_fact_count": len(context_facts),
     }
 
 
@@ -520,6 +531,34 @@ async def get_state(
     }
 
 
+@sdk.action(
+    "get_complaint_context",
+    description="Pull verified facts from the Context Engine for a complaint subject",
+    required_params=["subject"],
+    optional_params=["jurisdiction"],
+    produces=["facts", "subject", "count"],
+)
+async def get_complaint_context(
+    user_id: str,
+    params: Dict[str, Any],
+    context: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Pull verified, cited facts from the Context Engine for complaint citation.
+
+    Maps the complaint subject to a canonical Context Engine subject and returns
+    cached facts with source URLs. No hallucination — every fact has a source.
+    """
+    subject = params["subject"]
+    jurisdiction = params.get("jurisdiction", "MN")
+    facts = await _get_complaint_context_facts(subject, jurisdiction=jurisdiction)
+    return {
+        "subject": _complaint_subject_to_ctx(subject),
+        "jurisdiction": jurisdiction,
+        "count": len(facts),
+        "facts": facts,
+    }
+
+
 # =============================================================================
 # EVENT HANDLERS
 # =============================================================================
@@ -549,6 +588,60 @@ async def on_workflow_completed(event_type: str, data: Dict[str, Any]):
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
+
+async def _get_complaint_context_facts(subject: str, jurisdiction: str = "MN") -> List[Dict[str, Any]]:
+    """Pull verified facts from the Context Engine for complaint citation.
+
+    Best-effort: returns an empty list if the Context Engine is unavailable
+    or no facts are cached. Never raises — complaint creation must not break
+    because the Context Engine is empty.
+
+    Maps complaint subject keywords to the canonical 13 Context Engine subjects.
+    """
+    ctx_subject = _complaint_subject_to_ctx(subject)
+    try:
+        from app.modules.context_engine import cache as ctx_cache
+        facts = await ctx_cache.get_facts(ctx_subject, jurisdiction, limit=10)
+        return [
+            {
+                "id": f.id,
+                "claim": f.claim,
+                "source_url": f.source_url,
+                "source_name": f.source_name,
+                "citation": f.citation,
+                "is_verified": f.is_verified,
+            }
+            for f in facts
+        ]
+    except Exception as e:
+        logger.debug("Context Engine facts unavailable for %s/%s: %s", ctx_subject, jurisdiction, e)
+        return []
+
+
+def _complaint_subject_to_ctx(subject: str) -> str:
+    """Map a freeform complaint subject to a Context Engine canonical subject."""
+    if not subject:
+        return "eviction"
+    s = subject.lower().strip()
+    mapping = {
+        "eviction": "eviction",
+        "repair": "repair",
+        "repairs": "repair",
+        "rent": "rent",
+        "lease": "lease",
+        "deposit": "deposit",
+        "security deposit": "deposit",
+        "discrimination": "discrimination",
+        "safety": "safety",
+        "habitability": "habitability",
+        "retaliation": "retaliation",
+        "small claims": "small_claims",
+        "court": "court_prep",
+        "evidence": "evidence",
+        "timeline": "timeline",
+    }
+    return mapping.get(s, "eviction")
+
 
 def _build_filing_strategy(recommendations: List[Dict], keywords: List[str]) -> str:
     """Build a strategic narrative for complaint filing."""
