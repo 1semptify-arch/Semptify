@@ -702,25 +702,68 @@ async def analyze_defenses(
     params: Dict[str, Any],
     context: Dict[str, Any],
 ) -> Dict[str, Any]:
-    """Analyze potential defenses."""
+    """Analyze potential defenses.
+
+    Enriches the static MN_EVICTION_DEFENSES templates with verified facts
+    from the Context Engine so each defense cites live, sourced statutes.
+    """
     available_defenses = []
     recommendations = []
-    
+
+    # Map case_type to Context Engine subject for fact lookup
+    case_type = context.get("case_type", "eviction_defense")
+    ctx_subject = _case_type_to_subject(case_type)
+
+    # Pull verified facts from Context Engine (best-effort, non-blocking)
+    ctx_facts = await _get_context_facts(ctx_subject, jurisdiction="MN")
+
     for defense_id, defense_info in MN_EVICTION_DEFENSES.items():
         available_defenses.append({
             "id": defense_id,
             "title": defense_info["title"],
             "legal_basis": defense_info["legal_basis"],
-            "common_issues": defense_info["common_issues"]
+            "common_issues": defense_info["common_issues"],
+            "context_facts": ctx_facts,
         })
-    
+
     recommendations.append("Review your notice - check dates and service method")
     recommendations.append("Document all habitability issues with photos/video")
     recommendations.append("Keep records of all communications with landlord")
-    
+
     return {
         "defenses": available_defenses,
-        "recommendations": recommendations
+        "recommendations": recommendations,
+        "context_subject": ctx_subject,
+        "context_fact_count": len(ctx_facts),
+    }
+
+
+@sdk.action(
+    "get_context_facts",
+    description="Pull verified facts from the Context Engine for a case subject",
+    required_params=["case_id"],
+    optional_params=["subject", "jurisdiction"],
+    produces=["facts", "subject", "count"],
+)
+async def get_context_facts_action(
+    user_id: str,
+    params: Dict[str, Any],
+    context: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Pull verified, cited facts from the Context Engine.
+
+    Maps the case's case_type to a Context Engine subject and returns
+    cached facts with source URLs. No hallucination — every fact has a source.
+    """
+    case_type = context.get("case_type", "eviction_defense")
+    subject = params.get("subject") or _case_type_to_subject(case_type)
+    jurisdiction = params.get("jurisdiction", "MN")
+    facts = await _get_context_facts(subject, jurisdiction=jurisdiction)
+    return {
+        "subject": subject,
+        "jurisdiction": jurisdiction,
+        "count": len(facts),
+        "facts": facts,
     }
 
 
@@ -772,6 +815,49 @@ def get_deadline_status(deadline: date) -> str:
 def format_date_display(d: date) -> str:
     """Format date for display."""
     return d.strftime("%B %d, %Y")
+
+
+def _case_type_to_subject(case_type: str) -> str:
+    """Map a CaseType value to a Context Engine subject.
+
+    Context Engine subjects are the canonical 13 housing-rights subjects.
+    Case types are a subset that maps cleanly to those subjects.
+    """
+    mapping = {
+        "eviction_defense": "eviction",
+        "counter_suit": "eviction",
+        "habitability": "habitability",
+        "security_deposit": "deposit",
+        "discrimination": "discrimination",
+        "retaliation": "retaliation",
+    }
+    return mapping.get(case_type, "eviction")
+
+
+async def _get_context_facts(subject: str, jurisdiction: str = "MN") -> List[Dict[str, Any]]:
+    """Pull verified facts from the Context Engine cache.
+
+    Best-effort: returns an empty list if the Context Engine is unavailable
+    or no facts are cached for this subject. Never raises — case analysis
+    must not break because the Context Engine is empty.
+    """
+    try:
+        from app.modules.context_engine import cache as ctx_cache
+        facts = await ctx_cache.get_facts(subject, jurisdiction, limit=10)
+        return [
+            {
+                "id": f.id,
+                "claim": f.claim,
+                "source_url": f.source_url,
+                "source_name": f.source_name,
+                "citation": f.citation,
+                "is_verified": f.is_verified,
+            }
+            for f in facts
+        ]
+    except Exception as e:
+        logger.debug("Context Engine facts unavailable for %s/%s: %s", subject, jurisdiction, e)
+        return []
 
 
 # =============================================================================

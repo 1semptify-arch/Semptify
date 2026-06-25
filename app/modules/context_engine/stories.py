@@ -16,7 +16,7 @@ from app.modules.context_engine.models import TenantStory
 VALID_OUTCOMES = {"avoided_court", "won_court", "settled", "lost_court", "ongoing"}
 
 
-def submit_story(
+async def submit_story(
     subject: str,
     title: str,
     body: str,
@@ -38,14 +38,14 @@ def submit_story(
         is_published=False,
         submitted_by=submitted_by,
     )
-    with get_db_session() as db:
+    async with get_db_session() as db:
         db.add(story)
-        db.commit()
-        db.refresh(story)
+        await db.commit()
+        await db.refresh(story)
     return story
 
 
-def moderate_story(
+async def moderate_story(
     story_id: int,
     moderated_by: str,
     publish: bool,
@@ -53,10 +53,11 @@ def moderate_story(
     body: Optional[str] = None,
 ) -> TenantStory:
     """Moderate a story — optionally edit, then mark moderated + publish/unpublish."""
-    with get_db_session() as db:
-        story = db.execute(
+    async with get_db_session() as db:
+        result = await db.execute(
             select(TenantStory).where(TenantStory.id == story_id)
-        ).scalars().first()
+        )
+        story = result.scalars().first()
         if not story:
             raise FileNotFoundError(f"Story {story_id} not found")
         if title is not None:
@@ -66,19 +67,19 @@ def moderate_story(
         story.is_moderated = True
         story.is_published = publish
         story.moderated_by = moderated_by
-        story.moderated_at = utc_now()
-        db.commit()
-        db.refresh(story)
+        story.moderated_at = utc_now().replace(tzinfo=None)
+        await db.commit()
+        await db.refresh(story)
         return story
 
 
-def get_published_stories(
+async def get_published_stories(
     subject: Optional[str] = None,
     jurisdiction: str = "MN",
     limit: int = 10,
 ) -> List[TenantStory]:
     """Get published, moderated stories for a subject."""
-    with get_db_session() as db:
+    async with get_db_session() as db:
         conditions = [
             TenantStory.is_published.is_(True),
             TenantStory.is_moderated.is_(True),
@@ -89,20 +90,23 @@ def get_published_stories(
         stmt = select(TenantStory).where(and_(*conditions)).order_by(
             TenantStory.moderated_at.desc()
         ).limit(limit)
-        return list(db.execute(stmt).scalars().all())
+        result = await db.execute(stmt)
+        return list(result.scalars().all())
 
 
-def get_pending_stories(limit: int = 50) -> List[TenantStory]:
+async def get_pending_stories(limit: int = 50) -> List[TenantStory]:
     """Get stories pending moderation."""
-    with get_db_session() as db:
+    async with get_db_session() as db:
         stmt = select(TenantStory).where(
             TenantStory.is_moderated.is_(False)
         ).order_by(TenantStory.created_at.asc()).limit(limit)
-        return list(db.execute(stmt).scalars().all())
+        result = await db.execute(stmt)
+        return list(result.scalars().all())
 
 
-def get_story(story_id: int) -> Optional[TenantStory]:
-    with get_db_session() as db:
-        return db.execute(
+async def get_story(story_id: int) -> Optional[TenantStory]:
+    async with get_db_session() as db:
+        result = await db.execute(
             select(TenantStory).where(TenantStory.id == story_id)
-        ).scalars().first()
+        )
+        return result.scalars().first()

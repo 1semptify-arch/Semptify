@@ -5,6 +5,7 @@ Every fact must have a source URL — no hallucination.
 """
 
 import logging
+import re
 from typing import List, Optional
 
 from app.modules.context_engine.cache import upsert_fact
@@ -12,6 +13,28 @@ from app.modules.context_engine.models import ContextFact
 from app.modules.context_engine.taxonomy import Subject, SUBJECT_TO_FREE_API
 
 logger = logging.getLogger(__name__)
+
+
+DEFAULT_SUBJECT_STATUTES = {
+    Subject.EVICTION.value: "504B",
+    Subject.REPAIR.value: "504B.425",
+    Subject.HABITABILITY.value: "504B.221",
+    Subject.SAFETY.value: "504B.185",
+    Subject.LEASE.value: "504B.117",
+    Subject.RENT.value: "504B.441",
+    Subject.DEPOSIT.value: "504B.178",
+    Subject.RETALIATION.value: "504B.441",
+    Subject.DISCRIMINATION.value: "363.03",
+    Subject.SMALL_CLAIMS.value: "491A",
+    Subject.COURT_PREP.value: "504B.285",
+}
+
+
+def _resolve_statute_section(subject: str, query: Optional[str]) -> Optional[str]:
+    """Return a MN statute section usable by Statutes.get_statute."""
+    if query and re.match(r"^\d+[A-Z]?(\.\d+[\w.]*)?$", query.strip(), re.IGNORECASE):
+        return query.strip()
+    return DEFAULT_SUBJECT_STATUTES.get(subject)
 
 
 async def gather_for_subject(
@@ -39,79 +62,91 @@ async def gather_for_subject(
 
     try:
         if api_name == "mn_statute_search":
-            api = registry.statutes
-            results = await api.search_statutes(query or subject, jurisdiction=jurisdiction)
-            for r in (results or [])[:5]:
-                if not r.get("url") or not r.get("citation"):
-                    continue
-                facts.append(upsert_fact(
+            section = _resolve_statute_section(subject, query)
+            if not section:
+                logger.info("No statute section for subject=%s", subject)
+                return facts
+            resp = await registry.statutes.get_statute(section)
+            if resp.get("status") == "ok":
+                source_url = resp.get("source_url", "")
+                if not source_url:
+                    return facts
+                facts.append(await upsert_fact(
                     subject=subject,
                     jurisdiction=jurisdiction,
-                    claim=r.get("summary") or r.get("title") or f"Statute: {r.get('citation')}",
-                    source_url=r["url"],
+                    claim=resp.get("title") or f"Minn. Stat. § {section}",
+                    source_url=source_url,
                     source_name="MN Revisor of Statutes",
-                    citation=r.get("citation"),
+                    citation=f"Minn. Stat. § {section}",
                 ))
 
         elif api_name == "epa_echo_lookup":
-            api = registry.violations
-            results = await api.search_violations(query or "", jurisdiction=jurisdiction)
-            for r in (results or [])[:3]:
-                if not r.get("url"):
-                    continue
-                facts.append(upsert_fact(
-                    subject=subject,
-                    jurisdiction=jurisdiction,
-                    claim=r.get("summary") or f"Violation record: {r.get('facility', 'Unknown')}",
-                    source_url=r["url"],
-                    source_name="EPA ECHO",
-                    citation=r.get("case_number"),
-                ))
+            resp = await registry.violations.environmental_violations(query or "")
+            source_url = resp.get("source_url", "")
+            if resp.get("status") == "ok" and source_url:
+                for f in resp.get("facilities", [])[:3]:
+                    name = f.get("name") or f.get("FacilityName") or "Unknown facility"
+                    facts.append(await upsert_fact(
+                        subject=subject,
+                        jurisdiction=jurisdiction,
+                        claim=f"Environmental record: {name}",
+                        source_url=source_url,
+                        source_name="EPA ECHO",
+                        citation=f.get("registry_id") or f.get("RegistryId"),
+                    ))
 
         elif api_name == "court_listener_search":
-            api = registry.court
-            results = await api.search_cases(query or subject)
-            for r in (results or [])[:3]:
-                if not r.get("url"):
-                    continue
-                facts.append(upsert_fact(
-                    subject=subject,
-                    jurisdiction=jurisdiction,
-                    claim=r.get("summary") or f"Case: {r.get('case_name', 'Unknown')}",
-                    source_url=r["url"],
-                    source_name="CourtListener",
-                    citation=r.get("docket_number"),
-                ))
+            resp = await registry.courts.fetch_federal_cases(query or subject)
+            source_url = resp.get("source_url", "")
+            if resp.get("status") == "ok" and source_url:
+                for c in resp.get("cases", [])[:3]:
+                    case_name = c.get("case_name") or "Unknown case"
+                    snippet = c.get("snippet") or ""
+                    claim = f"Federal case: {case_name}"
+                    if snippet:
+                        claim = f"{claim} — {snippet[:200]}"
+                    facts.append(await upsert_fact(
+                        subject=subject,
+                        jurisdiction=jurisdiction,
+                        claim=claim,
+                        source_url=source_url,
+                        source_name="CourtListener",
+                        citation=c.get("case_number") or c.get("docket_number"),
+                    ))
 
         elif api_name == "hud_fair_housing":
-            api = registry.statutes  # closest analog; HUD fair housing content via statutes path
-            results = await api.search_statutes("fair housing", jurisdiction=jurisdiction)
-            for r in (results or [])[:3]:
-                if not r.get("url"):
-                    continue
-                facts.append(upsert_fact(
-                    subject=subject,
-                    jurisdiction=jurisdiction,
-                    claim=r.get("summary") or "Fair housing guidance",
-                    source_url=r["url"],
-                    source_name="HUD / Fair Housing",
-                    citation=r.get("citation"),
-                ))
+            resp = await registry.courts.fetch_federal_cases(query or "fair housing")
+            source_url = resp.get("source_url", "")
+            if resp.get("status") == "ok" and source_url:
+                for c in resp.get("cases", [])[:3]:
+                    case_name = c.get("case_name") or "Unknown case"
+                    snippet = c.get("snippet") or ""
+                    claim = f"Fair housing case: {case_name}"
+                    if snippet:
+                        claim = f"{claim} — {snippet[:200]}"
+                    facts.append(await upsert_fact(
+                        subject=subject,
+                        jurisdiction=jurisdiction,
+                        claim=claim,
+                        source_url=source_url,
+                        source_name="CourtListener / Fair Housing",
+                        citation=c.get("case_number") or c.get("docket_number"),
+                    ))
 
         elif api_name == "mncourts_search":
-            api = registry.court
-            results = await api.search_cases(query or "eviction")
-            for r in (results or [])[:3]:
-                if not r.get("url"):
-                    continue
-                facts.append(upsert_fact(
-                    subject=subject,
-                    jurisdiction=jurisdiction,
-                    claim=r.get("summary") or f"Court record: {r.get('case_name', 'Unknown')}",
-                    source_url=r["url"],
-                    source_name="MN Courts",
-                    citation=r.get("docket_number"),
-                ))
+            resp = await registry.courts.search_evictions(query or "eviction")
+            source_url = resp.get("source_url", "")
+            if resp.get("status") == "ok" and source_url:
+                for c in resp.get("cases", [])[:3]:
+                    case_name = c.get("case_name") or "Unknown case"
+                    facts.append(await upsert_fact(
+                        subject=subject,
+                        jurisdiction=jurisdiction,
+                        claim=f"Court record: {case_name}",
+                        source_url=source_url,
+                        source_name="MN Courts",
+                        citation=c.get("docket_number") or c.get("case_number"),
+                    ))
 
     except Exception as e:
         logger.warning("Gatherer for %s failed: %s", subject, e)
