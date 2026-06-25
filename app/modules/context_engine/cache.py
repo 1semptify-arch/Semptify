@@ -20,30 +20,31 @@ DEFAULT_TTL_DAYS = 7
 def _is_expired(fact: ContextFact) -> bool:
     if not fact.expires_at:
         return False
-    return fact.expires_at < utc_now()
+    return fact.expires_at < utc_now().replace(tzinfo=None)
 
 
-def get_facts(
+async def get_facts(
     subject: str,
     jurisdiction: str = "MN",
     limit: int = 10,
     include_expired: bool = False,
 ) -> List[ContextFact]:
     """Get cached facts for a subject + jurisdiction."""
-    with get_db_session() as db:
+    async with get_db_session() as db:
         stmt = select(ContextFact).where(
             and_(
                 ContextFact.subject == subject,
                 ContextFact.jurisdiction == jurisdiction,
             )
         ).order_by(ContextFact.created_at.desc()).limit(limit)
-        rows = db.execute(stmt).scalars().all()
+        result = await db.execute(stmt)
+        rows = result.scalars().all()
         if include_expired:
             return list(rows)
         return [r for r in rows if not _is_expired(r)]
 
 
-def upsert_fact(
+async def upsert_fact(
     subject: str,
     jurisdiction: str,
     claim: str,
@@ -53,10 +54,11 @@ def upsert_fact(
     ttl_days: int = DEFAULT_TTL_DAYS,
 ) -> ContextFact:
     """Insert or update a fact in the cache. No hallucination — source required."""
-    expires_at = utc_now() + timedelta(days=ttl_days)
-    with get_db_session() as db:
+    now = utc_now().replace(tzinfo=None)
+    expires_at = now + timedelta(days=ttl_days)
+    async with get_db_session() as db:
         # Dedup by (subject, jurisdiction, source_url, claim hash)
-        existing = db.execute(
+        result = await db.execute(
             select(ContextFact).where(
                 and_(
                     ContextFact.subject == subject,
@@ -64,15 +66,16 @@ def upsert_fact(
                     ContextFact.source_url == source_url,
                 )
             )
-        ).scalars().first()
+        )
+        existing = result.scalars().first()
         if existing:
             existing.claim = claim
             existing.citation = citation
             existing.is_verified = True
-            existing.verified_at = utc_now()
+            existing.verified_at = now
             existing.expires_at = expires_at
-            db.commit()
-            db.refresh(existing)
+            await db.commit()
+            await db.refresh(existing)
             return existing
         fact = ContextFact(
             subject=subject,
@@ -82,37 +85,38 @@ def upsert_fact(
             source_name=source_name,
             citation=citation,
             is_verified=True,
-            verified_at=utc_now(),
+            verified_at=now,
             expires_at=expires_at,
         )
         db.add(fact)
-        db.commit()
-        db.refresh(fact)
+        await db.commit()
+        await db.refresh(fact)
         return fact
 
 
-def prune_expired() -> int:
+async def prune_expired() -> int:
     """Delete expired facts. Returns count deleted."""
-    now = utc_now()
-    with get_db_session() as db:
-        rows = db.execute(
+    now = utc_now().replace(tzinfo=None)
+    async with get_db_session() as db:
+        result = await db.execute(
             select(ContextFact).where(
                 and_(
                     ContextFact.expires_at.isnot(None),
                     ContextFact.expires_at < now,
                 )
             )
-        ).scalars().all()
+        )
+        rows = result.scalars().all()
         count = len(rows)
         for r in rows:
-            db.delete(r)
-        db.commit()
+            await db.delete(r)
+        await db.commit()
         return count
 
 
-def list_subjects_with_counts(jurisdiction: str = "MN") -> dict:
+async def list_subjects_with_counts(jurisdiction: str = "MN") -> dict:
     """Return {subject: fact_count} for admin/overview."""
-    with get_db_session() as db:
+    async with get_db_session() as db:
         out = {}
         for subj in ALL_SUBJECTS:
             stmt = select(ContextFact).where(
@@ -121,6 +125,7 @@ def list_subjects_with_counts(jurisdiction: str = "MN") -> dict:
                     ContextFact.jurisdiction == jurisdiction,
                 )
             )
-            rows = db.execute(stmt).scalars().all()
+            result = await db.execute(stmt)
+            rows = result.scalars().all()
             out[subj] = len([r for r in rows if not _is_expired(r)])
         return out

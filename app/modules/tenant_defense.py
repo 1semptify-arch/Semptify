@@ -947,6 +947,7 @@ async def get_case_progress(
     return {
         "case_progress": progress.model_dump(),
         "recommendations": recommendations,
+        "context_facts": await _get_defense_context_facts("eviction", jurisdiction="MN"),
     }
 
 
@@ -970,6 +971,34 @@ async def get_state(
             "demand_letters_count": len(_demand_letters),
             "screening_disputes_count": len(_screening_disputes),
         }
+    }
+
+
+@sdk.action(
+    "get_defense_context",
+    description="Pull verified MN statutes and housing facts from the Context Engine for eviction defense",
+    required_params=[],
+    optional_params=["subject", "jurisdiction"],
+    produces=["facts", "subject", "count"],
+)
+async def get_defense_context(
+    user_id: str,
+    params: Dict[str, Any],
+    context: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Pull verified, cited facts from the Context Engine for tenant defense.
+
+    Returns cached facts with source URLs for eviction defense and related
+    housing-rights subjects. No hallucination - every fact has a source.
+    """
+    subject = params.get("subject", "eviction")
+    jurisdiction = params.get("jurisdiction", "MN")
+    facts = await _get_defense_context_facts(subject, jurisdiction=jurisdiction)
+    return {
+        "subject": subject,
+        "jurisdiction": jurisdiction,
+        "count": len(facts),
+        "facts": facts,
     }
 
 
@@ -1229,8 +1258,34 @@ async def run_action(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+async def _get_defense_context_facts(subject: str, jurisdiction: str = "MN") -> List[Dict[str, Any]]:
+    """Pull verified facts from the Context Engine for tenant defense.
+
+    Best-effort: returns an empty list if the Context Engine is unavailable
+    or no facts are cached. Never raises - defense flows must not break
+    because the Context Engine is empty.
+    """
+    try:
+        from app.modules.context_engine import cache as ctx_cache
+        facts = await ctx_cache.get_facts(subject, jurisdiction, limit=10)
+        return [
+            {
+                "id": f.id,
+                "claim": f.claim,
+                "source_url": f.source_url,
+                "source_name": f.source_name,
+                "citation": f.citation,
+                "is_verified": f.is_verified,
+            }
+            for f in facts
+        ]
+    except Exception as e:
+        logger.debug("Context Engine facts unavailable for %s/%s: %s", subject, jurisdiction, e)
+        return []
+
+
 # =============================================================================
-# INITIALIZATION
+# INITIALIZE
 # =============================================================================
 
 def initialize():

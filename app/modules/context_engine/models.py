@@ -18,6 +18,11 @@ from app.core.database import Base
 from app.core.utc import utc_now
 
 
+def _naive_utc_now() -> datetime:
+    """Return current UTC time without tzinfo for TIMESTAMP WITHOUT TIME ZONE columns."""
+    return utc_now().replace(tzinfo=None)
+
+
 class ContextFact(Base):
     """Cached verified fact from an external source (MN Revisor, HUD, EPA ECHO, etc.).
 
@@ -34,9 +39,9 @@ class ContextFact(Base):
     source_name: Mapped[str] = mapped_column(String(100), nullable=False)
     citation: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    verified_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    verified_at: Mapped[datetime] = mapped_column(DateTime, default=_naive_utc_now, nullable=False)
     expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True, index=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_naive_utc_now, nullable=False)
 
     __table_args__ = (
         Index("ix_context_facts_subject_jur", "subject", "jurisdiction"),
@@ -63,8 +68,8 @@ class TenantStory(Base):
     submitted_by: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
     moderated_by: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
     moderated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, nullable=False)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now, onupdate=utc_now, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_naive_utc_now, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_naive_utc_now, onupdate=_naive_utc_now, nullable=False)
 
     __table_args__ = (
         Index("ix_tenant_stories_subject_pub", "subject", "is_published"),

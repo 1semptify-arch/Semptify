@@ -35,27 +35,29 @@ async def verify_fact(fact: ContextFact) -> bool:
     except Exception as e:
         logger.info("Verify failed for fact %s: %s", fact.id, e)
         ok = False
-    with get_db_session() as db:
-        db_fact = db.execute(
+    async with get_db_session() as db:
+        result = await db.execute(
             select(ContextFact).where(ContextFact.id == fact.id)
-        ).scalars().first()
+        )
+        db_fact = result.scalars().first()
         if db_fact:
             db_fact.is_verified = ok
-            db_fact.verified_at = utc_now()
-            db.commit()
+            db_fact.verified_at = utc_now().replace(tzinfo=None)
+            await db.commit()
     return ok
 
 
 async def verify_subject(subject: str, jurisdiction: str = "MN", limit: int = 20) -> dict:
     """Verify all facts for a subject. Returns summary."""
-    with get_db_session() as db:
+    async with get_db_session() as db:
         stmt = select(ContextFact).where(
             and_(
                 ContextFact.subject == subject,
                 ContextFact.jurisdiction == jurisdiction,
             )
         ).limit(limit)
-        facts = list(db.execute(stmt).scalars().all())
+        result = await db.execute(stmt)
+        facts = list(result.scalars().all())
 
     verified = 0
     failed = 0

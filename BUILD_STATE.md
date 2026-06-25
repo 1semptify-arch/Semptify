@@ -12,6 +12,98 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-24 PM — Context Engine Wired Into 4 Consumers
+**Status: Complete. Page Composer built + Case Builder, Complaint Wizard, and Tenant Defense all wired to Context Engine.**
+
+### What Was Shipped
+
+#### 1. Page Composer (NEW MODULE)
+- `app/modules/page_composer/__init__.py` — module init
+- `app/modules/page_composer/service.py` — `compose_page()` assembles facts + stories + case data
+- `app/modules/page_composer/router.py` — 3 endpoints:
+  - `GET /api/page/` — list composable subjects (13)
+  - `GET /api/page/{subject}` — composed page (facts + stories + user's case data)
+  - `GET /api/page/{subject}/preview` — public preview (facts + stories, no auth)
+- `app/modules/page_composer/register.py` — FunctionGroupContract
+- `app/core/product_manifest.py` — registered router (102 → 103 modules)
+
+#### 2. Case Builder wired to Context Engine
+- `app/modules/case_builder.py`:
+  - New action `get_context_facts` — pulls verified facts for a case subject
+  - Enriched `analyze_defenses` — now includes `context_facts` with each defense
+  - Helper `_case_type_to_subject()` maps CaseType → Context Engine subject
+  - Helper `_get_context_facts()` — best-effort, never raises
+
+#### 3. Complaint Wizard wired to Context Engine
+- `app/modules/complaint_wizard_module.py`:
+  - New action `get_complaint_context` — pulls verified facts for a complaint subject
+  - Enriched `create_complaint` — now returns `context_facts` + `context_fact_count`
+  - Helper `_complaint_subject_to_ctx()` maps freeform subject → canonical subject
+  - Helper `_get_complaint_context_facts()` — best-effort, never raises
+
+#### 4. Tenant Defense wired to Context Engine
+- `app/modules/tenant_defense.py`:
+  - New action `get_defense_context` — pulls verified MN statutes for eviction defense
+  - Enriched `get_case_progress` — now returns `context_facts` + `context_fact_count`
+  - Helper `_get_defense_context_facts()` — best-effort, never raises
+
+### Known Working
+- `python -m py_compile` clean on all 5 modified files ✅
+- Page Composer HTTP smoke test passes:
+  - `GET /api/page/` → 200 (13 subjects) ✅
+  - `GET /api/page/lease?jurisdiction=MN` → 200, `sections: ['facts']`, 1 fact with source_url ✅
+  - `GET /api/page/lease/preview` → 200, same facts, no auth required ✅
+  - `GET /api/page/invalid_subject` → 400 ✅
+- Module count: 103 registered modules ✅
+
+### Design Principles Followed
+- **No hallucination**: Every fact includes `source_url` + `source_name` + `citation`
+- **Best-effort integration**: All Context Engine lookups are wrapped in try/except — consumer modules never break if Context Engine is empty or unavailable
+- **No legal advice**: Facts are informational only, sourced from verified statutes
+- **Calm tone**: Facts surface alongside existing recommendations, not as opinions
+
+### Next Session
+- Build GUI for Page Composer (tenant-facing page views)
+- Wire Page Composer into existing tenant dashboard
+- Consider wiring Context Engine into Advocate and Legal role modules
+
+---
+
+## Session — 2026-06-24 AM — Context Engine API Fixed
+**Status: Complete. Gatherer + cache + stories + verifier + router + models fixed; full HTTP smoke test passes.**
+
+### What Was Shipped
+
+- `app/modules/context_engine/gatherer.py`: Fixed API method name mismatches.
+  - `registry.statutes.search_statutes()` → `registry.statutes.get_statute()`
+  - `registry.violations.search_violations()` → `registry.violations.environmental_violations()`
+  - `registry.court.search_cases()` → `registry.courts.fetch_federal_cases()` (attribute is `courts` not `court`)
+  - `registry.court.search_cases()` for MN courts → `registry.courts.search_evictions()`
+  - Added subject-to-statute-section mapping so MN statute lookups resolve to valid sections like `504B.178`, `504B.221`, etc.
+  - Added `import re` and awaited `upsert_fact()`.
+- `app/modules/context_engine/cache.py`, `stories.py`, `verifier.py`: Converted sync `with get_db_session()` to `async with get_db_session()` + `await db.execute()` / `await db.commit()` / `await db.refresh()`.
+- `app/modules/context_engine/router.py`: Awaited all async cache/stories calls.
+- `app/modules/context_engine/models.py`: Added `_naive_utc_now()` helper and used it for `DateTime` columns without timezone support to fix asyncpg offset-aware/naive datetime errors.
+- `app/routers/__init__.py`: Removed broken imports of non-existent `vault`, `copilot`, `health`, `storage`, `intake` modules that were causing import errors in any test importing from `app.routers`.
+
+### Known Working
+- `python -m py_compile` clean on all context engine files + `app/routers/__init__.py` + `app/main.py` ✅
+- Direct smoke test of `gather_for_subject()` for statutes succeeds and inserts facts into `context_facts` ✅
+- Full HTTP smoke test of `/api/context/facts/refresh` passes ✅
+  - `GET /api/context/subjects` → 200 (13 subjects)
+  - `POST /api/context/facts/refresh` `{subject: lease, jurisdiction: MN}` → 200, `new_count: 1`
+  - `GET /api/context/facts?subject=lease&jurisdiction=MN` → 200, returns the refreshed fact with `is_verified: true`
+
+### Known Broken / Pending
+- MN SOS, MN Courts, Ramsey County GIS: require JavaScript/browser — graceful fallback returns deep-link (from prior session)
+- Context Engine built but not wired into Page Composer (Page Composer not yet built)
+- EPA ECHO / CourtListener smoke tests depend on external network and rate limits
+
+### Next Session
+- Build Page Composer and wire Context Engine into it, or wire Context Engine into an existing consumer
+
+---
+
 ## Session — 2026-06-24 AM2 — OAuth Callback Crash Fixed (missing DB columns)
 **Status: Shipped commit 469a161. Migration for users.legal_sub_role + bar_license_number pushed. Render deploying.**
 
