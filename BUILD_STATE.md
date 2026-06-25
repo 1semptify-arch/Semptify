@@ -12,6 +12,36 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-25 — Action Feedback Audit Cleanup (COMPLETE)
+**Commit: `0040f8a` | Pushed: 2026-06-25**
+
+### What Was Shipped
+
+#### Action Feedback Audit — Bare alert() Cleanup
+- **`static/components/feedback.html` + `feedback.js`** — Already built and included in `app/templates/base.html` (line 558). Provides `SemptifyFeedback.start/done/success/error/info/story()`.
+- **4 bare `alert()` calls replaced** with `SemptifyFeedback` + alert fallback:
+  - `static/admin/api_workbook.html` — 2 alerts (JSON import success/error)
+  - `static/admin/dev_lab.html` — 1 alert (idea promotion failed catch)
+  - `static/components/vault-portal.html` — 1 alert (upload queued info)
+  - `static/templates/journal-refactored.html` — 1 alert (export coming soon)
+
+### Audit Findings (2026-06-25)
+- **83 `alert()` calls across 17 HTML files** — most already wrapped in `if(window.SemptifyFeedback)` fallback blocks from prior session
+- **Zero truly silent fetches** — all `fetch()` calls across all static HTML files are wrapped in try/catch or `.catch()`. The audit's "76 silent fetches" count was based on per-fetch `.catch()` counting, but in reality they're inside try blocks.
+- **`feedback.js` included in base template** — every page using `app/templates/base.html` gets it automatically
+- **Tier 1-5 pages already retrofitted** — previous session did the bulk of the work
+
+### Known Working
+- App compiles clean ✅
+- All 4 changed HTML files verified ✅
+- No pending Fix-It reports from admin dashboard ✅
+
+### Next Session
+- Phase 5b GUI Phase 1 (Tenant Journal restructuring) — per ACTIVE_CONTEXT.md
+- Consider backend result envelope (Section 6 of ACTION_FEEDBACK_AUDIT.md) — deferred to Phase 4
+
+---
+
 ## Session — 2026-06-24 PM — Context Engine Wired Into 4 Consumers
 **Status: Complete. Page Composer built + Case Builder, Complaint Wizard, and Tenant Defense all wired to Context Engine.**
 
