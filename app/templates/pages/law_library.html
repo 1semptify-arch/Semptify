@@ -12,6 +12,13 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg-dark);color
 .sidebar{width:260px;background:var(--bg-card);border-right:1px solid var(--border);overflow-y:auto;position:sticky;top:0;height:100vh;flex-shrink:0;}
 .main{flex:1;overflow-y:auto;padding:2rem;}
 @media(max-width:900px){.sidebar{display:none;}.main{padding:1rem;}}
+.top-nav{display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem;background:var(--bg-card);border-bottom:1px solid var(--border);margin:-2rem -2rem 1.5rem;position:sticky;top:0;z-index:50;}
+@media(max-width:900px){.top-nav{margin:-1rem -1rem 1rem;}}
+.top-nav a{color:var(--text-muted);text-decoration:none;padding:.4rem .75rem;border-radius:6px;font-size:.85rem;font-weight:600;transition:all .15s;}
+.top-nav a:hover{background:var(--bg-hover);color:var(--text);}
+.top-nav a.active{color:var(--primary);background:rgba(59,130,246,.15);}
+.top-nav .back-btn{margin-left:auto;color:var(--accent);}
+.top-nav .back-btn:hover{color:var(--text);}
 .sidebar-logo{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);font-size:1.1rem;font-weight:700;}
 .sidebar-section{padding:.75rem 1rem .25rem;font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-weight:700;}
 .nav-item{display:flex;align-items:center;gap:.75rem;padding:.65rem 1rem;cursor:pointer;transition:all .15s;color:var(--text-muted);font-size:.9rem;border-left:3px solid transparent;}
@@ -218,6 +225,16 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg-dark);color
   <div class="nav-item" onclick="showSection('evictionanswer')">📄 Eviction Answer</div>
 </nav>
 <main class="main">
+
+<!-- TOP NAV -->
+<div class="top-nav">
+  <a href="/home">🏠 Home</a>
+  <a href="/office">🏢 Office</a>
+  <a href="/tools">🔧 Tools</a>
+  <a href="/library" class="active">📚 Library</a>
+  <a href="/help">🆘 Help</a>
+  <a href="javascript:history.back()" class="back-btn">← Back</a>
+</div>
 
 <!-- HERO -->
 <div class="hero">
@@ -807,7 +824,7 @@ function startVoice() {
   const input = document.getElementById('searchInput');
   if (voiceRec && btn.classList.contains('listening')) { voiceRec.stop(); btn.classList.remove('listening'); return; }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert('Voice search not supported in this browser. Try Chrome or Edge.'); return; }
+  if (!SR) { if (window.SemptifyFeedback) { SemptifyFeedback.error('Voice search not supported in this browser. Try Chrome or Edge.'); } else { alert('Voice search not supported in this browser. Try Chrome or Edge.'); } return; }
   voiceRec = new SR();
   voiceRec.continuous = false;
   voiceRec.interimResults = true;
@@ -1074,12 +1091,12 @@ function eaNext(from) {
   if (from === 1) {
     const t = v => document.getElementById(v).value.trim();
     if (!t('ea-tenant')||!t('ea-landlord')||!t('ea-served')||!t('ea-address'))
-      { alert('Please fill all required fields.'); return; }
+      { if (window.SemptifyFeedback) { SemptifyFeedback.error('Please fill all required fields.'); } else { alert('Please fill all required fields.'); } return; }
     eaData.tenant = t('ea-tenant'); eaData.landlord = t('ea-landlord');
     eaData.case_num = t('ea-case'); eaData.served = t('ea-served'); eaData.address = t('ea-address');
   } else if (from === 2) {
     const sel = [...document.querySelectorAll('#ea-defenses-list input:checked')].map(x=>x.value);
-    if (!sel.length) { alert('Select at least one defense.'); return; }
+    if (!sel.length) { if (window.SemptifyFeedback) { SemptifyFeedback.error('Select at least one defense.'); } else { alert('Select at least one defense.'); } return; }
     eaData.defenses = sel;
   } else if (from === 3) {
     eaData.statement = document.getElementById('ea-statement').value.trim();
@@ -1128,7 +1145,7 @@ em{font-size:10pt;color:#666;}</style></head><body>
 }
 
 function eaDownload() {
-  if (!eaBlob) { alert('Generate document first.'); return; }
+  if (!eaBlob) { if (window.SemptifyFeedback) { SemptifyFeedback.error('Generate document first.'); } else { alert('Generate document first.'); } return; }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(eaBlob);
   a.download = `Answer_${(eaData.tenant||'Tenant').replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.html`;
@@ -1137,7 +1154,7 @@ function eaDownload() {
 
 function eaPrint() {
   const html = localStorage.getItem('semptify_answer_html');
-  if (!html) { alert('Generate document first.'); return; }
+  if (!html) { if (window.SemptifyFeedback) { SemptifyFeedback.error('Generate document first.'); } else { alert('Generate document first.'); } return; }
   const w = window.open('','_blank');
   w.document.write(html); w.document.close();
   setTimeout(()=>w.print(), 400);

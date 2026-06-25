@@ -45,8 +45,8 @@ class UserRole(str, Enum):
     TENANT = "tenant"          # Tenant: standard housing case user
     USER = "user"              # Legacy alias for tenant (deprecated, use TENANT)
     ADVOCATE = "advocate"      # Tenant advocate: help multiple users
-    LEGAL = "legal"            # Legal role: attorneys, clerks, and court staff
-    JUDGE = "judge"            # Judge: judicial officer overseeing cases
+    LEGAL = "legal"            # Legal role: attorneys, judges, clerks, paralegals (sub-roles via legal_sub_role)
+    JUDGE = "judge"            # DEPRECATED — merged into LEGAL as sub_role='judge'. Kept for backward compat only.
 
 
 # =============================================================================
@@ -152,31 +152,37 @@ ROLE_PERMISSIONS = {
     },
     
     # ==========================================================================
-    # LEGAL - Legal and court professionals
-    # Focus: Full legal tools + privilege separation where applicable
+    # LEGAL - Legal and court professionals (unified role with sub-roles)
+    # Sub-roles: attorney, judge, clerk, paralegal
+    # All sub-roles require bar_license_number on User model.
+    # Focus: Full read access to invited tenant cases, legal overlays, forms sharing.
+    # CANNOT modify or delete tenant vault documents (read-only on tenant vault).
+    # Can create legal overlays (notes, redaction) on tenant documents.
+    # Can share from their own forms list with tenants.
     # ==========================================================================
     UserRole.LEGAL: {
-        # All advocate permissions
-        "vault_read",
-        "vault_write",
+        # Read access to tenant data (requires invite/relationship)
+        "vault_read",              # View tenant documents (with invite)
+        # NO vault_write — legal cannot modify or delete tenant documents
         "timeline_read",
-        "timeline_write",
         "calendar_read",
-        "calendar_write",
+        "calendar_write",          # Can write to own calendar
         "copilot_use",
         "complaints_create",
         "complaints_review",
         "ledger_read",
-        "ledger_write",
+        # Legal tools
+        "document_analysis",
         "eviction_defense",
         "court_forms",
         "letter_builder",
-        "multi_user",
+        # Multi-tenant access
+        "multi_user",             # Access multiple tenant cases (with invite)
         "case_assignment",
-        "case_notes",
+        "case_notes",             # Add legal case notes (as overlays, not on tenant docs)
         "client_intake",
         "bulk_export",
-        # Attorney-specific (PRIVILEGED)
+        # Legal-specific (PRIVILEGED)
         "legal_tools",            # Advanced legal analysis tools
         "privileged_create",      # Create attorney-client privileged notes
         "privileged_read",        # Read privileged work product
@@ -186,6 +192,13 @@ ROLE_PERMISSIONS = {
         "discovery_prep",         # Prepare discovery responses
         "case_strategy",          # Strategic case planning
         "conflict_check",         # Check for conflicts of interest
+        # Merged from Judge role (for judge sub-role, but available to all legal)
+        "case_review",            # Review all case materials
+        "case_oversight",         # Case oversight capabilities
+        "judicial_order",         # Record judicial orders/decisions (judge sub-role)
+        # New: Legal overlay + forms sharing
+        "overlay_create_legal",   # Create legal overlays (notes, redaction) on tenant docs
+        "forms_share",            # Share from own forms list with tenants
     },
     
     # ==========================================================================
@@ -251,11 +264,13 @@ ROLE_DEFINITIONS = {
     },
     UserRole.LEGAL: {
         "display_name": "Legal",
-        "purpose": "Court and legal professional role for formal review, legal packet quality, and filing readiness.",
+        "purpose": "Legal and court professionals (attorneys, judges, clerks, paralegals). Bar license required. Read-only access to invited tenant cases with legal overlay and forms sharing.",
         "default_landing_process": "B4 - Professional Review Workspace",
         "ui_mode": "desktop",          # Full complexity
         "landing_page": "/legal/home",
         "icon": "⚖️",
+        "sub_roles": ("attorney", "judge", "clerk", "paralegal"),
+        "requires_bar_license": True,
     },
     UserRole.JUDGE: {
         "display_name": "Judge",
@@ -292,6 +307,59 @@ ROLE_METADATA = {
     }
     for role, role_def in ROLE_DEFINITIONS.items()
 }
+
+
+# =============================================================================
+# Legal Sub-Roles (unified Legal role with sub-role differentiation)
+# =============================================================================
+
+LEGAL_SUB_ROLES = ("attorney", "judge", "clerk", "paralegal")
+"""Canonical sub-roles within the Legal role.
+
+All sub-roles require a bar_license_number on the User model:
+- attorney: Full legal tools, privileged work product, court filing
+- judge:    Case review, oversight, judicial orders (merged from JUDGE role)
+- clerk:    Court clerk — filings processing, calendar, document review
+- paralegal: Legal support — research, drafting, document organization
+
+The legacy UserRole.JUDGE enum is DEPRECATED. Judge is now a sub-role
+of Legal. Existing JUDGE references in services should treat judge
+as a legal_sub_role='judge' when refining behavior.
+"""
+
+
+def get_legal_sub_role(user_id: str) -> Optional[str]:
+    """Get the legal sub-role for a user, if they are a legal role.
+
+    Returns one of LEGAL_SUB_ROLES or None if the user is not legal
+    or has no sub-role set.
+    """
+    from app.core.database import get_db_session
+    from app.models.models import User
+
+    try:
+        with get_db_session() as db:
+            user = db.query(User).filter_by(id=user_id).first()
+            if not user or user.default_role != "legal":
+                return None
+            return user.legal_sub_role
+    except Exception:  # pylint: disable=broad-exception-caught
+        return None
+
+
+def is_legal_sub_role(user_id: str, sub_role: str) -> bool:
+    """Check if a user is a specific legal sub-role.
+
+    Args:
+        user_id: The user's ID
+        sub_role: One of LEGAL_SUB_ROLES ('attorney', 'judge', 'clerk', 'paralegal')
+
+    Returns:
+        True if the user is a legal role with the specified sub-role.
+    """
+    if sub_role not in LEGAL_SUB_ROLES:
+        return False
+    return get_legal_sub_role(user_id) == sub_role
 
 
 def get_role_metadata(role: UserRole) -> dict:

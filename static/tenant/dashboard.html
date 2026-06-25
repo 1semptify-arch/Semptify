@@ -122,6 +122,8 @@
         <p id="hero-summary">Loading your case summary…</p>
       </div>
 
+      <div data-context-panel data-subject="eviction" data-jurisdiction="MN"></div>
+
       <div class="grid-2">
         <div class="card">
           <div class="card-header">
@@ -339,6 +341,9 @@
       } catch (err) {
         console.error('Dashboard load error:', err);
         document.getElementById('hero-summary').innerHTML = 'Sign in to see your case dashboard.';
+        if (window.SemptifyFeedback) {
+          SemptifyFeedback.error('Could not load your dashboard. Sign in or try again.', { detail: err.message });
+        }
       }
     }
 
@@ -382,5 +387,7 @@
   </div>
 </footer>
 
+<script src="/static/components/feedback.js"></script>
+<script src="/static/components/context-panel.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-# SEMPTIFY DICTIONARY
+   # SEMPTIFY DICTIONARY
 # Canonical definitions for every structural term used in this codebase.
 # When in doubt, look here first. When a term isn't here, add it.
 # Last updated: 2026-06-16
@@ -137,9 +137,25 @@ set and which pages they can reach.
 | Role | Description |
 |------|-------------|
 | `tenant` | A renter seeking housing rights help |
-| `advocate` | A person helping one or more tenants |
-| `manager` | A property manager with conditional tenant access |
+| `advocate` | A person or close friend helping one tenant |
+| `manager` | A professional counselor / worker / advocate with multiple clients. **NOT a property manager.** Multi-role professionals fall under manager. The SSOT will flag and remove any manager who crosses into property-management territory. |
+| `legal` | A legal professional. Must have a bar license number. Has one of four sub-roles (see below). |
 | `admin` | System administrator with elevated access (time-limited) |
+
+### Legal Sub-Roles
+The `legal` role is split into four sub-roles via the `legal_sub_role` field
+on the User model. All require `bar_license_number`.
+
+| Sub-Role | Description |
+|----------|-------------|
+| `attorney` | Full legal tools, privileged work product, court filing |
+| `judge` | Case review, oversight, judicial orders (merged from former JUDGE role) |
+| `clerk` | Court clerk — filings processing, calendar, document review |
+| `paralegal` | Legal support — research, drafting, document organization |
+
+**Judge is no longer a standalone role.** It was merged into Legal as a
+sub-role on 2026-06-23. The `UserRole.JUDGE` enum is kept for backward
+compatibility only. Use `is_legal_sub_role(user_id, 'judge')` for checks.
 
 ### Gate
 A binary checkpoint in the onboarding flow. A gate is either passed or not.

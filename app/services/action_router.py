@@ -380,7 +380,7 @@ class SmartActionRouter:
             priority=ActionPriority.HIGH,
             estimated_minutes=15,
             emotional_cost=0.3,
-            page_url="/static/help.html",
+            page_url="/help",
             icon="🆘",
             benefits=["Professional guidance", "Free resources", "Expert support"],
             encouragement="You don't have to do this alone. Help exists."

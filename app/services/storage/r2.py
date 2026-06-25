@@ -11,17 +11,16 @@ R2 stores only system-level data that must survive server restarts:
 """
 
 import json
-from app.core.utc import utc_now
 import logging
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
-from app.services.storage.base import StorageProvider, StorageFile
+from app.services.storage.base import StorageFile, StorageProvider
 
 logger = logging.getLogger("semptify.r2")
 
 try:
     import aioboto3
+
     HAS_AIOBOTO3 = True
 except ImportError:
     HAS_AIOBOTO3 = False
@@ -40,7 +39,7 @@ class R2Provider(StorageProvider):
         access_key_id: str,
         secret_access_key: str,
         bucket_name: str,
-        endpoint_url: Optional[str] = None,
+        endpoint_url: str | None = None,
     ):
         self.account_id = account_id
         self.access_key_id = access_key_id
@@ -92,7 +91,7 @@ class R2Provider(StorageProvider):
         file_content: bytes,
         destination_path: str,
         filename: str,
-        mime_type: Optional[str] = None,
+        mime_type: str | None = None,
     ) -> StorageFile:
         """Upload bytes to R2. Key = destination_path/filename."""
         key = f"{destination_path.strip('/')}/{filename}".lstrip("/")
@@ -112,7 +111,7 @@ class R2Provider(StorageProvider):
             path=key,
             size=len(file_content),
             mime_type=content_type,
-            modified_at=utc_now(),
+            modified_at=datetime.now(UTC),
         )
 
     async def download_file(self, file_path: str) -> bytes:
@@ -156,14 +155,16 @@ class R2Provider(StorageProvider):
             async for page in paginator.paginate(**paginator_kwargs):
                 for obj in page.get("Contents", []):
                     key: str = obj["Key"]
-                    files.append(StorageFile(
-                        id=key,
-                        name=key.split("/")[-1],
-                        path=key,
-                        size=obj.get("Size", 0),
-                        mime_type="application/octet-stream",
-                        modified_at=obj.get("LastModified", utc_now()),
-                    ))
+                    files.append(
+                        StorageFile(
+                            id=key,
+                            name=key.split("/")[-1],
+                            path=key,
+                            size=obj.get("Size", 0),
+                            mime_type="application/octet-stream",
+                            modified_at=obj.get("LastModified", datetime.now(UTC)),
+                        )
+                    )
 
         return files
 
@@ -174,7 +175,8 @@ class R2Provider(StorageProvider):
             async with self._client() as s3:
                 await s3.head_object(Bucket=self.bucket_name, Key=key)
             return True
-        except Exception:
+        except Exception as exc:
+            logger.debug("R2 file_exists check failed for %s: %s", key, exc)
             return False
 
     async def create_folder(self, folder_path: str) -> bool:
@@ -195,10 +197,11 @@ class R2Provider(StorageProvider):
             mime_type="application/json",
         )
 
-    async def get_json(self, key: str) -> Optional[dict]:
+    async def get_json(self, key: str) -> dict | None:
         """Fetch and deserialize a JSON object. Returns None if not found."""
         try:
             raw = await self.download_file(key)
             return json.loads(raw.decode("utf-8"))
-        except Exception:
+        except Exception as exc:
+            logger.debug("R2 get_json failed for %s: %s", key, exc)
             return None

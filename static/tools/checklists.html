@@ -297,12 +297,12 @@
         });
         const result = await resp.json();
         if (result.success) {
-          alert('Saved to vault: ' + (result.filename || '') + '\n\nChecked: ' + Object.values(data).filter(d => d.checked).length + ' / ' + items.length);
+          if (window.SemptifyFeedback) { SemptifyFeedback.success('Saved to vault: ' + (result.filename || '') + '. Checked: ' + Object.values(data).filter(d => d.checked).length + ' / ' + items.length); } else { alert('Saved to vault: ' + (result.filename || '') + '\n\nChecked: ' + Object.values(data).filter(d => d.checked).length + ' / ' + items.length); }
         } else {
-          alert('Save failed: ' + (result.message || resp.statusText));
+          if (window.SemptifyFeedback) { SemptifyFeedback.error('Save failed.', { detail: result.message || resp.statusText }); } else { alert('Save failed: ' + (result.message || resp.statusText)); }
         }
       } catch (e) {
-        alert('Save failed: ' + e.message);
+        if (window.SemptifyFeedback) { SemptifyFeedback.error('Save failed.', { detail: e.message }); } else { alert('Save failed: ' + e.message); }
       }
     }
 
@@ -312,5 +312,6 @@
 
     lists.forEach(id => updateList(id));
   </script>
+<script src="/static/components/feedback.js"></script>
 </body>
 </html>

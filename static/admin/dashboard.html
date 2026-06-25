@@ -85,6 +85,8 @@
     <a href="/admin/review-checklist.html">✅ Review Checklist</a>
     <a href="/admin/manual.html">📖 Admin Manual</a>
     <a href="/admin/api-workbook.html">🔑 API Workbook</a>
+    <a href="/admin/module-flags.html">🚩 Module Flags</a>
+    <a href="/admin/forge.html">⚒️ Forge</a>
   </nav>
 
   <header>
@@ -271,6 +273,8 @@
         <a href="/admin/page-editor.html" class="btn-block">📝 Page Editor</a>
         <a href="/admin/review-checklist.html" class="btn-block">✅ Review Checklist</a>
         <a href="/admin/manual.html" class="btn-block">📖 Admin Manual</a>
+        <a href="/admin/module-flags.html" class="btn-block">🚩 Module Flags</a>
+        <a href="/admin/forge.html" class="btn-block">⚒️ Semptify Forge</a>
         <a href="/docs/component-inventory.html" class="btn-block">📦 Component Inventory</a>
         <a href="/docs/navigation-structure.html" class="btn-block">🧭 Navigation Structure</a>
         <a href="/mndes/compliance-guide?role=admin" class="btn-block">🏛️ MNDES Compliance</a>
@@ -652,10 +656,12 @@
             window.location.href = result.landing_page || '/home.html';
           }
         } else {
-          alert(`Impersonation status: ${result.status}\n\nToken: ${result.impersonation_token || 'N/A'}`);
+          if (window.SemptifyFeedback) { SemptifyFeedback.info(`Impersonation status: ${result.status}. Token: ${result.impersonation_token || 'N/A'}`); }
+          else { alert(`Impersonation status: ${result.status}\n\nToken: ${result.impersonation_token || 'N/A'}`); }
         }
       } catch (error) {
-        alert(`Impersonation failed: ${error.message}`);
+        if (window.SemptifyFeedback) { SemptifyFeedback.error('Impersonation failed.', { detail: error.message }); }
+        else { alert(`Impersonation failed: ${error.message}`); }
       }
     }
 
@@ -692,9 +698,11 @@
         }
 
         const result = await response.json();
-        alert(`Gates reset requested for ${result.user_id}\n\nGates: ${result.gates.join(', ')}\n\n${result.note || ''}`);
+        if (window.SemptifyFeedback) { SemptifyFeedback.success(`Gates reset for ${result.user_id}. Gates: ${result.gates.join(', ')}` + (result.note ? '. ' + result.note : '')); }
+        else { alert(`Gates reset requested for ${result.user_id}\n\nGates: ${result.gates.join(', ')}\n\n${result.note || ''}`); }
       } catch (error) {
-        alert(`Reset gates failed: ${error.message}`);
+        if (window.SemptifyFeedback) { SemptifyFeedback.error('Reset gates failed.', { detail: error.message }); }
+        else { alert(`Reset gates failed: ${error.message}`); }
       }
     }
 
@@ -718,9 +726,11 @@
                     `Storage Used: ${result.storage_used_mb} MB\n\n` +
                     `${result.note || ''}`;
         
-        alert(msg);
+        if (window.SemptifyFeedback) { SemptifyFeedback.success(`Vault summary retrieved. Storage: ${result.storage_used_mb} MB` + (result.note ? '. ' + result.note : '')); }
+        else { alert(msg); }
       } catch (error) {
-        alert(`Vault summary failed: ${error.message}`);
+        if (window.SemptifyFeedback) { SemptifyFeedback.error('Vault summary failed.', { detail: error.message }); }
+        else { alert(`Vault summary failed: ${error.message}`); }
       }
     }
 
@@ -1063,7 +1073,7 @@
         document.body.appendChild(modal);
         
       } catch (error) {
-        alert('Failed to load modules: ' + error.message);
+        if (window.SemptifyFeedback) { SemptifyFeedback.error('Failed to load modules.', { detail: error.message }); } else { alert('Failed to load modules: ' + error.message); }
       }
     }
 
@@ -1083,13 +1093,15 @@
         if (!response.ok) throw new Error('Toggle failed');
         
         const result = await response.json();
-        alert(`Module ${result.module} is now ${result.status}`);
-        
+        if (window.SemptifyFeedback) { SemptifyFeedback.success(`Module ${result.module} is now ${result.status}.`); }
+        else { alert(`Module ${result.module} is now ${result.status}`); }
+
         // Refresh module manager and config
         loadSystemConfig();
-        
+
       } catch (error) {
-        alert('Failed to toggle module: ' + error.message);
+        if (window.SemptifyFeedback) { SemptifyFeedback.error('Failed to toggle module.', { detail: error.message }); }
+        else { alert('Failed to toggle module: ' + error.message); }
       }
     }
 
@@ -1195,7 +1207,7 @@
         document.body.appendChild(modal);
         
       } catch (error) {
-        alert('Failed to load analytics: ' + error.message);
+        if (window.SemptifyFeedback) { SemptifyFeedback.error('Failed to load analytics.', { detail: error.message }); } else { alert('Failed to load analytics: ' + error.message); }
       }
     }
 
@@ -1339,11 +1351,7 @@
         }
 
         const data = await response.json();
-        alert('✅ Platform Metrics Test PASSED\n\n' + 
-              `Sessions: ${data.sessions?.total_in_memory || 0}\n` +
-              `Active: ${data.sessions?.active || 0}\n` +
-              `Unique Users: ${data.sessions?.unique_users || 0}\n` +
-              `Modules: ${data.modules?.total_active || 0}`);
+        if (window.SemptifyFeedback) { SemptifyFeedback.success(`Platform Metrics test passed. Sessions: ${data.sessions?.total_in_memory || 0}\n Active: ${data.sessions?.active || 0}\n Unique Users: ${data.sessions?.unique_users || 0}\n Modules: ${data.modules?.total_active || 0}`); } else { alert('✅ Platform Metrics Test PASSED'); }
       } catch (error) {
         const errorMsg = `Platform Metrics Test FAILED\n\nError: ${error.message}\n\nEndpoint: ${ADMIN_API_BASE}/api/system/status`;
         if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
@@ -1373,9 +1381,7 @@
 
         const data = await response.json();
         const total = data.users?.length || 0;
-        alert('✅ User Breakdown Test PASSED\n\n' + 
-              `Total Users: ${total}\n` +
-              `API returned user data successfully`);
+        if (window.SemptifyFeedback) { SemptifyFeedback.success(`User Breakdown test passed. Total Users: ${total}\n API returned user data successfully`); } else { alert('✅ User Breakdown Test PASSED'); }
       } catch (error) {
         const errorMsg = `User Breakdown Test FAILED\n\nError: ${error.message}\n\nEndpoint: ${ADMIN_API_BASE}/api/users`;
         if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
@@ -1405,9 +1411,7 @@
 
         const data = await response.json();
         const count = data.entries?.length || 0;
-        alert('✅ Recent Activity Test PASSED\n\n' + 
-              `Audit Log Entries: ${count}\n` +
-              `API returned audit data successfully`);
+        if (window.SemptifyFeedback) { SemptifyFeedback.success(`Recent Activity test passed. Audit Log Entries: ${count}\n API returned audit data successfully`); } else { alert('✅ Recent Activity Test PASSED'); }
       } catch (error) {
         const errorMsg = `Recent Activity Test FAILED\n\nError: ${error.message}\n\nEndpoint: ${ADMIN_API_BASE}/api/audit`;
         if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
@@ -1436,10 +1440,7 @@
         }
 
         const data = await response.json();
-        alert('✅ Security Metrics Test PASSED\n\n' + 
-              `Rate Limits: ${data.metrics?.rate_limited_total || 0}\n` +
-              `Total Requests: ${data.metrics?.requests_total || 0}\n` +
-              `System status endpoint is healthy`);
+        if (window.SemptifyFeedback) { SemptifyFeedback.success(`Security Metrics test passed. Rate Limits: ${data.metrics?.rate_limited_total || 0}\n Total Requests: ${data.metrics?.requests_total || 0}\n System status endpoint is healthy`); } else { alert('✅ Security Metrics Test PASSED'); }
       } catch (error) {
         const errorMsg = `Security Metrics Test FAILED\n\nError: ${error.message}\n\nEndpoint: ${ADMIN_API_BASE}/api/system/status`;
         if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
@@ -1467,9 +1468,7 @@
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        alert('✅ MNDES Compliance Test PASSED\n\n' + 
-              `Compliance Guide page is accessible\n` +
-              `MNDES compliance endpoint is healthy`);
+        if (window.SemptifyFeedback) { SemptifyFeedback.success('MNDES Compliance test passed. Compliance Guide page is accessible\\n MNDES compliance endpoint is healthy'); } else { alert('✅ MNDES Compliance Test PASSED'); }
       } catch (error) {
         const errorMsg = `MNDES Compliance Test FAILED\n\nError: ${error.message}\n\nEndpoint: /mndes/compliance-guide`;
         if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
@@ -1510,10 +1509,7 @@
       })
       .then(response => response.json())
       .then(data => {
-        alert(`Error queued for Cascade (ID: ${data.id})\n\n` +
-              `Section: ${errorReport.section}\n` +
-              `Endpoint: ${errorReport.endpoint}\n` +
-              `Error: ${errorReport.error}`);
+        if (window.SemptifyFeedback) { SemptifyFeedback.success(`Error queued for Cascade (ID: ${data.id}). Section: ${errorReport.section}. Endpoint: ${errorReport.endpoint}.`); } else { alert(`Error queued for Cascade (ID: ${data.id})`); }
       })
       .catch(err => {
         // Fallback to clipboard if API fails
@@ -1531,11 +1527,9 @@ Please fix this issue in the admin dashboard.
         `.trim();
 
         navigator.clipboard.writeText(reportText).then(() => {
-          alert('API failed - Error report copied to clipboard!\n\n' + 
-                'Please paste this in your chat with Cascade to request a fix:\n\n' + 
-                reportText);
+          if (window.SemptifyFeedback) { SemptifyFeedback.success('Error report copied to clipboard. Paste it in your chat with Cascade.'); } else { alert('API failed - Error report copied to clipboard!'); }
         }).catch(() => {
-          alert('Could not copy to clipboard. Here is the error report:\n\n' + reportText);
+          if (window.SemptifyFeedback) { SemptifyFeedback.error('Could not copy to clipboard. See console for report.', { detail: reportText }); } else { alert('Could not copy to clipboard. Here is the error report:\n\n' + reportText); }
         });
       });
     }
@@ -1561,10 +1555,7 @@ Please fix this issue in the admin dashboard.
         const modulesData = await modules.json();
         const flagsData = await flags.json();
 
-        alert('✅ System Config Test PASSED\n\n' + 
-              `Tiers: ${tiersData.tiers.filter(t => t.enabled).length}/${tiersData.tiers.length}\n` +
-              `Modules: ${modulesData.installed_modules?.length || 0}\n` +
-              `Feature Flags: ${Object.keys(flagsData.feature_flags || {}).length}`);
+        if (window.SemptifyFeedback) { SemptifyFeedback.success('System Config test passed. Tiers: ${tiersData.tiers.filter(t => t.enabled).length}/${tiersData.tiers.length}\\n Modules: ${modulesData.installed_modules?.length || 0}\\n Feature Flags: ${Object.keys(flagsData.feature_flags || {}).length}'); } else { alert('✅ System Config Test PASSED'); }
       } catch (error) {
         const errorMsg = `System Config Test FAILED\n\nError: ${error.message}\n\nEndpoints: /admin-console/api/system/*`;
         if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
@@ -1596,9 +1587,7 @@ Please fix this issue in the admin dashboard.
         const configured = Object.values(data.env || {}).filter(v => v && v !== '').length;
         const total = Object.keys(data.env || {}).length;
 
-        alert('✅ API Keys Test PASSED\n\n' + 
-              `Configured: ${configured}/${total}\n` +
-              `Environment variables endpoint is healthy`);
+        if (window.SemptifyFeedback) { SemptifyFeedback.success(`API Keys test passed. Configured: ${configured}/${total}\n Environment variables endpoint is healthy`); } else { alert('✅ API Keys Test PASSED'); }
       } catch (error) {
         const errorMsg = `API Keys Test FAILED\n\nError: ${error.message}\n\nEndpoint: /admin-console/api/system/env`;
         if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
@@ -1629,10 +1618,7 @@ Please fix this issue in the admin dashboard.
         const overviewData = await overview.json();
         const retentionData = await retention.json();
 
-        alert('✅ Analytics Test PASSED\n\n' + 
-              `Unique Users: ${overviewData.users?.unique_users || 0}\n` +
-              `7-day Retention: ${retentionData.retention_rate_7d || 0}%\n` +
-              `30-day Retention: ${retentionData.retention_rate_30d || 0}%`);
+        if (window.SemptifyFeedback) { SemptifyFeedback.success(`Analytics test passed. Unique Users: ${overviewData.users?.unique_users || 0}\n 7-day Retention: ${retentionData.retention_rate_7d || 0}%\n 30-day Retention: ${retentionData.retention_rate_30d || 0}%`); } else { alert('✅ Analytics Test PASSED'); }
       } catch (error) {
         const errorMsg = `Analytics Test FAILED\n\nError: ${error.message}\n\nEndpoints: /admin-console/api/analytics/*`;
         if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
@@ -1663,9 +1649,7 @@ Please fix this issue in the admin dashboard.
         const data = await response.json();
         const count = data.entries?.length || 0;
 
-        alert('✅ Audit Log Test PASSED\n\n' + 
-              `Recent Entries: ${count}\n` +
-              `Audit log endpoint is healthy`);
+        if (window.SemptifyFeedback) { SemptifyFeedback.success(`Audit Log test passed. Recent Entries: ${count}\n Audit log endpoint is healthy`); } else { alert('✅ Audit Log Test PASSED'); }
       } catch (error) {
         const errorMsg = `Audit Log Test FAILED\n\nError: ${error.message}\n\nEndpoint: /admin-console/api/audit`;
         if (confirm(errorMsg + '\n\nClick OK to send this error to Cascade for fixing.')) {
@@ -1702,5 +1686,6 @@ Please fix this issue in the admin dashboard.
     });
   </script>
   <script src="/js/admin-nav.js"></script>
+  <script src="/static/components/feedback.js"></script>
 </body>
 </html>

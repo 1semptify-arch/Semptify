@@ -4,20 +4,20 @@ Generic tenant law framework that grows with usage.
 """
 
 import json
-from dataclasses import dataclass, asdict
+import logging
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Optional, List, Dict
-import logging
 
-from app.core.event_bus import event_bus, EventType
+from app.core.event_bus import EventType, event_bus
 
 logger = logging.getLogger(__name__)
 
 
 class LawCategory(str, Enum):
     """Categories of tenant law."""
+
     LEASE_TERMS = "lease_terms"
     RENT_PAYMENT = "rent_payment"
     SECURITY_DEPOSIT = "security_deposit"
@@ -38,23 +38,24 @@ class LawCategory(str, Enum):
 @dataclass
 class LawReference:
     """A reference to applicable law."""
+
     id: str
     category: LawCategory
     title: str
     summary: str
     jurisdiction: str  # "federal", "minnesota", "dakota_county", or "general"
-    statute_citation: Optional[str] = None
-    key_points: Optional[list[str]] = None
-    tenant_rights: Optional[list[str]] = None
-    landlord_obligations: Optional[list[str]] = None
-    time_limits: Optional[dict] = None  # {"action": "days"}
-    keywords: Optional[list[str]] = None  # For matching documents
-    
+    statute_citation: str | None = None
+    key_points: list[str] | None = None
+    tenant_rights: list[str] | None = None
+    landlord_obligations: list[str] | None = None
+    time_limits: dict | None = None  # {"action": "days"}
+    keywords: list[str] | None = None  # For matching documents
+
     def to_dict(self) -> dict:
         data = asdict(self)
         data["category"] = self.category.value
         return data
-    
+
     @classmethod
     def from_dict(cls, data: dict) -> "LawReference":
         if data.get("category"):
@@ -62,9 +63,10 @@ class LawReference:
         return cls(**data)
 
 
-@dataclass 
+@dataclass
 class CrossReference:
     """A match between a document and applicable law."""
+
     doc_id: str
     law_id: str
     relevance_score: float  # 0.0 - 1.0
@@ -84,10 +86,10 @@ class LawEngine:
     def __init__(self, data_dir: str = "data/laws"):
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(parents=True, exist_ok=True)
-        
+
         self._laws: dict[str, LawReference] = {}
         self._cross_refs: list[CrossReference] = []
-        
+
         self._load_data()
         self._seed_base_laws()
 
@@ -100,8 +102,8 @@ class LawEngine:
                     data = json.load(f)
                     for law_id, law_data in data.items():
                         self._laws[law_id] = LawReference.from_dict(law_data)
-            except Exception:
-                pass
+            except (json.JSONDecodeError, KeyError, TypeError) as exc:
+                logger.error("Failed to load law data from %s: %s", laws_file, exc)
 
     def _save_data(self):
         """Save laws to disk."""
@@ -114,7 +116,7 @@ class LawEngine:
         """Seed the engine with base tenant law knowledge."""
         if self._laws:
             return  # Already seeded
-        
+
         base_laws = [
             LawReference(
                 id="security_deposit_general",
@@ -126,19 +128,19 @@ class LawEngine:
                     "Deposit must be returned within statutory timeframe",
                     "Deductions must be itemized in writing",
                     "Landlord must provide receipts for repairs",
-                    "Tenant may sue for wrongful withholding"
+                    "Tenant may sue for wrongful withholding",
                 ],
                 tenant_rights=[
                     "Right to itemized statement of deductions",
                     "Right to return of deposit within time limit",
-                    "Right to sue for wrongful retention"
+                    "Right to sue for wrongful retention",
                 ],
                 landlord_obligations=[
                     "Return deposit within statutory period",
                     "Provide written itemized statement",
-                    "Document damage beyond normal wear"
+                    "Document damage beyond normal wear",
                 ],
-                keywords=["security deposit", "deposit return", "damage deduction", "move out", "move-out inspection"]
+                keywords=["security deposit", "deposit return", "damage deduction", "move out", "move-out inspection"],
             ),
             LawReference(
                 id="habitability_general",
@@ -150,20 +152,31 @@ class LawEngine:
                     "Heat, water, electricity must work",
                     "No serious health or safety hazards",
                     "Structural integrity maintained",
-                    "Tenant may withhold rent or repair-and-deduct"
+                    "Tenant may withhold rent or repair-and-deduct",
                 ],
                 tenant_rights=[
                     "Right to habitable living conditions",
                     "Right to repair and deduct (with notice)",
                     "Right to withhold rent for serious violations",
-                    "Right to terminate lease for uninhabitable conditions"
+                    "Right to terminate lease for uninhabitable conditions",
                 ],
                 landlord_obligations=[
                     "Maintain essential services",
                     "Make timely repairs",
-                    "Address health and safety issues"
+                    "Address health and safety issues",
                 ],
-                keywords=["habitability", "repairs", "maintenance", "heat", "water", "plumbing", "electrical", "mold", "pest", "infestation"]
+                keywords=[
+                    "habitability",
+                    "repairs",
+                    "maintenance",
+                    "heat",
+                    "water",
+                    "plumbing",
+                    "electrical",
+                    "mold",
+                    "pest",
+                    "infestation",
+                ],
             ),
             LawReference(
                 id="eviction_notice_general",
@@ -175,26 +188,26 @@ class LawEngine:
                     "Written notice required before filing",
                     "Notice period varies by reason",
                     "Self-help eviction is illegal",
-                    "Tenant has right to contest in court"
+                    "Tenant has right to contest in court",
                 ],
                 tenant_rights=[
                     "Right to proper written notice",
                     "Right to cure violations if applicable",
                     "Right to court hearing",
-                    "Protection from illegal lockouts"
+                    "Protection from illegal lockouts",
                 ],
                 landlord_obligations=[
                     "Provide proper written notice",
                     "Allow cure period where required",
                     "File in court - no self-help",
-                    "Follow legal process for removal"
+                    "Follow legal process for removal",
                 ],
                 time_limits={
                     "nonpayment_notice": "3-14 days typically",
                     "lease_violation_cure": "varies by jurisdiction",
-                    "no_cause_notice": "30-60 days typically"
+                    "no_cause_notice": "30-60 days typically",
                 },
-                keywords=["eviction", "notice to quit", "pay or quit", "vacate", "termination", "unlawful detainer"]
+                keywords=["eviction", "notice to quit", "pay or quit", "vacate", "termination", "unlawful detainer"],
             ),
             LawReference(
                 id="retaliation_general",
@@ -206,15 +219,15 @@ class LawEngine:
                     "Protected activities include complaints to authorities",
                     "Retaliation presumed if action within 90 days",
                     "Tenant may have defense to eviction",
-                    "May recover damages for retaliation"
+                    "May recover damages for retaliation",
                 ],
                 tenant_rights=[
                     "Right to complain about conditions",
                     "Right to contact housing authorities",
                     "Right to join tenant organizations",
-                    "Right to assert legal rights"
+                    "Right to assert legal rights",
                 ],
-                keywords=["retaliation", "retaliatory eviction", "complaint", "housing authority", "code enforcement"]
+                keywords=["retaliation", "retaliatory eviction", "complaint", "housing authority", "code enforcement"],
             ),
             LawReference(
                 id="entry_access_general",
@@ -226,22 +239,20 @@ class LawEngine:
                     "24-48 hours notice typically required",
                     "Entry only for legitimate purposes",
                     "Emergency entry exception",
-                    "Tenant may refuse unreasonable entry"
+                    "Tenant may refuse unreasonable entry",
                 ],
                 tenant_rights=[
                     "Right to advance notice of entry",
                     "Right to quiet enjoyment",
-                    "Right to refuse entry without notice"
+                    "Right to refuse entry without notice",
                 ],
                 landlord_obligations=[
                     "Provide reasonable advance notice",
                     "Enter only at reasonable times",
-                    "Limit entry to legitimate purposes"
+                    "Limit entry to legitimate purposes",
                 ],
-                time_limits={
-                    "notice_for_entry": "24-48 hours typical"
-                },
-                keywords=["entry", "access", "notice", "privacy", "inspection", "showing", "landlord entry"]
+                time_limits={"notice_for_entry": "24-48 hours typical"},
+                keywords=["entry", "access", "notice", "privacy", "inspection", "showing", "landlord entry"],
             ),
             LawReference(
                 id="rent_increase_general",
@@ -253,17 +264,15 @@ class LawEngine:
                     "Cannot increase during lease term without clause",
                     "Written notice required for increase",
                     "Notice period varies by jurisdiction",
-                    "No rent control in most areas"
+                    "No rent control in most areas",
                 ],
                 tenant_rights=[
                     "Right to notice of rent increase",
                     "Right to refuse increase and terminate",
-                    "Protection from increase during lease"
+                    "Protection from increase during lease",
                 ],
-                time_limits={
-                    "rent_increase_notice": "30-60 days typical"
-                },
-                keywords=["rent increase", "rent raise", "rent hike", "rent change"]
+                time_limits={"rent_increase_notice": "30-60 days typical"},
+                keywords=["rent increase", "rent raise", "rent hike", "rent change"],
             ),
             LawReference(
                 id="lease_termination_general",
@@ -275,24 +284,21 @@ class LawEngine:
                     "Written notice required to end month-to-month",
                     "Fixed-term leases end on their own date",
                     "Early termination may require cause or penalty",
-                    "Some jurisdictions require renewal notice"
+                    "Some jurisdictions require renewal notice",
                 ],
                 tenant_rights=[
                     "Right to notice of non-renewal",
                     "Right to terminate with proper notice",
-                    "Protection from mid-lease termination without cause"
+                    "Protection from mid-lease termination without cause",
                 ],
-                time_limits={
-                    "month_to_month_notice": "30 days typical",
-                    "non_renewal_notice": "varies"
-                },
-                keywords=["termination", "end lease", "move out", "non-renewal", "renewal", "month-to-month"]
-            )
+                time_limits={"month_to_month_notice": "30 days typical", "non_renewal_notice": "varies"},
+                keywords=["termination", "end lease", "move out", "non-renewal", "renewal", "month-to-month"],
+            ),
         ]
-        
+
         for law in base_laws:
             self._laws[law.id] = law
-        
+
         self._save_data()
 
     def add_law(self, law: LawReference) -> None:
@@ -300,7 +306,7 @@ class LawEngine:
         self._laws[law.id] = law
         self._save_data()
 
-    def get_law(self, law_id: str) -> Optional[LawReference]:
+    def get_law(self, law_id: str) -> LawReference | None:
         """Get a law by ID."""
         return self._laws.get(law_id)
 
@@ -313,10 +319,7 @@ class LawEngine:
         return list(self._laws.values())
 
     def match_document(
-        self,
-        doc_type: str,
-        doc_text: str,
-        doc_terms: list[str]
+        self, doc_type: str, doc_text: str, doc_terms: list[str]
     ) -> list[tuple[LawReference, float, list[str]]]:
         """
         Match a document to applicable laws.
@@ -325,57 +328,53 @@ class LawEngine:
         matches = []
         doc_text_lower = doc_text.lower()
         doc_terms_lower = [t.lower() for t in doc_terms]
-        
+
         for law in self._laws.values():
             if not law.keywords:
                 continue
-            
+
             matched_keywords = []
             for keyword in law.keywords:
                 keyword_lower = keyword.lower()
-                if keyword_lower in doc_text_lower:
+                if keyword_lower in doc_text_lower or any(keyword_lower in term for term in doc_terms_lower):
                     matched_keywords.append(keyword)
-                elif any(keyword_lower in term for term in doc_terms_lower):
-                    matched_keywords.append(keyword)
-            
+
             if matched_keywords:
                 # Calculate relevance score
                 score = len(matched_keywords) / len(law.keywords)
                 score = min(1.0, score * 1.2)  # Boost but cap at 1.0
                 matches.append((law, score, matched_keywords))
-        
+
         # Sort by relevance
         matches.sort(key=lambda x: x[1], reverse=True)
         return matches
 
     def get_applicable_laws(
-        self,
-        doc_type: str,
-        doc_text: str,
-        doc_terms: list[str],
-        min_score: float = 0.3
+        self, doc_type: str, doc_text: str, doc_terms: list[str], min_score: float = 0.3
     ) -> list[dict]:
         """
         Get applicable laws for a document with explanations.
         Returns list of dicts with law info and match details.
         """
         matches = self.match_document(doc_type, doc_text, doc_terms)
-        
+
         results = []
         for law, score, keywords in matches:
             if score >= min_score:
-                results.append({
-                    "law_id": law.id,
-                    "category": law.category.value,
-                    "title": law.title,
-                    "summary": law.summary,
-                    "jurisdiction": law.jurisdiction,
-                    "relevance_score": round(score, 2),
-                    "matched_keywords": keywords,
-                    "tenant_rights": law.tenant_rights,
-                    "time_limits": law.time_limits
-                })
-        
+                results.append(
+                    {
+                        "law_id": law.id,
+                        "category": law.category.value,
+                        "title": law.title,
+                        "summary": law.summary,
+                        "jurisdiction": law.jurisdiction,
+                        "relevance_score": round(score, 2),
+                        "matched_keywords": keywords,
+                        "tenant_rights": law.tenant_rights,
+                        "time_limits": law.time_limits,
+                    }
+                )
+
         return results
 
     def get_rights_summary(self, user_id: str, documents: list) -> dict:
@@ -385,74 +384,73 @@ class LawEngine:
         all_categories = set()
         all_rights = []
         all_deadlines = []
-        
+
         for doc in documents:
             doc_text = doc.full_text or ""
             doc_terms = doc.key_terms or []
             doc_type = doc.doc_type.value if doc.doc_type else "unknown"
-            
+
             applicable = self.get_applicable_laws(doc_type, doc_text, doc_terms)
-            
+
             for law_info in applicable:
                 all_categories.add(law_info["category"])
-                
+
                 if law_info.get("tenant_rights"):
                     for right in law_info["tenant_rights"]:
                         if right not in all_rights:
                             all_rights.append(right)
-                
+
                 if law_info.get("time_limits"):
                     for action, timeframe in law_info["time_limits"].items():
-                        all_deadlines.append({
-                            "action": action.replace("_", " ").title(),
-                            "timeframe": timeframe,
-                            "from_law": law_info["title"]
-                        })
-        
+                        all_deadlines.append(
+                            {
+                                "action": action.replace("_", " ").title(),
+                                "timeframe": timeframe,
+                                "from_law": law_info["title"],
+                            }
+                        )
+
         return {
             "categories_involved": list(all_categories),
             "your_rights": all_rights[:10],  # Top 10 most relevant
             "important_deadlines": all_deadlines,
-            "documents_analyzed": len(documents)
+            "documents_analyzed": len(documents),
         }
 
-    async def find_violations(
-        self,
-        case_data: dict,
-        user_id: str = None
-    ) -> List[Dict]:
+    async def find_violations(self, case_data: dict, user_id: str = None) -> list[dict]:
         """
         Analyze case data for potential landlord violations.
         Publishes VIOLATION_FOUND events for each violation.
-        
+
         Args:
             case_data: Case information including dates, amounts, notices
             user_id: User ID for event publishing
-        
+
         Returns:
             List of violations found with law references
         """
         violations = []
-        
+
         # Check notice requirements
         notice_date = case_data.get("notice_date")
         notice_type = case_data.get("notice_type")
         hearing_date = case_data.get("hearing_date")
-        
+
         if notice_date and hearing_date:
             # Check if proper notice period was given
             from datetime import datetime
+
             try:
                 notice = datetime.fromisoformat(notice_date)
                 hearing = datetime.fromisoformat(hearing_date)
                 days_notice = (hearing - notice).days
-                
+
                 required_days = 14  # Default for eviction
                 if notice_type == "30-day":
                     required_days = 30
                 elif notice_type == "7-day":
                     required_days = 7
-                
+
                 if days_notice < required_days:
                     violation = {
                         "id": "insufficient_notice",
@@ -461,10 +459,10 @@ class LawEngine:
                         "description": f"Only {days_notice} days notice given, {required_days} days required",
                         "law_ref": "MN Stat. 504B.135",
                         "severity": "high",
-                        "defense_code": "IMPROPER_NOTICE"
+                        "defense_code": "IMPROPER_NOTICE",
                     }
                     violations.append(violation)
-                    
+
                     # Publish event
                     if user_id:
                         try:
@@ -474,11 +472,11 @@ class LawEngine:
                                 source="law_engine",
                                 user_id=user_id,
                             )
-                        except Exception:
-                            pass
-            except Exception:
-                pass
-        
+                        except Exception as exc:
+                            logger.debug("Failed to publish violation event: %s", exc)
+            except (ValueError, TypeError) as exc:
+                logger.debug("Notice period analysis skipped: %s", exc)
+
         # Check for habitability issues mentioned
         issues = case_data.get("habitability_issues", [])
         if issues:
@@ -489,10 +487,10 @@ class LawEngine:
                 "description": f"Reported issues: {', '.join(issues)}",
                 "law_ref": "MN Stat. 504B.161",
                 "severity": "medium",
-                "defense_code": "HABITABILITY"
+                "defense_code": "HABITABILITY",
             }
             violations.append(violation)
-            
+
             if user_id:
                 try:
                     await event_bus.publish(
@@ -501,9 +499,9 @@ class LawEngine:
                         source="law_engine",
                         user_id=user_id,
                     )
-                except Exception:
-                    pass
-        
+                except Exception as exc:
+                    logger.debug("Failed to publish habitability violation event: %s", exc)
+
         # Check rent calculation
         rent_claimed = case_data.get("rent_claimed", 0)
         actual_rent = case_data.get("monthly_rent", 0)
@@ -515,54 +513,60 @@ class LawEngine:
                 "description": f"Claimed ${rent_claimed} exceeds reasonable amount",
                 "law_ref": "MN Stat. 504B.291",
                 "severity": "medium",
-                "defense_code": "EXCESSIVE_DAMAGES"
+                "defense_code": "EXCESSIVE_DAMAGES",
             }
             violations.append(violation)
-        
+
         logger.info(f"Found {len(violations)} potential violations")
         return violations
-    
-    def get_defense_strategies(self, violations: List[Dict]) -> List[Dict]:
+
+    def get_defense_strategies(self, violations: list[dict]) -> list[dict]:
         """
         Get recommended defense strategies based on violations found.
         """
         strategies = []
-        
+
         for v in violations:
             defense_code = v.get("defense_code")
             if defense_code == "IMPROPER_NOTICE":
-                strategies.append({
-                    "code": "IMPROPER_NOTICE",
-                    "title": "Challenge Notice Validity",
-                    "description": "The notice period provided was insufficient under Minnesota law",
-                    "strength": "strong",
-                    "evidence_needed": ["Notice document", "Calendar showing dates"],
-                    "forms_to_file": ["Answer with Affirmative Defense", "Motion to Dismiss"],
-                })
+                strategies.append(
+                    {
+                        "code": "IMPROPER_NOTICE",
+                        "title": "Challenge Notice Validity",
+                        "description": "The notice period provided was insufficient under Minnesota law",
+                        "strength": "strong",
+                        "evidence_needed": ["Notice document", "Calendar showing dates"],
+                        "forms_to_file": ["Answer with Affirmative Defense", "Motion to Dismiss"],
+                    }
+                )
             elif defense_code == "HABITABILITY":
-                strategies.append({
-                    "code": "HABITABILITY",
-                    "title": "Habitability Defense",
-                    "description": "Landlord failed to maintain habitable conditions",
-                    "strength": "strong",
-                    "evidence_needed": ["Photos of conditions", "Repair requests", "Communication records"],
-                    "forms_to_file": ["Answer with Counterclaim", "Motion for Rent Escrow"],
-                })
+                strategies.append(
+                    {
+                        "code": "HABITABILITY",
+                        "title": "Habitability Defense",
+                        "description": "Landlord failed to maintain habitable conditions",
+                        "strength": "strong",
+                        "evidence_needed": ["Photos of conditions", "Repair requests", "Communication records"],
+                        "forms_to_file": ["Answer with Counterclaim", "Motion for Rent Escrow"],
+                    }
+                )
             elif defense_code == "EXCESSIVE_DAMAGES":
-                strategies.append({
-                    "code": "EXCESSIVE_DAMAGES",
-                    "title": "Challenge Damages Amount",
-                    "description": "Damages claimed exceed actual losses",
-                    "strength": "medium",
-                    "evidence_needed": ["Rent receipts", "Lease showing rent amount"],
-                    "forms_to_file": ["Answer disputing damages"],
-                })
-        
+                strategies.append(
+                    {
+                        "code": "EXCESSIVE_DAMAGES",
+                        "title": "Challenge Damages Amount",
+                        "description": "Damages claimed exceed actual losses",
+                        "strength": "medium",
+                        "evidence_needed": ["Rent receipts", "Lease showing rent amount"],
+                        "forms_to_file": ["Answer disputing damages"],
+                    }
+                )
+
         return strategies
 
 
 # Singleton instance
-_law_engine: Optional[LawEngine] = None
+_law_engine: LawEngine | None = None
 
 
 def get_law_engine() -> LawEngine:

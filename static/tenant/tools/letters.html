@@ -634,11 +634,19 @@
     function applySig() {
       let dataURL;
       if (_currentTab === 'draw') {
-        if (isCanvasEmpty()) { alert('Please draw your signature first.'); return; }
+        if (isCanvasEmpty()) {
+          if (window.SemptifyFeedback) { SemptifyFeedback.error('Please draw your signature first.'); }
+          else { alert('Please draw your signature first.'); }
+          return;
+        }
         dataURL = _sigCanvas.toDataURL();
       } else {
         dataURL = getTypeSigDataURL();
-        if (!dataURL) { alert('Please type your name first.'); return; }
+        if (!dataURL) {
+          if (window.SemptifyFeedback) { SemptifyFeedback.error('Please type your name first.'); }
+          else { alert('Please type your name first.'); }
+          return;
+        }
       }
 
       // Show thumbnail next to sign button
@@ -953,5 +961,6 @@ ${a}
     }
   </script>
   <script src="/static/js/law-linker.js"></script>
+  <script src="/static/components/feedback.js"></script>
 </body>
 </html>

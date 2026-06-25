@@ -228,8 +228,11 @@
       } else {
         renderDocs([]);
       }
-    } catch {
+    } catch (err) {
       renderDocs([]);
+      if (window.SemptifyFeedback) {
+        SemptifyFeedback.error('Could not load your documents. Sign in or try again.', { detail: err.message });
+      }
     }
   }
 
@@ -391,5 +394,6 @@
   </div>
 </footer>
 
+<script src="/static/components/feedback.js"></script>
 </body>
 </html>

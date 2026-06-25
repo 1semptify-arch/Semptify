@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block title %}My Advocate - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+.tenant-advocate-page {
+    max-width: 800px;
+    margin: 1.5rem auto;
+    padding: 1rem;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--color-text-secondary);
+    font-size: 0.88rem;
+    text-decoration: none;
+    margin-bottom: 1rem;
+}
+.back-link:hover { color: var(--color-text-primary); }
+
+.page-header { margin-bottom: 1.5rem; }
+.page-header h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.3rem 0; }
+.page-header p { color: var(--color-text-secondary); font-size: 0.9rem; margin: 0; }
+
+/* Info banner */
+.info-banner {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
+    color: #1e40af;
+    line-height: 1.5;
+}
+.info-banner strong { font-weight: 700; }
+
+/* Cards */
+.card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+.card h3 { margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 700; }
+
+/* Form */
+.form-field { margin-bottom: 1rem; }
+.form-field label {
+    display: block; font-size: 0.85rem; font-weight: 600;
+    margin-bottom: 0.3rem;
+}
+.form-field input, .form-field textarea {
+    width: 100%; padding: 0.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: inherit; font-size: 0.9rem;
+}
+.form-field input {
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.02em;
+}
+.form-field textarea { min-height: 70px; resize: vertical; }
+.form-help {
+    font-size: 0.78rem; color: var(--color-text-secondary);
+    margin-top: 0.3rem;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 0.6rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+.btn--primary { background: #15803d; color: #fff; }
+.btn--primary:hover { background: #166534; }
+.btn--danger { background: #dc2626; color: #fff; }
+.btn--danger:hover { background: #b91c1c; }
+.btn--secondary {
+    background: var(--color-bg-card);
+    color: var(--color-text-primary);
+    border-color: var(--color-border);
+}
+.btn--secondary:hover { background: var(--color-bg-hover); }
+.btn--sm { padding: 0.35rem 0.8rem; font-size: 0.82rem; }
+
+/* Advocate list */
+.advocate-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    margin-bottom: 0.5rem;
+    background: var(--color-bg-card);
+}
+.advocate-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #15803d; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.85rem;
+    flex-shrink: 0;
+}
+.advocate-info { flex: 1; }
+.advocate-name {
+    font-weight: 600; font-size: 0.9rem;
+    font-family: 'Courier New', monospace;
+    word-break: break-all;
+}
+.advocate-meta {
+    font-size: 0.76rem; color: var(--color-text-secondary);
+    margin-top: 0.2rem;
+}
+.initiated-badge {
+    display: inline-block;
+    font-size: 0.68rem; font-weight: 600;
+    padding: 0.12rem 0.4rem; border-radius: 6px;
+    margin-left: 0.5rem;
+}
+.initiated-tenant { background: #dcfce7; color: #15803d; }
+.initiated-advocate { background: #f1f5f9; color: #64748b; }
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Loading */
+.loading { text-align: center; padding: 2rem; color: var(--color-text-secondary); }
+
+/* My ID box */
+.my-id-box {
+    background: var(--color-bg-hover);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+.my-id-label {
+    font-size: 0.78rem; color: var(--color-text-secondary);
+    flex-shrink: 0;
+}
+.my-id-value {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    word-break: break-all;
+    flex: 1;
+}
+.copy-btn {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.copy-btn:hover { background: var(--color-bg-hover); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tenant-advocate-page">
+    <a href="/" class="back-link">← Back to Home</a>
+
+    <div class="page-header">
+        <h1>My Advocate</h1>
+        <p>Manage who can see your case and help you through the process.</p>
+    </div>
+
+    <div class="info-banner">
+        <strong>You are in control.</strong> You choose who can access your case.
+        Share your Semptify ID with someone you trust, or enter their Advocate ID below.
+        You can revoke access at any time.
+    </div>
+
+    <div class="card">
+        <h3>Share Your ID</h3>
+        <p style="font-size:0.85rem;color:var(--color-text-secondary);margin:0 0 0.75rem 0;">
+            Give this ID to an advocate so they can add you to their client list.
+        </p>
+        <div class="my-id-box">
+            <span class="my-id-label">Your Semptify ID:</span>
+            <span class="my-id-value" id="my-user-id">Loading...</span>
+            <button class="copy-btn" id="copy-my-id">Copy</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Link to an Advocate</h3>
+        <p style="font-size:0.85rem;color:var(--color-text-secondary);margin:0 0 1rem 0;">
+            Enter your advocate's Semptify ID to give them access to your case.
+        </p>
+        <div class="form-field">
+            <label for="advocate-id-input">Advocate's Semptify ID</label>
+            <input type="text" id="advocate-id-input" placeholder="e.g. gd_adv_abc123...">
+            <div class="form-help">Ask your advocate to share their ID from their dashboard.</div>
+        </div>
+        <div class="form-field">
+            <label for="link-notes">Optional Message</label>
+            <textarea id="link-notes" placeholder="e.g. Hi, I'm the tenant at 123 Main St. You suggested I connect with you."></textarea>
+        </div>
+        <button class="btn btn--primary" id="btn-link">Link to Advocate</button>
+    </div>
+
+    <div class="card">
+        <h3>Linked Advocates</h3>
+        <div id="advocates-list">
+            <div class="loading">Loading...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function fetchJSON(url, opts) {
+    try {
+        const resp = await fetch(url, opts);
+        return { ok: resp.ok, data: await resp.json() };
+    } catch (e) {
+        return { ok: false, data: { detail: e.message } };
+    }
+}
+
+function formatDate(iso) {
+    if (!iso) return '—';
+    try { return new Date(iso).toLocaleDateString(); }
+    catch (e) { return iso; }
+}
+
+function avatarInitials(id) {
+    return (id || '?').substring(0, 2).toUpperCase();
+}
+
+// Load current user ID from cookie
+function getCurrentUserId() {
+    const match = document.cookie.match(/(?:^|;)\s*semptify_user_id=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
+const myId = getCurrentUserId();
+if (myId) {
+    document.getElementById('my-user-id').textContent = myId;
+} else {
+    document.getElementById('my-user-id').textContent = 'Not signed in';
+}
+
+document.getElementById('copy-my-id').addEventListener('click', () => {
+    if (!myId) return;
+    try {
+        navigator.clipboard.writeText(myId);
+        if (window.SemptifyFeedback) {
+            SemptifyFeedback.success('ID copied to clipboard');
+        }
+    } catch (e) {
+        const textarea = document.createElement('textarea');
+        textarea.value = myId;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try { document.execCommand('copy'); } catch (e2) { /* ignore */ }
+        document.body.removeChild(textarea);
+        if (window.SemptifyFeedback) {
+            SemptifyFeedback.success('ID copied to clipboard');
+        }
+    }
+});
+
+// Link to advocate
+document.getElementById('btn-link').addEventListener('click', async () => {
+    const advocateId = document.getElementById('advocate-id-input').value.trim();
+    const notes = document.getElementById('link-notes').value.trim();
+    if (!advocateId) {
+        if (window.SemptifyFeedback) {
+            SemptifyFeedback.error('Please enter an advocate ID');
+        } else { alert('Please enter an advocate ID'); }
+        return;
+    }
+    const { ok, data } = await fetchJSON('/api/advocate/link-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ advocate_user_id: advocateId, notes: notes || null }),
+    });
+    if (ok && data.success) {
+        if (window.SemptifyFeedback) {
+            SemptifyFeedback.success(data.message);
+        } else { alert(data.message); }
+        document.getElementById('advocate-id-input').value = '';
+        document.getElementById('link-notes').value = '';
+        loadAdvocates();
+    } else {
+        if (window.SemptifyFeedback) {
+            SemptifyFeedback.error(data.detail || 'Failed to link');
+        } else { alert(data.detail || 'Failed to link'); }
+    }
+});
+
+// Load advocates
+async function loadAdvocates() {
+    const listEl = document.getElementById('advocates-list');
+    const { ok, data } = await fetchJSON('/api/advocate/my-advocates');
+    if (!ok) {
+        listEl.innerHTML = '<div class="empty-state">Could not load advocates.</div>';
+        return;
+    }
+    if (!data.advocates || data.advocates.length === 0) {
+        listEl.innerHTML = '<div class="empty-state">No advocates linked yet. Enter an advocate ID above to get started.</div>';
+        return;
+    }
+    listEl.innerHTML = data.advocates.map(a => {
+        const initiated = a.initiated_by === 'tenant' ? 'initiated-tenant' : 'initiated-advocate';
+        const initiatedLabel = a.initiated_by === 'tenant' ? 'You invited' : 'They added you';
+        return `
+            <div class="advocate-row">
+                <div class="advocate-avatar">${avatarInitials(a.advocate_user_id)}</div>
+                <div class="advocate-info">
+                    <div class="advocate-name">${a.advocate_user_id}</div>
+                    <div class="advocate-meta">
+                        Linked ${formatDate(a.linked_at)}
+                        <span class="initiated-badge ${initiated}">${initiatedLabel}</span>
+                    </div>
+                </div>
+                <button class="btn btn--danger btn--sm" data-revoke="${a.advocate_user_id}">Revoke</button>
+            </div>
+        `;
+    }).join('');
+}
+
+// Revoke advocate
+document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-revoke]');
+    if (!btn) return;
+    const advocateId = btn.getAttribute('data-revoke');
+    if (!confirm('Revoke this advocate\'s access to your case? They will no longer be able to see your documents or timeline.')) return;
+    const { ok, data } = await fetchJSON(`/api/advocate/my-advocates/${encodeURIComponent(advocateId)}`, {
+        method: 'DELETE',
+    });
+    if (ok && data.success) {
+        if (window.SemptifyFeedback) {
+            SemptifyFeedback.success(data.message);
+        } else { alert(data.message); }
+        loadAdvocates();
+    } else {
+        if (window.SemptifyFeedback) {
+            SemptifyFeedback.error(data.detail || 'Failed to revoke');
+        } else { alert(data.detail || 'Failed to revoke'); }
+    }
+});
+
+loadAdvocates();
+</script>
+{% endblock %}

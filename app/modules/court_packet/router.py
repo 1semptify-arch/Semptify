@@ -9,6 +9,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 from app.core.utc import utc_now
+from app.core.request_utils import get_request_user_id
 import json
 import io
 import zipfile
@@ -57,7 +58,7 @@ async def get_packet_status(request: Request) -> Dict[str, Any]:
     - Briefcase manual uploads
     - Unified upload pipeline (automatically categorized)
     """
-    user_id = request.cookies.get("semptify_uid", "anonymous")
+    user_id = get_request_user_id(request)
     
     # Count items from briefcase
     doc_count = len(briefcase_data.get("documents", {}))
@@ -142,7 +143,7 @@ async def get_packet_documents(request: Request) -> Dict[str, Any]:
     - Briefcase (manual uploads)
     - Unified upload pipeline (auto-processed)
     """
-    user_id = request.cookies.get("semptify_uid", "anonymous")
+    user_id = get_request_user_id(request)
     
     # Get briefcase documents
     briefcase_docs = list(briefcase_data.get("documents", {}).values())
@@ -167,7 +168,7 @@ async def get_packet_evidence(request: Request) -> Dict[str, Any]:
     
     Filters to documents categorized as evidence from unified upload.
     """
-    user_id = request.cookies.get("semptify_uid", "anonymous")
+    user_id = get_request_user_id(request)
     
     processed_docs = _get_processed_documents(user_id)
     evidence_docs = [d for d in processed_docs if d.get("is_evidence") or d.get("category") == "evidence_photos"]
@@ -184,7 +185,7 @@ async def get_packet_legal_docs(request: Request) -> Dict[str, Any]:
     """
     Get all legal documents for court packet (notices, filings, etc.).
     """
-    user_id = request.cookies.get("semptify_uid", "anonymous")
+    user_id = get_request_user_id(request)
     
     processed_docs = _get_processed_documents(user_id)
     legal_docs = [d for d in processed_docs if d.get("category") == "legal_documents"]
@@ -203,7 +204,7 @@ async def get_packet_timeline(request: Request) -> Dict[str, Any]:
     
     Useful for creating a chronological summary for court.
     """
-    user_id = request.cookies.get("semptify_uid", "anonymous")
+    user_id = get_request_user_id(request)
     
     processed_docs = _get_processed_documents(user_id)
     
@@ -230,7 +231,7 @@ async def get_packet_checklist(request: Request) -> Dict[str, Any]:
     """
     Get checklist of recommended items for court packet.
     """
-    user_id = request.cookies.get("semptify_uid", "anonymous")
+    user_id = get_request_user_id(request)
     
     checklist = [
         {
@@ -329,7 +330,7 @@ async def generate_court_packet(
     - Highlighted annotations summary
     - Extracted pages
     """
-    user_id = request.cookies.get("semptify_uid", "anonymous")
+    user_id = get_request_user_id(request)
     
     try:
         # Get all items
