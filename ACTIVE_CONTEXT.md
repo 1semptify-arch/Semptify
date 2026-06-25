@@ -1,10 +1,10 @@
 # Semptify Active Context
 
-**Last Updated**: 2026-06-24
+**Last Updated**: 2026-06-24 PM
 
 ---
 
-## 🎯 Current Priority: Phase 5 — Context Engine + Action Feedback
+## 🎯 Current Priority: Phase 5b — Action Feedback Helper
 
 ### Phase 4 — Role Development: ✅ COMPLETE (2026-06-24)
 
@@ -17,11 +17,21 @@
 | **4.5 ADMIN** | ✅ Complete | 41+ endpoints (admin console, module flags, analytics, batch ops, capabilities) |
 | **4.6 JUDGE** | ✅ Merged | Merged into Legal as sub-role (is_legal_sub_role(user_id, 'judge')) |
 
-### Phase 5 Scope (next)
+### Phase 5a — Context Engine + Page Composer: ✅ COMPLETE (2026-06-24 PM)
+
+| Component | Status | Endpoints |
+|-----------|--------|-----------|
+| **Context Engine** | ✅ Complete | 9 endpoints (/api/context/*) — subjects, facts, refresh, stories, moderate, verify, overview |
+| **Page Composer** | ✅ Complete | 3 endpoints (/api/page/*) — composed view, preview, list |
+| **Case Builder wiring** | ✅ Complete | `get_context_facts` action + enriched `analyze_defenses` |
+| **Complaint Wizard wiring** | ✅ Complete | `get_complaint_context` action + enriched `create_complaint` |
+| **Tenant Defense wiring** | ✅ Complete | `get_defense_context` action + enriched `get_case_progress` |
+| **DB migration** | ✅ Shipped | `20260624_add_context_engine_tables.py` creates context_facts + tenant_stories |
+
+### Phase 5b Scope (next)
 
 | Project | Design Doc | Status |
 |---------|------------|--------|
-| **Context Engine MVP** | (todo, needs write-up) | 🅿️ Ready to build |
 | **Action Feedback helper** | `ACTION_FEEDBACK_AUDIT.md` | 🅿️ Ready to build |
 | **GUI Phase 1** | (Tenant Journal restructuring) | 🅿️ Pending |
 
@@ -36,14 +46,13 @@
 
 | Project | Design Doc | Status | Blocked By |
 |---------|------------|--------|------------|
-| **Context Engine MVP** | (todo, needs write-up) | 🅿️ Ready to build | — |
 | **Action Feedback helper** | `ACTION_FEEDBACK_AUDIT.md` | 🅿️ Ready to build | — |
 
 ---
 
 ## 🚫 Anti-Priorities (Don't Start These)
 
-1. **New features** that aren't Context Engine or Action Feedback
+1. **New features** that aren't Action Feedback or GUI Phase 1
 2. **Refactoring** unrelated to Phase 5
 3. **Documentation** that isn't critical path
 4. **Testing** of non-core systems
@@ -54,6 +63,8 @@
 
 | Date | Decision | Reason |
 |------|----------|--------|
+| 2026-06-24 PM | ✅ Context Engine + Page Composer complete | 9+3 endpoints live, 4 consumers wired, migration shipped (commit 375b45d) |
+| 2026-06-24 PM | ✅ Context Engine wired into 4 consumers | Case Builder, Complaint Wizard, Tenant Defense, Page Composer |
 | 2026-06-24 | ✅ Phase 4 role development complete | All 6 roles have full endpoint coverage |
 | 2026-06-24 | ✅ Litigation Intelligence activated | Fixed dataclass field ordering bugs, 17 endpoints live |
 | 2026-06-24 | ✅ Advocate dashboard added | GET /api/advocate/dashboard with aggregate stats |
