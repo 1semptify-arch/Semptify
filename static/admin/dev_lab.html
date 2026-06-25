@@ -618,7 +618,7 @@ async function promoteIdea(ideaId, ideaName) {
     if (window.SemptifyFeedback) { SemptifyFeedback.success(`Idea promoted! Next steps: ${result.next_steps}`); } else { alert(`Idea promoted!\n\nNext steps:\n${result.next_steps}`); }
     await loadIdeas();
   } catch (e) {
-    alert('Promotion failed: ' + e.message);
+    if (window.SemptifyFeedback) { SemptifyFeedback.error('Promotion failed.', { detail: e.message }); } else { alert('Promotion failed: ' + e.message); }
   }
 }
 

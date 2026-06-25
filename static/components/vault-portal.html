@@ -289,7 +289,7 @@
   function uploadToVault() {
     // TODO: Connect to backend upload API
     console.log('Uploading to vault...');
-    alert('Files queued for upload to your cloud storage');
+    if (window.SemptifyFeedback) { SemptifyFeedback.info('Files queued for upload to your cloud storage.'); } else { alert('Files queued for upload to your cloud storage'); }
     closeVaultPortal();
   }
   
