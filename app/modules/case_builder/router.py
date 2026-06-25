@@ -950,12 +950,76 @@ async def list_cases(user: StorageUser = Depends(yellow_access)):
 
 @router.get("/cases/{case_id}")
 async def get_case(case_id: str, user: StorageUser = Depends(yellow_access)):
-    """Get a specific case belonging to the authenticated user."""
+    """Get a specific case belonging to the authenticated user.
+
+    Includes verified facts from the Context Engine for the case's subject.
+    """
     user_id = user.user_id
     case = await load_case(case_id, user_id)
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
+    # Enrich with Context Engine facts (best-effort, never breaks)
+    case_type = case.get("case_type", "eviction_defense")
+    ctx_subject = _case_type_to_subject(case_type)
+    case["context_facts"] = await _get_context_facts(ctx_subject)
+    case["context_subject"] = ctx_subject
     return case
+
+
+@router.get("/cases/{case_id}/context")
+async def get_case_context(case_id: str, user: StorageUser = Depends(yellow_access)):
+    """Get verified Context Engine facts for a case's subject.
+
+    Returns cached facts with source URLs — no hallucination.
+    """
+    user_id = user.user_id
+    case = await load_case(case_id, user_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    case_type = case.get("case_type", "eviction_defense")
+    ctx_subject = _case_type_to_subject(case_type)
+    facts = await _get_context_facts(ctx_subject)
+    return {
+        "case_id": case_id,
+        "subject": ctx_subject,
+        "jurisdiction": "MN",
+        "count": len(facts),
+        "facts": facts,
+    }
+
+
+def _case_type_to_subject(case_type: str) -> str:
+    """Map a CaseType value to a Context Engine canonical subject."""
+    mapping = {
+        "eviction_defense": "eviction",
+        "counter_suit": "eviction",
+        "habitability": "habitability",
+        "security_deposit": "deposit",
+        "discrimination": "discrimination",
+        "retaliation": "retaliation",
+    }
+    return mapping.get(case_type, "eviction")
+
+
+async def _get_context_facts(subject: str, jurisdiction: str = "MN") -> list:
+    """Pull verified facts from the Context Engine. Best-effort, never raises."""
+    try:
+        from app.modules.context_engine import cache as ctx_cache
+        facts = await ctx_cache.get_facts(subject, jurisdiction, limit=10)
+        return [
+            {
+                "id": f.id,
+                "claim": f.claim,
+                "source_url": f.source_url,
+                "source_name": f.source_name,
+                "citation": f.citation,
+                "is_verified": f.is_verified,
+            }
+            for f in facts
+        ]
+    except Exception as e:
+        logger.debug("Context Engine facts unavailable for %s/%s: %s", subject, jurisdiction, e)
+        return []
 
 
 @router.post("/cases")
