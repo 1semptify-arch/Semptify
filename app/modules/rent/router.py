@@ -88,7 +88,7 @@ def _to_response(p: RentPayment) -> RentPaymentResponse:
     )
 
 
-@router.post("/api/rent/payments")
+@router.post("/payments")
 async def create_payment(
     body: RentPaymentCreate,
     user: UserContext = Depends(require_user),
@@ -127,7 +127,7 @@ async def create_payment(
     return {"success": True, "payment_id": payment.id, "payment": _to_response(payment)}
 
 
-@router.get("/api/rent/payments")
+@router.get("/payments")
 async def list_payments(
     user: UserContext = Depends(require_user),
 ):
@@ -144,7 +144,7 @@ async def list_payments(
     return {"payments": [_to_response(p) for p in payments]}
 
 
-@router.get("/api/rent/payments/{payment_id}")
+@router.get("/payments/{payment_id}")
 async def get_payment(
     payment_id: str,
     user: UserContext = Depends(require_user),
@@ -166,7 +166,7 @@ async def get_payment(
     return {"payment": _to_response(payment)}
 
 
-@router.put("/api/rent/payments/{payment_id}")
+@router.put("/payments/{payment_id}")
 async def update_payment(
     payment_id: str,
     body: RentPaymentUpdate,
@@ -212,7 +212,7 @@ async def update_payment(
     return {"success": True, "payment": _to_response(payment)}
 
 
-@router.delete("/api/rent/payments/{payment_id}")
+@router.delete("/payments/{payment_id}")
 async def delete_payment(
     payment_id: str,
     user: UserContext = Depends(require_user),

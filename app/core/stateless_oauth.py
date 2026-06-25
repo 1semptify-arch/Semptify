@@ -276,7 +276,7 @@ class StatelessOAuthManager:
             new_access = new_tokens.get("access_token")
             new_refresh = new_tokens.get("refresh_token", refresh_token)
             expires_in = new_tokens.get("expires_in", 3600)
-            new_expires_at = int(datetime.now(timezone.utc).timestamp()) + int(expires_in)
+            new_expires_at = int(utc_now().timestamp()) + int(expires_in)
 
             # Persist refreshed tokens back to user's cloud storage.
             # If storage fails, still return the new access token so the

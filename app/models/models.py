@@ -144,6 +144,14 @@ class User(Base):
     # Role preference (restored on return)
     default_role: Mapped[str] = mapped_column(String(20), default="user")  # user, manager, advocate, legal, admin
 
+    # Legal sub-role (only meaningful when default_role == 'legal')
+    # Sub-roles: attorney, judge, clerk, paralegal — all require bar_license_number
+    legal_sub_role: Mapped[Optional[str]] = mapped_column(String(20), nullable=True, index=True)
+
+    # Bar license number (required for all legal sub-roles)
+    # Stored as hashed reference — not PII, it's a public professional credential
+    bar_license_number: Mapped[Optional[str]] = mapped_column(String(50), nullable=True, index=True)
+
     # Intensity Engine (tenant-specific feature)
     intensity_level: Mapped[str] = mapped_column(String(10), default="low")  # low, medium, high
 
@@ -1700,8 +1708,8 @@ class ModuleRegistry(Base):
     version: Mapped[Optional[str]] = mapped_column(String(32), nullable=True)
     route_prefix: Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
 
-    # Array of module names this module depends on
-    depends_on: Mapped[Optional[list[str]]] = mapped_column(ARRAY(String), nullable=True)
+    # Array of module names this module depends on (JSON for SQLite compatibility)
+    depends_on: Mapped[Optional[list[str]]] = mapped_column(JSON, nullable=True)
 
     # Admin notes for tracking issues, rollout status, etc.
     notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

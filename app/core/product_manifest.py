@@ -167,7 +167,7 @@ class ModuleEntry:
                 self, "tags", (self._default_tag(),)
             )
         # Validate lifecycle against allowed values
-        allowed_lifecycles = ("stable", "beta", "experimental", "dev_only", "preview", "internal")
+        allowed_lifecycles = ("stable", "beta", "experimental", "dev_only", "preview", "internal", "deprecated")
         if self.lifecycle not in allowed_lifecycles:
             raise ValueError(
                 f"ModuleEntry {self.module_path}: lifecycle '{self.lifecycle}' "
@@ -421,6 +421,8 @@ _register("app.modules.preview.router", prefix="/api/preview", tags=("Document P
           log_message="Document Preview router connected - Multi-format preview generation active")
 _register("app.modules.document_converter.router", tags=("Document Converter",), tier=ProductTier.CORE)
 _register("app.modules.legal_analysis.router", tags=("Legal Analysis",), tier=ProductTier.CORE)
+_register("app.modules.context_engine.router", tags=("Context Engine", "Facts", "Stories"), tier=ProductTier.CORE,
+          log_message="Context Engine router connected — verified facts + tenant stories active")
 
 # Real-time
 _register("app.modules.websocket.router", prefix="/ws", tags=("WebSocket Events",), tier=ProductTier.CORE)
@@ -466,6 +468,8 @@ _register("app.modules.court_forms.router", tags=("Court Forms",), tier=ProductT
 _register("app.modules.court_packet.router", tags=("Court Packet",), tier=ProductTier.EXTENDED)
 # _register("app.modules.legal_filing.router", tags=("Legal Filing",), tier=ProductTier.EXTENDED)  # INACTIVE: Not integrated with mesh/network
 _register("app.modules.legal_trails.router", tags=("Legal Trails",), tier=ProductTier.EXTENDED)
+_register("app.modules.legal.router", tags=("Legal", "Court Filing", "Discovery", "Exhibits", "Workspace"), tier=ProductTier.EXTENDED,
+          log_message="Legal workspace router connected — matters, filings, discovery, exhibits active")
 _register("app.modules.tenant_defense", tags=("Tenant Defense",), tier=ProductTier.EXTENDED,
           log_message="Tenant Defense module loaded - Evidence, petitions, and screening disputes")
 
@@ -483,7 +487,7 @@ _register("app.modules.complaints.router", tags=("Complaint Wizard",), tier=Prod
           log_message="Complaint Filing Wizard loaded - Regulatory accountability tools active")
 _register("app.modules.housing_accountability.router", router_attr="accountability_router",
           tags=("Housing Accountability",), tier=ProductTier.EXTENDED,
-          lifecycle="beta", dev_notes="detect_repeated_fees() at router.py:83 is a stub.")
+          lifecycle="beta", dev_notes="detect_repeated_fees() fully implemented — groups by fee type, jurisdiction-aware legal basis, safe date parsing.")
 _register("app.modules.housing_accountability.pattern_history", router_attr="pattern_history_router",
           tags=("Pattern History",), tier=ProductTier.EXTENDED,
           lifecycle="beta", dev_notes="Depends on housing_accountability pattern matching.")
@@ -499,6 +503,7 @@ _register("app.modules.role_upgrade.router", tags=("Role Management",), tier=Pro
 _register("app.modules.document_delivery.router", tags=("Document Delivery",), tier=ProductTier.ADVOCATE)
 _register("app.modules.communication.router", tags=("Communications",), tier=ProductTier.ADVOCATE)
 _register("app.modules.invite_codes.router", tags=("Invite Codes",), tier=ProductTier.ADVOCATE)
+_register("app.modules.advocate.router", tags=("Advocate", "Clients", "Case Management"), tier=ProductTier.ADVOCATE)
 
 
 # =============================================================================
@@ -507,6 +512,11 @@ _register("app.modules.invite_codes.router", tags=("Invite Codes",), tier=Produc
 
 _register("app.modules.admin_console.router", prefix="/admin-console", tags=("Admin Console",), tier=ProductTier.ADMIN,
           log_message="Admin Console router connected - System maintenance and diagnostics active")
+_register("app.modules.admin_console.module_flags", tier=ProductTier.ADMIN,
+          lifecycle="internal",
+          requires_role=("admin",),
+          dev_notes="Phase 2.4 — Module Flag Overlay admin UI. Provides /admin/api/module-flags endpoints for runtime lifecycle/feature_flag overrides.",
+          log_message="Module Flag Overlay admin router active — /admin/api/module-flags")
 _register("app.modules.analytics.router", prefix="/api/analytics", tags=("Analytics",), tier=ProductTier.ADMIN,
           log_message="Analytics router connected - Usage and performance tracking active")
 _register("app.modules.dashboard.router", tags=("Unified Dashboard",), tier=ProductTier.ADMIN)
@@ -517,6 +527,8 @@ _register("app.modules.registry.router", tags=("Document Registry",), tier=Produ
 _register("app.modules.tenancy_hub.router", tags=("Tenancy Hub",), tier=ProductTier.ADMIN)
 _register("app.modules.capabilities.router", prefix="", tags=("Capabilities",), tier=ProductTier.ADMIN,
           log_message="Capabilities router active — user capability and overlay management enabled")
+_register("app.modules.manager.router", tags=("Manager", "Case Assignment", "Reporting", "Bulk Ops"), tier=ProductTier.ADMIN,
+          log_message="Manager router connected — case assignment, reporting, bulk ops active")
 
 
 # =============================================================================
@@ -568,9 +580,9 @@ _register("app.modules.public_exposure.router", tags=("Public Exposure",), tier=
 _register("app.modules.fraud_exposure.router", tags=("Fraud Exposure",), tier=ProductTier.RESEARCH)
 
 # Litigation intelligence
-# _register("app.modules.litigation_intelligence.router", router_attr="lis_router",
-#           tags=("Litigation Intelligence",), tier=ProductTier.RESEARCH,
-#           log_message="Litigation Intelligence System router connected - Justice-grade legal intelligence active")  # INACTIVE: graph_engine not implemented, dataclass errors
+_register("app.modules.litigation_intelligence.router", router_attr="lis_router",
+          tags=("Litigation Intelligence",), tier=ProductTier.RESEARCH,
+          log_message="Litigation Intelligence System router connected - Justice-grade legal intelligence active")
 
 
 # =============================================================================
@@ -582,12 +594,24 @@ _register("app.modules.page_index.router", tags=("Page Index",), tier=ProductTie
 _register("app.modules.page_editor.router", tags=("Page Editor",), tier=ProductTier.DEV,
           log_message="Page Editor router connected - Interactive editor for static & Jinja2 templates")
 _register("app.modules.development.router", tags=("Development Tools",), tier=ProductTier.DEV)
+_register("app.modules.dev_lab.router", prefix="/dev/lab", tags=("Dev Lab",), tier=ProductTier.DEV,
+          lifecycle="dev_only", requires_role=("admin",),
+          dev_notes="Phase 3.1a — Incubator hub for dev modules. Lists dev_only modules, runs tests, promotes lifecycle stages.",
+          log_message="Dev Lab router active — /dev/lab (admin-only)")
+_register("app.modules.dev_lab.ideas", prefix="/dev/lab/ideas", tags=("Dev Ideas",), tier=ProductTier.DEV,
+          lifecycle="dev_only", requires_role=("admin",),
+          dev_notes="Phase 3.1b/3.6 — Idea submission pipeline. Submit/list/promote ideas to dev modules.",
+          log_message="Dev Ideas router active — /dev/lab/ideas (admin-only)")
 _register("app.modules.filedored.router", tags=("Filedored",), tier=ProductTier.DEV,
           log_message="Filedored router connected - Virtual document organization active")
 _register("app.modules.data_freshness.router", tags=("Data Freshness",), tier=ProductTier.DEV,
           log_message="Data Freshness router connected - Automated data staleness prevention active")
 _register("app.modules.inventory.router", tags=("Inventory Management",), tier=ProductTier.DEV,
           log_message="Inventory Management router connected - File rotation and dating system active")
+_register("app.modules.judge.router", tags=("Judge", "Deprecated", "Merged Into Legal"), tier=ProductTier.DEV,
+          lifecycle="deprecated", requires_role=("admin",),
+          dev_notes="Judge role DEPRECATED 2026-06-23. Merged into Legal as sub_role='judge'. Stub for backward compat.",
+          log_message="Judge module registered as deprecated (merged into Legal sub-role)")
 
 # Phase 2 / internal utilities
 _register("app.modules.export_import.router", prefix="/api/export-import", tags=("Data Export/Import",), tier=ProductTier.DEV,
@@ -639,6 +663,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.eviction_defense.router",
         "app.modules.court_forms.router",
         "app.modules.legal_trails.router",
+        "app.modules.legal.router",
         "app.modules.intake.router",
         "app.modules.guided_intake.router",
         "app.modules.plan_maker.router",
@@ -646,6 +671,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.document_delivery.router",
         "app.modules.communication.router",
         "app.modules.invite_codes.router",
+        "app.modules.advocate.router",
     ],
     "manager": [
         "app.modules.documents.router",
@@ -653,6 +679,7 @@ CAPABILITY_DEFAULTS: dict[str, list[str]] = {
         "app.modules.contacts.router",
         "app.modules.state_laws.router",
         "app.modules.search.router",
+        "app.modules.manager.router",
     ],
     "admin": [
         # Admin gets all tiers — resolved at runtime from MANIFEST

@@ -100,9 +100,10 @@ def format_date_filter(value):
 
 templates.env.filters["format_date"] = format_date_filter
 
-# Product Manifest â€” replaces the 200+ line router-import block
+# Product Manifest — replaces the 200+ line router-import block
 from app.core.product_manifest import ProductTier, register_tiers
 from app.core.utc import utc_now
+from app.core.contract_loader import load_all_contracts
 
 
 # =============================================================================
@@ -212,7 +213,7 @@ async def lifespan(_app: FastAPI):
     # STAGED SETUP PROCESS
     # =========================================================================
     
-    TOTAL_STAGES = 6
+    TOTAL_STAGES = 7
     
     # Required packages for each feature area
     REQUIRED_PACKAGES = {
@@ -353,17 +354,44 @@ async def lifespan(_app: FastAPI):
             return True
         
         await run_stage(3, TOTAL_STAGES, "Database Migrations", run_migrations, verify_migrations)
-        
+
+        # --- STAGE 3b: Initialize module_overrides schema + warm cache ---
+        async def init_module_overrides():
+            from app.core.database import get_session_factory
+            from app.core.module_overrides import ensure_schema, load_overrides
+            factory = get_session_factory()
+            async with factory() as db:
+                await ensure_schema(db)
+                await load_overrides(db)
+            lifespan_logger.info("   Module overrides schema ensured and cache warmed")
+
+        def verify_module_overrides():
+            return True
+
+        await run_stage(3, TOTAL_STAGES, "Module Overrides Init", init_module_overrides, verify_module_overrides)
+
+        # --- STAGE 3.5: Load Module Contracts ---
+        async def load_contracts():
+            result = load_all_contracts()
+            lifespan_logger.info("   Contracts: %s loaded, %s failed, %s total",
+                                 result["loaded"], result["failed"], result["total_contracts"])
+
+        def verify_contracts():
+            from app.core.module_contracts import contract_registry
+            return len(contract_registry.list_contracts()) > 0
+
+        await run_stage(4, TOTAL_STAGES, "Load Module Contracts", load_contracts, verify_contracts)
+
         # --- STAGE 4: Load Configuration ---
         async def load_config():
             # Verify settings are accessible
             _ = lifespan_settings.app_name
             _ = lifespan_settings.security_mode
-        
+
         def verify_config():
             return lifespan_settings.app_name is not None
-        
-        await run_stage(4, TOTAL_STAGES, "Load Configuration", load_config, verify_config)
+
+        await run_stage(5, TOTAL_STAGES, "Load Configuration", load_config, verify_config)
         
         # --- STAGE 5: Initialize Services ---
         async def init_services():
@@ -423,9 +451,9 @@ async def lifespan(_app: FastAPI):
             register_all_subscribers()
             logger.info("   Event subscribers registered")
         
-        await run_stage(5, TOTAL_STAGES, "Initialize Services", init_services)
-        
-        # --- STAGE 6: Final Verification ---
+        await run_stage(6, TOTAL_STAGES, "Initialize Services", init_services)
+
+        # --- STAGE 7: Final Verification ---
         async def final_check():
             # Verify critical paths exist
             assert Path("uploads/vault").exists(), "Vault directory missing"
@@ -435,11 +463,11 @@ async def lifespan(_app: FastAPI):
             # Test a simple endpoint would work
             return True
         
-        await run_stage(6, TOTAL_STAGES, "Final Verification", final_check, verify_final)
-        
-        # --- STAGE 7: PRODUCTION MODE VALIDATION (if enforced) ---
+        await run_stage(7, TOTAL_STAGES, "Final Verification", final_check, verify_final)
+
+        # --- STAGE 8: PRODUCTION MODE VALIDATION (if enforced) ---
         if lifespan_settings.security_mode == "enforced":
-            TOTAL_STAGES = 7
+            TOTAL_STAGES = 8
             
             async def validate_production():
                 """Validate production security requirements."""
@@ -450,7 +478,7 @@ async def lifespan(_app: FastAPI):
             def verify_production():
                 return True  # If we get here, validation passed
             
-            await run_stage(7, TOTAL_STAGES, "Production Security Validation", validate_production, verify_production)
+            await run_stage(8, TOTAL_STAGES, "Production Security Validation", validate_production, verify_production)
         
         # --- SETUP COMPLETE ---
         total_time = time.time() - start_time
@@ -2164,6 +2192,40 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return FileResponse(str(page_path))
         return HTMLResponse(content="<h1>API Workbook not found</h1>", status_code=404)
 
+    @fastapi_app.get("/admin/module-flags.html", response_class=HTMLResponse)
+    async def admin_module_flags_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve Module Flag Overlay admin page - ADMIN role required."""
+        page_path = BASE_PATH / "static" / "admin" / "module_flags.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Module Flags not found</h1>", status_code=404)
+
+    @fastapi_app.get("/admin/forge.html", response_class=HTMLResponse)
+    async def admin_forge_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve Semptify Forge admin page - ADMIN role required.
+
+        The Forge is the canonical module development system. Alias /admin/dev-lab.html
+        kept for backward compatibility.
+        """
+        page_path = BASE_PATH / "static" / "admin" / "dev_lab.html"
+        if page_path.exists():
+            return FileResponse(str(page_path))
+        return HTMLResponse(content="<h1>Semptify Forge not found</h1>", status_code=404)
+
+    @fastapi_app.get("/admin/dev-lab.html", response_class=HTMLResponse)
+    async def admin_dev_lab_page(
+        request: Request,
+        admin_uid: str = Depends(require_admin),
+    ):
+        """Serve Dev Lab admin page (alias for /admin/forge.html)."""
+        return await admin_forge_page(request, admin_uid)
+
     @fastapi_app.get("/docs/component-inventory.html", response_class=HTMLResponse)
     async def docs_component_inventory(
         request: Request,
@@ -3454,6 +3516,23 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             "timestamp": utc_now().isoformat(),
         }
 
+    @fastapi_app.get("/tenant/my-advocate", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/my-advocate/", response_class=HTMLResponse)
+    async def tenant_my_advocate_page(request: Request):
+        """Serve the tenant's advocate management page (case sharing)."""
+        guard_redirect = await _guard_role_page(request, {"tenant", "user"})
+        if guard_redirect:
+            return guard_redirect
+
+        my_advocate_template_path = BASE_PATH / "app" / "templates" / "pages" / "tenant_my_advocate.html"
+        if my_advocate_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/tenant_my_advocate.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Tenant my-advocate template error: %s", e)
+
+        return HTMLResponse(content="<h1>My Advocate page not found</h1>", status_code=404)
+
     @fastapi_app.get("/tenant/{subpage}", response_class=HTMLResponse)
     async def tenant_subpage(subpage: str, request: Request):
         """Catch-all for tenant sub-pages not matched by explicit routes above."""
@@ -3506,6 +3585,42 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             return advocate_fallback
 
         return HTMLResponse(content="<h1>Advocate page not found</h1>", status_code=404)
+
+    @fastapi_app.get("/advocate/clients/{client_id}", response_class=HTMLResponse)
+    async def advocate_client_detail_page(client_id: str, request: Request):
+        """Serve the advocate client detail page for a specific client."""
+        guard_redirect = await _guard_role_page(request, {"advocate"})
+        if guard_redirect:
+            return guard_redirect
+
+        client_template_path = BASE_PATH / "app" / "templates" / "pages" / "advocate_client_detail.html"
+        if client_template_path.exists():
+            try:
+                return templates.TemplateResponse(
+                    request,
+                    "pages/advocate_client_detail.html",
+                    {"client_id": client_id},
+                )
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Advocate client detail template error: %s", e)
+
+        return HTMLResponse(content="<h1>Client detail page not found</h1>", status_code=404)
+
+    @fastapi_app.get("/advocate/invite", response_class=HTMLResponse)
+    async def advocate_invite_page(request: Request):
+        """Serve the advocate invite codes page."""
+        guard_redirect = await _guard_role_page(request, {"advocate"})
+        if guard_redirect:
+            return guard_redirect
+
+        invite_template_path = BASE_PATH / "app" / "templates" / "pages" / "advocate_invite.html"
+        if invite_template_path.exists():
+            try:
+                return templates.TemplateResponse(request, "pages/advocate_invite.html")
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Advocate invite template error: %s", e)
+
+        return HTMLResponse(content="<h1>Invite page not found</h1>", status_code=404)
 
     @fastapi_app.get("/advocate/{subpage}", response_class=HTMLResponse)
     async def advocate_subpage(subpage: str, request: Request):

@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 import logging
 
+from app.core.request_utils import get_request_user_id
 from .service import (
     LocationService,
     get_location_service,
@@ -63,33 +64,8 @@ class StateInfoResponse(BaseModel):
 # =============================================================================
 
 def get_user_id(request: Request) -> str:
-    """
-    Get user ID from request.
-    Falls back to session ID or generates temporary ID.
-    """
-    user_id = None
-
-    # Try to get from session (safely check if session middleware is installed)
-    try:
-        if "session" in request.scope:
-            user_id = request.session.get("user_id")
-    except (AssertionError, KeyError):
-        pass
-
-    if not user_id:
-        # Try cookie
-        _raw = request.cookies.get("semptify_user_id")
-        user_id = str(_raw) if _raw is not None else None
-
-    if not user_id:
-        # Generate temporary ID based on client IP (for demo purposes)
-        try:
-            client_ip = request.client.host if request.client else "unknown"
-        except (AttributeError, TypeError):
-            client_ip = "unknown"
-        user_id = f"temp_{hash(client_ip) % 100000:05d}"
-
-    return user_id
+    """Get user ID from the canonical cookie, falling back to \"anonymous\"."""
+    return get_request_user_id(request)
 # =============================================================================
 # ENDPOINTS
 # =============================================================================

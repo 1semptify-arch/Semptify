@@ -1,0 +1,327 @@
+{% extends "base.html" %}
+
+{% block title %}Invite Clients - Advocate - Semptify{% endblock %}
+
+{% block styles %}
+<style>
+.advocate-invite {
+    max-width: 800px;
+    margin: 1.5rem auto;
+    padding: 1rem;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--color-text-secondary);
+    font-size: 0.88rem;
+    text-decoration: none;
+    margin-bottom: 1rem;
+}
+.back-link:hover { color: var(--color-text-primary); }
+
+.page-header {
+    margin-bottom: 1.5rem;
+}
+.page-header h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.3rem 0; }
+.page-header p { color: var(--color-text-secondary); font-size: 0.9rem; margin: 0; }
+
+/* Info banner */
+.info-banner {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
+    color: #1e40af;
+    line-height: 1.5;
+}
+.info-banner strong { font-weight: 700; }
+
+/* Code cards */
+.code-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+.code-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.75rem;
+}
+.code-value {
+    font-family: 'Courier New', monospace;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #15803d;
+    letter-spacing: 0.05em;
+}
+.code-role-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #64748b;
+}
+.code-meta {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.75rem;
+}
+.code-meta span { display: flex; flex-direction: column; }
+.code-meta strong { color: var(--color-text-primary); font-size: 1rem; }
+.code-description {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.75rem;
+    font-style: italic;
+}
+.code-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1.1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+.btn--primary { background: #15803d; color: #fff; }
+.btn--primary:hover { background: #166534; }
+.btn--secondary { background: var(--color-bg-card); color: var(--color-text-primary); border-color: var(--color-border); }
+.btn--secondary:hover { background: var(--color-bg-hover); }
+.btn--sm { padding: 0.35rem 0.8rem; font-size: 0.82rem; }
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--color-text-secondary);
+}
+.empty-state h3 { font-size: 1.1rem; margin: 0 0 0.5rem 0; color: var(--color-text-primary); }
+.empty-state p { font-size: 0.88rem; margin: 0 0 1rem 0; }
+
+/* Share modal */
+.modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center; justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal-card {
+    background: var(--color-bg-card);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    max-width: 480px; width: 90%;
+}
+.modal-card h3 { margin: 0 0 1rem 0; font-size: 1.1rem; }
+.share-link-box {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.share-link-input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    background: var(--color-bg-hover);
+}
+.modal-instructions {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+.modal-instructions ol { padding-left: 1.25rem; }
+.modal-instructions li { margin-bottom: 0.3rem; }
+.modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+/* Loading */
+.loading { text-align: center; padding: 2rem; color: var(--color-text-secondary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="advocate-invite">
+    <a href="/advocate" class="back-link">← Back to Advocate Dashboard</a>
+
+    <div class="page-header">
+        <h1>Invite Clients</h1>
+        <p>Share your organization's invite codes with tenants to link them to your advocate account.</p>
+    </div>
+
+    <div class="info-banner">
+        <strong>How it works:</strong> Your manager generates invite codes for your organization.
+        Share a code with a tenant. They create a Semptify account and redeem the code during onboarding.
+        Once redeemed, they appear in your client list automatically.
+    </div>
+
+    <div id="codes-container">
+        <div class="loading">Loading invite codes...</div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal-overlay" id="share-modal">
+    <div class="modal-card">
+        <h3>Share Invite Code</h3>
+        <div class="share-link-box">
+            <input type="text" class="share-link-input" id="share-link" readonly>
+            <button class="btn btn--primary btn--sm" id="copy-link">Copy</button>
+        </div>
+        <div class="modal-instructions">
+            <strong>Send this to your tenant:</strong>
+            <ol>
+                <li>Copy the link above</li>
+                <li>Send it to the tenant via email, text, or your preferred method</li>
+                <li>The tenant clicks the link, creates an account, and gets linked to you</li>
+            </ol>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn--secondary btn--sm" id="share-close">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+async function fetchJSON(url) {
+    try {
+        const resp = await fetch(url);
+        if (!resp.ok) return null;
+        return await resp.json();
+    } catch (e) { return null; }
+}
+
+function formatDate(iso) {
+    if (!iso) return 'Never';
+    try { return new Date(iso).toLocaleDateString(); }
+    catch (e) { return iso; }
+}
+
+async function loadCodes() {
+    const container = document.getElementById('codes-container');
+    const data = await fetchJSON('/api/advocate/invite-codes');
+
+    if (!data) {
+        container.innerHTML = '<div class="empty-state"><h3>Could not load invite codes</h3><p>Please try again later.</p></div>';
+        return;
+    }
+
+    if (data.message && data.count === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>No Organization Linked</h3>
+                <p>${data.message}</p>
+                <a href="/advocate" class="btn btn--secondary btn--sm">← Back to Dashboard</a>
+            </div>
+        `;
+        return;
+    }
+
+    if (!data.codes || data.codes.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>No Invite Codes Available</h3>
+                <p>Your manager hasn't created any invite codes yet, or all codes have been used.</p>
+                <p>Contact your manager to request new codes.</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = data.codes.map(c => `
+        <div class="code-card">
+            <div class="code-card-header">
+                <div class="code-value">${c.code}</div>
+                <span class="code-role-badge">${c.role}</span>
+            </div>
+            <div class="code-meta">
+                <span><strong>${c.remaining_uses}</strong>Remaining</span>
+                <span><strong>${c.uses_count}</strong>Used</span>
+                <span><strong>${c.max_uses}</strong>Max</span>
+                <span><strong>${formatDate(c.expires_at)}</strong>Expires</span>
+            </div>
+            ${c.description ? `<div class="code-description">${c.description}</div>` : ''}
+            <div class="code-actions">
+                <button class="btn btn--primary btn--sm" data-share-code="${c.code}">Share Link</button>
+                <button class="btn btn--secondary btn--sm" data-copy-code="${c.code}">Copy Code</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Share modal
+const shareModal = document.getElementById('share-modal');
+const shareLink = document.getElementById('share-link');
+
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-share-code]');
+    if (!btn) return;
+    const code = btn.getAttribute('data-share-code');
+    const link = `${window.location.origin}/?invite=${code}`;
+    shareLink.value = link;
+    shareModal.classList.add('active');
+});
+
+document.getElementById('share-close').addEventListener('click', () => {
+    shareModal.classList.remove('active');
+});
+
+document.getElementById('copy-link').addEventListener('click', () => {
+    shareLink.select();
+    try {
+        document.execCommand('copy');
+        if (window.SemptifyFeedback) {
+            SemptifyFeedback.success('Link copied to clipboard');
+        }
+    } catch (e) {
+        if (window.SemptifyFeedback) {
+            SemptifyFeedback.error('Could not copy. Select and copy manually.');
+        }
+    }
+});
+
+// Copy code
+document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-copy-code]');
+    if (!btn) return;
+    const code = btn.getAttribute('data-copy-code');
+    try {
+        navigator.clipboard.writeText(code);
+        if (window.SemptifyFeedback) {
+            SemptifyFeedback.success(`Code ${code} copied`);
+        }
+    } catch (err) {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = code;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try { document.execCommand('copy'); } catch (e2) { /* ignore */ }
+        document.body.removeChild(textarea);
+        if (window.SemptifyFeedback) {
+            SemptifyFeedback.success(`Code ${code} copied`);
+        }
+    }
+});
+
+loadCodes();
+</script>
+{% endblock %}

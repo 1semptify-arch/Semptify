@@ -64,7 +64,7 @@ async def get_postman_collection(admin: dict = Depends(require_admin)):
             media_type="application/json",
             headers={
                 "Cache-Control": "public, max-age=3600",
-                "Content-Disposition": "inline; filename=semtify-api.postman_collection.json"
+                "Content-Disposition": "inline; filename=semptify-api.postman_collection.json"
             }
         )
         
