@@ -396,11 +396,11 @@ async function saveConfiguration() {
         });
 
         if (response.ok) {
-            alert('✅ Configuration saved successfully!');
+            if (window.SemptifyFeedback) { SemptifyFeedback.success('Configuration saved successfully.'); } else { alert('✅ Configuration saved successfully!'); }
         }
     } catch (error) {
         console.error('Error saving configuration:', error);
-        alert('❌ Error saving configuration');
+        if (window.SemptifyFeedback) { SemptifyFeedback.error('Error saving configuration.'); } else { alert('❌ Error saving configuration'); }
     }
 }
 

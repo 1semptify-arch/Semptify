@@ -16,45 +16,30 @@ This file is kept for backward compatibility during migration.
 """
 
 import json
+import logging
 import secrets
-from datetime import datetime, timezone
-from typing import Optional, Dict, Any
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 from app.core.config import get_settings
+from app.core.path_utils import normalize_cloud_path
+from app.core.vault_paths import (
+    AUTH_FOLDER,
+    DEVICE_KEYS_FILE,
+    README_FILE,
+    REHOME_FILE,
+    SEMPTIFY_ROOT,
+    TOKEN_BACKUP,
+    TOKEN_FILE,
+)
 from app.sdk.vault.encryption import (
     MasterToken,
-    encrypt_token as _sdk_encrypt_token,
     decrypt_token as _sdk_decrypt_token,
+    encrypt_token as _sdk_encrypt_token,
 )
-from app.core.vault_paths import (
-    SEMPTIFY_ROOT,
-    AUTH_FOLDER,
-    VAULT_FOLDER,
-    VAULT_ROOT,
-    VAULT_DOCUMENTS,
-    VAULT_CERTIFICATES,
-    VAULT_TIMELINE,
-    VAULT_TIMELINE_EVENTS_FILENAME,
-    VAULT_TIMELINE_EVENTS_FILE,
-    VAULT_OVERLAYS,
-    VAULT_OVERLAY_REGISTRY,
-    VAULT_OVERLAY_DOCUMENTS,
-    VAULT_OVERLAY_QUERIES,
-    VAULT_OVERLAYS_FORMS,
-    VAULT_OVERLAY_REDACTIONS,
-    TOKEN_FILE,
-    TOKEN_BACKUP,
-    DEVICE_KEYS_FILE,
-    PROVISIONING_FILE,
-    REHOME_FILE,
-    README_FILE,
-    VAULT_MANIFEST,
-)
-from app.core.path_utils import normalize_cloud_path
-from app.core.utc import utc_now
 
 settings = get_settings()
+logger = logging.getLogger(__name__)
 
 
 # =============================================================================
@@ -66,6 +51,7 @@ settings = get_settings()
 @dataclass
 class DeviceKey:
     """Tracks authorized devices."""
+
     device_id: str
     device_name: str
     authorized_at: str
@@ -76,6 +62,7 @@ class DeviceKey:
 # =============================================================================
 # Encryption Helpers — thin wrappers around SDK that inject secret_key from settings
 # =============================================================================
+
 
 def _get_secret_key() -> str:
     """Fetch secret key from settings — single source for vault_manager callers."""
@@ -90,9 +77,12 @@ def encrypt_token(token: MasterToken, user_id: str) -> bytes:
 def decrypt_token(encrypted: bytes, user_id: str) -> MasterToken:
     """Decrypt using SDK implementation. secret_key injected from settings."""
     return _sdk_decrypt_token(encrypted, user_id, _get_secret_key())
+
+
 # =============================================================================
 # File Generation
 # =============================================================================
+
 
 def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
     """
@@ -100,24 +90,16 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
     This file is stored in user's cloud storage root Semptify5.0 folder.
     """
     from app.core.user_id import parse_user_id
-    
+
     _, role, _ = parse_user_id(user_id)
-    
-    provider_names = {
-        "google_drive": "Google Drive",
-        "dropbox": "Dropbox",
-        "onedrive": "OneDrive"
-    }
+
+    provider_names = {"google_drive": "Google Drive", "dropbox": "Dropbox", "onedrive": "OneDrive"}
     provider_display = provider_names.get(provider, provider)
-    
-    provider_icons = {
-        "google_drive": "🔷",
-        "dropbox": "📦",
-        "onedrive": "☁️"
-    }
+
+    provider_icons = {"google_drive": "🔷", "dropbox": "📦", "onedrive": "☁️"}
     provider_icon = provider_icons.get(provider, "📁")
-    
-    return f'''<!DOCTYPE html>
+
+    return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -230,7 +212,7 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
         <div class="logo">🏠</div>
         <h1>Welcome Back</h1>
         <p class="subtitle">Reconnect this device to your Semptify account</p>
-        
+
         <div class="info-box">
             <div class="info-row">
                 <span class="info-label">Storage Provider</span>
@@ -245,38 +227,38 @@ def generate_rehome_html(user_id: str, provider: str, base_url: str) -> str:
                 <span class="info-value" style="font-family: 'SF Mono', Monaco, monospace; font-size: 0.85rem;">🔑 {user_id}</span>
             </div>
         </div>
-        
+
         <!-- Direct link: works from file:// without any JS fetch restrictions -->
         <a href="{base_url}/storage/rehome/{user_id}" class="btn btn-primary" id="rehomeBtn">
             <span>🔗</span> Connect This Device
         </a>
-        
+
         <div class="status" id="status"></div>
-        
+
         <div class="security-note">
             <strong>🔒 Secure Connection</strong>
-            Your data stays encrypted in your {provider_display}. 
+            Your data stays encrypted in your {provider_display}.
             Semptify never stores your files on external servers.
         </div>
-        
+
         <div style="margin-top:16px; font-size:0.8rem; color:#64748b;">
             If the button doesn't work, copy this link into your browser:<br>
             <code style="word-break:break-all; color:#94a3b8;">{base_url}/storage/rehome/{user_id}</code>
         </div>
     </div>
-    
+
     <script>
         // NOTE: This file is opened from cloud storage (file:// origin).
         // Do NOT use fetch() here — file:// cannot make network requests.
         // Navigation via href works fine; fetch() is blocked by browser security.
-        
+
         // Auto-redirect after 1.5s so user doesn't even need to click
         setTimeout(() => {{
             window.location.href = "{base_url}/storage/rehome/{user_id}";
         }}, 1500);
     </script>
 </body>
-</html>'''
+</html>"""
 
 
 def generate_vault_manifest(user_id: str, created_at: str) -> str:
@@ -290,7 +272,7 @@ def generate_vault_manifest(user_id: str, created_at: str) -> str:
 
     DO NOT DELETE OR MODIFY THIS FILE.
     """
-    return f'''╔══════════════════════════════════════════════════════════════════════╗
+    return f"""╔══════════════════════════════════════════════════════════════════════╗
 ║                    SEMPTIFY 5.0 — VAULT MANIFEST                     ║
 ║                  DO NOT DELETE THIS FILE OR ANY FOLDER               ║
 ╚══════════════════════════════════════════════════════════════════════╝
@@ -409,19 +391,19 @@ Your files remain in your storage regardless.
 
 For help: https://semptify.org/help
 
-'''
+"""
 
 
 def generate_readme() -> str:
     """Generate README.txt for Semptify folder."""
-    return '''╔══════════════════════════════════════════════════════════════╗
+    return """╔══════════════════════════════════════════════════════════════╗
 ║                    SEMPTIFY 5.0                               ║
 ║              Your Legal Defense Vault                         ║
 ╚══════════════════════════════════════════════════════════════╝
 
 ⚠️  IMPORTANT: DO NOT DELETE THIS FOLDER
 
-This folder contains your encrypted legal documents and 
+This folder contains your encrypted legal documents and
 authentication data for Semptify.
 
 📁 FOLDER CONTENTS:
@@ -442,21 +424,22 @@ authentication data for Semptify.
 
 📞 SUPPORT:
    Visit: https://semptify.org/help
-   
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-'''
+"""
 
 
 # =============================================================================
 # Vault Manager Class
 # =============================================================================
 
+
 class VaultManager:
     """
     Manages the Semptify5.0 folder structure and token operations.
     Token NEVER leaves storage - all operations happen server-side.
     """
-    
+
     def __init__(self, storage_provider, user_id: str, base_url: str):
         """
         Args:
@@ -467,7 +450,7 @@ class VaultManager:
         self.storage = storage_provider
         self.user_id = user_id
         self.base_url = base_url
-        self._cached_token: Optional[MasterToken] = None
+        self._cached_token: MasterToken | None = None
 
     async def _write_provisioning_state(
         self,
@@ -481,7 +464,7 @@ class VaultManager:
             "state": state,
             "vault_created": vault_created,
             "vault_enabled": vault_enabled,
-            "updated_at": utc_now().isoformat(),
+            "updated_at": datetime.now(UTC).isoformat(),
             "error": error,
         }
         await self.storage.upload_file(
@@ -490,9 +473,9 @@ class VaultManager:
             filename="provisioning_state.json",
             mime_type="application/json",
         )
-    
+
     async def initialize_vault(
-        self, 
+        self,
         provider_name: str,
         access_token: str = "",
         refresh_token: str = "",
@@ -520,9 +503,8 @@ class VaultManager:
             try:
                 await self.storage.create_folder(folder)
                 created.append({"type": "folder", "path": folder})
-            except Exception:
-                # Folder might already exist or provider may not support the operation.
-                pass
+            except Exception as exc:
+                logger.debug("Folder creation skipped for %s (may already exist): %s", folder, exc)
 
         try:
             # Mark structure as being created (inside try so failures are caught and logged).
@@ -535,7 +517,7 @@ class VaultManager:
             token = MasterToken(
                 token_id=secrets.token_urlsafe(32),
                 user_id=self.user_id,
-                created_at=utc_now().isoformat(),
+                created_at=datetime.now(UTC).isoformat(),
                 provider=provider_name,
                 access_token=access_token,
                 refresh_token=refresh_token,
@@ -543,7 +525,7 @@ class VaultManager:
             )
 
             encrypted_token = encrypt_token(token, self.user_id)
-            
+
             # Store token and backup
             await self._write_provisioning_state(
                 state="writing_tokens",
@@ -558,7 +540,7 @@ class VaultManager:
                 mime_type="application/octet-stream",
             )
             created.append({"type": "file", "path": TOKEN_FILE})
-            
+
             await self.storage.upload_file(
                 file_content=encrypted_token,
                 destination_path=AUTH_FOLDER,
@@ -580,7 +562,7 @@ class VaultManager:
             decrypt_token(backup_bytes, self.user_id)
 
             # Initialize device keys
-            device_keys = {"devices": [], "created_at": utc_now().isoformat()}
+            device_keys = {"devices": [], "created_at": datetime.now(UTC).isoformat()}
             await self.storage.upload_file(
                 file_content=json.dumps(device_keys, indent=2).encode(),
                 destination_path=AUTH_FOLDER,
@@ -588,7 +570,7 @@ class VaultManager:
                 mime_type="application/json",
             )
             created.append({"type": "file", "path": DEVICE_KEYS_FILE})
-            
+
             # Create Rehome.html
             rehome_html = generate_rehome_html(self.user_id, provider_name, self.base_url)
             await self.storage.upload_file(
@@ -598,7 +580,7 @@ class VaultManager:
                 mime_type="text/html",
             )
             created.append({"type": "file", "path": REHOME_FILE})
-            
+
             # Create README
             readme = generate_readme()
             await self.storage.upload_file(
@@ -622,7 +604,7 @@ class VaultManager:
             # is provably complete.
             manifest = generate_vault_manifest(
                 user_id=self.user_id,
-                created_at=utc_now().strftime("%Y-%m-%d %H:%M:%S UTC"),
+                created_at=datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC"),
             )
             await self.storage.upload_file(
                 file_content=manifest.encode(),
@@ -640,7 +622,7 @@ class VaultManager:
                 error=str(exc),
             )
             raise
-        
+
         return {
             "success": True,
             "user_id": self.user_id,
@@ -649,15 +631,15 @@ class VaultManager:
             "vault_enabled": True,
             "created": created,
         }
-    
-    async def get_token(self) -> Optional[MasterToken]:
+
+    async def get_token(self) -> MasterToken | None:
         """
         Fetch and decrypt the master token from storage.
         Token is decrypted in-memory only - never sent to client.
         """
         if self._cached_token:
             return self._cached_token
-        
+
         try:
             encrypted = await self.storage.download_file(TOKEN_FILE)
             token = decrypt_token(encrypted, self.user_id)
@@ -665,13 +647,14 @@ class VaultManager:
             self._cached_token = token
             return token
         except Exception as e:
+            logger.warning("Primary token read failed for user %s: %s", self.user_id, e)
             # Try backup
             try:
                 encrypted = await self.storage.download_file(TOKEN_BACKUP)
                 token = decrypt_token(encrypted, self.user_id)
                 token.record_validation()
                 self._cached_token = token
-                
+
                 # Restore main token from backup
                 await self.storage.upload_file(
                     file_content=encrypted,
@@ -679,30 +662,31 @@ class VaultManager:
                     filename="token.enc",
                     mime_type="application/octet-stream",
                 )
-                
+                logger.info("Token restored from backup for user %s", self.user_id)
                 return token
-            except Exception:
+            except Exception as backup_exc:
+                logger.error("Backup token read also failed for user %s: %s", self.user_id, backup_exc)
                 return None
-    
+
     async def validate_token(self) -> bool:
         """Check if user has valid token in storage."""
         token = await self.get_token()
         return token is not None
 
-    async def get_oauth_credentials(self) -> Optional[Dict[str, str]]:
+    async def get_oauth_credentials(self) -> dict[str, str] | None:
         """
         Get OAuth credentials from cloud storage.
-        
+
         This is the RECOVERY path - used when database doesn't have the token
         (e.g., after Rehome, or database loss). The primary path is database lookup.
-        
+
         Returns:
             dict with access_token, refresh_token, provider if available
         """
         token = await self.get_token()
         if not token or not token.access_token:
             return None
-        
+
         return {
             "access_token": token.access_token,
             "refresh_token": token.refresh_token,
@@ -711,22 +695,22 @@ class VaultManager:
         }
 
     async def update_oauth_credentials(
-        self, 
-        access_token: str, 
+        self,
+        access_token: str,
         refresh_token: str = "",
         token_expires_at: str = "",
     ) -> bool:
         """
         Update OAuth credentials in cloud storage after token refresh.
-        
-        Call this whenever the access_token is refreshed to keep 
+
+        Call this whenever the access_token is refreshed to keep
         cloud backup in sync with database.
         """
         try:
             token = await self.get_token()
             if not token:
                 return False
-            
+
             # Update credentials
             token.access_token = access_token
             if refresh_token:
@@ -734,17 +718,17 @@ class VaultManager:
             if token_expires_at:
                 token.token_expires_at = token_expires_at
             token.record_validation()
-            
+
             # Re-encrypt and store
             encrypted = encrypt_token(token, self.user_id)
-            
+
             await self.storage.upload_file(
                 file_content=encrypted,
                 destination_path=AUTH_FOLDER,
                 filename="token.enc",
                 mime_type="application/octet-stream",
             )
-            
+
             # Update backup too
             await self.storage.upload_file(
                 file_content=encrypted,
@@ -752,12 +736,13 @@ class VaultManager:
                 filename="token.enc.backup",
                 mime_type="application/octet-stream",
             )
-            
+
             # Update cache
             self._cached_token = token
             return True
-            
-        except Exception:
+
+        except Exception as exc:
+            logger.error("Failed to update OAuth credentials for user %s: %s", self.user_id, exc)
             return False
 
     async def regenerate_rehome_file(self) -> bool:
@@ -771,12 +756,12 @@ class VaultManager:
             token = await self.get_token()
             if not token:
                 return False
-            
+
             provider_name = token.provider or "google_drive"
-            
+
             # Generate rehome HTML
             rehome_html = generate_rehome_html(self.user_id, provider_name, self.base_url)
-            
+
             # Upload to storage
             await self.storage.upload_file(
                 file_content=rehome_html.encode(),
@@ -798,16 +783,16 @@ class VaultManager:
         if not token:
             return False
         return token.authorize_module(module)
-    
+
     async def register_device(self, device_id: str, device_name: str, user_agent: str = "") -> bool:
         """Register a new device as authorized."""
         try:
             # Load existing device keys
             content = await self.storage.download_file(DEVICE_KEYS_FILE)
             device_data = json.loads(content.decode())
-            
+
             # Add new device
-            now = utc_now().isoformat()
+            now = datetime.now(UTC).isoformat()
             new_device = {
                 "device_id": device_id,
                 "device_name": device_name,
@@ -815,14 +800,14 @@ class VaultManager:
                 "last_seen": now,
                 "user_agent": user_agent,
             }
-            
+
             # Check if device already registered
             existing = next((d for d in device_data["devices"] if d["device_id"] == device_id), None)
             if existing:
                 existing["last_seen"] = now
             else:
                 device_data["devices"].append(new_device)
-            
+
             # Save updated device keys
             await self.storage.upload_file(
                 file_content=json.dumps(device_data, indent=2).encode(),
@@ -830,24 +815,27 @@ class VaultManager:
                 filename="device_keys.json",
                 mime_type="application/json",
             )
-            
+
             return True
-        except Exception:
+        except Exception as exc:
+            logger.warning("Failed to register device %s: %s", device_id, exc)
             return False
-    
+
     async def vault_exists(self) -> bool:
         """Check if Semptify vault folder exists in storage."""
         try:
             # Try to list the auth folder
             await self.storage.download_file(TOKEN_FILE)
             return True
-        except Exception:
+        except Exception as exc:
+            logger.debug("Vault existence check failed (token not found): %s", exc)
             return False
 
 
 # =============================================================================
 # Factory Function
 # =============================================================================
+
 
 def get_vault_manager(storage_provider, user_id: str, base_url: str) -> VaultManager:
     """Get a VaultManager instance for the user."""

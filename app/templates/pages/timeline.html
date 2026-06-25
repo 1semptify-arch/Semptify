@@ -294,7 +294,7 @@ function addManualEvent() {
     const is_evidence = document.getElementById('me-evidence').checked;
 
     if (!date || !title) {
-      alert('Date and title are required');
+      if (window.SemptifyFeedback) { SemptifyFeedback.error('Date and title are required.'); } else { alert('Date and title are required'); }
       return;
     }
 
@@ -312,7 +312,7 @@ function addManualEvent() {
       close();
       window.location.reload();
     } catch (err) {
-      alert('Failed to save event: ' + err.message);
+      if (window.SemptifyFeedback) { SemptifyFeedback.error('Failed to save event.', { detail: err.message }); } else { alert('Failed to save event: ' + err.message); }
       btn.disabled = false; btn.textContent = 'Save Event';
     }
   });

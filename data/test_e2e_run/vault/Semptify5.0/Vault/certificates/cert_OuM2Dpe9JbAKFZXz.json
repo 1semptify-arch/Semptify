@@ -1,0 +1,16 @@
+{
+  "certificate_id": "cert_OuM2Dpe9JbAKFZXz",
+  "vault_id": "doc_G1FmrOVHfHV73Ju8",
+  "sha256": "04f59a318c9ed28bf1e320a0dcede87ddb33b624c3f050e74b2d4ed9894fbb95",
+  "original_filename": "eviction_notice.txt",
+  "file_size": 399,
+  "mime_type": "text/plain",
+  "document_type": "notice",
+  "certified_at": "2026-06-20T06:17:05.670719+00:00",
+  "storage_path": "Semptify5.0/Vault/documents/doc_G1FmrOVHfHV73Ju8.txt",
+  "storage_provider": "local",
+  "provider_file_id": null,
+  "user_id": "e2e_test_1781936221",
+  "version": "5.0",
+  "platform": "Semptify Vault Service"
+}

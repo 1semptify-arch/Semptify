@@ -35,6 +35,7 @@ import logging
 from typing import Iterable
 
 from app.core.product_manifest import MANIFEST, ModuleEntry, ProductTier
+from app.core.module_overrides import effective_entry
 
 logger = logging.getLogger(__name__)
 
@@ -111,7 +112,13 @@ async def _check_entry(
     jurisdiction: str | None,
     gates: Iterable[str],
 ) -> bool:
-    """Run all checks for a single module entry."""
+    """Run all checks for a single module entry.
+
+    Applies runtime overrides from module_overrides before checking.
+    """
+    # Apply runtime overrides (admin UI toggles)
+    entry = effective_entry(entry)
+
     # 1. Lifecycle check
     if not _lifecycle_visible_to_role(entry.lifecycle, role):
         return False

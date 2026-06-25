@@ -297,7 +297,7 @@
     }
     async function saveCalculation(id) {
       const data = calcResults[id];
-      if (!data) { alert('No calculation result to save.'); return; }
+      if (!data) { if (window.SemptifyFeedback) { SemptifyFeedback.error('No calculation result to save.'); } else { alert('No calculation result to save.'); } return; }
       const btn = document.getElementById('btn-save-' + id);
       const originalText = btn.textContent;
       try {
@@ -310,12 +310,12 @@
         });
         const result = await resp.json();
         if (result.success) {
-          alert('Saved to vault: ' + (result.filename || ''));
+          if (window.SemptifyFeedback) { SemptifyFeedback.success('Saved to vault: ' + (result.filename || '')); } else { alert('Saved to vault: ' + (result.filename || '')); }
         } else {
-          alert('Save failed: ' + (result.message || resp.statusText));
+          if (window.SemptifyFeedback) { SemptifyFeedback.error('Save failed.', { detail: result.message || resp.statusText }); } else { alert('Save failed: ' + (result.message || resp.statusText)); }
         }
       } catch (e) {
-        alert('Save failed: ' + e.message);
+        if (window.SemptifyFeedback) { SemptifyFeedback.error('Save failed.', { detail: e.message }); } else { alert('Save failed: ' + e.message); }
       } finally {
         btn.textContent = originalText;
         btn.disabled = false;
@@ -421,5 +421,6 @@
     document.getElementById('sd-start').valueAsDate = new Date(new Date().setFullYear(new Date().getFullYear() - 1));
     document.getElementById('sd-end').valueAsDate = new Date();
   </script>
+<script src="/static/components/feedback.js"></script>
 </body>
 </html>

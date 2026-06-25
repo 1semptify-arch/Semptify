@@ -61,6 +61,11 @@ class ReportGenerationRequest(BaseModel):
     filters: Optional[Dict[str, Any]] = Field(None, description="Filters for report")
     export_format: str = Field("json", description="Export format (json, csv, pdf)")
 
+class NormalizeEntitiesRequest(BaseModel):
+    """Request for normalizing multiple entities."""
+    entities: List[Any] = Field(..., description="List of entities to normalize")
+    context: str = Field("general", description="Context for normalization")
+
 class ScheduledTaskRequest(BaseModel):
     """Request for scheduled task management."""
     task_name: str = Field(..., description="Task name")
@@ -151,17 +156,13 @@ async def normalize_entity(request: EntityNormalizationRequest,
         raise HTTPException(status_code=500, detail="Normalization failed")
 
 @lis_router.post("/normalize/entities")
-async def normalize_entities(request: Dict[str, Any],
+async def normalize_entities(request: NormalizeEntitiesRequest,
                            current_user = Depends(get_current_user)):
     """Normalize multiple entities."""
     try:
-        entities = request.get("entities", [])
-        if not isinstance(entities, list):
-            raise HTTPException(status_code=400, detail="entities must be a list")
-        
         resolutions = entity_normalizer.resolve_entities(
-            entities,
-            request.get("context", "general")
+            request.entities,
+            request.context
         )
         
         return JSONResponse(content={
@@ -239,7 +240,7 @@ async def build_entity_graph(request: GraphVisualizationRequest,
             "success": True,
             "graph_data": graph_engine.export_graph_data(),
             "analysis": analysis.to_dict(),
-            "built_at": datetime.now(timezone.utc).isoformat()
+            "built_at": utc_now().isoformat()
         })
 
     except Exception as e:
@@ -262,7 +263,7 @@ async def generate_graph_visualization(request: GraphVisualizationRequest,
         return JSONResponse(content={
             "success": True,
             "visualization": visualization_data,
-            "generated_at": datetime.now(timezone.utc).isoformat()
+            "generated_at": utc_now().isoformat()
         })
 
     except Exception as e:
@@ -283,7 +284,7 @@ async def find_shortest_path(source_entity: str,
             "source_entity": source_entity,
             "target_entity": target_entity,
             "path": path,
-            "calculated_at": datetime.now(timezone.utc).isoformat()
+            "calculated_at": utc_now().isoformat()
         })
 
     except Exception as e:

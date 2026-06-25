@@ -406,7 +406,11 @@
                 loadEntries();
 
             } catch (err) {
-                alert('Error saving entry: ' + err.message);
+                if (window.SemptifyFeedback) {
+                    SemptifyFeedback.error('Could not save your journal entry.', { detail: err.message });
+                } else {
+                    alert('Error saving entry: ' + err.message);
+                }
             }
         }
 
@@ -453,12 +457,19 @@
 
             try {
                 // TODO: Core doesn't have delete endpoint for timeline events yet
-                // For now, just reload to reflect the change if implemented later
-                alert('Delete not yet implemented in Core build. Feature coming soon.');
+                if (window.SemptifyFeedback) {
+                    SemptifyFeedback.info('Delete is coming soon. For now, entries are permanent.');
+                } else {
+                    alert('Delete not yet implemented in Core build. Feature coming soon.');
+                }
                 // loadEntries();
 
             } catch (err) {
-                alert('Error deleting entry: ' + err.message);
+                if (window.SemptifyFeedback) {
+                    SemptifyFeedback.error('Could not delete entry.', { detail: err.message });
+                } else {
+                    alert('Error deleting entry: ' + err.message);
+                }
             }
         }
 
@@ -509,5 +520,6 @@
   </div>
 </footer>
 
+<script src="/static/components/feedback.js"></script>
 </body>
 </html>
