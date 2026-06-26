@@ -34,9 +34,15 @@ If a caller asks for an unknown component type, compose_page raises ValueError.
 from __future__ import annotations
 
 import logging
+from datetime import date
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
+
+
+def _modal_data() -> Dict[str, Any]:
+    """Shared data for the Add Record modal (pre-fills today's date)."""
+    return {"today": date.today().isoformat()}
 
 
 # --- Component type registry (SSOT for valid component types) ----------
@@ -207,7 +213,7 @@ def _compose_landing(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
         }))
 
     components.append(_component("add_record_button"))
-    components.append(_component("add_record_modal"))
+    components.append(_component("add_record_modal", _modal_data()))
 
     return {
         "page_title": "My Home — Semptify",
@@ -261,7 +267,7 @@ def _compose_timeline(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     }))
 
     components.append(_component("add_record_button"))
-    components.append(_component("add_record_modal"))
+    components.append(_component("add_record_modal", _modal_data()))
 
     return {
         "page_title": "Timeline — Semptify",
@@ -301,7 +307,7 @@ def _compose_library(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     }))
 
     components.append(_component("add_record_button"))
-    components.append(_component("add_record_modal"))
+    components.append(_component("add_record_modal", _modal_data()))
 
     return {
         "page_title": "Library — Know Your Rights — Semptify",
@@ -338,7 +344,7 @@ def _compose_documents(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
         }))
 
     components.append(_component("add_record_button"))
-    components.append(_component("add_record_modal"))
+    components.append(_component("add_record_modal", _modal_data()))
 
     return {
         "page_title": "Documents — Semptify",
@@ -365,7 +371,7 @@ def _compose_tools(user_id: str, ctx: Dict[str, Any]) -> Dict[str, Any]:
     }))
 
     components.append(_component("add_record_button"))
-    components.append(_component("add_record_modal"))
+    components.append(_component("add_record_modal", _modal_data()))
 
     return {
         "page_title": "Tools — Semptify",
