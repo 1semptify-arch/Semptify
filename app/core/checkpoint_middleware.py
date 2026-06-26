@@ -31,6 +31,7 @@ EXEMPT_PATHS = {
     "/preamble",  # Routing decision point — must always be reachable
     "/favicon.ico",
     "/robots.txt",
+    "/sitemap.xml",
     "/static/",
     "/public/",
     "/storage/reconnect",
@@ -38,9 +39,22 @@ EXEMPT_PATHS = {
     "/storage/callback",
     "/api/user/lookup",
     "/api/session/restore",
+    "/api/portal/",  # Portal services catalog — public, no auth
     "/onboarding/ssot-navigation",  # SSOT API for static file navigation
     "/onboarding-assets/",  # Static onboarding pages (storage-select, etc)
     "/health",
+    # Public website sub-pages (semptify.org guest portal)
+    "/about",
+    "/services",
+    "/renters-guide",
+    "/advocacy",
+    "/legal-research",
+    "/complaints",
+    "/donate",
+    "/developers",
+    "/contact",
+    "/privacy",
+    "/terms",
 }
 
 # Protected paths - checkpoint required if no session

@@ -106,6 +106,23 @@ PUBLIC_PATHS: Set[str] = {
     "/tools",
     "/help",
 
+    # Public website sub-pages (semptify.org guest portal)
+    "/about",
+    "/services",
+    "/renters-guide",
+    "/advocacy",
+    "/legal-research",
+    "/complaints",
+    "/donate",
+    "/developers",
+    "/contact",
+    "/privacy",
+    "/terms",
+
+    # SEO files
+    "/robots.txt",
+    "/sitemap.xml",
+
     # Static assets
     "/static",
     "/css",
@@ -122,6 +139,7 @@ PUBLIC_PREFIXES = (
     "/onboarding-assets/",  # Onboarding static files
     "/api/vault-installer/",  # Vault installer — auth checked by route
     "/api/law-library/",  # Law library — public education content (page is already public)
+    "/api/portal/",  # Portal services catalog — public, no auth (semptify.org guest portal)
     "/debug/",  # TEMPORARY: diagnostic endpoints
 )
 

@@ -1,0 +1,52 @@
+{% extends "public_base.html" %}
+
+{% block title %}Help & Support — Semptify{% endblock %}
+{% block description %}Help and support for Semptify users. Find answers, contact support, and access emergency resources.{% endblock %}
+{% block keywords %}help, support, semptify help, tenant support, emergency resources{% endblock %}
+
+{% block header_title %}🆘 Help & Support{% endblock %}
+{% block header_tagline %}We're Here to Help{% endblock %}
+{% block header_subtitle %}Find answers, contact support, and access emergency resources.{% endblock %}
+
+{% block content %}
+
+<section class="section">
+    <h2 class="section-title">Emergency Resources</h2>
+    <div class="info-banner">
+        <p>
+            If you're facing an immediate housing emergency (illegal lockout, unsafe
+            conditions, or eviction within 24 hours), contact your local legal aid
+            society or emergency services immediately.
+        </p>
+    </div>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Common Questions</h2>
+    <ul style="color: var(--text-light); margin-left: 1.5rem; line-height: 1.8;">
+        <li><strong>Is Semptify free?</strong> Yes. Free for tenants, forever. No advertising, ever.</li>
+        <li><strong>Where are my documents stored?</strong> In your own cloud storage (Google Drive, Dropbox, or OneDrive). We never store them on our servers.</li>
+        <li><strong>Can Semptify give me legal advice?</strong> No. Semptify is an organizational tool, not a law firm. For legal advice, contact a licensed attorney.</li>
+        <li><strong>How do I get started?</strong> Click "Get Started" on the home page. We'll route you to the right place.</li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Contact Support</h2>
+    <p style="color: var(--text-light);">
+        For help with your account, documents, or tools:
+    </p>
+    <p style="margin-top: 1rem;">
+        <a href="mailto:support@semptify.org" class="cta-button">support@semptify.org →</a>
+    </p>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Browse the Library</h2>
+    <p style="color: var(--text-light);">
+        Looking for information about tenant rights in your state?
+    </p>
+    <a href="/library" class="cta-button" style="margin-top: 1rem;">📚 Browse the Library →</a>
+</section>
+
+{% endblock %}

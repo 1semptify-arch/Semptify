@@ -1,0 +1,61 @@
+{% extends "public_base.html" %}
+
+{% block title %}Legal Research — Semptify{% endblock %}
+{% block description %}Legal research tools for attorneys, paralegals, and researchers. Research landlords, court filings, and property history.{% endblock %}
+{% block keywords %}legal research, landlord research, court filings, litigation intelligence, housing law{% endblock %}
+
+{% block header_title %}🔍 Legal Research{% endblock %}
+{% block header_tagline %}Tools for Legal Professionals{% endblock %}
+{% block header_subtitle %}Research landlords, court filings, and property history.{% endblock %}
+
+{% block content %}
+
+<section class="section">
+    <h2 class="section-title">Research Landlords</h2>
+    <p style="color: var(--text-light);">
+        Tools for researching landlords: court filings, property records, litigation history,
+        and pattern detection. Built for attorneys, paralegals, and researchers who need
+        verifiable information.
+    </p>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Legal Portal</h2>
+    <p style="color: var(--text-light); margin-bottom: 1rem;">
+        Tools for attorneys, paralegals, clerks, and judges:
+    </p>
+    <ul style="color: var(--text-light); margin-left: 1.5rem; line-height: 1.8;">
+        <li>Matter management and case files</li>
+        <li>Court filing and discovery prep</li>
+        <li>Exhibits and evidence management</li>
+        <li>Legal overlays on tenant documents (notes, redaction)</li>
+        <li>Forms sharing with tenants</li>
+        <li>Case review, oversight, and judicial orders</li>
+    </ul>
+    <a href="/legal" class="cta-button secondary" style="margin-top: 1rem;">Legal Login →</a>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Litigation Intelligence</h2>
+    <p style="color: var(--text-light);">
+        Advanced research tools: landlord pattern detection, housing accountability research,
+        and exportable datasets. For researchers and data analysts.
+    </p>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Bar License Required</h2>
+    <div class="info-banner">
+        <p>
+            All legal sub-roles (attorney, judge, clerk, paralegal) require a bar license
+            number on file. This is a public professional credential — not PII.
+        </p>
+    </div>
+</section>
+
+<section class="cta-section">
+    <h2>Ready to research?</h2>
+    <a href="/preamble" class="cta-button-large">Get Started →</a>
+</section>
+
+{% endblock %}

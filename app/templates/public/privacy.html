@@ -1,0 +1,58 @@
+{% extends "public_base.html" %}
+
+{% block title %}Privacy Policy — Semptify{% endblock %}
+{% block description %}Semptify privacy policy. We never store your documents on our servers. Your data stays in your control.{% endblock %}
+{% block keywords %}privacy policy, data privacy, tenant data, document storage{% endblock %}
+
+{% block header_title %}🔒 Privacy Policy{% endblock %}
+{% block header_tagline %}Your Data Stays in Your Control{% endblock %}
+{% block header_subtitle %}We never store your documents on our servers.{% endblock %}
+
+{% block content %}
+
+<section class="section">
+    <h2 class="section-title">Our Privacy Commitment</h2>
+    <p style="color: var(--text-light);">
+        Semptify is privacy-respecting by design. We never store your documents on our
+        servers. Your documents stay in your own cloud storage — Google Drive, Dropbox,
+        or OneDrive — under your control, under your account, under your terms.
+    </p>
+</section>
+
+<section class="section">
+    <h2 class="section-title">What We Store</h2>
+    <ul style="color: var(--text-light); margin-left: 1.5rem; line-height: 1.8;">
+        <li><strong>Account metadata</strong> — Your role, storage provider, and session state.</li>
+        <li><strong>Timeline entries</strong> — Text descriptions of events (not the documents themselves).</li>
+        <li><strong>Journal entries</strong> — Your written notes and records.</li>
+        <li><strong>Verified facts</strong> — Sourced facts from our Context Engine (public law, not your data).</li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">What We Don't Store</h2>
+    <ul style="color: var(--text-light); margin-left: 1.5rem; line-height: 1.8;">
+        <li><strong>Your documents</strong> — Lease, photos, receipts, communications — all in your cloud storage.</li>
+        <li><strong>Your files</strong> — PDFs, images, attachments — all in your cloud storage.</li>
+        <li><strong>Your OAuth tokens</strong> — Stored in encrypted server memory only for active sessions.</li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Your Rights</h2>
+    <ul style="color: var(--text-light); margin-left: 1.5rem; line-height: 1.8;">
+        <li><strong>Access</strong> — You can access your data at any time.</li>
+        <li><strong>Deletion</strong> — You can delete your account and data at any time.</li>
+        <li><strong>Portability</strong> — Your documents are already in your cloud storage — they're portable by design.</li>
+        <li><strong>No advertising</strong> — We never sell your data. No advertising, ever.</li>
+    </ul>
+</section>
+
+<section class="section">
+    <h2 class="section-title">Contact</h2>
+    <p style="color: var(--text-light);">
+        For privacy questions or concerns: <a href="mailto:support@semptify.org" style="color: var(--accent);">support@semptify.org</a>
+    </p>
+</section>
+
+{% endblock %}
