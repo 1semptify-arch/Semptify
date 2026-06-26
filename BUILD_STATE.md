@@ -12,6 +12,58 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-26 — Public Website (Phase 0) + Hybrid Contextual GUI (Phase 1A/1B/1C) (COMPLETE)
+**Commit: `a5343b5` | Pushed: 2026-06-26**
+
+### What Was Shipped
+
+#### Phase 0 — Public Website
+- **`app/modules/portal/`** — new public guest portal module with services catalog SSOT,
+  pages registry (13 public pages), SEO endpoints (sitemap.xml, robots.txt)
+- **`app/templates/public/`** — 13 public sub-page templates + `public_base.html` (mobile-first)
+- **`app/main.py`** — root route renders portal, dynamic public page routes from registry
+- **Middleware** — public paths added to storage + checkpoint middlewares
+
+#### Phase 1A — UI Composer Foundation
+- **`app/services/ui_composer.py`** — `compose_page()` for 6 page intents, 14 component types
+- **`app/modules/ui_composer/`** — 3 API endpoints (`/api/ui/page/{intent}`, `/api/ui/fragment/{ctype}`, `/api/ui/process/{workflow_id}`)
+- **`app/templates/components/ui_composer.html`** — 14 Jinja macros (component library)
+- **`app/templates/generic_page.html`** — one template that renders any composed page
+
+#### Phase 1B — RECORD Pillar
+- **`app/modules/tenant_feed/`** — feed aggregator merging documents + timeline + journal + deadlines + letters
+- **`GET /tenant/timeline`** — self-assembling timeline page
+
+#### Phase 1C — KNOW Pillar
+- **`GET /tenant/library`** — self-assembling library page with 13-subject grid
+
+#### Wiring
+- Product manifest: portal, seo_router, ui_composer, tenant_feed routers registered
+- Contract loader: ui_composer + tenant_feed contracts added (116 total, 0 failures)
+- 4 new FunctionGroupContracts: `ui_composer::page_compose`, `ui_composer::fragment_render`, `ui_composer::process_status`, `tenant_feed::feed_aggregate`
+
+### Known Working
+- All Python files compile clean ✅
+- UI Composer `compose_page()` works for all 6 intents ✅
+- 116 contracts loaded, 0 failures ✅
+- Feed aggregator degrades gracefully (returns empty when sources unavailable) ✅
+- Cloudflare Dev Mode enabled (3 hours) + cache purged ✅
+
+### Known Broken / Pending
+- **Feed aggregator not wired to real data sources** — documents/timeline modules expose router endpoints (with `Depends(yellow_access)`) not service functions. Aggregator returns empty feed. Wiring is a follow-up.
+- **Add Record modal POST endpoint not wired** — modal has `hx-post="/api/journal"` but no endpoint at that path yet
+- **Live render not verified** — no server started (saving Render minutes)
+- **HTMX fragment swaps not verified live**
+- **Visual layout not verified** (mobile/desktop breakpoints)
+
+### Next Session
+- Verify /tenant/timeline and /tenant/library render correctly on Render
+- Wire feed aggregator to real data sources (extract service functions from documents/timeline routers)
+- Wire Add Record modal POST endpoint (journal capture)
+- Verify HTMX fragment swaps work (filter chips, subject grid, process indicator)
+
+---
+
 ## Session — 2026-06-25 — Action Feedback Audit Cleanup (COMPLETE)
 **Commit: `0040f8a` | Pushed: 2026-06-25**
 
