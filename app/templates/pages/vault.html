@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document Vault - {{ app_name }}</title>
+    <link rel="stylesheet" href="/css/components/vault-portal.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -345,11 +346,11 @@
             window.open('/api/vault/' + id + '/download?access_token=' + token, '_blank');
         }
 
-        // File upload handling
+        // File upload handling — route through unified vault portal
         const uploadZone = document.getElementById('upload-zone');
         const fileInput = document.getElementById('file-input');
 
-        uploadZone.addEventListener('click', () => fileInput.click());
+        uploadZone.addEventListener('click', () => openVaultUpload());
         uploadZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             uploadZone.style.borderColor = '#3b82f6';
@@ -357,58 +358,33 @@
         uploadZone.addEventListener('dragleave', () => {
             uploadZone.style.borderColor = 'rgba(255,255,255,0.2)';
         });
-        uploadZone.addEventListener('drop', async (e) => {
+        uploadZone.addEventListener('drop', (e) => {
             e.preventDefault();
             uploadZone.style.borderColor = 'rgba(255,255,255,0.2)';
-            await handleFiles(e.dataTransfer.files);
-        });
-        fileInput.addEventListener('change', async () => {
-            await handleFiles(fileInput.files);
-        });
-
-        async function handleFiles(files) {
-            const status = await fetch('/storage/status', { credentials: 'include' });
-            const data = await status.json();
-            
-            if (!data.authenticated) {
-                showMessage('Please connect your storage first', 'error');
-                return;
+            if (e.dataTransfer.files.length) {
+                handleVaultFiles(e.dataTransfer.files);
             }
-
-            for (const file of files) {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('access_token', data.access_token);
-
-                try {
-                    const res = await fetch('/api/vault/upload', {
-                        method: 'POST',
-                        body: formData,
-                        credentials: 'include'
-                    });
-                    let body = null;
-                    try {
-                        body = await res.json();
-                    } catch (e) {}
-                    
-                    if (res.ok) {
-                        if (body?.function_token) {
-                            setFunctionTokenState(body.function_token, body.function_token_reverify_in_seconds);
-                            startFunctionTokenReverifyLoop();
-                        }
-                        showMessage('Uploaded: ' + file.name, 'success');
-                        loadDocuments(data.access_token);
-                    } else {
-                        showMessage('Failed: ' + ((body && body.detail) || 'Unknown error'), 'error');
-                    }
-                } catch (e) {
-                    showMessage('Upload failed: ' + e.message, 'error');
-                }
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                handleVaultFiles(fileInput.files);
             }
-        }
+            fileInput.value = '';
+        });
+
+        // Refresh document list after portal upload completes
+        window.addEventListener('vault:uploaded', () => {
+            fetch('/storage/status', { credentials: 'include' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.access_token) loadDocuments(data.access_token);
+                })
+                .catch(() => {});
+        });
 
         // Init on load
         init();
     </script>
+    <script src="/js/core/vault-portal.js"></script>
 </body>
 </html>
