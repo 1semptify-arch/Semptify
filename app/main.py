@@ -2892,6 +2892,71 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             info["traceback"] = _tb.format_exc()
         return JSONResponse(content=info)
 
+    @fastapi_app.post("/debug/add-legal-columns")
+    async def debug_add_legal_columns(request: Request):
+        """Temporary: directly add missing legal_sub_role and bar_license_number columns.
+
+        This bypasses alembic entirely to fix the schema drift where
+        alembic_version says head but columns are missing.
+        """
+        import traceback as _tb
+        info = {"step": "init"}
+        try:
+            from sqlalchemy import text
+            from app.core.database import get_session_factory
+            factory = get_session_factory()
+            async with factory() as db:
+                # Check current state
+                result = await db.execute(text(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name='users' AND column_name IN ('legal_sub_role','bar_license_number')"
+                ))
+                existing = [r[0] for r in result.fetchall()]
+                info["before"] = existing
+
+                if "legal_sub_role" not in existing:
+                    await db.execute(text(
+                        "ALTER TABLE users ADD COLUMN legal_sub_role VARCHAR(20) NULL"
+                    ))
+                    info["added_legal_sub_role"] = True
+                else:
+                    info["added_legal_sub_role"] = False
+
+                if "bar_license_number" not in existing:
+                    await db.execute(text(
+                        "ALTER TABLE users ADD COLUMN bar_license_number VARCHAR(50) NULL"
+                    ))
+                    info["added_bar_license_number"] = True
+                else:
+                    info["added_bar_license_number"] = False
+
+                # Add indexes if missing
+                try:
+                    await db.execute(text(
+                        "CREATE INDEX IF NOT EXISTS ix_users_legal_sub_role ON users (legal_sub_role)"
+                    ))
+                    await db.execute(text(
+                        "CREATE INDEX IF NOT EXISTS ix_users_bar_license_number ON users (bar_license_number)"
+                    ))
+                except Exception as ie:
+                    info["index_warning"] = str(ie)
+
+                await db.commit()
+
+                # Verify
+                result = await db.execute(text(
+                    "SELECT column_name FROM information_schema.columns "
+                    "WHERE table_name='users' AND column_name IN ('legal_sub_role','bar_license_number')"
+                ))
+                after = [r[0] for r in result.fetchall()]
+                info["after"] = after
+
+            info["step"] = "done"
+        except Exception as exc:
+            info["error"] = str(exc)
+            info["traceback"] = _tb.format_exc()
+        return JSONResponse(content=info)
+
     @fastapi_app.get("/debug/create-vault")
     async def debug_create_vault(request: Request):
         """Temporary: force vault folder creation for debugging."""
