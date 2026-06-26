@@ -158,6 +158,10 @@
     .uic-add-record-modal__field { display: block; margin-bottom: 1rem; }
     .uic-add-record-modal__label { display: block; font-size: 0.8125rem; font-weight: 500; margin-bottom: 0.375rem; color: var(--color-text-secondary); }
     .uic-add-record-modal__textarea { width: 100%; padding: 0.625rem; border-radius: var(--radius-md); background: var(--color-bg-card); border: 1px solid var(--color-border); color: var(--color-text-primary); font-family: inherit; font-size: 0.875rem; resize: vertical; }
+    .uic-add-record-modal__date, .uic-add-record-modal__select { width: 100%; padding: 0.5rem 0.625rem; border-radius: var(--radius-md); background: var(--color-bg-card); border: 1px solid var(--color-border); color: var(--color-text-primary); font-family: inherit; font-size: 0.875rem; }
+    .uic-add-record-modal__checkbox { display: flex; align-items: center; gap: 0.5rem; }
+    .uic-add-record-modal__checkbox input { margin: 0; }
+    .uic-add-record-modal__checkbox span { font-size: 0.8125rem; color: var(--color-text-secondary); margin: 0; }
     .uic-add-record-modal__actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-bottom: 1rem; }
     .uic-add-record-modal__cancel { padding: 0.5rem 0.875rem; background: transparent; border: 1px solid var(--color-border); border-radius: var(--radius-md); color: var(--color-text-secondary); font-size: 0.875rem; cursor: pointer; }
     .uic-add-record-modal__save { padding: 0.5rem 0.875rem; background: var(--color-accent); border: none; border-radius: var(--radius-md); color: white; font-size: 0.875rem; font-weight: 500; cursor: pointer; }
@@ -241,12 +245,31 @@
         <h2 class="uic-add-record-modal__title">Add a record</h2>
         <p class="uic-add-record-modal__body">Capture what just happened. You can add details later.</p>
         <label class="uic-add-record-modal__field">
-            <span class="uic-add-record-modal__label">Quick journal entry</span>
-            <textarea name="journal_text" class="uic-add-record-modal__textarea" placeholder="What happened?" rows="3"></textarea>
+            <span class="uic-add-record-modal__label">What happened?</span>
+            <textarea name="description" class="uic-add-record-modal__textarea" placeholder="e.g., 'Landlord called about late rent'" rows="3" required></textarea>
+        </label>
+        <label class="uic-add-record-modal__field">
+            <span class="uic-add-record-modal__label">When?</span>
+            <input type="date" name="event_date" class="uic-add-record-modal__date" required />
+        </label>
+        <label class="uic-add-record-modal__field">
+            <span class="uic-add-record-modal__label">Type</span>
+            <select name="capture_type" class="uic-add-record-modal__select">
+                <option value="conversation">Conversation</option>
+                <option value="notice">Notice</option>
+                <option value="repair">Repair</option>
+                <option value="payment">Payment</option>
+                <option value="harassment">Harassment</option>
+                <option value="other" selected>Other</option>
+            </select>
+        </label>
+        <label class="uic-add-record-modal__field uic-add-record-modal__checkbox">
+            <input type="checkbox" name="is_urgent" value="true" />
+            <span>Mark as urgent</span>
         </label>
         <div class="uic-add-record-modal__actions">
             <button type="submit" value="cancel" class="uic-add-record-modal__cancel">Cancel</button>
-            <button type="button" class="uic-add-record-modal__save">Save to timeline</button>
+            <button type="button" class="uic-add-record-modal__save" hx-post="/api/tenant/capture" hx-include="closest form" hx-swap="none" onclick="this.closest('dialog').close()">Save to timeline</button>
         </div>
         <div class="uic-add-record-modal__links">
             <a href="/tenant/documents" class="uic-add-record-modal__link">Upload document</a>

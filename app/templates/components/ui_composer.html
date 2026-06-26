@@ -244,13 +244,42 @@
         </p>
 
         <label class="uic-add-record-modal__field">
-            <span class="uic-add-record-modal__label">Quick journal entry</span>
+            <span class="uic-add-record-modal__label">What happened?</span>
             <textarea
-                name="journal_text"
+                name="description"
                 class="uic-add-record-modal__textarea"
-                placeholder="What happened? (e.g., 'Landlord called about late rent')"
+                placeholder="e.g., 'Landlord called about late rent'"
                 rows="3"
+                required
             ></textarea>
+        </label>
+
+        <label class="uic-add-record-modal__field">
+            <span class="uic-add-record-modal__label">When?</span>
+            <input
+                type="date"
+                name="event_date"
+                class="uic-add-record-modal__date"
+                value="{{ data.today if data and data.today else '' }}"
+                required
+            />
+        </label>
+
+        <label class="uic-add-record-modal__field">
+            <span class="uic-add-record-modal__label">Type</span>
+            <select name="capture_type" class="uic-add-record-modal__select">
+                <option value="conversation">Conversation</option>
+                <option value="notice">Notice</option>
+                <option value="repair">Repair</option>
+                <option value="payment">Payment</option>
+                <option value="harassment">Harassment</option>
+                <option value="other" selected>Other</option>
+            </select>
+        </label>
+
+        <label class="uic-add-record-modal__field uic-add-record-modal__checkbox">
+            <input type="checkbox" name="is_urgent" value="true" />
+            <span>Mark as urgent</span>
         </label>
 
         <div class="uic-add-record-modal__actions">
@@ -258,7 +287,7 @@
             <button
                 type="button"
                 class="uic-add-record-modal__save"
-                hx-post="/api/journal"
+                hx-post="/api/tenant/capture"
                 hx-include="closest form"
                 hx-swap="none"
                 onclick="this.closest('dialog').close()"
