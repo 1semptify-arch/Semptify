@@ -727,8 +727,10 @@ class VaultUploadService:
         except RuntimeError:
             raise
         except Exception as e:
-            detail = f"Registry registration raised unexpected error: {type(e).__name__}: {e}"  # internal log only
+            import traceback
+            detail = f"Registry registration raised unexpected error: {type(e).__name__}: {e}"
             logger.error(f"Certification failed for {vault_id}: {detail}")
+            logger.error(f"Certification traceback for {vault_id}:\n{traceback.format_exc()}")
             await _write_certification_event(
                 result=CertificationResult.FAILED.value,
                 failure_code=CertificationFailureCode.UNKNOWN_ERROR.value,
