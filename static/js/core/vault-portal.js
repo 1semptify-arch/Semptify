@@ -240,18 +240,46 @@ function closeVaultCapture() {
 /**
  * Upload files to vault
  */
+function getUserIdFromCookie() {
+  const match = document.cookie.match(/(?:^|; )semptify_uid=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+async function getStorageContext() {
+  try {
+    const resp = await fetch('/storage/status', { credentials: 'include' });
+    if (!resp.ok) return null;
+    return await resp.json();
+  } catch (e) {
+    return null;
+  }
+}
+
 async function uploadToVault(fileCount, skipDetails = false) {
-  const docType = document.getElementById('vault-doc-type').value;
-  const description = document.getElementById('vault-description').value;
-  const isEmergency = document.getElementById('vault-emergency').checked;
-  
   const files = window.vaultPendingFiles;
   if (!files || files.length === 0) {
     alert('No files selected');
     return;
   }
-  
-  // Gather all metadata
+
+  const userId = getUserIdFromCookie();
+  if (!userId) {
+    alert('You must be signed in to upload documents.');
+    return;
+  }
+
+  const storageCtx = await getStorageContext();
+  if (!storageCtx || !storageCtx.authenticated) {
+    if (confirm('Please connect your storage to upload documents. Reconnect now?')) {
+      window.location.href = (storageCtx && storageCtx.redirect_url) || '/storage/select';
+    }
+    return;
+  }
+
+  const docType = document.getElementById('vault-doc-type')?.value || '';
+  const description = document.getElementById('vault-description')?.value || '';
+  const isEmergency = document.getElementById('vault-emergency')?.checked || false;
+
   const typeConfig = docType ? DOCUMENT_TYPES[docType] : null;
   const autoFieldData = {};
   if (typeConfig) {
@@ -261,92 +289,84 @@ async function uploadToVault(fileCount, skipDetails = false) {
     });
   }
 
-  const uploadData = {
-    files: files.map(f => ({ name: f.name, size: f.size, type: f.type })),
-    documentType: docType,
-    documentTypeLabel: typeConfig ? typeConfig.label : '',
-    description: description,
-    isEmergency: isEmergency,
-    autoFields: autoFieldData,
-    timestamp: new Date().toISOString(),
-    blockchainHash: await generateBlockchainHash(),
-    overlayData: null // Will be populated after OCR/processing
-  };
-  
-  console.log('Vault upload prepared:', uploadData);
+  const tags = [
+    docType ? `type:${docType}` : '',
+    isEmergency ? 'emergency' : '',
+    Object.entries(autoFieldData).map(([k, v]) => v ? `${k}:${v}` : '').filter(Boolean).join(',')
+  ].filter(Boolean).join(',');
 
-  const formData = new FormData();
-  files.forEach(file => formData.append('file', file));
-  formData.append('metadata', JSON.stringify(uploadData));
+  const fetchFn = typeof window.fetchWithCSRF === 'function' ? window.fetchWithCSRF : fetch;
 
-  try {
-    const resp = await fetch('/api/vault/upload', {
-      method: 'POST',
-      body: formData
-    });
-    const result = await resp.json();
-    if (resp.ok) {
-      window.dispatchEvent(new CustomEvent('vault:uploaded', {
-        detail: { fileCount: fileCount, timestamp: new Date().toISOString() }
-      }));
-      alert(`${fileCount} document(s) uploaded to your vault.\n\nOverlay processing started.\nBlockchain timestamp applied.\nSaved to your cloud storage.`);
-    } else {
-      // Handle detailed error format from backend
-      let errorMsg = 'Unknown error';
-      let errorType = '';
-      let tb = '';
-      let storageMsg = '';
+  let uploadedCount = 0;
+  let firstVaultId = null;
+  const errors = [];
 
-      const detail = result.detail;
-      if (detail && typeof detail === 'object') {
-        // New detailed error format (per-file errors bubbled up)
-        errorMsg = detail.error_message || result.message || errorMsg;
-        errorType = detail.error_type || result.type || '';
-        tb = detail.traceback ? '\n\nTraceback:\n' + detail.traceback.substring(0, 800) + '...' : '';
-        storageMsg = detail.redirect_url ? '\n\nRedirect: ' + detail.redirect_url : '';
-      } else if (typeof detail === 'string') {
-        // HTTPException format {detail: "message"}
-        errorMsg = detail;
+  for (const file of files) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('user_id', userId);
+    formData.append('username', 'tenant');
+    formData.append('access_token', storageCtx.access_token || '');
+    formData.append('storage_provider', storageCtx.provider || 'local');
+    if (description) formData.append('description', description);
+    if (tags) formData.append('tags', tags);
+
+    try {
+      const resp = await fetchFn('/api/intake/upload/auto', {
+        method: 'POST',
+        body: formData
+      });
+      const result = await resp.json();
+
+      if (resp.ok && result.status !== 'error') {
+        uploadedCount++;
+        if (!firstVaultId) firstVaultId = result.vault_id || result.id;
       } else {
-        errorMsg = result.message || result.error || resp.statusText || errorMsg;
-        errorType = result.type || '';
-        tb = result.traceback ? '\n\nTraceback:\n' + result.traceback.substring(0, 500) + '...' : '';
-        storageMsg = result.redirect_url ? '\n\nRedirect: ' + result.redirect_url : '';
+        const msg = _formatError(result, resp.statusText);
+        errors.push(`${file.name}: ${msg}`);
       }
-
-      if (result.errors && result.errors.length > 0) {
-        const fileErrors = result.errors.map(e => {
-          if (typeof e === 'object' && e !== null) {
-            return `${e.filename || 'unknown'}: ${e.error_type || 'Error'} - ${e.error_message || 'Unknown'}`;
-          }
-          return String(e);
-        }).join('\n');
-        errorMsg += '\n\nFile errors:\n' + fileErrors;
-      }
-
-      const isAuthError = resp.status === 401 ||
-        result.error === 'token_expired' ||
-        result.error === 'storage_required' ||
-        (typeof errorMsg === 'string' && (
-          errorMsg.toLowerCase().includes('storage session expired') ||
-          errorMsg.toLowerCase().includes('storage authentication failed') ||
-          errorMsg.toLowerCase().includes('authentication required')
-        ));
-
-      if (isAuthError) {
-        if (confirm('Your storage connection expired. Reconnect now?')) {
-          window.location.href = result.redirect_url || '/storage/reconnect?return_to=/vault';
-          return;
-        }
-      }
-
-      alert('Upload failed:\n' + errorMsg + (errorType ? ' (' + errorType + ')' : '') + tb + storageMsg);
+    } catch (e) {
+      errors.push(`${file.name}: ${e.message || 'Network error'}`);
     }
-  } catch (e) {
-    alert('Upload failed: ' + e.message + '\n\nPlease check your connection and try again.');
+  }
+
+  if (uploadedCount > 0) {
+    window.dispatchEvent(new CustomEvent('vault:uploaded', {
+      detail: { fileCount: uploadedCount, vault_id: firstVaultId, timestamp: new Date().toISOString() }
+    }));
+    alert(`${uploadedCount} document(s) uploaded.\n\nOCR and metadata extraction are running in the background.`);
+  }
+
+  if (errors.length > 0) {
+    alert('Upload failed for some files:\n\n' + errors.join('\n'));
   }
 
   closeVaultCapture();
+}
+
+function _formatError(result, statusText) {
+  if (!result) return statusText || 'Unknown error';
+  if (typeof result === 'string') return result;
+  if (result.message && typeof result.message === 'string') return result.message;
+  if (result.detail) {
+    if (typeof result.detail === 'string') return result.detail;
+    if (Array.isArray(result.detail)) {
+      return result.detail.map(d => {
+        if (typeof d === 'string') return d;
+        if (d && typeof d === 'object') {
+          return `${d.loc?.join('.') || 'field'}: ${d.msg || JSON.stringify(d)}`;
+        }
+        return JSON.stringify(d);
+      }).join('; ');
+    }
+    return JSON.stringify(result.detail);
+  }
+  if (result.error && typeof result.error === 'string') return result.error;
+  try {
+    return JSON.stringify(result).substring(0, 500);
+  } catch (e) {
+    return statusText || 'Unknown error';
+  }
 }
 
 /**
