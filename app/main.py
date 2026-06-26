@@ -2989,6 +2989,74 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             info["traceback"] = _tb.format_exc()
         return JSONResponse(content=info)
 
+    @fastapi_app.post("/debug/seed-test-user")
+    async def debug_seed_test_user(request: Request):
+        """Temporary: insert or update a test user row to bypass onboarding gate.
+
+        Creates a User row with primary_provider='google_drive', default_role='tenant',
+        and completed_groups containing 'storage' and 'vault' so the storage middleware
+        and role guards let the user through to tenant pages.
+        """
+        import traceback as _tb
+        info = {"step": "init"}
+        try:
+            from sqlalchemy import text
+            from app.core.database import get_session_factory
+            factory = get_session_factory()
+            async with factory() as db:
+                # Check if user exists
+                result = await db.execute(text(
+                    "SELECT id FROM users WHERE id = :uid"
+                ), {"uid": "GUbGQUTpK6"})
+                existing = result.scalar_one_or_none()
+
+                if existing:
+                    # Update existing user to be fully onboarded
+                    await db.execute(text(
+                        "UPDATE users SET "
+                        "primary_provider = 'google_drive', "
+                        "default_role = 'tenant', "
+                        "completed_groups = :groups, "
+                        "updated_at = NOW() "
+                        "WHERE id = :uid"
+                    ), {"uid": "GUbGQUTpK6", "groups": "storage_connected,vault_initialized"})
+                    info["action"] = "updated"
+                else:
+                    # Insert new user
+                    await db.execute(text(
+                        "INSERT INTO users (id, primary_provider, storage_user_id, "
+                        "default_role, intensity_level, completed_groups, created_at, updated_at) "
+                        "VALUES (:uid, 'google_drive', :sid, 'tenant', 'low', "
+                        ":groups, NOW(), NOW())"
+                    ), {
+                        "uid": "GUbGQUTpK6",
+                        "sid": "test-storage-user-id",
+                        "groups": "storage_connected,vault_initialized",
+                    })
+                    info["action"] = "inserted"
+
+                await db.commit()
+
+                # Verify
+                result = await db.execute(text(
+                    "SELECT id, primary_provider, default_role, completed_groups "
+                    "FROM users WHERE id = :uid"
+                ), {"uid": "GUbGQUTpK6"})
+                row = result.fetchone()
+                if row:
+                    info["user"] = {
+                        "id": str(row[0]),
+                        "primary_provider": str(row[1]),
+                        "default_role": str(row[2]),
+                        "completed_groups": list(row[3]) if row[3] else [],
+                    }
+
+            info["step"] = "done"
+        except Exception as exc:
+            info["error"] = str(exc)
+            info["traceback"] = _tb.format_exc()
+        return JSONResponse(content=info)
+
     @fastapi_app.get("/debug/create-vault")
     async def debug_create_vault(request: Request):
         """Temporary: force vault folder creation for debugging."""
