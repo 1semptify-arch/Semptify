@@ -3634,7 +3634,7 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
         try:
             from app.services.ui_composer import compose_page
-            from app.modules.tenant_feed.service import aggregate_feed
+            from app.modules.tenant_feed.service import aggregate_feed_async
             from app.core.user_id import parse_user_id
 
             # Get user_id for feed aggregation
@@ -3644,8 +3644,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 parsed = parse_user_id(user_id_cookie)
                 user_id = parsed.user_id if parsed else ""
 
-            # Aggregate the real feed
-            feed_items = aggregate_feed(user_id) if user_id else []
+            # Aggregate the real feed (async — uses vault service + DB)
+            feed_items = await aggregate_feed_async(user_id) if user_id else []
 
             # Compose the page structure
             page = compose_page(user_id, "timeline", context={
