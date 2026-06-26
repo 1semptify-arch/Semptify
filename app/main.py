@@ -2823,6 +2823,75 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             info["traceback"] = _tb.format_exc()
         return JSONResponse(content=info)
 
+    @fastapi_app.get("/debug/alembic")
+    async def debug_alembic(request: Request):
+        """Temporary: check alembic state and force migration if drifted."""
+        import traceback as _tb
+        info = {"step": "init"}
+        try:
+            from sqlalchemy import text
+            from app.core.database import get_session_factory
+            factory = get_session_factory()
+            async with factory() as db:
+                # Check current alembic version
+                try:
+                    result = await db.execute(text("SELECT version_num FROM alembic_version"))
+                    rows = result.fetchall()
+                    info["alembic_version"] = [str(r[0]) for r in rows]
+                except Exception as ve:
+                    info["alembic_version_error"] = str(ve)
+
+                # Check if legal_sub_role column exists
+                try:
+                    result = await db.execute(text(
+                        "SELECT column_name FROM information_schema.columns "
+                        "WHERE table_name='users' AND column_name IN ('legal_sub_role','bar_license_number')"
+                    ))
+                    cols = [r[0] for r in result.fetchall()]
+                    info["legal_sub_role_column_exists"] = "legal_sub_role" in cols
+                    info["bar_license_number_column_exists"] = "bar_license_number" in cols
+                    info["existing_columns"] = cols
+                except Exception as ce:
+                    info["column_check_error"] = str(ce)
+
+            info["step"] = "checked"
+        except Exception as exc:
+            info["error"] = str(exc)
+            info["traceback"] = _tb.format_exc()
+        return JSONResponse(content=info)
+
+    @fastapi_app.post("/debug/force-migrate")
+    async def debug_force_migrate(request: Request):
+        """Temporary: force alembic to stamp pre-legal_sub_role then upgrade head."""
+        import traceback as _tb
+        info = {"step": "init"}
+        try:
+            import asyncio
+            def _sync_fix():
+                from alembic.config import Config
+                from alembic import command
+                cfg = Config("alembic.ini")
+                # Stamp to the revision before legal_sub_role was added
+                command.stamp(cfg, "20260618_add_admin_error_queue")
+                # Now upgrade to head — this will run the legal_sub_role migration
+                command.upgrade(cfg, "head")
+                # Return current version
+                from alembic.runtime.migration import MigrationContext
+                from sqlalchemy import create_engine
+                sync_url = cfg.get_main_option("sqlalchemy.url")
+                eng = create_engine(sync_url)
+                with eng.connect() as conn:
+                    mc = MigrationContext.configure(conn)
+                    return mc.get_current_revision()
+            loop = asyncio.get_event_loop()
+            final_rev = await loop.run_in_executor(None, _sync_fix)
+            info["final_revision"] = str(final_rev)
+            info["step"] = "done"
+        except Exception as exc:
+            info["error"] = str(exc)
+            info["traceback"] = _tb.format_exc()
+        return JSONResponse(content=info)
+
     @fastapi_app.get("/debug/create-vault")
     async def debug_create_vault(request: Request):
         """Temporary: force vault folder creation for debugging."""
