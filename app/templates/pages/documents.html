@@ -159,45 +159,23 @@
 {% block scripts %}
 <script src="/static/js/workspace-stage-model.js"></script>
 <script>
-    // Handle file selection from upload zone
-    document.getElementById('file-input').addEventListener('change', async function(e) {
+    // Handle file selection from upload zone — open unified vault portal
+    document.getElementById('file-input').addEventListener('change', function(e) {
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
-        const file = files[0];
-        
-        // Show progress
-        document.getElementById('upload-progress').classList.add('upload-progress--active');
-        document.getElementById('upload-filename').textContent = file.name;
-        
-        try {
-            // Create form data
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('metadata', JSON.stringify({
-                document_type: 'evidence',
-                source: 'documents_page'
-            }));
-            
-            // Upload
-            const response = await fetchWithCSRF('/api/vault/upload', {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (response.ok) {
-                window.showFlash('Document uploaded successfully!', 'success');
-                // Refresh page to show new document
-                setTimeout(() => window.location.reload(), 1000);
-            } else {
-                const error = await response.json();
-                window.showFlash(error.detail || 'Upload failed', 'error');
-            }
-        } catch (err) {
-            window.showFlash('Upload failed: ' + err.message, 'error');
-        } finally {
-            document.getElementById('upload-progress').classList.remove('upload-progress--active');
+        if (typeof handleVaultFiles === 'function') {
+            handleVaultFiles(files);
+        } else {
+            openVaultUpload();
         }
+        e.target.value = '';
+    });
+
+    // Refresh document list after a successful portal upload
+    window.addEventListener('vault:uploaded', () => {
+        window.showFlash('Document uploaded successfully!', 'success');
+        setTimeout(() => window.location.reload(), 800);
     });
 
     // Delete document
