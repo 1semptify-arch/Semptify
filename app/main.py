@@ -2957,6 +2957,38 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             info["traceback"] = _tb.format_exc()
         return JSONResponse(content=info)
 
+    @fastapi_app.post("/debug/stamp-alembic-head")
+    async def debug_stamp_alembic_head(request: Request):
+        """Temporary: stamp alembic_version to head without running migrations.
+
+        Used after manually fixing schema drift so future alembic upgrade head
+        calls don't try to re-run already-applied migrations.
+        """
+        import traceback as _tb
+        info = {"step": "init"}
+        try:
+            import asyncio
+            def _sync_stamp():
+                from alembic.config import Config
+                from alembic import command
+                cfg = Config("alembic.ini")
+                command.stamp(cfg, "head")
+                from alembic.runtime.migration import MigrationContext
+                from sqlalchemy import create_engine
+                sync_url = cfg.get_main_option("sqlalchemy.url")
+                eng = create_engine(sync_url)
+                with eng.connect() as conn:
+                    mc = MigrationContext.configure(conn)
+                    return mc.get_current_revision()
+            loop = asyncio.get_event_loop()
+            final_rev = await loop.run_in_executor(None, _sync_stamp)
+            info["stamped_to"] = str(final_rev)
+            info["step"] = "done"
+        except Exception as exc:
+            info["error"] = str(exc)
+            info["traceback"] = _tb.format_exc()
+        return JSONResponse(content=info)
+
     @fastapi_app.get("/debug/create-vault")
     async def debug_create_vault(request: Request):
         """Temporary: force vault folder creation for debugging."""
