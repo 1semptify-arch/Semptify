@@ -48,7 +48,7 @@ function uploadToVault() {
   }
 
   const formData = new FormData();
-  Array.from(files).forEach(file => formData.append('files', file));
+  Array.from(files).forEach(file => formData.append('file', file));
   if (docType) formData.append('document_type', docType);
   if (description) formData.append('description', description);
   if (addTimestamp) formData.append('tags', 'timestamped');
