@@ -1,0 +1,344 @@
+{# ================================================================= #}
+{# UI Composer Component Library                                      #}
+{# Each component is a Jinja macro. The generic template loops        #}
+{# through a components list and renders each via these macros.       #}
+{#                                                                   #}
+{# All components use the SSOT design system (ssot-design-system.css) #}
+{# via class names — no inline styles.                                #}
+{#                                                                   #}
+{# Usage:                                                            #}
+{#   {% from "components/ui_composer.html" import render_component %} #}
+{#   {{ render_component(component) }}                               #}
+{#                                                                   #}
+{# Component dict shape:                                             #}
+{#   {"type": "fact_card", "data": {...}}                            #}
+{# ================================================================= #}
+
+
+{# ----------------------------------------------------------------- #}
+{# DISPATCHER MACRO                                                  #}
+{# Renders any component by type. This is the main entry point.      #}
+{# ----------------------------------------------------------------- #}
+{% macro render_component(component) %}
+{% if component.type == "welcome_message" %}
+    {{ _welcome_message(component.data) }}
+{% elif component.type == "settings_prompt" %}
+    {{ _settings_prompt(component.data) }}
+{% elif component.type == "document_review_prompt" %}
+    {{ _document_review_prompt(component.data) }}
+{% elif component.type == "fact_card" %}
+    {{ _fact_card(component.data) }}
+{% elif component.type == "timeline_event" %}
+    {{ _timeline_event(component.data) }}
+{% elif component.type == "timeline_group" %}
+    {{ _timeline_group(component.data) }}
+{% elif component.type == "filter_chips" %}
+    {{ _filter_chips(component.data) }}
+{% elif component.type == "subject_grid" %}
+    {{ _subject_grid(component.data) }}
+{% elif component.type == "add_record_button" %}
+    {{ _add_record_button(component.data) }}
+{% elif component.type == "add_record_modal" %}
+    {{ _add_record_modal(component.data) }}
+{% elif component.type == "process_indicator" %}
+    {{ _process_indicator(component.data) }}
+{% elif component.type == "prompt_card" %}
+    {{ _prompt_card(component.data) }}
+{% elif component.type == "stat_badge" %}
+    {{ _stat_badge(component.data) }}
+{% elif component.type == "empty_state" %}
+    {{ _empty_state(component.data) }}
+{% else %}
+    {# Unknown component — render nothing, but log to console #}
+    <!-- Unknown component type: {{ component.type }} -->
+{% endif %}
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# WELCOME MESSAGE                                                   #}
+{# ----------------------------------------------------------------- #}
+{% macro _welcome_message(data) %}
+<div class="uic-welcome">
+    <h1 class="uic-welcome__title">Welcome to Semptify{{ ", " ~ data.user_name if data.user_name else "" }}</h1>
+    <p class="uic-welcome__body">
+        Your safe space to organize your housing situation and protect your rights.
+        Free for tenants, forever. No advertising, ever.
+    </p>
+</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# SETTINGS PROMPT                                                   #}
+{# ----------------------------------------------------------------- #}
+{% macro _settings_prompt(data) %}
+<div class="uic-settings-prompt">
+    <h2 class="uic-settings-prompt__title">Quick setup</h2>
+    <p class="uic-settings-prompt__body">
+        Tell us your state and preferences so we can surface the right facts
+        and deadlines for you.
+    </p>
+    <a href="/tenant/settings" class="uic-settings-prompt__cta">Configure settings</a>
+</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# DOCUMENT REVIEW PROMPT                                            #}
+{# ----------------------------------------------------------------- #}
+{% macro _document_review_prompt(data) %}
+<div class="uic-doc-review-prompt">
+    <h2 class="uic-doc-review-prompt__title">You have {{ data.doc_count }} document{{ "s" if data.doc_count != 1 else "" }}</h2>
+    <p class="uic-doc-review-prompt__body">
+        Review what you've uploaded so far, or add a new record to keep your
+        timeline complete.
+    </p>
+    <a href="/tenant/documents" class="uic-doc-review-prompt__cta">Review documents</a>
+</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# FACT CARD — verified fact with source URL                         #}
+{# ----------------------------------------------------------------- #}
+{% macro _fact_card(data) %}
+<article class="uic-fact-card">
+    <h3 class="uic-fact-card__title">{{ data.title }}</h3>
+    <p class="uic-fact-card__body">{{ data.body }}</p>
+    {% if data.source_url %}
+    <a href="{{ data.source_url }}" class="uic-fact-card__source" target="_blank" rel="noopener noreferrer">
+        Source: {{ data.source_label or data.source_url }}
+    </a>
+    {% endif %}
+    {% if data.stories %}
+    <div class="uic-fact-card__stories">
+        <h4 class="uic-fact-card__stories-title">Tenant stories</h4>
+        {% for story in data.stories %}
+        <blockquote class="uic-fact-card__story">{{ story.text }}</blockquote>
+        {% endfor %}
+    </div>
+    {% endif %}
+</article>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# TIMELINE EVENT — single event in the feed                         #}
+{# ----------------------------------------------------------------- #}
+{% macro _timeline_event(data) %}
+<div class="uic-timeline-event uic-timeline-event--{{ data.type or 'event' }}">
+    <div class="uic-timeline-event__icon">{{ data.icon or "•" }}</div>
+    <div class="uic-timeline-event__body">
+        <h4 class="uic-timeline-event__title">{{ data.title }}</h4>
+        {% if data.subtitle %}
+        <p class="uic-timeline-event__subtitle">{{ data.subtitle }}</p>
+        {% endif %}
+        <time class="uic-timeline-event__time" datetime="{{ data.timestamp_iso or '' }}">
+            {{ data.timestamp_label or "" }}
+        </time>
+        {% if data.link %}
+        <a href="{{ data.link }}" class="uic-timeline-event__link">View</a>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# TIMELINE GROUP — date-grouped events                              #}
+{# ----------------------------------------------------------------- #}
+{% macro _timeline_group(data) %}
+<section class="uic-timeline-group" id="timeline-group">
+    <h3 class="uic-timeline-group__date">{{ data.date_label }}</h3>
+    {% if data.events %}
+    <div class="uic-timeline-group__events">
+        {% for event in data.events %}
+        {{ _timeline_event(event) }}
+        {% endfor %}
+    </div>
+    {% elif data.empty %}
+    <div class="uic-timeline-group__empty">
+        <p>Nothing here yet. Add your first record to start your timeline.</p>
+    </div>
+    {% else %}
+    <div class="uic-timeline-group__empty">
+        <p>No events for this filter.</p>
+    </div>
+    {% endif %}
+</section>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# FILTER CHIPS — All / Documents / Events / Journal / Letters / Deadlines #}
+{# ----------------------------------------------------------------- #}
+{% macro _filter_chips(data) %}
+<div class="uic-filter-chips" role="tablist">
+    {% for filter in data.filters %}
+    <button
+        type="button"
+        class="uic-filter-chip{{ " uic-filter-chip--active" if filter.active else "" }}"
+        role="tab"
+        aria-selected="{{ "true" if filter.active else "false" }}"
+        {% if data.hx_target %}
+        hx-get="{{ data.hx_target }}?type={{ filter.id }}"
+        hx-target="#timeline-group"
+        hx-swap="outerHTML"
+        {% endif %}
+    >{{ filter.label }}</button>
+    {% endfor %}
+</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# SUBJECT GRID — 13 subjects for KNOW pillar                        #}
+{# ----------------------------------------------------------------- #}
+{% macro _subject_grid(data) %}
+<div class="uic-subject-grid">
+    {% for subject in data.subjects %}
+    <a
+        href="#"
+        class="uic-subject-card"
+        {% if data.hx_target %}
+        hx-get="{{ data.hx_target }}{{ subject.id }}"
+        hx-target="#library-content"
+        hx-swap="innerHTML"
+        {% endif %}
+    >
+        <span class="uic-subject-card__icon">{{ subject.icon }}</span>
+        <span class="uic-subject-card__label">{{ subject.label }}</span>
+    </a>
+    {% endfor %}
+</div>
+<div id="library-content" class="uic-library-content"></div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# ADD RECORD BUTTON — the big + button                              #}
+{# ----------------------------------------------------------------- #}
+{% macro _add_record_button(data) %}
+<button
+    type="button"
+    class="uic-add-record-button"
+    onclick="document.getElementById('add-record-modal').showModal()"
+    aria-label="Add a record"
+>
+    <span class="uic-add-record-button__icon" aria-hidden="true">+</span>
+    <span class="uic-add-record-button__label">Add Record</span>
+</button>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# ADD RECORD MODAL — quick capture (modal on every page)             #}
+{# ----------------------------------------------------------------- #}
+{% macro _add_record_modal(data) %}
+<dialog id="add-record-modal" class="uic-add-record-modal">
+    <form method="dialog" class="uic-add-record-modal__form">
+        <h2 class="uic-add-record-modal__title">Add a record</h2>
+        <p class="uic-add-record-modal__body">
+            Capture what just happened. You can add details later.
+        </p>
+
+        <label class="uic-add-record-modal__field">
+            <span class="uic-add-record-modal__label">Quick journal entry</span>
+            <textarea
+                name="journal_text"
+                class="uic-add-record-modal__textarea"
+                placeholder="What happened? (e.g., 'Landlord called about late rent')"
+                rows="3"
+            ></textarea>
+        </label>
+
+        <div class="uic-add-record-modal__actions">
+            <button type="submit" value="cancel" class="uic-add-record-modal__cancel">Cancel</button>
+            <button
+                type="button"
+                class="uic-add-record-modal__save"
+                hx-post="/api/journal"
+                hx-include="closest form"
+                hx-swap="none"
+                onclick="this.closest('dialog').close()"
+            >Save to timeline</button>
+        </div>
+
+        <div class="uic-add-record-modal__links">
+            <a href="/tenant/documents" class="uic-add-record-modal__link">Upload document</a>
+            <a href="/tenant/tools/letters" class="uic-add-record-modal__link">Generate letter</a>
+            <a href="/tenant/tools/deadlines" class="uic-add-record-modal__link">Add deadline</a>
+        </div>
+    </form>
+</dialog>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# PROCESS INDICATOR — human-readable step status (no spinners)       #}
+{# ----------------------------------------------------------------- #}
+{% macro _process_indicator(data) %}
+<div
+    class="uic-process-indicator uic-process-indicator--{{ data.state }}"
+    {% if data.workflow_id and data.state == "running" %}
+    hx-get="/api/ui/process/{{ data.workflow_id }}"
+    hx-trigger="every 2s"
+    hx-swap="outerHTML"
+    {% endif %}
+>
+    <div class="uic-process-indicator__icon" aria-hidden="true">
+        {% if data.state == "running" %}⟳
+        {% elif data.state == "complete" %}✓
+        {% elif data.state == "error" %}⚠
+        {% else %}•{% endif %}
+    </div>
+    <div class="uic-process-indicator__body">
+        <p class="uic-process-indicator__step">{{ data.step_label }}</p>
+        {% if data.progress_pct and data.state == "running" %}
+        <progress class="uic-process-indicator__progress" value="{{ data.progress_pct }}" max="100"></progress>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# PROMPT CARD — "Would you like to...?"                             #}
+{# ----------------------------------------------------------------- #}
+{% macro _prompt_card(data) %}
+<div class="uic-prompt-card">
+    <h3 class="uic-prompt-card__title">{{ data.title }}</h3>
+    <p class="uic-prompt-card__body">{{ data.body }}</p>
+    {% if data.cta_label and data.cta_path %}
+    <a href="{{ data.cta_path }}" class="uic-prompt-card__cta">{{ data.cta_label }}</a>
+    {% endif %}
+</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# STAT BADGE — small stat in timeline header                        #}
+{# ----------------------------------------------------------------- #}
+{% macro _stat_badge(data) %}
+<div class="uic-stat-badge">
+    <span class="uic-stat-badge__icon" aria-hidden="true">{{ data.icon or "•" }}</span>
+    <span class="uic-stat-badge__value">{{ data.value }}</span>
+    <span class="uic-stat-badge__label">{{ data.label }}</span>
+</div>
+{% endmacro %}
+
+
+{# ----------------------------------------------------------------- #}
+{# EMPTY STATE — "Nothing here yet"                                  #}
+{# ----------------------------------------------------------------- #}
+{% macro _empty_state(data) %}
+<div class="uic-empty-state">
+    <div class="uic-empty-state__icon" aria-hidden="true">{{ data.icon or "•" }}</div>
+    <h3 class="uic-empty-state__title">{{ data.title }}</h3>
+    <p class="uic-empty-state__body">{{ data.body }}</p>
+    {% if data.cta_label and data.cta_path %}
+    <a href="{{ data.cta_path }}" class="uic-empty-state__cta">{{ data.cta_label }}</a>
+    {% endif %}
+</div>
+{% endmacro %}

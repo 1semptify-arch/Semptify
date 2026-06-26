@@ -131,6 +131,9 @@ _MODULES_WITH_CONTRACTS: tuple[str, ...] = (
     # Phase 1e: Manually written (non-standard router names)
     "app.modules.core_system.register",
     "app.modules.external_mappings.register",
+    # Phase 1A/1B: UI Composer + Tenant Feed (Hybrid Contextual GUI)
+    "app.modules.ui_composer.register",
+    "app.modules.tenant_feed.register",
     # NOTE: litigation_intelligence.register excluded — module is INACTIVE in manifest
     # and has a pre-existing SyntaxError in router.py (non-default arg after default arg).
     # Services with contracts

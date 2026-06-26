@@ -1,0 +1,52 @@
+{% extends "public_base.html" %}
+
+{% block title %}Our Services — Semptify{% endblock %}
+{% block description %}Semptify offers free tools for tenants, advocates, legal professionals, agencies, donors, researchers, and developers. Browse our services catalog.{% endblock %}
+{% block keywords %}semptify services, tenant tools, free tenant tools, housing services{% endblock %}
+
+{% block header_title %}📓 Semptify Services{% endblock %}
+{% block header_tagline %}Free Tools for Tenants and Allies{% endblock %}
+{% block header_subtitle %}Pick what fits your situation. Everything is free for tenants.{% endblock %}
+
+{% block content %}
+
+<section class="section">
+    <h2 class="section-title">Services Catalog</h2>
+    <p class="section-description">
+        Semptify offers a range of free tools for tenants, advocates, legal professionals,
+        and partner organizations. Pick what fits your situation.
+    </p>
+
+    {% for category_id, category in categories.items() %}
+    <div class="category-section">
+        <div class="category-header">
+            <span class="category-icon">{{ category.icon }}</span>
+            <h2>{{ category.label }}</h2>
+        </div>
+        <p class="category-description">{{ category.description }}</p>
+
+        <div class="services-grid">
+            {% for service in services %}
+            {% if service.category == category_id %}
+            <div class="service-card">
+                <div class="icon">{{ service.icon }}</div>
+                <h3>{{ service.name }}</h3>
+                <p>{{ service.short_description }}</p>
+                <a href="{{ service.cta_path }}"
+                   class="cta-button {% if service.requires_auth %}secondary{% endif %}">
+                    {{ service.cta_label }} →
+                </a>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</section>
+
+<section class="cta-section">
+    <h2>Ready to get started?</h2>
+    <a href="/preamble" class="cta-button-large">📓 Get Started →</a>
+</section>
+
+{% endblock %}

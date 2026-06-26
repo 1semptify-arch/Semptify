@@ -426,6 +426,20 @@ _register("app.modules.context_engine.router", tags=("Context Engine", "Facts", 
 _register("app.modules.page_composer.router", tags=("Page Composer", "Facts", "Stories", "Case"), tier=ProductTier.CORE,
           log_message="Page Composer router connected — unified page view (facts + stories + case)")
 
+# Public portal — guest portal + services catalog for semptify.org
+_register("app.modules.portal.router", tags=("Portal", "Public", "Services"), tier=ProductTier.CORE,
+          log_message="Portal router connected — guest portal + services catalog active at /api/portal")
+_register("app.modules.portal.router", router_attr="seo_router", tags=("Portal", "SEO"), tier=ProductTier.CORE,
+          log_message="Portal SEO router connected — sitemap.xml + robots.txt active")
+
+# UI Composer — self-assembling tenant GUI (Phase 1A)
+_register("app.modules.ui_composer.router", tags=("UI Composer", "GUI"), tier=ProductTier.CORE,
+          log_message="UI Composer router connected — /api/ui/page, /api/ui/fragment, /api/ui/process active")
+
+# Tenant Feed Aggregator — RECORD pillar data source (Phase 1B)
+_register("app.modules.tenant_feed.router", tags=("Tenant Feed", "RECORD"), tier=ProductTier.CORE,
+          log_message="Tenant Feed router connected — /api/tenant/feed active (aggregated timeline)")
+
 # Real-time
 _register("app.modules.websocket.router", prefix="/ws", tags=("WebSocket Events",), tier=ProductTier.CORE)
 

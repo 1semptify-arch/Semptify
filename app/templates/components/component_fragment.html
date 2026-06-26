@@ -1,0 +1,8 @@
+{# ================================================================= #}
+{# Component Fragment — renders a single component for HTMX swaps     #}
+{#                                                                   #}
+{# Used by /api/ui/fragment/{ctype} and /api/ui/process/{workflow_id}.#}
+{# Renders one component via the dispatcher macro.                    #}
+{# ================================================================= #}
+{% from "components/ui_composer.html" import render_component %}
+{{ render_component(component) }}

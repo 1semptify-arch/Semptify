@@ -1568,20 +1568,43 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         ProductTier.DEV
     )
 
-    # Root route â€” serve the welcome page. User clicks "Get Started" â†’ /preamble (routing logic).
+    # Root route — serve the public guest portal (services catalog + branch routing).
+    # The portal is server-rendered via Jinja2 for SEO. The services catalog comes
+    # from app.modules.portal.registry (SSOT — additive, not rewrite).
+    # User clicks a service CTA → /preamble (routing logic) or a direct branch path.
     @fastapi_app.api_route("/", methods=["GET", "HEAD"], response_class=HTMLResponse)
-    async def root_welcome(request: Request):
-        """Serve the welcome page at /. Preamble is the routing decision, not the entry."""
+    async def root_portal(request: Request):
+        """Serve the public guest portal at /. Preamble is the routing decision, not the entry."""
         # HEAD probes from uptime monitors (Render/Cloudflare/UptimeRobot) — return empty 200.
         if request.method == "HEAD":
             return Response(status_code=200)
+        # Render the portal via Jinja2 with the services catalog from the registry
+        portal_template_path = BASE_PATH / "app" / "templates" / "public" / "portal.html"
+        if portal_template_path.exists():
+            try:
+                from app.modules.portal.service import get_portal_catalog
+                from app.modules.portal.pages import portal_pages as _pp
+                catalog = get_portal_catalog()
+                return templates.TemplateResponse(
+                    request,
+                    "public/portal.html",
+                    {
+                        "services": catalog["services"],
+                        "categories": catalog["categories"],
+                        "total_services": catalog["total_services"],
+                        "footer_pages": _pp.get_footer_pages(),
+                    },
+                )
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Portal template error, falling back to static welcome: %s", e)
+        # Fallback: serve the static welcome page if the portal template is missing
         welcome_path = BASE_PATH / "static" / "public" / "welcome.html"
         if welcome_path.exists():
             return FileResponse(str(welcome_path))
-        # Fallback: redirect to preamble if welcome page is missing
+        # Final fallback: redirect to preamble
         preamble_stage = navigation.get_stage("preamble")
         preamble_path = preamble_stage.path if preamble_stage else "/preamble"
-        return ssot_redirect(preamble_path, context="root_welcome missing file")
+        return ssot_redirect(preamble_path, context="root_portal fallback")
 
     # Favicon - serve a simple SVG to prevent 404 errors
     @fastapi_app.get("/favicon.ico")
@@ -1593,6 +1616,63 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
         </svg>'''
         from fastapi.responses import Response
         return Response(content=svg, media_type="image/svg+xml")
+
+    # ------------------------------------------------------------------
+    # Public Website Sub-Pages (semptify.org)
+    #
+    # Routes are generated from the PortalPageRegistry (SSOT).
+    # To add a new public page: register it in app.modules.portal.pages
+    # and create its template in app/templates/public/. No other changes needed.
+    #
+    # NOTE: Paths already registered elsewhere in the app (e.g. /help, /tools)
+    # are skipped here — they stay in the registry for footer/sitemap, but
+    # the existing app routes handle serving. FastAPI uses first-registered
+    # route wins, so we skip to avoid silent overrides.
+    # ------------------------------------------------------------------
+    from app.modules.portal.pages import portal_pages as _portal_pages
+    from app.modules.portal.service import get_portal_catalog as _get_catalog
+
+    # Paths that already have routes registered elsewhere in the app
+    _existing_public_paths = {"/help", "/tools", "/library"}
+
+    for _page in _portal_pages.PAGES:
+        # Capture loop variables correctly for closure
+        _pg = _page
+
+        # Skip paths that already have routes — they stay in registry for footer/sitemap
+        if _pg.path in _existing_public_paths:
+            continue
+
+        @fastapi_app.get(_pg.path, response_class=HTMLResponse)
+        async def _serve_public_page(request: Request, _p=_pg):
+            """Serve a public website page from the portal pages registry."""
+            # HEAD probes from uptime monitors — return empty 200.
+            if request.method == "HEAD":
+                return Response(status_code=200)
+            template_path = BASE_PATH / "app" / "templates" / _p.template
+            if not template_path.exists():
+                # Template missing — fall back to portal root
+                logger.warning("Public page template missing: %s", _p.template)
+                root_stage = navigation.get_stage("root")
+                root_path = root_stage.path if root_stage else "/"
+                return ssot_redirect(root_path, context=f"missing template {_p.template}")
+            try:
+                # Services page needs the catalog; other pages just need page meta
+                context = {
+                    "page": _p,
+                    "footer_pages": _portal_pages.get_footer_pages(),
+                }
+                if _p.id == "services":
+                    catalog = _get_catalog()
+                    context["services"] = catalog["services"]
+                    context["categories"] = catalog["categories"]
+                    context["total_services"] = catalog["total_services"]
+                return templates.TemplateResponse(request, _p.template, context)
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.warning("Public page template error (%s): %s", _p.template, e)
+                root_stage = navigation.get_stage("root")
+                root_path = root_stage.path if root_stage else "/"
+                return ssot_redirect(root_path, context=f"template error {_p.template}")
 
     DAKOTA_AVAILABLE = False
     if DAKOTA_AVAILABLE:
@@ -3532,6 +3612,100 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                 logger.warning("Tenant my-advocate template error: %s", e)
 
         return HTMLResponse(content="<h1>My Advocate page not found</h1>", status_code=404)
+
+    # ----------------------------------------------------------------------
+    # Phase 1B/1C — Self-Assembling Tenant GUI (UI Composer)
+    #
+    # /tenant/timeline — RECORD pillar (merged feed via tenant_feed aggregator)
+    # /tenant/library  — KNOW pillar (subject grid → Page Composer facts)
+    #
+    # These pages are assembled by the UI Composer from the component library
+    # (app/templates/components/ui_composer.html) via the generic template
+    # (app/templates/generic_page.html). No static page templates — the page
+    # builds itself from the user's context.
+    # ----------------------------------------------------------------------
+    @fastapi_app.get("/tenant/timeline", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/timeline/", response_class=HTMLResponse)
+    async def tenant_timeline_page(request: Request):
+        """RECORD pillar — timeline of everything, assembled by UI Composer."""
+        guard_redirect = await _guard_role_page(request, {"tenant", "user"})
+        if guard_redirect:
+            return guard_redirect
+
+        try:
+            from app.services.ui_composer import compose_page
+            from app.modules.tenant_feed.service import aggregate_feed
+            from app.core.user_id import parse_user_id
+
+            # Get user_id for feed aggregation
+            user_id_cookie = request.cookies.get("semptify_uid", "")
+            user_id = ""
+            if user_id_cookie:
+                parsed = parse_user_id(user_id_cookie)
+                user_id = parsed.user_id if parsed else ""
+
+            # Aggregate the real feed
+            feed_items = aggregate_feed(user_id) if user_id else []
+
+            # Compose the page structure
+            page = compose_page(user_id, "timeline", context={
+                "document_count": len([i for i in feed_items if i["type"] == "document"]),
+                "upcoming_deadlines": len([i for i in feed_items if i["type"] == "deadline"]),
+            })
+
+            # Inject the real feed into the timeline_group component
+            for component in page["components"]:
+                if component["type"] == "timeline_group":
+                    component["data"]["events"] = feed_items
+                    component["data"]["empty"] = len(feed_items) == 0
+
+            return templates.TemplateResponse(
+                request,
+                "generic_page.html",
+                {
+                    "page_title": page["page_title"],
+                    "pillar": page["pillar"],
+                    "components": page["components"],
+                },
+            )
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.warning("UI Composer timeline error, falling back to old timeline: %s", e)
+            # Fallback to the existing timeline page
+            return templates.TemplateResponse(request, "pages/timeline.html")
+
+    @fastapi_app.get("/tenant/library", response_class=HTMLResponse)
+    @fastapi_app.get("/tenant/library/", response_class=HTMLResponse)
+    async def tenant_library_page(request: Request):
+        """KNOW pillar — library of verified facts, assembled by UI Composer."""
+        guard_redirect = await _guard_role_page(request, {"tenant", "user"})
+        if guard_redirect:
+            return guard_redirect
+
+        try:
+            from app.services.ui_composer import compose_page
+            from app.core.user_id import parse_user_id
+
+            user_id_cookie = request.cookies.get("semptify_uid", "")
+            user_id = ""
+            if user_id_cookie:
+                parsed = parse_user_id(user_id_cookie)
+                user_id = parsed.user_id if parsed else ""
+
+            page = compose_page(user_id, "library", context={})
+
+            return templates.TemplateResponse(
+                request,
+                "generic_page.html",
+                {
+                    "page_title": page["page_title"],
+                    "pillar": page["pillar"],
+                    "components": page["components"],
+                },
+            )
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logger.warning("UI Composer library error, falling back to law-library: %s", e)
+            # Fallback to the existing law library page
+            return templates.TemplateResponse(request, "pages/law_library.html")
 
     @fastapi_app.get("/tenant/{subpage}", response_class=HTMLResponse)
     async def tenant_subpage(subpage: str, request: Request):
