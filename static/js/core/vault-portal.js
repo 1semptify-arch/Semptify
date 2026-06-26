@@ -271,7 +271,7 @@ async function uploadToVault(fileCount, skipDetails = false) {
   const storageCtx = await getStorageContext();
   if (!storageCtx || !storageCtx.authenticated) {
     if (confirm('Please connect your storage to upload documents. Reconnect now?')) {
-      window.location.href = (storageCtx && storageCtx.redirect_url) || '/storage/select';
+      window.location.href = (storageCtx && storageCtx.redirect_url) || '/storage';
     }
     return;
   }
