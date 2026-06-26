@@ -303,83 +303,22 @@
 <script>
 (function() {
     const uploadBtn = document.getElementById('functions-upload-btn');
-    const uploadInput = document.getElementById('functions-upload-input');
     const toastContainer = document.getElementById('functions-toast');
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-    if (!uploadBtn || !uploadInput) return;
+    if (!uploadBtn) return;
 
-    // Quick upload
-    uploadBtn.addEventListener('click', () => uploadInput.click());
+    // Open the unified vault portal for all uploads
+    uploadBtn.addEventListener('click', () => openVaultUpload());
 
-    uploadInput.addEventListener('change', async (e) => {
-        const files = e.target.files;
-        if (!files.length) return;
-
-        for (const file of files) {
-            await uploadFile(file);
+    // Listen for successful portal uploads to update the briefcase count
+    window.addEventListener('vault:uploaded', (e) => {
+        showToast(`"${e.detail?.filename || 'file'}" uploaded successfully`, 'success');
+        const countEl = document.querySelector('.functions-bar__count');
+        if (countEl) {
+            const current = parseInt(countEl.textContent) || 0;
+            countEl.textContent = current + 1;
         }
-
-        uploadInput.value = '';
     });
-
-    async function uploadFile(file) {
-        showToast(`Uploading "${file.name}"...`, 'info');
-        uploadBtn.classList.add('functions-bar__btn--uploading');
-
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('metadata', JSON.stringify({ source: 'functions_bar_quick_upload' }));
-
-        try {
-            // Step 1: Upload to vault
-            const response = await fetch('/api/vault/upload', {
-                method: 'POST',
-                headers: { 'X-CSRF-Token': csrfToken },
-                body: formData
-            });
-
-            const result = await response.json();
-
-            if (!response.ok || !result.vault_id) {
-                showToast(result.message || `Failed: "${file.name}"`, 'error');
-                return;
-            }
-
-            // Step 2: Process the vaulted document
-            const processFormData = new FormData();
-            processFormData.append('vault_id', result.vault_id);
-            const processResponse = await fetch('/api/documents/process', {
-                method: 'POST',
-                headers: { 'X-CSRF-Token': csrfToken },
-                body: processFormData
-            });
-
-            const processResult = await processResponse.json();
-
-            if (processResponse.ok) {
-                showToast(`"${file.name}" uploaded successfully`, 'success');
-
-                // Update count in briefcase link
-                const countEl = document.querySelector('.functions-bar__count');
-                if (countEl) {
-                    const current = parseInt(countEl.textContent) || 0;
-                    countEl.textContent = current + 1;
-                }
-
-                // Notify other components
-                window.dispatchEvent(new CustomEvent('vault:uploaded', {
-                    detail: { filename: file.name, vault_id: result.vault_id }
-                }));
-            } else {
-                showToast(result.message || `Failed to upload "${file.name}"`, 'error');
-            }
-        } catch (error) {
-            showToast(`Network error uploading "${file.name}"`, 'error');
-        } finally {
-            uploadBtn.classList.remove('functions-bar__btn--uploading');
-        }
-    }
 
     function showToast(message, type) {
         const toast = document.createElement('div');

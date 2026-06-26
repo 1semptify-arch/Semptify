@@ -123,9 +123,9 @@ function handleVaultFiles(files) {
           
           <div class="capture-form">
             <div class="form-group">
-              <label class="form-label">Document Type *</label>
+              <label class="form-label">Document Type (optional — helps search & timeline)</label>
               <select class="form-input" id="vault-doc-type" onchange="updateAutoFields()">
-                <option value="">Select document type...</option>
+                <option value="">Auto-detect (let OCR decide)</option>
                 ${Object.entries(DOCUMENT_TYPES).map(([key, type]) => `
                   <option value="${key}">${type.icon} ${type.label}</option>
                 `).join('')}
@@ -153,11 +153,13 @@ function handleVaultFiles(files) {
             <h4>📊 Auto-Captured Metadata</h4>
             <ul class="metadata-list">
               <li><strong>Upload time:</strong> ${new Date().toLocaleString()}</li>
-              <li><strong>Device:</strong> ${navigator.userAgent.split(')')[0]})</li>
               <li><strong>Files:</strong> ${filesArray.length} document${filesArray.length > 1 ? 's' : ''}</li>
               <li><strong>Blockchain timestamp:</strong> ✅ Auto-enabled</li>
-              <li><strong>Overlay extraction:</strong> ✅ Will process</li>
+              <li><strong>Overlay extraction:</strong> ✅ Will process after upload</li>
             </ul>
+            <p class="metadata-note">
+              After upload, OCR will attempt to read dates, parties, and amounts. You can review and edit those details from your vault.
+            </p>
           </div>
         </div>
         
@@ -174,6 +176,9 @@ function handleVaultFiles(files) {
         
         <div class="vault-actions">
           <button class="btn btn-secondary" onclick="closeVaultCapture()">Cancel</button>
+          <button class="btn btn-secondary" onclick="uploadToVault(${filesArray.length}, true)">
+            Skip Details & Upload
+          </button>
           <button class="btn btn-primary" onclick="uploadToVault(${filesArray.length})">
             Upload to Vault →
           </button>
@@ -235,15 +240,10 @@ function closeVaultCapture() {
 /**
  * Upload files to vault
  */
-async function uploadToVault(fileCount) {
+async function uploadToVault(fileCount, skipDetails = false) {
   const docType = document.getElementById('vault-doc-type').value;
   const description = document.getElementById('vault-description').value;
   const isEmergency = document.getElementById('vault-emergency').checked;
-  
-  if (!docType) {
-    alert('Please select a document type');
-    return;
-  }
   
   const files = window.vaultPendingFiles;
   if (!files || files.length === 0) {
@@ -252,17 +252,19 @@ async function uploadToVault(fileCount) {
   }
   
   // Gather all metadata
-  const typeConfig = DOCUMENT_TYPES[docType];
+  const typeConfig = docType ? DOCUMENT_TYPES[docType] : null;
   const autoFieldData = {};
-  typeConfig.autoFields.forEach(field => {
-    const input = document.getElementById(`field-${field}`);
-    if (input) autoFieldData[field] = input.value;
-  });
-  
+  if (typeConfig) {
+    typeConfig.autoFields.forEach(field => {
+      const input = document.getElementById(`field-${field}`);
+      if (input) autoFieldData[field] = input.value;
+    });
+  }
+
   const uploadData = {
     files: files.map(f => ({ name: f.name, size: f.size, type: f.type })),
     documentType: docType,
-    documentTypeLabel: typeConfig.label,
+    documentTypeLabel: typeConfig ? typeConfig.label : '',
     description: description,
     isEmergency: isEmergency,
     autoFields: autoFieldData,
@@ -284,6 +286,9 @@ async function uploadToVault(fileCount) {
     });
     const result = await resp.json();
     if (resp.ok) {
+      window.dispatchEvent(new CustomEvent('vault:uploaded', {
+        detail: { fileCount: fileCount, timestamp: new Date().toISOString() }
+      }));
       alert(`${fileCount} document(s) uploaded to your vault.\n\nOverlay processing started.\nBlockchain timestamp applied.\nSaved to your cloud storage.`);
     } else {
       // Handle detailed error format from backend
