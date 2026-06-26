@@ -3374,8 +3374,9 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
 
     @fastapi_app.get("/timeline", response_class=HTMLResponse)
     async def timeline_page(request: Request):
-        """Universal timeline page - read-only GUI over database records. No auth gate, no cloud fetch."""
-        return HTMLResponse(content="<h1>Timeline</h1><p>Timeline page - under construction</p>")
+        """Universal timeline page - redirects to tenant timeline for authenticated users."""
+        from starlette.responses import RedirectResponse
+        return RedirectResponse(url="/tenant/timeline", status_code=302)
 
     async def _get_tenant_briefcase(user_id: str, user_name: Optional[str] = None):
         """Fetch complete tenant briefcase - unified vault, timeline, journal, inbox."""
