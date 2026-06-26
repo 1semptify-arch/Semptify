@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Query, Request
 
-from app.modules.tenant_feed.service import aggregate_feed, FEED_TYPES
+from app.modules.tenant_feed.service import aggregate_feed_async, FEED_TYPES
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +62,7 @@ async def get_tenant_feed(
         return {"items": [], "total_count": 0, "filtered": type is not None}
 
     try:
-        items = aggregate_feed(user_id, type_filter=type)
+        items = await aggregate_feed_async(user_id, type_filter=type)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e
 
