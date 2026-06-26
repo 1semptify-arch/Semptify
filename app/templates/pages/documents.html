@@ -173,7 +173,7 @@
         try {
             // Create form data
             const formData = new FormData();
-            formData.append('files', file);
+            formData.append('file', file);
             formData.append('metadata', JSON.stringify({
                 document_type: 'evidence',
                 source: 'documents_page'

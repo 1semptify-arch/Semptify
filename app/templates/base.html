@@ -580,7 +580,7 @@
         async function uploadFile(file) {
             toast(`Uploading "${file.name}"...`, 'info');
             const fd = new FormData();
-            fd.append('files', file);
+            fd.append('file', file);
             fd.append('metadata', JSON.stringify({ source: 'logo_quick_upload' }));
             try {
                 // Step 1: Upload to vault

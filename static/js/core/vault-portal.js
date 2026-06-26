@@ -274,7 +274,7 @@ async function uploadToVault(fileCount) {
   console.log('Vault upload prepared:', uploadData);
 
   const formData = new FormData();
-  files.forEach(file => formData.append('files', file));
+  files.forEach(file => formData.append('file', file));
   formData.append('metadata', JSON.stringify(uploadData));
 
   try {
