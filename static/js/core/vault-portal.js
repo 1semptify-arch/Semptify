@@ -245,16 +245,6 @@ function getUserIdFromCookie() {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-async function getStorageContext() {
-  try {
-    const resp = await fetch('/storage/status', { credentials: 'include' });
-    if (!resp.ok) return null;
-    return await resp.json();
-  } catch (e) {
-    return null;
-  }
-}
-
 async function uploadToVault(fileCount, skipDetails = false) {
   const files = window.vaultPendingFiles;
   if (!files || files.length === 0) {
@@ -268,13 +258,10 @@ async function uploadToVault(fileCount, skipDetails = false) {
     return;
   }
 
-  const storageCtx = await getStorageContext();
-  if (!storageCtx || !storageCtx.authenticated) {
-    if (confirm('Please connect your storage to upload documents. Reconnect now?')) {
-      window.location.href = (storageCtx && storageCtx.redirect_url) || '/storage';
-    }
-    return;
-  }
+  // No pre-check. Backend has a token fallback chain (intake/router.py):
+  //   form field -> user.access_token -> get_valid_token_for_user (refreshes)
+  // If all fail, the upload returns 401/token_expired and we prompt reconnect
+  // reactively with return_to so the user doesn't lose their place.
 
   const docType = document.getElementById('vault-doc-type')?.value || '';
   const description = document.getElementById('vault-description')?.value || '';
@@ -300,14 +287,16 @@ async function uploadToVault(fileCount, skipDetails = false) {
   let uploadedCount = 0;
   let firstVaultId = null;
   const errors = [];
+  let authRedirectUrl = null;
 
   for (const file of files) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('user_id', userId);
     formData.append('username', 'tenant');
-    formData.append('access_token', storageCtx.access_token || '');
-    formData.append('storage_provider', storageCtx.provider || 'local');
+    // Send "auto" so backend uses its token fallback chain
+    formData.append('access_token', 'auto');
+    formData.append('storage_provider', 'auto');
     if (description) formData.append('description', description);
     if (tags) formData.append('tags', tags);
 
@@ -324,6 +313,20 @@ async function uploadToVault(fileCount, skipDetails = false) {
       } else {
         const msg = _formatError(result, resp.statusText);
         errors.push(`${file.name}: ${msg}`);
+
+        // Reactive auth error detection (matches commit 9b71cb1 pattern)
+        const isAuthError = resp.status === 401 ||
+          result.error === 'token_expired' ||
+          result.error === 'storage_required' ||
+          (typeof msg === 'string' && (
+            msg.toLowerCase().includes('storage session expired') ||
+            msg.toLowerCase().includes('storage authentication failed') ||
+            msg.toLowerCase().includes('authentication required')
+          ));
+        if (isAuthError && !authRedirectUrl) {
+          authRedirectUrl = result.redirect_url ||
+            ('/storage/reconnect?return_to=' + encodeURIComponent(window.location.pathname));
+        }
       }
     } catch (e) {
       errors.push(`${file.name}: ${e.message || 'Network error'}`);
@@ -335,6 +338,13 @@ async function uploadToVault(fileCount, skipDetails = false) {
       detail: { fileCount: uploadedCount, vault_id: firstVaultId, timestamp: new Date().toISOString() }
     }));
     alert(`${uploadedCount} document(s) uploaded.\n\nOCR and metadata extraction are running in the background.`);
+  }
+
+  if (authRedirectUrl) {
+    if (confirm('Your storage connection expired. Reconnect now?')) {
+      window.location.href = authRedirectUrl;
+      return;
+    }
   }
 
   if (errors.length > 0) {
