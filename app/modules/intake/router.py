@@ -410,6 +410,8 @@ async def upload_and_process(
     storage_provider: str = Form("local", description="Storage provider"),
     description: Optional[str] = Form(None, description="Document description"),
     tags: Optional[str] = Form(None, description="Comma-separated tags"),
+    user: Optional[StorageUser] = Depends(yellow_access),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Upload and automatically process a document (complete pipeline).
@@ -426,8 +428,32 @@ async def upload_and_process(
     9. UI refresh via WebSocket
     
     Returns complete processing result in one call.
+    
+    Token resolution fallback chain (matches vault/router.py pattern):
+    1. Form field access_token (if provided and not "auto")
+    2. user.access_token from session (if user available)
+    3. get_valid_token_for_user(user_id, db) — refreshes expired tokens
     """
     engine = get_intake_engine()
+
+    # Resolve real access token with fallback chain (matches vault/router.py:216-225)
+    real_token = access_token
+    if not real_token or real_token == "auto":
+        real_token = getattr(user, "access_token", None) if user else None
+    if not real_token or real_token in ("auto", "no-token"):
+        try:
+            from app.core.oauth_token_manager import get_valid_token_for_user
+            real_token = await get_valid_token_for_user(user_id, db)
+        except Exception as e:
+            logger.warning("Token resolution failed for user %s: %s", user_id, e)
+            real_token = None
+
+    # Resolve storage provider from user if not provided or placeholder
+    resolved_provider = storage_provider
+    if (not resolved_provider or resolved_provider in ("auto", "local")) and user:
+        user_provider = getattr(user, "provider", None)
+        if user_provider:
+            resolved_provider = user_provider
     
     # Read file content
     content = await file.read()
@@ -452,7 +478,7 @@ async def upload_and_process(
                 user_id=user_id,
                 username=username,
                 storage_path="",  # Will be updated after vault upload
-                storage_provider=storage_provider,
+                storage_provider=resolved_provider,
                 description=description,
                 tags=tags_list,
                 upload_method="web_auto",
@@ -478,8 +504,8 @@ async def upload_and_process(
                 content=content,
                 mime_type=file.content_type or "application/octet-stream",
                 source_module="intake_auto",
-                access_token=access_token,
-                storage_provider=storage_provider,
+                access_token=real_token,
+                storage_provider=resolved_provider,
             )
             vault_id = vault_doc.vault_id
             
@@ -543,15 +569,15 @@ async def upload_and_process(
                     "doc_type": doc.doc_type.value if doc.doc_type else None,
                     "summary": doc.extraction.summary if doc.extraction else None,
                 },
-                access_token=access_token,
-                storage_provider=storage_provider,
+                access_token=real_token,
+                storage_provider=resolved_provider,
             )
             if doc.doc_type:
                 await vault_service.update_document_type(
                     vault_id,
                     doc.doc_type.value,
-                    access_token=access_token,
-                    storage_provider=storage_provider,
+                    access_token=real_token,
+                    storage_provider=resolved_provider,
                 )
         except Exception as e:
             logger.warning("Vault update failed: %s", e)
