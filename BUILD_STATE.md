@@ -12,6 +12,37 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-27 — Vault Upload Reconnect Loop Fix (COMPLETE)
+**Commit: `3a0f98e` | Pushed: 2026-06-27**
+
+### What Was Shipped
+
+#### Vault Upload Loop Fix
+- **`static/js/core/vault-portal.js`** — Removed `/storage/status` pre-check and redirect that caused infinite loop when OAuth token expired. Restored reactive auth error pattern from commit `9b71cb1` (May 21): upload is attempted directly, and only on 401/`token_expired`/`storage_required` does a confirm prompt offer reconnect with `return_to` parameter so user returns to their page.
+- **`app/modules/intake/router.py`** — Added token fallback chain to `/api/intake/upload/auto` endpoint matching `vault/router.py:216-225` pattern: form field → `user.access_token` → `get_valid_token_for_user()` (refreshes expired tokens). Added `resolved_provider` so frontend can send `storage_provider=auto` and backend resolves it from the user session.
+- **17 HTML files** — Cache-bust version bumped `20260626cb` → `20260626d` for `vault-portal.js`.
+
+### Root Cause
+Commit `7be9e1f` (2026-06-26) added a client-side `/storage/status` pre-check that redirected to `/storage` before trying the upload. When the OAuth token expired, this created a loop: pre-check fails → redirect to `/storage` → gate is complete so `/storage` redirects back to app → user returns to upload → pre-check fails again. The proven working pattern (commit `9b71cb1`) was reactive, not pre-emptive.
+
+### Known Working
+- All Python files compile clean ✅
+- `vault-portal.js` passes `node --check` ✅
+- No pending Fix-It reports ✅
+- Token fallback chain matches `vault/router.py` pattern ✅
+
+### Known Broken / Pending
+- **Live upload not yet verified** — user needs to test at semptify.org after deploy + Cloudflare cache purge
+- **Feed aggregator not wired to real data sources** — from prior session
+- **Add Record modal POST endpoint not wired** — from prior session
+
+### Next Session
+- User tests upload at semptify.org (hard refresh, attempt upload, verify no loop)
+- If upload works, begin GUI refactor planning (Phase 5b GUI Phase 1)
+- If upload fails, collect console logs and exact error messages
+
+---
+
 ## Session — 2026-06-26 — Public Website (Phase 0) + Hybrid Contextual GUI (Phase 1A/1B/1C) (COMPLETE)
 **Commit: `a5343b5` | Pushed: 2026-06-26**
 
