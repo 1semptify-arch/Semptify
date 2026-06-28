@@ -23,16 +23,21 @@ def test_dc_router_is_fastapi_router():
 
 
 def test_dc_router_prefix():
-    """DC router is mounted at /api/dc."""
+    """DC router routes are mounted at /api/dc via product_manifest prefix."""
     from app.modules.document_center.router import router
-    assert router.prefix == "/api/dc", f"Expected prefix /api/dc, got {router.prefix}"
+    # Prefix is applied by product_manifest at registration time, not on router itself
+    # Verify routes have relative paths (no leading /api/dc)
+    paths = [r.path for r in router.routes]
+    assert all(not p.startswith("/api/dc") for p in paths), \
+        f"Routes should not have /api/dc prefix (manifest adds it): {paths}"
+    assert "/list" in paths, f"Expected /list route, found: {paths}"
 
 
 def test_dc_router_has_list_endpoint():
-    """DC router exposes GET /api/dc/list."""
+    """DC router exposes GET /list (manifest adds /api/dc prefix)."""
     from app.modules.document_center.router import router
     paths = [r.path for r in router.routes]
-    assert "/api/dc/list" in paths, f"Missing /api/dc/list. Found: {paths}"
+    assert "/list" in paths, f"Missing /list. Found: {paths}"
 
 
 def test_dc_router_has_set_type_endpoint():
@@ -306,10 +311,10 @@ def test_dc_synthesize_overlays_items_capped_at_10():
 
 
 def test_dc_router_has_unlocks_endpoint():
-    """DC router exposes GET /api/dc/unlocks."""
+    """DC router exposes GET /unlocks (manifest adds /api/dc prefix)."""
     from app.modules.document_center.router import router
     paths = [r.path for r in router.routes]
-    assert "/api/dc/unlocks" in paths, f"Missing /api/dc/unlocks. Found: {paths}"
+    assert "/unlocks" in paths, f"Missing /unlocks. Found: {paths}"
 
 
 def test_dc_unlocks_contract_registered():
