@@ -253,7 +253,7 @@
         if (!docsRes.ok) throw new Error('Not authenticated');
 
         const docsData = await docsRes.json();
-        const documents = docsData.documents || [];
+        const documents = Array.isArray(docsData) ? docsData : (docsData.documents || []);
 
         if (documents.length === 0) {
           document.getElementById('hero-summary').innerHTML = 'No documents yet. <a href="/tenant/documents" style="color:#fbbf24;">Upload documents →</a>';
