@@ -175,6 +175,86 @@ def _synthesize_overlays(doc) -> dict:
     }
 
 
+def _compute_unlocks(docs: list) -> list[dict]:
+    """Compute unlock states for DC feature modules from all user documents.
+
+    Rules:
+    - Timeline:        1 doc with avg(Dates pct, Parties pct) >= 80
+    - Journal:         2+ docs with overall_pct >= 60
+    - Contact Manager: any doc with Parties pct == 100
+    - Case Builder:    3+ docs with overall_pct >= 80
+    """
+    scores = [_synthesize_overlays(doc) for doc in docs]
+
+    def _pct_for(s: dict, overlay_type: str) -> int:
+        return next((o["pct"] for o in s["overlays"] if o["overlay_type"] == overlay_type), 0)
+
+    def _dates_parties_avg(s: dict) -> int:
+        return (_pct_for(s, "key_date_extraction") + _pct_for(s, "party_extraction")) // 2
+
+    timeline_docs    = sum(1 for s in scores if _dates_parties_avg(s) >= 80)
+    verified_60_docs = sum(1 for s in scores if s["overall_pct"] >= 60)
+    contact_docs     = sum(1 for s in scores if _pct_for(s, "party_extraction") == 100)
+    verified_80_docs = sum(1 for s in scores if s["overall_pct"] >= 80)
+
+    return [
+        {
+            "name": "Timeline",
+            "icon": "📅",
+            "threshold": "1 doc with Dates + Parties ≥ 80%",
+            "unlocked": timeline_docs >= 1,
+            "progress": f"{timeline_docs}/1 docs meet threshold",
+        },
+        {
+            "name": "Journal",
+            "icon": "📓",
+            "threshold": "2+ docs verified ≥ 60%",
+            "unlocked": verified_60_docs >= 2,
+            "progress": f"{verified_60_docs}/2 docs meet threshold",
+        },
+        {
+            "name": "Contact Manager",
+            "icon": "👤",
+            "threshold": "Parties overlay = 100%",
+            "unlocked": contact_docs >= 1,
+            "progress": f"{contact_docs}/1 docs meet threshold",
+        },
+        {
+            "name": "Case Builder",
+            "icon": "⚖️",
+            "threshold": "3 docs verified ≥ 80%",
+            "unlocked": verified_80_docs >= 3,
+            "progress": f"{verified_80_docs}/3 docs meet threshold",
+        },
+    ]
+
+
+@router.get("/unlocks")
+async def dc_get_unlocks(request: Request) -> JSONResponse:
+    """Compute unlock states for DC feature modules across all user documents.
+
+    Iterates every VaultDocument for the user, synthesizes overlay scores in memory
+    (no cloud I/O), and checks each unlock threshold.
+    """
+    user_id = _auth(request)
+    if not user_id:
+        return JSONResponse(status_code=401, content={"error": "not_authenticated"})
+
+    try:
+        from app.services.vault_upload_service import get_vault_service
+        vault_service = get_vault_service()
+        docs = await vault_service.get_user_documents(user_id)
+        unlocks = _compute_unlocks(docs)
+        return JSONResponse({
+            "unlocks": unlocks,
+            "doc_count": len(docs),
+            "generated_at": utc_now().isoformat(),
+        })
+    except Exception as e:
+        logger.error("DC unlocks error user=%s: %s", user_id, e, exc_info=True)
+        return JSONResponse(status_code=500, content={"error": "unlocks_failed", "detail": str(e)})
+
+
 @router.get("/document/{vault_id}/overlays")
 async def dc_get_overlays(vault_id: str, request: Request) -> JSONResponse:
     """Get overlay progress data for the DC right panel.
