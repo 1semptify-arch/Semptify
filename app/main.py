@@ -2560,11 +2560,17 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             "journal_count": 0,
             "last_journal_date": None,
             "recent_activity": [],
+            "vault_connected": False,
+            "jurisdiction": None,
         }
         if briefcase:
             ctx["user_name"] = briefcase.user_name
             ctx["document_count"] = briefcase.vault.total_documents if briefcase.vault else 0
             ctx["journal_count"] = briefcase.journal.total_entries if briefcase.journal else 0
+            ctx["vault_connected"] = bool(briefcase.vault and briefcase.vault.total_documents is not None)
+            if hasattr(briefcase, "location") and briefcase.location:
+                loc = briefcase.location
+                ctx["jurisdiction"] = getattr(loc, "state_code", None) or getattr(loc, "zip_code", None)
             if briefcase.timeline and briefcase.timeline.next_deadline:
                 ctx["next_deadline"] = {
                     "title": briefcase.timeline.next_deadline.title,
@@ -3488,6 +3494,22 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
                     "has_any_data": False,
                     "is_new_tenant": True,
                 }
+                # Add framework fields for the redesigned tenant home
+                context["vault_connected"] = bool(briefcase and briefcase.vault and briefcase.vault.total_documents is not None)
+                context["jurisdiction"] = None
+                context["user_name"] = briefcase.user_name if briefcase else None
+                context["document_count"] = briefcase.vault.total_documents if briefcase and briefcase.vault else 0
+                context["journal_count"] = briefcase.journal.total_entries if briefcase and briefcase.journal else 0
+                context["next_deadline"] = None
+                context["last_document_date"] = None
+                context["last_journal_date"] = None
+                context["recent_activity"] = []
+                if briefcase and briefcase.timeline and briefcase.timeline.next_deadline:
+                    context["next_deadline"] = {
+                        "title": briefcase.timeline.next_deadline.title,
+                        "date": briefcase.timeline.next_deadline.date,
+                        "days_remaining": briefcase.timeline.next_deadline.days_until,
+                    }
                 return templates.TemplateResponse(request, "pages/tenant_home.html", context)
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.warning("Tenant home template error: %s", e)
