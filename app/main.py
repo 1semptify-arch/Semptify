@@ -3596,7 +3596,8 @@ All errors return JSON with `detail` field. Rate limit errors include `retry_aft
             journal_entries = briefcase.journal.recent_entries or []
         entries = journal_entries
         # DEBUG: inject info as HTML comment
-        _debug = f"<!-- DEBUG: user_id={user_id[:8] if user_id else 'None'} briefcase={'yes' if briefcase else 'None'} journal={'yes' if briefcase and briefcase.journal else 'no'} entries={len(entries)} -->"
+        _j = briefcase.journal if briefcase and briefcase.journal else None
+        _debug = f"<!-- DEBUG: user_id={user_id[:8] if user_id else 'None'} briefcase={'yes' if briefcase else 'None'} journal={'yes' if _j else 'no'} entries={len(entries)} docs={getattr(_j, '_debug_docs', '?')} err={getattr(_j, '_debug_err', '?')} vault_docs={getattr(_j, '_debug_vault_docs', '?')} -->"
 
         context = {
             "briefcase": briefcase,

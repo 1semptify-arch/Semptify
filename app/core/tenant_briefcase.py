@@ -651,11 +651,13 @@ async def _load_timeline_summary(user_id: str, vault: VaultSummary) -> TimelineS
 async def _load_journal_summary(user_id: str, vault: VaultSummary) -> JournalSummary:
     """Load journal entries from vault documents."""
     entries = []
+    _debug_docs = -1
+    _debug_err = ""
     try:
         from app.services.vault_upload_service import get_vault_service
         vault_service = get_vault_service()
         docs = await vault_service.get_user_documents(user_id)
-        logger.warning("JOURNAL_DEBUG: user=%s docs=%d", user_id[:8] if user_id else "None", len(docs))
+        _debug_docs = len(docs)
         for doc in docs[:50]:
             is_urgent = (doc.document_type or "") in (
                 "eviction_notice", "court_order", "lease_termination", "court_summons", "court_complaint"
@@ -670,6 +672,7 @@ async def _load_journal_summary(user_id: str, vault: VaultSummary) -> JournalSum
                 attachment_count=1,
             ))
     except Exception as _e:
+        _debug_err = str(_e)[:100]
         logger.warning("Journal vault load failed: %s", _e)
 
     if not entries:
@@ -687,13 +690,17 @@ async def _load_journal_summary(user_id: str, vault: VaultSummary) -> JournalSum
     
     urgent_count = len([e for e in entries if e.is_urgent])
     
-    return JournalSummary(
+    result = JournalSummary(
         total_entries=len(entries),
         entries_this_month=vault.recent_documents,
         has_journal=len(entries) > 0,
         urgent_entries=urgent_count,
         recent_entries=sorted(entries, key=lambda x: x.created_at, reverse=True)[:5],
     )
+    result._debug_docs = _debug_docs
+    result._debug_err = _debug_err
+    result._debug_vault_docs = len(vault.documents)
+    return result
 
 
 async def _load_inbox_summary(user_id: str, briefcase: TenantBriefcase) -> InboxSummary:
