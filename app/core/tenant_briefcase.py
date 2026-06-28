@@ -655,6 +655,7 @@ async def _load_journal_summary(user_id: str, vault: VaultSummary) -> JournalSum
         from app.services.vault_upload_service import get_vault_service
         vault_service = get_vault_service()
         docs = await vault_service.get_user_documents(user_id)
+        logger.warning("JOURNAL_DEBUG: user=%s docs=%d", user_id[:8] if user_id else "None", len(docs))
         for doc in docs[:50]:
             is_urgent = (doc.document_type or "") in (
                 "eviction_notice", "court_order", "lease_termination", "court_summons", "court_complaint"
