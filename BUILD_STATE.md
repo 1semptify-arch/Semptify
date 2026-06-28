@@ -12,6 +12,34 @@ their legal rights—not tenants breaking the law.
 
 ---
 
+## Session — 2026-06-27 — Document Center Forge Integration, Slices 1–5 (COMPLETE)
+**Promoted: dev_only → preview | Forge: 18/18 smoke tests**
+
+### What Was Shipped
+
+#### Document Center Module (`app/modules/document_center/`)
+- **Slice 1** — 3-pane HTML shell (`app/templates/pages/documents.html`): left vault list, center viewer, right overlays panel
+- **Slice 2** — Real vault list from DB via `GET /api/dc/list`; `dc_list` contract registered
+- **Slice 3** — PDF/image viewer iframe + loading/error/download states; `GET /api/dc/document/{vault_id}/view` streams bytes inline with cookie auth; `dc_view` contract registered
+- **Slice 4** — `GET /api/dc/document/{vault_id}/overlays` synthesizes 6 progress items (Certified Upload, Document Type, Text Extraction, Dates, Parties, Amounts) from `VaultDocument` metadata — no cloud I/O; `renderOverlays()` async with stale-fetch guard; `dc_overlays` contract registered
+- **Slice 5** — `POST /api/dc/document/{vault_id}/type` writes `document_type` to DB, attempts `DOCUMENT_CLASSIFICATION` overlay (best-effort OAuth), returns overlay snapshot for one-trip right-panel refresh; `onTypeChange()` async with failure rollback; `dc_set_type` contract registered
+- **Forge gate** — 18/18 smoke tests passing; lifecycle bumped `dev_only → preview` in `product_manifest.py`; 4 contracts registered
+
+### Known Working (pending live test)
+- All DC Python files compile clean ✅
+- 18/18 Forge smoke tests pass ✅
+- `/api/dc/list` returns vault documents (pending live vault data)
+- `/api/dc/document/{id}/overlays` synthesizes from DB (pending live docs with extracted_data)
+- `/api/dc/document/{id}/type` writes to DB (pending live test)
+- `/api/dc/document/{id}/view` streams bytes inline (pending live test with real vault doc)
+
+### Known Broken / Pending
+- **CSS inline styles** — 5 pre-existing inline styles in `documents.html` (flash zone, empty state) flagged by linter; deferred to Slice 6 CSS extraction pass
+- Unlock logic in right panel still hardcoded; Slice 6 will wire to real `overall_pct` per document
+- `openOverlay()` drill-down panel deferred to Slice 6
+
+---
+
 ## Session — 2026-06-27 — Vault Upload Reconnect Loop Fix (COMPLETE)
 **Commit: `3a0f98e` | Pushed: 2026-06-27**
 
