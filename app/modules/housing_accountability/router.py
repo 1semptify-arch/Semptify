@@ -730,7 +730,7 @@ async def get_dashboard(
     calendar_result = await db.execute(
         select(func.count()).select_from(CalendarEvent)
         .where(CalendarEvent.user_id == user_id)
-        .where(CalendarEvent.event_date >= utc_now())
+        .where(CalendarEvent.start_datetime >= utc_now())
     )
     upcoming_count = calendar_result.scalar() or 0
 
