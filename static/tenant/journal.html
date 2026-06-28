@@ -282,7 +282,7 @@
                 if (!eventsResp.ok) throw new Error('Failed to load timeline');
                 const eventsData = await eventsResp.json();
 
-                const entries = eventsData.timeline || eventsData.events || [];
+                const entries = eventsData.items || eventsData.timeline || eventsData.events || [];
 
                 if (entries.length === 0) {
                     timeline.innerHTML = `
